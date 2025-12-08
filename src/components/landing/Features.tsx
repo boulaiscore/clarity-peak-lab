@@ -28,11 +28,11 @@ export function Features() {
     <section className="py-24 sm:py-32 relative">
       <div className="container px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-5">
+          <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
             The <span className="text-gradient">Cognitive Edge</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            NeuroLoop Pro is designed for professionals who treat their thinking as a competitive advantage.
+            Your thinking is your competitive advantage. NeuroLoop Pro trains it systematically.
           </p>
         </div>
 
@@ -40,7 +40,7 @@ export function Features() {
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="group p-6 sm:p-8 rounded-2xl bg-card border border-border hover:border-primary/25 transition-all duration-300 animate-fade-in-up"
+              className="group p-6 sm:p-8 rounded-xl bg-card border border-border hover:border-primary/25 transition-all duration-300 animate-fade-in-up shadow-card"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary/15 transition-colors">

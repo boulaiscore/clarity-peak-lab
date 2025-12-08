@@ -25,7 +25,7 @@ export function HowItWorks() {
       
       <div className="container px-6 relative">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-5">
+          <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
             How NeuroLoop <span className="text-gradient">Works</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
@@ -37,11 +37,11 @@ export function HowItWorks() {
           {modules.map((module, index) => (
             <div
               key={module.title}
-              className="relative p-8 rounded-2xl bg-card border border-border hover:border-primary/25 transition-all duration-300 animate-fade-in-up"
+              className="relative p-8 rounded-xl bg-card border border-border hover:border-primary/25 transition-all duration-300 animate-fade-in-up shadow-card"
               style={{ animationDelay: `${index * 0.15}s` }}
             >
               {/* Module number */}
-              <span className="absolute top-6 right-6 text-xs font-bold text-primary/40 tracking-wider">
+              <span className="absolute top-6 right-6 text-xs font-semibold text-primary/40 tracking-wider">
                 0{index + 1}
               </span>
               

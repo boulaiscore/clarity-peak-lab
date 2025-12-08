@@ -9,7 +9,7 @@ export function Pricing() {
       
       <div className="container px-6 relative">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-5">
+          <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
             Upgrade to <span className="text-gradient">Premium</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
@@ -19,14 +19,14 @@ export function Pricing() {
 
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Free Tier */}
-          <div className="p-8 rounded-2xl bg-card border border-border animate-fade-in-up">
+          <div className="p-8 rounded-xl bg-card border border-border animate-fade-in-up shadow-card">
             <div className="mb-8">
               <h3 className="text-xl font-semibold mb-2">Free</h3>
               <p className="text-muted-foreground text-sm">Core protocols to start training</p>
             </div>
             
             <div className="mb-8">
-              <span className="text-4xl font-bold">$0</span>
+              <span className="text-4xl font-semibold">$0</span>
               <span className="text-muted-foreground">/forever</span>
             </div>
 
@@ -44,13 +44,13 @@ export function Pricing() {
               ))}
             </ul>
 
-            <Button asChild variant="outline" className="w-full min-h-[52px]">
+            <Button asChild variant="outline" className="w-full min-h-[52px] rounded-xl">
               <Link to="/auth">Get Started</Link>
             </Button>
           </div>
 
           {/* Premium Tier */}
-          <div className="p-8 rounded-2xl bg-card border border-primary/25 shadow-glow animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <div className="p-8 rounded-xl bg-card border border-primary/25 shadow-glow animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
             <div className="flex items-start justify-between mb-8">
               <div>
                 <h3 className="text-xl font-semibold mb-2">Premium</h3>
@@ -62,7 +62,7 @@ export function Pricing() {
             </div>
             
             <div className="mb-8">
-              <span className="text-4xl font-bold">$12</span>
+              <span className="text-4xl font-semibold">$12</span>
               <span className="text-muted-foreground">/month</span>
             </div>
 
@@ -81,7 +81,7 @@ export function Pricing() {
               ))}
             </ul>
 
-            <Button asChild variant="hero" className="w-full min-h-[52px]">
+            <Button asChild variant="hero" className="w-full min-h-[52px] rounded-xl">
               <Link to="/auth">Start Free Trial</Link>
             </Button>
           </div>

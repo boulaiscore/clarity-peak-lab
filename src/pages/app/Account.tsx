@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { User, Mail, Target, Clock, Crown, Save } from "lucide-react";
+import { User, Mail, Target, Clock, Crown, Save, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const goalOptions = [
-  { value: "stress", label: "Stress Reduction" },
-  { value: "clarity", label: "Mental Clarity" },
-  { value: "performance", label: "Peak Performance" },
-  { value: "decisions", label: "Better Decisions" },
+  { value: "reasoning", label: "Critical Thinking" },
+  { value: "clarity", label: "Conceptual Clarity" },
+  { value: "performance", label: "Cognitive Performance" },
+  { value: "decisions", label: "Decision Quality" },
 ];
 
 const timeOptions = [
@@ -34,8 +33,8 @@ const Account = () => {
     await new Promise((r) => setTimeout(r, 500));
     updateUser({
       name,
-      goal: goal as "stress" | "clarity" | "performance" | "decisions" | undefined,
-      timePreference: timePreference as "30s" | "2min" | "5min" | undefined,
+      goal: goal as any,
+      timePreference: timePreference as any,
     });
     toast({ title: "Settings saved", description: "Your preferences have been updated." });
     setIsSaving(false);
@@ -43,125 +42,108 @@ const Account = () => {
 
   return (
     <AppShell>
-      <div className="container px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+      <div className="container px-6 py-10 sm:py-16">
+        <div className="max-w-lg mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Account</h1>
-            <p className="text-muted-foreground">
-              Manage your profile and preferences.
-            </p>
+          <div className="text-center mb-10">
+            <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <User className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="text-2xl font-semibold mb-1">{user?.name || "User"}</h1>
+            <p className="text-muted-foreground text-sm">{user?.email}</p>
           </div>
 
-          <div className="space-y-6">
-            {/* Profile Section */}
-            <Card variant="elevated" className="p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-primary" />
-                Profile
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Name</label>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                  />
+          {/* Subscription Status */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center">
+                  <Crown className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Email</label>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border">
-                    <Mail className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-muted-foreground">{user?.email}</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Goals Section */}
-            <Card variant="elevated" className="p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
-                Primary Goal
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {goalOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setGoal(option.value)}
-                    className={cn(
-                      "p-4 rounded-xl border text-left transition-all",
-                      goal === option.value
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-secondary/30 hover:border-primary/50"
-                    )}
-                  >
-                    <span className="text-sm font-medium">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </Card>
-
-            {/* Time Preference Section */}
-            <Card variant="elevated" className="p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Preferred Session Length
-              </h2>
-              <div className="grid grid-cols-3 gap-3">
-                {timeOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setTimePreference(option.value)}
-                    className={cn(
-                      "p-4 rounded-xl border text-center transition-all",
-                      timePreference === option.value
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-secondary/30 hover:border-primary/50"
-                    )}
-                  >
-                    <span className="text-sm font-medium">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </Card>
-
-            {/* Subscription Section */}
-            <Card variant="elevated" className="p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Crown className="w-5 h-5 text-primary" />
-                Subscription
-              </h2>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">
-                    {user?.subscriptionStatus === "premium" ? "Premium" : "Free Plan"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {user?.subscriptionStatus === "premium"
-                      ? "You have access to all features."
-                      : "Upgrade for advanced protocols and insights."}
+                  <p className="font-semibold">{user?.subscriptionStatus === "premium" ? "Premium" : "Free"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {user?.subscriptionStatus === "premium" ? "Full access" : "Core protocols"}
                   </p>
                 </div>
-                {user?.subscriptionStatus !== "premium" && (
-                  <Button asChild variant="hero">
-                    <Link to="/app/premium">Upgrade</Link>
-                  </Button>
-                )}
               </div>
-            </Card>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button onClick={handleSave} variant="hero" disabled={isSaving} className="flex-1">
-                <Save className="w-4 h-4" />
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button onClick={logout} variant="outline" className="sm:w-auto">
-                Log Out
-              </Button>
+              {user?.subscriptionStatus !== "premium" && (
+                <Button asChild size="sm" variant="hero" className="rounded-xl">
+                  <Link to="/app/premium">Upgrade</Link>
+                </Button>
+              )}
             </div>
+          </div>
+
+          {/* Name */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <label className="text-sm font-medium mb-3 block">Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="h-12"
+            />
+          </div>
+
+          {/* Training Focus */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <Target className="w-4 h-4 text-primary" />
+              Training Focus
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {goalOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setGoal(option.value)}
+                  className={cn(
+                    "p-3 rounded-xl border text-sm transition-all",
+                    goal === option.value
+                      ? "border-primary bg-primary/8"
+                      : "border-border hover:border-primary/30"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Duration */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              Default Duration
+            </h3>
+            <div className="flex gap-2">
+              {timeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setTimePreference(option.value)}
+                  className={cn(
+                    "flex-1 p-3 rounded-xl border text-sm transition-all",
+                    timePreference === option.value
+                      ? "border-primary bg-primary/8"
+                      : "border-border hover:border-primary/30"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-3">
+            <Button onClick={handleSave} variant="hero" className="w-full min-h-[52px] rounded-xl" disabled={isSaving}>
+              <Save className="w-4 h-4" />
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+            <Button onClick={logout} variant="outline" className="w-full min-h-[52px] rounded-xl">
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </div>

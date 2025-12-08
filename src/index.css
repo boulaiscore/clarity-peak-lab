@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,64 +6,67 @@
 
 @layer base {
   :root {
-    --background: 225 25% 3%;
-    --foreground: 0 0% 98%;
+    --background: 220 20% 4%;
+    --background-surface: 220 15% 7%;
+    --foreground: 0 0% 100%;
 
-    --card: 225 22% 5%;
-    --card-foreground: 0 0% 98%;
+    --card: 220 15% 7%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 225 22% 5%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 220 15% 7%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 245 78% 60%;
+    --primary: 250 76% 63%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 225 18% 8%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 15% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 225 15% 12%;
-    --muted-foreground: 225 10% 50%;
+    --muted: 220 12% 14%;
+    --muted-foreground: 220 10% 65%;
 
-    --accent: 231 100% 66%;
+    --accent: 235 100% 65%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 15% 12%;
-    --input: 225 15% 10%;
-    --ring: 245 78% 60%;
+    --success: 156 85% 70%;
+    --success-foreground: 0 0% 0%;
+
+    --border: 220 12% 14%;
+    --input: 220 12% 12%;
+    --ring: 250 76% 63%;
 
     --radius: 0.875rem;
 
-    /* Cognitive Elite tokens */
-    --glow-primary: 245 78% 60%;
-    --glow-accent: 231 100% 66%;
-    --surface-elevated: 225 20% 7%;
-    --surface-card: 225 22% 5%;
-    --text-primary: 0 0% 98%;
-    --text-secondary: 225 10% 60%;
-    --text-muted: 225 10% 40%;
+    /* Brand tokens */
+    --bg-primary: 220 20% 4%;
+    --bg-surface: 220 15% 7%;
+    --accent-primary: 250 76% 63%;
+    --accent-secondary: 235 100% 65%;
+    --text-primary: 0 0% 100%;
+    --text-secondary: 220 12% 66%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(245, 78%, 60%) 0%, hsl(231, 100%, 66%) 100%);
-    --gradient-glow: linear-gradient(135deg, hsl(245, 78%, 60%, 0.25) 0%, hsl(231, 100%, 66%, 0.25) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(225, 20%, 7%) 0%, hsl(225, 22%, 5%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(245, 78%, 60%, 0.05) 0%, transparent 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(250, 76%, 63%) 0%, hsl(235, 100%, 65%) 100%);
+    --gradient-glow: linear-gradient(135deg, hsl(250, 76%, 63%, 0.25) 0%, hsl(235, 100%, 65%, 0.25) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(220, 15%, 7%) 0%, hsl(220, 20%, 4%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(250, 76%, 63%, 0.05) 0%, transparent 100%);
     
     /* Shadows */
-    --shadow-glow: 0 0 80px -20px hsl(245, 78%, 60%, 0.35);
+    --shadow-glow: 0 0 80px -20px hsl(250, 76%, 63%, 0.35);
     --shadow-card: 0 8px 32px -8px hsl(0, 0%, 0%, 0.6);
-    --shadow-button: 0 0 40px -8px hsl(245, 78%, 60%, 0.45);
+    --shadow-button: 0 0 40px -8px hsl(250, 76%, 63%, 0.45);
 
-    --sidebar-background: 225 22% 4%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 245 78% 60%;
+    --sidebar-background: 220 15% 5%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 250 76% 63%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 18% 10%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 225 15% 10%;
-    --sidebar-ring: 245 78% 60%;
+    --sidebar-accent: 220 15% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 12% 12%;
+    --sidebar-ring: 250 76% 63%;
   }
 }
 
@@ -73,7 +76,7 @@
   }
 
   html {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

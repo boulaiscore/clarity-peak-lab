@@ -22,15 +22,15 @@ export function Hero() {
           </div>
 
           {/* Main headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 animate-fade-in leading-[1.1]" style={{ animationDelay: "0.1s" }}>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-8 animate-fade-in leading-[1.1]" style={{ animationDelay: "0.1s" }}>
             Train Your Mind for
             <br />
-            <span className="text-gradient">Higher-Order Thinking</span>
+            <span className="text-gradient">Elite Reasoning</span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in leading-relaxed" style={{ animationDelay: "0.2s" }}>
-            NeuroLoop Pro builds cognitive longevity and elite reasoning for modern professionals. Sharpen critical thinking. Improve decision quality. Compound your mental edge.
+            Your thinking is your competitive edge. NeuroLoop Pro builds cognitive longevity and higher-order cognition for better decisions.
           </p>
 
           {/* CTAs - Mobile optimized */}

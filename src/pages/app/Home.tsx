@@ -14,21 +14,18 @@ const modules = [
     icon: FlaskConical,
     title: "Reasoning Workout™",
     subtitle: "Train your analytical and critical thinking abilities.",
-    gradient: "from-violet-500/15 to-indigo-500/15",
   },
   {
     type: "clarity" as ProtocolType,
     icon: Target,
     title: "Clarity Lab™",
     subtitle: "Develop mental sharpness, conceptual clarity, and problem decomposition.",
-    gradient: "from-blue-500/15 to-cyan-500/15",
   },
   {
     type: "decision" as ProtocolType,
     icon: Workflow,
     title: "Decision Studio™",
     subtitle: "Upgrade your strategic decision-making under uncertainty.",
-    gradient: "from-purple-500/15 to-pink-500/15",
   },
 ];
 
@@ -60,7 +57,7 @@ const Home = () => {
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-sm font-medium text-primary/90 tracking-wide">Cognitive Training</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-semibold mb-4 tracking-tight">
             Hello, <span className="text-gradient">{firstName}</span>
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -75,20 +72,15 @@ const Home = () => {
               key={module.type}
               onClick={() => handleModuleClick(module.type)}
               className={cn(
-                "group relative w-full p-6 sm:p-8 rounded-2xl bg-card border border-border",
+                "group relative w-full p-6 sm:p-8 rounded-xl bg-card border border-border",
                 "hover:border-primary/30 transition-all duration-300",
-                "text-left overflow-hidden min-h-[120px] touch-target",
+                "text-left overflow-hidden min-h-[120px] touch-target shadow-card",
                 "animate-fade-in-up"
               )}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              {/* Gradient background */}
-              <div
-                className={cn(
-                  "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                  `bg-gradient-to-br ${module.gradient}`
-                )}
-              />
+              {/* Gradient hover */}
+              <div className="absolute inset-0 bg-gradient-glow opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               {/* Content */}
               <div className="relative z-10 flex items-start gap-5">
@@ -128,7 +120,7 @@ const Home = () => {
         {/* Tagline */}
         <div className="mt-16 text-center">
           <p className="text-muted-foreground/60 text-sm">
-            Train your thinking. Compound your edge.
+            Train your mind for elite reasoning.
           </p>
         </div>
       </div>

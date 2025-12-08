@@ -19,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Outfit", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -47,6 +47,10 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -66,12 +70,8 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         surface: {
-          elevated: "hsl(var(--surface-elevated))",
-          card: "hsl(var(--surface-card))",
-        },
-        glow: {
-          primary: "hsl(var(--glow-primary))",
-          accent: "hsl(var(--glow-accent))",
+          DEFAULT: "hsl(var(--bg-surface))",
+          primary: "hsl(var(--bg-primary))",
         },
       },
       borderRadius: {

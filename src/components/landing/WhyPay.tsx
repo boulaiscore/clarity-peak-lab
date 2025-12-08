@@ -6,16 +6,16 @@ export function WhyPay() {
       <div className="container px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-5">
+            <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
               <span className="text-gradient">Cognitive Longevity</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-              Your brain is your competitive advantage. NeuroLoop Pro helps you refine it through consistent, high-quality cognitive practice designed to compound over time.
+              Cognitive fitness for long-term performance. Your brain is your competitive advantage — train it systematically.
             </p>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-6 mb-16">
-            <div className="p-6 sm:p-8 rounded-2xl bg-card border border-border">
+            <div className="p-6 sm:p-8 rounded-xl bg-card border border-border shadow-card">
               <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center mb-4">
                 <TrendingUp className="w-5 h-5 text-primary" />
               </div>
@@ -25,7 +25,7 @@ export function WhyPay() {
               </p>
             </div>
             
-            <div className="p-6 sm:p-8 rounded-2xl bg-card border border-border">
+            <div className="p-6 sm:p-8 rounded-xl bg-card border border-border shadow-card">
               <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center mb-4">
                 <Infinity className="w-5 h-5 text-primary" />
               </div>
@@ -35,7 +35,7 @@ export function WhyPay() {
               </p>
             </div>
             
-            <div className="p-6 sm:p-8 rounded-2xl bg-card border border-border">
+            <div className="p-6 sm:p-8 rounded-xl bg-card border border-border shadow-card">
               <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center mb-4">
                 <Zap className="w-5 h-5 text-primary" />
               </div>
@@ -47,9 +47,9 @@ export function WhyPay() {
           </div>
 
           {/* Quote */}
-          <div className="text-center p-8 sm:p-12 rounded-2xl bg-gradient-surface border border-border">
+          <div className="text-center p-8 sm:p-12 rounded-xl bg-gradient-surface border border-border">
             <blockquote className="text-xl sm:text-2xl font-medium mb-4 leading-relaxed">
-              "Train your thinking. <span className="text-gradient">Compound your edge.</span>"
+              "Higher-order cognition. <span className="text-gradient">Better decisions.</span>"
             </blockquote>
             <p className="text-muted-foreground text-sm">— The NeuroLoop Philosophy</p>
           </div>
