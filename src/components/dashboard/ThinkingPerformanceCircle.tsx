@@ -22,30 +22,30 @@ export function ThinkingPerformanceCircle({
   philosophicalReasoning,
 }: ThinkingPerformanceCircleProps) {
   const rings: PerformanceRing[] = [
-    { name: "Critical Thinking", value: criticalThinking, color: "#6C5CE7" },
-    { name: "Clarity", value: clarity, color: "#4D55FF" },
-    { name: "Focus", value: focus, color: "#6FF7B4" },
-    { name: "Decision Quality", value: decisionQuality, color: "#F97316" },
-    { name: "Creativity", value: creativity, color: "#EC4899" },
-    { name: "Philosophical", value: philosophicalReasoning, color: "#8B5CF6" },
+    { name: "Critical Thinking", value: criticalThinking, color: "hsl(165, 82%, 51%)" },
+    { name: "Clarity", value: clarity, color: "hsl(165, 70%, 40%)" },
+    { name: "Focus", value: focus, color: "hsl(38, 92%, 50%)" },
+    { name: "Decision Quality", value: decisionQuality, color: "hsl(165, 60%, 35%)" },
+    { name: "Creativity", value: creativity, color: "hsl(280, 60%, 50%)" },
+    { name: "Philosophical", value: philosophicalReasoning, color: "hsl(200, 70%, 50%)" },
   ];
 
-  const size = 200;
-  const strokeWidth = 8;
-  const gap = 4;
+  const size = 180;
+  const strokeWidth = 6;
+  const gap = 3;
   const centerX = size / 2;
   const centerY = size / 2;
 
   return (
-    <div className="p-6 rounded-2xl bg-surface/50 border border-border/30 shadow-card">
-      <h3 className="text-sm font-semibold text-foreground mb-4 text-center">
-        Thinking Performance Profile
+    <div className="p-5 rounded-2xl bg-card border border-border/30">
+      <h3 className="label-uppercase text-center mb-4">
+        Performance Profile
       </h3>
 
       <div className="flex justify-center">
         <svg width={size} height={size} className="transform -rotate-90">
           {rings.map((ring, index) => {
-            const radius = (size / 2) - (strokeWidth / 2) - (index * (strokeWidth + gap)) - 10;
+            const radius = (size / 2) - (strokeWidth / 2) - (index * (strokeWidth + gap)) - 8;
             const circumference = 2 * Math.PI * radius;
             const strokeDashoffset = circumference - (ring.value / 100) * circumference;
 
@@ -57,7 +57,7 @@ export function ThinkingPerformanceCircle({
                   cy={centerY}
                   r={radius}
                   fill="none"
-                  stroke="rgba(255,255,255,0.05)"
+                  stroke="hsl(0, 0%, 12%)"
                   strokeWidth={strokeWidth}
                 />
                 {/* Value ring */}
@@ -73,51 +73,29 @@ export function ThinkingPerformanceCircle({
                   strokeDashoffset={strokeDashoffset}
                   style={{
                     transition: "stroke-dashoffset 1s ease-out",
-                    filter: `drop-shadow(0 0 4px ${ring.color}40)`,
                   }}
                 />
               </g>
             );
           })}
-          {/* Center text */}
-          <text
-            x={centerX}
-            y={centerY - 8}
-            textAnchor="middle"
-            className="fill-text-secondary text-[10px] font-medium"
-            style={{ transform: "rotate(90deg)", transformOrigin: "center" }}
-          >
-            Weekly
-          </text>
-          <text
-            x={centerX}
-            y={centerY + 8}
-            textAnchor="middle"
-            className="fill-foreground text-xs font-semibold"
-            style={{ transform: "rotate(90deg)", transformOrigin: "center" }}
-          >
-            Profile
-          </text>
         </svg>
       </div>
 
       {/* Legend */}
-      <div className="mt-6 grid grid-cols-2 gap-2">
+      <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2">
         {rings.map((ring) => (
-          <div key={ring.name} className="flex items-center gap-2">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: ring.color }}
-            />
-            <span className="text-[10px] text-text-secondary truncate">{ring.name}</span>
-            <span className="text-[10px] font-medium text-foreground ml-auto">{ring.value}</span>
+          <div key={ring.name} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: ring.color }}
+              />
+              <span className="text-[10px] text-muted-foreground">{ring.name}</span>
+            </div>
+            <span className="text-[11px] font-medium text-foreground number-display">{ring.value}</span>
           </div>
         ))}
       </div>
-
-      <p className="text-[10px] text-text-secondary/60 text-center mt-4">
-        Your cognitive performance profile this week.
-      </p>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,67 +6,72 @@
 
 @layer base {
   :root {
-    --background: 220 20% 4%;
-    --background-surface: 220 15% 7%;
-    --foreground: 0 0% 100%;
+    /* WHOOP-inspired pure dark palette */
+    --background: 0 0% 0%;
+    --background-surface: 0 0% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 220 15% 7%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 220 15% 7%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 250 76% 63%;
-    --primary-foreground: 0 0% 100%;
+    /* Teal/Cyan accent like WHOOP */
+    --primary: 165 82% 51%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 220 15% 10%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 12% 14%;
-    --muted-foreground: 220 10% 65%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 235 100% 65%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 165 70% 45%;
+    --accent-foreground: 0 0% 0%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
 
-    --success: 156 85% 70%;
+    --success: 165 82% 51%;
     --success-foreground: 0 0% 0%;
 
-    --border: 220 12% 14%;
-    --input: 220 12% 12%;
-    --ring: 250 76% 63%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
 
-    --radius: 0.875rem;
+    --border: 0 0% 12%;
+    --input: 0 0% 10%;
+    --ring: 165 82% 51%;
 
-    /* Brand tokens */
-    --bg-primary: 220 20% 4%;
-    --bg-surface: 220 15% 7%;
-    --accent-primary: 250 76% 63%;
-    --accent-secondary: 235 100% 65%;
-    --text-primary: 0 0% 100%;
-    --text-secondary: 220 12% 66%;
+    --radius: 1rem;
+
+    /* Brand tokens - WHOOP style */
+    --bg-primary: 0 0% 0%;
+    --bg-surface: 0 0% 6%;
+    --accent-primary: 165 82% 51%;
+    --accent-secondary: 165 70% 40%;
+    --text-primary: 0 0% 98%;
+    --text-secondary: 0 0% 55%;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(250, 76%, 63%) 0%, hsl(235, 100%, 65%) 100%);
-    --gradient-glow: linear-gradient(135deg, hsl(250, 76%, 63%, 0.25) 0%, hsl(235, 100%, 65%, 0.25) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(220, 15%, 7%) 0%, hsl(220, 20%, 4%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(250, 76%, 63%, 0.05) 0%, transparent 100%);
+    /* Gradients - Teal glow */
+    --gradient-primary: linear-gradient(135deg, hsl(165, 82%, 51%) 0%, hsl(165, 70%, 40%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(165, 82%, 51%, 0.15) 0%, transparent 70%);
+    --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 8%) 0%, hsl(0, 0%, 0%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(165, 82%, 51%, 0.03) 0%, transparent 100%);
     
-    /* Shadows */
-    --shadow-glow: 0 0 80px -20px hsl(250, 76%, 63%, 0.35);
-    --shadow-card: 0 8px 32px -8px hsl(0, 0%, 0%, 0.6);
-    --shadow-button: 0 0 40px -8px hsl(250, 76%, 63%, 0.45);
+    /* Shadows - Subtle, premium */
+    --shadow-glow: 0 0 120px -40px hsl(165, 82%, 51%, 0.35);
+    --shadow-card: 0 2px 24px -4px hsl(0, 0%, 0%, 0.8);
+    --shadow-button: 0 0 32px -4px hsl(165, 82%, 51%, 0.25);
 
-    --sidebar-background: 220 15% 5%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 250 76% 63%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 10%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 12% 12%;
-    --sidebar-ring: 250 76% 63%;
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 165 82% 51%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 10%;
+    --sidebar-ring: 165 82% 51%;
   }
 }
 
@@ -76,18 +81,29 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "ss01" 1, "ss02" 1;
+  }
+
+  /* WHOOP-style typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
   }
 }
 
 @layer utilities {
+  /* Label style like WHOOP */
+  .label-uppercase {
+    @apply text-[10px] uppercase tracking-[0.15em] font-medium text-muted-foreground;
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-primary);
@@ -121,24 +137,23 @@
     box-shadow: var(--shadow-button);
   }
 
-  .glow-effect {
+  /* Subtle glow effect for cards */
+  .card-glow {
     position: relative;
   }
 
-  .glow-effect::before {
+  .card-glow::after {
     content: '';
     position: absolute;
-    inset: -1px;
-    background: var(--gradient-primary);
+    inset: 0;
     border-radius: inherit;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1;
-    filter: blur(24px);
+    background: radial-gradient(ellipse at 50% 0%, hsl(165, 82%, 51%, 0.08) 0%, transparent 60%);
+    pointer-events: none;
   }
 
-  .glow-effect:hover::before {
-    opacity: 0.4;
+  /* Particle glow for sphere */
+  .sphere-glow {
+    background: radial-gradient(ellipse at center, hsl(165, 82%, 51%, 0.2) 0%, transparent 70%);
   }
 
   .animate-pulse-slow {
@@ -158,9 +173,38 @@
     }
   }
 
+  @keyframes particle-float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.6;
+    }
+    25% {
+      transform: translate(10px, -15px) scale(1.2);
+      opacity: 1;
+    }
+    50% {
+      transform: translate(-5px, -25px) scale(0.8);
+      opacity: 0.4;
+    }
+    75% {
+      transform: translate(-15px, -10px) scale(1.1);
+      opacity: 0.8;
+    }
+  }
+
+  .animate-particle {
+    animation: particle-float 6s ease-in-out infinite;
+  }
+
   /* Touch-friendly spacing */
   .touch-target {
     min-height: 48px;
     @apply flex items-center justify-center;
+  }
+
+  /* Premium number styling */
+  .number-display {
+    @apply font-semibold tracking-tight tabular-nums;
+    font-variant-numeric: tabular-nums;
   }
 }
