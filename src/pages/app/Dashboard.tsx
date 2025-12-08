@@ -2,13 +2,14 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
+import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { ThinkingPerformanceCircle } from "@/components/dashboard/ThinkingPerformanceCircle";
 import { FastSlowThinkingPanel } from "@/components/dashboard/FastSlowThinkingPanel";
 import { CognitiveReadinessBar } from "@/components/dashboard/CognitiveReadinessBar";
 import { BrainFunctionsGrid } from "@/components/dashboard/BrainFunctionsGrid";
 import { InsightsList } from "@/components/dashboard/InsightsList";
 import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
+import { Info, Zap, Brain } from "lucide-react";
 import {
   generateMockSnapshot,
   generateMockBaseline,
@@ -47,6 +48,10 @@ const Dashboard = () => {
   const brainFunctions = getBrainFunctionScores(snapshot, previousSnapshot);
   const insights = generateCognitiveInsights(snapshot, baseline, delta);
 
+  const overallScore = Math.round(
+    (criticalThinking + focus + decisionQuality + creativity) / 4
+  );
+
   return (
     <AppShell>
       <div className="container px-4 py-5 max-w-md mx-auto space-y-5">
@@ -67,6 +72,38 @@ const Dashboard = () => {
 
         {/* Cognitive Age Sphere */}
         <CognitiveAgeSphere cognitiveAge={brainAge} delta={delta} />
+
+        {/* Neural Growth Animation */}
+        <NeuralGrowthAnimation
+          cognitiveAgeDelta={delta}
+          overallCognitiveScore={overallScore}
+        />
+
+        {/* Quick Training Links */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link to="/app/trainings?mode=fast">
+            <div className="p-4 rounded-xl bg-card border border-border/40 hover:border-warning/30 transition-colors active:scale-[0.98]">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-warning" />
+                </div>
+              </div>
+              <p className="text-xs font-medium text-foreground">Fast Thinking</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Train intuition</p>
+            </div>
+          </Link>
+          <Link to="/app/trainings?mode=slow">
+            <div className="p-4 rounded-xl bg-card border border-border/40 hover:border-primary/30 transition-colors active:scale-[0.98]">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-primary" />
+                </div>
+              </div>
+              <p className="text-xs font-medium text-foreground">Slow Thinking</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Structured reasoning</p>
+            </div>
+          </Link>
+        </div>
 
         {/* Thinking Performance Circle */}
         <ThinkingPerformanceCircle

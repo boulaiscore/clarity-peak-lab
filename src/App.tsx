@@ -14,6 +14,8 @@ import Protocol from "./pages/app/Protocol";
 import Insights from "./pages/app/Insights";
 import Premium from "./pages/app/Premium";
 import Account from "./pages/app/Account";
+import TrainingsList from "./pages/app/TrainingsList";
+import TrainingRunner from "./pages/app/TrainingRunner";
 import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
 import NotFound from "./pages/NotFound";
 
@@ -87,6 +89,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/trainings"
+        element={
+          <ProtectedRoute>
+            <TrainingsList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/training/:trainingId"
+        element={
+          <ProtectedRoute>
+            <TrainingRunner />
           </ProtectedRoute>
         }
       />
