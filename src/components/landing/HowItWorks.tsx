@@ -1,63 +1,56 @@
-import { MousePointerClick, ListChecks, Rocket } from "lucide-react";
+import { FlaskConical, Target, Workflow } from "lucide-react";
 
-const steps = [
+const modules = [
   {
-    icon: MousePointerClick,
-    step: "01",
-    title: "Open When It Matters",
-    description: "Before a big meeting, during a stressful moment, or when you need peak clarity.",
+    icon: FlaskConical,
+    title: "Reasoning Workout™",
+    description: "Drills for critical thinking and analytical sharpness. Spot fallacies, test assumptions, and strengthen logical reasoning.",
   },
   {
-    icon: ListChecks,
-    step: "02",
-    title: "Choose Your Protocol",
-    description: "Stress reduction, mental clarity, or decision support. Pick what you need now.",
+    icon: Target,
+    title: "Clarity Lab™",
+    description: "Exercises for conceptual precision and structured thought. Decompose complexity into actionable clarity.",
   },
   {
-    icon: Rocket,
-    step: "03",
-    title: "Get Back to Peak",
-    description: "Run a 30-second to 5-minute protocol and return to high performance.",
+    icon: Workflow,
+    title: "Decision Studio™",
+    description: "Frameworks for strategic decision-making under uncertainty. Reduce bias, evaluate options, act with conviction.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="protocols" className="py-24 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+    <section id="how-it-works" className="py-24 sm:py-32 relative">
+      <div className="absolute inset-0 bg-gradient-subtle" />
       
-      <div className="container px-4 relative">
+      <div className="container px-6 relative">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            How It <span className="text-gradient">Works</span>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-5">
+            How NeuroLoop <span className="text-gradient">Works</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Three simple steps to unlock your mental edge. No setup, no learning curve.
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+            Three specialized modules targeting different cognitive capabilities. Each session is 30 seconds to 5 minutes.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {steps.map((step, index) => (
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {modules.map((module, index) => (
             <div
-              key={step.title}
-              className="relative text-center animate-fade-in-up"
+              key={module.title}
+              className="relative p-8 rounded-2xl bg-card border border-border hover:border-primary/25 transition-all duration-300 animate-fade-in-up"
               style={{ animationDelay: `${index * 0.15}s` }}
             >
-              {/* Connector line */}
-              {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-12 left-1/2 w-full h-px bg-gradient-to-r from-primary/50 to-primary/0" />
-              )}
+              {/* Module number */}
+              <span className="absolute top-6 right-6 text-xs font-bold text-primary/40 tracking-wider">
+                0{index + 1}
+              </span>
               
-              {/* Step number */}
-              <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-card border border-border mb-6">
-                <span className="absolute -top-3 -right-3 text-xs font-bold text-primary bg-background px-2 py-1 rounded-lg border border-primary/20">
-                  {step.step}
-                </span>
-                <step.icon className="w-10 h-10 text-primary" />
+              <div className="w-14 h-14 rounded-xl bg-primary/8 flex items-center justify-center mb-6">
+                <module.icon className="w-7 h-7 text-primary" />
               </div>
               
-              <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-              <p className="text-muted-foreground">{step.description}</p>
+              <h3 className="text-xl font-semibold mb-3">{module.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{module.description}</p>
             </div>
           ))}
         </div>

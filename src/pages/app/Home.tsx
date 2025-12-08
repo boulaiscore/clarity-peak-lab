@@ -1,12 +1,36 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { ControlCard } from "@/components/app/ControlCard";
 import { SessionStartModal } from "@/components/app/SessionStartModal";
 import { useSession } from "@/contexts/SessionContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ProtocolType } from "@/lib/protocols";
-import { Flame, Brain, Scale, Sparkles } from "lucide-react";
+import { FlaskConical, Target, Workflow } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const modules = [
+  {
+    type: "reasoning" as ProtocolType,
+    icon: FlaskConical,
+    title: "Reasoning Workout™",
+    subtitle: "Train your analytical and critical thinking abilities.",
+    gradient: "from-violet-500/15 to-indigo-500/15",
+  },
+  {
+    type: "clarity" as ProtocolType,
+    icon: Target,
+    title: "Clarity Lab™",
+    subtitle: "Develop mental sharpness, conceptual clarity, and problem decomposition.",
+    gradient: "from-blue-500/15 to-cyan-500/15",
+  },
+  {
+    type: "decision" as ProtocolType,
+    icon: Workflow,
+    title: "Decision Studio™",
+    subtitle: "Upgrade your strategic decision-making under uncertainty.",
+    gradient: "from-purple-500/15 to-pink-500/15",
+  },
+];
 
 const Home = () => {
   const navigate = useNavigate();
@@ -14,7 +38,7 @@ const Home = () => {
   const { startSession, getTotalSessions } = useSession();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const handleControlClick = (type: ProtocolType) => {
+  const handleModuleClick = (type: ProtocolType) => {
     startSession(type);
     setModalOpen(true);
   };
@@ -25,62 +49,86 @@ const Home = () => {
   };
 
   const totalSessions = getTotalSessions();
+  const firstName = user?.name?.split(" ")[0] || "there";
 
   return (
     <AppShell>
-      <div className="container px-4 py-8">
+      <div className="container px-6 py-10 sm:py-16">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Mental Control Center</span>
+        <div className="text-center mb-12 sm:mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/15 mb-8">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-sm font-medium text-primary/90 tracking-wide">Cognitive Training</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">
-            Hello, <span className="text-gradient">{user?.name || "there"}</span>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
+            Hello, <span className="text-gradient">{firstName}</span>
           </h1>
           <p className="text-muted-foreground text-lg">
-            What do you need right now?
+            Select a training module to begin.
           </p>
         </div>
 
-        {/* Control Cards */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          <ControlCard
-            icon={Flame}
-            title="Reduce Stress"
-            description="Quick protocols to break the stress loop and regain composure."
-            onClick={() => handleControlClick("stress")}
-            gradient="from-red-500/20 to-orange-500/20"
-          />
-          <ControlCard
-            icon={Brain}
-            title="Boost Clarity"
-            description="Sharpen your focus before high-stakes work or deep concentration."
-            onClick={() => handleControlClick("clarity")}
-            gradient="from-blue-500/20 to-cyan-500/20"
-          />
-          <ControlCard
-            icon={Scale}
-            title="Decision Pro"
-            description="Cut through analysis paralysis and make better choices under pressure."
-            onClick={() => handleControlClick("decision")}
-            gradient="from-purple-500/20 to-pink-500/20"
-          />
+        {/* Module Cards - Full width, touch-friendly */}
+        <div className="max-w-xl mx-auto space-y-4">
+          {modules.map((module, index) => (
+            <button
+              key={module.type}
+              onClick={() => handleModuleClick(module.type)}
+              className={cn(
+                "group relative w-full p-6 sm:p-8 rounded-2xl bg-card border border-border",
+                "hover:border-primary/30 transition-all duration-300",
+                "text-left overflow-hidden min-h-[120px] touch-target",
+                "animate-fade-in-up"
+              )}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {/* Gradient background */}
+              <div
+                className={cn(
+                  "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                  `bg-gradient-to-br ${module.gradient}`
+                )}
+              />
+
+              {/* Content */}
+              <div className="relative z-10 flex items-start gap-5">
+                <div className="w-14 h-14 rounded-xl bg-primary/8 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                  <module.icon className="w-7 h-7 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-1.5">{module.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{module.subtitle}</p>
+                </div>
+                
+                {/* Arrow */}
+                <div className="w-10 h-10 rounded-full bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shrink-0 self-center">
+                  <svg
+                    className="w-4 h-4 text-primary"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
 
         {/* Stats */}
         {totalSessions > 0 && (
           <div className="mt-12 text-center">
             <p className="text-muted-foreground text-sm">
-              You've completed <span className="text-foreground font-semibold">{totalSessions}</span> session{totalSessions !== 1 ? "s" : ""}
+              <span className="text-foreground font-semibold">{totalSessions}</span> training session{totalSessions !== 1 ? "s" : ""} completed
             </p>
           </div>
         )}
 
         {/* Tagline */}
         <div className="mt-16 text-center">
-          <p className="text-muted-foreground text-sm">
-            Designed for founders, executives, and high performers who care about their brain.
+          <p className="text-muted-foreground/60 text-sm">
+            Train your thinking. Compound your edge.
           </p>
         </div>
       </div>
