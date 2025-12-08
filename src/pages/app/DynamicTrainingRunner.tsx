@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Check, Clock, Zap, Brain, Lightbulb, Target, FlaskConical, Workflow, Sparkles, Scale } from "lucide-react";
+import { ArrowLeft, Check, Clock, Zap, Brain, Lightbulb, Target, FlaskConical, Workflow, Sparkles, Scale, Eye, HardDrive, ShieldOff, Sliders, SlidersHorizontal, Flame, BookOpen, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGenerateTrainingSession, useSaveTrainingSession, useUpdateUserMetrics } from "@/hooks/useExercises";
@@ -27,6 +27,14 @@ const CATEGORY_ICONS: Record<ExerciseCategory, React.ElementType> = {
   bias: Scale,
   logic_puzzle: Lightbulb,
   creative: Sparkles,
+  attention: Eye,
+  working_memory: HardDrive,
+  inhibition: ShieldOff,
+  cognitive_control: Sliders,
+  executive_control: SlidersHorizontal,
+  insight: Flame,
+  reflection: BookOpen,
+  philosophical: Compass,
 };
 
 const DynamicTrainingRunner = () => {

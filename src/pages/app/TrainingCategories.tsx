@@ -13,7 +13,15 @@ import {
   Brain, 
   Scale, 
   Lightbulb, 
-  Sparkles 
+  Sparkles,
+  Eye,
+  HardDrive,
+  ShieldOff,
+  Sliders,
+  SlidersHorizontal,
+  Flame,
+  BookOpen,
+  Compass
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExerciseCategory, ExerciseDuration, CATEGORY_INFO } from "@/lib/exercises";
@@ -29,6 +37,14 @@ const CATEGORY_ICONS: Record<ExerciseCategory, React.ElementType> = {
   bias: Scale,
   logic_puzzle: Lightbulb,
   creative: Sparkles,
+  attention: Eye,
+  working_memory: HardDrive,
+  inhibition: ShieldOff,
+  cognitive_control: Sliders,
+  executive_control: SlidersHorizontal,
+  insight: Flame,
+  reflection: BookOpen,
+  philosophical: Compass,
 };
 
 const DURATION_OPTIONS: { value: ExerciseDuration; label: string; description: string }[] = [

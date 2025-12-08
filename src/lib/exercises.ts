@@ -118,6 +118,46 @@ export const CATEGORY_INFO: Record<ExerciseCategory, { title: string; subtitle: 
     subtitle: "Divergent & Lateral Thinking",
     description: "Expand your thinking patterns with creativity and lateral problem-solving exercises.",
   },
+  attention: {
+    title: "Focus Arena",
+    subtitle: "Selective Attention",
+    description: "Train selective attention, visual search, and sustained focus.",
+  },
+  working_memory: {
+    title: "Memory Core",
+    subtitle: "Working Memory Capacity",
+    description: "Strengthen working memory capacity and mental updating.",
+  },
+  inhibition: {
+    title: "Inhibition Training",
+    subtitle: "Motor & Cognitive Inhibition",
+    description: "Improve ability to suppress automatic responses and control impulses.",
+  },
+  cognitive_control: {
+    title: "Cognitive Control",
+    subtitle: "Interference Control",
+    description: "Enhance ability to manage conflicting information and maintain task focus.",
+  },
+  executive_control: {
+    title: "Executive Control",
+    subtitle: "Task Switching & Flexibility",
+    description: "Improve cognitive flexibility and ability to switch between tasks efficiently.",
+  },
+  insight: {
+    title: "Insight Lab",
+    subtitle: "Aha Moments & Incubation",
+    description: "Foster creative insight through incubation and mind-wandering techniques.",
+  },
+  reflection: {
+    title: "Deep Reflection",
+    subtitle: "Evidence-Based Thinking",
+    description: "Develop skills for counterbalancing beliefs and reducing confirmation bias.",
+  },
+  philosophical: {
+    title: "Philosophical Reasoning",
+    subtitle: "Value Alignment & Abstract Thought",
+    description: "Engage with high-level abstract reasoning and value-based decision making.",
+  },
 };
 
 // Get number of exercises for a duration
