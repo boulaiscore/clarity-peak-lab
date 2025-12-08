@@ -18,7 +18,6 @@ import {
 import { cn } from "@/lib/utils";
 import { ExerciseCategory, ExerciseDuration, CATEGORY_INFO } from "@/lib/exercises";
 import { useExerciseCount } from "@/hooks/useExercises";
-import { useSeedExercises } from "@/hooks/useSeedExercises";
 import { toast } from "@/hooks/use-toast";
 
 const CATEGORY_ICONS: Record<ExerciseCategory, React.ElementType> = {
@@ -43,8 +42,7 @@ const TrainingCategories = () => {
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<ExerciseDuration>("2min");
   
-  const { data: exerciseCount = 0 } = useExerciseCount();
-  const seedExercises = useSeedExercises();
+  const { data: exerciseCount = 0, isLoading } = useExerciseCount();
   
   const categories: ExerciseCategory[] = [
     "reasoning",
@@ -60,22 +58,6 @@ const TrainingCategories = () => {
   const handleStartTraining = () => {
     if (!selectedCategory) return;
     navigate(`/app/train?category=${selectedCategory}&duration=${selectedDuration}`);
-  };
-  
-  const handleSeedExercises = async () => {
-    try {
-      const count = await seedExercises.mutateAsync();
-      toast({
-        title: "Exercise library loaded",
-        description: `${count} exercises added to the database.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Failed to load exercises",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    }
   };
   
   return (
@@ -98,29 +80,22 @@ const TrainingCategories = () => {
           </div>
         </div>
         
-        {/* Seed exercises if empty */}
-        {exerciseCount === 0 && (
-          <div className="p-4 rounded-xl bg-warning/10 border border-warning/30 mb-6">
-            <p className="text-sm text-foreground mb-3">
-              Exercise library not loaded. Load the cognitive exercises to start training.
-            </p>
-            <Button
-              variant="premium"
-              size="sm"
-              onClick={handleSeedExercises}
-              disabled={seedExercises.isPending}
-            >
-              {seedExercises.isPending ? "Loading..." : "Load Exercises"}
-            </Button>
-          </div>
-        )}
-        
         {/* Exercise count indicator */}
-        {exerciseCount > 0 && (
+        {isLoading ? (
+          <div className="p-3 rounded-xl bg-card border border-border/40 mb-6">
+            <div className="h-4 w-32 bg-muted animate-pulse rounded mx-auto" />
+          </div>
+        ) : exerciseCount > 0 ? (
           <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 mb-6">
             <p className="text-[11px] text-muted-foreground text-center">
               <span className="text-primary font-medium">{exerciseCount} exercises</span> in the library.
               Sets rotate and adapt over time.
+            </p>
+          </div>
+        ) : (
+          <div className="p-3 rounded-xl bg-muted/50 border border-border/40 mb-6">
+            <p className="text-[11px] text-muted-foreground text-center">
+              Loading exercise library...
             </p>
           </div>
         )}
