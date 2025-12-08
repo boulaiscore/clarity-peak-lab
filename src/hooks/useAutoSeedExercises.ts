@@ -28,12 +28,6 @@ export function useAutoSeedExercises() {
 
     const checkAndSeed = async () => {
       try {
-        // First check if user is authenticated
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          console.log("No authenticated user, skipping exercise seeding");
-          return;
-        }
 
         // Check if exercises already exist
         const { count, error: countError } = await supabase
