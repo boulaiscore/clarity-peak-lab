@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import cognitiveExercisesData from "@/data/cognitive_exercises.json";
+import { newNeuroExercises } from "@/data/neuro_exercises";
 import type { ExerciseCategory, ExerciseType, ExerciseDifficulty, ExerciseDuration } from "@/lib/exercises";
 
 interface ExerciseData {
@@ -72,6 +73,17 @@ export function useAutoSeedExercises() {
           console.error("Error seeding exercises:", error);
         } else {
           console.log(`Successfully seeded ${exercises.length} exercises`);
+        }
+
+        // Also seed neuro exercises
+        const { error: neuroError } = await supabase
+          .from("cognitive_exercises")
+          .upsert(newNeuroExercises, { onConflict: "id" });
+
+        if (neuroError) {
+          console.error("Error seeding neuro exercises:", neuroError);
+        } else {
+          console.log(`Successfully seeded ${newNeuroExercises.length} neuro exercises`);
         }
       } catch (err) {
         console.error("Auto-seed error:", err);

@@ -65,6 +65,45 @@ export type Database = {
         }
         Relationships: []
       }
+      neuro_gym_sessions: {
+        Row: {
+          area: string
+          completed_at: string
+          correct_answers: number
+          created_at: string
+          duration_option: string
+          exercises_used: string[]
+          id: string
+          score: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          area: string
+          completed_at?: string
+          correct_answers?: number
+          created_at?: string
+          duration_option: string
+          exercises_used?: string[]
+          id?: string
+          score?: number
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          area?: string
+          completed_at?: string
+          correct_answers?: number
+          created_at?: string
+          duration_option?: string
+          exercises_used?: string[]
+          id?: string
+          score?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       training_sessions: {
         Row: {
           completed_at: string
@@ -172,8 +211,16 @@ export type Database = {
         | "bias"
         | "logic_puzzle"
         | "creative"
+        | "attention"
+        | "working_memory"
+        | "inhibition"
+        | "cognitive_control"
+        | "executive_control"
+        | "insight"
+        | "reflection"
+        | "philosophical"
       exercise_difficulty: "easy" | "medium" | "hard"
-      exercise_duration: "30s" | "2min" | "5min"
+      exercise_duration: "30s" | "2min" | "5min" | "3min" | "7min"
       exercise_type:
         | "multiple_choice"
         | "detect_fallacy"
@@ -317,9 +364,17 @@ export const Constants = {
         "bias",
         "logic_puzzle",
         "creative",
+        "attention",
+        "working_memory",
+        "inhibition",
+        "cognitive_control",
+        "executive_control",
+        "insight",
+        "reflection",
+        "philosophical",
       ],
       exercise_difficulty: ["easy", "medium", "hard"],
-      exercise_duration: ["30s", "2min", "5min"],
+      exercise_duration: ["30s", "2min", "5min", "3min", "7min"],
       exercise_type: [
         "multiple_choice",
         "detect_fallacy",

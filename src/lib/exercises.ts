@@ -8,7 +8,15 @@ export type ExerciseCategory =
   | "slow"
   | "bias"
   | "logic_puzzle"
-  | "creative";
+  | "creative"
+  | "attention"
+  | "working_memory"
+  | "inhibition"
+  | "cognitive_control"
+  | "executive_control"
+  | "insight"
+  | "reflection"
+  | "philosophical";
 
 export type ExerciseType = 
   | "multiple_choice"
@@ -19,7 +27,7 @@ export type ExerciseType =
   | "probability_estimation";
 
 export type ExerciseDifficulty = "easy" | "medium" | "hard";
-export type ExerciseDuration = "30s" | "2min" | "5min";
+export type ExerciseDuration = "30s" | "2min" | "5min" | "3min" | "7min";
 
 export interface CognitiveExercise {
   id: string;

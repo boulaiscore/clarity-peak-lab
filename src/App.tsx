@@ -21,6 +21,9 @@ import TrainingCategories from "./pages/app/TrainingCategories";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
 import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
 import InstallPage from "./pages/app/Install";
+import NeuroGym from "./pages/app/NeuroGym";
+import NeuroGymArea from "./pages/app/NeuroGymArea";
+import NeuroGymSessionRunner from "./pages/app/NeuroGymSessionRunner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -171,6 +174,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <InstallPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-gym"
+        element={
+          <ProtectedRoute>
+            <NeuroGym />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-gym/:area"
+        element={
+          <ProtectedRoute>
+            <NeuroGymArea />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-gym/session"
+        element={
+          <ProtectedRoute>
+            <NeuroGymSessionRunner />
           </ProtectedRoute>
         }
       />

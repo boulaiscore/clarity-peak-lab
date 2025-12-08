@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, BarChart3, Crown, User, Bell, BellOff } from "lucide-react";
+import { Home, LayoutDashboard, BarChart3, Crown, User, Bell, BellOff, Dumbbell } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 
 interface AppShellProps {
@@ -10,9 +10,9 @@ interface AppShellProps {
 
 const navItems = [
   { to: "/app", icon: Home, label: "Train" },
+  { to: "/neuro-gym", icon: Dumbbell, label: "Gym" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/app/insights", icon: BarChart3, label: "Insights" },
-  { to: "/app/premium", icon: Crown, label: "Premium" },
   { to: "/app/account", icon: User, label: "Account" },
 ];
 
