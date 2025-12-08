@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface CognitiveAgeSphereProps {
   cognitiveAge: number;
@@ -7,6 +7,7 @@ interface CognitiveAgeSphereProps {
 
 export function CognitiveAgeSphere({ cognitiveAge, delta }: CognitiveAgeSphereProps) {
   const [animatedAge, setAnimatedAge] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const duration = 1500;
@@ -21,73 +22,129 @@ export function CognitiveAgeSphere({ cognitiveAge, delta }: CognitiveAgeSpherePr
     requestAnimationFrame(animate);
   }, [cognitiveAge]);
 
+  // Particle animation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[] = [];
+    const particleCount = 60;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 80;
+
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * radius * 0.8;
+      particles.push({
+        x: centerX + Math.cos(angle) * r,
+        y: centerY + Math.sin(angle) * r,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        size: Math.random() * 2 + 1,
+        alpha: Math.random() * 0.5 + 0.3,
+      });
+    }
+
+    let animationId: number;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw particles
+      particles.forEach((p) => {
+        // Move particle
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Keep within circle
+        const dx = p.x - centerX;
+        const dy = p.y - centerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > radius * 0.85) {
+          const angle = Math.atan2(dy, dx);
+          p.x = centerX + Math.cos(angle) * radius * 0.8;
+          p.y = centerY + Math.sin(angle) * radius * 0.8;
+          p.vx = -p.vx * 0.5;
+          p.vy = -p.vy * 0.5;
+        }
+
+        // Draw particle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(165, 82%, 51%, ${p.alpha})`;
+        ctx.fill();
+
+        // Subtle glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(165, 82%, 51%, ${p.alpha * 0.2})`;
+        ctx.fill();
+      });
+
+      animationId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => cancelAnimationFrame(animationId);
+  }, []);
+
   const isYounger = delta < 0;
   const deltaText = isYounger
-    ? `${Math.abs(delta).toFixed(1)} years younger than your chronological age`
+    ? `${Math.abs(delta).toFixed(1)} years younger`
     : delta > 0
-    ? `${delta.toFixed(1)} years older than your chronological age`
-    : "Matching your chronological age";
+    ? `${delta.toFixed(1)} years older`
+    : "matching chronological age";
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-8">
-      {/* Animated background particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-accent-primary/30 animate-pulse"
-            style={{
-              left: `${20 + Math.random() * 60}%`,
-              top: `${20 + Math.random() * 60}%`,
-              animationDelay: `${i * 0.3}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Main sphere */}
+    <div className="relative flex flex-col items-center justify-center py-6">
+      {/* Main sphere container */}
       <div className="relative">
-        {/* Outer glow rings */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent-primary/20 to-accent-secondary/20 blur-xl scale-125" />
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 blur-2xl scale-150 animate-pulse" />
+        {/* Outer glow */}
+        <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/20 via-primary/5 to-transparent blur-2xl scale-150 animate-glow" />
+
+        {/* Canvas for particles */}
+        <canvas
+          ref={canvasRef}
+          width={200}
+          height={200}
+          className="absolute inset-0"
+        />
 
         {/* Main circle */}
-        <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-surface to-background border border-accent-primary/30 flex flex-col items-center justify-center shadow-glow">
-          {/* Inner ring */}
-          <div className="absolute inset-2 rounded-full border border-accent-secondary/20" />
-          <div className="absolute inset-4 rounded-full border border-accent-primary/10" />
-
-          <span className="text-text-secondary text-xs uppercase tracking-widest font-medium mb-1">
-            Cognitive Age
-          </span>
-          <span className="text-4xl sm:text-5xl font-bold text-gradient bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
+        <div className="relative w-[200px] h-[200px] rounded-full border border-primary/30 flex flex-col items-center justify-center animate-glow-pulse">
+          {/* Inner border ring */}
+          <div className="absolute inset-2 rounded-full border border-primary/10" />
+          
+          <span className="label-uppercase mb-1">Cognitive Age</span>
+          <span className="text-5xl font-semibold text-foreground number-display">
             {animatedAge.toFixed(1)}
           </span>
-          <div className="flex items-center gap-1 mt-2">
-            <span
-              className={`text-sm font-medium ${
-                isYounger ? "text-success" : delta > 0 ? "text-amber-400" : "text-text-secondary"
-              }`}
-            >
-              {isYounger ? "↓" : delta > 0 ? "↑" : "→"} {Math.abs(delta).toFixed(1)} yrs
-            </span>
-          </div>
+          <span
+            className={`text-sm font-medium mt-1 ${
+              isYounger ? "text-primary" : delta > 0 ? "text-warning" : "text-muted-foreground"
+            }`}
+          >
+            {deltaText}
+          </span>
         </div>
       </div>
 
       {/* Description */}
-      <p className="text-text-secondary text-sm text-center mt-6 max-w-xs px-4">
-        {deltaText}
-      </p>
-      <p className="text-text-secondary/60 text-xs text-center mt-2 max-w-sm px-4">
-        Based on your recent reasoning speed, clarity, decision quality and focus.
+      <p className="text-muted-foreground text-xs text-center mt-6 max-w-[280px]">
+        Based on reasoning speed, clarity, decision quality, and focus.
       </p>
 
       {/* Disclaimer */}
-      <div className="mt-4 px-4 py-2 rounded-lg bg-surface/50 border border-border/30">
-        <p className="text-[10px] text-text-secondary/50 text-center">
-          Cognitive Age is an index for training and self-optimization. It is not a medical measurement.
+      <div className="mt-4 px-3 py-2 rounded-lg bg-card/50 border border-border/30">
+        <p className="text-[9px] text-muted-foreground/60 text-center uppercase tracking-wider">
+          Training index · Not a medical measurement
         </p>
       </div>
     </div>
