@@ -14,7 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cognitive_exercises: {
+        Row: {
+          category: Database["public"]["Enums"]["exercise_category"]
+          correct_option_index: number | null
+          created_at: string
+          difficulty: Database["public"]["Enums"]["exercise_difficulty"]
+          duration: Database["public"]["Enums"]["exercise_duration"]
+          explanation: string | null
+          id: string
+          metrics_affected: string[]
+          options: string[] | null
+          prompt: string
+          title: string
+          type: Database["public"]["Enums"]["exercise_type"]
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["exercise_category"]
+          correct_option_index?: number | null
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["exercise_difficulty"]
+          duration: Database["public"]["Enums"]["exercise_duration"]
+          explanation?: string | null
+          id: string
+          metrics_affected?: string[]
+          options?: string[] | null
+          prompt: string
+          title: string
+          type: Database["public"]["Enums"]["exercise_type"]
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["exercise_category"]
+          correct_option_index?: number | null
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["exercise_difficulty"]
+          duration?: Database["public"]["Enums"]["exercise_duration"]
+          explanation?: string | null
+          id?: string
+          metrics_affected?: string[]
+          options?: string[] | null
+          prompt?: string
+          title?: string
+          type?: Database["public"]["Enums"]["exercise_type"]
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      training_sessions: {
+        Row: {
+          completed_at: string
+          correct_answers: number
+          created_at: string
+          duration_option: Database["public"]["Enums"]["exercise_duration"]
+          exercises_used: string[]
+          id: string
+          score: number
+          total_questions: number
+          training_mode: Database["public"]["Enums"]["exercise_category"]
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          correct_answers?: number
+          created_at?: string
+          duration_option: Database["public"]["Enums"]["exercise_duration"]
+          exercises_used?: string[]
+          id?: string
+          score?: number
+          total_questions?: number
+          training_mode: Database["public"]["Enums"]["exercise_category"]
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          correct_answers?: number
+          created_at?: string
+          duration_option?: Database["public"]["Enums"]["exercise_duration"]
+          exercises_used?: string[]
+          id?: string
+          score?: number
+          total_questions?: number
+          training_mode?: Database["public"]["Enums"]["exercise_category"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_cognitive_metrics: {
+        Row: {
+          bias_resistance: number
+          clarity_score: number
+          created_at: string
+          creativity: number
+          critical_thinking_score: number
+          decision_quality: number
+          fast_thinking: number
+          id: string
+          philosophical_reasoning: number
+          reasoning_accuracy: number
+          slow_thinking: number
+          total_sessions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bias_resistance?: number
+          clarity_score?: number
+          created_at?: string
+          creativity?: number
+          critical_thinking_score?: number
+          decision_quality?: number
+          fast_thinking?: number
+          id?: string
+          philosophical_reasoning?: number
+          reasoning_accuracy?: number
+          slow_thinking?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bias_resistance?: number
+          clarity_score?: number
+          created_at?: string
+          creativity?: number
+          critical_thinking_score?: number
+          decision_quality?: number
+          fast_thinking?: number
+          id?: string
+          philosophical_reasoning?: number
+          reasoning_accuracy?: number
+          slow_thinking?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +163,24 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      exercise_category:
+        | "reasoning"
+        | "clarity"
+        | "decision"
+        | "fast"
+        | "slow"
+        | "bias"
+        | "logic_puzzle"
+        | "creative"
+      exercise_difficulty: "easy" | "medium" | "hard"
+      exercise_duration: "30s" | "2min" | "5min"
+      exercise_type:
+        | "multiple_choice"
+        | "detect_fallacy"
+        | "open_reflection"
+        | "logic_puzzle"
+        | "scenario_choice"
+        | "probability_estimation"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +307,27 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      exercise_category: [
+        "reasoning",
+        "clarity",
+        "decision",
+        "fast",
+        "slow",
+        "bias",
+        "logic_puzzle",
+        "creative",
+      ],
+      exercise_difficulty: ["easy", "medium", "hard"],
+      exercise_duration: ["30s", "2min", "5min"],
+      exercise_type: [
+        "multiple_choice",
+        "detect_fallacy",
+        "open_reflection",
+        "logic_puzzle",
+        "scenario_choice",
+        "probability_estimation",
+      ],
+    },
   },
 } as const
