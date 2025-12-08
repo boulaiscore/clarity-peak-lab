@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
+import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -22,6 +23,12 @@ import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Component that handles auto-seeding
+function AutoSeedProvider({ children }: { children: React.ReactNode }) {
+  useAutoSeedExercises();
+  return <>{children}</>;
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -175,13 +182,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <SessionProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
+        <AutoSeedProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AutoSeedProvider>
       </SessionProvider>
     </AuthProvider>
   </QueryClientProvider>
