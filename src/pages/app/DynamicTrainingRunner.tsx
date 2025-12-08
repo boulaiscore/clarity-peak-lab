@@ -50,6 +50,7 @@ const DynamicTrainingRunner = () => {
   const [sessionScore, setSessionScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const currentExercise = exercises[currentIndex];
   const totalExercises = exercises.length;
@@ -62,31 +63,31 @@ const DynamicTrainingRunner = () => {
   // Generate exercises on mount
   useEffect(() => {
     const loadExercises = async () => {
+      console.log("Loading exercises for category:", category, "duration:", duration);
+      setIsLoading(true);
+      setError(null);
+      
       try {
         const result = await generateSession.mutateAsync({ category, duration });
-        if (result.length === 0) {
-          toast({
-            title: "No exercises available",
-            description: "Please seed the exercise library first.",
-            variant: "destructive",
-          });
-          navigate("/app");
+        console.log("Loaded exercises:", result.length);
+        
+        if (!result || result.length === 0) {
+          setError("No exercises available for this category.");
+          setIsLoading(false);
           return;
         }
+        
         setExercises(result);
         setIsLoading(false);
-      } catch (error) {
-        console.error("Failed to load exercises:", error);
-        toast({
-          title: "Failed to load exercises",
-          description: "Please try again.",
-          variant: "destructive",
-        });
-        navigate("/app");
+      } catch (err) {
+        console.error("Failed to load exercises:", err);
+        setError("Failed to load exercises. Please try again.");
+        setIsLoading(false);
       }
     };
     
     loadExercises();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, duration]);
   
   // Timer for timed exercises
@@ -193,6 +194,24 @@ const DynamicTrainingRunner = () => {
           <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
           <p className="text-sm text-muted-foreground">Loading exercises...</p>
         </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <p className="text-destructive mb-4 text-center">{error}</p>
+        <Button onClick={() => navigate("/app")}>Back to Home</Button>
+      </div>
+    );
+  }
+  
+  if (!currentExercise && !isComplete) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <p className="text-muted-foreground mb-4">No exercises available.</p>
+        <Button onClick={() => navigate("/app")}>Back to Home</Button>
       </div>
     );
   }
