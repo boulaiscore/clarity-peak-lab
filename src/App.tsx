@@ -20,6 +20,7 @@ import TrainingRunner from "./pages/app/TrainingRunner";
 import TrainingCategories from "./pages/app/TrainingCategories";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
 import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
+import InstallPage from "./pages/app/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -162,6 +163,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Account />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/install"
+        element={
+          <ProtectedRoute>
+            <InstallPage />
           </ProtectedRoute>
         }
       />

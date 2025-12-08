@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, BarChart3, Crown, User } from "lucide-react";
+import { Home, LayoutDashboard, BarChart3, Crown, User, Bell, BellOff } from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface AppShellProps {
   children: ReactNode;
@@ -17,18 +18,37 @@ const navItems = [
 
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
+  const { permission, isSupported, checkReminders } = useNotifications();
+
+  // Check for reminders on mount
+  useEffect(() => {
+    if (permission === "granted") {
+      checkReminders();
+    }
+  }, [permission]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30">
         <div className="container px-4">
-          <div className="flex items-center justify-center h-12">
+          <div className="flex items-center justify-between h-12">
+            <div className="w-8" />
             <Link to="/app" className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-semibold text-[10px]">N</span>
               </div>
               <span className="font-semibold tracking-tight text-sm">NeuroLoop</span>
+            </Link>
+            <Link to="/app/install" className="w-8 flex justify-end">
+              {isSupported && permission !== "granted" ? (
+                <BellOff className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <Bell className={cn(
+                  "w-4 h-4",
+                  permission === "granted" ? "text-primary" : "text-muted-foreground"
+                )} />
+              )}
             </Link>
           </div>
         </div>

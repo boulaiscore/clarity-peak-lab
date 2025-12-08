@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import {
   calculateSessionScore,
   getMetricUpdates,
 } from "@/lib/exercises";
+import { markSessionCompleted } from "@/lib/notifications";
 import { toast } from "@/hooks/use-toast";
 
 const CATEGORY_ICONS: Record<ExerciseCategory, React.ElementType> = {
@@ -153,6 +154,9 @@ const DynamicTrainingRunner = () => {
             userId: user.id,
             metricUpdates,
           });
+          
+          // Mark session completed for notification scheduling
+          markSessionCompleted();
         } catch (error) {
           console.error("Failed to save session:", error);
         }
