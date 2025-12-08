@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, BarChart3, Crown, User } from "lucide-react";
+import { Home, LayoutDashboard, BarChart3, Crown, User } from "lucide-react";
 
 interface AppShellProps {
   children: ReactNode;
@@ -9,6 +9,7 @@ interface AppShellProps {
 
 const navItems = [
   { to: "/app", icon: Home, label: "Train" },
+  { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/app/insights", icon: BarChart3, label: "Insights" },
   { to: "/app/premium", icon: Crown, label: "Premium" },
   { to: "/app/account", icon: User, label: "Account" },
