@@ -82,7 +82,7 @@
     "difficulty": "medium",
     "duration": "2min",
     "title": "Fallacy: Ad Hominem",
-    "prompt": ""You can ignore her argument about climate policy; she never finished college." What is the main fallacy?",
+    "prompt": "\"You can ignore her argument about climate policy; she never finished college.\" What is the main fallacy?",
     "options": [
       "Ad hominem",
       "Straw man",
@@ -578,7 +578,7 @@
     "difficulty": "medium",
     "duration": "30s",
     "title": "Quick Fallacy Tag",
-    "prompt": ""Everyone successful wakes up at 5am. If you wake up at 5am, you'll be successful." This is closest to:",
+    "prompt": "\"Everyone successful wakes up at 5am. If you wake up at 5am, you'll be successful.\" This is closest to:",
     "options": ["Post hoc fallacy", "Reverse causation", "Circular reasoning", "Appeal to authority"],
     "correctOptionIndex": 1,
     "explanation": "It reverses cause and effect: success may drive habits, not the other way.",

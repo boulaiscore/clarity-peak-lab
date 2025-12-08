@@ -87,6 +87,18 @@ const Home = () => {
           </Link>
         </div>
 
+        {/* Dynamic Training CTA */}
+        <div className="mb-6">
+          <Link to="/app/categories">
+            <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 hover:border-primary/50 transition-colors active:scale-[0.98]">
+              <h3 className="text-sm font-semibold text-foreground mb-1">Cognitive Exercise Library</h3>
+              <p className="text-[11px] text-muted-foreground">
+                66+ exercises across 8 categories. Sets rotate and adapt over time.
+              </p>
+            </div>
+          </Link>
+        </div>
+
         {/* Classic Protocol Modules */}
         <div className="mb-6">
           <h2 className="label-uppercase mb-3">Protocol Sessions</h2>
