@@ -9,7 +9,7 @@ import { ArrowRight, Clock } from "lucide-react";
 interface SessionStartModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onStart: () => void;
+  onStart: (duration: string) => void;
 }
 
 export function SessionStartModal({ open, onOpenChange, onStart }: SessionStartModalProps) {
@@ -31,7 +31,7 @@ export function SessionStartModal({ open, onOpenChange, onStart }: SessionStartM
 
   const handleStart = () => {
     if (selectedMindset && selectedDuration) {
-      onStart();
+      onStart(selectedDuration);
       setStep("mindset");
       setSelectedMindset(null);
       setSelectedDuration(null);
