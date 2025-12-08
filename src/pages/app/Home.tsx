@@ -32,7 +32,7 @@ const modules = [
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { startSession, getTotalSessions } = useSession();
+  const { startSession, getTotalSessions, currentSession } = useSession();
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleModuleClick = (type: ProtocolType) => {
@@ -40,9 +40,10 @@ const Home = () => {
     setModalOpen(true);
   };
 
-  const handleStartProtocol = () => {
+  const handleStartProtocol = (duration: string) => {
     setModalOpen(false);
-    navigate("/app/protocol");
+    const category = currentSession?.type || "reasoning";
+    navigate(`/app/train?category=${category}&duration=${duration}`);
   };
 
   const totalSessions = getTotalSessions();
