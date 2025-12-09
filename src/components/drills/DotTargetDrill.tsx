@@ -9,6 +9,7 @@ interface Dot {
   createdAt: number;
 }
 
+
 interface DotTargetDrillProps {
   config: {
     targetColor: string;
@@ -32,6 +33,7 @@ export function DotTargetDrill({ config, timeLimit, onComplete }: DotTargetDrill
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const dotIdRef = useRef(0);
+  const completedRef = useRef(false);
 
   const colors: ("green" | "red" | "yellow")[] = ["green", "red", "yellow"];
 
@@ -118,9 +120,10 @@ export function DotTargetDrill({ config, timeLimit, onComplete }: DotTargetDrill
     return () => clearInterval(timer);
   }, [isRunning]);
 
-  // Complete
+  // Complete - only call once
   useEffect(() => {
-    if (timeLeft === 0 && !isRunning) {
+    if (timeLeft === 0 && !isRunning && !completedRef.current) {
+      completedRef.current = true;
       onComplete({ score, correct, incorrect, missed, reactionTimes });
     }
   }, [timeLeft, isRunning, score, correct, incorrect, missed, reactionTimes, onComplete]);
