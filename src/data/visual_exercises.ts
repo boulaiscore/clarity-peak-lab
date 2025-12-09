@@ -234,6 +234,112 @@ export const VISUAL_TASK_CONFIGS: Record<string, VisualExerciseConfig> = {
   },
 };
 
+// Exercise metadata for database seeding
+export interface VisualExerciseData {
+  id: string;
+  category: string;
+  type: string;
+  difficulty: string;
+  duration: string;
+  title: string;
+  prompt: string;
+  explanation: string;
+  metrics_affected: string[];
+  weight: number;
+  gym_area: string;
+}
+
+// Generate exercise metadata from configs
+function generateExerciseMetadata(): VisualExerciseData[] {
+  const exerciseData: VisualExerciseData[] = [];
+  
+  const drillTitles: Record<string, string> = {
+    dot_target: "Dot Target Drill",
+    visual_search: "Visual Search",
+    shape_match: "Shape Match",
+    digit_span: "Digit Span",
+    n_back_visual: "N-Back Visual",
+    location_match: "Location Match",
+    memory_matrix: "Memory Matrix",
+    pattern_sequence: "Pattern Sequence",
+    go_no_go: "Go/No-Go",
+    stroop_visual: "Stroop Test",
+    rule_switch: "Rule Switch",
+    sequence_logic: "Sequence Logic",
+    odd_one_out: "Odd One Out",
+    analogy_match: "Analogy Match",
+    category_switch: "Category Switch",
+    word_association: "Word Association",
+    mental_rotation: "Mental Rotation",
+  };
+  
+  const drillPrompts: Record<string, string> = {
+    dot_target: "Tap the green dots as fast as possible. Avoid red dots!",
+    visual_search: "Find the target shape among the distractors as quickly as possible.",
+    shape_match: "Does the current shape match the previous one?",
+    digit_span: "Remember the sequence of digits and enter them in order.",
+    n_back_visual: "Is the current shape the same as N positions ago?",
+    location_match: "Is the position the same as the previous one?",
+    memory_matrix: "Repeat the color sequence in the correct order.",
+    pattern_sequence: "Remember and reproduce the pattern sequence.",
+    go_no_go: "Tap for green (GO), don't tap for red (NO-GO).",
+    stroop_visual: "Select the COLOR of the text, not the word itself.",
+    rule_switch: "Follow the rule displayed. Rules change during the task!",
+    sequence_logic: "Find the pattern and select the next item in the sequence.",
+    odd_one_out: "Identify which item doesn't belong with the others.",
+    analogy_match: "Complete the analogy: A is to B as C is to ?",
+    category_switch: "Switch between different categorization rules.",
+    word_association: "Find the word that connects all three given words.",
+    mental_rotation: "Are these two shapes the same when rotated?",
+  };
+  
+  const areaMetrics: Record<string, string[]> = {
+    focus: ["focus_stability", "reaction_speed", "visual_processing"],
+    memory: ["working_memory", "pattern_recognition"],
+    control: ["cognitive_control", "inhibition", "reaction_speed"],
+    reasoning: ["reasoning_accuracy", "critical_thinking_score", "decision_quality"],
+    creativity: ["creativity", "pattern_recognition", "reasoning_accuracy"],
+  };
+  
+  const areaCategories: Record<string, string> = {
+    FOCUS: "attention",
+    MEMORY: "working_memory",
+    CONTROL: "cognitive_control",
+    REASON: "reasoning",
+    CREATE: "creative",
+  };
+  
+  Object.entries(VISUAL_TASK_CONFIGS).forEach(([id, config]) => {
+    const prefix = id.split("_")[0];
+    const gymArea = prefix.toLowerCase();
+    const category = areaCategories[prefix] || "attention";
+    const metrics = areaMetrics[gymArea] || ["focus_stability"];
+    
+    // Determine duration based on timeLimit
+    let duration = "30s";
+    if (config.timeLimit >= 90) duration = "2min";
+    if (config.timeLimit >= 180) duration = "5min";
+    
+    exerciseData.push({
+      id,
+      category,
+      type: "visual_drill",
+      difficulty: config.difficulty,
+      duration,
+      title: drillTitles[config.drillType] || "Cognitive Drill",
+      prompt: drillPrompts[config.drillType] || "Complete the exercise.",
+      explanation: "Visual cognitive training exercise.",
+      metrics_affected: metrics,
+      weight: 1,
+      gym_area: gymArea,
+    });
+  });
+  
+  return exerciseData;
+}
+
+export const VISUAL_EXERCISES_DATA = generateExerciseMetadata();
+
 // Helper to check if an exercise is a visual drill/task
 export function isVisualDrill(exerciseId: string): boolean {
   return exerciseId in VISUAL_TASK_CONFIGS;

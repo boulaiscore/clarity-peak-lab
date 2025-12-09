@@ -61,10 +61,8 @@ export default function NeuroGymSessionRunner() {
         description: "A complete cognitive warm-up protocol"
       };
     }
-    // Handle legacy area mappings
-    const areaStr = area as string;
-    const lookupArea = areaStr === "visual" ? "visual_game" : area;
-    const found = NEURO_GYM_AREAS.find(a => a.id === lookupArea);
+    // Find matching area config
+    const found = NEURO_GYM_AREAS.find(a => a.id === area);
     
     // Fallback for unknown areas
     if (!found) {
@@ -239,8 +237,6 @@ export default function NeuroGymSessionRunner() {
         <p className="text-muted-foreground text-center mb-6">
           {area === "neuro-activation" 
             ? "You've completed a full Neuro Activation Session. Your brain is primed for deep work and high-stakes decisions."
-            : area === "visual_game"
-            ? "Excellent visual training! Your visual processing and reaction speed are improving."
             : `Great work training your ${areaConfig?.title || "cognitive abilities"}!`
           }
         </p>
@@ -265,19 +261,6 @@ export default function NeuroGymSessionRunner() {
             <p className="text-xs text-muted-foreground">
               Focus, Working Memory, Executive Control, Creativity, and Reasoning 
               have all been activated in this session.
-            </p>
-          </div>
-        )}
-
-        {area === "visual_game" && (
-          <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 mb-6 w-full max-w-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <Gamepad2 className="w-5 h-5 text-primary" />
-              <span className="font-semibold text-sm">Visual Training Complete</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Visual Processing, Reaction Speed, and Focus Stability 
-              have been trained in this session.
             </p>
           </div>
         )}
