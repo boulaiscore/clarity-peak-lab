@@ -21,6 +21,7 @@ import { VisualVibeDrill } from "./VisualVibeDrill";
 import { ColorHarmonyDrill } from "./ColorHarmonyDrill";
 import { GestaltCompletionDrill } from "./GestaltCompletionDrill";
 import { RapidAssociationDrill } from "./RapidAssociationDrill";
+import { OpenReflectionDrill } from "./OpenReflectionDrill";
 
 interface DrillRendererProps {
   exercise: CognitiveExercise;
@@ -439,6 +440,19 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
             score: r.score, 
             correct: r.correct, 
             avgReactionTime: r.avgReactionTime 
+          })}
+        />
+      );
+
+    case "open_reflection":
+      return (
+        <OpenReflectionDrill
+          title={exercise.title}
+          prompt={exercise.prompt}
+          duration={exercise.duration}
+          onComplete={(r) => handleComplete({ 
+            score: r.score, 
+            correct: r.correct
           })}
         />
       );

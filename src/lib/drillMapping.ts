@@ -22,7 +22,8 @@ export type DrillType =
   | "visual_vibe"     // Match visual/emotional vibe
   | "color_harmony"   // Pick harmonizing colors
   | "gestalt_completion" // Complete partial shapes intuitively
-  | "rapid_association"; // Quick emotional/visual associations
+  | "rapid_association"  // Quick emotional/visual associations
+  | "open_reflection";   // Open-ended reflection exercises
 
 // Default configurations for each drill type
 export const DRILL_CONFIGS: Record<DrillType, {
@@ -50,6 +51,7 @@ export const DRILL_CONFIGS: Record<DrillType, {
   color_harmony: { timeLimit: 30, difficulty: 'easy' },
   gestalt_completion: { timeLimit: 30, difficulty: 'easy' },
   rapid_association: { timeLimit: 30, difficulty: 'easy' },
+  open_reflection: { timeLimit: 180, difficulty: 'medium' },
 };
 
 // Map exercise IDs to drill types
@@ -121,15 +123,9 @@ export function getDrillTypeForExercise(exerciseId: string): DrillType {
   }
   
   // Critical Reasoning Slow Thinking exercises (CR_SLOW_001 - CR_SLOW_050)
+  // These are open-ended reflection exercises, not visual drills
   if (id.startsWith("CR_SLOW_")) {
-    const num = parseInt(id.split("_")[2], 10);
-    
-    // Slow critical reasoning - deliberate analysis and structured thinking
-    if (num <= 10) return "sequence_logic";       // 001-010: Complex logical sequences
-    if (num <= 20) return "analogy_match";        // 011-020: Deep analogy analysis
-    if (num <= 30) return "pattern_sequence";     // 021-030: Multi-step patterns
-    if (num <= 40) return "rule_switch";          // 031-040: Rule-based decisions
-    return "category_switch";                      // 041-050: Category logic
+    return "open_reflection";
   }
   
   // Critical Reasoning legacy exercises
