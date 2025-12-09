@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check, X, Trophy, Brain, Play } from "lucide-react";
+import { X, Trophy, Brain } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExercises, useUpdateUserMetrics } from "@/hooks/useExercises";
 import { useSaveNeuroGymSession } from "@/hooks/useNeuroGym";
@@ -13,181 +13,9 @@ import {
 } from "@/lib/neuroGym";
 import { CognitiveExercise, getMetricUpdates } from "@/lib/exercises";
 import { toast } from "sonner";
+import { DrillRenderer } from "@/components/drills/DrillRenderer";
 
-// Generic visual drill component for Focus Arena exercises
-function FocusDrill({ 
-  exercise, 
-  onComplete 
-}: { 
-  exercise: CognitiveExercise; 
-  onComplete: (result: { score: number; correct: number }) => void;
-}) {
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [isActive, setIsActive] = useState(false);
-  const [targets, setTargets] = useState<Array<{ id: number; x: number; y: number; isGreen: boolean; visible: boolean }>>([]);
-  const [score, setScore] = useState(0);
-  const [correct, setCorrect] = useState(0);
-  const [missed, setMissed] = useState(0);
-  const [nextTargetId, setNextTargetId] = useState(0);
-
-  // Start the exercise
-  const startExercise = useCallback(() => {
-    setIsActive(true);
-    setTimeLeft(30);
-    setScore(0);
-    setCorrect(0);
-    setMissed(0);
-    setTargets([]);
-    setNextTargetId(0);
-  }, []);
-
-  // Timer countdown
-  useEffect(() => {
-    if (!isActive || timeLeft <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          setIsActive(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isActive, timeLeft]);
-
-  // Complete when time runs out
-  useEffect(() => {
-    if (timeLeft === 0 && !isActive) {
-      const finalScore = Math.max(0, Math.min(100, Math.round((correct / Math.max(1, correct + missed)) * 100)));
-      onComplete({ score: finalScore, correct });
-    }
-  }, [timeLeft, isActive, correct, missed, onComplete]);
-
-  // Spawn targets periodically
-  useEffect(() => {
-    if (!isActive) return;
-
-    const spawnTarget = () => {
-      const isGreen = Math.random() > 0.25; // 75% green targets
-      const newTarget = {
-        id: nextTargetId,
-        x: 15 + Math.random() * 70, // 15-85% of container width
-        y: 15 + Math.random() * 70, // 15-85% of container height
-        isGreen,
-        visible: true,
-      };
-      
-      setTargets(prev => [...prev.slice(-3), newTarget]); // Keep max 4 targets
-      setNextTargetId(prev => prev + 1);
-
-      // Auto-remove target after 2.5s if not tapped
-      setTimeout(() => {
-        setTargets(prev => {
-          const target = prev.find(t => t.id === newTarget.id);
-          if (target?.visible && target.isGreen) {
-            setMissed(m => m + 1);
-          }
-          return prev.filter(t => t.id !== newTarget.id);
-        });
-      }, 2500);
-    };
-
-    // Spawn first target after a short delay
-    const firstSpawn = setTimeout(spawnTarget, 500);
-    
-    // Then spawn every 1.5s
-    const interval = setInterval(spawnTarget, 1500);
-    return () => {
-      clearTimeout(firstSpawn);
-      clearInterval(interval);
-    };
-  }, [isActive, nextTargetId]);
-
-  // Handle target tap
-  const handleTargetTap = (targetId: number, isGreen: boolean) => {
-    if (isGreen) {
-      setScore(prev => prev + 10);
-      setCorrect(prev => prev + 1);
-    } else {
-      setScore(prev => Math.max(0, prev - 5));
-    }
-    
-    setTargets(prev => prev.filter(t => t.id !== targetId));
-  };
-
-  if (!isActive && timeLeft === 30) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-        <h2 className="text-xl font-semibold mb-3">{exercise.title}</h2>
-        <p className="text-muted-foreground text-center mb-8 max-w-sm">{exercise.prompt}</p>
-        
-        <Button size="lg" onClick={startExercise} className="w-full max-w-xs">
-          <Play className="w-5 h-5 mr-2" />
-          Start (30s)
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex-1 flex flex-col px-4 py-4">
-      {/* Stats bar */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-primary">{timeLeft}</p>
-            <p className="text-xs text-muted-foreground">seconds</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-center">
-            <p className="text-lg font-semibold text-green-500">{correct}</p>
-            <p className="text-xs text-muted-foreground">hits</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-semibold">{score}</p>
-            <p className="text-xs text-muted-foreground">score</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Game area */}
-      <div 
-        className="flex-1 relative rounded-2xl bg-card/30 border border-border/50 overflow-hidden min-h-[300px]"
-        style={{ touchAction: 'none' }}
-      >
-        {targets.map(target => (
-          <button
-            key={target.id}
-            onClick={() => handleTargetTap(target.id, target.isGreen)}
-            className={`absolute w-12 h-12 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-100 active:scale-90 ${
-              target.isGreen 
-                ? 'bg-green-500 hover:bg-green-400 shadow-lg shadow-green-500/30' 
-                : 'bg-red-500 hover:bg-red-400 shadow-lg shadow-red-500/30'
-            }`}
-            style={{
-              left: `${target.x}%`,
-              top: `${target.y}%`,
-            }}
-          />
-        ))}
-        
-        {targets.length === 0 && isActive && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">Targets incoming...</p>
-          </div>
-        )}
-      </div>
-
-      <p className="text-center text-sm text-muted-foreground mt-4">
-        Tap green targets! Avoid red ones.
-      </p>
-    </div>
-  );
-}
+// FocusDrill removed - now using DrillRenderer with multiple drill types
 
 export default function NeuroGymSessionRunner() {
   const [searchParams] = useSearchParams();
@@ -423,11 +251,13 @@ export default function NeuroGymSessionRunner() {
       </header>
 
       {/* Exercise Content */}
-      <FocusDrill 
-        key={currentExercise.id}
-        exercise={currentExercise} 
-        onComplete={handleExerciseComplete} 
-      />
+      <div className="flex-1 flex flex-col">
+        <DrillRenderer 
+          key={currentExercise.id}
+          exercise={currentExercise} 
+          onComplete={handleExerciseComplete} 
+        />
+      </div>
     </div>
   );
 }
