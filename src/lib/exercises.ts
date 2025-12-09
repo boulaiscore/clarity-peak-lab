@@ -29,10 +29,14 @@ export type ExerciseType =
   | "logic_puzzle"
   | "scenario_choice"
   | "probability_estimation"
-  | "visual_drill";
+  | "visual_drill"
+  | "visual_task";
 
 export type ExerciseDifficulty = "easy" | "medium" | "hard";
-export type ExerciseDuration = "30s" | "90s" | "2min" | "3min" | "5min" | "7min";
+export type ExerciseDuration = "30s" | "90s" | "1min" | "2min" | "3min" | "5min" | "7min";
+
+export type GymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual_game";
+export type ThinkingMode = "fast" | "slow";
 
 export interface CognitiveExercise {
   id: string;
@@ -47,6 +51,8 @@ export interface CognitiveExercise {
   explanation?: string;
   metrics_affected: string[];
   weight: number;
+  gym_area?: GymArea;
+  thinking_mode?: ThinkingMode;
   created_at?: string;
   updated_at?: string;
 }
@@ -211,7 +217,12 @@ export function shuffleArray<T>(array: T[]): T[] {
 
 // Check if exercise type has a correct answer
 export function hasCorrectAnswer(type: ExerciseType): boolean {
-  return ["multiple_choice", "detect_fallacy", "logic_puzzle", "scenario_choice"].includes(type);
+  return ["multiple_choice", "detect_fallacy", "logic_puzzle", "scenario_choice", "visual_task"].includes(type);
+}
+
+// Check if exercise is a visual/interactive task
+export function isVisualTask(type: ExerciseType): boolean {
+  return type === "visual_task" || type === "visual_drill";
 }
 
 // Calculate score for a session

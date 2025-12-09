@@ -1,17 +1,16 @@
 // Neuro Gym Types and Configuration
 
-import { CognitiveExercise } from "./exercises";
+import { CognitiveExercise, GymArea, ThinkingMode } from "./exercises";
 import { TrainingGoal } from "@/contexts/AuthContext";
 
-export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual" | "neuro-activation";
-export type NeuroGymDuration = "30s" | "2min" | "5min" | "7min";
+export type NeuroGymArea = GymArea | "neuro-activation";
+export type NeuroGymDuration = "30s" | "1min" | "2min" | "3min" | "5min" | "7min";
 
 export interface NeuroGymAreaConfig {
   id: NeuroGymArea;
   title: string;
   subtitle: string;
   description: string;
-  categories: string[];
   icon: string;
 }
 
@@ -21,7 +20,6 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Focus Arena",
     subtitle: "Selective Attention & Sustained Focus",
     description: "Train selective attention, visual search, and sustained focus.",
-    categories: ["attention", "inhibition", "cognitive_control", "fast", "slow"],
     icon: "Target",
   },
   {
@@ -29,7 +27,6 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Memory Core",
     subtitle: "Working Memory Capacity",
     description: "Strengthen working memory capacity and mental updating.",
-    categories: ["working_memory", "fast", "slow"],
     icon: "Brain",
   },
   {
@@ -37,7 +34,6 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Control Lab",
     subtitle: "Inhibition & Cognitive Flexibility",
     description: "Improve inhibition and cognitive flexibility.",
-    categories: ["executive_control", "inhibition", "cognitive_control", "fast", "slow"],
     icon: "Sliders",
   },
   {
@@ -45,7 +41,6 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Critical Reasoning Studio",
     subtitle: "Logic & Structured Analysis",
     description: "Sharpen logical thinking, bias detection, and structured analysis.",
-    categories: ["reasoning", "bias", "logic_puzzle", "philosophical", "slow", "fast"],
     icon: "Lightbulb",
   },
   {
@@ -53,42 +48,38 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Creativity Hub",
     subtitle: "Divergent Thinking & Reframing",
     description: "Boost divergent thinking, analogies, and high-level reframing.",
-    categories: ["creative", "insight", "clarity", "fast", "slow"],
     icon: "Sparkles",
   },
   {
-    id: "visual",
+    id: "visual_game",
     title: "Visual & Game Drills",
     subtitle: "Interactive Cognitive Games",
     description: "Train visual processing, spatial reasoning, and reaction speed with interactive drills.",
-    categories: ["visual", "spatial", "game", "visual_memory", "fast", "slow"],
     icon: "Gamepad2",
   },
 ];
 
 // Neuro Activation Session - Fixed sequence of exercise IDs
 export const NEURO_ACTIVATION_SEQUENCE = [
-  "N001", // Neural Warm-Up (Focus) - Focused Dot Drill
-  "N015", // Executive Control Switch - Task Switching
-  "N002", // Working Memory Prime - 1-back
-  "N009", // Insight Incubation
-  "N007", // Creative Divergence Burst - Alternative Uses
-  "N010", // Slow Thinking Recenter - Evidence Counterbalance
-  "N011", // Value Alignment Reflection
+  "FA_FAST_001", // Focus - Green Dot Reaction
+  "CL_FAST_001", // Control - Go / No-Go Flash
+  "MC_FAST_001", // Memory - Quick Digit Span
+  "RS_FAST_001", // Reasoning - Fallacy Snap
+  "CH_FAST_001", // Creativity - Alternative Uses Burst
+  "FA_SLOW_001", // Focus - Distraction Mapping
+  "RS_SLOW_001", // Reasoning - Argument Breakdown
 ];
-
-// Categories that map to Fast Thinking (System 1)
-const FAST_THINKING_CATEGORIES = ["fast", "attention", "cognitive_control", "inhibition", "visual", "game", "spatial", "visual_memory"];
-
-// Categories that map to Slow Thinking (System 2)
-const SLOW_THINKING_CATEGORIES = ["slow", "reasoning", "bias", "philosophical", "decision", "clarity", "logic_puzzle", "reflection"];
 
 // Exercise count configuration for Neuro Gym sessions based on user preference
 export function getNeuroGymExerciseCount(duration: NeuroGymDuration): { min: number; max: number } {
   switch (duration) {
     case "30s":
       return { min: 1, max: 1 };
+    case "1min":
+      return { min: 1, max: 2 };
     case "2min":
+      return { min: 2, max: 3 };
+    case "3min":
       return { min: 2, max: 3 };
     case "5min":
       return { min: 3, max: 4 };
@@ -99,14 +90,30 @@ export function getNeuroGymExerciseCount(duration: NeuroGymDuration): { min: num
   }
 }
 
-// Check if an exercise is Fast Thinking
-function isFastThinkingExercise(exercise: CognitiveExercise): boolean {
-  return FAST_THINKING_CATEGORIES.includes(exercise.category);
-}
-
-// Check if an exercise is Slow Thinking
-function isSlowThinkingExercise(exercise: CognitiveExercise): boolean {
-  return SLOW_THINKING_CATEGORIES.includes(exercise.category);
+// Weighted random selection using exercise weight
+function weightedRandomSelect(exercises: CognitiveExercise[], count: number): CognitiveExercise[] {
+  const selected: CognitiveExercise[] = [];
+  const remaining = [...exercises];
+  
+  while (selected.length < count && remaining.length > 0) {
+    // Calculate total weight
+    const totalWeight = remaining.reduce((sum, e) => sum + (e.weight || 1), 0);
+    
+    // Generate random value
+    let random = Math.random() * totalWeight;
+    
+    // Select based on weight
+    for (let i = 0; i < remaining.length; i++) {
+      random -= remaining[i].weight || 1;
+      if (random <= 0) {
+        selected.push(remaining[i]);
+        remaining.splice(i, 1);
+        break;
+      }
+    }
+  }
+  
+  return selected;
 }
 
 // Generate exercises for a Neuro Gym session
@@ -123,78 +130,68 @@ export function generateNeuroGymSession(
       .filter((e): e is CognitiveExercise => e !== undefined);
   }
 
-  const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
-  if (!areaConfig) return [];
-
-  // Filter exercises by area categories (excluding fast/slow which are used for filtering)
-  let areaExercises = allExercises.filter(e => 
-    areaConfig.categories.includes(e.category)
-  );
-
-  // Apply training goals filtering for other areas (Focus, Memory, etc.)
-  if (trainingGoals && trainingGoals.length > 0) {
-    const hasFast = trainingGoals.includes("fast_thinking");
-    const hasSlow = trainingGoals.includes("slow_thinking");
-    
-    // Only filter if user has selected just one goal, not both
-    if (hasFast && !hasSlow) {
-      // Filter to only Fast Thinking exercises
-      areaExercises = areaExercises.filter(e => isFastThinkingExercise(e));
-    } else if (hasSlow && !hasFast) {
-      // Filter to only Slow Thinking exercises
-      areaExercises = areaExercises.filter(e => isSlowThinkingExercise(e));
-    }
-    // If both selected, show all exercises (no additional filter)
-  }
-
-  // Filter by duration - prefer exercises matching user's duration preference
-  const durationMatched = areaExercises.filter(e => e.duration === duration);
+  // Filter exercises by gym_area field
+  let areaExercises = allExercises.filter(e => e.gym_area === area);
   
-  // If we have enough exercises matching the duration, use them
-  // Otherwise, fall back to any exercises in the area
-  if (durationMatched.length >= 2) {
-    areaExercises = durationMatched;
-  }
-
+  // If no exercises found with gym_area, fall back to all exercises
   if (areaExercises.length === 0) {
-    // Fallback: use any available exercises
-    return shuffleAndSelect(allExercises, duration);
+    areaExercises = allExercises;
   }
 
-  return shuffleAndSelect(areaExercises, duration);
-}
+  // Determine thinking mode filter based on training goals
+  const hasFast = trainingGoals?.includes("fast_thinking");
+  const hasSlow = trainingGoals?.includes("slow_thinking");
+  
+  let filteredExercises: CognitiveExercise[];
+  
+  if (hasFast && hasSlow) {
+    // Both selected: create balanced mix (prefer 2 fast + 2 slow)
+    const fastExercises = areaExercises.filter(e => e.thinking_mode === "fast");
+    const slowExercises = areaExercises.filter(e => e.thinking_mode === "slow");
+    
+    const { min, max } = getNeuroGymExerciseCount(duration);
+    const targetCount = Math.floor(Math.random() * (max - min + 1)) + min;
+    const halfCount = Math.ceil(targetCount / 2);
+    
+    // Select balanced mix
+    const selectedFast = weightedRandomSelect(fastExercises, halfCount);
+    const selectedSlow = weightedRandomSelect(slowExercises, targetCount - selectedFast.length);
+    
+    // Return fast exercises first, then slow (for warm-up progression)
+    return [...selectedFast, ...selectedSlow];
+  } else if (hasFast && !hasSlow) {
+    // Only fast thinking
+    filteredExercises = areaExercises.filter(e => e.thinking_mode === "fast");
+  } else if (hasSlow && !hasFast) {
+    // Only slow thinking
+    filteredExercises = areaExercises.filter(e => e.thinking_mode === "slow");
+  } else {
+    // No preference: use all exercises from the area
+    filteredExercises = areaExercises;
+  }
 
-function shuffleAndSelect(exercises: CognitiveExercise[], duration: NeuroGymDuration): CognitiveExercise[] {
+  // If no exercises match the filter, fall back to all area exercises
+  if (filteredExercises.length === 0) {
+    filteredExercises = areaExercises;
+  }
+
+  // Get exercise count and select using weighted random
   const { min, max } = getNeuroGymExerciseCount(duration);
   const count = Math.floor(Math.random() * (max - min + 1)) + min;
   
-  // Shuffle
-  const shuffled = [...exercises].sort(() => Math.random() - 0.5);
+  const selected = weightedRandomSelect(filteredExercises, count);
   
-  // Try to balance difficulty
-  const easy = shuffled.filter(e => e.difficulty === "easy");
-  const medium = shuffled.filter(e => e.difficulty === "medium");
-  const hard = shuffled.filter(e => e.difficulty === "hard");
-  
-  const selected: CognitiveExercise[] = [];
-  
-  // Add at least one easy exercise at the start
-  if (easy.length > 0) {
-    selected.push(easy[0]);
-  }
-  
-  // Fill with medium exercises
-  const remainingCount = count - selected.length;
-  const mediumToAdd = medium.filter(e => !selected.includes(e)).slice(0, remainingCount);
-  selected.push(...mediumToAdd);
-  
-  // If still need more, add from any category
-  if (selected.length < count) {
-    const remaining = shuffled.filter(e => !selected.includes(e));
-    selected.push(...remaining.slice(0, count - selected.length));
-  }
-  
-  return selected.slice(0, count);
+  // Sort selected: fast exercises first, then slow (for natural progression)
+  return selected.sort((a, b) => {
+    if (a.thinking_mode === "fast" && b.thinking_mode === "slow") return -1;
+    if (a.thinking_mode === "slow" && b.thinking_mode === "fast") return 1;
+    return 0;
+  });
+}
+
+// Helper to check if exercise is a visual/interactive task
+export function isVisualTaskExercise(exercise: CognitiveExercise): boolean {
+  return exercise.type === "visual_task" || exercise.type === "visual_drill";
 }
 
 export interface NeuroGymSession {

@@ -92,16 +92,7 @@ export default function NeuroGymArea() {
         {/* What You'll Train */}
         <div className="mb-8 p-4 rounded-xl bg-card/50 border border-border/50">
           <h2 className="font-semibold mb-3">What You'll Train</h2>
-          <div className="flex flex-wrap gap-2">
-            {areaConfig.categories.map((cat) => (
-              <span 
-                key={cat}
-                className="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary capitalize"
-              >
-                {cat.replace(/_/g, " ")}
-              </span>
-            ))}
-          </div>
+          <p className="text-sm text-muted-foreground">{areaConfig.description}</p>
         </div>
 
         {/* Session Info based on preferences */}

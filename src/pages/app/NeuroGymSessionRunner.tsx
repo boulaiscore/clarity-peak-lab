@@ -225,7 +225,7 @@ export default function NeuroGymSessionRunner() {
         <p className="text-muted-foreground text-center mb-6">
           {area === "neuro-activation" 
             ? "You've completed a full Neuro Activation Session. Your brain is primed for deep work and high-stakes decisions."
-            : area === "visual"
+            : area === "visual_game"
             ? "Excellent visual training! Your visual processing and reaction speed are improving."
             : `Great work training your ${areaConfig?.title || "cognitive abilities"}!`
           }
@@ -255,7 +255,7 @@ export default function NeuroGymSessionRunner() {
           </div>
         )}
 
-        {area === "visual" && (
+        {area === "visual_game" && (
           <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 mb-6 w-full max-w-sm">
             <div className="flex items-center gap-3 mb-2">
               <Gamepad2 className="w-5 h-5 text-primary" />
