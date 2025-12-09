@@ -108,7 +108,20 @@ export function getDrillTypeForExercise(exerciseId: string): DrillType {
     return "pattern_sequence";
   }
   
-  // Creativity Hub exercises
+  // Creativity Hub Fast Thinking exercises (CH_FAST_001 - CH_FAST_050)
+  if (id.startsWith("CH_FAST_")) {
+    const num = parseInt(id.split("_")[2], 10);
+    
+    // Creativity exercises focus on divergent thinking, pattern breaking, analogies
+    if (num <= 8) return "odd_one_out";           // 001-008: Find unique element
+    if (num <= 16) return "analogy_match";        // 009-016: Analogical reasoning
+    if (num <= 24) return "word_association";     // 017-024: Word connections
+    if (num <= 32) return "pattern_sequence";     // 025-032: Creative patterns
+    if (num <= 40) return "category_switch";      // 033-040: Flexible categorization
+    return "odd_one_out";                          // 041-050: More divergent thinking
+  }
+  
+  // Creativity Hub legacy exercises
   if (id.startsWith("CH_") || id.startsWith("CREATIVE_")) {
     const num = parseInt(id.split("_").pop() || "0", 10);
     if (num <= 15) return "odd_one_out";
