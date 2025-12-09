@@ -1,13 +1,10 @@
-import { cn } from "@/lib/utils";
 import { NEURO_GYM_AREA_CONTRIBUTIONS } from "@/lib/thinkingSystems";
-import { Target, Brain, Sparkles, Database, Gauge } from "lucide-react";
+import { Target, Brain, Sparkles } from "lucide-react";
 
 const AREA_ICONS: Record<string, React.ReactNode> = {
   "Focus Arena": <Target className="w-4 h-4" />,
   "Critical Reasoning": <Brain className="w-4 h-4" />,
   "Creativity Hub": <Sparkles className="w-4 h-4" />,
-  "Memory Core": <Database className="w-4 h-4" />,
-  "Control Lab": <Gauge className="w-4 h-4" />,
 };
 
 export function ThinkingSystemSources() {

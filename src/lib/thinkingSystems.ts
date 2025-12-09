@@ -192,23 +192,5 @@ export const NEURO_GYM_AREA_CONTRIBUTIONS: AreaContribution[] = [
     description: "Combines divergent insight (fast) with reframing and analogical reasoning (slow).",
     fastExamples: ["Visual Vibe", "Rapid Association", "Gestalt Completion"],
     slowExamples: ["Deep Analogies", "Structured Reframing", "Pattern Analysis"]
-  },
-  {
-    area: "Memory Core",
-    icon: "💾",
-    fastContribution: 40,
-    slowContribution: 60,
-    description: "Working memory and recall patterns that support both thinking systems.",
-    fastExamples: ["Digit Span", "Location Match"],
-    slowExamples: ["N-Back", "Memory Matrix", "Pattern Sequence"]
-  },
-  {
-    area: "Control Lab",
-    icon: "⚡",
-    fastContribution: 35,
-    slowContribution: 65,
-    description: "Executive control and cognitive inhibition for deliberate thinking.",
-    fastExamples: ["Go/No-Go", "Quick Inhibition"],
-    slowExamples: ["Stroop", "Rule Switch", "Interference Control"]
   }
 ];
