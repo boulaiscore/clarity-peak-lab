@@ -134,7 +134,7 @@ export function DotTargetDrill({ config, timeLimit, onComplete }: DotTargetDrill
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Stats Bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-card/50 border-b border-border/30">
         <div className="flex items-center gap-4">
@@ -162,7 +162,7 @@ export function DotTargetDrill({ config, timeLimit, onComplete }: DotTargetDrill
       {/* Game Area */}
       <div 
         ref={containerRef}
-        className="flex-1 relative bg-background/50 overflow-hidden touch-none"
+        className="flex-1 relative bg-background/50 overflow-hidden touch-none min-h-[300px]"
       >
         {!isRunning && timeLeft === timeLimit && (
           <div className="absolute inset-0 flex items-center justify-center">
