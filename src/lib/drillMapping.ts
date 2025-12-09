@@ -18,7 +18,11 @@ export type DrillType =
   | "rule_switch"     // Switch between response rules
   | "analogy_match"   // Find analogous pairs
   | "sequence_logic"  // Logical sequence completion
-  | "word_association"// Find related words;
+  | "word_association"// Find related words
+  | "visual_vibe"     // Match visual/emotional vibe
+  | "color_harmony"   // Pick harmonizing colors
+  | "gestalt_completion" // Complete partial shapes intuitively
+  | "rapid_association"; // Quick emotional/visual associations
 
 // Default configurations for each drill type
 export const DRILL_CONFIGS: Record<DrillType, {
@@ -42,6 +46,10 @@ export const DRILL_CONFIGS: Record<DrillType, {
   analogy_match: { timeLimit: 30, difficulty: 'medium' },
   sequence_logic: { timeLimit: 30, difficulty: 'medium' },
   word_association: { timeLimit: 30, difficulty: 'easy' },
+  visual_vibe: { timeLimit: 30, difficulty: 'easy' },
+  color_harmony: { timeLimit: 30, difficulty: 'easy' },
+  gestalt_completion: { timeLimit: 30, difficulty: 'easy' },
+  rapid_association: { timeLimit: 30, difficulty: 'easy' },
 };
 
 // Map exercise IDs to drill types
@@ -109,16 +117,16 @@ export function getDrillTypeForExercise(exerciseId: string): DrillType {
   }
   
   // Creativity Hub Fast Thinking exercises (CH_FAST_001 - CH_FAST_050)
+  // Uses intuitive, fast creativity drills - NOT logical reasoning
   if (id.startsWith("CH_FAST_")) {
     const num = parseInt(id.split("_")[2], 10);
     
-    // Creativity exercises focus on divergent thinking, pattern breaking, analogies
-    if (num <= 8) return "odd_one_out";           // 001-008: Find unique element
-    if (num <= 16) return "analogy_match";        // 009-016: Analogical reasoning
-    if (num <= 24) return "word_association";     // 017-024: Word connections
-    if (num <= 32) return "pattern_sequence";     // 025-032: Creative patterns
-    if (num <= 40) return "category_switch";      // 033-040: Flexible categorization
-    return "odd_one_out";                          // 041-050: More divergent thinking
+    // Intuitive creativity exercises - vibe matching, color sense, rapid association
+    if (num <= 10) return "visual_vibe";           // 001-010: Match the vibe/mood
+    if (num <= 20) return "rapid_association";     // 011-020: Quick emotional links
+    if (num <= 30) return "color_harmony";         // 021-030: Aesthetic color matching
+    if (num <= 40) return "gestalt_completion";    // 031-040: Complete partial shapes
+    return "visual_vibe";                           // 041-050: More vibe matching
   }
   
   // Creativity Hub legacy exercises

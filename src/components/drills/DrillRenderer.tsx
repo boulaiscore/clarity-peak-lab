@@ -17,6 +17,10 @@ import { RuleSwitchDrill } from "./RuleSwitchDrill";
 import { AnalogyMatchDrill } from "./AnalogyMatchDrill";
 import { SequenceLogicDrill } from "./SequenceLogicDrill";
 import { WordAssociationDrill } from "./WordAssociationDrill";
+import { VisualVibeDrill } from "./VisualVibeDrill";
+import { ColorHarmonyDrill } from "./ColorHarmonyDrill";
+import { GestaltCompletionDrill } from "./GestaltCompletionDrill";
+import { RapidAssociationDrill } from "./RapidAssociationDrill";
 
 interface DrillRendererProps {
   exercise: CognitiveExercise;
@@ -371,8 +375,75 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
         />
       );
 
+    case "visual_vibe":
+      return (
+        <VisualVibeDrill
+          config={{
+            trialsCount: 12,
+            timePerTrial: 3,
+            difficulty: config.difficulty,
+          }}
+          timeLimit={config.timeLimit}
+          onComplete={(r) => handleComplete({ 
+            score: r.score, 
+            correct: r.correct, 
+            avgReactionTime: r.avgReactionTime 
+          })}
+        />
+      );
+
+    case "color_harmony":
+      return (
+        <ColorHarmonyDrill
+          config={{
+            trialsCount: 12,
+            timePerTrial: 3,
+            difficulty: config.difficulty,
+          }}
+          timeLimit={config.timeLimit}
+          onComplete={(r) => handleComplete({ 
+            score: r.score, 
+            correct: r.correct, 
+            avgReactionTime: r.avgReactionTime 
+          })}
+        />
+      );
+
+    case "gestalt_completion":
+      return (
+        <GestaltCompletionDrill
+          config={{
+            trialsCount: 12,
+            timePerTrial: 3,
+            difficulty: config.difficulty,
+          }}
+          timeLimit={config.timeLimit}
+          onComplete={(r) => handleComplete({ 
+            score: r.score, 
+            correct: r.correct, 
+            avgReactionTime: r.avgReactionTime 
+          })}
+        />
+      );
+
+    case "rapid_association":
+      return (
+        <RapidAssociationDrill
+          config={{
+            trialsCount: 15,
+            timePerTrial: 2,
+            difficulty: config.difficulty,
+          }}
+          timeLimit={config.timeLimit}
+          onComplete={(r) => handleComplete({ 
+            score: r.score, 
+            correct: r.correct, 
+            avgReactionTime: r.avgReactionTime 
+          })}
+        />
+      );
+
     default:
-      // Fallback to dot target
       return (
         <DotTargetDrill
           config={{
