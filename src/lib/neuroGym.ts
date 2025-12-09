@@ -142,6 +142,13 @@ export function generateNeuroGymSession(
     const fastExercises = areaExercises.filter(e => e.thinking_mode === "fast");
     const slowExercises = areaExercises.filter(e => e.thinking_mode === "slow");
     
+    // FALLBACK: if no exercises have thinking_mode, use all area exercises
+    if (fastExercises.length === 0 && slowExercises.length === 0) {
+      const { min, max } = getNeuroGymExerciseCount(duration);
+      const count = Math.floor(Math.random() * (max - min + 1)) + min;
+      return weightedRandomSelect(areaExercises, count);
+    }
+    
     const { min, max } = getNeuroGymExerciseCount(duration);
     const targetCount = Math.floor(Math.random() * (max - min + 1)) + min;
     const halfCount = Math.ceil(targetCount / 2);
