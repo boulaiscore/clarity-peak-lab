@@ -969,7 +969,7 @@
     "duration": "30s",
     "title": "Number Logic Sprint",
     "prompt": "Find the next number: 2, 6, 12, 20, ?",
-    "gym_area": "critical_reasoning",
+    "gym_area": "reasoning",
     "thinking_mode": "fast",
     "metricsAffected": ["reasoningAccuracy", "fastThinking"],
     "weight": 1
