@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_GYM_AREAS, NeuroGymArea } from "@/lib/neuroGym";
 import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, Gamepad2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
   Target,
@@ -17,6 +17,21 @@ const AREA_ICONS: Record<string, React.ElementType> = {
 
 export default function NeuroGym() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Determine thinking type label based on user preferences
+  const getThinkingTypeLabel = () => {
+    const goals = user?.trainingGoals || [];
+    const hasFast = goals.includes("fast_thinking");
+    const hasSlow = goals.includes("slow_thinking");
+    
+    if (hasFast && hasSlow) return { label: "Fast & Slow", color: "bg-primary/20 text-primary" };
+    if (hasFast) return { label: "Fast Thinking", color: "bg-amber-500/20 text-amber-400" };
+    if (hasSlow) return { label: "Slow Thinking", color: "bg-blue-500/20 text-blue-400" };
+    return { label: "All Types", color: "bg-muted text-muted-foreground" };
+  };
+
+  const thinkingType = getThinkingTypeLabel();
 
   const handleEnterArea = (areaId: NeuroGymArea) => {
     navigate(`/neuro-gym/${areaId}`);
@@ -94,7 +109,12 @@ export default function NeuroGym() {
                     <IconComponent className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold">{area.title}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold">{area.title}</h3>
+                      <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", thinkingType.color)}>
+                        {thinkingType.label}
+                      </span>
+                    </div>
                     <p className="text-xs text-primary/70 mt-0.5">{area.subtitle}</p>
                     <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                       {area.description}
