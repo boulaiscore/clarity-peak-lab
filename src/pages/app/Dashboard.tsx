@@ -9,6 +9,8 @@ import { CognitiveReadinessBar } from "@/components/dashboard/CognitiveReadiness
 import { BrainFunctionsGrid } from "@/components/dashboard/BrainFunctionsGrid";
 import { InsightsList } from "@/components/dashboard/InsightsList";
 import { CognitiveReadinessCard } from "@/components/dashboard/CognitiveReadinessCard";
+import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
+import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
 import { Button } from "@/components/ui/button";
 import { Info, Zap, Brain } from "lucide-react";
 import {
@@ -27,6 +29,7 @@ import {
   getBrainFunctionScores,
   generateCognitiveInsights,
 } from "@/lib/cognitiveMetrics";
+import { computeFastSlowSystems } from "@/lib/thinkingSystems";
 
 const Dashboard = () => {
   const userId = "user-1";
@@ -48,6 +51,12 @@ const Dashboard = () => {
   const readiness = calculateCognitiveReadiness(snapshot, baseline);
   const brainFunctions = getBrainFunctionScores(snapshot, previousSnapshot);
   const insights = generateCognitiveInsights(snapshot, baseline, delta);
+
+  // Compute Fast/Slow Thinking Systems
+  const thinkingSystems = useMemo(
+    () => computeFastSlowSystems(snapshot, previousSnapshot),
+    [snapshot, previousSnapshot]
+  );
 
   const overallScore = Math.round(
     (criticalThinking + focus + decisionQuality + creativity) / 4
@@ -119,7 +128,28 @@ const Dashboard = () => {
           philosophicalReasoning={philosophicalIndex}
         />
 
-        {/* Fast vs Slow Thinking Panel */}
+        {/* ===== THINKING SYSTEMS OVERVIEW ===== */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Thinking Systems Overview</h2>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              Kahneman Model
+            </span>
+          </div>
+          
+          {/* Fast/Slow Brain Map */}
+          <FastSlowBrainMap
+            fastScore={thinkingSystems.fast.score}
+            fastDelta={thinkingSystems.fast.delta}
+            slowScore={thinkingSystems.slow.score}
+            slowDelta={thinkingSystems.slow.delta}
+          />
+        </div>
+
+        {/* Training Sources - How each area contributes */}
+        <ThinkingSystemSources />
+
+        {/* Fast vs Slow Thinking Panel (existing) */}
         <FastSlowThinkingPanel
           fastThinkingScore={fastThinking}
           slowThinkingScore={slowThinking}
