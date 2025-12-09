@@ -24,6 +24,7 @@ export default function NeuroGymSessionRunner() {
   
   const area = searchParams.get("area") as NeuroGymArea;
   const duration = searchParams.get("duration") as NeuroGymDuration;
+  const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
   
   const { data: allExercises, isLoading: exercisesLoading } = useExercises();
   const saveSession = useSaveNeuroGymSession();
@@ -36,18 +37,19 @@ export default function NeuroGymSessionRunner() {
   const [isComplete, setIsComplete] = useState(false);
   const [sessionScore, setSessionScore] = useState({ score: 0, correctAnswers: 0, totalQuestions: 0 });
 
-  // Generate session exercises with trainingGoals filtering
+  // Generate session exercises with explicit thinking mode or trainingGoals filtering
   useEffect(() => {
     if (allExercises && allExercises.length > 0 && area) {
       const exercises = generateNeuroGymSession(
         area, 
         duration || "2min", 
         allExercises,
-        user?.trainingGoals
+        user?.trainingGoals,
+        thinkingMode || undefined
       );
       setSessionExercises(exercises);
     }
-  }, [allExercises, area, duration, user?.trainingGoals]);
+  }, [allExercises, area, duration, user?.trainingGoals, thinkingMode]);
 
   const areaConfig = useMemo(() => {
     if (area === "neuro-activation") {
@@ -234,9 +236,21 @@ export default function NeuroGymSessionRunner() {
           <button onClick={() => navigate("/neuro-gym")} className="text-muted-foreground">
             <X className="w-5 h-5" />
           </button>
-          <span className="text-sm font-medium">
-            {areaConfig?.title}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">
+              {areaConfig?.title}
+            </span>
+            {/* Thinking Mode Badge */}
+            {currentExercise?.thinking_mode && (
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                currentExercise.thinking_mode === "fast" 
+                  ? "bg-amber-500/20 text-amber-400" 
+                  : "bg-blue-500/20 text-blue-400"
+              }`}>
+                {currentExercise.thinking_mode === "fast" ? "Fast" : "Slow"}
+              </span>
+            )}
+          </div>
           <span className="text-xs text-muted-foreground">
             {currentIndex + 1}/{sessionExercises.length}
           </span>
