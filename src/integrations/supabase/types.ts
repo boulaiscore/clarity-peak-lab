@@ -113,8 +113,11 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          birth_date: string | null
           created_at: string
           daily_time_commitment: string | null
+          degree_discipline: string | null
+          education_level: string | null
           gender: string | null
           id: string
           name: string | null
@@ -128,8 +131,11 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          birth_date?: string | null
           created_at?: string
           daily_time_commitment?: string | null
+          degree_discipline?: string | null
+          education_level?: string | null
           gender?: string | null
           id?: string
           name?: string | null
@@ -143,8 +149,11 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          birth_date?: string | null
           created_at?: string
           daily_time_commitment?: string | null
+          degree_discipline?: string | null
+          education_level?: string | null
           gender?: string | null
           id?: string
           name?: string | null

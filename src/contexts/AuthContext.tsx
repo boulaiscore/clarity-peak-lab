@@ -7,14 +7,19 @@ export type SessionDuration = "30s" | "2min" | "5min" | "7min";
 export type DailyTimeCommitment = "3min" | "10min" | "30min";
 export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
 export type WorkType = "knowledge" | "creative" | "technical" | "management" | "student" | "other";
+export type EducationLevel = "high_school" | "bachelor" | "master" | "phd" | "other";
+export type DegreeDiscipline = "stem" | "humanities" | "business" | "health" | "arts" | "social_sciences" | "law" | "other";
 
 export interface UserProfile {
   id: string;
   user_id: string;
   name: string | null;
   age: number | null;
+  birth_date: string | null;
   gender: Gender | null;
   work_type: WorkType | null;
+  education_level: EducationLevel | null;
+  degree_discipline: DegreeDiscipline | null;
   training_goals: TrainingGoal[];
   session_duration: SessionDuration;
   daily_time_commitment: DailyTimeCommitment;
@@ -33,8 +38,11 @@ export interface User {
   
   // Personal data
   age?: number;
+  birthDate?: string;
   gender?: Gender;
   workType?: WorkType;
+  educationLevel?: EducationLevel;
+  degreeDiscipline?: DegreeDiscipline;
   
   // Training preferences
   trainingGoals?: TrainingGoal[];
@@ -66,8 +74,11 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     subscriptionStatus: (profile?.subscription_status as "free" | "premium") || "free",
     createdAt: new Date(supabaseUser.created_at),
     age: profile?.age || undefined,
+    birthDate: profile?.birth_date || undefined,
     gender: profile?.gender || undefined,
     workType: profile?.work_type || undefined,
+    educationLevel: profile?.education_level || undefined,
+    degreeDiscipline: profile?.degree_discipline || undefined,
     trainingGoals: profile?.training_goals || [],
     sessionDuration: profile?.session_duration || "2min",
     dailyTimeCommitment: profile?.daily_time_commitment || "10min",
@@ -189,8 +200,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (updates.name !== undefined) profileUpdates.name = updates.name;
     if (updates.age !== undefined) profileUpdates.age = updates.age;
+    if (updates.birthDate !== undefined) profileUpdates.birth_date = updates.birthDate;
     if (updates.gender !== undefined) profileUpdates.gender = updates.gender;
     if (updates.workType !== undefined) profileUpdates.work_type = updates.workType;
+    if (updates.educationLevel !== undefined) profileUpdates.education_level = updates.educationLevel;
+    if (updates.degreeDiscipline !== undefined) profileUpdates.degree_discipline = updates.degreeDiscipline;
     if (updates.trainingGoals !== undefined) profileUpdates.training_goals = updates.trainingGoals;
     if (updates.sessionDuration !== undefined) profileUpdates.session_duration = updates.sessionDuration;
     if (updates.dailyTimeCommitment !== undefined) profileUpdates.daily_time_commitment = updates.dailyTimeCommitment;

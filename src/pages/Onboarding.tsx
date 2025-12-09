@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { format, differenceInYears } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment, Gender, WorkType } from "@/contexts/AuthContext";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment, Gender, WorkType, EducationLevel, DegreeDiscipline } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { Zap, Brain, Clock, Calendar, ArrowRight, User, Briefcase } from "lucide-react";
+import { Zap, Brain, Clock, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap } from "lucide-react";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -13,26 +16,34 @@ const Onboarding = () => {
   const [step, setStep] = useState<Step>(1);
   
   // Personal data
-  const [age, setAge] = useState<number | undefined>(undefined);
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [gender, setGender] = useState<Gender | undefined>(undefined);
   const [workType, setWorkType] = useState<WorkType | undefined>(undefined);
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | undefined>(undefined);
+  const [degreeDiscipline, setDegreeDiscipline] = useState<DegreeDiscipline | undefined>(undefined);
   
   // Training preferences
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>([]);
   const [sessionDuration, setSessionDuration] = useState<SessionDuration | undefined>(undefined);
   const [dailyTimeCommitment, setDailyTimeCommitment] = useState<DailyTimeCommitment | undefined>(undefined);
 
+  // Calculate age from birth date
+  const calculatedAge = birthDate ? differenceInYears(new Date(), birthDate) : undefined;
+
   const handleNext = () => {
-    if (step < 6) {
+    if (step < 7) {
       setStep((s) => (s + 1) as Step);
     }
   };
 
   const handleComplete = async () => {
     await updateUser({
-      age,
+      age: calculatedAge,
+      birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
       gender,
       workType,
+      educationLevel,
+      degreeDiscipline,
       trainingGoals,
       sessionDuration,
       dailyTimeCommitment,
@@ -65,6 +76,25 @@ const Onboarding = () => {
     { value: "other", label: "Other", description: "Something else" },
   ];
 
+  const educationOptions: { value: EducationLevel; label: string; description: string }[] = [
+    { value: "high_school", label: "High School", description: "Diploma or equivalent" },
+    { value: "bachelor", label: "Bachelor's Degree", description: "Undergraduate degree" },
+    { value: "master", label: "Master's Degree", description: "Graduate degree" },
+    { value: "phd", label: "PhD / Doctorate", description: "Doctoral degree" },
+    { value: "other", label: "Other", description: "Professional or other certification" },
+  ];
+
+  const disciplineOptions: { value: DegreeDiscipline; label: string }[] = [
+    { value: "stem", label: "STEM (Science, Tech, Engineering, Math)" },
+    { value: "business", label: "Business & Economics" },
+    { value: "humanities", label: "Humanities & Literature" },
+    { value: "social_sciences", label: "Social Sciences" },
+    { value: "health", label: "Health & Medicine" },
+    { value: "law", label: "Law" },
+    { value: "arts", label: "Arts & Design" },
+    { value: "other", label: "Other" },
+  ];
+
   const goalOptions: { value: TrainingGoal; icon: React.ElementType; title: string; description: string }[] = [
     { 
       value: "fast_thinking", 
@@ -93,21 +123,12 @@ const Onboarding = () => {
     { value: "30min", label: "30 min", description: "Deep commitment" },
   ];
 
-  const ageOptions = [
-    { min: 18, max: 25, label: "18-25" },
-    { min: 26, max: 35, label: "26-35" },
-    { min: 36, max: 45, label: "36-45" },
-    { min: 46, max: 55, label: "46-55" },
-    { min: 56, max: 65, label: "56-65" },
-    { min: 66, max: 100, label: "65+" },
-  ];
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Progress indicator */}
       <div className="px-5 pt-6 pb-4">
-        <div className="flex gap-1.5 max-w-[200px] mx-auto">
-          {[1, 2, 3, 4, 5, 6].map((s) => (
+        <div className="flex gap-1.5 max-w-[240px] mx-auto">
+          {[1, 2, 3, 4, 5, 6, 7].map((s) => (
             <div
               key={s}
               className={cn(
@@ -144,7 +165,7 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 2: Personal Data */}
+          {/* Step 2: Personal Data - Birth Date & Gender */}
           {step === 2 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
@@ -159,25 +180,46 @@ const Onboarding = () => {
                 </p>
               </div>
               
-              {/* Age */}
+              {/* Birth Date */}
               <div className="mb-5">
-                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Age</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {ageOptions.map((option) => (
-                    <button
-                      key={option.label}
-                      onClick={() => setAge(option.min)}
+                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Date of Birth</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
                       className={cn(
-                        "py-2.5 px-3 rounded-xl border text-[13px] font-medium transition-all",
-                        age !== undefined && age >= option.min && age <= option.max
-                          ? "border-primary bg-primary/10 text-foreground"
-                          : "border-border/60 bg-card/50 text-muted-foreground hover:border-primary/40"
+                        "w-full justify-start text-left font-normal h-12 rounded-xl border-border/60 bg-card/50",
+                        !birthDate && "text-muted-foreground"
                       )}
                     >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {birthDate ? (
+                        <span>
+                          {format(birthDate, "PPP")}
+                          {calculatedAge && <span className="ml-2 text-muted-foreground">({calculatedAge} years)</span>}
+                        </span>
+                      ) : (
+                        <span>Pick your birth date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={birthDate}
+                      onSelect={setBirthDate}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1920-01-01")
+                      }
+                      defaultMonth={new Date(1990, 0)}
+                      captionLayout="dropdown-buttons"
+                      fromYear={1920}
+                      toYear={new Date().getFullYear()}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Gender */}
@@ -201,15 +243,109 @@ const Onboarding = () => {
                 </div>
               </div>
 
-              <Button onClick={handleNext} variant="hero" className="w-full h-[52px] text-[15px] font-medium">
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!birthDate}
+              >
                 Continue
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
 
-          {/* Step 3: Work Type */}
+          {/* Step 3: Education Level */}
           {step === 3 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Education
+                </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  Highest level achieved
+                </p>
+              </div>
+              
+              <div className="space-y-2 mb-6">
+                {educationOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setEducationLevel(option.value)}
+                    className={cn(
+                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
+                      educationLevel === option.value
+                        ? "border-primary bg-primary/10"
+                        : "border-border/60 bg-card/50 hover:border-primary/40"
+                    )}
+                  >
+                    <span className="font-medium text-[14px] block">{option.label}</span>
+                    <span className="text-[12px] text-muted-foreground">{option.description}</span>
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!educationLevel}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 4: Degree Discipline */}
+          {step === 4 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Field of Study
+                </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  Your main discipline
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 mb-6">
+                {disciplineOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setDegreeDiscipline(option.value)}
+                    className={cn(
+                      "py-3 px-3 rounded-xl border text-[12px] font-medium transition-all text-left",
+                      degreeDiscipline === option.value
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border/60 bg-card/50 text-muted-foreground hover:border-primary/40"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!degreeDiscipline}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 5: Work Type */}
+          {step === 5 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -250,8 +386,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 4: Training Goals */}
-          {step === 4 && (
+          {/* Step 6: Training Goals */}
+          {step === 6 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
@@ -303,89 +439,67 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 5: Session Duration */}
-          {step === 5 && (
+          {/* Step 7: Session Duration & Daily Commitment */}
+          {step === 7 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
                   <Clock className="w-5 h-5 text-primary" />
                 </div>
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Session length
+                  Training schedule
                 </h1>
-                <p className="text-muted-foreground text-[13px]">
-                  Per exercise
-                </p>
               </div>
               
-              <div className="grid grid-cols-2 gap-2 mb-6">
-                {durationOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSessionDuration(option.value)}
-                    className={cn(
-                      "py-4 px-4 rounded-xl border text-center transition-all",
-                      sessionDuration === option.value
-                        ? "border-primary bg-primary/10"
-                        : "border-border/60 bg-card/50 hover:border-primary/40"
-                    )}
-                  >
-                    <span className="font-semibold text-[15px] block mb-0.5">{option.label}</span>
-                    <span className="text-[11px] text-muted-foreground">{option.description}</span>
-                  </button>
-                ))}
-              </div>
-
-              <Button
-                onClick={handleNext}
-                variant="hero"
-                className="w-full h-[52px] text-[15px] font-medium"
-                disabled={!sessionDuration}
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 6: Daily Time Commitment */}
-          {step === 6 && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-6">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Calendar className="w-5 h-5 text-primary" />
+              {/* Session Duration */}
+              <div className="mb-5">
+                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Session length</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {durationOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setSessionDuration(option.value)}
+                      className={cn(
+                        "py-3 px-3 rounded-xl border text-center transition-all",
+                        sessionDuration === option.value
+                          ? "border-primary bg-primary/10"
+                          : "border-border/60 bg-card/50 hover:border-primary/40"
+                      )}
+                    >
+                      <span className="font-semibold text-[14px] block mb-0.5">{option.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{option.description}</span>
+                    </button>
+                  ))}
                 </div>
-                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Daily commitment
-                </h1>
-                <p className="text-muted-foreground text-[13px]">
-                  Time per day
-                </p>
               </div>
               
-              <div className="space-y-2 mb-6">
-                {dailyTimeOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setDailyTimeCommitment(option.value)}
-                    className={cn(
-                      "w-full py-4 px-4 rounded-xl border text-center transition-all",
-                      dailyTimeCommitment === option.value
-                        ? "border-primary bg-primary/10"
-                        : "border-border/60 bg-card/50 hover:border-primary/40"
-                    )}
-                  >
-                    <span className="font-semibold text-[15px] block mb-0.5">{option.label}</span>
-                    <span className="text-[11px] text-muted-foreground">{option.description}</span>
-                  </button>
-                ))}
+              {/* Daily Commitment */}
+              <div className="mb-6">
+                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Daily commitment</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {dailyTimeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setDailyTimeCommitment(option.value)}
+                      className={cn(
+                        "py-3 px-2 rounded-xl border text-center transition-all",
+                        dailyTimeCommitment === option.value
+                          ? "border-primary bg-primary/10"
+                          : "border-border/60 bg-card/50 hover:border-primary/40"
+                      )}
+                    >
+                      <span className="font-semibold text-[14px] block mb-0.5">{option.label}</span>
+                      <span className="text-[9px] text-muted-foreground">{option.description}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <Button
                 onClick={handleComplete}
                 variant="hero"
                 className="w-full h-[52px] text-[15px] font-medium"
-                disabled={!dailyTimeCommitment}
+                disabled={!sessionDuration || !dailyTimeCommitment}
               >
                 Start Training
                 <ArrowRight className="w-4 h-4 ml-1" />
