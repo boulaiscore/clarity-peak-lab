@@ -57,10 +57,24 @@ export default function NeuroGymSessionRunner() {
     if (area === "neuro-activation") {
       return {
         title: "Neuro Activation Session™",
-        subtitle: "Complete Cognitive Activation Protocol"
+        subtitle: "Complete Cognitive Activation Protocol",
+        description: "A complete cognitive warm-up protocol"
       };
     }
-    return NEURO_GYM_AREAS.find(a => a.id === area);
+    // Handle legacy area mappings
+    const areaStr = area as string;
+    const lookupArea = areaStr === "visual" ? "visual_game" : area;
+    const found = NEURO_GYM_AREAS.find(a => a.id === lookupArea);
+    
+    // Fallback for unknown areas
+    if (!found) {
+      return {
+        title: "Cognitive Training",
+        subtitle: "Training Session",
+        description: "Cognitive training exercises"
+      };
+    }
+    return found;
   }, [area]);
 
   const currentExercise = sessionExercises[currentIndex];

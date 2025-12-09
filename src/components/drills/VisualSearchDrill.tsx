@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface VisualSearchDrillProps {
@@ -31,6 +31,10 @@ export function VisualSearchDrill({ config, timeLimit, onComplete }: VisualSearc
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [isWaiting, setIsWaiting] = useState(true);
+  
+  const hasCompletedRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   const totalCells = config.gridSize * config.gridSize;
 
@@ -87,15 +91,16 @@ export function VisualSearchDrill({ config, timeLimit, onComplete }: VisualSearc
     return () => clearInterval(timer);
   }, [isComplete, isWaiting]);
 
-  // Complete
+  // Complete - use ref to prevent infinite loop
   useEffect(() => {
-    if (isComplete) {
+    if (isComplete && !hasCompletedRef.current) {
+      hasCompletedRef.current = true;
       const avgReactionTime = reactionTimes.length > 0 
         ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length 
         : 0;
-      onComplete({ score, correct, avgReactionTime });
+      onCompleteRef.current({ score, correct, avgReactionTime });
     }
-  }, [isComplete, score, correct, reactionTimes, onComplete]);
+  }, [isComplete, score, correct, reactionTimes]);
 
   const handleCellTap = (cell: Cell) => {
     if (feedback || isWaiting) return;
