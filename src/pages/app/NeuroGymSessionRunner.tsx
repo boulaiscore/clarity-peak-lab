@@ -16,10 +16,9 @@ import {
 import { 
   CognitiveExercise, 
   hasCorrectAnswer, 
-  calculateSessionScore, 
   getMetricUpdates 
 } from "@/lib/exercises";
-import { visualExercises, getVisualConfig, isVisualDrill } from "@/data/visual_exercises";
+import { getVisualConfig, isVisualDrill } from "@/data/visual_exercises";
 import { VisualDrillRenderer } from "@/components/drills/VisualDrillRenderer";
 import { toast } from "sonner";
 
@@ -41,13 +40,18 @@ export default function NeuroGymSessionRunner() {
   const [isComplete, setIsComplete] = useState(false);
   const [sessionScore, setSessionScore] = useState({ score: 0, correctAnswers: 0, totalQuestions: 0 });
 
-  // Generate session exercises
+  // Generate session exercises with trainingGoals filtering
   useEffect(() => {
     if (allExercises && allExercises.length > 0 && area) {
-      const exercises = generateNeuroGymSession(area, duration || "2min", allExercises);
+      const exercises = generateNeuroGymSession(
+        area, 
+        duration || "2min", 
+        allExercises,
+        user?.trainingGoals // Pass user's training goals for filtering
+      );
       setSessionExercises(exercises);
     }
-  }, [allExercises, area, duration]);
+  }, [allExercises, area, duration, user?.trainingGoals]);
 
   const areaConfig = useMemo(() => {
     if (area === "neuro-activation") {
@@ -324,7 +328,7 @@ export default function NeuroGymSessionRunner() {
             <X className="w-5 h-5" />
           </button>
           <span className="text-sm font-medium">
-            {areaConfig?.title} – {duration || "3min"}
+            {areaConfig?.title} – {duration || "2min"}
           </span>
           <span className="text-xs text-muted-foreground">
             {currentIndex + 1}/{sessionExercises.length}

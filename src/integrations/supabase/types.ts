@@ -104,6 +104,54 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          age: number | null
+          created_at: string
+          daily_time_commitment: string | null
+          gender: string | null
+          id: string
+          name: string | null
+          onboarding_completed: boolean | null
+          session_duration: string | null
+          subscription_status: string | null
+          training_goals: string[] | null
+          updated_at: string
+          user_id: string
+          work_type: string | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          daily_time_commitment?: string | null
+          gender?: string | null
+          id?: string
+          name?: string | null
+          onboarding_completed?: boolean | null
+          session_duration?: string | null
+          subscription_status?: string | null
+          training_goals?: string[] | null
+          updated_at?: string
+          user_id: string
+          work_type?: string | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          daily_time_commitment?: string | null
+          gender?: string | null
+          id?: string
+          name?: string | null
+          onboarding_completed?: boolean | null
+          session_duration?: string | null
+          subscription_status?: string | null
+          training_goals?: string[] | null
+          updated_at?: string
+          user_id?: string
+          work_type?: string | null
+        }
+        Relationships: []
+      }
       training_sessions: {
         Row: {
           completed_at: string

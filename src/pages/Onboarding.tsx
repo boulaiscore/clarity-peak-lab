@@ -9,7 +9,7 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { updateUser } = useAuth();
+  const { updateUser, user } = useAuth();
   const [step, setStep] = useState<Step>(1);
   
   // Personal data
@@ -28,8 +28,8 @@ const Onboarding = () => {
     }
   };
 
-  const handleComplete = () => {
-    updateUser({
+  const handleComplete = async () => {
+    await updateUser({
       age,
       gender,
       workType,

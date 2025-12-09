@@ -1,6 +1,7 @@
 // Neuro Gym Types and Configuration
 
 import { CognitiveExercise } from "./exercises";
+import { TrainingGoal } from "@/contexts/AuthContext";
 
 export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual" | "fast-thinking" | "slow-thinking" | "neuro-activation";
 export type NeuroGymDuration = "30s" | "2min" | "5min" | "7min";
@@ -92,6 +93,12 @@ export const NEURO_ACTIVATION_SEQUENCE = [
   "N011", // Value Alignment Reflection
 ];
 
+// Categories that map to Fast Thinking (System 1)
+const FAST_THINKING_CATEGORIES = ["fast", "attention", "cognitive_control", "inhibition", "visual", "game", "spatial", "visual_memory"];
+
+// Categories that map to Slow Thinking (System 2)
+const SLOW_THINKING_CATEGORIES = ["slow", "reasoning", "bias", "philosophical", "decision", "clarity", "logic_puzzle", "reflection"];
+
 // Exercise count configuration for Neuro Gym sessions based on user preference
 export function getNeuroGymExerciseCount(duration: NeuroGymDuration): { min: number; max: number } {
   switch (duration) {
@@ -108,17 +115,51 @@ export function getNeuroGymExerciseCount(duration: NeuroGymDuration): { min: num
   }
 }
 
+// Check if an exercise is Fast Thinking
+function isFastThinkingExercise(exercise: CognitiveExercise): boolean {
+  return FAST_THINKING_CATEGORIES.includes(exercise.category);
+}
+
+// Check if an exercise is Slow Thinking
+function isSlowThinkingExercise(exercise: CognitiveExercise): boolean {
+  return SLOW_THINKING_CATEGORIES.includes(exercise.category);
+}
+
 // Generate exercises for a Neuro Gym session
 export function generateNeuroGymSession(
   area: NeuroGymArea,
   duration: NeuroGymDuration,
-  allExercises: CognitiveExercise[]
+  allExercises: CognitiveExercise[],
+  trainingGoals?: TrainingGoal[]
 ): CognitiveExercise[] {
   if (area === "neuro-activation") {
     // Return fixed sequence for Neuro Activation
     return NEURO_ACTIVATION_SEQUENCE
       .map(id => allExercises.find(e => e.id === id))
       .filter((e): e is CognitiveExercise => e !== undefined);
+  }
+
+  // For fast-thinking and slow-thinking areas, don't apply additional filtering
+  // They already target the correct exercises
+  if (area === "fast-thinking" || area === "slow-thinking") {
+    const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
+    if (!areaConfig) return [];
+
+    let areaExercises = allExercises.filter(e => 
+      areaConfig.categories.includes(e.category)
+    );
+
+    // Filter by duration
+    const durationMatched = areaExercises.filter(e => e.duration === duration);
+    if (durationMatched.length >= 2) {
+      areaExercises = durationMatched;
+    }
+
+    if (areaExercises.length === 0) {
+      return shuffleAndSelect(allExercises, duration);
+    }
+
+    return shuffleAndSelect(areaExercises, duration);
   }
 
   const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
@@ -128,6 +169,22 @@ export function generateNeuroGymSession(
   let areaExercises = allExercises.filter(e => 
     areaConfig.categories.includes(e.category)
   );
+
+  // Apply training goals filtering for other areas (Focus, Memory, etc.)
+  if (trainingGoals && trainingGoals.length > 0) {
+    const hasFast = trainingGoals.includes("fast_thinking");
+    const hasSlow = trainingGoals.includes("slow_thinking");
+    
+    // Only filter if user has selected just one goal, not both
+    if (hasFast && !hasSlow) {
+      // Filter to only Fast Thinking exercises
+      areaExercises = areaExercises.filter(e => isFastThinkingExercise(e));
+    } else if (hasSlow && !hasFast) {
+      // Filter to only Slow Thinking exercises
+      areaExercises = areaExercises.filter(e => isSlowThinkingExercise(e));
+    }
+    // If both selected, show all exercises (no additional filter)
+  }
 
   // Filter by duration - prefer exercises matching user's duration preference
   const durationMatched = areaExercises.filter(e => e.duration === duration);
