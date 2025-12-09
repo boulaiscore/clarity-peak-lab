@@ -102,6 +102,7 @@ export function useAutoSeedExercises() {
           metrics_affected: ex.metrics_affected,
           weight: ex.weight,
           gym_area: ex.gym_area,
+          thinking_mode: ex.thinking_mode,
         }));
 
         const { error: visualError } = await supabase
