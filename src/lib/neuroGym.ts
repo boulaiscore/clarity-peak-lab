@@ -3,7 +3,7 @@
 import { CognitiveExercise } from "./exercises";
 import { TrainingGoal } from "@/contexts/AuthContext";
 
-export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual" | "fast-thinking" | "slow-thinking" | "neuro-activation";
+export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual" | "neuro-activation";
 export type NeuroGymDuration = "30s" | "2min" | "5min" | "7min";
 
 export interface NeuroGymAreaConfig {
@@ -17,27 +17,11 @@ export interface NeuroGymAreaConfig {
 
 export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
   {
-    id: "fast-thinking",
-    title: "Fast Thinking",
-    subtitle: "Quick Intuition & Rapid Decisions",
-    description: "Train System 1 thinking: rapid pattern recognition, intuition, and fast responses.",
-    categories: ["fast", "attention", "cognitive_control"],
-    icon: "Zap",
-  },
-  {
-    id: "slow-thinking",
-    title: "Slow Thinking",
-    subtitle: "Deep Analysis & Structured Reasoning",
-    description: "Train System 2 thinking: careful analysis, structured reasoning, and deliberate decision-making.",
-    categories: ["slow", "reasoning", "bias", "philosophical", "decision"],
-    icon: "Clock",
-  },
-  {
     id: "focus",
     title: "Focus Arena",
     subtitle: "Selective Attention & Sustained Focus",
     description: "Train selective attention, visual search, and sustained focus.",
-    categories: ["attention", "inhibition", "cognitive_control", "fast"],
+    categories: ["attention", "inhibition", "cognitive_control", "fast", "slow"],
     icon: "Target",
   },
   {
@@ -45,7 +29,7 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Memory Core",
     subtitle: "Working Memory Capacity",
     description: "Strengthen working memory capacity and mental updating.",
-    categories: ["working_memory"],
+    categories: ["working_memory", "fast", "slow"],
     icon: "Brain",
   },
   {
@@ -53,7 +37,7 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Control Lab",
     subtitle: "Inhibition & Cognitive Flexibility",
     description: "Improve inhibition and cognitive flexibility.",
-    categories: ["executive_control", "inhibition", "cognitive_control"],
+    categories: ["executive_control", "inhibition", "cognitive_control", "fast", "slow"],
     icon: "Sliders",
   },
   {
@@ -61,7 +45,7 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Critical Reasoning Studio",
     subtitle: "Logic & Structured Analysis",
     description: "Sharpen logical thinking, bias detection, and structured analysis.",
-    categories: ["reasoning", "bias", "logic_puzzle", "philosophical", "slow"],
+    categories: ["reasoning", "bias", "logic_puzzle", "philosophical", "slow", "fast"],
     icon: "Lightbulb",
   },
   {
@@ -69,7 +53,7 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Creativity Hub",
     subtitle: "Divergent Thinking & Reframing",
     description: "Boost divergent thinking, analogies, and high-level reframing.",
-    categories: ["creative", "insight", "clarity"],
+    categories: ["creative", "insight", "clarity", "fast", "slow"],
     icon: "Sparkles",
   },
   {
@@ -77,7 +61,7 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     title: "Visual & Game Drills",
     subtitle: "Interactive Cognitive Games",
     description: "Train visual processing, spatial reasoning, and reaction speed with interactive drills.",
-    categories: ["visual", "spatial", "game", "visual_memory"],
+    categories: ["visual", "spatial", "game", "visual_memory", "fast", "slow"],
     icon: "Gamepad2",
   },
 ];
@@ -139,33 +123,10 @@ export function generateNeuroGymSession(
       .filter((e): e is CognitiveExercise => e !== undefined);
   }
 
-  // For fast-thinking and slow-thinking areas, don't apply additional filtering
-  // They already target the correct exercises
-  if (area === "fast-thinking" || area === "slow-thinking") {
-    const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
-    if (!areaConfig) return [];
-
-    let areaExercises = allExercises.filter(e => 
-      areaConfig.categories.includes(e.category)
-    );
-
-    // Filter by duration
-    const durationMatched = areaExercises.filter(e => e.duration === duration);
-    if (durationMatched.length >= 2) {
-      areaExercises = durationMatched;
-    }
-
-    if (areaExercises.length === 0) {
-      return shuffleAndSelect(allExercises, duration);
-    }
-
-    return shuffleAndSelect(areaExercises, duration);
-  }
-
   const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
   if (!areaConfig) return [];
 
-  // Filter exercises by area categories
+  // Filter exercises by area categories (excluding fast/slow which are used for filtering)
   let areaExercises = allExercises.filter(e => 
     areaConfig.categories.includes(e.category)
   );
