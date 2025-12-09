@@ -4,7 +4,6 @@ import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { ThinkingPerformanceCircle } from "@/components/dashboard/ThinkingPerformanceCircle";
-import { FastSlowThinkingPanel } from "@/components/dashboard/FastSlowThinkingPanel";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
 import { Button } from "@/components/ui/button";
@@ -19,8 +18,6 @@ import {
   calculateFocusIndex,
   calculateDecisionQualityScore,
   calculatePhilosophicalIndex,
-  calculateFastThinkingScore,
-  calculateSlowThinkingScore,
 } from "@/lib/cognitiveMetrics";
 import { computeFastSlowSystems } from "@/lib/thinkingSystems";
 
@@ -39,8 +36,6 @@ const Dashboard = () => {
   const focus = calculateFocusIndex(snapshot);
   const decisionQuality = calculateDecisionQualityScore(snapshot);
   const philosophicalIndex = calculatePhilosophicalIndex(snapshot);
-  const fastThinking = calculateFastThinkingScore(snapshot, baseline);
-  const slowThinking = calculateSlowThinkingScore(snapshot);
 
   // Compute Fast/Slow Thinking Systems
   const thinkingSystems = useMemo(
@@ -135,12 +130,6 @@ const Dashboard = () => {
 
         {/* Training Sources - How each area contributes */}
         <ThinkingSystemSources />
-
-        {/* Fast vs Slow Thinking Panel (existing) */}
-        <FastSlowThinkingPanel
-          fastThinkingScore={fastThinking}
-          slowThinkingScore={slowThinking}
-        />
 
         {/* CTA */}
         <div className="pt-2 pb-6">

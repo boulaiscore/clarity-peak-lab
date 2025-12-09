@@ -12,7 +12,7 @@ import Onboarding from "./pages/Onboarding";
 import Home from "./pages/app/Home";
 import Dashboard from "./pages/app/Dashboard";
 import Protocol from "./pages/app/Protocol";
-import Insights from "./pages/app/Insights";
+
 import Premium from "./pages/app/Premium";
 import Account from "./pages/app/Account";
 import TrainingsList from "./pages/app/TrainingsList";
@@ -141,14 +141,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Protocol />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/app/insights"
-        element={
-          <ProtectedRoute>
-            <Insights />
           </ProtectedRoute>
         }
       />
