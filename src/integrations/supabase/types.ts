@@ -22,10 +22,12 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["exercise_difficulty"]
           duration: Database["public"]["Enums"]["exercise_duration"]
           explanation: string | null
+          gym_area: string | null
           id: string
           metrics_affected: string[]
           options: string[] | null
           prompt: string
+          thinking_mode: string | null
           title: string
           type: Database["public"]["Enums"]["exercise_type"]
           updated_at: string
@@ -38,10 +40,12 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["exercise_difficulty"]
           duration: Database["public"]["Enums"]["exercise_duration"]
           explanation?: string | null
+          gym_area?: string | null
           id: string
           metrics_affected?: string[]
           options?: string[] | null
           prompt: string
+          thinking_mode?: string | null
           title: string
           type: Database["public"]["Enums"]["exercise_type"]
           updated_at?: string
@@ -54,10 +58,12 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["exercise_difficulty"]
           duration?: Database["public"]["Enums"]["exercise_duration"]
           explanation?: string | null
+          gym_area?: string | null
           id?: string
           metrics_affected?: string[]
           options?: string[] | null
           prompt?: string
+          thinking_mode?: string | null
           title?: string
           type?: Database["public"]["Enums"]["exercise_type"]
           updated_at?: string
@@ -341,7 +347,14 @@ export type Database = {
         | "game"
         | "visual_memory"
       exercise_difficulty: "easy" | "medium" | "hard"
-      exercise_duration: "30s" | "2min" | "5min" | "3min" | "7min" | "90s"
+      exercise_duration:
+        | "30s"
+        | "2min"
+        | "5min"
+        | "3min"
+        | "7min"
+        | "90s"
+        | "1min"
       exercise_type:
         | "multiple_choice"
         | "detect_fallacy"
@@ -350,6 +363,7 @@ export type Database = {
         | "scenario_choice"
         | "probability_estimation"
         | "visual_drill"
+        | "visual_task"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -500,7 +514,7 @@ export const Constants = {
         "visual_memory",
       ],
       exercise_difficulty: ["easy", "medium", "hard"],
-      exercise_duration: ["30s", "2min", "5min", "3min", "7min", "90s"],
+      exercise_duration: ["30s", "2min", "5min", "3min", "7min", "90s", "1min"],
       exercise_type: [
         "multiple_choice",
         "detect_fallacy",
@@ -509,6 +523,7 @@ export const Constants = {
         "scenario_choice",
         "probability_estimation",
         "visual_drill",
+        "visual_task",
       ],
     },
   },
