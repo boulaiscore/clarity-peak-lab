@@ -71,19 +71,19 @@ function FocusDrill({
     if (!isActive) return;
 
     const spawnTarget = () => {
-      const isGreen = Math.random() > 0.3; // 70% green targets
+      const isGreen = Math.random() > 0.25; // 75% green targets
       const newTarget = {
         id: nextTargetId,
-        x: 10 + Math.random() * 80, // 10-90% of container width
-        y: 10 + Math.random() * 80, // 10-90% of container height
+        x: 15 + Math.random() * 70, // 15-85% of container width
+        y: 15 + Math.random() * 70, // 15-85% of container height
         isGreen,
         visible: true,
       };
       
-      setTargets(prev => [...prev.slice(-5), newTarget]); // Keep max 6 targets
+      setTargets(prev => [...prev.slice(-3), newTarget]); // Keep max 4 targets
       setNextTargetId(prev => prev + 1);
 
-      // Auto-remove target after 1.5s if not tapped
+      // Auto-remove target after 2.5s if not tapped
       setTimeout(() => {
         setTargets(prev => {
           const target = prev.find(t => t.id === newTarget.id);
@@ -92,15 +92,18 @@ function FocusDrill({
           }
           return prev.filter(t => t.id !== newTarget.id);
         });
-      }, 1500);
+      }, 2500);
     };
 
-    // Spawn first target immediately
-    spawnTarget();
+    // Spawn first target after a short delay
+    const firstSpawn = setTimeout(spawnTarget, 500);
     
-    // Then spawn every 800ms
-    const interval = setInterval(spawnTarget, 800);
-    return () => clearInterval(interval);
+    // Then spawn every 1.5s
+    const interval = setInterval(spawnTarget, 1500);
+    return () => {
+      clearTimeout(firstSpawn);
+      clearInterval(interval);
+    };
   }, [isActive, nextTargetId]);
 
   // Handle target tap
