@@ -81,14 +81,19 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       return;
     }
 
-    const isMatch = matchSequence[trial] && previousShape;
+    // Store the shape that was just shown as "previous" for comparison
+    const shapeToCompareWith = currentShape;
+    
+    const isMatch = matchSequence[trial] && shapeToCompareWith;
     let newShape: { shape: string; color: string };
     
-    if (isMatch && previousShape) {
-      newShape = { ...previousShape };
+    if (isMatch && shapeToCompareWith) {
+      // For a match, copy both shape AND color
+      newShape = { shape: shapeToCompareWith.shape, color: shapeToCompareWith.color };
     } else {
-      const availableShapes = previousShape 
-        ? shapes.filter(s => s !== previousShape.shape) 
+      // For non-match, pick a different shape
+      const availableShapes = shapeToCompareWith 
+        ? shapes.filter(s => s !== shapeToCompareWith.shape) 
         : shapes;
       newShape = {
         shape: availableShapes[Math.floor(Math.random() * availableShapes.length)],
@@ -96,7 +101,8 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       };
     }
 
-    setPreviousShape(currentShape);
+    // Update previous BEFORE setting current
+    setPreviousShape(shapeToCompareWith);
     setCurrentShape(newShape);
     setShowShape(true);
     setCanRespond(true);
@@ -107,14 +113,13 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       setShowShape(false);
       setCanRespond(false);
       
-      // If no response and it was a match, mark as missed
       setTrial(prev => prev + 1);
       
       setTimeout(() => {
         showNextShape();
       }, 400);
     }, displayTime);
-  }, [trial, totalTrials, matchSequence, previousShape, currentShape, shapes, displayTime, onComplete, correct, reactionTimes]);
+  }, [trial, totalTrials, matchSequence, currentShape, shapes, displayTime, onComplete, correct, reactionTimes]);
 
   useEffect(() => {
     if (matchSequence.length > 0 && trial === 0 && !currentShape) {
