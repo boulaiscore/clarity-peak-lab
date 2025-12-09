@@ -108,7 +108,19 @@ export function getDrillTypeForExercise(exerciseId: string): DrillType {
     return "rule_switch";
   }
   
-  // Critical Reasoning exercises
+  // Critical Reasoning Fast Thinking exercises (CR_FAST_001 - CR_FAST_050)
+  if (id.startsWith("CR_FAST_")) {
+    const num = parseInt(id.split("_")[2], 10);
+    
+    // Fast critical reasoning - rapid pattern/logic recognition
+    if (num <= 10) return "sequence_logic";       // 001-010: Quick logical sequences
+    if (num <= 20) return "analogy_match";        // 011-020: Fast analogy recognition
+    if (num <= 30) return "pattern_sequence";     // 021-030: Pattern completion
+    if (num <= 40) return "odd_one_out";          // 031-040: Logical odd one out
+    return "category_switch";                      // 041-050: Quick category logic
+  }
+  
+  // Critical Reasoning legacy exercises
   if (id.startsWith("CR_") || id.startsWith("REASONING_")) {
     const num = parseInt(id.split("_").pop() || "0", 10);
     if (num <= 15) return "sequence_logic";
