@@ -5,10 +5,6 @@ import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { ThinkingPerformanceCircle } from "@/components/dashboard/ThinkingPerformanceCircle";
 import { FastSlowThinkingPanel } from "@/components/dashboard/FastSlowThinkingPanel";
-import { CognitiveReadinessBar } from "@/components/dashboard/CognitiveReadinessBar";
-import { BrainFunctionsGrid } from "@/components/dashboard/BrainFunctionsGrid";
-import { InsightsList } from "@/components/dashboard/InsightsList";
-import { CognitiveReadinessCard } from "@/components/dashboard/CognitiveReadinessCard";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
 import { Button } from "@/components/ui/button";
@@ -25,9 +21,6 @@ import {
   calculatePhilosophicalIndex,
   calculateFastThinkingScore,
   calculateSlowThinkingScore,
-  calculateCognitiveReadiness,
-  getBrainFunctionScores,
-  generateCognitiveInsights,
 } from "@/lib/cognitiveMetrics";
 import { computeFastSlowSystems } from "@/lib/thinkingSystems";
 
@@ -48,9 +41,6 @@ const Dashboard = () => {
   const philosophicalIndex = calculatePhilosophicalIndex(snapshot);
   const fastThinking = calculateFastThinkingScore(snapshot, baseline);
   const slowThinking = calculateSlowThinkingScore(snapshot);
-  const readiness = calculateCognitiveReadiness(snapshot, baseline);
-  const brainFunctions = getBrainFunctionScores(snapshot, previousSnapshot);
-  const insights = generateCognitiveInsights(snapshot, baseline, delta);
 
   // Compute Fast/Slow Thinking Systems
   const thinkingSystems = useMemo(
@@ -79,9 +69,6 @@ const Dashboard = () => {
             </Button>
           </Link>
         </div>
-
-        {/* Cognitive Readiness Card (with wearable integration) */}
-        <CognitiveReadinessCard />
 
         {/* Cognitive Age Sphere */}
         <CognitiveAgeSphere cognitiveAge={brainAge} delta={delta} />
@@ -154,15 +141,6 @@ const Dashboard = () => {
           fastThinkingScore={fastThinking}
           slowThinkingScore={slowThinking}
         />
-
-        {/* Cognitive Readiness Bar */}
-        <CognitiveReadinessBar score={readiness.score} level={readiness.level} />
-
-        {/* Brain Functions Grid */}
-        <BrainFunctionsGrid functions={brainFunctions} />
-
-        {/* Insights List */}
-        <InsightsList insights={insights} />
 
         {/* CTA */}
         <div className="pt-2 pb-6">
