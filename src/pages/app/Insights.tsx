@@ -1,40 +1,64 @@
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/contexts/SessionContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNeuroGymSessions } from "@/hooks/useNeuroGym";
 import { Link } from "react-router-dom";
-import { BarChart3, Brain, Clock, TrendingUp, Lock } from "lucide-react";
+import { BarChart3, Brain, Clock, TrendingUp, Lock, Target, Sliders, Lightbulb, Sparkles } from "lucide-react";
+import { useMemo } from "react";
 
 const Insights = () => {
-  const { sessions, getSessionsByType } = useSession();
   const { user } = useAuth();
   const isPremium = user?.subscriptionStatus === "premium";
+  const { data: sessions = [] } = useNeuroGymSessions(user?.id);
 
-  const reasoningSessions = getSessionsByType("reasoning").length;
-  const claritySessions = getSessionsByType("clarity").length;
-  const decisionSessions = getSessionsByType("decision").length;
+  // Count sessions by area
+  const areaCounts = useMemo(() => {
+    return sessions.reduce((acc, session) => {
+      acc[session.area] = (acc[session.area] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [sessions]);
+
+  const focusSessions = areaCounts["focus"] || 0;
+  const memorySessions = areaCounts["memory"] || 0;
+  const controlSessions = areaCounts["control"] || 0;
+  const reasoningSessions = areaCounts["reasoning"] || 0;
+  const creativitySessions = areaCounts["creativity"] || 0;
   const totalSessions = sessions.length;
 
   // Calculate most used duration
   const durationCounts = sessions.reduce((acc, session) => {
-    acc[session.durationOption] = (acc[session.durationOption] || 0) + 1;
+    acc[session.duration_option] = (acc[session.duration_option] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   
   const mostUsedDuration = Object.entries(durationCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
 
+  // Find most trained area
+  const sortedAreas = Object.entries(areaCounts).sort((a, b) => b[1] - a[1]);
+  const mostTrainedArea = sortedAreas[0]?.[0];
+  const leastTrainedArea = sortedAreas[sortedAreas.length - 1]?.[0];
+
+  const areaNames: Record<string, string> = {
+    focus: "Focus Arena",
+    memory: "Memory Core",
+    control: "Control Lab",
+    reasoning: "Critical Reasoning",
+    creativity: "Creativity Hub",
+  };
+
   const insights = [
     {
-      condition: reasoningSessions > claritySessions && reasoningSessions > decisionSessions,
-      text: "You favor Reasoning Workouts. Consider adding Clarity Lab sessions for balanced cognitive development.",
+      condition: mostTrainedArea && leastTrainedArea && mostTrainedArea !== leastTrainedArea && totalSessions > 5,
+      text: `You favor ${areaNames[mostTrainedArea] || mostTrainedArea}. Consider adding ${areaNames[leastTrainedArea] || leastTrainedArea} sessions for balanced cognitive development.`,
     },
     {
       condition: mostUsedDuration === "30s" && totalSessions > 5,
-      text: "Most sessions are 30-second drills. Longer sessions may unlock deeper analytical benefits.",
+      text: "Most sessions are 30-second drills. Longer sessions may unlock deeper cognitive benefits.",
     },
     {
-      condition: totalSessions > 10 && decisionSessions < 3,
-      text: "Decision Studio is underutilized. Strategic decision frameworks compound over time.",
+      condition: totalSessions > 10 && memorySessions < 2,
+      text: "Memory Core is underutilized. Working memory training compounds significantly over time.",
     },
     {
       condition: totalSessions >= 3,
@@ -44,6 +68,14 @@ const Insights = () => {
 
   const activeInsight = insights.find((i) => i.condition)?.text || 
     "Complete more sessions to generate personalized insights.";
+
+  const areas = [
+    { id: "focus", name: "Focus Arena", count: focusSessions, icon: Target },
+    { id: "memory", name: "Memory Core", count: memorySessions, icon: Brain },
+    { id: "control", name: "Control Lab", count: controlSessions, icon: Sliders },
+    { id: "reasoning", name: "Critical Reasoning", count: reasoningSessions, icon: Lightbulb },
+    { id: "creativity", name: "Creativity Hub", count: creativitySessions, icon: Sparkles },
+  ];
 
   return (
     <AppShell>
@@ -55,7 +87,7 @@ const Insights = () => {
               Cognitive <span className="text-gradient">Insights</span>
             </h1>
             <p className="text-muted-foreground">
-              Track your training patterns and optimize your practice.
+              Track your Neuro Gym training patterns and optimize your practice.
             </p>
           </div>
 
@@ -68,7 +100,7 @@ const Insights = () => {
                 </div>
               </div>
               <p className="text-3xl font-semibold mb-1">{totalSessions}</p>
-              <p className="text-sm text-muted-foreground">Total Sessions</p>
+              <p className="text-sm text-muted-foreground">Gym Sessions</p>
             </div>
 
             <div className="p-6 rounded-xl bg-card border border-border shadow-card">
@@ -82,49 +114,30 @@ const Insights = () => {
             </div>
           </div>
 
-          {/* Module Breakdown */}
+          {/* Area Breakdown */}
           <div className="p-6 rounded-xl bg-card border border-border mb-8 shadow-card">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
               <Brain className="w-5 h-5 text-primary" />
-              Training Distribution
+              Neuro Gym Distribution
             </h3>
             <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Reasoning Workout™</span>
-                  <span className="text-muted-foreground">{reasoningSessions}</span>
+              {areas.map((area) => (
+                <div key={area.id}>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="flex items-center gap-2">
+                      <area.icon className="w-4 h-4 text-muted-foreground" />
+                      {area.name}
+                    </span>
+                    <span className="text-muted-foreground">{area.count}</span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-primary rounded-full transition-all"
+                      style={{ width: `${totalSessions ? (area.count / totalSessions) * 100 : 0}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-primary rounded-full transition-all"
-                    style={{ width: `${totalSessions ? (reasoningSessions / totalSessions) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Clarity Lab™</span>
-                  <span className="text-muted-foreground">{claritySessions}</span>
-                </div>
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-primary rounded-full transition-all"
-                    style={{ width: `${totalSessions ? (claritySessions / totalSessions) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Decision Studio™</span>
-                  <span className="text-muted-foreground">{decisionSessions}</span>
-                </div>
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-primary rounded-full transition-all"
-                    style={{ width: `${totalSessions ? (decisionSessions / totalSessions) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
