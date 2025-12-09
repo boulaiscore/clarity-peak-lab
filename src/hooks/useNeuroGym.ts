@@ -78,6 +78,7 @@ export function useNeuroGymWeeklyStats(userId: string | undefined) {
         control: 0,
         reasoning: 0,
         creativity: 0,
+        visual: 0,
         "neuro-activation": 0,
       };
       

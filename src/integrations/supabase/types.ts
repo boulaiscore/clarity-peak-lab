@@ -152,13 +152,17 @@ export type Database = {
           critical_thinking_score: number
           decision_quality: number
           fast_thinking: number
+          focus_stability: number
           id: string
           philosophical_reasoning: number
+          reaction_speed: number
           reasoning_accuracy: number
           slow_thinking: number
+          spatial_reasoning: number
           total_sessions: number
           updated_at: string
           user_id: string
+          visual_processing: number
         }
         Insert: {
           bias_resistance?: number
@@ -168,13 +172,17 @@ export type Database = {
           critical_thinking_score?: number
           decision_quality?: number
           fast_thinking?: number
+          focus_stability?: number
           id?: string
           philosophical_reasoning?: number
+          reaction_speed?: number
           reasoning_accuracy?: number
           slow_thinking?: number
+          spatial_reasoning?: number
           total_sessions?: number
           updated_at?: string
           user_id: string
+          visual_processing?: number
         }
         Update: {
           bias_resistance?: number
@@ -184,13 +192,17 @@ export type Database = {
           critical_thinking_score?: number
           decision_quality?: number
           fast_thinking?: number
+          focus_stability?: number
           id?: string
           philosophical_reasoning?: number
+          reaction_speed?: number
           reasoning_accuracy?: number
           slow_thinking?: number
+          spatial_reasoning?: number
           total_sessions?: number
           updated_at?: string
           user_id?: string
+          visual_processing?: number
         }
         Relationships: []
       }
@@ -219,8 +231,12 @@ export type Database = {
         | "insight"
         | "reflection"
         | "philosophical"
+        | "visual"
+        | "spatial"
+        | "game"
+        | "visual_memory"
       exercise_difficulty: "easy" | "medium" | "hard"
-      exercise_duration: "30s" | "2min" | "5min" | "3min" | "7min"
+      exercise_duration: "30s" | "2min" | "5min" | "3min" | "7min" | "90s"
       exercise_type:
         | "multiple_choice"
         | "detect_fallacy"
@@ -228,6 +244,7 @@ export type Database = {
         | "logic_puzzle"
         | "scenario_choice"
         | "probability_estimation"
+        | "visual_drill"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -372,9 +389,13 @@ export const Constants = {
         "insight",
         "reflection",
         "philosophical",
+        "visual",
+        "spatial",
+        "game",
+        "visual_memory",
       ],
       exercise_difficulty: ["easy", "medium", "hard"],
-      exercise_duration: ["30s", "2min", "5min", "3min", "7min"],
+      exercise_duration: ["30s", "2min", "5min", "3min", "7min", "90s"],
       exercise_type: [
         "multiple_choice",
         "detect_fallacy",
@@ -382,6 +403,7 @@ export const Constants = {
         "logic_puzzle",
         "scenario_choice",
         "probability_estimation",
+        "visual_drill",
       ],
     },
   },

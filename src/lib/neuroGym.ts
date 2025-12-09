@@ -2,7 +2,7 @@
 
 import { CognitiveExercise } from "./exercises";
 
-export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "neuro-activation";
+export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual" | "neuro-activation";
 export type NeuroGymDuration = "3min" | "7min";
 
 export interface NeuroGymAreaConfig {
@@ -54,6 +54,14 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     description: "Boost divergent thinking, analogies, and high-level reframing.",
     categories: ["creative", "insight", "clarity"],
     icon: "Sparkles",
+  },
+  {
+    id: "visual",
+    title: "Visual & Game Drills",
+    subtitle: "Interactive Cognitive Games",
+    description: "Train visual processing, spatial reasoning, and reaction speed with interactive drills.",
+    categories: ["visual", "spatial", "game", "visual_memory"],
+    icon: "Gamepad2",
   },
 ];
 
