@@ -16,41 +16,43 @@ const Home = () => {
 
   const getDurationLabel = (duration?: string) => {
     switch (duration) {
-      case "30s": return "30 seconds";
-      case "2min": return "2 minutes";
-      case "5min": return "5 minutes";
-      case "7min": return "7 minutes";
-      default: return "Not set";
+      case "30s": return "30s";
+      case "2min": return "2min";
+      case "5min": return "5min";
+      case "7min": return "7min";
+      default: return "—";
     }
   };
 
   const getDailyTimeLabel = (time?: string) => {
     switch (time) {
-      case "3min": return "3 min/day";
-      case "10min": return "10 min/day";
-      case "30min": return "30 min/day";
-      default: return "Not set";
+      case "3min": return "3min/day";
+      case "10min": return "10min/day";
+      case "30min": return "30min/day";
+      default: return "—";
     }
   };
 
   return (
     <AppShell>
-      <div className="container px-4 py-6">
+      <div className="px-5 py-5 max-w-md mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <p className="label-uppercase mb-1">Cognitive Training</p>
-          <h1 className="text-xl font-semibold tracking-tight">
+        <div className="mb-5">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-0.5">
+            Cognitive Training
+          </p>
+          <h1 className="text-lg font-semibold tracking-tight">
             Hello, {firstName}
           </h1>
         </div>
 
         {/* Training Profile Card */}
-        <div className="p-4 rounded-xl bg-card border border-border/40 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-sm">Your Training Profile</h2>
+        <div className="p-4 rounded-xl bg-card/60 border border-border/30 mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-medium text-[13px]">Training Profile</h2>
             <Link 
               to="/app/account" 
-              className="text-xs text-primary hover:underline flex items-center gap-1"
+              className="text-[11px] text-primary/80 hover:text-primary flex items-center gap-1"
             >
               <Settings className="w-3 h-3" />
               Edit
@@ -58,38 +60,38 @@ const Home = () => {
           </div>
           
           {hasGoals ? (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {/* Goals */}
               <div className="flex gap-2">
                 {hasFastThinking && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/20">
-                    <Zap className="w-3.5 h-3.5 text-warning" />
-                    <span className="text-xs font-medium text-warning">Fast Thinking</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <Zap className="w-3 h-3 text-amber-400" />
+                    <span className="text-[11px] font-medium text-amber-400">Fast</span>
                   </div>
                 )}
                 {hasSlowThinking && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                    <Brain className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-xs font-medium text-primary">Slow Thinking</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20">
+                    <Brain className="w-3 h-3 text-teal-400" />
+                    <span className="text-[11px] font-medium text-teal-400">Slow</span>
                   </div>
                 )}
               </div>
               
               {/* Preferences */}
-              <div className="flex gap-4 text-xs text-muted-foreground">
-                <span>Session: {getDurationLabel(user?.sessionDuration)}</span>
-                <span>•</span>
+              <div className="flex gap-3 text-[11px] text-muted-foreground">
+                <span>{getDurationLabel(user?.sessionDuration)} sessions</span>
+                <span className="text-muted-foreground/40">•</span>
                 <span>{getDailyTimeLabel(user?.dailyTimeCommitment)}</span>
               </div>
             </div>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-muted-foreground mb-3">
-                Set up your training preferences
+            <div className="text-center py-3">
+              <p className="text-[12px] text-muted-foreground mb-2">
+                Set up your training
               </p>
               <Link 
                 to="/onboarding"
-                className="text-sm text-primary hover:underline"
+                className="text-[12px] text-primary hover:underline"
               >
                 Complete Setup →
               </Link>
@@ -98,72 +100,70 @@ const Home = () => {
         </div>
 
         {/* Quick Access to Gym */}
-        <div className="mb-6">
-          <h2 className="label-uppercase mb-3">Start Training</h2>
+        <div className="mb-5">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-2.5">
+            Start Training
+          </p>
           <button
             onClick={() => navigate("/neuro-gym")}
             className={cn(
-              "group w-full p-5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5",
-              "border border-primary/30 hover:border-primary/50",
+              "group w-full p-4 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5",
+              "border border-primary/25 hover:border-primary/40",
               "transition-all duration-200 text-left active:scale-[0.98]"
             )}
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                <Dumbbell className="w-7 h-7 text-primary" />
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                <Dumbbell className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-foreground">Neuro Gym</h3>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Targeted cognitive drills across 6 areas
+                <h3 className="text-[15px] font-semibold text-foreground">Neuro Gym</h3>
+                <p className="text-[12px] text-muted-foreground mt-0.5">
+                  Cognitive drills • 5 areas
                 </p>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
             </div>
           </button>
         </div>
 
         {/* Training Focus Overview */}
-        <div className="mb-6">
-          <h2 className="label-uppercase mb-3">Your Focus Areas</h2>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="mb-5">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-2.5">
+            Focus Areas
+          </p>
+          <div className="grid grid-cols-2 gap-2.5">
             <div className={cn(
-              "p-4 rounded-xl border transition-colors",
+              "p-3.5 rounded-xl border transition-colors",
               hasFastThinking 
-                ? "bg-warning/5 border-warning/20" 
-                : "bg-card border-border/40 opacity-50"
+                ? "bg-amber-500/5 border-amber-500/20" 
+                : "bg-card/40 border-border/30 opacity-40"
             )}>
-              <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center mb-3">
-                <Zap className="w-5 h-5 text-warning" />
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2.5">
+                <Zap className="w-4 h-4 text-amber-400" />
               </div>
-              <h3 className="text-sm font-semibold text-foreground">Fast Thinking</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">System 1 – Intuition</p>
-              <p className="text-[9px] text-muted-foreground/60 mt-2 leading-relaxed">
-                {hasFastThinking ? "Active training goal" : "Not selected"}
-              </p>
+              <h3 className="text-[13px] font-semibold text-foreground">Fast</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">System 1</p>
             </div>
             <div className={cn(
-              "p-4 rounded-xl border transition-colors",
+              "p-3.5 rounded-xl border transition-colors",
               hasSlowThinking 
-                ? "bg-primary/5 border-primary/20" 
-                : "bg-card border-border/40 opacity-50"
+                ? "bg-teal-500/5 border-teal-500/20" 
+                : "bg-card/40 border-border/30 opacity-40"
             )}>
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-                <Brain className="w-5 h-5 text-primary" />
+              <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2.5">
+                <Brain className="w-4 h-4 text-teal-400" />
               </div>
-              <h3 className="text-sm font-semibold text-foreground">Slow Thinking</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">System 2 – Structured</p>
-              <p className="text-[9px] text-muted-foreground/60 mt-2 leading-relaxed">
-                {hasSlowThinking ? "Active training goal" : "Not selected"}
-              </p>
+              <h3 className="text-[13px] font-semibold text-foreground">Slow</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">System 2</p>
             </div>
           </div>
         </div>
 
         {/* Tagline */}
-        <div className="text-center">
-          <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
-            Fast and Slow thinking are both skills. Train both.
+        <div className="text-center pt-2">
+          <p className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">
+            Train both thinking systems
           </p>
         </div>
       </div>
