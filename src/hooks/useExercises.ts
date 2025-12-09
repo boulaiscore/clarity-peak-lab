@@ -8,6 +8,12 @@ import type {
   UserCognitiveMetrics 
 } from "@/lib/exercises";
 import { getExerciseCountForDuration, shuffleArray } from "@/lib/exercises";
+import {
+  computeCognitiveComponent,
+  computeCognitiveReadiness,
+  classifyReadiness,
+  CognitiveInput,
+} from "@/lib/readiness";
 
 // Fetch all exercises
 export function useExercises() {
@@ -211,17 +217,34 @@ export function useUpdateUserMetrics() {
       
       if (existing) {
         // Update existing metrics - build proper update object
-        const updates: Partial<UserCognitiveMetrics> = {};
+        const updates: Record<string, number | string> = {};
         
         Object.entries(metricUpdates).forEach(([key, value]) => {
           const dbKey = mapMetricName(key) as keyof UserCognitiveMetrics;
           const currentValue = (existing[dbKey] as number) || 50;
           // Gradual improvement with diminishing returns
           const newValue = Math.min(100, currentValue + value * 0.5);
-          (updates as Record<string, number>)[mapMetricName(key)] = Math.round(newValue * 10) / 10;
+          updates[mapMetricName(key)] = Math.round(newValue * 10) / 10;
         });
         
-        (updates as Record<string, number>).total_sessions = (existing.total_sessions || 0) + 1;
+        updates.total_sessions = (existing.total_sessions || 0) + 1;
+        
+        // Calculate and update Cognitive Readiness Score
+        const cognitiveInput: CognitiveInput = {
+          reasoningAccuracy: (updates.reasoning_accuracy as number) ?? existing.reasoning_accuracy ?? 50,
+          focusIndex: (updates.focus_stability as number) ?? existing.focus_stability ?? 50,
+          workingMemoryScore: (updates.visual_processing as number) ?? existing.visual_processing ?? 50,
+          fastThinkingScore: (updates.fast_thinking as number) ?? existing.fast_thinking ?? 50,
+          slowThinkingScore: (updates.slow_thinking as number) ?? existing.slow_thinking ?? 50,
+        };
+        
+        const cognitivePerformanceScore = computeCognitiveComponent(cognitiveInput);
+        const cognitiveReadinessScore = computeCognitiveReadiness(null, cognitivePerformanceScore);
+        const readinessClassification = classifyReadiness(cognitiveReadinessScore);
+        
+        updates.cognitive_performance_score = Math.round(cognitivePerformanceScore * 10) / 10;
+        updates.cognitive_readiness_score = Math.round(cognitiveReadinessScore * 10) / 10;
+        updates.readiness_classification = readinessClassification;
         
         const { data, error } = await supabase
           .from("user_cognitive_metrics")
@@ -255,9 +278,27 @@ export function useUpdateUserMetrics() {
           }
         });
         
+        // Calculate initial Cognitive Readiness Score for new users
+        const cognitiveInput: CognitiveInput = {
+          reasoningAccuracy: newMetrics.reasoning_accuracy,
+          focusIndex: 50, // focus_stability default
+          workingMemoryScore: 50, // visual_processing default
+          fastThinkingScore: newMetrics.fast_thinking,
+          slowThinkingScore: newMetrics.slow_thinking,
+        };
+        
+        const cognitivePerformanceScore = computeCognitiveComponent(cognitiveInput);
+        const cognitiveReadinessScore = computeCognitiveReadiness(null, cognitivePerformanceScore);
+        const readinessClassification = classifyReadiness(cognitiveReadinessScore);
+        
         const { data, error } = await supabase
           .from("user_cognitive_metrics")
-          .insert(newMetrics)
+          .insert({
+            ...newMetrics,
+            cognitive_performance_score: Math.round(cognitivePerformanceScore * 10) / 10,
+            cognitive_readiness_score: Math.round(cognitiveReadinessScore * 10) / 10,
+            readiness_classification: readinessClassification,
+          })
           .select()
           .single();
         
@@ -267,6 +308,7 @@ export function useUpdateUserMetrics() {
     },
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
+      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
     },
   });
 }
