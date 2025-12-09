@@ -199,12 +199,31 @@ export default function NeuroGymSessionRunner() {
     );
   }
 
-  if (exercisesLoading || sessionExercises.length === 0) {
+  if (exercisesLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
           <p className="text-sm text-muted-foreground">Loading exercises...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!exercisesLoading && sessionExercises.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+            <Brain className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-lg font-semibold mb-2">No Exercises Available</h2>
+          <p className="text-muted-foreground text-sm mb-6">
+            This training area doesn't have exercises yet. Check back soon!
+          </p>
+          <Button onClick={() => navigate("/neuro-gym")} className="w-full">
+            Back to Neuro Gym
+          </Button>
         </div>
       </div>
     );

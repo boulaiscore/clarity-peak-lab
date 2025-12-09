@@ -125,11 +125,11 @@ export function generateNeuroGymSession(
   }
 
   // Filter exercises by gym_area field
-  let areaExercises = allExercises.filter(e => e.gym_area === area);
+  const areaExercises = allExercises.filter(e => e.gym_area === area);
   
-  // If no exercises found with gym_area, fall back to all exercises
+  // If no exercises found for this area, return empty array
   if (areaExercises.length === 0) {
-    areaExercises = allExercises;
+    return [];
   }
 
   // Determine thinking mode filter based on training goals
