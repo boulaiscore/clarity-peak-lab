@@ -66,6 +66,23 @@ export function getDrillTypeForExercise(exerciseId: string): DrillType {
     return "rule_switch";                         // 046-050: Rule switching
   }
   
+  // Focus Arena Slow Thinking exercises (FA_S2_001 - FA_S2_050)
+  if (id.startsWith("FA_S2_")) {
+    const num = parseInt(id.split("_")[2], 10);
+    
+    // Slow thinking exercises emphasize rule-based, deliberate decisions
+    if (num <= 5) return "rule_switch";          // 001-005: Rule conflict/switching
+    if (num <= 10) return "stroop";              // 006-010: Interference tasks
+    if (num <= 15) return "go_no_go";            // 011-015: Inhibition tasks
+    if (num <= 20) return "category_switch";     // 016-020: Multi-step evaluation
+    if (num <= 25) return "n_back";              // 021-025: Memory-based rules
+    if (num <= 30) return "odd_one_out";         // 026-030: Pattern detection
+    if (num <= 35) return "shape_match";         // 031-035: Condition matching
+    if (num <= 40) return "visual_search";       // 036-040: Spatial/directional
+    if (num <= 45) return "pattern_sequence";    // 041-045: Sequential logic
+    return "rule_switch";                         // 046-050: Rule hierarchy
+  }
+  
   // Memory Core exercises
   if (id.startsWith("MC_") || id.startsWith("MEMORY_")) {
     const num = parseInt(id.split("_").pop() || "0", 10);
