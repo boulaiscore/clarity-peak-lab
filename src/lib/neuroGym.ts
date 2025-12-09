@@ -23,20 +23,6 @@ export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
     icon: "Target",
   },
   {
-    id: "memory",
-    title: "Memory Core",
-    subtitle: "Working Memory Capacity",
-    description: "Strengthen working memory capacity and mental updating.",
-    icon: "Brain",
-  },
-  {
-    id: "control",
-    title: "Control Lab",
-    subtitle: "Inhibition & Cognitive Flexibility",
-    description: "Improve inhibition and cognitive flexibility.",
-    icon: "Sliders",
-  },
-  {
     id: "reasoning",
     title: "Critical Reasoning Studio",
     subtitle: "Logic & Structured Analysis",
