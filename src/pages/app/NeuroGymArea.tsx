@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { NEURO_GYM_AREAS, NeuroGymArea as AreaType, NeuroGymDuration } from "@/lib/neuroGym";
+import { NEURO_GYM_AREAS, NeuroGymArea as AreaType, NeuroGymDuration, getNeuroGymExerciseCount } from "@/lib/neuroGym";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play } from "lucide-react";
+import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -13,20 +13,8 @@ const AREA_ICONS: Record<string, React.ElementType> = {
   Lightbulb,
   Sparkles,
   Gamepad2,
-};
-
-// Map user session duration to NeuroGym duration
-const mapToDuration = (userDuration?: string): NeuroGymDuration => {
-  switch (userDuration) {
-    case "30s":
-    case "2min":
-      return "3min";
-    case "5min":
-    case "7min":
-      return "7min";
-    default:
-      return "3min";
-  }
+  Zap,
+  Clock,
 };
 
 export default function NeuroGymArea() {
@@ -51,18 +39,28 @@ export default function NeuroGymArea() {
   }
   
   const IconComponent = AREA_ICONS[areaConfig.icon] || Brain;
-  const duration = mapToDuration(user?.sessionDuration);
+  
+  // Use the user's exact session duration preference
+  const duration: NeuroGymDuration = (user?.sessionDuration as NeuroGymDuration) || "2min";
+  const { min, max } = getNeuroGymExerciseCount(duration);
   
   const handleStartSession = () => {
     navigate(`/neuro-gym/session?area=${area}&duration=${duration}`);
   };
 
   const getDurationLabel = () => {
-    return duration === "3min" ? "3 Minutes" : "7 Minutes";
+    switch (duration) {
+      case "30s": return "30 Seconds";
+      case "2min": return "2 Minutes";
+      case "5min": return "5 Minutes";
+      case "7min": return "7 Minutes";
+      default: return "2 Minutes";
+    }
   };
 
   const getExerciseCount = () => {
-    return duration === "3min" ? "2-3 drills" : "4-5 drills";
+    if (min === max) return `${min} drill${min !== 1 ? 's' : ''}`;
+    return `${min}-${max} drills`;
   };
 
   return (

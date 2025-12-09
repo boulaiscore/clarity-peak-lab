@@ -1,9 +1,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNeuroGymWeeklyStats } from "@/hooks/useNeuroGym";
-import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, Gamepad2 } from "lucide-react";
+import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, Gamepad2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AREA_CONFIG = [
+  { id: "fast-thinking", label: "Fast", icon: Zap },
+  { id: "slow-thinking", label: "Slow", icon: Clock },
   { id: "focus", label: "Focus", icon: Target },
   { id: "memory", label: "Memory", icon: Brain },
   { id: "control", label: "Control", icon: Sliders },

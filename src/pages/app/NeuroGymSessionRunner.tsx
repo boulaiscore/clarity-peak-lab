@@ -44,7 +44,7 @@ export default function NeuroGymSessionRunner() {
   // Generate session exercises
   useEffect(() => {
     if (allExercises && allExercises.length > 0 && area) {
-      const exercises = generateNeuroGymSession(area, duration || "3min", allExercises);
+      const exercises = generateNeuroGymSession(area, duration || "2min", allExercises);
       setSessionExercises(exercises);
     }
   }, [allExercises, area, duration]);
@@ -163,7 +163,7 @@ export default function NeuroGymSessionRunner() {
           await saveSession.mutateAsync({
             user_id: user.id,
             area: area,
-            duration_option: duration || "3min",
+            duration_option: duration || "2min",
             exercises_used: sessionExercises.map(e => e.id),
             score: finalScore,
             correct_answers: totalCorrect,

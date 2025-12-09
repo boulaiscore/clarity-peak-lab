@@ -73,6 +73,8 @@ export function useNeuroGymWeeklyStats(userId: string | undefined) {
       
       // Count sessions per area
       const stats: Record<NeuroGymArea, number> = {
+        "fast-thinking": 0,
+        "slow-thinking": 0,
         focus: 0,
         memory: 0,
         control: 0,

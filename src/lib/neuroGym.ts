@@ -2,8 +2,8 @@
 
 import { CognitiveExercise } from "./exercises";
 
-export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual" | "neuro-activation";
-export type NeuroGymDuration = "3min" | "7min";
+export type NeuroGymArea = "focus" | "memory" | "control" | "reasoning" | "creativity" | "visual" | "fast-thinking" | "slow-thinking" | "neuro-activation";
+export type NeuroGymDuration = "30s" | "2min" | "5min" | "7min";
 
 export interface NeuroGymAreaConfig {
   id: NeuroGymArea;
@@ -15,6 +15,22 @@ export interface NeuroGymAreaConfig {
 }
 
 export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
+  {
+    id: "fast-thinking",
+    title: "Fast Thinking",
+    subtitle: "Quick Intuition & Rapid Decisions",
+    description: "Train System 1 thinking: rapid pattern recognition, intuition, and fast responses.",
+    categories: ["fast", "attention", "cognitive_control"],
+    icon: "Zap",
+  },
+  {
+    id: "slow-thinking",
+    title: "Slow Thinking",
+    subtitle: "Deep Analysis & Structured Reasoning",
+    description: "Train System 2 thinking: careful analysis, structured reasoning, and deliberate decision-making.",
+    categories: ["slow", "reasoning", "bias", "philosophical", "decision"],
+    icon: "Clock",
+  },
   {
     id: "focus",
     title: "Focus Arena",
@@ -76,13 +92,17 @@ export const NEURO_ACTIVATION_SEQUENCE = [
   "N011", // Value Alignment Reflection
 ];
 
-// Exercise count configuration for Neuro Gym sessions
+// Exercise count configuration for Neuro Gym sessions based on user preference
 export function getNeuroGymExerciseCount(duration: NeuroGymDuration): { min: number; max: number } {
   switch (duration) {
-    case "3min":
+    case "30s":
+      return { min: 1, max: 1 };
+    case "2min":
       return { min: 2, max: 3 };
+    case "5min":
+      return { min: 3, max: 4 };
     case "7min":
-      return { min: 3, max: 5 };
+      return { min: 4, max: 5 };
     default:
       return { min: 2, max: 3 };
   }
@@ -105,9 +125,18 @@ export function generateNeuroGymSession(
   if (!areaConfig) return [];
 
   // Filter exercises by area categories
-  const areaExercises = allExercises.filter(e => 
+  let areaExercises = allExercises.filter(e => 
     areaConfig.categories.includes(e.category)
   );
+
+  // Filter by duration - prefer exercises matching user's duration preference
+  const durationMatched = areaExercises.filter(e => e.duration === duration);
+  
+  // If we have enough exercises matching the duration, use them
+  // Otherwise, fall back to any exercises in the area
+  if (durationMatched.length >= 2) {
+    areaExercises = durationMatched;
+  }
 
   if (areaExercises.length === 0) {
     // Fallback: use any available exercises
