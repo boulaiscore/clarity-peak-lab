@@ -2,7 +2,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_GYM_AREAS, NeuroGymArea as AreaType, NeuroGymDuration } from "@/lib/neuroGym";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -14,14 +15,24 @@ const AREA_ICONS: Record<string, React.ElementType> = {
   Gamepad2,
 };
 
-const DURATION_OPTIONS: { value: NeuroGymDuration; label: string; exercises: string }[] = [
-  { value: "3min", label: "3 Minutes", exercises: "2-3 drills" },
-  { value: "7min", label: "7 Minutes", exercises: "4-5 drills" },
-];
+// Map user session duration to NeuroGym duration
+const mapToDuration = (userDuration?: string): NeuroGymDuration => {
+  switch (userDuration) {
+    case "30s":
+    case "2min":
+      return "3min";
+    case "5min":
+    case "7min":
+      return "7min";
+    default:
+      return "3min";
+  }
+};
 
 export default function NeuroGymArea() {
   const { area } = useParams<{ area: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
   
@@ -40,9 +51,18 @@ export default function NeuroGymArea() {
   }
   
   const IconComponent = AREA_ICONS[areaConfig.icon] || Brain;
+  const duration = mapToDuration(user?.sessionDuration);
   
-  const handleStartSession = (duration: NeuroGymDuration) => {
+  const handleStartSession = () => {
     navigate(`/neuro-gym/session?area=${area}&duration=${duration}`);
+  };
+
+  const getDurationLabel = () => {
+    return duration === "3min" ? "3 Minutes" : "7 Minutes";
+  };
+
+  const getExerciseCount = () => {
+    return duration === "3min" ? "2-3 drills" : "4-5 drills";
   };
 
   return (
@@ -86,36 +106,35 @@ export default function NeuroGymArea() {
           </div>
         </div>
 
-        {/* Session Duration Selection */}
-        <div className="mb-6">
-          <h2 className="font-semibold mb-4">Quick Session</h2>
-          <div className="grid gap-3">
-            {DURATION_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleStartSession(option.value)}
-                className={cn(
-                  "w-full p-4 rounded-xl border transition-all duration-300",
-                  "bg-card/50 hover:bg-card",
-                  "border-border/50 hover:border-primary/40",
-                  "hover:shadow-md hover:shadow-primary/5",
-                  "flex items-center justify-between"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold">{option.label}</p>
-                    <p className="text-xs text-muted-foreground">{option.exercises}</p>
-                  </div>
-                </div>
-                <span className="text-primary text-sm font-medium">Start →</span>
-              </button>
-            ))}
+        {/* Session Info based on preferences */}
+        <div className="mb-6 p-4 rounded-xl bg-card/50 border border-border/50">
+          <div className="flex items-center gap-3 mb-3">
+            <Clock className="w-5 h-5 text-primary" />
+            <div>
+              <p className="font-semibold">{getDurationLabel()}</p>
+              <p className="text-xs text-muted-foreground">{getExerciseCount()}</p>
+            </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Based on your preferences. Change in{" "}
+            <button 
+              onClick={() => navigate("/app/account")}
+              className="text-primary hover:underline"
+            >
+              Settings
+            </button>
+          </p>
         </div>
+
+        {/* Start Button */}
+        <Button 
+          onClick={handleStartSession}
+          variant="hero"
+          className="w-full min-h-[56px] mb-6"
+        >
+          <Play className="w-5 h-5 mr-2" />
+          Start Session
+        </Button>
 
         {/* Benefits */}
         <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">

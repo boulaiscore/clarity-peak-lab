@@ -1,44 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { User, Mail, Target, Clock, Crown, Save, LogOut } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Clock, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const goalOptions = [
-  { value: "reasoning", label: "Critical Thinking" },
-  { value: "clarity", label: "Conceptual Clarity" },
-  { value: "performance", label: "Cognitive Performance" },
-  { value: "decisions", label: "Decision Quality" },
-];
-
-const timeOptions = [
-  { value: "30s", label: "30 seconds" },
-  { value: "2min", label: "2 minutes" },
-  { value: "5min", label: "5 minutes" },
-];
 
 const Account = () => {
   const { user, updateUser, logout } = useAuth();
   const [name, setName] = useState(user?.name || "");
-  const [goal, setGoal] = useState<string | undefined>(user?.goal);
-  const [timePreference, setTimePreference] = useState<string | undefined>(user?.timePreference);
+  const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>(user?.trainingGoals || []);
+  const [sessionDuration, setSessionDuration] = useState<SessionDuration | undefined>(user?.sessionDuration);
+  const [dailyTimeCommitment, setDailyTimeCommitment] = useState<DailyTimeCommitment | undefined>(user?.dailyTimeCommitment);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setTrainingGoals(user.trainingGoals || []);
+      setSessionDuration(user.sessionDuration);
+      setDailyTimeCommitment(user.dailyTimeCommitment);
+    }
+  }, [user]);
+
+  const toggleGoal = (goal: TrainingGoal) => {
+    setTrainingGoals(prev => 
+      prev.includes(goal) 
+        ? prev.filter(g => g !== goal)
+        : [...prev, goal]
+    );
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
     await new Promise((r) => setTimeout(r, 500));
     updateUser({
       name,
-      goal: goal as any,
-      timePreference: timePreference as any,
+      trainingGoals,
+      sessionDuration,
+      dailyTimeCommitment,
     });
     toast({ title: "Settings saved", description: "Your preferences have been updated." });
     setIsSaving(false);
   };
+
+  const durationOptions: { value: SessionDuration; label: string }[] = [
+    { value: "30s", label: "30s" },
+    { value: "2min", label: "2min" },
+    { value: "5min", label: "5min" },
+    { value: "7min", label: "7min" },
+  ];
+
+  const dailyTimeOptions: { value: DailyTimeCommitment; label: string }[] = [
+    { value: "3min", label: "3 min" },
+    { value: "10min", label: "10 min" },
+    { value: "30min", label: "30 min" },
+  ];
 
   return (
     <AppShell>
@@ -86,20 +105,59 @@ const Account = () => {
             />
           </div>
 
-          {/* Training Focus */}
+          {/* Training Goals */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Target className="w-4 h-4 text-primary" />
-              Training Focus
+              Training Goals
             </h3>
-            <div className="grid grid-cols-2 gap-2">
-              {goalOptions.map((option) => (
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => toggleGoal("fast_thinking")}
+                className={cn(
+                  "p-4 rounded-xl border text-left transition-all",
+                  trainingGoals.includes("fast_thinking")
+                    ? "border-warning bg-warning/10"
+                    : "border-border hover:border-warning/30"
+                )}
+              >
+                <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center mb-2">
+                  <Zap className="w-5 h-5 text-warning" />
+                </div>
+                <span className="font-medium text-sm block">Fast Thinking</span>
+                <span className="text-xs text-muted-foreground">Intuition</span>
+              </button>
+              <button
+                onClick={() => toggleGoal("slow_thinking")}
+                className={cn(
+                  "p-4 rounded-xl border text-left transition-all",
+                  trainingGoals.includes("slow_thinking")
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-primary/30"
+                )}
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                  <Brain className="w-5 h-5 text-primary" />
+                </div>
+                <span className="font-medium text-sm block">Slow Thinking</span>
+                <span className="text-xs text-muted-foreground">Structured</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Session Duration */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              Exercise Duration
+            </h3>
+            <div className="flex gap-2">
+              {durationOptions.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setGoal(option.value)}
+                  onClick={() => setSessionDuration(option.value)}
                   className={cn(
-                    "p-3 rounded-xl border text-sm transition-all",
-                    goal === option.value
+                    "flex-1 p-3 rounded-xl border text-sm transition-all",
+                    sessionDuration === option.value
                       ? "border-primary bg-primary/8"
                       : "border-border hover:border-primary/30"
                   )}
@@ -110,20 +168,20 @@ const Account = () => {
             </div>
           </div>
 
-          {/* Duration */}
+          {/* Daily Time */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              Default Duration
+              <Calendar className="w-4 h-4 text-primary" />
+              Daily Commitment
             </h3>
             <div className="flex gap-2">
-              {timeOptions.map((option) => (
+              {dailyTimeOptions.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setTimePreference(option.value)}
+                  onClick={() => setDailyTimeCommitment(option.value)}
                   className={cn(
                     "flex-1 p-3 rounded-xl border text-sm transition-all",
-                    timePreference === option.value
+                    dailyTimeCommitment === option.value
                       ? "border-primary bg-primary/8"
                       : "border-border hover:border-primary/30"
                   )}

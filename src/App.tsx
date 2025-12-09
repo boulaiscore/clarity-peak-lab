@@ -50,8 +50,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   // Check if user needs onboarding
-  const hasOnboarded = localStorage.getItem("neuroloop_onboarded");
-  if (!hasOnboarded) {
+  if (!user.onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 

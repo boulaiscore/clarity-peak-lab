@@ -1,13 +1,34 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export type TrainingGoal = "fast_thinking" | "slow_thinking";
+export type SessionDuration = "30s" | "2min" | "5min" | "7min";
+export type DailyTimeCommitment = "3min" | "10min" | "30min";
+export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
+export type WorkType = "knowledge" | "creative" | "technical" | "management" | "student" | "other";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   subscriptionStatus: "free" | "premium";
+  createdAt: Date;
+  
+  // Personal data
+  age?: number;
+  gender?: Gender;
+  workType?: WorkType;
+  
+  // Training preferences
+  trainingGoals?: TrainingGoal[];
+  sessionDuration?: SessionDuration;
+  dailyTimeCommitment?: DailyTimeCommitment;
+  
+  // Legacy fields
   goal?: "stress" | "clarity" | "performance" | "decisions";
   timePreference?: "30s" | "2min" | "5min";
-  createdAt: Date;
+  
+  // Onboarding completed
+  onboardingCompleted?: boolean;
 }
 
 interface AuthContextType {

@@ -1,53 +1,37 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { SessionStartModal } from "@/components/app/SessionStartModal";
-import { useSession } from "@/contexts/SessionContext";
 import { useAuth } from "@/contexts/AuthContext";
-import type { ProtocolType } from "@/lib/protocols";
-import { FlaskConical, Target, Workflow, ChevronRight, Zap, Brain } from "lucide-react";
+import { Zap, Brain, ChevronRight, Dumbbell, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const modules = [
-  {
-    type: "reasoning" as ProtocolType,
-    icon: FlaskConical,
-    title: "Reasoning Workout",
-    subtitle: "Analytical and critical thinking",
-  },
-  {
-    type: "clarity" as ProtocolType,
-    icon: Target,
-    title: "Clarity Lab",
-    subtitle: "Mental sharpness and problem decomposition",
-  },
-  {
-    type: "decision" as ProtocolType,
-    icon: Workflow,
-    title: "Decision Studio",
-    subtitle: "Strategic decision-making under uncertainty",
-  },
-];
 
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { startSession, getTotalSessions, currentSession } = useSession();
-  const [modalOpen, setModalOpen] = useState(false);
 
-  const handleModuleClick = (type: ProtocolType) => {
-    startSession(type);
-    setModalOpen(true);
-  };
-
-  const handleStartProtocol = (duration: string) => {
-    setModalOpen(false);
-    const category = currentSession?.type || "reasoning";
-    navigate(`/app/train?category=${category}&duration=${duration}`);
-  };
-
-  const totalSessions = getTotalSessions();
   const firstName = user?.name?.split(" ")[0] || "there";
+  
+  const hasGoals = user?.trainingGoals && user.trainingGoals.length > 0;
+  const hasFastThinking = user?.trainingGoals?.includes("fast_thinking");
+  const hasSlowThinking = user?.trainingGoals?.includes("slow_thinking");
+
+  const getDurationLabel = (duration?: string) => {
+    switch (duration) {
+      case "30s": return "30 seconds";
+      case "2min": return "2 minutes";
+      case "5min": return "5 minutes";
+      case "7min": return "7 minutes";
+      default: return "Not set";
+    }
+  };
+
+  const getDailyTimeLabel = (time?: string) => {
+    switch (time) {
+      case "3min": return "3 min/day";
+      case "10min": return "10 min/day";
+      case "30min": return "30 min/day";
+      default: return "Not set";
+    }
+  };
 
   return (
     <AppShell>
@@ -60,75 +44,121 @@ const Home = () => {
           </h1>
         </div>
 
-        {/* Fast vs Slow Thinking Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <Link to="/app/trainings?mode=fast">
-            <div className="p-4 rounded-xl bg-card border border-border/40 hover:border-warning/30 transition-colors active:scale-[0.98] h-full">
+        {/* Training Profile Card */}
+        <div className="p-4 rounded-xl bg-card border border-border/40 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-sm">Your Training Profile</h2>
+            <Link 
+              to="/app/account" 
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+            >
+              <Settings className="w-3 h-3" />
+              Edit
+            </Link>
+          </div>
+          
+          {hasGoals ? (
+            <div className="space-y-3">
+              {/* Goals */}
+              <div className="flex gap-2">
+                {hasFastThinking && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/20">
+                    <Zap className="w-3.5 h-3.5 text-warning" />
+                    <span className="text-xs font-medium text-warning">Fast Thinking</span>
+                  </div>
+                )}
+                {hasSlowThinking && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                    <Brain className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-medium text-primary">Slow Thinking</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Preferences */}
+              <div className="flex gap-4 text-xs text-muted-foreground">
+                <span>Session: {getDurationLabel(user?.sessionDuration)}</span>
+                <span>•</span>
+                <span>{getDailyTimeLabel(user?.dailyTimeCommitment)}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground mb-3">
+                Set up your training preferences
+              </p>
+              <Link 
+                to="/onboarding"
+                className="text-sm text-primary hover:underline"
+              >
+                Complete Setup →
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Access to Gym */}
+        <div className="mb-6">
+          <h2 className="label-uppercase mb-3">Start Training</h2>
+          <button
+            onClick={() => navigate("/neuro-gym")}
+            className={cn(
+              "group w-full p-5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5",
+              "border border-primary/30 hover:border-primary/50",
+              "transition-all duration-200 text-left active:scale-[0.98]"
+            )}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                <Dumbbell className="w-7 h-7 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-foreground">Neuro Gym</h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Targeted cognitive drills across 6 areas
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </button>
+        </div>
+
+        {/* Training Focus Overview */}
+        <div className="mb-6">
+          <h2 className="label-uppercase mb-3">Your Focus Areas</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <div className={cn(
+              "p-4 rounded-xl border transition-colors",
+              hasFastThinking 
+                ? "bg-warning/5 border-warning/20" 
+                : "bg-card border-border/40 opacity-50"
+            )}>
               <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center mb-3">
                 <Zap className="w-5 h-5 text-warning" />
               </div>
               <h3 className="text-sm font-semibold text-foreground">Fast Thinking</h3>
               <p className="text-[10px] text-muted-foreground mt-0.5">System 1 – Intuition</p>
               <p className="text-[9px] text-muted-foreground/60 mt-2 leading-relaxed">
-                Train your intuition and snap judgments
+                {hasFastThinking ? "Active training goal" : "Not selected"}
               </p>
             </div>
-          </Link>
-          <Link to="/app/trainings?mode=slow">
-            <div className="p-4 rounded-xl bg-card border border-border/40 hover:border-primary/30 transition-colors active:scale-[0.98] h-full">
+            <div className={cn(
+              "p-4 rounded-xl border transition-colors",
+              hasSlowThinking 
+                ? "bg-primary/5 border-primary/20" 
+                : "bg-card border-border/40 opacity-50"
+            )}>
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
                 <Brain className="w-5 h-5 text-primary" />
               </div>
               <h3 className="text-sm font-semibold text-foreground">Slow Thinking</h3>
               <p className="text-[10px] text-muted-foreground mt-0.5">System 2 – Structured</p>
               <p className="text-[9px] text-muted-foreground/60 mt-2 leading-relaxed">
-                Slow down to think at a higher level
+                {hasSlowThinking ? "Active training goal" : "Not selected"}
               </p>
             </div>
-          </Link>
-        </div>
-
-
-        {/* Classic Protocol Modules */}
-        <div className="mb-6">
-          <h2 className="label-uppercase mb-3">Protocol Sessions</h2>
-          <div className="space-y-3">
-            {modules.map((module, index) => (
-              <button
-                key={module.type}
-                onClick={() => handleModuleClick(module.type)}
-                className={cn(
-                  "group w-full p-4 rounded-xl bg-card border border-border/40",
-                  "hover:border-primary/30 hover:bg-card/80 transition-all duration-200",
-                  "text-left active:scale-[0.98]",
-                  "animate-fade-in"
-                )}
-                style={{ animationDelay: `${index * 0.08}s` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <module.icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-foreground">{module.title}</h3>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{module.subtitle}</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
-              </button>
-            ))}
           </div>
         </div>
-
-        {/* Stats */}
-        {totalSessions > 0 && (
-          <div className="p-4 rounded-xl bg-card border border-border/40 mb-6">
-            <div className="flex items-center justify-between">
-              <span className="label-uppercase">Sessions Completed</span>
-              <span className="text-2xl font-semibold text-foreground number-display">{totalSessions}</span>
-            </div>
-          </div>
-        )}
 
         {/* Tagline */}
         <div className="text-center">
@@ -137,12 +167,6 @@ const Home = () => {
           </p>
         </div>
       </div>
-
-      <SessionStartModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onStart={handleStartProtocol}
-      />
     </AppShell>
   );
 };
