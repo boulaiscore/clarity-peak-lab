@@ -20,20 +20,30 @@ type AnalogyPuzzle = {
   relationship: string;
 };
 
-const ANALOGIES: AnalogyPuzzle[] = [
-  { a: "🐕", b: "🦴", c: "🐈", options: ["🐟", "🌳", "🚗", "🎸"], correctIndex: 0, relationship: "pet → food" },
-  { a: "☀️", b: "🌅", c: "🌙", options: ["🌃", "🌻", "🔥", "⭐"], correctIndex: 0, relationship: "celestial → time" },
-  { a: "👶", b: "🧒", c: "🐣", options: ["🐔", "🥚", "🐤", "🦅"], correctIndex: 2, relationship: "baby → child" },
-  { a: "✏️", b: "📝", c: "🖌️", options: ["🎨", "📚", "💻", "🔧"], correctIndex: 0, relationship: "tool → result" },
-  { a: "🌧️", b: "☂️", c: "❄️", options: ["🧥", "🌞", "🌈", "💨"], correctIndex: 0, relationship: "weather → protection" },
-  { a: "👁️", b: "👓", c: "👂", options: ["🎧", "👃", "👄", "🖐️"], correctIndex: 0, relationship: "sense → aid" },
-  { a: "🔑", b: "🚪", c: "🎫", options: ["🎭", "🎪", "🏟️", "🎬"], correctIndex: 0, relationship: "opens → place" },
-  { a: "📖", b: "📚", c: "🎵", options: ["🎶", "🎸", "🎤", "🎹"], correctIndex: 0, relationship: "single → collection" },
-  { a: "🌱", b: "🌳", c: "🐛", options: ["🦋", "🐜", "🐝", "🪲"], correctIndex: 0, relationship: "young → mature" },
-  { a: "🍇", b: "🍷", c: "🍎", options: ["🧃", "🍺", "☕", "🥛"], correctIndex: 0, relationship: "fruit → drink" },
-  { a: "🔥", b: "🥵", c: "🧊", options: ["🥶", "💧", "🌡️", "❄️"], correctIndex: 0, relationship: "element → feeling" },
-  { a: "🎹", b: "🎵", c: "🖼️", options: ["👀", "🎨", "📷", "🖌️"], correctIndex: 0, relationship: "creates → perception" },
+// Base analogies - correctIndex will be randomized at runtime
+const BASE_ANALOGIES = [
+  { a: "🐕", b: "🦴", c: "🐈", correct: "🐟", distractors: ["🌳", "🚗", "🎸"] },
+  { a: "☀️", b: "🌅", c: "🌙", correct: "🌃", distractors: ["🌻", "🔥", "⭐"] },
+  { a: "👶", b: "🧒", c: "🐣", correct: "🐤", distractors: ["🐔", "🥚", "🦅"] },
+  { a: "✏️", b: "📝", c: "🖌️", correct: "🎨", distractors: ["📚", "💻", "🔧"] },
+  { a: "🌧️", b: "☂️", c: "❄️", correct: "🧥", distractors: ["🌞", "🌈", "💨"] },
+  { a: "👁️", b: "👓", c: "👂", correct: "🎧", distractors: ["👃", "👄", "🖐️"] },
+  { a: "🔑", b: "🚪", c: "🎫", correct: "🎭", distractors: ["🎪", "🏟️", "🎬"] },
+  { a: "📖", b: "📚", c: "🎵", correct: "🎶", distractors: ["🎸", "🎤", "🎹"] },
+  { a: "🌱", b: "🌳", c: "🐛", correct: "🦋", distractors: ["🐜", "🐝", "🪲"] },
+  { a: "🍇", b: "🍷", c: "🍎", correct: "🧃", distractors: ["🍺", "☕", "🥛"] },
+  { a: "🔥", b: "🥵", c: "🧊", correct: "🥶", distractors: ["💧", "🌡️", "❄️"] },
+  { a: "🎹", b: "🎵", c: "🖼️", correct: "👀", distractors: ["🎨", "📷", "🖌️"] },
 ];
+
+// Dynamically create puzzle with randomized option positions
+function createRandomPuzzle(): AnalogyPuzzle {
+  const base = BASE_ANALOGIES[Math.floor(Math.random() * BASE_ANALOGIES.length)];
+  const correctIndex = Math.floor(Math.random() * 4);
+  const options = [...base.distractors];
+  options.splice(correctIndex, 0, base.correct);
+  return { a: base.a, b: base.b, c: base.c, options, correctIndex, relationship: "" };
+}
 
 export function AnalogyMatchDrill({ config, timeLimit, onComplete }: AnalogyMatchDrillProps) {
   const [currentTrial, setCurrentTrial] = useState(0);
@@ -45,23 +55,14 @@ export function AnalogyMatchDrill({ config, timeLimit, onComplete }: AnalogyMatc
   const [trialStartTime, setTrialStartTime] = useState(Date.now());
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [currentPuzzle, setCurrentPuzzle] = useState<AnalogyPuzzle | null>(null);
-  const [usedPuzzles, setUsedPuzzles] = useState<number[]>([]);
 
   const hasCompletedRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
-  // Generate new puzzle
+  // Generate new puzzle with randomized position
   const generatePuzzle = () => {
-    const availableIndices = ANALOGIES.map((_, i) => i).filter(i => !usedPuzzles.includes(i));
-    if (availableIndices.length === 0) {
-      setUsedPuzzles([]);
-      const randomIndex = Math.floor(Math.random() * ANALOGIES.length);
-      return ANALOGIES[randomIndex];
-    }
-    const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-    setUsedPuzzles(prev => [...prev, randomIndex]);
-    return ANALOGIES[randomIndex];
+    return createRandomPuzzle();
   };
 
   // Initialize

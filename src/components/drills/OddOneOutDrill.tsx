@@ -17,20 +17,33 @@ type ItemSet = {
   category: string;
 };
 
-const ITEM_SETS: ItemSet[] = [
-  { items: ["🍎", "🍊", "🍋", "🚗"], oddIndex: 3, category: "fruits" },
-  { items: ["🐕", "🐈", "🐁", "🌳"], oddIndex: 3, category: "animals" },
-  { items: ["⬛", "⬛", "⬛", "⬜"], oddIndex: 3, category: "colors" },
-  { items: ["2", "4", "6", "9"], oddIndex: 3, category: "even numbers" },
-  { items: ["🔵", "🔵", "🔴", "🔵"], oddIndex: 2, category: "circles" },
-  { items: ["△", "△", "△", "□"], oddIndex: 3, category: "shapes" },
-  { items: ["A", "E", "I", "B"], oddIndex: 3, category: "vowels" },
-  { items: ["🌞", "🌙", "⭐", "🎸"], oddIndex: 3, category: "sky" },
-  { items: ["1", "3", "5", "8"], oddIndex: 3, category: "odd numbers" },
-  { items: ["🔺", "🔺", "🔻", "🔺"], oddIndex: 2, category: "triangles" },
-  { items: ["🏠", "🏢", "🏰", "🌺"], oddIndex: 3, category: "buildings" },
-  { items: ["✈️", "🚗", "🚢", "📚"], oddIndex: 3, category: "transport" },
+// Base patterns - oddIndex will be randomized at runtime
+const BASE_PATTERNS = [
+  { regular: ["🍎", "🍊", "🍋"], odd: "🚗" },
+  { regular: ["🐕", "🐈", "🐁"], odd: "🌳" },
+  { regular: ["⬛", "⬛", "⬛"], odd: "⬜" },
+  { regular: ["🔵", "🔵", "🔵"], odd: "🔴" },
+  { regular: ["△", "△", "△"], odd: "□" },
+  { regular: ["A", "E", "I"], odd: "B" },
+  { regular: ["🌞", "🌙", "⭐"], odd: "🎸" },
+  { regular: ["🔺", "🔺", "🔺"], odd: "🔻" },
+  { regular: ["🏠", "🏢", "🏰"], odd: "🌺" },
+  { regular: ["✈️", "🚗", "🚢"], odd: "📚" },
+  { regular: ["😀", "😊", "😁"], odd: "😢" },
+  { regular: ["🎹", "🎸", "🎺"], odd: "🏀" },
+  { regular: ["🌸", "🌷", "🌹"], odd: "🔧" },
+  { regular: ["⚡", "💥", "✨"], odd: "🐢" },
+  { regular: ["🍕", "🍔", "🌭"], odd: "📱" },
 ];
+
+// Dynamically create ItemSet with randomized position
+function createRandomItemSet(): ItemSet {
+  const pattern = BASE_PATTERNS[Math.floor(Math.random() * BASE_PATTERNS.length)];
+  const oddIndex = Math.floor(Math.random() * 4);
+  const items = [...pattern.regular];
+  items.splice(oddIndex, 0, pattern.odd);
+  return { items, oddIndex, category: "pattern" };
+}
 
 export function OddOneOutDrill({ config, timeLimit, onComplete }: OddOneOutDrillProps) {
   const [currentTrial, setCurrentTrial] = useState(0);
@@ -42,23 +55,14 @@ export function OddOneOutDrill({ config, timeLimit, onComplete }: OddOneOutDrill
   const [trialStartTime, setTrialStartTime] = useState(Date.now());
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [currentSet, setCurrentSet] = useState<ItemSet | null>(null);
-  const [usedSets, setUsedSets] = useState<number[]>([]);
 
   const hasCompletedRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
-  // Generate new trial
+  // Generate new trial with randomized position
   const generateTrial = () => {
-    const availableIndices = ITEM_SETS.map((_, i) => i).filter(i => !usedSets.includes(i));
-    if (availableIndices.length === 0) {
-      setUsedSets([]);
-      const randomIndex = Math.floor(Math.random() * ITEM_SETS.length);
-      return ITEM_SETS[randomIndex];
-    }
-    const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-    setUsedSets(prev => [...prev, randomIndex]);
-    return ITEM_SETS[randomIndex];
+    return createRandomItemSet();
   };
 
   // Initialize first trial

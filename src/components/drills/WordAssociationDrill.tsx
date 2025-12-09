@@ -17,20 +17,30 @@ type WordPuzzle = {
   correctIndex: number;
 };
 
-const WORD_PUZZLES: WordPuzzle[] = [
-  { words: ["Snow", "Cone", "Cream"], commonWord: "Ice", options: ["Ice", "Cold", "White", "Water"], correctIndex: 0 },
-  { words: ["Light", "Day", "Moon"], commonWord: "Sun", options: ["Sun", "Star", "Sky", "Night"], correctIndex: 0 },
-  { words: ["Work", "Book", "News"], commonWord: "Paper", options: ["Paper", "Read", "Office", "Print"], correctIndex: 0 },
-  { words: ["Rain", "Coat", "Bow"], commonWord: "Rain", options: ["Rain", "Storm", "Water", "Cloud"], correctIndex: 0 },
-  { words: ["Book", "Worm", "Mark"], commonWord: "Book", options: ["Book", "Read", "Page", "Word"], correctIndex: 0 },
-  { words: ["Ball", "Work", "Print"], commonWord: "Foot", options: ["Foot", "Hand", "Step", "Walk"], correctIndex: 0 },
-  { words: ["Box", "Code", "Card"], commonWord: "Post", options: ["Post", "Mail", "Send", "Pack"], correctIndex: 0 },
-  { words: ["Cake", "Day", "Card"], commonWord: "Birth", options: ["Birth", "Party", "Gift", "Happy"], correctIndex: 0 },
-  { words: ["Berry", "Bird", "Bell"], commonWord: "Blue", options: ["Blue", "Red", "Color", "Sky"], correctIndex: 0 },
-  { words: ["Chair", "Rest", "Band"], commonWord: "Arm", options: ["Arm", "Leg", "Hand", "Body"], correctIndex: 0 },
-  { words: ["Break", "Time", "Fast"], commonWord: "Break", options: ["Break", "Quick", "Stop", "Slow"], correctIndex: 0 },
-  { words: ["Storm", "Bolt", "Bug"], commonWord: "Lightning", options: ["Lightning", "Thunder", "Flash", "Strike"], correctIndex: 0 },
+// Base puzzles - correctIndex will be randomized at runtime
+const BASE_PUZZLES = [
+  { words: ["Snow", "Cone", "Cream"], correct: "Ice", distractors: ["Cold", "White", "Water"] },
+  { words: ["Light", "Day", "Moon"], correct: "Sun", distractors: ["Star", "Sky", "Night"] },
+  { words: ["Work", "Book", "News"], correct: "Paper", distractors: ["Read", "Office", "Print"] },
+  { words: ["Coat", "Bow", "Drop"], correct: "Rain", distractors: ["Storm", "Water", "Cloud"] },
+  { words: ["Worm", "Mark", "Shelf"], correct: "Book", distractors: ["Read", "Page", "Word"] },
+  { words: ["Ball", "Work", "Print"], correct: "Foot", distractors: ["Hand", "Step", "Walk"] },
+  { words: ["Box", "Code", "Card"], correct: "Post", distractors: ["Mail", "Send", "Pack"] },
+  { words: ["Cake", "Day", "Card"], correct: "Birth", distractors: ["Party", "Gift", "Happy"] },
+  { words: ["Berry", "Bird", "Bell"], correct: "Blue", distractors: ["Red", "Color", "Sky"] },
+  { words: ["Chair", "Rest", "Band"], correct: "Arm", distractors: ["Leg", "Hand", "Body"] },
+  { words: ["Storm", "Bolt", "Bug"], correct: "Lightning", distractors: ["Thunder", "Flash", "Strike"] },
+  { words: ["Fly", "Milk", "Scotch"], correct: "Butter", distractors: ["Bread", "Cream", "Sweet"] },
 ];
+
+// Dynamically create puzzle with randomized option positions
+function createRandomWordPuzzle(): WordPuzzle {
+  const base = BASE_PUZZLES[Math.floor(Math.random() * BASE_PUZZLES.length)];
+  const correctIndex = Math.floor(Math.random() * 4);
+  const options = [...base.distractors];
+  options.splice(correctIndex, 0, base.correct);
+  return { words: base.words, commonWord: base.correct, options, correctIndex };
+}
 
 export function WordAssociationDrill({ config, timeLimit, onComplete }: WordAssociationDrillProps) {
   const [currentTrial, setCurrentTrial] = useState(0);
@@ -42,23 +52,14 @@ export function WordAssociationDrill({ config, timeLimit, onComplete }: WordAsso
   const [trialStartTime, setTrialStartTime] = useState(Date.now());
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [currentPuzzle, setCurrentPuzzle] = useState<WordPuzzle | null>(null);
-  const [usedPuzzles, setUsedPuzzles] = useState<number[]>([]);
 
   const hasCompletedRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
-  // Generate new puzzle
+  // Generate new puzzle with randomized position
   const generatePuzzle = () => {
-    const availableIndices = WORD_PUZZLES.map((_, i) => i).filter(i => !usedPuzzles.includes(i));
-    if (availableIndices.length === 0) {
-      setUsedPuzzles([]);
-      const randomIndex = Math.floor(Math.random() * WORD_PUZZLES.length);
-      return WORD_PUZZLES[randomIndex];
-    }
-    const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-    setUsedPuzzles(prev => [...prev, randomIndex]);
-    return WORD_PUZZLES[randomIndex];
+    return createRandomWordPuzzle();
   };
 
   // Initialize
