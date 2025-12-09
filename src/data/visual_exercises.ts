@@ -247,7 +247,30 @@ export interface VisualExerciseData {
   metrics_affected: string[];
   weight: number;
   gym_area: string;
+  thinking_mode: 'fast' | 'slow';
 }
+
+// Define which exercises are Slow Thinking (System 2) - deliberate, analytical
+// All others default to Fast Thinking (System 1) - automatic, intuitive
+const SLOW_THINKING_EXERCISES = new Set([
+  // Focus - extended deliberate search
+  "FOCUS_SEARCH_SLOW_001",
+  // Memory - complex pattern analysis, 2-back requires deliberation
+  "MEMORY_NBACK_002",
+  "MEMORY_PATTERN_001", 
+  "MEMORY_MATRIX_002",
+  // Control - complex rule following, category switching
+  "CONTROL_CAT_001",
+  "CONTROL_RULE_002",
+  // Reasoning - complex sequences, analogies require analysis
+  "REASON_SEQ_003",
+  "REASON_ANALOG_001",
+  "REASON_ANALOG_002",
+  // Creativity - word association, complex analogies
+  "CREATE_ANALOG_001",
+  "CREATE_WORD_001",
+  "CREATE_WORD_002",
+]);
 
 // Generate exercise metadata from configs
 function generateExerciseMetadata(): VisualExerciseData[] {
@@ -320,6 +343,9 @@ function generateExerciseMetadata(): VisualExerciseData[] {
     if (config.timeLimit >= 90) duration = "2min";
     if (config.timeLimit >= 180) duration = "5min";
     
+    // Determine thinking mode - Slow if in set, otherwise Fast
+    const thinkingMode = SLOW_THINKING_EXERCISES.has(id) ? 'slow' : 'fast';
+    
     exerciseData.push({
       id,
       category,
@@ -332,6 +358,7 @@ function generateExerciseMetadata(): VisualExerciseData[] {
       metrics_affected: metrics,
       weight: 1,
       gym_area: gymArea,
+      thinking_mode: thinkingMode,
     });
   });
   
