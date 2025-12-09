@@ -18,7 +18,11 @@ const Auth = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !authLoading) {
-      navigate("/app");
+      if (user.onboardingCompleted) {
+        navigate("/app");
+      } else {
+        navigate("/onboarding");
+      }
     }
   }, [user, authLoading, navigate]);
 
@@ -45,9 +49,7 @@ const Auth = () => {
       }
       
       if (result.success) {
-        // Check if user has completed onboarding
-        const hasOnboarded = localStorage.getItem("neuroloop_onboarded");
-        navigate(hasOnboarded ? "/app" : "/onboarding");
+        // Navigation will be handled by the useEffect above
       } else {
         setError(result.error || "An error occurred");
       }
