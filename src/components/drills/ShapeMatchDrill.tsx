@@ -1,5 +1,5 @@
 // Shape Match Drill - Tap when two consecutive shapes are identical
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,6 @@ const COLORS = ["#6C5CE7", "#00B894", "#FD79A8", "#FDCB6E", "#74B9FF"];
 
 export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDrillProps) {
   const [currentShape, setCurrentShape] = useState<{ shape: string; color: string } | null>(null);
-  const [previousShape, setPreviousShape] = useState<{ shape: string; color: string } | null>(null);
   const [trial, setTrial] = useState(0);
   const [showShape, setShowShape] = useState(false);
   const [canRespond, setCanRespond] = useState(false);
@@ -56,6 +55,10 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [matchSequence, setMatchSequence] = useState<boolean[]>([]);
+  const [isCurrentAMatch, setIsCurrentAMatch] = useState(false);
+  
+  // Use ref to track previous shape for reliable comparison
+  const previousShapeRef = useRef<{ shape: string; color: string } | null>(null);
 
   const shapes = config.shapes || ["circle", "square", "triangle", "diamond", "star"];
   const displayTime = config.displayTime || 1200;
@@ -81,19 +84,18 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       return;
     }
 
-    // Store the shape that was just shown as "previous" for comparison
-    const shapeToCompareWith = currentShape;
+    const prevShape = previousShapeRef.current;
+    const shouldMatch = matchSequence[trial] && prevShape !== null;
     
-    const isMatch = matchSequence[trial] && shapeToCompareWith;
     let newShape: { shape: string; color: string };
     
-    if (isMatch && shapeToCompareWith) {
-      // For a match, copy both shape AND color
-      newShape = { shape: shapeToCompareWith.shape, color: shapeToCompareWith.color };
+    if (shouldMatch && prevShape) {
+      // For a match, use exact same shape AND color
+      newShape = { shape: prevShape.shape, color: prevShape.color };
     } else {
       // For non-match, pick a different shape
-      const availableShapes = shapeToCompareWith 
-        ? shapes.filter(s => s !== shapeToCompareWith.shape) 
+      const availableShapes = prevShape 
+        ? shapes.filter(s => s !== prevShape.shape) 
         : shapes;
       newShape = {
         shape: availableShapes[Math.floor(Math.random() * availableShapes.length)],
@@ -101,8 +103,8 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       };
     }
 
-    // Update previous BEFORE setting current
-    setPreviousShape(shapeToCompareWith);
+    // Track if this is a match for response validation
+    setIsCurrentAMatch(shouldMatch && prevShape !== null);
     setCurrentShape(newShape);
     setShowShape(true);
     setCanRespond(true);
@@ -113,13 +115,16 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       setShowShape(false);
       setCanRespond(false);
       
+      // Update previous shape ref AFTER displaying (for next trial comparison)
+      previousShapeRef.current = newShape;
+      
       setTrial(prev => prev + 1);
       
       setTimeout(() => {
         showNextShape();
       }, 400);
     }, displayTime);
-  }, [trial, totalTrials, matchSequence, currentShape, shapes, displayTime, onComplete, correct, reactionTimes]);
+  }, [trial, totalTrials, matchSequence, shapes, displayTime, onComplete, correct, reactionTimes]);
 
   useEffect(() => {
     if (matchSequence.length > 0 && trial === 0 && !currentShape) {
@@ -131,9 +136,8 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
     if (!canRespond) return;
     setCanRespond(false);
 
-    const isActualMatch = previousShape && currentShape && 
-      previousShape.shape === currentShape.shape;
-    const wasCorrect = userSaysMatch === !!isActualMatch;
+    // Use the tracked match state instead of comparing state variables
+    const wasCorrect = userSaysMatch === isCurrentAMatch;
 
     if (wasCorrect) {
       setCorrect(prev => prev + 1);

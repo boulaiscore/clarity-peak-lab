@@ -41,19 +41,17 @@ export function GoNoGoDrill({ config, timeLimit, onComplete }: GoNoGoDrillProps)
   const goProbability = config.goProbability || 0.7;
 
   const runTrial = useCallback(() => {
+    // Check if all trials are complete BEFORE running
     if (trial >= trialsCount) {
-      setIsComplete(true);
-      const avgRT = reactionTimes.length > 0 
-        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
-        : 0;
-      onComplete({ hits, misses, falseAlarms, avgReactionTime: avgRT });
-      return;
+      return; // Don't run more trials, completion is handled by effect
     }
 
     // Random inter-trial interval
     const iti = 500 + Math.random() * 1000;
     
     setTimeout(() => {
+      if (trial >= trialsCount) return; // Double-check in timeout
+      
       const isGo = Math.random() < goProbability;
       setCurrentStimulus(isGo ? "go" : "nogo");
       setShowStimulus(true);
@@ -80,7 +78,18 @@ export function GoNoGoDrill({ config, timeLimit, onComplete }: GoNoGoDrillProps)
         }, 300);
       }, displayTime);
     }, iti);
-  }, [trial, trialsCount, goProbability, displayTime, hits, misses, falseAlarms, reactionTimes, onComplete]);
+  }, [trial, trialsCount, goProbability, displayTime]);
+
+  // Handle completion separately
+  useEffect(() => {
+    if (trial >= trialsCount && !isComplete) {
+      setIsComplete(true);
+      const avgRT = reactionTimes.length > 0 
+        ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+        : 0;
+      onComplete({ hits, misses, falseAlarms, avgReactionTime: avgRT });
+    }
+  }, [trial, trialsCount, isComplete, hits, misses, falseAlarms, reactionTimes, onComplete]);
 
   useEffect(() => {
     if (!isComplete && trial < trialsCount && !showStimulus && feedback === null) {
