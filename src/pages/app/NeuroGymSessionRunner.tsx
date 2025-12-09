@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Check, X, Trophy, Brain, Play } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExercises, useUpdateUserMetrics } from "@/hooks/useExercises";
 import { useSaveNeuroGymSession } from "@/hooks/useNeuroGym";
@@ -14,6 +13,178 @@ import {
 } from "@/lib/neuroGym";
 import { CognitiveExercise, getMetricUpdates } from "@/lib/exercises";
 import { toast } from "sonner";
+
+// Generic visual drill component for Focus Arena exercises
+function FocusDrill({ 
+  exercise, 
+  onComplete 
+}: { 
+  exercise: CognitiveExercise; 
+  onComplete: (result: { score: number; correct: number }) => void;
+}) {
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [isActive, setIsActive] = useState(false);
+  const [targets, setTargets] = useState<Array<{ id: number; x: number; y: number; isGreen: boolean; visible: boolean }>>([]);
+  const [score, setScore] = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [missed, setMissed] = useState(0);
+  const [nextTargetId, setNextTargetId] = useState(0);
+
+  // Start the exercise
+  const startExercise = useCallback(() => {
+    setIsActive(true);
+    setTimeLeft(30);
+    setScore(0);
+    setCorrect(0);
+    setMissed(0);
+    setTargets([]);
+    setNextTargetId(0);
+  }, []);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!isActive || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          setIsActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isActive, timeLeft]);
+
+  // Complete when time runs out
+  useEffect(() => {
+    if (timeLeft === 0 && !isActive) {
+      const finalScore = Math.max(0, Math.min(100, Math.round((correct / Math.max(1, correct + missed)) * 100)));
+      onComplete({ score: finalScore, correct });
+    }
+  }, [timeLeft, isActive, correct, missed, onComplete]);
+
+  // Spawn targets periodically
+  useEffect(() => {
+    if (!isActive) return;
+
+    const spawnTarget = () => {
+      const isGreen = Math.random() > 0.3; // 70% green targets
+      const newTarget = {
+        id: nextTargetId,
+        x: 10 + Math.random() * 80, // 10-90% of container width
+        y: 10 + Math.random() * 80, // 10-90% of container height
+        isGreen,
+        visible: true,
+      };
+      
+      setTargets(prev => [...prev.slice(-5), newTarget]); // Keep max 6 targets
+      setNextTargetId(prev => prev + 1);
+
+      // Auto-remove target after 1.5s if not tapped
+      setTimeout(() => {
+        setTargets(prev => {
+          const target = prev.find(t => t.id === newTarget.id);
+          if (target?.visible && target.isGreen) {
+            setMissed(m => m + 1);
+          }
+          return prev.filter(t => t.id !== newTarget.id);
+        });
+      }, 1500);
+    };
+
+    // Spawn first target immediately
+    spawnTarget();
+    
+    // Then spawn every 800ms
+    const interval = setInterval(spawnTarget, 800);
+    return () => clearInterval(interval);
+  }, [isActive, nextTargetId]);
+
+  // Handle target tap
+  const handleTargetTap = (targetId: number, isGreen: boolean) => {
+    if (isGreen) {
+      setScore(prev => prev + 10);
+      setCorrect(prev => prev + 1);
+    } else {
+      setScore(prev => Math.max(0, prev - 5));
+    }
+    
+    setTargets(prev => prev.filter(t => t.id !== targetId));
+  };
+
+  if (!isActive && timeLeft === 30) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        <h2 className="text-xl font-semibold mb-3">{exercise.title}</h2>
+        <p className="text-muted-foreground text-center mb-8 max-w-sm">{exercise.prompt}</p>
+        
+        <Button size="lg" onClick={startExercise} className="w-full max-w-xs">
+          <Play className="w-5 h-5 mr-2" />
+          Start (30s)
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col px-4 py-4">
+      {/* Stats bar */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{timeLeft}</p>
+            <p className="text-xs text-muted-foreground">seconds</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-green-500">{correct}</p>
+            <p className="text-xs text-muted-foreground">hits</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-semibold">{score}</p>
+            <p className="text-xs text-muted-foreground">score</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Game area */}
+      <div 
+        className="flex-1 relative rounded-2xl bg-card/30 border border-border/50 overflow-hidden min-h-[300px]"
+        style={{ touchAction: 'none' }}
+      >
+        {targets.map(target => (
+          <button
+            key={target.id}
+            onClick={() => handleTargetTap(target.id, target.isGreen)}
+            className={`absolute w-12 h-12 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-100 active:scale-90 ${
+              target.isGreen 
+                ? 'bg-green-500 hover:bg-green-400 shadow-lg shadow-green-500/30' 
+                : 'bg-red-500 hover:bg-red-400 shadow-lg shadow-red-500/30'
+            }`}
+            style={{
+              left: `${target.x}%`,
+              top: `${target.y}%`,
+            }}
+          />
+        ))}
+        
+        {targets.length === 0 && isActive && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-muted-foreground text-sm">Targets incoming...</p>
+          </div>
+        )}
+      </div>
+
+      <p className="text-center text-sm text-muted-foreground mt-4">
+        Tap green targets! Avoid red ones.
+      </p>
+    </div>
+  );
+}
 
 export default function NeuroGymSessionRunner() {
   const [searchParams] = useSearchParams();
@@ -32,8 +203,6 @@ export default function NeuroGymSessionRunner() {
   const [responses, setResponses] = useState<Map<string, { score: number; correct: number }>>(new Map());
   const [isComplete, setIsComplete] = useState(false);
   const [sessionScore, setSessionScore] = useState({ score: 0, correctAnswers: 0, totalQuestions: 0 });
-  const [isExerciseActive, setIsExerciseActive] = useState(false);
-  const [exerciseTimeLeft, setExerciseTimeLeft] = useState(30);
 
   // Generate session exercises with trainingGoals filtering
   useEffect(() => {
@@ -47,24 +216,6 @@ export default function NeuroGymSessionRunner() {
       setSessionExercises(exercises);
     }
   }, [allExercises, area, duration, user?.trainingGoals]);
-
-  // Exercise timer
-  useEffect(() => {
-    if (!isExerciseActive || exerciseTimeLeft <= 0) return;
-    
-    const timer = setInterval(() => {
-      setExerciseTimeLeft(prev => {
-        if (prev <= 1) {
-          // Time's up - auto complete with 0 score
-          handleExerciseComplete(0, 0);
-          return 30;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [isExerciseActive, exerciseTimeLeft]);
 
   const areaConfig = useMemo(() => {
     if (area === "neuro-activation") {
@@ -88,49 +239,24 @@ export default function NeuroGymSessionRunner() {
   const currentExercise = sessionExercises[currentIndex];
   const progress = sessionExercises.length > 0 ? ((currentIndex + 1) / sessionExercises.length) * 100 : 0;
 
-  const handleStartExercise = () => {
-    setIsExerciseActive(true);
-    setExerciseTimeLeft(30);
-  };
-
-  const handleExerciseComplete = (score: number, correct: number) => {
+  const handleExerciseComplete = useCallback((result: { score: number; correct: number }) => {
     if (!currentExercise) return;
     
     setResponses(prev => {
       const updated = new Map(prev);
-      updated.set(currentExercise.id, { score, correct });
+      updated.set(currentExercise.id, result);
       return updated;
     });
-    
-    setIsExerciseActive(false);
     
     // Auto advance after brief delay
     setTimeout(() => {
       handleNext();
-    }, 800);
-  };
-
-  // Simple tap response for visual tasks
-  const handleTap = () => {
-    if (!isExerciseActive) return;
-    
-    // For now, simulate a correct tap (this will be replaced with actual drill logic)
-    const response = responses.get(currentExercise?.id || "") || { score: 0, correct: 0 };
-    setResponses(prev => {
-      const updated = new Map(prev);
-      updated.set(currentExercise?.id || "", { 
-        score: response.score + 10, 
-        correct: response.correct + 1 
-      });
-      return updated;
-    });
-  };
+    }, 1000);
+  }, [currentExercise]);
 
   const handleNext = async () => {
     if (currentIndex < sessionExercises.length - 1) {
       setCurrentIndex(prev => prev + 1);
-      setIsExerciseActive(false);
-      setExerciseTimeLeft(30);
     } else {
       // Complete session
       let totalScore = 0;
@@ -175,14 +301,6 @@ export default function NeuroGymSessionRunner() {
           toast.error("Failed to save session");
         }
       }
-    }
-  };
-
-  const handleBack = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setIsExerciseActive(false);
-      setExerciseTimeLeft(30);
     }
   };
 
@@ -248,7 +366,10 @@ export default function NeuroGymSessionRunner() {
           <div className="text-center">
             <p className="text-4xl font-bold text-primary">{sessionScore.score}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {sessionScore.totalQuestions} exercises completed
+              Average Score
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {sessionScore.correctAnswers} targets hit across {sessionScore.totalQuestions} exercises
             </p>
           </div>
         </div>
@@ -299,84 +420,11 @@ export default function NeuroGymSessionRunner() {
       </header>
 
       {/* Exercise Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-6">
-        <div className="max-w-lg mx-auto w-full text-center">
-          {/* Timer */}
-          {isExerciseActive && (
-            <div className="mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border-4 border-primary">
-                <span className="text-2xl font-bold">{exerciseTimeLeft}</span>
-              </div>
-            </div>
-          )}
-          
-          <h2 className="text-xl font-semibold mb-3">{currentExercise.title}</h2>
-          <p className="text-muted-foreground mb-8">{currentExercise.prompt}</p>
-          
-          {/* Exercise Area */}
-          {!isExerciseActive ? (
-            <Button 
-              size="lg" 
-              onClick={handleStartExercise}
-              className="w-full max-w-xs mx-auto"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Start Exercise (30s)
-            </Button>
-          ) : (
-            <div 
-              className="w-full aspect-square max-w-sm mx-auto rounded-2xl bg-card/50 border border-border/50 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
-              onClick={handleTap}
-            >
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-green-500 mx-auto mb-4 animate-pulse" />
-                <p className="text-sm text-muted-foreground">Tap when ready!</p>
-              </div>
-            </div>
-          )}
-          
-          {/* Response indicator */}
-          {responses.has(currentExercise.id) && !isExerciseActive && (
-            <div className="mt-6 p-4 rounded-xl bg-primary/10 border border-primary/20">
-              <p className="text-sm text-primary font-medium">
-                Score: {responses.get(currentExercise.id)?.score || 0}
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Footer Navigation */}
-      <footer className="sticky bottom-0 bg-background/90 backdrop-blur-xl border-t border-border/30 px-4 py-4 safe-area-pb">
-        <div className="flex gap-3 max-w-lg mx-auto">
-          <Button 
-            variant="outline" 
-            onClick={handleBack}
-            disabled={currentIndex === 0 || isExerciseActive}
-            className="flex-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <Button 
-            onClick={handleNext}
-            disabled={isExerciseActive || !responses.has(currentExercise.id)}
-            className="flex-1"
-          >
-            {currentIndex === sessionExercises.length - 1 ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Complete
-              </>
-            ) : (
-              <>
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
-        </div>
-      </footer>
+      <FocusDrill 
+        key={currentExercise.id}
+        exercise={currentExercise} 
+        onComplete={handleExerciseComplete} 
+      />
     </div>
   );
 }
