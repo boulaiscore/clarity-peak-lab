@@ -70,27 +70,27 @@ const Onboarding = () => {
       value: "fast_thinking", 
       icon: Zap, 
       title: "Fast Thinking", 
-      description: "Improve intuition, snap judgments, and quick reactions" 
+      description: "Improve intuition and quick reactions" 
     },
     { 
       value: "slow_thinking", 
       icon: Brain, 
       title: "Slow Thinking", 
-      description: "Develop structured reasoning and deeper analysis" 
+      description: "Develop structured reasoning" 
     },
   ];
 
   const durationOptions: { value: SessionDuration; label: string; description: string }[] = [
-    { value: "30s", label: "30 seconds", description: "Quick cognitive reset" },
-    { value: "2min", label: "2 minutes", description: "Focused training" },
-    { value: "5min", label: "5 minutes", description: "Deep practice" },
-    { value: "7min", label: "7 minutes", description: "Comprehensive session" },
+    { value: "30s", label: "30 sec", description: "Quick reset" },
+    { value: "2min", label: "2 min", description: "Focused" },
+    { value: "5min", label: "5 min", description: "Deep practice" },
+    { value: "7min", label: "7 min", description: "Comprehensive" },
   ];
 
   const dailyTimeOptions: { value: DailyTimeCommitment; label: string; description: string }[] = [
-    { value: "3min", label: "3 minutes", description: "Micro-sessions" },
-    { value: "10min", label: "10 minutes", description: "Daily habit" },
-    { value: "30min", label: "30 minutes", description: "Deep commitment" },
+    { value: "3min", label: "3 min", description: "Micro-sessions" },
+    { value: "10min", label: "10 min", description: "Daily habit" },
+    { value: "30min", label: "30 min", description: "Deep commitment" },
   ];
 
   const ageOptions = [
@@ -105,14 +105,14 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Progress indicator */}
-      <div className="p-6">
-        <div className="flex gap-2 max-w-xs mx-auto">
+      <div className="px-5 pt-6 pb-4">
+        <div className="flex gap-1.5 max-w-[200px] mx-auto">
           {[1, 2, 3, 4, 5, 6].map((s) => (
             <div
               key={s}
               className={cn(
-                "h-1 flex-1 rounded-full transition-all",
-                s <= step ? "bg-primary" : "bg-muted"
+                "h-[3px] flex-1 rounded-full transition-all",
+                s <= step ? "bg-primary" : "bg-muted/50"
               )}
             />
           ))}
@@ -120,26 +120,26 @@ const Onboarding = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-6 pb-16">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center px-5 pb-6">
+        <div className="w-full max-w-sm">
           {/* Step 1: Welcome */}
           {step === 1 && (
             <div className="text-center animate-fade-in">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center mx-auto mb-8">
-                <span className="text-foreground font-bold text-2xl">N</span>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center mx-auto mb-6">
+                <span className="text-foreground font-semibold text-xl">N</span>
               </div>
-              <h1 className="text-3xl font-semibold mb-4 tracking-tight">
-                Welcome to NeuroLoop Pro
+              <h1 className="text-2xl font-semibold mb-3 tracking-tight leading-tight">
+                Welcome to NeuroLoop
               </h1>
-              <p className="text-lg text-muted-foreground mb-3">
-                Train your mind for elite reasoning and cognitive longevity.
+              <p className="text-[15px] text-muted-foreground mb-2 leading-relaxed">
+                Train your mind for elite reasoning.
               </p>
-              <p className="text-muted-foreground mb-12">
-                You think for a living. Your mind is your edge. Let's strengthen it.
+              <p className="text-sm text-muted-foreground/70 mb-10">
+                Your thinking is your edge.
               </p>
-              <Button onClick={handleNext} variant="hero" className="w-full min-h-[56px]">
+              <Button onClick={handleNext} variant="hero" className="w-full h-[52px] text-[15px] font-medium">
                 Get Started
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
@@ -147,31 +147,31 @@ const Onboarding = () => {
           {/* Step 2: Personal Data */}
           {step === 2 && (
             <div className="animate-fade-in">
-              <div className="text-center mb-8">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <User className="w-6 h-6 text-primary" />
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <User className="w-5 h-5 text-primary" />
                 </div>
-                <h1 className="text-2xl font-semibold mb-2 tracking-tight">
-                  Tell us about yourself
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  About you
                 </h1>
-                <p className="text-muted-foreground text-sm">
-                  This helps personalize your training experience
+                <p className="text-muted-foreground text-[13px]">
+                  Personalize your experience
                 </p>
               </div>
               
               {/* Age */}
-              <div className="mb-6">
-                <label className="text-sm font-medium mb-3 block">Age Range</label>
+              <div className="mb-5">
+                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Age</label>
                 <div className="grid grid-cols-3 gap-2">
                   {ageOptions.map((option) => (
                     <button
                       key={option.label}
                       onClick={() => setAge(option.min)}
                       className={cn(
-                        "p-3 rounded-xl border text-sm transition-all",
+                        "py-2.5 px-3 rounded-xl border text-[13px] font-medium transition-all",
                         age !== undefined && age >= option.min && age <= option.max
-                          ? "border-primary bg-primary/8"
-                          : "border-border bg-card hover:border-primary/30"
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border/60 bg-card/50 text-muted-foreground hover:border-primary/40"
                       )}
                     >
                       {option.label}
@@ -181,18 +181,18 @@ const Onboarding = () => {
               </div>
 
               {/* Gender */}
-              <div className="mb-8">
-                <label className="text-sm font-medium mb-3 block">Gender (optional)</label>
+              <div className="mb-6">
+                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Gender</label>
                 <div className="grid grid-cols-2 gap-2">
                   {genderOptions.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setGender(option.value)}
                       className={cn(
-                        "p-3 rounded-xl border text-sm transition-all",
+                        "py-2.5 px-3 rounded-xl border text-[13px] font-medium transition-all",
                         gender === option.value
-                          ? "border-primary bg-primary/8"
-                          : "border-border bg-card hover:border-primary/30"
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border/60 bg-card/50 text-muted-foreground hover:border-primary/40"
                       )}
                     >
                       {option.label}
@@ -201,9 +201,9 @@ const Onboarding = () => {
                 </div>
               </div>
 
-              <Button onClick={handleNext} variant="hero" className="w-full min-h-[56px]">
+              <Button onClick={handleNext} variant="hero" className="w-full h-[52px] text-[15px] font-medium">
                 Continue
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
@@ -211,29 +211,29 @@ const Onboarding = () => {
           {/* Step 3: Work Type */}
           {step === 3 && (
             <div className="animate-fade-in">
-              <div className="text-center mb-8">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Briefcase className="w-6 h-6 text-primary" />
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Briefcase className="w-5 h-5 text-primary" />
                 </div>
-                <h1 className="text-2xl font-semibold mb-2 tracking-tight">
-                  What kind of work do you do?
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Your work
                 </h1>
               </div>
               
-              <div className="space-y-2 mb-8">
+              <div className="space-y-2 mb-6">
                 {workTypeOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setWorkType(option.value)}
                     className={cn(
-                      "w-full p-4 rounded-xl border text-left transition-all",
+                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
                       workType === option.value
-                        ? "border-primary bg-primary/8"
-                        : "border-border bg-card hover:border-primary/30"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/60 bg-card/50 hover:border-primary/40"
                     )}
                   >
-                    <span className="font-medium block">{option.label}</span>
-                    <span className="text-sm text-muted-foreground">{option.description}</span>
+                    <span className="font-medium text-[14px] block">{option.label}</span>
+                    <span className="text-[12px] text-muted-foreground">{option.description}</span>
                   </button>
                 ))}
               </div>
@@ -241,11 +241,11 @@ const Onboarding = () => {
               <Button 
                 onClick={handleNext} 
                 variant="hero" 
-                className="w-full min-h-[56px]"
+                className="w-full h-[52px] text-[15px] font-medium"
                 disabled={!workType}
               >
                 Continue
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
@@ -253,39 +253,39 @@ const Onboarding = () => {
           {/* Step 4: Training Goals */}
           {step === 4 && (
             <div className="animate-fade-in">
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold mb-2 tracking-tight">
-                  What do you want to improve?
+              <div className="text-center mb-6">
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Training focus
                 </h1>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-[13px]">
                   Select one or both
                 </p>
               </div>
               
-              <div className="space-y-3 mb-8">
+              <div className="space-y-3 mb-6">
                 {goalOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => toggleGoal(option.value)}
                     className={cn(
-                      "w-full p-5 rounded-xl border text-left transition-all flex items-start gap-4",
+                      "w-full py-4 px-4 rounded-xl border text-left transition-all flex items-center gap-3.5",
                       trainingGoals.includes(option.value)
-                        ? "border-primary bg-primary/8"
-                        : "border-border bg-card hover:border-primary/30"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/60 bg-card/50 hover:border-primary/40"
                     )}
                   >
                     <div className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                      option.value === "fast_thinking" ? "bg-warning/10" : "bg-primary/10"
+                      "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
+                      option.value === "fast_thinking" ? "bg-amber-500/15" : "bg-teal-500/15"
                     )}>
                       <option.icon className={cn(
-                        "w-6 h-6",
-                        option.value === "fast_thinking" ? "text-warning" : "text-primary"
+                        "w-5 h-5",
+                        option.value === "fast_thinking" ? "text-amber-400" : "text-teal-400"
                       )} />
                     </div>
                     <div>
-                      <span className="font-semibold block mb-1">{option.title}</span>
-                      <span className="text-sm text-muted-foreground">{option.description}</span>
+                      <span className="font-semibold text-[14px] block mb-0.5">{option.title}</span>
+                      <span className="text-[12px] text-muted-foreground leading-snug">{option.description}</span>
                     </div>
                   </button>
                 ))}
@@ -294,11 +294,11 @@ const Onboarding = () => {
               <Button
                 onClick={handleNext}
                 variant="hero"
-                className="w-full min-h-[56px]"
+                className="w-full h-[52px] text-[15px] font-medium"
                 disabled={trainingGoals.length === 0}
               >
                 Continue
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
@@ -306,35 +306,32 @@ const Onboarding = () => {
           {/* Step 5: Session Duration */}
           {step === 5 && (
             <div className="animate-fade-in">
-              <div className="text-center mb-8">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-primary" />
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Clock className="w-5 h-5 text-primary" />
                 </div>
-                <h1 className="text-2xl font-semibold mb-2 tracking-tight">
-                  Preferred exercise duration
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Session length
                 </h1>
-                <p className="text-muted-foreground text-sm">
-                  How long should each exercise be?
+                <p className="text-muted-foreground text-[13px]">
+                  Per exercise
                 </p>
               </div>
               
-              <div className="space-y-2 mb-8">
+              <div className="grid grid-cols-2 gap-2 mb-6">
                 {durationOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setSessionDuration(option.value)}
                     className={cn(
-                      "w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between",
+                      "py-4 px-4 rounded-xl border text-center transition-all",
                       sessionDuration === option.value
-                        ? "border-primary bg-primary/8"
-                        : "border-border bg-card hover:border-primary/30"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/60 bg-card/50 hover:border-primary/40"
                     )}
                   >
-                    <div>
-                      <span className="font-semibold block">{option.label}</span>
-                      <span className="text-sm text-muted-foreground">{option.description}</span>
-                    </div>
-                    <Clock className="w-5 h-5 text-muted-foreground" />
+                    <span className="font-semibold text-[15px] block mb-0.5">{option.label}</span>
+                    <span className="text-[11px] text-muted-foreground">{option.description}</span>
                   </button>
                 ))}
               </div>
@@ -342,11 +339,11 @@ const Onboarding = () => {
               <Button
                 onClick={handleNext}
                 variant="hero"
-                className="w-full min-h-[56px]"
+                className="w-full h-[52px] text-[15px] font-medium"
                 disabled={!sessionDuration}
               >
                 Continue
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
@@ -354,35 +351,32 @@ const Onboarding = () => {
           {/* Step 6: Daily Time Commitment */}
           {step === 6 && (
             <div className="animate-fade-in">
-              <div className="text-center mb-8">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="w-6 h-6 text-primary" />
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="w-5 h-5 text-primary" />
                 </div>
-                <h1 className="text-2xl font-semibold mb-2 tracking-tight">
-                  Daily training time
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Daily commitment
                 </h1>
-                <p className="text-muted-foreground text-sm">
-                  How much time can you dedicate each day?
+                <p className="text-muted-foreground text-[13px]">
+                  Time per day
                 </p>
               </div>
               
-              <div className="space-y-2 mb-8">
+              <div className="space-y-2 mb-6">
                 {dailyTimeOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setDailyTimeCommitment(option.value)}
                     className={cn(
-                      "w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between",
+                      "w-full py-4 px-4 rounded-xl border text-center transition-all",
                       dailyTimeCommitment === option.value
-                        ? "border-primary bg-primary/8"
-                        : "border-border bg-card hover:border-primary/30"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/60 bg-card/50 hover:border-primary/40"
                     )}
                   >
-                    <div>
-                      <span className="font-semibold block">{option.label}</span>
-                      <span className="text-sm text-muted-foreground">{option.description}</span>
-                    </div>
-                    <Calendar className="w-5 h-5 text-muted-foreground" />
+                    <span className="font-semibold text-[15px] block mb-0.5">{option.label}</span>
+                    <span className="text-[11px] text-muted-foreground">{option.description}</span>
                   </button>
                 ))}
               </div>
@@ -390,11 +384,11 @@ const Onboarding = () => {
               <Button
                 onClick={handleComplete}
                 variant="hero"
-                className="w-full min-h-[56px]"
+                className="w-full h-[52px] text-[15px] font-medium"
                 disabled={!dailyTimeCommitment}
               >
                 Start Training
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
@@ -402,9 +396,9 @@ const Onboarding = () => {
       </div>
 
       {/* Tagline */}
-      <div className="p-6 text-center">
-        <p className="text-xs text-muted-foreground">
-          Train your mind for elite reasoning.
+      <div className="py-4 text-center">
+        <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
+          Cognitive Performance System
         </p>
       </div>
     </div>
