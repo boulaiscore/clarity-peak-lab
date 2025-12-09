@@ -115,7 +115,8 @@ export function generateNeuroGymSession(
   area: NeuroGymArea,
   duration: NeuroGymDuration,
   allExercises: CognitiveExercise[],
-  trainingGoals?: TrainingGoal[]
+  trainingGoals?: TrainingGoal[],
+  explicitThinkingMode?: "fast" | "slow"
 ): CognitiveExercise[] {
   if (area === "neuro-activation") {
     // Return fixed sequence for Neuro Activation
@@ -132,7 +133,23 @@ export function generateNeuroGymSession(
     return [];
   }
 
-  // Determine thinking mode filter based on training goals
+  // If explicit thinking mode is provided, use it directly
+  if (explicitThinkingMode) {
+    const filteredExercises = areaExercises.filter(e => e.thinking_mode === explicitThinkingMode);
+    
+    // Fallback to all area exercises if no matches
+    if (filteredExercises.length === 0) {
+      const { min, max } = getNeuroGymExerciseCount(duration);
+      const count = Math.floor(Math.random() * (max - min + 1)) + min;
+      return weightedRandomSelect(areaExercises, count);
+    }
+    
+    const { min, max } = getNeuroGymExerciseCount(duration);
+    const count = Math.floor(Math.random() * (max - min + 1)) + min;
+    return weightedRandomSelect(filteredExercises, count);
+  }
+
+  // Legacy: Determine thinking mode filter based on training goals
   const hasFast = trainingGoals?.includes("fast_thinking");
   const hasSlow = trainingGoals?.includes("slow_thinking");
   

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_GYM_AREAS, NeuroGymArea as AreaType, NeuroGymDuration, getNeuroGymExerciseCount } from "@/lib/neuroGym";
@@ -17,10 +18,13 @@ const AREA_ICONS: Record<string, React.ElementType> = {
   Clock,
 };
 
+type ThinkingMode = "fast" | "slow";
+
 export default function NeuroGymArea() {
   const { area } = useParams<{ area: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [selectedMode, setSelectedMode] = useState<ThinkingMode | null>(null);
   
   const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
   
@@ -45,7 +49,8 @@ export default function NeuroGymArea() {
   const { min, max } = getNeuroGymExerciseCount(duration);
   
   const handleStartSession = () => {
-    navigate(`/neuro-gym/session?area=${area}&duration=${duration}`);
+    if (!selectedMode) return;
+    navigate(`/neuro-gym/session?area=${area}&duration=${duration}&mode=${selectedMode}`);
   };
 
   const getDurationLabel = () => {
@@ -89,10 +94,54 @@ export default function NeuroGymArea() {
           </div>
         </div>
 
-        {/* What You'll Train */}
-        <div className="mb-8 p-4 rounded-xl bg-card/50 border border-border/50">
-          <h2 className="font-semibold mb-3">What You'll Train</h2>
-          <p className="text-sm text-muted-foreground">{areaConfig.description}</p>
+        {/* Thinking Mode Selection */}
+        <div className="mb-6">
+          <h2 className="font-semibold mb-3">Choose Training Mode</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Fast Thinking Option */}
+            <button
+              onClick={() => setSelectedMode("fast")}
+              className={cn(
+                "p-4 rounded-xl border-2 transition-all text-left",
+                selectedMode === "fast"
+                  ? "border-primary bg-primary/10"
+                  : "border-border/50 bg-card/50 hover:border-primary/50"
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className={cn(
+                  "w-5 h-5",
+                  selectedMode === "fast" ? "text-primary" : "text-muted-foreground"
+                )} />
+                <span className="font-semibold">Fast</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Quick reactions, pattern recognition, intuitive responses
+              </p>
+            </button>
+
+            {/* Slow Thinking Option */}
+            <button
+              onClick={() => setSelectedMode("slow")}
+              className={cn(
+                "p-4 rounded-xl border-2 transition-all text-left",
+                selectedMode === "slow"
+                  ? "border-primary bg-primary/10"
+                  : "border-border/50 bg-card/50 hover:border-primary/50"
+              )}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Brain className={cn(
+                  "w-5 h-5",
+                  selectedMode === "slow" ? "text-primary" : "text-muted-foreground"
+                )} />
+                <span className="font-semibold">Slow</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Complex rules, deliberate analysis, executive control
+              </p>
+            </button>
+          </div>
         </div>
 
         {/* Session Info based on preferences */}
@@ -120,9 +169,13 @@ export default function NeuroGymArea() {
           onClick={handleStartSession}
           variant="hero"
           className="w-full min-h-[56px] mb-6"
+          disabled={!selectedMode}
         >
           <Play className="w-5 h-5 mr-2" />
-          Start Session
+          {selectedMode 
+            ? `Start ${selectedMode === "fast" ? "Fast" : "Slow"} Thinking Session`
+            : "Select a Training Mode"
+          }
         </Button>
 
         {/* Benefits */}
