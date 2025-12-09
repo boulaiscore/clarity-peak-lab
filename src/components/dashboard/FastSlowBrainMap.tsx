@@ -136,9 +136,13 @@ export function FastSlowBrainMap({ fastScore, fastDelta, slowScore, slowDelta }:
     }
   }, [slowDelta]);
 
-  // Calculate opacity based on scores
+  // Calculate opacity and scale based on scores
   const fastOpacity = 0.5 + (fastScore / 100) * 0.5;
   const slowOpacity = 0.5 + (slowScore / 100) * 0.5;
+  
+  // Scale factor: scores 0-100 map to 0.7-1.1 scale
+  const fastScale = 0.7 + (fastScore / 100) * 0.4;
+  const slowScale = 0.7 + (slowScore / 100) * 0.4;
 
   const DeltaIndicator = ({ delta }: { delta: number }) => {
     if (delta > 0) return <TrendingUp className="w-3 h-3 text-green-400" />;
@@ -236,6 +240,7 @@ export function FastSlowBrainMap({ fastScore, fastDelta, slowScore, slowDelta }:
           <g 
             opacity={fastOpacity} 
             filter="url(#fastGlow)"
+            transform={`translate(75, 85) scale(${fastScale}) translate(-75, -85)`}
             className={cn(
               "transition-all duration-500",
               fastPulse && "animate-pulse"
@@ -285,6 +290,7 @@ export function FastSlowBrainMap({ fastScore, fastDelta, slowScore, slowDelta }:
           <g 
             opacity={slowOpacity} 
             filter="url(#slowGlow)"
+            transform={`translate(225, 85) scale(${slowScale}) translate(-225, -85)`}
             className={cn(
               "transition-all duration-1000",
               slowGlow && "animate-pulse"
