@@ -8,6 +8,7 @@ import { FastSlowThinkingPanel } from "@/components/dashboard/FastSlowThinkingPa
 import { CognitiveReadinessBar } from "@/components/dashboard/CognitiveReadinessBar";
 import { BrainFunctionsGrid } from "@/components/dashboard/BrainFunctionsGrid";
 import { InsightsList } from "@/components/dashboard/InsightsList";
+import { CognitiveReadinessCard } from "@/components/dashboard/CognitiveReadinessCard";
 import { Button } from "@/components/ui/button";
 import { Info, Zap, Brain } from "lucide-react";
 import {
@@ -69,6 +70,9 @@ const Dashboard = () => {
             </Button>
           </Link>
         </div>
+
+        {/* Cognitive Readiness Card (with wearable integration) */}
+        <CognitiveReadinessCard />
 
         {/* Cognitive Age Sphere */}
         <CognitiveAgeSphere cognitiveAge={brainAge} delta={delta} />

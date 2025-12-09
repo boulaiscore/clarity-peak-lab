@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { User, Crown, Save, LogOut, Zap, Brain, Clock, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
 
 const Account = () => {
   const { user, updateUser, logout } = useAuth();
@@ -191,6 +192,9 @@ const Account = () => {
               ))}
             </div>
           </div>
+
+          {/* Wearable Integration */}
+          <WearableIntegrationSection />
 
           {/* Actions */}
           <div className="space-y-3">

@@ -195,6 +195,8 @@ export type Database = {
         Row: {
           bias_resistance: number
           clarity_score: number
+          cognitive_performance_score: number | null
+          cognitive_readiness_score: number | null
           created_at: string
           creativity: number
           critical_thinking_score: number
@@ -203,7 +205,9 @@ export type Database = {
           focus_stability: number
           id: string
           philosophical_reasoning: number
+          physio_component_score: number | null
           reaction_speed: number
+          readiness_classification: string | null
           reasoning_accuracy: number
           slow_thinking: number
           spatial_reasoning: number
@@ -215,6 +219,8 @@ export type Database = {
         Insert: {
           bias_resistance?: number
           clarity_score?: number
+          cognitive_performance_score?: number | null
+          cognitive_readiness_score?: number | null
           created_at?: string
           creativity?: number
           critical_thinking_score?: number
@@ -223,7 +229,9 @@ export type Database = {
           focus_stability?: number
           id?: string
           philosophical_reasoning?: number
+          physio_component_score?: number | null
           reaction_speed?: number
+          readiness_classification?: string | null
           reasoning_accuracy?: number
           slow_thinking?: number
           spatial_reasoning?: number
@@ -235,6 +243,8 @@ export type Database = {
         Update: {
           bias_resistance?: number
           clarity_score?: number
+          cognitive_performance_score?: number | null
+          cognitive_readiness_score?: number | null
           created_at?: string
           creativity?: number
           critical_thinking_score?: number
@@ -243,7 +253,9 @@ export type Database = {
           focus_stability?: number
           id?: string
           philosophical_reasoning?: number
+          physio_component_score?: number | null
           reaction_speed?: number
+          readiness_classification?: string | null
           reasoning_accuracy?: number
           slow_thinking?: number
           spatial_reasoning?: number
@@ -251,6 +263,51 @@ export type Database = {
           updated_at?: string
           user_id?: string
           visual_processing?: number
+        }
+        Relationships: []
+      }
+      wearable_snapshots: {
+        Row: {
+          activity_score: number | null
+          created_at: string
+          date: string
+          hrv_ms: number | null
+          id: string
+          raw_json: Json | null
+          resting_hr: number | null
+          sleep_duration_min: number | null
+          sleep_efficiency: number | null
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_score?: number | null
+          created_at?: string
+          date: string
+          hrv_ms?: number | null
+          id?: string
+          raw_json?: Json | null
+          resting_hr?: number | null
+          sleep_duration_min?: number | null
+          sleep_efficiency?: number | null
+          source: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_score?: number | null
+          created_at?: string
+          date?: string
+          hrv_ms?: number | null
+          id?: string
+          raw_json?: Json | null
+          resting_hr?: number | null
+          sleep_duration_min?: number | null
+          sleep_efficiency?: number | null
+          source?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
