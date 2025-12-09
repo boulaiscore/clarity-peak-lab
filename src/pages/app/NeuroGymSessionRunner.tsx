@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { X, Trophy, Brain } from "lucide-react";
@@ -32,6 +32,7 @@ export default function NeuroGymSessionRunner() {
   const [sessionExercises, setSessionExercises] = useState<CognitiveExercise[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Map<string, { score: number; correct: number }>>(new Map());
+  const responsesRef = useRef<Map<string, { score: number; correct: number }>>(new Map());
   const [isComplete, setIsComplete] = useState(false);
   const [sessionScore, setSessionScore] = useState({ score: 0, correctAnswers: 0, totalQuestions: 0 });
 
@@ -73,11 +74,11 @@ export default function NeuroGymSessionRunner() {
   const handleExerciseComplete = useCallback((result: { score: number; correct: number }) => {
     if (!currentExercise) return;
     
-    setResponses(prev => {
-      const updated = new Map(prev);
-      updated.set(currentExercise.id, result);
-      return updated;
-    });
+    // Update both state and ref (ref is used for immediate access in handleNext)
+    const updated = new Map(responsesRef.current);
+    updated.set(currentExercise.id, result);
+    responsesRef.current = updated;
+    setResponses(updated);
     
     // Auto advance after brief delay
     setTimeout(() => {
@@ -89,11 +90,11 @@ export default function NeuroGymSessionRunner() {
     if (currentIndex < sessionExercises.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
-      // Complete session
+      // Complete session - use ref for most up-to-date values
       let totalScore = 0;
       let totalCorrect = 0;
       
-      responses.forEach(response => {
+      responsesRef.current.forEach(response => {
         totalScore += response.score;
         totalCorrect += response.correct;
       });
@@ -123,7 +124,7 @@ export default function NeuroGymSessionRunner() {
             completed_at: new Date().toISOString(),
           });
           
-          const metricUpdates = getMetricUpdates(sessionExercises, responses);
+          const metricUpdates = getMetricUpdates(sessionExercises, responsesRef.current);
           await updateMetrics.mutateAsync({ userId: user.id, metricUpdates });
           
           toast.success("Session completed!");
