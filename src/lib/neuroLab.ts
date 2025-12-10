@@ -1,20 +1,20 @@
-// Neuro Gym Types and Configuration
+// Neuro Lab Types and Configuration
 
 import { CognitiveExercise, GymArea, ThinkingMode } from "./exercises";
 import { TrainingGoal } from "@/contexts/AuthContext";
 
-export type NeuroGymArea = GymArea | "neuro-activation";
-export type NeuroGymDuration = "30s" | "1min" | "2min" | "3min" | "5min" | "7min";
+export type NeuroLabArea = GymArea | "neuro-activation";
+export type NeuroLabDuration = "30s" | "1min" | "2min" | "3min" | "5min" | "7min";
 
-export interface NeuroGymAreaConfig {
-  id: NeuroGymArea;
+export interface NeuroLabAreaConfig {
+  id: NeuroLabArea;
   title: string;
   subtitle: string;
   description: string;
   icon: string;
 }
 
-export const NEURO_GYM_AREAS: NeuroGymAreaConfig[] = [
+export const NEURO_LAB_AREAS: NeuroLabAreaConfig[] = [
   {
     id: "focus",
     title: "Focus Arena",
@@ -49,9 +49,9 @@ export const NEURO_ACTIVATION_SEQUENCE = [
   "REASON_ANALOG_001",// Reasoning - Analogy
 ];
 
-// Exercise count configuration for Neuro Gym sessions
+// Exercise count configuration for Neuro Lab sessions
 // All exercises are 30s, so count = total session time / 30s
-export function getNeuroGymExerciseCount(duration: NeuroGymDuration): { min: number; max: number } {
+export function getNeuroLabExerciseCount(duration: NeuroLabDuration): { min: number; max: number } {
   switch (duration) {
     case "30s":
       return { min: 1, max: 1 };     // 1 × 30s = 30s
@@ -96,10 +96,10 @@ function weightedRandomSelect(exercises: CognitiveExercise[], count: number): Co
   return selected;
 }
 
-// Generate exercises for a Neuro Gym session
-export function generateNeuroGymSession(
-  area: NeuroGymArea,
-  duration: NeuroGymDuration,
+// Generate exercises for a Neuro Lab session
+export function generateNeuroLabSession(
+  area: NeuroLabArea,
+  duration: NeuroLabDuration,
   allExercises: CognitiveExercise[],
   trainingGoals?: TrainingGoal[],
   explicitThinkingMode?: "fast" | "slow"
@@ -111,7 +111,7 @@ export function generateNeuroGymSession(
       .filter((e): e is CognitiveExercise => e !== undefined);
   }
 
-  // Filter exercises by gym_area field
+  // Filter exercises by gym_area field (database column name unchanged)
   const areaExercises = allExercises.filter(e => e.gym_area === area);
   
   // If no exercises found for this area, return empty array
@@ -125,12 +125,12 @@ export function generateNeuroGymSession(
     
     // Fallback to all area exercises if no matches
     if (filteredExercises.length === 0) {
-      const { min, max } = getNeuroGymExerciseCount(duration);
+      const { min, max } = getNeuroLabExerciseCount(duration);
       const count = Math.floor(Math.random() * (max - min + 1)) + min;
       return weightedRandomSelect(areaExercises, count);
     }
     
-    const { min, max } = getNeuroGymExerciseCount(duration);
+    const { min, max } = getNeuroLabExerciseCount(duration);
     const count = Math.floor(Math.random() * (max - min + 1)) + min;
     return weightedRandomSelect(filteredExercises, count);
   }
@@ -148,12 +148,12 @@ export function generateNeuroGymSession(
     
     // FALLBACK: if no exercises have thinking_mode, use all area exercises
     if (fastExercises.length === 0 && slowExercises.length === 0) {
-      const { min, max } = getNeuroGymExerciseCount(duration);
+      const { min, max } = getNeuroLabExerciseCount(duration);
       const count = Math.floor(Math.random() * (max - min + 1)) + min;
       return weightedRandomSelect(areaExercises, count);
     }
     
-    const { min, max } = getNeuroGymExerciseCount(duration);
+    const { min, max } = getNeuroLabExerciseCount(duration);
     const targetCount = Math.floor(Math.random() * (max - min + 1)) + min;
     const halfCount = Math.ceil(targetCount / 2);
     
@@ -180,7 +180,7 @@ export function generateNeuroGymSession(
   }
 
   // Get exercise count and select using weighted random
-  const { min, max } = getNeuroGymExerciseCount(duration);
+  const { min, max } = getNeuroLabExerciseCount(duration);
   const count = Math.floor(Math.random() * (max - min + 1)) + min;
   
   const selected = weightedRandomSelect(filteredExercises, count);
@@ -198,11 +198,11 @@ export function isVisualTaskExercise(exercise: CognitiveExercise): boolean {
   return exercise.type === "visual_task" || exercise.type === "visual_drill";
 }
 
-export interface NeuroGymSession {
+export interface NeuroLabSession {
   id: string;
   user_id: string;
-  area: NeuroGymArea;
-  duration_option: NeuroGymDuration;
+  area: NeuroLabArea;
+  duration_option: NeuroLabDuration;
   exercises_used: string[];
   score: number;
   correct_answers: number;

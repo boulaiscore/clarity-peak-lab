@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useNeuroGymWeeklyStats } from "@/hooks/useNeuroGym";
+import { useNeuroLabWeeklyStats } from "@/hooks/useNeuroLab";
 import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,9 +13,9 @@ const AREA_CONFIG = [
   { id: "neuro-activation", label: "Activation", icon: Zap },
 ] as const;
 
-export function NeuroGymWeeklyStats() {
+export function NeuroLabWeeklyStats() {
   const { user } = useAuth();
-  const { data: stats, isLoading } = useNeuroGymWeeklyStats(user?.id);
+  const { data: stats, isLoading } = useNeuroLabWeeklyStats(user?.id);
 
   if (isLoading || !stats) {
     return null;
@@ -29,7 +29,7 @@ export function NeuroGymWeeklyStats() {
 
   return (
     <div className="p-4 rounded-xl bg-card/50 border border-border/50">
-      <h3 className="font-semibold text-sm mb-3">Neuro Gym This Week</h3>
+      <h3 className="font-semibold text-sm mb-3">Cognitive Lab This Week</h3>
       <div className="grid grid-cols-3 gap-2">
         {AREA_CONFIG.map(({ id, label, icon: Icon }) => {
           const count = stats[id as keyof typeof stats] || 0;

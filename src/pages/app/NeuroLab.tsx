@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { NEURO_GYM_AREAS, NeuroGymArea } from "@/lib/neuroGym";
+import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +14,7 @@ const AREA_ICONS: Record<string, React.ElementType> = {
   Zap,
 };
 
-export default function NeuroGym() {
+export default function NeuroLab() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -23,20 +23,20 @@ export default function NeuroGym() {
     const hasFast = goals.includes("fast_thinking");
     const hasSlow = goals.includes("slow_thinking");
     
-    if (hasFast && hasSlow) return { label: "Fast & Slow", color: "bg-primary/15 text-primary" };
-    if (hasFast) return { label: "Fast", color: "bg-amber-500/15 text-amber-400" };
-    if (hasSlow) return { label: "Slow", color: "bg-teal-500/15 text-teal-400" };
+    if (hasFast && hasSlow) return { label: "System 1 & 2", color: "bg-primary/15 text-primary" };
+    if (hasFast) return { label: "System 1", color: "bg-amber-500/15 text-amber-400" };
+    if (hasSlow) return { label: "System 2", color: "bg-teal-500/15 text-teal-400" };
     return null;
   };
 
   const badge = getThinkingBadge();
 
-  const handleEnterArea = (areaId: NeuroGymArea) => {
-    navigate(`/neuro-gym/${areaId}`);
+  const handleEnterArea = (areaId: NeuroLabArea) => {
+    navigate(`/neuro-lab/${areaId}`);
   };
 
   const handleNeuroActivation = () => {
-    navigate("/neuro-gym/neuro-activation");
+    navigate("/neuro-lab/neuro-activation");
   };
 
   return (
@@ -45,7 +45,7 @@ export default function NeuroGym() {
         {/* Header */}
         <div className="mb-5">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold tracking-tight">Neuro Gym</h1>
+            <h1 className="text-lg font-semibold tracking-tight">Cognitive Lab</h1>
             {badge && (
               <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", badge.color)}>
                 {badge.label}
@@ -53,7 +53,7 @@ export default function NeuroGym() {
             )}
           </div>
           <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-            Train your cognitive performance
+            Strategic cognitive training
           </p>
         </div>
 
@@ -89,14 +89,14 @@ export default function NeuroGym() {
         <div className="flex items-center gap-3 mb-4">
           <div className="h-px flex-1 bg-border/30" />
           <span className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">
-            Training Zones
+            Training Domains
           </span>
           <div className="h-px flex-1 bg-border/30" />
         </div>
 
         {/* Area Cards */}
         <div className="space-y-2.5">
-          {NEURO_GYM_AREAS.map((area) => {
+          {NEURO_LAB_AREAS.map((area) => {
             const IconComponent = AREA_ICONS[area.icon] || Brain;
             
             return (
@@ -130,7 +130,7 @@ export default function NeuroGym() {
         {/* Footer */}
         <div className="mt-6 text-center">
           <p className="text-[9px] text-muted-foreground/40 uppercase tracking-widest">
-            Cognitive Performance System
+            Strategic Cognitive Performance
           </p>
         </div>
       </div>

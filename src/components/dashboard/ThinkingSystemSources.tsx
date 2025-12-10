@@ -1,4 +1,4 @@
-import { NEURO_GYM_AREA_CONTRIBUTIONS } from "@/lib/thinkingSystems";
+import { NEURO_LAB_AREA_CONTRIBUTIONS } from "@/lib/thinkingSystems";
 import { Target, Brain, Sparkles, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 const AREA_ICONS: Record<string, React.ReactNode> = {
@@ -48,7 +48,7 @@ export function ThinkingSystemSources({
       </div>
 
       <div className="space-y-2">
-        {NEURO_GYM_AREA_CONTRIBUTIONS.map((area) => {
+        {NEURO_LAB_AREA_CONTRIBUTIONS.map((area) => {
           const scores = areaScores[area.area];
           const baseline = Math.round(scores?.baseline || 50);
           const current = Math.round(scores?.current || 50);

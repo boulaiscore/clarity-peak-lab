@@ -105,7 +105,7 @@ const Home = () => {
             Begin Training
           </p>
           <button
-            onClick={() => navigate("/neuro-gym")}
+            onClick={() => navigate("/neuro-lab")}
             className={cn(
               "group w-full p-4 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5",
               "border border-primary/25 hover:border-primary/40",

@@ -153,7 +153,7 @@ export function computeFastSlowSystems(
   };
 }
 
-// ============= Neuro Gym Area Contributions =============
+// ============= Neuro Lab Area Contributions =============
 
 export interface AreaContribution {
   area: string;
@@ -165,7 +165,7 @@ export interface AreaContribution {
   slowExamples: string[];
 }
 
-export const NEURO_GYM_AREA_CONTRIBUTIONS: AreaContribution[] = [
+export const NEURO_LAB_AREA_CONTRIBUTIONS: AreaContribution[] = [
   {
     area: "Focus Arena",
     icon: "🎯",

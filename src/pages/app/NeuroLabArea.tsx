@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { NEURO_GYM_AREAS, NeuroGymArea as AreaType, NeuroGymDuration, getNeuroGymExerciseCount } from "@/lib/neuroGym";
+import { NEURO_LAB_AREAS, NeuroLabArea as AreaType, NeuroLabDuration, getNeuroLabExerciseCount } from "@/lib/neuroLab";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap } from "lucide-react";
@@ -20,22 +20,22 @@ const AREA_ICONS: Record<string, React.ElementType> = {
 
 type ThinkingMode = "fast" | "slow";
 
-export default function NeuroGymArea() {
+export default function NeuroLabArea() {
   const { area } = useParams<{ area: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedMode, setSelectedMode] = useState<ThinkingMode | null>(null);
   
-  const areaConfig = NEURO_GYM_AREAS.find(a => a.id === area);
+  const areaConfig = NEURO_LAB_AREAS.find(a => a.id === area);
   
   if (!areaConfig) {
     return (
       <AppShell>
         <div className="container px-4 py-6">
           <p className="text-muted-foreground">Area not found</p>
-          <Button variant="ghost" onClick={() => navigate("/neuro-gym")} className="mt-4">
+          <Button variant="ghost" onClick={() => navigate("/neuro-lab")} className="mt-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Neuro Gym
+            Back to Cognitive Lab
           </Button>
         </div>
       </AppShell>
@@ -45,12 +45,12 @@ export default function NeuroGymArea() {
   const IconComponent = AREA_ICONS[areaConfig.icon] || Brain;
   
   // Use the user's exact session duration preference
-  const duration: NeuroGymDuration = (user?.sessionDuration as NeuroGymDuration) || "2min";
-  const { min, max } = getNeuroGymExerciseCount(duration);
+  const duration: NeuroLabDuration = (user?.sessionDuration as NeuroLabDuration) || "2min";
+  const { min, max } = getNeuroLabExerciseCount(duration);
   
   const handleStartSession = () => {
     if (!selectedMode) return;
-    navigate(`/neuro-gym/session?area=${area}&duration=${duration}&mode=${selectedMode}`);
+    navigate(`/neuro-lab/session?area=${area}&duration=${duration}&mode=${selectedMode}`);
   };
 
   const getDurationLabel = () => {
@@ -75,7 +75,7 @@ export default function NeuroGymArea() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => navigate("/neuro-gym")}
+          onClick={() => navigate("/neuro-lab")}
           className="mb-6 -ml-2"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -98,7 +98,7 @@ export default function NeuroGymArea() {
         <div className="mb-6">
           <h2 className="font-semibold mb-3">Choose Training Mode</h2>
           <div className="grid grid-cols-2 gap-3">
-            {/* Fast Thinking Option */}
+            {/* System 1 Option */}
             <button
               onClick={() => setSelectedMode("fast")}
               className={cn(
@@ -113,14 +113,14 @@ export default function NeuroGymArea() {
                   "w-5 h-5",
                   selectedMode === "fast" ? "text-primary" : "text-muted-foreground"
                 )} />
-                <span className="font-semibold">Fast</span>
+                <span className="font-semibold">System 1</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Quick reactions, pattern recognition, intuitive responses
+                Quick pattern recognition, intuitive responses
               </p>
             </button>
 
-            {/* Slow Thinking Option */}
+            {/* System 2 Option */}
             <button
               onClick={() => setSelectedMode("slow")}
               className={cn(
@@ -135,10 +135,10 @@ export default function NeuroGymArea() {
                   "w-5 h-5",
                   selectedMode === "slow" ? "text-primary" : "text-muted-foreground"
                 )} />
-                <span className="font-semibold">Slow</span>
+                <span className="font-semibold">System 2</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Complex rules, deliberate analysis, executive control
+                Deliberate analysis, strategic reasoning
               </p>
             </button>
           </div>
@@ -173,7 +173,7 @@ export default function NeuroGymArea() {
         >
           <Play className="w-5 h-5 mr-2" />
           {selectedMode 
-            ? `Start ${selectedMode === "fast" ? "Fast" : "Slow"} Thinking Session`
+            ? `Start ${selectedMode === "fast" ? "System 1" : "System 2"} Training`
             : "Select a Training Mode"
           }
         </Button>
@@ -181,8 +181,8 @@ export default function NeuroGymArea() {
         {/* Benefits */}
         <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
           <p className="text-sm text-muted-foreground">
-            <span className="text-primary font-medium">Pro tip:</span> Short, targeted drills 
-            for sustainable cognitive performance. Consistency beats intensity.
+            <span className="text-primary font-medium">Strategic insight:</span> Short, targeted drills 
+            build cognitive advantage. Consistency compounds into elite performance.
           </p>
         </div>
       </div>

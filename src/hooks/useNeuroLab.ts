@@ -1,15 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { NeuroGymArea, NeuroGymDuration, NeuroGymSession } from "@/lib/neuroGym";
+import { NeuroLabArea, NeuroLabDuration, NeuroLabSession } from "@/lib/neuroLab";
 
-// Save Neuro Gym session
-export function useSaveNeuroGymSession() {
+// Save Neuro Lab session
+export function useSaveNeuroLabSession() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (session: Omit<NeuroGymSession, "id" | "created_at">) => {
+    mutationFn: async (session: Omit<NeuroLabSession, "id" | "created_at">) => {
       const { data, error } = await supabase
-        .from("neuro_gym_sessions")
+        .from("neuro_gym_sessions") // Database table name unchanged
         .insert({
           user_id: session.user_id,
           area: session.area,
@@ -27,36 +27,36 @@ export function useSaveNeuroGymSession() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["neuro-gym-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["neuro-lab-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
     },
   });
 }
 
-// Get user's Neuro Gym sessions
-export function useNeuroGymSessions(userId: string | undefined) {
+// Get user's Neuro Lab sessions
+export function useNeuroLabSessions(userId: string | undefined) {
   return useQuery({
-    queryKey: ["neuro-gym-sessions", userId],
+    queryKey: ["neuro-lab-sessions", userId],
     queryFn: async () => {
       if (!userId) return [];
       
       const { data, error } = await supabase
-        .from("neuro_gym_sessions")
+        .from("neuro_gym_sessions") // Database table name unchanged
         .select("*")
         .eq("user_id", userId)
         .order("completed_at", { ascending: false });
       
       if (error) throw error;
-      return data as NeuroGymSession[];
+      return data as NeuroLabSession[];
     },
     enabled: !!userId,
   });
 }
 
 // Get session counts by area for last 7 days
-export function useNeuroGymWeeklyStats(userId: string | undefined) {
+export function useNeuroLabWeeklyStats(userId: string | undefined) {
   return useQuery({
-    queryKey: ["neuro-gym-weekly-stats", userId],
+    queryKey: ["neuro-lab-weekly-stats", userId],
     queryFn: async () => {
       if (!userId) return null;
       
@@ -64,7 +64,7 @@ export function useNeuroGymWeeklyStats(userId: string | undefined) {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
       const { data, error } = await supabase
-        .from("neuro_gym_sessions")
+        .from("neuro_gym_sessions") // Database table name unchanged
         .select("area")
         .eq("user_id", userId)
         .gte("completed_at", sevenDaysAgo.toISOString());
@@ -72,7 +72,7 @@ export function useNeuroGymWeeklyStats(userId: string | undefined) {
       if (error) throw error;
       
       // Count sessions per area
-      const stats: Record<NeuroGymArea, number> = {
+      const stats: Record<NeuroLabArea, number> = {
         focus: 0,
         memory: 0,
         control: 0,
@@ -82,7 +82,7 @@ export function useNeuroGymWeeklyStats(userId: string | undefined) {
       };
       
       data?.forEach((session) => {
-        const area = session.area as NeuroGymArea;
+        const area = session.area as NeuroLabArea;
         if (area in stats) {
           stats[area]++;
         }
