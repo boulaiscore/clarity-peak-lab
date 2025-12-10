@@ -155,9 +155,7 @@ export function NeuralGrowthAnimation({ cognitiveAgeDelta, overallCognitiveScore
       <h3 className="label-uppercase text-center mb-3">Neural Network</h3>
       <div className="flex items-center justify-center gap-2 mb-3">
         <h3 className="label-uppercase">Neural Network</h3>
-        <span className="text-lg font-bold text-primary">{overallCognitiveScore}</span>
       </div>
-      // OPPURE sotto il canvas (linee 173-178), modificare:
       <div className="mt-3 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
           <span className="text-2xl font-bold text-primary">{overallCognitiveScore}</span>
