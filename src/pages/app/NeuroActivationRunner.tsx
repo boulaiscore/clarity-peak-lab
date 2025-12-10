@@ -1,4 +1,6 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import { StepContainer } from "@/components/neuro-activation/StepContainer";
 import { IntroScreen } from "@/components/neuro-activation/modules/IntroScreen";
 import { VisualStabilityModule } from "@/components/neuro-activation/modules/VisualStabilityModule";
@@ -6,7 +8,6 @@ import { CognitiveAlignmentModule } from "@/components/neuro-activation/modules/
 import { MicroPatternModule } from "@/components/neuro-activation/modules/MicroPatternModule";
 import { StrategicBreathModule } from "@/components/neuro-activation/modules/StrategicBreathModule";
 import { CompletionScreen } from "@/components/neuro-activation/modules/CompletionScreen";
-
 type Step = 'intro' | 'visual' | 'alignment' | 'pattern' | 'breath' | 'complete';
 
 interface NeuroActivationResult {
@@ -17,6 +18,7 @@ interface NeuroActivationResult {
 }
 
 export default function NeuroActivationRunner() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>('intro');
   const [result, setResult] = useState<NeuroActivationResult>({
     visualStability: null,
@@ -24,6 +26,10 @@ export default function NeuroActivationRunner() {
     patternAccuracy: null,
     breathCompletion: false,
   });
+
+  const handleExit = useCallback(() => {
+    navigate('/app');
+  }, [navigate]);
 
   const handleBegin = useCallback(() => {
     setCurrentStep('visual');
@@ -69,7 +75,16 @@ export default function NeuroActivationRunner() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06070A]">
+    <div className="min-h-screen bg-[#06070A] relative">
+      {/* Exit Button */}
+      <button
+        onClick={handleExit}
+        className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+        aria-label="Exit"
+      >
+        <X className="w-5 h-5 text-white/60" />
+      </button>
+      
       <StepContainer stepKey={currentStep}>
         {renderStep()}
       </StepContainer>
