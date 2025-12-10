@@ -2,3 +2,9 @@ project_id = "uwhwclgefvvncrauapav"
 
 [functions.wearables-ingest]
 verify_jwt = true
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false

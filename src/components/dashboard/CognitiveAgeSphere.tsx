@@ -1,26 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 
-interface StrategicCognitiveIndexProps {
-  sciScore: number;
+interface CognitiveAgeSphereProps {
+  cognitiveAge: number;
   delta: number;
+  chronologicalAge?: number;
 }
 
-export function StrategicCognitiveIndex({ sciScore, delta }: StrategicCognitiveIndexProps) {
-  const [animatedScore, setAnimatedScore] = useState(0);
+export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: CognitiveAgeSphereProps) {
+  const [animatedAge, setAnimatedAge] = useState(cognitiveAge);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const duration = 1500;
     const start = performance.now();
+    const startAge = animatedAge;
     const animate = (now: number) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setAnimatedScore(sciScore * eased);
+      setAnimatedAge(startAge + (cognitiveAge - startAge) * eased);
       if (progress < 1) requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
-  }, [sciScore]);
+  }, [cognitiveAge]);
 
   // Particle animation
   useEffect(() => {
@@ -95,11 +97,14 @@ export function StrategicCognitiveIndex({ sciScore, delta }: StrategicCognitiveI
     return () => cancelAnimationFrame(animationId);
   }, []);
 
-  const isPositive = delta > 0;
-  const deltaText = isPositive
-    ? `+${delta.toFixed(0)} from baseline`
-    : delta < 0
-    ? `${delta.toFixed(0)} from baseline`
+  // Determine if cognitive age is better (lower) than chronological
+  const isImproved = delta < 0;
+  const deltaYears = Math.abs(delta);
+  
+  const deltaText = isImproved
+    ? `${deltaYears.toFixed(0)}y younger than baseline`
+    : delta > 0
+    ? `${deltaYears.toFixed(0)}y older than baseline`
     : "at baseline";
 
   return (
@@ -122,13 +127,16 @@ export function StrategicCognitiveIndex({ sciScore, delta }: StrategicCognitiveI
           {/* Inner border ring */}
           <div className="absolute inset-2 rounded-full border border-primary/10" />
           
-          <span className="label-uppercase mb-1">Strategic Cognitive Index</span>
-          <span className="text-5xl font-semibold text-foreground number-display">
-            {animatedScore.toFixed(0)}
-          </span>
+          <span className="label-uppercase mb-1">Cognitive Age</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-5xl font-semibold text-foreground number-display">
+              {Math.round(animatedAge)}
+            </span>
+            <span className="text-lg text-muted-foreground">years</span>
+          </div>
           <span
             className={`text-sm font-medium mt-1 ${
-              isPositive ? "text-primary" : delta < 0 ? "text-warning" : "text-muted-foreground"
+              isImproved ? "text-primary" : delta > 0 ? "text-warning" : "text-muted-foreground"
             }`}
           >
             {deltaText}
@@ -136,20 +144,24 @@ export function StrategicCognitiveIndex({ sciScore, delta }: StrategicCognitiveI
         </div>
       </div>
 
+      {/* Chronological age reference */}
+      {chronologicalAge && (
+        <p className="text-muted-foreground text-xs text-center mt-4">
+          Chronological age: {chronologicalAge} years
+        </p>
+      )}
+
       {/* Description */}
-      <p className="text-muted-foreground text-xs text-center mt-6 max-w-[280px]">
-        Performance index based on reasoning speed, clarity, decision quality, and focus.
+      <p className="text-muted-foreground text-xs text-center mt-2 max-w-[280px]">
+        Your brain's functional age based on reasoning speed, clarity, decision quality, and focus.
       </p>
 
       {/* Disclaimer */}
       <div className="mt-4 px-3 py-2 rounded-lg bg-card/50 border border-border/30">
         <p className="text-[9px] text-muted-foreground/60 text-center uppercase tracking-wider">
-          Strategic performance index · Not a medical measurement
+          Cognitive performance index · Not a medical measurement
         </p>
       </div>
     </div>
   );
 }
-
-// Keep the old name as an alias for backward compatibility
-export { StrategicCognitiveIndex as CognitiveAgeSphere };
