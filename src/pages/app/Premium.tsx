@@ -16,7 +16,7 @@ const features = [
   "Priority access to new features",
 ];
 
-const BETA_LIMIT = 1000;
+const BETA_LIMIT = 100;
 
 const Premium = () => {
   const { user, upgradeToPremium } = useAuth();
@@ -154,14 +154,9 @@ const Premium = () => {
             {/* Beta spots counter */}
             {spotsRemaining !== null && (
               <div className="mb-6 p-4 rounded-lg bg-muted/50 border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users className="w-4 h-4 text-primary" />
-                    <span>Beta spots</span>
-                  </div>
-                  <span className="text-sm font-medium">
-                    {spotsRemaining.toLocaleString()} / {BETA_LIMIT.toLocaleString()} remaining
-                  </span>
+                <div className="flex items-center gap-2 text-sm mb-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span>Beta spots filling up...</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div 
