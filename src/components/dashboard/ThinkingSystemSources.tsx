@@ -40,10 +40,10 @@ export function ThinkingSystemSources({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-medium text-foreground uppercase tracking-wider">
-          Training Sources
+          Strategic Training Domains
         </h3>
         <span className="text-[10px] text-muted-foreground">
-          How each area develops your thinking systems
+          How each domain builds cognitive advantage
         </span>
       </div>
 

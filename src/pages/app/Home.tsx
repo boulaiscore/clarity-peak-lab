@@ -39,7 +39,7 @@ const Home = () => {
         {/* Header */}
         <div className="mb-5">
           <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-0.5">
-            Cognitive Training
+            Strategic Cognitive Training
           </p>
           <h1 className="text-lg font-semibold tracking-tight">
             Hello, {firstName}
@@ -49,7 +49,7 @@ const Home = () => {
         {/* Training Profile Card */}
         <div className="p-4 rounded-xl bg-card/60 border border-border/30 mb-5">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-medium text-[13px]">Training Profile</h2>
+            <h2 className="font-medium text-[13px]">Training Protocol</h2>
             <Link 
               to="/app/account" 
               className="text-[11px] text-primary/80 hover:text-primary flex items-center gap-1"
@@ -66,20 +66,20 @@ const Home = () => {
                 {hasFastThinking && (
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
                     <Zap className="w-3 h-3 text-amber-400" />
-                    <span className="text-[11px] font-medium text-amber-400">Fast</span>
+                    <span className="text-[11px] font-medium text-amber-400">System 1</span>
                   </div>
                 )}
                 {hasSlowThinking && (
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20">
                     <Brain className="w-3 h-3 text-teal-400" />
-                    <span className="text-[11px] font-medium text-teal-400">Slow</span>
+                    <span className="text-[11px] font-medium text-teal-400">System 2</span>
                   </div>
                 )}
               </div>
               
               {/* Preferences */}
               <div className="flex gap-3 text-[11px] text-muted-foreground">
-                <span>{getDurationLabel(user?.sessionDuration)} sessions</span>
+                <span>{getDurationLabel(user?.sessionDuration)} drills</span>
                 <span className="text-muted-foreground/40">•</span>
                 <span>{getDailyTimeLabel(user?.dailyTimeCommitment)}</span>
               </div>
@@ -87,7 +87,7 @@ const Home = () => {
           ) : (
             <div className="text-center py-3">
               <p className="text-[12px] text-muted-foreground mb-2">
-                Set up your training
+                Configure your training
               </p>
               <Link 
                 to="/onboarding"
@@ -102,7 +102,7 @@ const Home = () => {
         {/* Quick Access to Gym */}
         <div className="mb-5">
           <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-2.5">
-            Start Training
+            Begin Training
           </p>
           <button
             onClick={() => navigate("/neuro-gym")}
@@ -117,9 +117,9 @@ const Home = () => {
                 <Dumbbell className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[15px] font-semibold text-foreground">Neuro Gym</h3>
+                <h3 className="text-[15px] font-semibold text-foreground">Cognitive Lab</h3>
                 <p className="text-[12px] text-muted-foreground mt-0.5">
-                  Cognitive drills • 5 areas
+                  Strategic drills • 5 domains
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
@@ -130,7 +130,7 @@ const Home = () => {
         {/* Training Focus Overview */}
         <div className="mb-5">
           <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-2.5">
-            Focus Areas
+            Cognitive Systems
           </p>
           <div className="grid grid-cols-2 gap-2.5">
             <div className={cn(
@@ -142,8 +142,8 @@ const Home = () => {
               <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2.5">
                 <Zap className="w-4 h-4 text-amber-400" />
               </div>
-              <h3 className="text-[13px] font-semibold text-foreground">Fast</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">System 1</p>
+              <h3 className="text-[13px] font-semibold text-foreground">System 1</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Intuitive Processing</p>
             </div>
             <div className={cn(
               "p-3.5 rounded-xl border transition-colors",
@@ -154,8 +154,8 @@ const Home = () => {
               <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2.5">
                 <Brain className="w-4 h-4 text-teal-400" />
               </div>
-              <h3 className="text-[13px] font-semibold text-foreground">Slow</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">System 2</p>
+              <h3 className="text-[13px] font-semibold text-foreground">System 2</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Deliberate Analysis</p>
             </div>
           </div>
         </div>
@@ -163,7 +163,7 @@ const Home = () => {
         {/* Tagline */}
         <div className="text-center pt-2">
           <p className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">
-            Train both thinking systems
+            Build strategic cognitive advantage
           </p>
         </div>
       </div>

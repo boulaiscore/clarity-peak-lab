@@ -116,8 +116,8 @@ const Onboarding = () => {
     { value: "knowledge", label: "Knowledge Work", description: "Research, analysis, consulting" },
     { value: "creative", label: "Creative", description: "Design, writing, art" },
     { value: "technical", label: "Technical", description: "Engineering, development" },
-    { value: "management", label: "Management", description: "Leadership, strategy" },
-    { value: "student", label: "Student", description: "Learning, studying" },
+    { value: "management", label: "Leadership", description: "Strategy, management, C-suite" },
+    { value: "student", label: "Academic", description: "PhD, research, graduate studies" },
     { value: "other", label: "Other", description: "Something else" },
   ];
 
@@ -144,28 +144,28 @@ const Onboarding = () => {
     { 
       value: "fast_thinking", 
       icon: Zap, 
-      title: "Fast Thinking", 
-      description: "Improve intuition and quick reactions" 
+      title: "System 1: Intuitive", 
+      description: "Rapid pattern recognition and strategic intuition" 
     },
     { 
       value: "slow_thinking", 
       icon: Brain, 
-      title: "Slow Thinking", 
-      description: "Develop structured reasoning" 
+      title: "System 2: Deliberate", 
+      description: "Deep analysis and critical reasoning" 
     },
   ];
 
   const durationOptions: { value: SessionDuration; label: string; description: string }[] = [
-    { value: "30s", label: "30 sec", description: "Quick reset" },
+    { value: "30s", label: "30 sec", description: "Quick drill" },
     { value: "2min", label: "2 min", description: "Focused" },
-    { value: "5min", label: "5 min", description: "Deep practice" },
+    { value: "5min", label: "5 min", description: "Deep work" },
     { value: "7min", label: "7 min", description: "Comprehensive" },
   ];
 
   const dailyTimeOptions: { value: DailyTimeCommitment; label: string; description: string }[] = [
-    { value: "3min", label: "3 min", description: "Micro-sessions" },
-    { value: "10min", label: "10 min", description: "Daily habit" },
-    { value: "30min", label: "30 min", description: "Deep commitment" },
+    { value: "3min", label: "3 min", description: "Micro-drills" },
+    { value: "10min", label: "10 min", description: "Daily protocol" },
+    { value: "30min", label: "30 min", description: "Elite commitment" },
   ];
 
   return (
@@ -198,10 +198,10 @@ const Onboarding = () => {
                 Welcome to NeuroLoop
               </h1>
               <p className="text-[15px] text-muted-foreground mb-2 leading-relaxed">
-                Train your mind for elite reasoning.
+                Train CEO-level strategic thinking.
               </p>
               <p className="text-sm text-muted-foreground/70 mb-10">
-                Your thinking is your edge.
+                Your cognitive edge in an age of AI and distraction.
               </p>
               <Button onClick={handleNext} variant="hero" className="w-full h-[52px] text-[15px] font-medium">
                 Get Started
@@ -221,7 +221,7 @@ const Onboarding = () => {
                   About you
                 </h1>
                 <p className="text-muted-foreground text-[13px]">
-                  Personalize your experience
+                  Calibrate your baseline
                 </p>
               </div>
               
@@ -359,7 +359,7 @@ const Onboarding = () => {
                   Field of Study
                 </h1>
                 <p className="text-muted-foreground text-[13px]">
-                  Your main discipline
+                  Your primary discipline
                 </p>
               </div>
               
@@ -402,6 +402,9 @@ const Onboarding = () => {
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
                   Your work
                 </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  How you apply strategic thinking
+                </p>
               </div>
               
               <div className="space-y-2 mb-6">
@@ -439,10 +442,10 @@ const Onboarding = () => {
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Training focus
+                  Cognitive focus
                 </h1>
                 <p className="text-muted-foreground text-[13px]">
-                  Select one or both
+                  Select one or both systems
                 </p>
               </div>
               
@@ -495,13 +498,16 @@ const Onboarding = () => {
                   <Clock className="w-5 h-5 text-primary" />
                 </div>
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Training schedule
+                  Training protocol
                 </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  Small drills. Strategic gains.
+                </p>
               </div>
               
               {/* Session Duration */}
               <div className="mb-5">
-                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Session length</label>
+                <label className="text-[13px] font-medium text-muted-foreground mb-2.5 block">Drill length</label>
                 <div className="grid grid-cols-2 gap-2">
                   {durationOptions.map((option) => (
                     <button
@@ -569,7 +575,7 @@ const Onboarding = () => {
       {step !== 8 && (
         <div className="py-4 text-center">
           <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
-            Cognitive Performance System
+            Strategic Cognitive Performance System
           </p>
         </div>
       )}

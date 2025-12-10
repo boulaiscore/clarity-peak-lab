@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-interface CognitiveAgeSphereProps {
-  cognitiveAge: number;
+interface StrategicCognitiveIndexProps {
+  sciScore: number;
   delta: number;
 }
 
-export function CognitiveAgeSphere({ cognitiveAge, delta }: CognitiveAgeSphereProps) {
-  const [animatedAge, setAnimatedAge] = useState(0);
+export function StrategicCognitiveIndex({ sciScore, delta }: StrategicCognitiveIndexProps) {
+  const [animatedScore, setAnimatedScore] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -16,11 +16,11 @@ export function CognitiveAgeSphere({ cognitiveAge, delta }: CognitiveAgeSpherePr
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setAnimatedAge(cognitiveAge * eased);
+      setAnimatedScore(sciScore * eased);
       if (progress < 1) requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
-  }, [cognitiveAge]);
+  }, [sciScore]);
 
   // Particle animation
   useEffect(() => {
@@ -95,12 +95,12 @@ export function CognitiveAgeSphere({ cognitiveAge, delta }: CognitiveAgeSpherePr
     return () => cancelAnimationFrame(animationId);
   }, []);
 
-  const isYounger = delta < 0;
-  const deltaText = isYounger
-    ? `${Math.abs(delta).toFixed(1)} years younger`
-    : delta > 0
-    ? `${delta.toFixed(1)} years older`
-    : "matching chronological age";
+  const isPositive = delta > 0;
+  const deltaText = isPositive
+    ? `+${delta.toFixed(0)} from baseline`
+    : delta < 0
+    ? `${delta.toFixed(0)} from baseline`
+    : "at baseline";
 
   return (
     <div className="relative flex flex-col items-center justify-center py-6">
@@ -122,13 +122,13 @@ export function CognitiveAgeSphere({ cognitiveAge, delta }: CognitiveAgeSpherePr
           {/* Inner border ring */}
           <div className="absolute inset-2 rounded-full border border-primary/10" />
           
-          <span className="label-uppercase mb-1">Cognitive Age</span>
+          <span className="label-uppercase mb-1">Strategic Cognitive Index</span>
           <span className="text-5xl font-semibold text-foreground number-display">
-            {animatedAge.toFixed(1)}
+            {animatedScore.toFixed(0)}
           </span>
           <span
             className={`text-sm font-medium mt-1 ${
-              isYounger ? "text-primary" : delta > 0 ? "text-warning" : "text-muted-foreground"
+              isPositive ? "text-primary" : delta < 0 ? "text-warning" : "text-muted-foreground"
             }`}
           >
             {deltaText}
@@ -138,15 +138,18 @@ export function CognitiveAgeSphere({ cognitiveAge, delta }: CognitiveAgeSpherePr
 
       {/* Description */}
       <p className="text-muted-foreground text-xs text-center mt-6 max-w-[280px]">
-        Based on reasoning speed, clarity, decision quality, and focus.
+        Performance index based on reasoning speed, clarity, decision quality, and focus.
       </p>
 
       {/* Disclaimer */}
       <div className="mt-4 px-3 py-2 rounded-lg bg-card/50 border border-border/30">
         <p className="text-[9px] text-muted-foreground/60 text-center uppercase tracking-wider">
-          Training index · Not a medical measurement
+          Strategic performance index · Not a medical measurement
         </p>
       </div>
     </div>
   );
 }
+
+// Keep the old name as an alias for backward compatibility
+export { StrategicCognitiveIndex as CognitiveAgeSphere };

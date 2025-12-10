@@ -3,18 +3,18 @@ import { Zap, Brain, Target } from "lucide-react";
 const systems = [
   {
     icon: Zap,
-    title: "Fast Thinking",
-    subtitle: "System 1",
-    description: "Train intuitive, rapid pattern recognition. Improve reaction speed, visual processing, and automatic decision-making under pressure.",
+    title: "System 1: Intuitive",
+    subtitle: "Pattern Recognition",
+    description: "Train rapid pattern recognition and intuitive judgment. Build faster decision-making under pressure through strategic drills that sharpen automatic processing.",
     color: "text-amber-400",
     bgColor: "bg-amber-400/10",
     borderColor: "hover:border-amber-400/25",
   },
   {
     icon: Brain,
-    title: "Slow Thinking",
-    subtitle: "System 2",
-    description: "Develop deliberate, analytical reasoning. Strengthen logic, reduce cognitive biases, and make better strategic decisions.",
+    title: "System 2: Deliberate",
+    subtitle: "Strategic Analysis",
+    description: "Develop deep analytical reasoning and bias resistance. Strengthen critical thinking, strategic clarity, and high-quality decision-making through structured exercises.",
     color: "text-teal-400",
     bgColor: "bg-teal-400/10",
     borderColor: "hover:border-teal-400/25",
@@ -25,17 +25,17 @@ const areas = [
   {
     icon: Target,
     title: "Focus Arena",
-    description: "Attention, reaction, visual search",
+    description: "Sustained attention, cognitive control",
   },
   {
     icon: Target,
     title: "Critical Reasoning",
-    description: "Logic, bias resistance, analysis",
+    description: "Logic, bias resistance, strategic analysis",
   },
   {
     icon: Target,
     title: "Creativity Hub",
-    description: "Divergent thinking, patterns, insight",
+    description: "Divergent thinking, insight, innovation",
   },
 ];
 
@@ -50,11 +50,11 @@ export function HowItWorks() {
             Based on Kahneman's Dual-Process Theory
           </p>
           <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
-            Train Both <span className="text-gradient">Thinking Systems</span>
+            Train <span className="text-gradient">Strategic Thinking</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Nobel laureate Daniel Kahneman identified two cognitive systems that drive all thinking. 
-            NeuroLoop trains both for complete cognitive fitness.
+            The modern mind is fragmented. AI makes thinking easier but weaker. 
+            Elite performers train deep reasoning and strategic clarity daily.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export function HowItWorks() {
         {/* Three Gym Areas */}
         <div className="text-center mb-8">
           <h3 className="text-xl font-semibold text-muted-foreground">
-            3 Specialized Training Areas
+            3 Strategic Training Domains
           </h3>
         </div>
         

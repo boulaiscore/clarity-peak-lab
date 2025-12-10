@@ -145,14 +145,14 @@ export function NeuralGrowthAnimation({ cognitiveAgeDelta, overallCognitiveScore
 
   const statusText =
     overallCognitiveScore >= 75
-      ? "Strong neural activity"
+      ? "High strategic clarity"
       : overallCognitiveScore >= 50
-        ? "Moderate neural activity"
-        : "Building neural pathways";
+        ? "Developing strategic capacity"
+        : "Building cognitive foundation";
 
   return (
     <div className="p-5 rounded-2xl bg-card border border-border/30">
-      <h3 className="label-uppercase text-center mb-3">Neural Network</h3>
+      <h3 className="label-uppercase text-center mb-3">Cognitive Network</h3>
       
       <div className="relative flex justify-center">
         <canvas ref={canvasRef} width={200} height={160} className="opacity-90" />
@@ -165,7 +165,7 @@ export function NeuralGrowthAnimation({ cognitiveAgeDelta, overallCognitiveScore
         </div>
         <p className="text-[11px] text-primary font-medium">{statusText}</p>
         <p className="text-[9px] text-muted-foreground/60 mt-1 leading-relaxed">
-          Reflects your recent training progress. More light = stronger thinking patterns.
+          Strategic thinking density. More connections = sharper decision-making.
         </p>
       </div>
     </div>

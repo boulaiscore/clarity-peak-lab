@@ -18,19 +18,19 @@ export function Hero() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/15 mb-10 animate-fade-in">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm font-medium text-primary/90 tracking-wide">Cognitive Fitness System</span>
+            <span className="text-sm font-medium text-primary/90 tracking-wide">Strategic Cognitive Performance</span>
           </div>
 
           {/* Main headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-8 animate-fade-in leading-[1.1]" style={{ animationDelay: "0.1s" }}>
             Train Your Mind for
             <br />
-            <span className="text-gradient">Elite Reasoning</span>
+            <span className="text-gradient">CEO-Level Thinking</span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in leading-relaxed" style={{ animationDelay: "0.2s" }}>
-            Your thinking is your competitive edge. NeuroLoop Pro builds cognitive longevity and higher-order cognition for better decisions.
+            In an age of AI automation and constant distraction, your strategic thinking is your competitive edge. NeuroLoop builds elite reasoning and decision-making clarity.
           </p>
 
           {/* CTAs - Mobile optimized */}
@@ -52,7 +52,7 @@ export function Hero() {
           <div className="mt-20 flex flex-col sm:flex-row flex-wrap justify-center gap-6 sm:gap-10 text-muted-foreground text-sm animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <div className="flex items-center justify-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              <span>Science-based protocols</span>
+              <span>Research-backed protocols</span>
             </div>
             <div className="flex items-center justify-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
@@ -60,7 +60,7 @@ export function Hero() {
             </div>
             <div className="flex items-center justify-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              <span>30 seconds to 5 minutes</span>
+              <span>30 seconds to 7 minutes</span>
             </div>
           </div>
         </div>

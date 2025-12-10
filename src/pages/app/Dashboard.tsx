@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
+import { StrategicCognitiveIndex } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
@@ -16,38 +16,48 @@ const Dashboard = () => {
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
   
-  // User's chronological age (default 35 if not set)
-  const chronologicalAge = user?.age || 35;
-  
-  // Get baseline and current cognitive age
-  const cognitiveAgeData = useMemo(() => {
-    // Use baseline cognitive age from initial assessment
-    const baselineAge = metrics?.baseline_cognitive_age || chronologicalAge;
-    
-    // Calculate current cognitive age from current metrics
+  // Calculate SCI (Strategic Cognitive Index) from metrics
+  const sciData = useMemo(() => {
+    // Calculate current SCI score from current metrics (0-100 scale)
     const currentFast = metrics?.fast_thinking || 50;
     const currentSlow = metrics?.slow_thinking || 50;
     const currentFocus = metrics?.focus_stability || 50;
     const currentReasoning = metrics?.reasoning_accuracy || 50;
     const currentCreativity = metrics?.creativity || 50;
     
-    // Average current performance
-    const currentPerformance = (currentFast + currentSlow + currentFocus + currentReasoning + currentCreativity) / 5;
+    // SCI is weighted average of cognitive metrics
+    const sciScore = Math.round(
+      (currentFast * 0.15) + 
+      (currentSlow * 0.25) + 
+      (currentFocus * 0.20) + 
+      (currentReasoning * 0.25) + 
+      (currentCreativity * 0.15)
+    );
     
-    // Calculate current cognitive age based on performance improvement
-    // Performance > 50 = younger, < 50 = older
-    const performanceDelta = (currentPerformance - 50) / 10;
-    const currentAge = Math.max(18, Math.round(chronologicalAge - performanceDelta));
+    // Calculate baseline SCI
+    const baselineFast = metrics?.baseline_fast_thinking || 50;
+    const baselineSlow = metrics?.baseline_slow_thinking || 50;
+    const baselineFocus = metrics?.baseline_focus || 50;
+    const baselineReasoning = metrics?.baseline_reasoning || 50;
+    const baselineCreativity = metrics?.baseline_creativity || 50;
     
-    // Delta is how much younger/older current is vs chronological
-    const delta = chronologicalAge - currentAge;
+    const baselineSCI = Math.round(
+      (baselineFast * 0.15) + 
+      (baselineSlow * 0.25) + 
+      (baselineFocus * 0.20) + 
+      (baselineReasoning * 0.25) + 
+      (baselineCreativity * 0.15)
+    );
+    
+    // Delta is improvement from baseline
+    const delta = sciScore - baselineSCI;
     
     return {
-      cognitiveAge: currentAge,
-      baselineAge,
+      sciScore,
+      baselineSCI,
       delta
     };
-  }, [metrics, chronologicalAge]);
+  }, [metrics]);
   
   // Get fast/slow thinking scores with deltas from baseline
   const thinkingScores = useMemo(() => {
@@ -98,9 +108,9 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">Dashboard</h1>
+            <h1 className="text-lg font-semibold text-foreground tracking-tight">Strategic Performance</h1>
             <p className="text-[9px] text-muted-foreground/60 uppercase tracking-widest mt-0.5">
-              Performance
+              Cognitive Index
             </p>
           </div>
           <Link to="/cognitive-age">
@@ -112,15 +122,15 @@ const Dashboard = () => {
 
         {/* Content */}
         <div className="space-y-4">
-          {/* Cognitive Age Sphere */}
-          <CognitiveAgeSphere 
-            cognitiveAge={cognitiveAgeData.cognitiveAge} 
-            delta={cognitiveAgeData.delta} 
+          {/* Strategic Cognitive Index */}
+          <StrategicCognitiveIndex 
+            sciScore={sciData.sciScore} 
+            delta={sciData.delta} 
           />
 
           {/* Neural Growth Animation */}
           <NeuralGrowthAnimation
-            cognitiveAgeDelta={cognitiveAgeData.delta}
+            cognitiveAgeDelta={sciData.delta}
             overallCognitiveScore={overallScore}
           />
 
@@ -131,8 +141,8 @@ const Dashboard = () => {
                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2">
                   <Zap className="w-4 h-4 text-amber-400" />
                 </div>
-                <p className="text-[12px] font-medium text-foreground">Fast</p>
-                <p className="text-[10px] text-muted-foreground">Intuition</p>
+                <p className="text-[12px] font-medium text-foreground">System 1</p>
+                <p className="text-[10px] text-muted-foreground">Pattern Recognition</p>
               </div>
             </Link>
             <Link to="/app/trainings?mode=slow">
@@ -140,8 +150,8 @@ const Dashboard = () => {
                 <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2">
                   <Brain className="w-4 h-4 text-teal-400" />
                 </div>
-                <p className="text-[12px] font-medium text-foreground">Slow</p>
-                <p className="text-[10px] text-muted-foreground">Reasoning</p>
+                <p className="text-[12px] font-medium text-foreground">System 2</p>
+                <p className="text-[10px] text-muted-foreground">Strategic Analysis</p>
               </div>
             </Link>
           </div>
@@ -149,7 +159,7 @@ const Dashboard = () => {
           {/* Thinking Systems Overview */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <h2 className="text-[13px] font-semibold text-foreground">Thinking Systems</h2>
+              <h2 className="text-[13px] font-semibold text-foreground">Dual-Process Integration</h2>
               <span className="text-[9px] text-muted-foreground/60 uppercase tracking-widest">
                 vs baseline
               </span>
@@ -180,7 +190,7 @@ const Dashboard = () => {
         <div className="pt-1 pb-4">
           <Link to="/app">
             <Button variant="premium" className="w-full h-11 text-[13px]">
-              Start Training
+              Start Strategic Training
             </Button>
           </Link>
         </div>

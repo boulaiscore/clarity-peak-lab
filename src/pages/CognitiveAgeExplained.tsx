@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Brain, Target, TrendingUp, Shield, Zap, Moon } from "lucide-react";
+import { ArrowLeft, Brain, Target, TrendingUp, Shield, Zap, BarChart3 } from "lucide-react";
 
-const CognitiveAgeExplained = () => {
+const SCIExplained = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -13,7 +13,7 @@ const CognitiveAgeExplained = () => {
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <h1 className="text-sm font-semibold text-foreground">Cognitive Age</h1>
+          <h1 className="text-sm font-semibold text-foreground">Strategic Cognitive Index</h1>
         </div>
       </header>
 
@@ -21,10 +21,10 @@ const CognitiveAgeExplained = () => {
         {/* Hero */}
         <div className="text-center space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-            <Brain className="w-7 h-7 text-primary" />
+            <BarChart3 className="w-7 h-7 text-primary" />
           </div>
-          <h2 className="text-xl font-semibold text-foreground">What is Cognitive Age?</h2>
-          <p className="label-uppercase">Training index · Not medical</p>
+          <h2 className="text-xl font-semibold text-foreground">What is the SCI?</h2>
+          <p className="label-uppercase">Strategic Performance Index</p>
         </div>
 
         {/* Section 1 */}
@@ -35,14 +35,14 @@ const CognitiveAgeExplained = () => {
           </div>
           <div className="p-4 rounded-xl bg-card border border-border/30 space-y-3">
             <p className="text-[11px] text-foreground/80 leading-relaxed">
-              Your Cognitive Age is calculated using multiple performance metrics compared to your personal baselines:
+              Your Strategic Cognitive Index measures how efficiently your mind operates compared to trained strategic thinkers:
             </p>
             <div className="space-y-2">
               {[
-                { label: "Reasoning Speed", desc: "Processing and analysis time" },
-                { label: "Logical Accuracy", desc: "Fallacy identification precision" },
-                { label: "Clarity of Thought", desc: "Problem decomposition ability" },
-                { label: "Focus Stability", desc: "Sustained cognitive control" },
+                { label: "Reasoning Speed", desc: "Processing and analytical efficiency" },
+                { label: "Decision Clarity", desc: "Quality of strategic judgment" },
+                { label: "Bias Resistance", desc: "Ability to overcome cognitive traps" },
+                { label: "Focus Stability", desc: "Sustained attention under pressure" },
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-2">
                   <Zap className="w-3 h-3 text-primary mt-0.5 shrink-0" />
@@ -56,7 +56,33 @@ const CognitiveAgeExplained = () => {
           </div>
         </section>
 
-        {/* Section 2 */}
+        {/* Section 2 - What it represents */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Brain className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Strategic Thinking Framework</h3>
+          </div>
+          <div className="p-4 rounded-xl bg-card border border-border/30">
+            <p className="text-[11px] text-foreground/80 leading-relaxed mb-3">
+              The SCI is based on Kahneman's dual-process theory, measuring both:
+            </p>
+            <ul className="space-y-2 text-[11px] text-foreground/80">
+              {[
+                "System 1: Intuitive pattern recognition speed",
+                "System 2: Deliberate analytical reasoning",
+                "Integration: How well both systems work together",
+                "Adaptability: Response to novel challenges",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <span className="text-primary text-xs">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* Section 3 */}
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-warning" />
@@ -65,10 +91,10 @@ const CognitiveAgeExplained = () => {
           <div className="p-4 rounded-xl bg-card border border-border/30">
             <ul className="space-y-2 text-[11px] text-foreground/80">
               {[
-                "Not a medical brain scan",
+                "Not a medical brain assessment",
+                "Not an IQ or intelligence test",
                 "Not a clinical diagnosis",
-                "Not biological age guarantee",
-                "Not professional evaluation",
+                "Not a predictor of professional success",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-2">
                   <span className="text-warning text-xs">✗</span>
@@ -92,4 +118,4 @@ const CognitiveAgeExplained = () => {
   );
 };
 
-export default CognitiveAgeExplained;
+export default SCIExplained;
