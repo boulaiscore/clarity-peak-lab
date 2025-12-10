@@ -209,14 +209,23 @@ const Dashboard = () => {
               
               <FastSlowBrainMap
                 fastScore={thinkingScores.fastScore}
+                fastBaseline={thinkingScores.baselineFast}
                 fastDelta={thinkingScores.fastDelta}
                 slowScore={thinkingScores.slowScore}
+                slowBaseline={thinkingScores.baselineSlow}
                 slowDelta={thinkingScores.slowDelta}
               />
             </div>
 
             {/* Training Sources */}
-            <ThinkingSystemSources />
+            <ThinkingSystemSources 
+              baselineFocus={metrics?.baseline_focus || 50}
+              baselineReasoning={metrics?.baseline_reasoning || 50}
+              baselineCreativity={metrics?.baseline_creativity || 50}
+              currentFocus={metrics?.focus_stability || metrics?.baseline_focus || 50}
+              currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
+              currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
+            />
           </TabsContent>
 
           {/* Progress Tab */}

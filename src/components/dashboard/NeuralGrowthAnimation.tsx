@@ -153,23 +153,16 @@ export function NeuralGrowthAnimation({ cognitiveAgeDelta, overallCognitiveScore
   return (
     <div className="p-5 rounded-2xl bg-card border border-border/30">
       <h3 className="label-uppercase text-center mb-3">Neural Network</h3>
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <h3 className="label-uppercase">Neural Network</h3>
+      
+      <div className="relative flex justify-center">
+        <canvas ref={canvasRef} width={200} height={160} className="opacity-90" />
       </div>
+      
       <div className="mt-3 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
           <span className="text-2xl font-bold text-primary">{overallCognitiveScore}</span>
           <span className="text-[10px] text-muted-foreground/60 uppercase">/ 100</span>
         </div>
-        <p className="text-[11px] text-primary font-medium">{statusText}</p>
-        <p className="text-[9px] text-muted-foreground/60 mt-1 leading-relaxed">
-          Reflects your recent training progress. More light = stronger thinking patterns.
-        </p>
-      </div>
-      <div className="relative flex justify-center">
-        <canvas ref={canvasRef} width={200} height={160} className="opacity-90" />
-      </div>
-      <div className="mt-3 text-center">
         <p className="text-[11px] text-primary font-medium">{statusText}</p>
         <p className="text-[9px] text-muted-foreground/60 mt-1 leading-relaxed">
           Reflects your recent training progress. More light = stronger thinking patterns.

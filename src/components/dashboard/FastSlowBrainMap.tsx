@@ -4,8 +4,10 @@ import { Zap, Brain, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface FastSlowBrainMapProps {
   fastScore: number;
+  fastBaseline: number;
   fastDelta: number;
   slowScore: number;
+  slowBaseline: number;
   slowDelta: number;
 }
 
@@ -105,7 +107,7 @@ function generateConnections(nodes: typeof FAST_NODES, density: number = 0.3) {
   return connections;
 }
 
-export function FastSlowBrainMap({ fastScore, fastDelta, slowScore, slowDelta }: FastSlowBrainMapProps) {
+export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore, slowBaseline, slowDelta }: FastSlowBrainMapProps) {
   const [fastPulse, setFastPulse] = useState(false);
   const [slowGlow, setSlowGlow] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -338,12 +340,18 @@ export function FastSlowBrainMap({ fastScore, fastDelta, slowScore, slowDelta }:
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <span className="text-3xl font-bold text-amber-400 drop-shadow-lg">{fastScore}</span>
+              <div className="text-[9px] text-amber-400/60 mt-0.5">
+                baseline: {fastBaseline}
+              </div>
             </div>
           </div>
           {/* Slow score */}
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <span className="text-3xl font-bold text-cyan-400 drop-shadow-lg">{slowScore}</span>
+              <div className="text-[9px] text-cyan-400/60 mt-0.5">
+                baseline: {slowBaseline}
+              </div>
             </div>
           </div>
         </div>
