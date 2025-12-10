@@ -1,5 +1,5 @@
 // Maps exercise IDs to their appropriate drill component types
-// This allows the NeuroGymSessionRunner to render the correct drill for each exercise
+// This allows the NeuroLabSessionRunner to render the correct drill for each exercise
 
 export type DrillType = 
   | "dot_target"      // Green/red dots to tap
