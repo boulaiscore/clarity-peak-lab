@@ -247,7 +247,7 @@ const Onboarding = () => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0 border-0 bg-transparent shadow-none" align="center">
                     <Calendar
                       mode="single"
                       selected={birthDate}
@@ -260,7 +260,7 @@ const Onboarding = () => {
                       fromYear={1920}
                       toYear={new Date().getFullYear()}
                       initialFocus
-                      className="p-3 pointer-events-auto"
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>

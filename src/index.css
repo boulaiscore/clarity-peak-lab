@@ -98,6 +98,52 @@
   }
 }
 
+/* Calendar dropdown styling for dark theme */
+.rdp-dropdown {
+  appearance: none;
+  background-color: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 0.5rem;
+  padding: 0.375rem 2rem 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: all 0.2s;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25em 1.25em;
+}
+
+.rdp-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.5);
+  border-color: hsl(var(--primary));
+}
+
+.rdp-dropdown:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.rdp-dropdown option {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0.5rem;
+}
+
+.rdp-vhidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 @layer utilities {
   /* Label style like WHOOP */
   .label-uppercase {
