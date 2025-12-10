@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
-import { PulsingCircle } from "../PulsingCircle";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { DriftField } from "../DriftField";
 import { StepIndicator } from "../StepContainer";
 
@@ -9,18 +8,43 @@ interface VisualStabilityModuleProps {
   onComplete: (stability: number) => void;
 }
 
-interface Distractor {
+interface PeripheralSymbol {
   id: number;
-  x: number;
-  y: number;
-  size: number;
+  angle: number; // Position around center (in degrees)
+  symbol: string;
+  luminance: number; // 0.3 to 0.7
+  isChanged: boolean;
 }
+
+const SYMBOLS = ["◆", "■", "▲", "●", "◇", "□"];
+const SYMBOL_COUNT = 6;
 
 export function VisualStabilityModule({ duration, onComplete }: VisualStabilityModuleProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
-  const [distractors, setDistractors] = useState<Distractor[]>([]);
-  const [stabilityScore, setStabilityScore] = useState(100);
-  const [focusBreaks, setFocusBreaks] = useState(0);
+  const [peripherals, setPeripherals] = useState<PeripheralSymbol[]>([]);
+  const [changedSymbolId, setChangedSymbolId] = useState<number | null>(null);
+  const [correctDetections, setCorrectDetections] = useState(0);
+  const [missedChanges, setMissedChanges] = useState(0);
+  const [falseAlarms, setFalseAlarms] = useState(0);
+  const [totalChanges, setTotalChanges] = useState(0);
+  const [showFeedback, setShowFeedback] = useState<'correct' | 'miss' | 'false' | null>(null);
+  const changeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isCompletedRef = useRef(false);
+
+  // Initialize peripheral symbols
+  useEffect(() => {
+    const symbols: PeripheralSymbol[] = [];
+    for (let i = 0; i < SYMBOL_COUNT; i++) {
+      symbols.push({
+        id: i,
+        angle: (360 / SYMBOL_COUNT) * i,
+        symbol: SYMBOLS[i % SYMBOLS.length],
+        luminance: 0.4,
+        isChanged: false,
+      });
+    }
+    setPeripherals(symbols);
+  }, []);
 
   // Timer countdown
   useEffect(() => {
@@ -28,62 +52,96 @@ export function VisualStabilityModule({ duration, onComplete }: VisualStabilityM
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          onComplete(Math.max(0, stabilityScore - focusBreaks * 5));
+          if (!isCompletedRef.current) {
+            isCompletedRef.current = true;
+            // Calculate final score
+            const accuracy = totalChanges > 0 
+              ? Math.round((correctDetections / totalChanges) * 100)
+              : 100;
+            const penalizedScore = Math.max(0, accuracy - (falseAlarms * 5));
+            onComplete(penalizedScore);
+          }
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [duration, onComplete, stabilityScore, focusBreaks]);
+  }, [onComplete, correctDetections, missedChanges, falseAlarms, totalChanges]);
 
-  // Generate distractors
+  // Generate random changes every 2-4 seconds
   useEffect(() => {
-    const generateDistractor = () => {
-      const edges = ['top', 'bottom', 'left', 'right'];
-      const edge = edges[Math.floor(Math.random() * edges.length)];
+    const scheduleNextChange = () => {
+      const delay = 2000 + Math.random() * 2000; // 2-4 seconds
       
-      let x, y;
-      switch (edge) {
-        case 'top':
-          x = Math.random() * 80 + 10;
-          y = 5;
-          break;
-        case 'bottom':
-          x = Math.random() * 80 + 10;
-          y = 95;
-          break;
-        case 'left':
-          x = 5;
-          y = Math.random() * 80 + 10;
-          break;
-        default:
-          x = 95;
-          y = Math.random() * 80 + 10;
-      }
-
-      const newDistractor: Distractor = {
-        id: Date.now(),
-        x,
-        y,
-        size: Math.random() * 8 + 4,
-      };
-
-      setDistractors(prev => [...prev, newDistractor]);
-
-      setTimeout(() => {
-        setDistractors(prev => prev.filter(d => d.id !== newDistractor.id));
-      }, 2000);
+      changeTimeoutRef.current = setTimeout(() => {
+        if (timeLeft <= 1 || isCompletedRef.current) return;
+        
+        // Pick random symbol to change
+        const symbolIndex = Math.floor(Math.random() * SYMBOL_COUNT);
+        
+        setPeripherals(prev => prev.map((p, i) => {
+          if (i === symbolIndex) {
+            // Change either luminance or symbol
+            const changeType = Math.random() > 0.5 ? 'luminance' : 'symbol';
+            if (changeType === 'luminance') {
+              return { 
+                ...p, 
+                luminance: p.luminance < 0.5 ? 0.7 : 0.3, 
+                isChanged: true 
+              };
+            } else {
+              const newSymbol = SYMBOLS.filter(s => s !== p.symbol)[Math.floor(Math.random() * (SYMBOLS.length - 1))];
+              return { ...p, symbol: newSymbol, isChanged: true };
+            }
+          }
+          return { ...p, isChanged: false };
+        }));
+        
+        setChangedSymbolId(symbolIndex);
+        setTotalChanges(prev => prev + 1);
+        
+        // Auto-reset after 1.5s if not detected (counts as miss)
+        setTimeout(() => {
+          if (changedSymbolId === symbolIndex) {
+            setMissedChanges(prev => prev + 1);
+            setShowFeedback('miss');
+            setTimeout(() => setShowFeedback(null), 300);
+          }
+          setChangedSymbolId(null);
+          setPeripherals(prev => prev.map(p => ({ ...p, isChanged: false })));
+        }, 1500);
+        
+        scheduleNextChange();
+      }, delay);
     };
+    
+    if (peripherals.length > 0 && timeLeft > 2) {
+      scheduleNextChange();
+    }
+    
+    return () => {
+      if (changeTimeoutRef.current) {
+        clearTimeout(changeTimeoutRef.current);
+      }
+    };
+  }, [peripherals.length, timeLeft]);
 
-    const interval = setInterval(generateDistractor, 1500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleDistractorClick = useCallback(() => {
-    setFocusBreaks(prev => prev + 1);
-    setStabilityScore(prev => Math.max(0, prev - 5));
-  }, []);
+  // Handle user tap (detected change)
+  const handleCenterTap = useCallback(() => {
+    if (changedSymbolId !== null) {
+      // Correct detection
+      setCorrectDetections(prev => prev + 1);
+      setShowFeedback('correct');
+      setChangedSymbolId(null);
+      setPeripherals(prev => prev.map(p => ({ ...p, isChanged: false })));
+    } else {
+      // False alarm
+      setFalseAlarms(prev => prev + 1);
+      setShowFeedback('false');
+    }
+    setTimeout(() => setShowFeedback(null), 300);
+  }, [changedSymbolId]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -91,9 +149,21 @@ export function VisualStabilityModule({ duration, onComplete }: VisualStabilityM
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getSymbolPosition = (angle: number, radius: number = 120) => {
+    const radian = (angle - 90) * (Math.PI / 180);
+    return {
+      x: Math.cos(radian) * radius,
+      y: Math.sin(radian) * radius,
+    };
+  };
+
+  const accuracy = totalChanges > 0 
+    ? Math.round((correctDetections / totalChanges) * 100)
+    : 100;
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-6 py-10 bg-[#06070A]">
-      <DriftField particleCount={15} />
+      <DriftField particleCount={10} />
       
       {/* Header */}
       <div className="absolute top-6 left-0 right-0 px-6">
@@ -113,69 +183,120 @@ export function VisualStabilityModule({ duration, onComplete }: VisualStabilityM
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <h2 className="text-lg font-semibold mb-1">Visual Stability</h2>
-        <p className="text-xs text-muted-foreground/70">
-          Maintain visual focus. Ignore peripheral noise.
+        <h2 className="text-lg font-semibold mb-1">Central Lock-In Focus</h2>
+        <p className="text-xs text-muted-foreground/70 max-w-[260px] mx-auto">
+          Fixate on center. Tap when you detect a peripheral change.
         </p>
       </motion.div>
       
-      {/* Main focus circle */}
+      {/* Main focus area */}
       <motion.div
-        className="relative z-10"
+        className="relative z-10 flex items-center justify-center"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.2 }}
+        style={{ width: 280, height: 280 }}
       >
-        <PulsingCircle size={220} />
+        {/* Peripheral symbols */}
+        {peripherals.map((p) => {
+          const pos = getSymbolPosition(p.angle);
+          return (
+            <motion.div
+              key={p.id}
+              className="absolute text-2xl select-none transition-all duration-200"
+              style={{
+                left: '50%',
+                top: '50%',
+                transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px)`,
+                opacity: p.luminance,
+                color: p.isChanged 
+                  ? 'hsl(var(--primary))' 
+                  : 'hsl(var(--muted-foreground))',
+                textShadow: p.isChanged ? '0 0 8px hsl(var(--primary) / 0.5)' : 'none',
+              }}
+              animate={{
+                scale: p.isChanged ? 1.15 : 1,
+              }}
+              transition={{ duration: 0.15 }}
+            >
+              {p.symbol}
+            </motion.div>
+          );
+        })}
         
-        {/* Center instruction */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] text-primary/60 uppercase tracking-widest">
-            Focus Here
+        {/* Central fixation point - tappable */}
+        <motion.button
+          onClick={handleCenterTap}
+          className="relative w-24 h-24 rounded-full flex items-center justify-center focus:outline-none"
+          style={{
+            background: 'radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%)',
+          }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {/* Outer ring */}
+          <div 
+            className="absolute w-20 h-20 rounded-full border border-primary/20"
+          />
+          
+          {/* Central cross */}
+          <span className="text-3xl font-light text-primary/80 select-none">
+            ＋
           </span>
-        </div>
+          
+          {/* Feedback flash */}
+          <AnimatePresence>
+            {showFeedback && (
+              <motion.div
+                className={`absolute inset-0 rounded-full ${
+                  showFeedback === 'correct' 
+                    ? 'bg-emerald-500/30' 
+                    : showFeedback === 'miss'
+                    ? 'bg-amber-500/30'
+                    : 'bg-red-500/30'
+                }`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1.1 }}
+                exit={{ opacity: 0, scale: 1 }}
+                transition={{ duration: 0.15 }}
+              />
+            )}
+          </AnimatePresence>
+        </motion.button>
       </motion.div>
       
-      {/* Distractors */}
-      <AnimatePresence>
-        {distractors.map(distractor => (
-          <motion.div
-            key={distractor.id}
-            className="absolute rounded-full cursor-pointer"
-            style={{
-              left: `${distractor.x}%`,
-              top: `${distractor.y}%`,
-              width: distractor.size,
-              height: distractor.size,
-              background: "hsl(var(--muted-foreground) / 0.3)",
-            }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0.6, scale: 1 }}
-            exit={{ opacity: 0, scale: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={handleDistractorClick}
-          />
-        ))}
-      </AnimatePresence>
+      {/* Instructions hint */}
+      <motion.p
+        className="absolute bottom-36 text-[10px] text-muted-foreground/50 text-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        Keep eyes on ＋ • Tap when a symbol changes
+      </motion.p>
       
-      {/* Stability indicator */}
+      {/* Stats indicator */}
       <motion.div
-        className="absolute bottom-24 w-full px-10"
+        className="absolute bottom-20 w-full px-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
         <div className="flex items-center justify-between text-[10px] text-muted-foreground/60 mb-2">
-          <span>Stability</span>
-          <span>{stabilityScore}%</span>
+          <span>Detection Accuracy</span>
+          <span>{accuracy}%</span>
         </div>
         <div className="h-1 bg-muted/20 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-primary rounded-full"
             initial={{ width: "100%" }}
-            animate={{ width: `${stabilityScore}%` }}
+            animate={{ width: `${accuracy}%` }}
             transition={{ duration: 0.3 }}
           />
+        </div>
+        <div className="flex justify-between mt-2 text-[9px] text-muted-foreground/40">
+          <span>Detected: {correctDetections}</span>
+          <span>Missed: {missedChanges}</span>
+          <span>False: {falseAlarms}</span>
         </div>
       </motion.div>
     </div>
