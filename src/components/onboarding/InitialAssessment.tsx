@@ -134,22 +134,7 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
     const creativityFastScore = avg(creativityFast);
     const creativitySlowScore = avg(creativitySlow);
 
-    // --- 2) Fast / Slow globali come medie PESATE per area ---
-    const fastNumerator =
-      focusFastScore * AREA_FAST_WEIGHTS.focus +
-      reasoningFastScore * AREA_FAST_WEIGHTS.reasoning +
-      creativityFastScore * AREA_FAST_WEIGHTS.creativity;
-    const fastDenominator = AREA_FAST_WEIGHTS.focus + AREA_FAST_WEIGHTS.reasoning + AREA_FAST_WEIGHTS.creativity;
-    const fastScore = Math.round(fastNumerator / fastDenominator);
-
-    const slowNumerator =
-      focusSlowScore * AREA_SLOW_WEIGHTS.focus +
-      reasoningSlowScore * AREA_SLOW_WEIGHTS.reasoning +
-      creativitySlowScore * AREA_SLOW_WEIGHTS.creativity;
-    const slowDenominator = AREA_SLOW_WEIGHTS.focus + AREA_SLOW_WEIGHTS.reasoning + AREA_SLOW_WEIGHTS.creativity;
-    const slowScore = Math.round(slowNumerator / slowDenominator);
-
-    // --- 3) Area scores = media dei drill dell’area (fast + slow) ---
+    // --- 2) Area scores = media dei drill dell'area (fast + slow) ---
     const focusResults = results.filter((r) => r.area === "focus");
     const reasoningResults = results.filter((r) => r.area === "reasoning");
     const creativityResults = results.filter((r) => r.area === "creativity");
@@ -168,6 +153,22 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
       creativityResults.length > 0
         ? Math.round(creativityResults.reduce((sum, r) => sum + r.score, 0) / creativityResults.length)
         : 50;
+
+    // --- 3) Fast / Slow globali come medie PESATE usando i punteggi TOTALI delle aree ---
+    // Focus: 70% Fast, 30% Slow | Reasoning: 20% Fast, 80% Slow | Creativity: 50% Fast, 50% Slow
+    const fastNumerator =
+      focusScore * AREA_FAST_WEIGHTS.focus +
+      reasoningScore * AREA_FAST_WEIGHTS.reasoning +
+      creativityScore * AREA_FAST_WEIGHTS.creativity;
+    const fastDenominator = AREA_FAST_WEIGHTS.focus + AREA_FAST_WEIGHTS.reasoning + AREA_FAST_WEIGHTS.creativity;
+    const fastScore = Math.round(fastNumerator / fastDenominator);
+
+    const slowNumerator =
+      focusScore * AREA_SLOW_WEIGHTS.focus +
+      reasoningScore * AREA_SLOW_WEIGHTS.reasoning +
+      creativityScore * AREA_SLOW_WEIGHTS.creativity;
+    const slowDenominator = AREA_SLOW_WEIGHTS.focus + AREA_SLOW_WEIGHTS.reasoning + AREA_SLOW_WEIGHTS.creativity;
+    const slowScore = Math.round(slowNumerator / slowDenominator);
 
     // --- 4) Overall score = media di tutti i drill (come prima) ---
     const overallScore = Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length);
