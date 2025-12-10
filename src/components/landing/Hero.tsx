@@ -26,7 +26,7 @@ export function Hero() {
 
           {/* Main headline */}
           <h1
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-4xl font-semibold tracking-tight mb-8 animate-fade-in leading-[1.1]"
+            className="text-3xl sm:text-5xl md:text-6xl lg:text-4xl font-semibold tracking-tight mb-8 animate-fade-in leading-[1.1]"
             style={{ animationDelay: "0.1s" }}
           >
             Unlock deeper human cognition in a world of shallow thinking.
