@@ -247,11 +247,13 @@ const Onboarding = () => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 border-0 bg-transparent shadow-none" align="center">
+                  <PopoverContent className="w-auto p-0 z-50" align="center" sideOffset={8}>
                     <Calendar
                       mode="single"
                       selected={birthDate}
-                      onSelect={setBirthDate}
+                      onSelect={(date) => {
+                        setBirthDate(date);
+                      }}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1920-01-01")
                       }
