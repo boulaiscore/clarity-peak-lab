@@ -1,7 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Zap, Brain, TrendingUp, TrendingDown, Minus } from "lucide-react";
-
+import { Zap, Brain, TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 interface FastSlowBrainMapProps {
   fastScore: number;
   fastBaseline: number;
@@ -411,11 +415,51 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
         </div>
       </div>
 
-      {/* Scientific disclaimer */}
-      <div className="px-4 py-2 bg-[#05070B] border-t border-border/10">
+      {/* Scientific disclaimer with Info button */}
+      <div className="px-4 py-2 bg-[#05070B] border-t border-border/10 flex items-center justify-center gap-2">
         <p className="text-[8px] text-muted-foreground/60 text-center leading-relaxed">
-          Functional cognitive systems based on Kahneman's dual-process theory. Derived from training data.
+          Functional cognitive systems based on Kahneman's dual-process theory.
         </p>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="p-1 rounded-full hover:bg-border/20 transition-colors">
+              <Info className="w-3 h-3 text-muted-foreground/60 hover:text-muted-foreground" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-4 bg-[#0a0d12] border-border/30" align="center">
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-foreground">Come calcoliamo i punteggi</h4>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-3 h-3 text-amber-400" />
+                  <span className="text-[10px] font-medium text-amber-400">Fast Thinking</span>
+                </div>
+                <ul className="text-[9px] text-muted-foreground space-y-0.5 ml-5">
+                  <li>Focus Arena: <span className="text-amber-400">70%</span></li>
+                  <li>Critical Reasoning: <span className="text-amber-400">20%</span></li>
+                  <li>Creativity Hub: <span className="text-amber-400">50%</span></li>
+                </ul>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-3 h-3 text-cyan-400" />
+                  <span className="text-[10px] font-medium text-cyan-400">Slow Thinking</span>
+                </div>
+                <ul className="text-[9px] text-muted-foreground space-y-0.5 ml-5">
+                  <li>Focus Arena: <span className="text-cyan-400">30%</span></li>
+                  <li>Critical Reasoning: <span className="text-cyan-400">80%</span></li>
+                  <li>Creativity Hub: <span className="text-cyan-400">50%</span></li>
+                </ul>
+              </div>
+              
+              <p className="text-[8px] text-muted-foreground/70 pt-1 border-t border-border/20">
+                Formula: media pesata normalizzata delle 3 aree
+              </p>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );
