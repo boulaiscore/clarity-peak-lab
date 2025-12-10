@@ -199,7 +199,7 @@ function GoNoGoAssessment({ onComplete }: { onComplete: (result: AssessmentDrill
 
 // ============ EXERCISE 3: Odd One Out (Reasoning Fast) ============
 function OddOneOutAssessment({ onComplete }: { onComplete: (result: AssessmentDrillResult) => void }) {
-  PATTERNS = [
+  const PATTERNS = [
     {
       items: ["🟥", "🔺", "❤️", "♦️"],
       oddIndex: 1,
@@ -703,7 +703,7 @@ function AnalogyAssessment({ onComplete }: { onComplete: (result: AssessmentDril
     ANALOGIES.map((a) => {
       const idx = Math.floor(Math.random() * 4);
       const opts = [...a.distractors];
-      opts.splice(idx, 0, a.correct);
+      opts.splice(idx, 0, a.match);
       return { ...a, options: opts, correctIndex: idx };
     }),
   );
@@ -751,11 +751,11 @@ function AnalogyAssessment({ onComplete }: { onComplete: (result: AssessmentDril
       </div>
       <p className="text-xs text-muted-foreground mb-4">Complete the analogy</p>
       <div className="flex items-center gap-1 text-2xl mb-6 flex-wrap justify-center">
-        <span>{puzzle.a}</span>
+        <span>{puzzle.trigger}</span>
         <span className="text-sm text-muted-foreground">→</span>
-        <span>{puzzle.b}</span>
-        <span className="text-sm text-primary mx-2">::</span>
-        <span>{puzzle.c}</span>
+        <span className="w-10 h-10 rounded border-2 border-dashed border-primary/60 flex items-center justify-center text-lg font-bold text-primary">
+          ?
+        </span>
         <span className="text-sm text-muted-foreground">→</span>
         <span className="w-10 h-10 rounded border-2 border-dashed border-primary/60 flex items-center justify-center text-lg font-bold text-primary">
           ?
