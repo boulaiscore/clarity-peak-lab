@@ -32,10 +32,10 @@ export function Pricing() {
 
             <ul className="space-y-4 mb-8">
               {[
-                "3 cognitive training modules",
-                "30-second quick drills",
-                "Basic session tracking",
-                "Foundational protocols",
+                "Focus Arena training area",
+                "30s & 2min session durations",
+                "3 sessions per day",
+                "Basic SCI tracking",
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
                   <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -68,11 +68,12 @@ export function Pricing() {
 
             <ul className="space-y-4 mb-8">
               {[
-                "All protocol types & durations",
-                "Advanced 5-minute deep sessions",
-                "Full Decision Studio™ framework",
-                "Weekly cognitive performance insights",
-                "Priority access to new protocols",
+                "All 3 Neuro Lab areas",
+                "Extended sessions (5min, 7min)",
+                "Neuro Activation™ warm-up",
+                "Unlimited daily sessions",
+                "Full dashboard with trends",
+                "Complete badge system",
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
                   <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />

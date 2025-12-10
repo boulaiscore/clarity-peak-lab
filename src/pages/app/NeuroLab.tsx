@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, ChevronRight } from "lucide-react";
+import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, ChevronRight, Lock, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePremiumGating } from "@/hooks/usePremiumGating";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
   Target,
@@ -17,6 +20,11 @@ const AREA_ICONS: Record<string, React.ElementType> = {
 export default function NeuroLab() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
+  
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");
+  const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
 
   const getThinkingBadge = () => {
     const goals = user?.trainingGoals || [];
@@ -32,10 +40,33 @@ export default function NeuroLab() {
   const badge = getThinkingBadge();
 
   const handleEnterArea = (areaId: NeuroLabArea) => {
+    // Check session limit first
+    if (!canStartSession()) {
+      setPaywallFeature("session-limit");
+      setPaywallFeatureName("");
+      setShowPaywall(true);
+      return;
+    }
+    
+    // Check area access
+    if (isAreaLocked(areaId)) {
+      const area = NEURO_LAB_AREAS.find(a => a.id === areaId);
+      setPaywallFeature("area");
+      setPaywallFeatureName(area?.title || "");
+      setShowPaywall(true);
+      return;
+    }
+    
     navigate(`/neuro-lab/${areaId}`);
   };
 
   const handleNeuroActivation = () => {
+    if (!canAccessNeuroActivation()) {
+      setPaywallFeature("neuro-activation");
+      setPaywallFeatureName("Neuro Activation™");
+      setShowPaywall(true);
+      return;
+    }
     navigate("/neuro-lab/neuro-activation");
   };
 
@@ -57,13 +88,32 @@ export default function NeuroLab() {
           </p>
         </div>
 
+        {/* Daily Sessions Counter (Free users only) */}
+        {!isPremium && (
+          <div className="mb-4 p-3 rounded-xl bg-card/50 border border-border/30">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Daily Sessions</span>
+              <span className="text-sm font-medium">
+                {maxDailySessions - remainingSessions}/{maxDailySessions}
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 bg-border/30 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all"
+                style={{ width: `${((maxDailySessions - remainingSessions) / maxDailySessions) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Neuro Activation CTA */}
         <button
           onClick={handleNeuroActivation}
           className={cn(
             "w-full p-4 rounded-xl border transition-all duration-200 mb-5",
             "bg-gradient-to-br from-primary/12 to-transparent",
-            "border-primary/25 hover:border-primary/40 active:scale-[0.98]"
+            "border-primary/25 hover:border-primary/40 active:scale-[0.98]",
+            !canAccessNeuroActivation() && "opacity-80"
           )}
         >
           <div className="flex items-center gap-3">
@@ -77,9 +127,16 @@ export default function NeuroLab() {
               </p>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[9px] px-1.5 py-0.5 bg-primary/15 rounded text-primary font-medium">
-                PRO
-              </span>
+              {!canAccessNeuroActivation() ? (
+                <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-primary/15 rounded text-primary font-medium">
+                  <Crown className="w-3 h-3" />
+                  PRO
+                </span>
+              ) : (
+                <span className="text-[9px] px-1.5 py-0.5 bg-primary/15 rounded text-primary font-medium">
+                  PRO
+                </span>
+              )}
               <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
             </div>
           </div>
@@ -98,6 +155,7 @@ export default function NeuroLab() {
         <div className="space-y-2.5">
           {NEURO_LAB_AREAS.map((area) => {
             const IconComponent = AREA_ICONS[area.icon] || Brain;
+            const locked = isAreaLocked(area.id);
             
             return (
               <button
@@ -107,15 +165,30 @@ export default function NeuroLab() {
                   "w-full p-3.5 rounded-xl border transition-all duration-200 text-left",
                   "bg-card/50 hover:bg-card/80",
                   "border-border/30 hover:border-primary/30",
-                  "active:scale-[0.98]"
+                  "active:scale-[0.98]",
+                  locked && "opacity-70"
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <IconComponent className="w-5 h-5 text-primary" />
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                    locked ? "bg-muted/50" : "bg-primary/10"
+                  )}>
+                    <IconComponent className={cn(
+                      "w-5 h-5",
+                      locked ? "text-muted-foreground" : "text-primary"
+                    )} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-[13px]">{area.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-[13px]">{area.title}</h3>
+                      {locked && (
+                        <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-muted/50 rounded text-muted-foreground font-medium">
+                          <Lock className="w-2.5 h-2.5" />
+                          PRO
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
                       {area.subtitle}
                     </p>
@@ -134,6 +207,13 @@ export default function NeuroLab() {
           </p>
         </div>
       </div>
+
+      <PremiumPaywall 
+        open={showPaywall} 
+        onOpenChange={setShowPaywall}
+        feature={paywallFeature}
+        featureName={paywallFeatureName}
+      />
     </AppShell>
   );
 }

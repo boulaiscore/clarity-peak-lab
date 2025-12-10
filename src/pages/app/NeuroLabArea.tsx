@@ -4,7 +4,9 @@ import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea as AreaType, NeuroLabDuration, getNeuroLabExerciseCount } from "@/lib/neuroLab";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap } from "lucide-react";
+import { usePremiumGating, FREE_DURATIONS } from "@/hooks/usePremiumGating";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
+import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap, Lock, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -20,11 +22,25 @@ const AREA_ICONS: Record<string, React.ElementType> = {
 
 type ThinkingMode = "fast" | "slow";
 
+const ALL_DURATIONS: { value: NeuroLabDuration; label: string }[] = [
+  { value: "30s", label: "30s" },
+  { value: "2min", label: "2min" },
+  { value: "5min", label: "5min" },
+  { value: "7min", label: "7min" },
+];
+
 export default function NeuroLabArea() {
   const { area } = useParams<{ area: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDurationLocked, canStartSession } = usePremiumGating();
+  
   const [selectedMode, setSelectedMode] = useState<ThinkingMode | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<NeuroLabDuration>(
+    (user?.sessionDuration as NeuroLabDuration) || "2min"
+  );
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState<"duration" | "session-limit">("duration");
   
   const areaConfig = NEURO_LAB_AREAS.find(a => a.id === area);
   
@@ -43,24 +59,27 @@ export default function NeuroLabArea() {
   }
   
   const IconComponent = AREA_ICONS[areaConfig.icon] || Brain;
+  const { min, max } = getNeuroLabExerciseCount(selectedDuration);
   
-  // Use the user's exact session duration preference
-  const duration: NeuroLabDuration = (user?.sessionDuration as NeuroLabDuration) || "2min";
-  const { min, max } = getNeuroLabExerciseCount(duration);
+  const handleDurationSelect = (duration: NeuroLabDuration) => {
+    if (isDurationLocked(duration)) {
+      setPaywallFeature("duration");
+      setShowPaywall(true);
+      return;
+    }
+    setSelectedDuration(duration);
+  };
   
   const handleStartSession = () => {
     if (!selectedMode) return;
-    navigate(`/neuro-lab/session?area=${area}&duration=${duration}&mode=${selectedMode}`);
-  };
-
-  const getDurationLabel = () => {
-    switch (duration) {
-      case "30s": return "30 Seconds";
-      case "2min": return "2 Minutes";
-      case "5min": return "5 Minutes";
-      case "7min": return "7 Minutes";
-      default: return "2 Minutes";
+    
+    if (!canStartSession()) {
+      setPaywallFeature("session-limit");
+      setShowPaywall(true);
+      return;
     }
+    
+    navigate(`/neuro-lab/session?area=${area}&duration=${selectedDuration}&mode=${selectedMode}`);
   };
 
   const getExerciseCount = () => {
@@ -91,6 +110,45 @@ export default function NeuroLabArea() {
             <h1 className="text-2xl font-bold tracking-tight">{areaConfig.title}</h1>
             <p className="text-sm text-primary/70 mt-0.5">{areaConfig.subtitle}</p>
             <p className="text-muted-foreground text-sm mt-2">{areaConfig.description}</p>
+          </div>
+        </div>
+
+        {/* Session Duration Selection */}
+        <div className="mb-6">
+          <h2 className="font-semibold mb-3">Session Duration</h2>
+          <div className="grid grid-cols-4 gap-2">
+            {ALL_DURATIONS.map(({ value, label }) => {
+              const locked = isDurationLocked(value);
+              const isSelected = selectedDuration === value;
+              
+              return (
+                <button
+                  key={value}
+                  onClick={() => handleDurationSelect(value)}
+                  className={cn(
+                    "relative p-3 rounded-xl border-2 transition-all text-center",
+                    isSelected && !locked
+                      ? "border-primary bg-primary/10"
+                      : locked
+                        ? "border-border/30 bg-muted/20"
+                        : "border-border/50 bg-card/50 hover:border-primary/50"
+                  )}
+                >
+                  <span className={cn(
+                    "font-semibold text-sm",
+                    locked && "text-muted-foreground"
+                  )}>
+                    {label}
+                  </span>
+                  {locked && (
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground font-medium">
+                      <Lock className="w-2 h-2" />
+                      PRO
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -144,24 +202,15 @@ export default function NeuroLabArea() {
           </div>
         </div>
 
-        {/* Session Info based on preferences */}
+        {/* Session Info */}
         <div className="mb-6 p-4 rounded-xl bg-card/50 border border-border/50">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-primary" />
             <div>
-              <p className="font-semibold">{getDurationLabel()}</p>
+              <p className="font-semibold">{selectedDuration === "30s" ? "30 Seconds" : selectedDuration}</p>
               <p className="text-xs text-muted-foreground">{getExerciseCount()}</p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Based on your preferences. Change in{" "}
-            <button 
-              onClick={() => navigate("/app/account")}
-              className="text-primary hover:underline"
-            >
-              Settings
-            </button>
-          </p>
         </div>
 
         {/* Start Button */}
@@ -186,6 +235,12 @@ export default function NeuroLabArea() {
           </p>
         </div>
       </div>
+
+      <PremiumPaywall 
+        open={showPaywall} 
+        onOpenChange={setShowPaywall}
+        feature={paywallFeature}
+      />
     </AppShell>
   );
 }

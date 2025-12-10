@@ -5,12 +5,13 @@ import { toast } from "@/hooks/use-toast";
 import { Check, Crown, Sparkles } from "lucide-react";
 
 const features = [
-  "All protocol types and durations",
-  "Advanced 5-minute deep sessions",
-  "Full Decision Studio™ framework",
-  "Weekly cognitive performance insights",
-  "Personalized training recommendations",
-  "Priority access to new protocols",
+  "All 3 Neuro Lab training areas",
+  "Extended session durations (5min, 7min)",
+  "Neuro Activation™ cognitive warm-up",
+  "Unlimited daily training sessions",
+  "Full cognitive dashboard with trends",
+  "Complete badge & achievement system",
+  "Priority access to new features",
 ];
 
 const Premium = () => {

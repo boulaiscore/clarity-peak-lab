@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useExercises, useUpdateUserMetrics, useUserMetrics } from "@/hooks/useExercises";
 import { useSaveNeuroLabSession } from "@/hooks/useNeuroLab";
 import { useUpdateXP, useCheckAndAwardBadges, useUserBadges } from "@/hooks/useBadges";
+import { usePremiumGating } from "@/hooks/usePremiumGating";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { XP_REWARDS, BadgeMetrics, Badge } from "@/lib/badges";
 import { 
   NeuroLabArea, 
@@ -21,6 +23,7 @@ export default function NeuroLabSessionRunner() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { canStartSession, incrementSession } = usePremiumGating();
   
   const area = searchParams.get("area") as NeuroLabArea;
   const duration = searchParams.get("duration") as NeuroLabDuration;
@@ -42,10 +45,17 @@ export default function NeuroLabSessionRunner() {
   const [sessionScore, setSessionScore] = useState({ score: 0, correctAnswers: 0, totalQuestions: 0 });
   const [earnedXP, setEarnedXP] = useState(0);
   const [newBadges, setNewBadges] = useState<Badge[]>([]);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [sessionStarted, setSessionStarted] = useState(false);
 
-  // Generate session exercises with explicit thinking mode or trainingGoals filtering
+  // Check session limit and generate exercises
   useEffect(() => {
-    if (allExercises && allExercises.length > 0 && area) {
+    if (!canStartSession() && !sessionStarted) {
+      setShowPaywall(true);
+      return;
+    }
+    
+    if (allExercises && allExercises.length > 0 && area && !sessionStarted) {
       const exercises = generateNeuroLabSession(
         area, 
         duration || "2min", 
@@ -54,8 +64,12 @@ export default function NeuroLabSessionRunner() {
         thinkingMode || undefined
       );
       setSessionExercises(exercises);
+      setSessionStarted(true);
+      
+      // Increment session counter for free users
+      incrementSession.mutate();
     }
-  }, [allExercises, area, duration, user?.trainingGoals, thinkingMode]);
+  }, [allExercises, area, duration, user?.trainingGoals, thinkingMode, canStartSession, sessionStarted]);
 
   const areaConfig = useMemo(() => {
     if (area === "neuro-activation") {
@@ -300,50 +314,61 @@ export default function NeuroLabSessionRunner() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30 px-4 py-3">
-        <div className="flex items-center justify-between mb-3">
-          <button onClick={() => navigate("/neuro-lab")} className="text-muted-foreground">
-            <X className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">
-              {areaConfig?.title}
-            </span>
-            {/* Thinking Mode Badge */}
-            {currentExercise?.thinking_mode && (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                currentExercise.thinking_mode === "fast" 
-                  ? "bg-amber-500/20 text-amber-400" 
-                  : "bg-blue-500/20 text-blue-400"
-              }`}>
-                {currentExercise.thinking_mode === "fast" ? "Fast" : "Slow"}
+    <>
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30 px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <button onClick={() => navigate("/neuro-lab")} className="text-muted-foreground">
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">
+                {areaConfig?.title}
               </span>
-            )}
+              {/* Thinking Mode Badge */}
+              {currentExercise?.thinking_mode && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  currentExercise.thinking_mode === "fast" 
+                    ? "bg-amber-500/20 text-amber-400" 
+                    : "bg-blue-500/20 text-blue-400"
+                }`}>
+                  {currentExercise.thinking_mode === "fast" ? "Fast" : "Slow"}
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {currentIndex + 1}/{sessionExercises.length}
+            </span>
           </div>
-          <span className="text-xs text-muted-foreground">
-            {currentIndex + 1}/{sessionExercises.length}
-          </span>
-        </div>
-        
-        {/* Progress Bar */}
-        <div className="h-1 bg-border/30 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${progress}%` }}
+          
+          {/* Progress Bar */}
+          <div className="h-1 bg-border/30 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </header>
+
+        {/* Exercise Content */}
+        <div className="flex-1 flex flex-col">
+          <DrillRenderer 
+            key={currentExercise.id}
+            exercise={currentExercise} 
+            onComplete={handleExerciseComplete} 
           />
         </div>
-      </header>
-
-      {/* Exercise Content */}
-      <div className="flex-1 flex flex-col">
-        <DrillRenderer 
-          key={currentExercise.id}
-          exercise={currentExercise} 
-          onComplete={handleExerciseComplete} 
-        />
       </div>
-    </div>
+
+      <PremiumPaywall 
+        open={showPaywall} 
+        onOpenChange={(open) => {
+          setShowPaywall(open);
+          if (!open) navigate("/neuro-lab");
+        }}
+        feature="session-limit"
+      />
+    </>
   );
 }

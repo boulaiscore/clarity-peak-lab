@@ -3,14 +3,16 @@ import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment } from "@/contexts/AuthContext";
+import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Clock, Calendar } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Clock, Calendar, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
 
 const Account = () => {
   const { user, updateUser, logout } = useAuth();
+  const { isPremium, dailySessionsUsed, remainingSessions } = usePremiumGating();
   const [name, setName] = useState(user?.name || "");
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>(user?.trainingGoals || []);
   const [sessionDuration, setSessionDuration] = useState<SessionDuration | undefined>(user?.sessionDuration);
@@ -75,24 +77,52 @@ const Account = () => {
 
           {/* Subscription Status */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center">
-                  <Crown className="w-5 h-5 text-primary" />
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center",
+                  isPremium ? "bg-primary/15" : "bg-muted/50"
+                )}>
+                  <Crown className={cn("w-5 h-5", isPremium ? "text-primary" : "text-muted-foreground")} />
                 </div>
                 <div>
-                  <p className="font-semibold">{user?.subscriptionStatus === "premium" ? "Premium" : "Free"}</p>
+                  <p className="font-semibold">{isPremium ? "Premium" : "Free Plan"}</p>
                   <p className="text-xs text-muted-foreground">
-                    {user?.subscriptionStatus === "premium" ? "Full access" : "Core protocols"}
+                    {isPremium ? "Full access to all features" : "Limited access"}
                   </p>
                 </div>
               </div>
-              {user?.subscriptionStatus !== "premium" && (
+              {!isPremium && (
                 <Button asChild size="sm" variant="hero" className="rounded-xl">
                   <Link to="/app/premium">Upgrade</Link>
                 </Button>
               )}
             </div>
+            
+            {/* Daily Sessions (Free users only) */}
+            {!isPremium && (
+              <div className="pt-4 border-t border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">Daily Sessions</span>
+                  <span className="text-sm font-medium">{dailySessionsUsed}/{MAX_DAILY_SESSIONS_FREE}</span>
+                </div>
+                <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full transition-all rounded-full",
+                      remainingSessions === 0 ? "bg-destructive" : "bg-primary"
+                    )}
+                    style={{ width: `${(dailySessionsUsed / MAX_DAILY_SESSIONS_FREE) * 100}%` }}
+                  />
+                </div>
+                {remainingSessions === 0 && (
+                  <p className="text-xs text-destructive mt-2 flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    Daily limit reached. Resets tomorrow.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Name */}

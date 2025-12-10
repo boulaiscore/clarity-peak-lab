@@ -115,11 +115,13 @@ export type Database = {
           age: number | null
           birth_date: string | null
           created_at: string
+          daily_sessions_count: number | null
           daily_time_commitment: string | null
           degree_discipline: string | null
           education_level: string | null
           gender: string | null
           id: string
+          last_session_date: string | null
           name: string | null
           onboarding_completed: boolean | null
           session_duration: string | null
@@ -133,11 +135,13 @@ export type Database = {
           age?: number | null
           birth_date?: string | null
           created_at?: string
+          daily_sessions_count?: number | null
           daily_time_commitment?: string | null
           degree_discipline?: string | null
           education_level?: string | null
           gender?: string | null
           id?: string
+          last_session_date?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
           session_duration?: string | null
@@ -151,11 +155,13 @@ export type Database = {
           age?: number | null
           birth_date?: string | null
           created_at?: string
+          daily_sessions_count?: number | null
           daily_time_commitment?: string | null
           degree_discipline?: string | null
           education_level?: string | null
           gender?: string | null
           id?: string
+          last_session_date?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
           session_duration?: string | null
