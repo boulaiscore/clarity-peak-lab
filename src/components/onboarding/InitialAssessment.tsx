@@ -3,18 +3,17 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brain, Zap, Target, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
-import { AssessmentDrillRenderer } from "./AssessmentDrillRenderer";
+import { AssessmentDrillRenderer, ASSESSMENT_DRILLS } from "./AssessmentDrillRenderer";
 import { cn } from "@/lib/utils";
 
-// Fixed 6 assessment exercises - optimized for 15 seconds each
-const ASSESSMENT_EXERCISES = [
-  { id: 1, area: "focus", thinkingMode: "fast", label: "Focus Arena", name: "Dot Target" },
-  { id: 2, area: "focus", thinkingMode: "slow", label: "Focus Arena", name: "Go/No-Go" },
-  { id: 3, area: "reasoning", thinkingMode: "fast", label: "Critical Reasoning", name: "Odd One Out" },
-  { id: 4, area: "reasoning", thinkingMode: "slow", label: "Critical Reasoning", name: "Sequence Logic" },
-  { id: 5, area: "creativity", thinkingMode: "fast", label: "Creativity Hub", name: "Rapid Association" },
-  { id: 6, area: "creativity", thinkingMode: "slow", label: "Creativity Hub", name: "Analogy Match" },
-] as const;
+// Use the new elite assessment drills
+const ASSESSMENT_EXERCISES = ASSESSMENT_DRILLS.map((drill, index) => ({
+  id: index + 1,
+  area: drill.area,
+  thinkingMode: drill.thinkingMode,
+  label: drill.label,
+  name: drill.name,
+}));
 
 // Training weights by area and system (from design)
 // Focus: 70% Fast / 30% Slow
