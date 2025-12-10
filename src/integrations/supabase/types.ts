@@ -206,16 +206,58 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_category: string
+          badge_description: string | null
+          badge_id: string
+          badge_name: string
+          created_at: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_category: string
+          badge_description?: string | null
+          badge_id: string
+          badge_name: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_category?: string
+          badge_description?: string | null
+          badge_id?: string
+          badge_name?: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_cognitive_metrics: {
         Row: {
+          baseline_captured_at: string | null
+          baseline_cognitive_age: number | null
+          baseline_creativity: number | null
+          baseline_fast_thinking: number | null
+          baseline_focus: number | null
+          baseline_reasoning: number | null
+          baseline_slow_thinking: number | null
           bias_resistance: number
           clarity_score: number
+          cognitive_level: number | null
           cognitive_performance_score: number | null
           cognitive_readiness_score: number | null
           created_at: string
           creativity: number
           critical_thinking_score: number
           decision_quality: number
+          experience_points: number | null
           fast_thinking: number
           focus_stability: number
           id: string
@@ -232,14 +274,23 @@ export type Database = {
           visual_processing: number
         }
         Insert: {
+          baseline_captured_at?: string | null
+          baseline_cognitive_age?: number | null
+          baseline_creativity?: number | null
+          baseline_fast_thinking?: number | null
+          baseline_focus?: number | null
+          baseline_reasoning?: number | null
+          baseline_slow_thinking?: number | null
           bias_resistance?: number
           clarity_score?: number
+          cognitive_level?: number | null
           cognitive_performance_score?: number | null
           cognitive_readiness_score?: number | null
           created_at?: string
           creativity?: number
           critical_thinking_score?: number
           decision_quality?: number
+          experience_points?: number | null
           fast_thinking?: number
           focus_stability?: number
           id?: string
@@ -256,14 +307,23 @@ export type Database = {
           visual_processing?: number
         }
         Update: {
+          baseline_captured_at?: string | null
+          baseline_cognitive_age?: number | null
+          baseline_creativity?: number | null
+          baseline_fast_thinking?: number | null
+          baseline_focus?: number | null
+          baseline_reasoning?: number | null
+          baseline_slow_thinking?: number | null
           bias_resistance?: number
           clarity_score?: number
+          cognitive_level?: number | null
           cognitive_performance_score?: number | null
           cognitive_readiness_score?: number | null
           created_at?: string
           creativity?: number
           critical_thinking_score?: number
           decision_quality?: number
+          experience_points?: number | null
           fast_thinking?: number
           focus_stability?: number
           id?: string

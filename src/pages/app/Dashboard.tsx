@@ -6,9 +6,10 @@ import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimat
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
 import { CognitiveCoach } from "@/components/dashboard/CognitiveCoach";
+import { BadgesSection } from "@/components/dashboard/BadgesSection";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Info, Zap, Brain, BarChart3, MessageCircle, Loader2 } from "lucide-react";
+import { Info, Zap, Brain, BarChart3, MessageCircle, Loader2, Award } from "lucide-react";
 import { calculateBrainAgeIndex, CognitiveMetricsSnapshot } from "@/lib/cognitiveMetrics";
 import { computeFastSlowSystems } from "@/lib/thinkingSystems";
 import { cn } from "@/lib/utils";
@@ -116,7 +117,7 @@ const Dashboard = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-muted/20 p-0.5 rounded-lg h-9">
+          <TabsList className="grid w-full grid-cols-3 bg-muted/20 p-0.5 rounded-lg h-9">
             <TabsTrigger 
               value="overview" 
               className={cn(
@@ -126,6 +127,16 @@ const Dashboard = () => {
             >
               <BarChart3 className="w-3 h-3" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="progress" 
+              className={cn(
+                "text-[11px] font-medium rounded-md flex items-center gap-1.5 h-8",
+                "data-[state=active]:bg-card data-[state=active]:shadow-sm"
+              )}
+            >
+              <Award className="w-3 h-3" />
+              Progress
             </TabsTrigger>
             <TabsTrigger 
               value="coach" 
@@ -191,6 +202,11 @@ const Dashboard = () => {
 
             {/* Training Sources */}
             <ThinkingSystemSources />
+          </TabsContent>
+
+          {/* Progress Tab */}
+          <TabsContent value="progress" className="mt-4">
+            <BadgesSection />
           </TabsContent>
 
           {/* Coach Tab */}

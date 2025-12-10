@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { X, Trophy, Brain } from "lucide-react";
+import { X, Trophy, Brain, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useExercises, useUpdateUserMetrics } from "@/hooks/useExercises";
+import { useExercises, useUpdateUserMetrics, useUserMetrics } from "@/hooks/useExercises";
 import { useSaveNeuroGymSession } from "@/hooks/useNeuroGym";
+import { useUpdateXP, useCheckAndAwardBadges, useUserBadges } from "@/hooks/useBadges";
+import { XP_REWARDS, BadgeMetrics, Badge } from "@/lib/badges";
 import { 
   NeuroGymArea, 
   NeuroGymDuration, 
@@ -27,8 +29,12 @@ export default function NeuroGymSessionRunner() {
   const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
   
   const { data: allExercises, isLoading: exercisesLoading } = useExercises();
+  const { data: userMetrics } = useUserMetrics(user?.id);
+  const { data: userBadges } = useUserBadges(user?.id);
   const saveSession = useSaveNeuroGymSession();
   const updateMetrics = useUpdateUserMetrics();
+  const updateXP = useUpdateXP();
+  const checkBadges = useCheckAndAwardBadges();
   
   const [sessionExercises, setSessionExercises] = useState<CognitiveExercise[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -36,6 +42,8 @@ export default function NeuroGymSessionRunner() {
   const responsesRef = useRef<Map<string, { score: number; correct: number }>>(new Map());
   const [isComplete, setIsComplete] = useState(false);
   const [sessionScore, setSessionScore] = useState({ score: 0, correctAnswers: 0, totalQuestions: 0 });
+  const [earnedXP, setEarnedXP] = useState(0);
+  const [newBadges, setNewBadges] = useState<Badge[]>([]);
 
   // Generate session exercises with explicit thinking mode or trainingGoals filtering
   useEffect(() => {
@@ -113,7 +121,7 @@ export default function NeuroGymSessionRunner() {
       setIsComplete(true);
       
       // Save session
-      if (user) {
+      if (user && userMetrics) {
         try {
           await saveSession.mutateAsync({
             user_id: user.id,
@@ -128,6 +136,45 @@ export default function NeuroGymSessionRunner() {
           
           const metricUpdates = getMetricUpdates(sessionExercises, responsesRef.current);
           await updateMetrics.mutateAsync({ userId: user.id, metricUpdates });
+          
+          // Calculate and add XP
+          const isPerfect = averageScore >= 90;
+          const xpToAdd = XP_REWARDS.sessionComplete + (isPerfect ? XP_REWARDS.perfectSession : 0);
+          setEarnedXP(xpToAdd);
+          
+          await updateXP.mutateAsync({
+            userId: user.id,
+            xpToAdd,
+            currentXP: userMetrics.experience_points || 0,
+          });
+          
+          // Check for new badges
+          const badgeMetrics: BadgeMetrics = {
+            totalSessions: (userMetrics.total_sessions || 0) + 1,
+            fastThinking: userMetrics.fast_thinking || 50,
+            slowThinking: userMetrics.slow_thinking || 50,
+            focus: userMetrics.focus_stability || 50,
+            reasoning: userMetrics.reasoning_accuracy || 50,
+            creativity: userMetrics.creativity || 50,
+            baselineFastThinking: userMetrics.baseline_fast_thinking ?? undefined,
+            baselineSlowThinking: userMetrics.baseline_slow_thinking ?? undefined,
+            baselineFocus: userMetrics.baseline_focus ?? undefined,
+            baselineReasoning: userMetrics.baseline_reasoning ?? undefined,
+            baselineCreativity: userMetrics.baseline_creativity ?? undefined,
+            cognitiveLevel: userMetrics.cognitive_level || 1,
+            experiencePoints: (userMetrics.experience_points || 0) + xpToAdd,
+          };
+          
+          const existingBadgeIds = userBadges?.map(b => b.badge_id) || [];
+          const awarded = await checkBadges.mutateAsync({
+            userId: user.id,
+            metrics: badgeMetrics,
+            existingBadgeIds,
+          });
+          
+          if (awarded.length > 0) {
+            setNewBadges(awarded);
+          }
           
           toast.success("Session completed!");
         } catch (error) {
@@ -189,12 +236,38 @@ export default function NeuroGymSessionRunner() {
         </div>
         
         <h1 className="text-2xl font-bold mb-2">Session Complete!</h1>
-        <p className="text-muted-foreground text-center mb-6">
+        <p className="text-muted-foreground text-center mb-4">
           {area === "neuro-activation" 
             ? "Your brain is primed for deep work."
             : `Great work training your ${areaConfig?.title}!`
           }
         </p>
+        
+        {/* XP Earned */}
+        <div className="flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20">
+          <Star className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-medium text-amber-400">+{earnedXP} XP</span>
+        </div>
+
+        {/* New Badges */}
+        {newBadges.length > 0 && (
+          <div className="mb-4 p-4 rounded-xl bg-primary/10 border border-primary/20 w-full max-w-sm">
+            <p className="text-xs uppercase tracking-widest text-primary text-center mb-3">New Badge Earned!</p>
+            <div className="flex justify-center gap-3">
+              {newBadges.map((badge) => {
+                const Icon = badge.icon;
+                return (
+                  <div key={badge.id} className="flex flex-col items-center gap-1">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${badge.bgColor}`}>
+                      <Icon className={`w-6 h-6 ${badge.iconColor}`} />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">{badge.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         
         <div className="p-6 rounded-xl bg-card/50 border border-border/50 mb-6 w-full max-w-sm">
           <div className="text-center">
