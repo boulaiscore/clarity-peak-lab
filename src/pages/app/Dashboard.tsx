@@ -1,37 +1,20 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
-import { CognitiveCoach } from "@/components/dashboard/CognitiveCoach";
-import { BadgesSection } from "@/components/dashboard/BadgesSection";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Info, Zap, Brain, BarChart3, MessageCircle, Loader2, Award } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Info, Zap, Brain, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
-import { useNeuroGymSessions } from "@/hooks/useNeuroGym";
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
   const { user } = useAuth();
   
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
-  
-  // Fetch sessions to count this week
-  const { data: sessions } = useNeuroGymSessions(user?.id);
-  
-  // Calculate sessions this week
-  const sessionsThisWeek = useMemo(() => {
-    if (!sessions) return 0;
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    return sessions.filter(s => new Date(s.completed_at) >= oneWeekAgo).length;
-  }, [sessions]);
   
   // User's chronological age (default 35 if not set)
   const chronologicalAge = user?.age || 35;
@@ -127,124 +110,71 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-muted/20 p-0.5 rounded-lg h-9">
-            <TabsTrigger 
-              value="overview" 
-              className={cn(
-                "text-[11px] font-medium rounded-md flex items-center gap-1.5 h-8",
-                "data-[state=active]:bg-card data-[state=active]:shadow-sm"
-              )}
-            >
-              <BarChart3 className="w-3 h-3" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              value="progress" 
-              className={cn(
-                "text-[11px] font-medium rounded-md flex items-center gap-1.5 h-8",
-                "data-[state=active]:bg-card data-[state=active]:shadow-sm"
-              )}
-            >
-              <Award className="w-3 h-3" />
-              Progress
-            </TabsTrigger>
-            <TabsTrigger 
-              value="coach" 
-              className={cn(
-                "text-[11px] font-medium rounded-md flex items-center gap-1.5 h-8",
-                "data-[state=active]:bg-card data-[state=active]:shadow-sm"
-              )}
-            >
-              <MessageCircle className="w-3 h-3" />
-              Coach
-            </TabsTrigger>
-          </TabsList>
+        {/* Content */}
+        <div className="space-y-4">
+          {/* Cognitive Age Sphere */}
+          <CognitiveAgeSphere 
+            cognitiveAge={cognitiveAgeData.cognitiveAge} 
+            delta={cognitiveAgeData.delta} 
+          />
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="mt-4 space-y-4">
-            {/* Cognitive Age Sphere */}
-            <CognitiveAgeSphere 
-              cognitiveAge={cognitiveAgeData.cognitiveAge} 
-              delta={cognitiveAgeData.delta} 
-            />
+          {/* Neural Growth Animation */}
+          <NeuralGrowthAnimation
+            cognitiveAgeDelta={cognitiveAgeData.delta}
+            overallCognitiveScore={overallScore}
+          />
 
-            {/* Neural Growth Animation */}
-            <NeuralGrowthAnimation
-              cognitiveAgeDelta={cognitiveAgeData.delta}
-              overallCognitiveScore={overallScore}
-            />
-
-            {/* Quick Training Links */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <Link to="/app/trainings?mode=fast">
-                <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-amber-500/30 transition-colors active:scale-[0.98]">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2">
-                    <Zap className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <p className="text-[12px] font-medium text-foreground">Fast</p>
-                  <p className="text-[10px] text-muted-foreground">Intuition</p>
+          {/* Quick Training Links */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <Link to="/app/trainings?mode=fast">
+              <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-amber-500/30 transition-colors active:scale-[0.98]">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2">
+                  <Zap className="w-4 h-4 text-amber-400" />
                 </div>
-              </Link>
-              <Link to="/app/trainings?mode=slow">
-                <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-teal-500/30 transition-colors active:scale-[0.98]">
-                  <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2">
-                    <Brain className="w-4 h-4 text-teal-400" />
-                  </div>
-                  <p className="text-[12px] font-medium text-foreground">Slow</p>
-                  <p className="text-[10px] text-muted-foreground">Reasoning</p>
-                </div>
-              </Link>
-            </div>
-
-            {/* Thinking Systems Overview */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[13px] font-semibold text-foreground">Thinking Systems</h2>
-                <span className="text-[9px] text-muted-foreground/60 uppercase tracking-widest">
-                  vs baseline
-                </span>
+                <p className="text-[12px] font-medium text-foreground">Fast</p>
+                <p className="text-[10px] text-muted-foreground">Intuition</p>
               </div>
-              
-              <FastSlowBrainMap
-                fastScore={thinkingScores.fastScore}
-                fastBaseline={thinkingScores.baselineFast}
-                fastDelta={thinkingScores.fastDelta}
-                slowScore={thinkingScores.slowScore}
-                slowBaseline={thinkingScores.baselineSlow}
-                slowDelta={thinkingScores.slowDelta}
-              />
+            </Link>
+            <Link to="/app/trainings?mode=slow">
+              <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-teal-500/30 transition-colors active:scale-[0.98]">
+                <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2">
+                  <Brain className="w-4 h-4 text-teal-400" />
+                </div>
+                <p className="text-[12px] font-medium text-foreground">Slow</p>
+                <p className="text-[10px] text-muted-foreground">Reasoning</p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Thinking Systems Overview */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[13px] font-semibold text-foreground">Thinking Systems</h2>
+              <span className="text-[9px] text-muted-foreground/60 uppercase tracking-widest">
+                vs baseline
+              </span>
             </div>
-
-            {/* Training Sources */}
-            <ThinkingSystemSources 
-              baselineFocus={metrics?.baseline_focus || 50}
-              baselineReasoning={metrics?.baseline_reasoning || 50}
-              baselineCreativity={metrics?.baseline_creativity || 50}
-              currentFocus={metrics?.focus_stability || metrics?.baseline_focus || 50}
-              currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
-              currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
-            />
-          </TabsContent>
-
-          {/* Progress Tab */}
-          <TabsContent value="progress" className="mt-4">
-            <BadgesSection />
-          </TabsContent>
-
-          {/* Coach Tab */}
-          <TabsContent value="coach" className="mt-4">
-            <CognitiveCoach
+            
+            <FastSlowBrainMap
               fastScore={thinkingScores.fastScore}
+              fastBaseline={thinkingScores.baselineFast}
+              fastDelta={thinkingScores.fastDelta}
               slowScore={thinkingScores.slowScore}
-              focusScore={Math.round(metrics?.focus_stability || 50)}
-              reasoningScore={Math.round(metrics?.reasoning_accuracy || 50)}
-              creativityScore={Math.round(metrics?.creativity || 50)}
-              sessionsThisWeek={sessionsThisWeek}
+              slowBaseline={thinkingScores.baselineSlow}
+              slowDelta={thinkingScores.slowDelta}
             />
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          {/* Training Sources */}
+          <ThinkingSystemSources 
+            baselineFocus={metrics?.baseline_focus || 50}
+            baselineReasoning={metrics?.baseline_reasoning || 50}
+            baselineCreativity={metrics?.baseline_creativity || 50}
+            currentFocus={metrics?.focus_stability || metrics?.baseline_focus || 50}
+            currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
+            currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
+          />
+        </div>
 
         {/* CTA */}
         <div className="pt-1 pb-4">
