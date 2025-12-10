@@ -37,8 +37,10 @@ const Onboarding = () => {
   const [dailyTimeCommitment, setDailyTimeCommitment] = useState<DailyTimeCommitment | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Calculate age from birth date
-  const calculatedAge = birthDate ? differenceInYears(new Date(), birthDate) : undefined;
+  // Calculate age from birth date or use existing user age for reset
+  const calculatedAge = birthDate 
+    ? differenceInYears(new Date(), birthDate) 
+    : (isResetAssessment && user?.age ? user.age : undefined);
 
   const handleNext = () => {
     if (step < 8) {
