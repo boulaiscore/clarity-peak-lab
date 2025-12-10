@@ -5,14 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment, Gender, WorkType, EducationLevel, DegreeDiscipline } from "@/contexts/AuthContext";
+import { useUpdateUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
 import { Zap, Brain, Clock, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap } from "lucide-react";
+import { InitialAssessment } from "@/components/onboarding/InitialAssessment";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { updateUser, user } = useAuth();
+  const updateMetrics = useUpdateUserMetrics();
   const [step, setStep] = useState<Step>(1);
   
   // Personal data
@@ -31,12 +34,35 @@ const Onboarding = () => {
   const calculatedAge = birthDate ? differenceInYears(new Date(), birthDate) : undefined;
 
   const handleNext = () => {
-    if (step < 7) {
+    if (step < 8) {
       setStep((s) => (s + 1) as Step);
     }
   };
 
-  const handleComplete = async () => {
+  const handleAssessmentComplete = async (results: {
+    fastScore: number;
+    slowScore: number;
+    focusScore: number;
+    reasoningScore: number;
+    creativityScore: number;
+    overallScore: number;
+    cognitiveAge: number;
+  }) => {
+    // Save initial metrics to database
+    if (user?.id) {
+      await updateMetrics.mutateAsync({
+        userId: user.id,
+        metricUpdates: {
+          fast_thinking: results.fastScore,
+          slow_thinking: results.slowScore,
+          focus_stability: results.focusScore,
+          reasoning_accuracy: results.reasoningScore,
+          creativity: results.creativityScore,
+        },
+      });
+    }
+
+    // Complete onboarding
     await updateUser({
       age: calculatedAge,
       birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
@@ -50,6 +76,11 @@ const Onboarding = () => {
       onboardingCompleted: true,
     });
     navigate("/app");
+  };
+
+  const handleComplete = async () => {
+    // Move to assessment step
+    setStep(8);
   };
 
   const toggleGoal = (goal: TrainingGoal) => {
@@ -127,8 +158,8 @@ const Onboarding = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Progress indicator */}
       <div className="px-5 pt-6 pb-4">
-        <div className="flex gap-1.5 max-w-[240px] mx-auto">
-          {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+        <div className="flex gap-1.5 max-w-[280px] mx-auto">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
             <div
               key={s}
               className={cn(
@@ -501,20 +532,30 @@ const Onboarding = () => {
                 className="w-full h-[52px] text-[15px] font-medium"
                 disabled={!sessionDuration || !dailyTimeCommitment}
               >
-                Start Training
+                Continue to Assessment
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
+          )}
+
+          {/* Step 8: Initial Cognitive Assessment */}
+          {step === 8 && calculatedAge && (
+            <InitialAssessment 
+              userAge={calculatedAge} 
+              onComplete={handleAssessmentComplete}
+            />
           )}
         </div>
       </div>
 
       {/* Tagline */}
-      <div className="py-4 text-center">
-        <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
-          Cognitive Performance System
-        </p>
-      </div>
+      {step !== 8 && (
+        <div className="py-4 text-center">
+          <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
+            Cognitive Performance System
+          </p>
+        </div>
+      )}
     </div>
   );
 };
