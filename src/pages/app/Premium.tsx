@@ -49,8 +49,18 @@ const Premium = () => {
       }
 
       if (data?.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
+        toast({
+          title: "Opening Stripe Checkout",
+          description: "A new window will open for secure payment.",
+        });
+        
+        // Try to open in new tab first
+        const newWindow = window.open(data.url, '_blank');
+        
+        // Fallback to redirect if popup blocked
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          window.location.href = data.url;
+        }
       } else {
         throw new Error('No checkout URL received');
       }
