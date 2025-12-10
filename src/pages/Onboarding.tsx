@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, differenceInYears } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -15,10 +15,14 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { updateUser, user } = useAuth();
   const updateMetrics = useUpdateUserMetrics();
   const saveBaseline = useSaveBaseline();
-  const [step, setStep] = useState<Step>(1);
+  
+  // Check if coming from reset assessment
+  const isResetAssessment = searchParams.get("step") === "assessment";
+  const [step, setStep] = useState<Step>(isResetAssessment ? 8 : 1);
   
   // Personal data
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
@@ -76,7 +80,13 @@ const Onboarding = () => {
       });
     }
 
-    // Complete onboarding
+    // If reset assessment, just go back to dashboard
+    if (isResetAssessment) {
+      navigate("/app/dashboard");
+      return;
+    }
+
+    // Complete onboarding (only for new users)
     await updateUser({
       age: calculatedAge,
       birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,

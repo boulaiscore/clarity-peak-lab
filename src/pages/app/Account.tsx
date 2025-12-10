@@ -5,19 +5,73 @@ import { Input } from "@/components/ui/input";
 import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment } from "@/contexts/AuthContext";
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { toast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Clock, Calendar, Lock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Crown, Save, LogOut, Zap, Brain, Clock, Calendar, Lock, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Account = () => {
   const { user, updateUser, logout } = useAuth();
   const { isPremium, dailySessionsUsed, remainingSessions } = usePremiumGating();
+  const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>(user?.trainingGoals || []);
   const [sessionDuration, setSessionDuration] = useState<SessionDuration | undefined>(user?.sessionDuration);
   const [dailyTimeCommitment, setDailyTimeCommitment] = useState<DailyTimeCommitment | undefined>(user?.dailyTimeCommitment);
   const [isSaving, setIsSaving] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleResetAssessment = async () => {
+    if (!user?.id) return;
+    
+    setIsResetting(true);
+    try {
+      // Reset baseline metrics in database
+      const { error } = await supabase
+        .from("user_cognitive_metrics")
+        .update({
+          baseline_focus: null,
+          baseline_reasoning: null,
+          baseline_creativity: null,
+          baseline_fast_thinking: null,
+          baseline_slow_thinking: null,
+          baseline_cognitive_age: null,
+          baseline_captured_at: null,
+        })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Assessment reset",
+        description: "Redirecting to initial assessment...",
+      });
+
+      // Navigate to onboarding assessment step
+      navigate("/onboarding?step=assessment");
+    } catch (error) {
+      console.error("Error resetting assessment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reset assessment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -225,6 +279,39 @@ const Account = () => {
 
           {/* Wearable Integration */}
           <WearableIntegrationSection />
+
+          {/* Reset Assessment */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <RotateCcw className="w-4 h-4 text-primary" />
+              Cognitive Baseline
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Reset your initial assessment to establish new baseline metrics for Fast/Slow thinking scores.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full rounded-xl" disabled={isResetting}>
+                  <RotateCcw className="w-4 h-4" />
+                  {isResetting ? "Resetting..." : "Reset Assessment"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-card border-border">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset Initial Assessment?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will clear your current baseline cognitive metrics and redirect you to retake the initial assessment. Your training history will be preserved.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleResetAssessment}>
+                    Reset & Retake
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
 
           {/* Actions */}
           <div className="space-y-3">
