@@ -92,6 +92,17 @@ export interface UserCognitiveMetrics {
   cognitive_readiness_score: number | null;
   physio_component_score: number | null;
   readiness_classification: string | null;
+  // Baseline fields (from initial assessment)
+  baseline_fast_thinking: number | null;
+  baseline_slow_thinking: number | null;
+  baseline_focus: number | null;
+  baseline_reasoning: number | null;
+  baseline_creativity: number | null;
+  baseline_cognitive_age: number | null;
+  baseline_captured_at: string | null;
+  // Level/XP fields
+  cognitive_level: number;
+  experience_points: number;
   updated_at: string;
   created_at: string;
 }

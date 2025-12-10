@@ -9,6 +9,7 @@ import { useUpdateUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
 import { Zap, Brain, Clock, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap } from "lucide-react";
 import { InitialAssessment } from "@/components/onboarding/InitialAssessment";
+import { useSaveBaseline } from "@/hooks/useBadges";
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
@@ -16,6 +17,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { updateUser, user } = useAuth();
   const updateMetrics = useUpdateUserMetrics();
+  const saveBaseline = useSaveBaseline();
   const [step, setStep] = useState<Step>(1);
   
   // Personal data
@@ -59,6 +61,17 @@ const Onboarding = () => {
           reasoning_accuracy: results.reasoningScore,
           creativity: results.creativityScore,
         },
+      });
+
+      // Save baseline for progress tracking
+      await saveBaseline.mutateAsync({
+        userId: user.id,
+        fastThinking: results.fastScore,
+        slowThinking: results.slowScore,
+        focus: results.focusScore,
+        reasoning: results.reasoningScore,
+        creativity: results.creativityScore,
+        cognitiveAge: results.cognitiveAge,
       });
     }
 
