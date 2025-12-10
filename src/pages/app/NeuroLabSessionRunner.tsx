@@ -4,34 +4,32 @@ import { Button } from "@/components/ui/button";
 import { X, Trophy, Brain, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExercises, useUpdateUserMetrics, useUserMetrics } from "@/hooks/useExercises";
-import { useSaveNeuroGymSession } from "@/hooks/useNeuroGym";
+import { useSaveNeuroLabSession } from "@/hooks/useNeuroLab";
 import { useUpdateXP, useCheckAndAwardBadges, useUserBadges } from "@/hooks/useBadges";
 import { XP_REWARDS, BadgeMetrics, Badge } from "@/lib/badges";
 import { 
-  NeuroGymArea, 
-  NeuroGymDuration, 
-  NEURO_GYM_AREAS,
-  generateNeuroGymSession,
-} from "@/lib/neuroGym";
+  NeuroLabArea, 
+  NeuroLabDuration, 
+  NEURO_LAB_AREAS,
+  generateNeuroLabSession,
+} from "@/lib/neuroLab";
 import { CognitiveExercise, getMetricUpdates } from "@/lib/exercises";
 import { toast } from "sonner";
 import { DrillRenderer } from "@/components/drills/DrillRenderer";
 
-// FocusDrill removed - now using DrillRenderer with multiple drill types
-
-export default function NeuroGymSessionRunner() {
+export default function NeuroLabSessionRunner() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const area = searchParams.get("area") as NeuroGymArea;
-  const duration = searchParams.get("duration") as NeuroGymDuration;
+  const area = searchParams.get("area") as NeuroLabArea;
+  const duration = searchParams.get("duration") as NeuroLabDuration;
   const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
   
   const { data: allExercises, isLoading: exercisesLoading } = useExercises();
   const { data: userMetrics } = useUserMetrics(user?.id);
   const { data: userBadges } = useUserBadges(user?.id);
-  const saveSession = useSaveNeuroGymSession();
+  const saveSession = useSaveNeuroLabSession();
   const updateMetrics = useUpdateUserMetrics();
   const updateXP = useUpdateXP();
   const checkBadges = useCheckAndAwardBadges();
@@ -48,7 +46,7 @@ export default function NeuroGymSessionRunner() {
   // Generate session exercises with explicit thinking mode or trainingGoals filtering
   useEffect(() => {
     if (allExercises && allExercises.length > 0 && area) {
-      const exercises = generateNeuroGymSession(
+      const exercises = generateNeuroLabSession(
         area, 
         duration || "2min", 
         allExercises,
@@ -67,7 +65,7 @@ export default function NeuroGymSessionRunner() {
         description: "A complete cognitive warm-up protocol"
       };
     }
-    const found = NEURO_GYM_AREAS.find(a => a.id === area);
+    const found = NEURO_LAB_AREAS.find(a => a.id === area);
     if (!found) {
       return {
         title: "Cognitive Training",
@@ -190,8 +188,8 @@ export default function NeuroGymSessionRunner() {
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-muted-foreground">Invalid session parameters</p>
-          <Button variant="ghost" onClick={() => navigate("/neuro-gym")} className="mt-4">
-            Back to Neuro Gym
+          <Button variant="ghost" onClick={() => navigate("/neuro-lab")} className="mt-4">
+            Back to Neuro Lab
           </Button>
         </div>
       </div>
@@ -220,8 +218,8 @@ export default function NeuroGymSessionRunner() {
           <p className="text-muted-foreground text-sm mb-6">
             This training area doesn't have exercises yet. Check back soon!
           </p>
-          <Button onClick={() => navigate("/neuro-gym")} className="w-full">
-            Back to Neuro Gym
+          <Button onClick={() => navigate("/neuro-lab")} className="w-full">
+            Back to Neuro Lab
           </Button>
         </div>
       </div>
@@ -285,8 +283,8 @@ export default function NeuroGymSessionRunner() {
           <Button onClick={() => navigate("/app/dashboard")} className="w-full">
             View Dashboard
           </Button>
-          <Button variant="outline" onClick={() => navigate("/neuro-gym")} className="w-full">
-            Back to Neuro Gym
+          <Button variant="outline" onClick={() => navigate("/neuro-lab")} className="w-full">
+            Back to Neuro Lab
           </Button>
         </div>
       </div>
@@ -306,7 +304,7 @@ export default function NeuroGymSessionRunner() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30 px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <button onClick={() => navigate("/neuro-gym")} className="text-muted-foreground">
+          <button onClick={() => navigate("/neuro-lab")} className="text-muted-foreground">
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">

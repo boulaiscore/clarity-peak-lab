@@ -21,9 +21,9 @@ import TrainingCategories from "./pages/app/TrainingCategories";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
 import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
 import InstallPage from "./pages/app/Install";
-import NeuroGym from "./pages/app/NeuroGym";
-import NeuroGymArea from "./pages/app/NeuroGymArea";
-import NeuroGymSessionRunner from "./pages/app/NeuroGymSessionRunner";
+import NeuroLab from "./pages/app/NeuroLab";
+import NeuroLabArea from "./pages/app/NeuroLabArea";
+import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -169,26 +169,26 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/neuro-gym"
+        path="/neuro-lab"
         element={
           <ProtectedRoute>
-            <NeuroGym />
+            <NeuroLab />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/neuro-gym/:area"
+        path="/neuro-lab/:area"
         element={
           <ProtectedRoute>
-            <NeuroGymArea />
+            <NeuroLabArea />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/neuro-gym/session"
+        path="/neuro-lab/session"
         element={
           <ProtectedRoute>
-            <NeuroGymSessionRunner />
+            <NeuroLabSessionRunner />
           </ProtectedRoute>
         }
       />
