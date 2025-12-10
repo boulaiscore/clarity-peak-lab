@@ -1,25 +1,23 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { CognitiveExercise } from "@/lib/exercises";
-import { DrillRenderer } from "@/components/drills/DrillRenderer";
+import { useState, useCallback, useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brain, Zap, Target, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
-import { useExercises } from "@/hooks/useExercises";
+import { AssessmentDrillRenderer } from "./AssessmentDrillRenderer";
 import { cn } from "@/lib/utils";
 
-// Assessment exercises - 1 fast + 1 slow per area = 6 total
-const ASSESSMENT_CONFIG = [
-  { area: "focus", thinkingMode: "fast", label: "Focus Arena" },
-  { area: "focus", thinkingMode: "slow", label: "Focus Arena" },
-  { area: "reasoning", thinkingMode: "fast", label: "Critical Reasoning" },
-  { area: "reasoning", thinkingMode: "slow", label: "Critical Reasoning" },
-  { area: "creativity", thinkingMode: "fast", label: "Creativity Hub" },
-  { area: "creativity", thinkingMode: "slow", label: "Creativity Hub" },
+// Fixed 6 assessment exercises - optimized for 15 seconds each
+const ASSESSMENT_EXERCISES = [
+  { id: 1, area: "focus", thinkingMode: "fast", label: "Focus Arena", name: "Dot Target" },
+  { id: 2, area: "focus", thinkingMode: "slow", label: "Focus Arena", name: "Go/No-Go" },
+  { id: 3, area: "reasoning", thinkingMode: "fast", label: "Critical Reasoning", name: "Odd One Out" },
+  { id: 4, area: "reasoning", thinkingMode: "slow", label: "Critical Reasoning", name: "Sequence Logic" },
+  { id: 5, area: "creativity", thinkingMode: "fast", label: "Creativity Hub", name: "Rapid Association" },
+  { id: 6, area: "creativity", thinkingMode: "slow", label: "Creativity Hub", name: "Analogy Match" },
 ] as const;
 
 interface ExerciseResult {
-  exerciseId: string;
+  exerciseId: number;
   area: string;
   thinkingMode: string;
   score: number;
@@ -52,44 +50,20 @@ const getAreaIcon = (area: string) => {
 };
 
 export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProps) {
-  const { data: allExercises, isLoading } = useExercises();
   const [phase, setPhase] = useState<"intro" | "testing" | "results">("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<ExerciseResult[]>([]);
-  const [assessmentExercises, setAssessmentExercises] = useState<CognitiveExercise[]>([]);
 
-  // Select one exercise per assessment config
-  useEffect(() => {
-    if (!allExercises || allExercises.length === 0) return;
-
-    const selected: CognitiveExercise[] = [];
-    
-    for (const config of ASSESSMENT_CONFIG) {
-      const candidates = allExercises.filter(
-        e => e.gym_area === config.area && e.thinking_mode === config.thinkingMode
-      );
-      
-      if (candidates.length > 0) {
-        // Pick random exercise from candidates
-        const randomIdx = Math.floor(Math.random() * candidates.length);
-        selected.push(candidates[randomIdx]);
-      }
-    }
-    
-    setAssessmentExercises(selected);
-  }, [allExercises]);
-
-  const currentExercise = assessmentExercises[currentIndex];
-  const currentConfig = ASSESSMENT_CONFIG[currentIndex];
-  const progress = ((currentIndex) / assessmentExercises.length) * 100;
+  const currentExercise = ASSESSMENT_EXERCISES[currentIndex];
+  const progress = ((currentIndex) / ASSESSMENT_EXERCISES.length) * 100;
 
   const handleExerciseComplete = useCallback((result: { score: number; correct: number; avgReactionTime?: number }) => {
-    if (!currentExercise || !currentConfig) return;
-
+    const exercise = ASSESSMENT_EXERCISES[currentIndex];
+    
     const exerciseResult: ExerciseResult = {
-      exerciseId: currentExercise.id,
-      area: currentConfig.area,
-      thinkingMode: currentConfig.thinkingMode,
+      exerciseId: exercise.id,
+      area: exercise.area,
+      thinkingMode: exercise.thinkingMode,
       score: result.score,
       correct: result.correct,
       avgReactionTime: result.avgReactionTime,
@@ -98,12 +72,12 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
     setResults(prev => [...prev, exerciseResult]);
 
     // Move to next exercise or complete
-    if (currentIndex + 1 < assessmentExercises.length) {
+    if (currentIndex + 1 < ASSESSMENT_EXERCISES.length) {
       setCurrentIndex(prev => prev + 1);
     } else {
       setPhase("results");
     }
-  }, [currentExercise, currentConfig, currentIndex, assessmentExercises.length]);
+  }, [currentIndex]);
 
   // Calculate final results
   const calculateResults = useMemo((): AssessmentResults => {
@@ -149,7 +123,6 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
     const overallScore = Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length);
 
     // Calculate cognitive age
-    // Base: user's actual age, adjusted by performance
     // Score of 50 = age equals chronological age
     // Score > 50 = younger cognitive age
     // Score < 50 = older cognitive age
@@ -171,17 +144,6 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
     onComplete(calculateResults);
   };
 
-  if (isLoading || assessmentExercises.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-          <Brain className="w-6 h-6 text-primary" />
-        </div>
-        <p className="text-muted-foreground text-sm">Preparing assessment...</p>
-      </div>
-    );
-  }
-
   // Intro phase
   if (phase === "intro") {
     return (
@@ -193,7 +155,7 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
           Cognitive Assessment
         </h1>
         <p className="text-muted-foreground text-[13px] mb-6 leading-relaxed max-w-[280px] mx-auto">
-          Quick test to establish your baseline cognitive scores. 6 exercises, 15 seconds each.
+          Quick test to establish your baseline cognitive scores. 6 exercises, ~15 seconds each.
         </p>
 
         <div className="grid grid-cols-3 gap-3 mb-8">
@@ -232,15 +194,15 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
   }
 
   // Testing phase
-  if (phase === "testing" && currentExercise) {
-    const AreaIcon = getAreaIcon(currentConfig.area);
-    const isFast = currentConfig.thinkingMode === "fast";
+  if (phase === "testing") {
+    const AreaIcon = getAreaIcon(currentExercise.area);
+    const isFast = currentExercise.thinkingMode === "fast";
 
     return (
-      <div className="animate-fade-in">
+      <div className="animate-fade-in h-full flex flex-col">
         {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="mb-2">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <div className={cn(
                 "w-8 h-8 rounded-lg flex items-center justify-center",
@@ -252,7 +214,7 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
                 )} />
               </div>
               <div>
-                <span className="text-[13px] font-medium">{currentConfig.label}</span>
+                <span className="text-[13px] font-medium">{currentExercise.name}</span>
                 <Badge 
                   variant="outline" 
                   className={cn(
@@ -267,16 +229,17 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
               </div>
             </div>
             <span className="text-[12px] text-muted-foreground">
-              {currentIndex + 1}/{assessmentExercises.length}
+              {currentIndex + 1}/{ASSESSMENT_EXERCISES.length}
             </span>
           </div>
           <Progress value={progress} className="h-1" />
         </div>
 
         {/* Exercise */}
-        <div className="min-h-[320px]">
-          <DrillRenderer 
-            exercise={currentExercise} 
+        <div className="flex-1 min-h-[320px]">
+          <AssessmentDrillRenderer 
+            key={currentIndex}
+            exerciseIndex={currentIndex} 
             onComplete={handleExerciseComplete}
           />
         </div>
