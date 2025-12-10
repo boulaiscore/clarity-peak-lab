@@ -10,8 +10,6 @@ import { BadgesSection } from "@/components/dashboard/BadgesSection";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Info, Zap, Brain, BarChart3, MessageCircle, Loader2, Award } from "lucide-react";
-import { calculateBrainAgeIndex, CognitiveMetricsSnapshot } from "@/lib/cognitiveMetrics";
-import { computeFastSlowSystems } from "@/lib/thinkingSystems";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
@@ -38,44 +36,58 @@ const Dashboard = () => {
   // User's chronological age (default 35 if not set)
   const chronologicalAge = user?.age || 35;
   
-  // Build CognitiveMetricsSnapshot from real database metrics
-  const snapshot: CognitiveMetricsSnapshot = useMemo(() => ({
-    id: user?.id || "unknown",
-    userId: user?.id || "unknown",
-    date: new Date().toISOString(),
-    reactionTimeAvgMs: metrics?.reaction_speed ? (100 - metrics.reaction_speed) * 3 + 200 : 300,
-    reasoningAccuracy: (metrics?.reasoning_accuracy || 50) / 100,
-    clarityScoreRaw: metrics?.clarity_score || 50,
-    decisionQualityRaw: metrics?.decision_quality || 50,
-    creativityRaw: metrics?.creativity || 50,
-    focusStabilityRaw: metrics?.focus_stability || 50,
-    philosophicalDepthRaw: metrics?.philosophical_reasoning || 50,
-    fastThinkingScoreRaw: metrics?.fast_thinking || 50,
-    slowThinkingScoreRaw: metrics?.slow_thinking || 50,
-    sessionsCompleted: metrics?.total_sessions || 0,
-  }), [metrics, user?.id]);
+  // Get baseline and current cognitive age
+  const cognitiveAgeData = useMemo(() => {
+    // Use baseline cognitive age from initial assessment
+    const baselineAge = metrics?.baseline_cognitive_age || chronologicalAge;
+    
+    // Calculate current cognitive age from current metrics
+    const currentFast = metrics?.fast_thinking || 50;
+    const currentSlow = metrics?.slow_thinking || 50;
+    const currentFocus = metrics?.focus_stability || 50;
+    const currentReasoning = metrics?.reasoning_accuracy || 50;
+    const currentCreativity = metrics?.creativity || 50;
+    
+    // Average current performance
+    const currentPerformance = (currentFast + currentSlow + currentFocus + currentReasoning + currentCreativity) / 5;
+    
+    // Calculate current cognitive age based on performance improvement
+    // Performance > 50 = younger, < 50 = older
+    const performanceDelta = (currentPerformance - 50) / 10;
+    const currentAge = Math.max(18, Math.round(chronologicalAge - performanceDelta));
+    
+    // Delta is how much younger/older current is vs chronological
+    const delta = chronologicalAge - currentAge;
+    
+    return {
+      cognitiveAge: currentAge,
+      baselineAge,
+      delta
+    };
+  }, [metrics, chronologicalAge]);
   
-  // Calculate Cognitive Performance Score from real metrics
-  const cps = useMemo(() => {
-    const reasoning = (metrics?.reasoning_accuracy || 50) / 100;
-    const clarity = (metrics?.clarity_score || 50) / 100;
-    const decision = (metrics?.decision_quality || 50) / 100;
-    const focus = (metrics?.focus_stability || 50) / 100;
-    // Weighted average
-    return 0.25 * reasoning + 0.25 * clarity + 0.25 * decision + 0.25 * focus;
+  // Get fast/slow thinking scores with deltas from baseline
+  const thinkingScores = useMemo(() => {
+    const currentFast = Math.round(metrics?.fast_thinking || 50);
+    const currentSlow = Math.round(metrics?.slow_thinking || 50);
+    
+    // Get baseline scores from initial assessment
+    const baselineFast = metrics?.baseline_fast_thinking || 50;
+    const baselineSlow = metrics?.baseline_slow_thinking || 50;
+    
+    // Calculate improvement from baseline
+    const fastDelta = Math.round(currentFast - baselineFast);
+    const slowDelta = Math.round(currentSlow - baselineSlow);
+    
+    return {
+      fastScore: currentFast,
+      slowScore: currentSlow,
+      fastDelta,
+      slowDelta,
+      baselineFast: Math.round(baselineFast),
+      baselineSlow: Math.round(baselineSlow)
+    };
   }, [metrics]);
-  
-  // Calculate Brain Age from real data
-  const { brainAge, delta } = useMemo(() => 
-    calculateBrainAgeIndex(chronologicalAge, cps),
-    [chronologicalAge, cps]
-  );
-  
-  // Calculate Thinking Systems from real data
-  const thinkingSystems = useMemo(() => 
-    computeFastSlowSystems(snapshot),
-    [snapshot]
-  );
   
   // Overall score for neural animation
   const overallScore = useMemo(() => {
@@ -153,11 +165,14 @@ const Dashboard = () => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-4 space-y-4">
             {/* Cognitive Age Sphere */}
-            <CognitiveAgeSphere cognitiveAge={brainAge} delta={delta} />
+            <CognitiveAgeSphere 
+              cognitiveAge={cognitiveAgeData.cognitiveAge} 
+              delta={cognitiveAgeData.delta} 
+            />
 
             {/* Neural Growth Animation */}
             <NeuralGrowthAnimation
-              cognitiveAgeDelta={delta}
+              cognitiveAgeDelta={cognitiveAgeData.delta}
               overallCognitiveScore={overallScore}
             />
 
@@ -188,15 +203,15 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <h2 className="text-[13px] font-semibold text-foreground">Thinking Systems</h2>
                 <span className="text-[9px] text-muted-foreground/60 uppercase tracking-widest">
-                  Kahneman
+                  vs baseline
                 </span>
               </div>
               
               <FastSlowBrainMap
-                fastScore={thinkingSystems.fast.score}
-                fastDelta={thinkingSystems.fast.delta}
-                slowScore={thinkingSystems.slow.score}
-                slowDelta={thinkingSystems.slow.delta}
+                fastScore={thinkingScores.fastScore}
+                fastDelta={thinkingScores.fastDelta}
+                slowScore={thinkingScores.slowScore}
+                slowDelta={thinkingScores.slowDelta}
               />
             </div>
 
@@ -212,8 +227,8 @@ const Dashboard = () => {
           {/* Coach Tab */}
           <TabsContent value="coach" className="mt-4">
             <CognitiveCoach
-              fastScore={thinkingSystems.fast.score}
-              slowScore={thinkingSystems.slow.score}
+              fastScore={thinkingScores.fastScore}
+              slowScore={thinkingScores.slowScore}
               focusScore={Math.round(metrics?.focus_stability || 50)}
               reasoningScore={Math.round(metrics?.reasoning_accuracy || 50)}
               creativityScore={Math.round(metrics?.creativity || 50)}
