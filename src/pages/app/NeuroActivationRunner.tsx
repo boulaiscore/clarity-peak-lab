@@ -8,6 +8,16 @@ import { CognitiveAlignmentModule } from "@/components/neuro-activation/modules/
 import { MicroPatternModule } from "@/components/neuro-activation/modules/MicroPatternModule";
 import { StrategicBreathModule } from "@/components/neuro-activation/modules/StrategicBreathModule";
 import { CompletionScreen } from "@/components/neuro-activation/modules/CompletionScreen";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 type Step = 'intro' | 'visual' | 'alignment' | 'pattern' | 'breath' | 'complete';
 
 interface NeuroActivationResult {
@@ -20,6 +30,7 @@ interface NeuroActivationResult {
 export default function NeuroActivationRunner() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>('intro');
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const [result, setResult] = useState<NeuroActivationResult>({
     visualStability: null,
     alignmentChoice: null,
@@ -27,7 +38,16 @@ export default function NeuroActivationRunner() {
     breathCompletion: false,
   });
 
-  const handleExit = useCallback(() => {
+  const handleExitClick = useCallback(() => {
+    // On intro or complete screens, exit directly without confirmation
+    if (currentStep === 'intro' || currentStep === 'complete') {
+      navigate('/app');
+    } else {
+      setShowExitDialog(true);
+    }
+  }, [currentStep, navigate]);
+
+  const handleConfirmExit = useCallback(() => {
     navigate('/app');
   }, [navigate]);
 
@@ -78,7 +98,7 @@ export default function NeuroActivationRunner() {
     <div className="min-h-screen bg-[#06070A] relative">
       {/* Exit Button */}
       <button
-        onClick={handleExit}
+        onClick={handleExitClick}
         className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
         aria-label="Exit"
       >
@@ -88,6 +108,29 @@ export default function NeuroActivationRunner() {
       <StepContainer stepKey={currentStep}>
         {renderStep()}
       </StepContainer>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent className="bg-[#0E1014] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Exit Session?</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
+              Your progress will be lost. Are you sure you want to exit the Neuro Activation session?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+              Continue
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmExit}
+              className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border-red-500/20"
+            >
+              Exit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
