@@ -17,8 +17,8 @@ interface Shape {
   y: number;
 }
 
-const SYMMETRIC_SHAPES = ["circle", "square", "diamond", "hexagon"];
-const ASYMMETRIC_SHAPES = ["scalene triangle", "trapezoid", "kite"];
+const SYMMETRIC_SHAPES = ["circle", "square", "diamond", "hexagon", "kite"];
+const ASYMMETRIC_SHAPES = ["scalene triangle", "trapezoid"];
 
 export function MicroPatternModule({ duration, onComplete }: MicroPatternModuleProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
@@ -128,19 +128,19 @@ export function MicroPatternModule({ duration, onComplete }: MicroPatternModuleP
       case "scalene triangle":
         return (
           <svg width={size} height={size} viewBox="0 0 100 100">
-            <polygon points="50,10 90,90 10,90" fill="none" stroke={color} strokeWidth="3" />
+            <polygon points="20,85 95,90 60,10" fill="none" stroke={color} strokeWidth="3" />
           </svg>
         );
       case "trapezoid":
         return (
           <svg width={size} height={size} viewBox="0 0 100 100">
-            <polygon points="50,10 90,90 10,90" fill="none" stroke={color} strokeWidth="3" />
+            <polygon points="25,80 75,80 90,30 10,30" fill="none" stroke={color} strokeWidth="3" />
           </svg>
         );
       case "kite":
         return (
           <svg width={size} height={size} viewBox="0 0 100 100">
-            <polygon points="50,10 90,90 10,90" fill="none" stroke={color} strokeWidth="3" />
+            <polygon points="50,5 85,40 50,95 15,40" fill="none" stroke={color} strokeWidth="3" />
           </svg>
         );
       default:
@@ -217,7 +217,7 @@ export function MicroPatternModule({ duration, onComplete }: MicroPatternModuleP
 
       {/* Hint */}
       <p className="text-[10px] text-muted-foreground/40 text-center mt-6">
-        Symmetric: circle, square, diamond, hexagon
+        Symmetric: circle, square, diamond, hexagon, kite
       </p>
     </div>
   );
