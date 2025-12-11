@@ -11,45 +11,22 @@ interface Props {
   onComplete: (result: { score: number; correct: boolean }) => void;
 }
 
-// Fixed scenario for Hypothesis Eliminator
-const SCENARIO = {
-  context: "A team's productivity has noticeably dropped over the past two weeks.",
-  prompt: "Which factor has the highest causal relevance?",
-  options: [
-    { text: "The team lead was on vacation.", eliminates: 3, isCorrect: true },
-    { text: "Office lighting was changed.", eliminates: 1, isCorrect: false },
-    { text: "Two team members are new.", eliminates: 2, isCorrect: false },
-    { text: "The coffee machine broke.", eliminates: 0, isCorrect: false }
-  ],
-  explanation: "In this exercise, you tested each hypothesis to see how many alternative explanations it could eliminate. The team lead's absence affects direction, decision-making, and morale simultaneously—eliminating multiple competing explanations. Other factors have more limited scope."
+// Elimination power based on correctness - correct answer has highest power
+const getEliminationPower = (index: number, correctIndex: number, totalOptions: number): number => {
+  if (index === correctIndex) return totalOptions - 1; // Correct answer eliminates all others
+  // Other options have decreasing power based on distance from correct
+  const distance = Math.abs(index - correctIndex);
+  return Math.max(0, totalOptions - 2 - distance);
 };
 
-export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
+export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explanation, onComplete }: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [eliminatedCards, setEliminatedCards] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
   const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
-
-  const correctIndex = SCENARIO.options.findIndex(opt => opt.isCorrect);
 
   const handleCardTap = (index: number) => {
     if (showResult) return;
-    
     setSelectedIndex(index);
-    setPreviewMode(true);
-    
-    // Show which cards would be eliminated based on predefined elimination power
-    const eliminationCount = SCENARIO.options[index].eliminates;
-    const toEliminate = new Set<number>();
-    
-    // Eliminate other cards based on power
-    const otherIndices = SCENARIO.options.map((_, i) => i).filter(i => i !== index);
-    for (let i = 0; i < Math.min(eliminationCount, otherIndices.length); i++) {
-      toEliminate.add(otherIndices[i]);
-    }
-    
-    setEliminatedCards(toEliminate);
   };
 
   const handleConfirm = () => {
@@ -68,8 +45,6 @@ export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
 
   const handleReset = () => {
     setSelectedIndex(null);
-    setEliminatedCards(new Set());
-    setPreviewMode(false);
   };
 
   return (
@@ -85,7 +60,7 @@ export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
         </div>
       </motion.div>
 
-      {/* Context Section */}
+      {/* Prompt Section */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -94,76 +69,34 @@ export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
       >
         <div className="flex items-start gap-2">
           <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <div>
-            <div className="text-xs font-medium text-foreground mb-1">Context</div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {SCENARIO.context}
-            </p>
-          </div>
+          <p className="text-xs text-foreground leading-relaxed">
+            {prompt}
+          </p>
         </div>
       </motion.div>
 
-      {previewMode && !showResult && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-cyan-400 text-xs mb-3"
-        >
-          {eliminatedCards.size} hypothesis{eliminatedCards.size !== 1 ? 'es' : ''} eliminated
-        </motion.p>
-      )}
-
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
-        {SCENARIO.options.map((option, index) => {
+        {options.map((option, index) => {
           const isSelected = selectedIndex === index;
-          const isEliminated = eliminatedCards.has(index);
-          const eliminationPower = isSelected ? option.eliminates : 0;
           
           return (
             <motion.div
               key={index}
               initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ 
-                opacity: isEliminated ? 0.3 : 1, 
-                scale: isEliminated ? 0.9 : 1,
-                filter: isEliminated ? "grayscale(100%)" : "grayscale(0%)"
-              }}
-              transition={{ duration: 0.3 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <motion.button
                 onClick={() => handleCardTap(index)}
                 disabled={showResult}
-                className={`w-full p-4 rounded-xl border text-left transition-all relative overflow-hidden ${
+                className={`w-full p-4 rounded-xl border text-left transition-all relative overflow-hidden min-h-[80px] ${
                   isSelected
                     ? "bg-cyan-500/20 border-cyan-500"
-                    : isEliminated
-                    ? "bg-muted/20 border-border/30"
                     : "bg-card/50 border-border/50 hover:border-border"
                 }`}
                 whileTap={{ scale: 0.98 }}
               >
-                {/* Elimination power indicator - only show for selected card */}
-                <div className="flex items-center gap-1 mb-2 h-2">
-                  {isSelected ? (
-                    [...Array(4)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ scale: 0 }}
-                        animate={{ 
-                          scale: 1,
-                        }}
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          i < eliminationPower ? "bg-cyan-400" : "bg-muted/30"
-                        }`}
-                        transition={{ delay: i * 0.1, duration: 0.3 }}
-                      />
-                    ))
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground/50">Tap to test</span>
-                  )}
-                </div>
-                
-                <span className="text-xs text-foreground">{option.text}</span>
+                <span className="text-xs text-foreground">{option}</span>
                 
                 {/* Selection indicator */}
                 {isSelected && (
@@ -175,27 +108,14 @@ export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
                     <Zap className="w-4 h-4 text-cyan-400" />
                   </motion.div>
                 )}
-                
-                {/* Eliminated overlay */}
-                <AnimatePresence>
-                  {isEliminated && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex items-center justify-center bg-background/50"
-                    >
-                      <span className="text-xs text-muted-foreground line-through">Eliminated</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.button>
             </motion.div>
           );
         })}
       </div>
 
-      {!showResult && previewMode && (
+      {/* Confirm/Reset buttons */}
+      {!showResult && selectedIndex !== null && (
         <div className="flex gap-3">
           <motion.button
             initial={{ opacity: 0, y: 10 }}
@@ -217,16 +137,6 @@ export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
         </div>
       )}
 
-      {!showResult && !previewMode && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-muted-foreground text-xs"
-        >
-          Tap a hypothesis to see its elimination power
-        </motion.p>
-      )}
-
       <AnimatePresence>
         {showResult && (
           <motion.div
@@ -239,12 +149,53 @@ export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
                 ? "bg-cyan-500/10 border-cyan-500/30"
                 : "bg-destructive/10 border-destructive/30"
             }`}>
-              <div className="text-xs font-medium mb-2 text-foreground">
+              <div className="text-xs font-medium mb-3 text-foreground">
                 {selectedIndex === correctIndex 
-                  ? "✓ Maximum Elimination Power!" 
-                  : "✗ Low Elimination Power"}
+                  ? "✓ Correct!" 
+                  : "✗ Not quite"}
               </div>
-              <p className="text-xs text-muted-foreground">{SCENARIO.explanation}</p>
+              
+              {/* Elimination power comparison - shown only after confirmation */}
+              <div className="mb-3 p-2 bg-background/50 rounded-lg">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Elimination Power</div>
+                <div className="space-y-1.5">
+                  {options.map((option, index) => {
+                    const power = getEliminationPower(index, correctIndex, options.length);
+                    const isCorrectOption = index === correctIndex;
+                    const isUserChoice = index === selectedIndex;
+                    
+                    return (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="flex gap-0.5">
+                          {[...Array(options.length - 1)].map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                i < power 
+                                  ? isCorrectOption ? "bg-cyan-400" : "bg-muted-foreground" 
+                                  : "bg-muted/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className={`text-[10px] truncate flex-1 ${
+                          isCorrectOption 
+                            ? "text-cyan-400 font-medium" 
+                            : isUserChoice 
+                              ? "text-foreground" 
+                              : "text-muted-foreground"
+                        }`}>
+                          {option}
+                          {isUserChoice && !isCorrectOption && " (your choice)"}
+                          {isCorrectOption && " ✓"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              <p className="text-xs text-muted-foreground">{explanation}</p>
             </div>
             
             <Button 
