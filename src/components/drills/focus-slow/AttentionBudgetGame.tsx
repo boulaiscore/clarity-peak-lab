@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
-import { Coins, Check, ArrowRight, Sparkles, GripVertical } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Coins, Check, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -33,8 +33,7 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
     FIXED_WEIGHTS.map((value, i) => ({ id: `weight-${i}`, value, assignedTo: null }))
   );
   const [showResult, setShowResult] = useState(false);
-  const [draggedWeight, setDraggedWeight] = useState<number | null>(null);
-  const [hoveredTarget, setHoveredTarget] = useState<number | null>(null);
+  const [selectedWeight, setSelectedWeight] = useState<number | null>(null);
   const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
 
   const getAssignedWeight = (targetIndex: number): WeightChip | undefined => {
@@ -44,48 +43,49 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
   const allAssigned = weights.every(w => w.assignedTo !== null);
   const assignedCount = weights.filter(w => w.assignedTo !== null).length;
 
-  const handleDragStart = (weightValue: number) => {
-    setDraggedWeight(weightValue);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedWeight(null);
-    setHoveredTarget(null);
-  };
-
-  const handleDropOnTarget = (targetIndex: number) => {
-    if (showResult || draggedWeight === null) return;
-
-    setWeights(prev => {
-      const newWeights = [...prev];
-      
-      // Find the weight being dragged
-      const draggedIdx = newWeights.findIndex(w => w.value === draggedWeight);
-      if (draggedIdx === -1) return prev;
-      
-      // Check if target already has a weight
-      const existingWeightIdx = newWeights.findIndex(w => w.assignedTo === targetIndex);
-      
-      // If target has a weight, swap or return to pool
-      if (existingWeightIdx !== -1 && existingWeightIdx !== draggedIdx) {
-        const oldAssignment = newWeights[draggedIdx].assignedTo;
-        newWeights[existingWeightIdx].assignedTo = oldAssignment;
-      }
-      
-      newWeights[draggedIdx].assignedTo = targetIndex;
-      return newWeights;
-    });
-    
-    setDraggedWeight(null);
-    setHoveredTarget(null);
-  };
-
-  const handleRemoveWeight = (targetIndex: number) => {
+  // Tap-based selection: tap weight, then tap target
+  const handleWeightTap = useCallback((weightValue: number) => {
     if (showResult) return;
-    setWeights(prev => 
-      prev.map(w => w.assignedTo === targetIndex ? { ...w, assignedTo: null } : w)
-    );
-  };
+    setSelectedWeight(prev => prev === weightValue ? null : weightValue);
+  }, [showResult]);
+
+  const handleTargetTap = useCallback((targetIndex: number) => {
+    if (showResult) return;
+
+    // If we have a selected weight, assign it to this target
+    if (selectedWeight !== null) {
+      setWeights(prev => {
+        const newWeights = [...prev];
+        
+        // Find the weight being assigned
+        const selectedIdx = newWeights.findIndex(w => w.value === selectedWeight);
+        if (selectedIdx === -1) return prev;
+        
+        // Check if target already has a weight
+        const existingWeightIdx = newWeights.findIndex(w => w.assignedTo === targetIndex);
+        
+        // If target has a weight, swap or return to pool
+        if (existingWeightIdx !== -1 && existingWeightIdx !== selectedIdx) {
+          const oldAssignment = newWeights[selectedIdx].assignedTo;
+          newWeights[existingWeightIdx].assignedTo = oldAssignment;
+        }
+        
+        newWeights[selectedIdx].assignedTo = targetIndex;
+        return newWeights;
+      });
+      
+      setSelectedWeight(null);
+    } else {
+      // No weight selected - if target has a weight, select it for reassignment
+      const assignedWeight = getAssignedWeight(targetIndex);
+      if (assignedWeight) {
+        setSelectedWeight(assignedWeight.value);
+        setWeights(prev => 
+          prev.map(w => w.assignedTo === targetIndex ? { ...w, assignedTo: null } : w)
+        );
+      }
+    }
+  }, [showResult, selectedWeight]);
 
   const handleConfirm = () => {
     if (!allAssigned) return;
@@ -146,39 +146,48 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
         </div>
       </motion.div>
 
-      {/* Unassigned weight chips - draggable */}
+      {/* Unassigned weight chips - tap to select */}
       {!showResult && (
         <motion.div 
-          className="flex gap-3 mb-6 min-h-[50px] items-center justify-center"
+          className="flex flex-col items-center gap-2 mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {unassignedWeights.length > 0 ? (
-            unassignedWeights.map((weight) => (
-              <motion.div
-                key={weight.id}
-                draggable
-                onDragStart={() => handleDragStart(weight.value)}
-                onDragEnd={handleDragEnd}
-                className="cursor-grab active:cursor-grabbing"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{
-                  boxShadow: draggedWeight === weight.value 
-                    ? "0 0 20px rgba(251, 191, 36, 0.6)" 
-                    : "0 0 10px rgba(251, 191, 36, 0.2)"
-                }}
-              >
-                <div className="flex items-center gap-1 px-4 py-2 bg-gradient-to-br from-amber-500/30 to-amber-600/20 border border-amber-500/50 rounded-xl">
-                  <GripVertical className="w-3 h-3 text-amber-400/60" />
-                  <span className="text-amber-400 font-bold text-lg">{weight.value}</span>
-                  <Coins className="w-3 h-3 text-amber-400/60" />
-                </div>
-              </motion.div>
-            ))
-          ) : (
-            <span className="text-xs text-muted-foreground">All weights assigned</span>
-          )}
+          <p className="text-xs text-muted-foreground">
+            {selectedWeight !== null 
+              ? `Tap a target to assign ${selectedWeight} coins` 
+              : 'Tap a coin to select, then tap a target'}
+          </p>
+          <div className="flex gap-3 min-h-[50px] items-center justify-center flex-wrap">
+            {unassignedWeights.length > 0 ? (
+              unassignedWeights.map((weight) => (
+                <motion.button
+                  key={weight.id}
+                  onClick={() => handleWeightTap(weight.value)}
+                  className="touch-manipulation"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={{
+                    scale: selectedWeight === weight.value ? 1.1 : 1,
+                    boxShadow: selectedWeight === weight.value 
+                      ? "0 0 25px rgba(251, 191, 36, 0.8)" 
+                      : "0 0 10px rgba(251, 191, 36, 0.2)"
+                  }}
+                >
+                  <div className={`flex items-center gap-1 px-4 py-3 bg-gradient-to-br from-amber-500/30 to-amber-600/20 border-2 rounded-xl transition-colors ${
+                    selectedWeight === weight.value 
+                      ? 'border-amber-400 bg-amber-500/40' 
+                      : 'border-amber-500/50'
+                  }`}>
+                    <span className="text-amber-400 font-bold text-lg">{weight.value}</span>
+                    <Coins className="w-4 h-4 text-amber-400/60" />
+                  </div>
+                </motion.button>
+              ))
+            ) : (
+              <span className="text-xs text-muted-foreground">All weights assigned</span>
+            )}
+          </div>
         </motion.div>
       )}
 
@@ -186,30 +195,21 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
       <div className="grid grid-cols-2 gap-4 w-full max-w-sm mb-6">
         {options.map((option, index) => {
           const assignedWeight = getAssignedWeight(index);
-          const isHovered = hoveredTarget === index && draggedWeight !== null;
           const isCorrectPosition = showResult && assignedWeight && 
             assignedWeight.value === CORRECT_ALLOCATION[index as keyof typeof CORRECT_ALLOCATION];
-          
           return (
-            <motion.div
+            <motion.button
               key={index}
-              className="flex flex-col items-center"
+              onClick={() => handleTargetTap(index)}
+              className="flex flex-col items-center touch-manipulation"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setHoveredTarget(index);
-              }}
-              onDragLeave={() => setHoveredTarget(null)}
-              onDrop={(e) => {
-                e.preventDefault();
-                handleDropOnTarget(index);
-              }}
+              disabled={showResult}
             >
               <motion.div
                 className={`relative flex items-center justify-center w-20 h-20 rounded-full border-2 border-dashed transition-colors ${
-                  isHovered 
+                  selectedWeight !== null && !assignedWeight
                     ? 'border-amber-400 bg-amber-500/20' 
                     : assignedWeight 
                       ? 'border-amber-500/50 bg-gradient-to-br from-amber-500/20 to-amber-600/10'
@@ -217,12 +217,13 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
                 } ${showResult && isCorrectPosition ? 'border-green-500 bg-green-500/20' : ''}
                   ${showResult && assignedWeight && !isCorrectPosition ? 'border-red-500/50 bg-red-500/10' : ''}`}
                 animate={{
-                  scale: isHovered ? 1.1 : 1,
+                  scale: selectedWeight !== null && !assignedWeight ? 1.05 : 1,
                   boxShadow: assignedWeight 
                     ? "0 0 20px rgba(251, 191, 36, 0.3)" 
                     : "none"
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {/* Pulsing ring animation */}
                 {assignedWeight && !showResult && (
@@ -253,20 +254,17 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
                       {assignedWeight.value}
                     </span>
                     {!showResult && (
-                      <button
-                        onClick={() => handleRemoveWeight(index)}
-                        className="text-[10px] text-muted-foreground hover:text-amber-400 mt-1"
-                      >
-                        remove
-                      </button>
+                      <span className="text-[10px] text-muted-foreground mt-1">
+                        tap to move
+                      </span>
                     )}
                   </motion.div>
                 ) : (
                   <motion.div
-                    animate={{ opacity: isHovered ? 1 : 0.3 }}
+                    animate={{ opacity: selectedWeight !== null ? 1 : 0.3 }}
                     className="text-muted-foreground text-xs text-center"
                   >
-                    {isHovered ? "Drop here" : "Drop"}
+                    {selectedWeight !== null ? "Tap here" : "Empty"}
                   </motion.div>
                 )}
               </motion.div>
@@ -291,7 +289,7 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
                   {isCorrectPosition ? "✓ Correct" : `Should be ${CORRECT_ALLOCATION[index as keyof typeof CORRECT_ALLOCATION]}`}
                 </motion.div>
               )}
-            </motion.div>
+            </motion.button>
           );
         })}
       </div>
