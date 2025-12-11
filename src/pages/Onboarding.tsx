@@ -3,15 +3,16 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, differenceInYears } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment, Gender, WorkType, EducationLevel, DegreeDiscipline } from "@/contexts/AuthContext";
 import { useUpdateUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
-import { Zap, Brain, Clock, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap } from "lucide-react";
+import { Zap, Brain, Clock, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap, Bell } from "lucide-react";
 import { InitialAssessment } from "@/components/onboarding/InitialAssessment";
 import { useSaveBaseline } from "@/hooks/useBadges";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Onboarding = () => {
   
   // Check if coming from reset assessment
   const isResetAssessment = searchParams.get("step") === "assessment";
-  const [step, setStep] = useState<Step>(isResetAssessment ? 8 : 1);
+  const [step, setStep] = useState<Step>(isResetAssessment ? 9 : 1);
   
   // Personal data
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
@@ -33,6 +34,7 @@ const Onboarding = () => {
   
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>([]);
   const [dailyTimeCommitment, setDailyTimeCommitment] = useState<DailyTimeCommitment | undefined>(undefined);
+  const [reminderTime, setReminderTime] = useState<string>("08:00");
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Calculate age from birth date or use existing user age for reset
@@ -41,7 +43,7 @@ const Onboarding = () => {
     : (isResetAssessment && user?.age ? user.age : undefined);
 
   const handleNext = () => {
-    if (step < 8) {
+    if (step < 9) {
       setStep((s) => (s + 1) as Step);
     }
   };
@@ -97,6 +99,8 @@ const Onboarding = () => {
       trainingGoals,
       sessionDuration: "2min", // Default value
       dailyTimeCommitment,
+      reminderEnabled: true,
+      reminderTime,
       onboardingCompleted: true,
     });
     navigate("/app");
@@ -115,7 +119,7 @@ const Onboarding = () => {
   };
 
   const handleComplete = async () => {
-    // Move to assessment step
+    // Move to reminder time step
     setStep(8);
   };
 
@@ -189,7 +193,7 @@ const Onboarding = () => {
       {/* Progress indicator */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex gap-1.5 max-w-[280px] mx-auto">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((s) => (
             <div
               key={s}
               className={cn(
@@ -555,8 +559,48 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 8: Initial Cognitive Assessment */}
-          {step === 8 && calculatedAge && (
+          {/* Step 8: Daily Training Time */}
+          {step === 8 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Bell className="w-5 h-5 text-primary" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Daily Training Time
+                </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  When should we remind you to train?
+                </p>
+              </div>
+              
+              <div className="mb-4">
+                <Input 
+                  type="time" 
+                  value={reminderTime} 
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  className="h-14 text-center text-xl font-medium bg-card/50 border-border/60"
+                />
+              </div>
+              
+              <p className="text-xs text-muted-foreground text-center mb-6 px-2">
+                💡 You can train at any time during the day — this is just your preferred reminder time.
+              </p>
+
+              <Button
+                onClick={() => setStep(9)}
+                variant="hero"
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!reminderTime}
+              >
+                Continue to Assessment
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 9: Initial Cognitive Assessment */}
+          {step === 9 && calculatedAge && (
             <InitialAssessment 
               userAge={calculatedAge} 
               onComplete={handleAssessmentComplete}
@@ -567,7 +611,7 @@ const Onboarding = () => {
       </div>
 
       {/* Tagline */}
-      {step !== 8 && (
+      {step !== 9 && (
         <div className="py-4 text-center">
           <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
             Strategic Cognitive Performance System

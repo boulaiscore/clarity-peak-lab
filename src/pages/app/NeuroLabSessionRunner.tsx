@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { X, Trophy, Brain, Star } from "lucide-react";
+import { X, Trophy, Brain, Star, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExercises, useUpdateUserMetrics, useUserMetrics } from "@/hooks/useExercises";
 import { useSaveNeuroLabSession } from "@/hooks/useNeuroLab";
 import { useUpdateXP, useCheckAndAwardBadges, useUserBadges } from "@/hooks/useBadges";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
+import { useDailyTraining } from "@/hooks/useDailyTraining";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { XP_REWARDS, BadgeMetrics, Badge } from "@/lib/badges";
 import { 
@@ -24,10 +25,12 @@ export default function NeuroLabSessionRunner() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { canStartSession, incrementSession } = usePremiumGating();
+  const { isDailyCompleted, invalidateDailyTraining } = useDailyTraining();
   
   const area = searchParams.get("area") as NeuroLabArea;
   const duration = searchParams.get("duration") as NeuroLabDuration;
   const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
+  const isDailyTraining = searchParams.get("daily") === "true" && !isDailyCompleted;
   
   const { data: allExercises, isLoading: exercisesLoading } = useExercises();
   const { data: userMetrics } = useUserMetrics(user?.id);
@@ -144,7 +147,13 @@ export default function NeuroLabSessionRunner() {
             correct_answers: totalCorrect,
             total_questions: sessionExercises.length,
             completed_at: new Date().toISOString(),
+            is_daily_training: isDailyTraining,
           });
+          
+          // Invalidate daily training queries if this was a daily session
+          if (isDailyTraining) {
+            invalidateDailyTraining();
+          }
           
           const metricUpdates = getMetricUpdates(sessionExercises, responsesRef.current);
           await updateMetrics.mutateAsync({ userId: user.id, metricUpdates });
@@ -248,6 +257,15 @@ export default function NeuroLabSessionRunner() {
         </div>
         
         <h1 className="text-2xl font-bold mb-2">Session Complete!</h1>
+        
+        {/* Daily Training Badge */}
+        {isDailyTraining && (
+          <div className="flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20">
+            <CheckCircle className="w-4 h-4 text-green-400" />
+            <span className="text-sm font-medium text-green-400">Daily Training Complete</span>
+          </div>
+        )}
+        
         <p className="text-muted-foreground text-center mb-4">
           {area === "neuro-activation" 
             ? "Your brain is primed for deep work."

@@ -25,6 +25,8 @@ export interface UserProfile {
   daily_time_commitment: DailyTimeCommitment;
   subscription_status: "free" | "premium";
   onboarding_completed: boolean;
+  reminder_enabled: boolean | null;
+  reminder_time: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +50,10 @@ export interface User {
   trainingGoals?: TrainingGoal[];
   sessionDuration?: SessionDuration;
   dailyTimeCommitment?: DailyTimeCommitment;
+  
+  // Reminder settings
+  reminderEnabled?: boolean;
+  reminderTime?: string;
   
   // Onboarding completed
   onboardingCompleted?: boolean;
@@ -82,6 +88,8 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     trainingGoals: profile?.training_goals || [],
     sessionDuration: profile?.session_duration || "2min",
     dailyTimeCommitment: profile?.daily_time_commitment || "10min",
+    reminderEnabled: profile?.reminder_enabled ?? false,
+    reminderTime: profile?.reminder_time || undefined,
     onboardingCompleted: profile?.onboarding_completed || false,
   };
 }
@@ -242,6 +250,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.sessionDuration !== undefined) profileUpdates.session_duration = updates.sessionDuration;
     if (updates.dailyTimeCommitment !== undefined) profileUpdates.daily_time_commitment = updates.dailyTimeCommitment;
     if (updates.subscriptionStatus !== undefined) profileUpdates.subscription_status = updates.subscriptionStatus;
+    if (updates.reminderEnabled !== undefined) profileUpdates.reminder_enabled = updates.reminderEnabled;
+    if (updates.reminderTime !== undefined) profileUpdates.reminder_time = updates.reminderTime;
     if (updates.onboardingCompleted !== undefined) profileUpdates.onboarding_completed = updates.onboardingCompleted;
 
     const { error } = await supabase

@@ -5,6 +5,7 @@ import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
+import { DailyTrainingHistory } from "@/components/dashboard/DailyTrainingHistory";
 import { Button } from "@/components/ui/button";
 import { Info, Zap, Brain, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -185,6 +186,9 @@ const Dashboard = () => {
             currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
             currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
           />
+
+          {/* Daily Training History */}
+          <DailyTrainingHistory />
         </div>
 
         {/* CTA */}

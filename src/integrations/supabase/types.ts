@@ -80,6 +80,7 @@ export type Database = {
           duration_option: string
           exercises_used: string[]
           id: string
+          is_daily_training: boolean | null
           score: number
           total_questions: number
           user_id: string
@@ -92,6 +93,7 @@ export type Database = {
           duration_option: string
           exercises_used?: string[]
           id?: string
+          is_daily_training?: boolean | null
           score?: number
           total_questions?: number
           user_id: string
@@ -104,6 +106,7 @@ export type Database = {
           duration_option?: string
           exercises_used?: string[]
           id?: string
+          is_daily_training?: boolean | null
           score?: number
           total_questions?: number
           user_id?: string

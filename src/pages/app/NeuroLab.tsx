@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
+import { DailyTrainingConfirmDialog } from "@/components/app/DailyTrainingConfirmDialog";
+import { useDailyTraining } from "@/hooks/useDailyTraining";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
   Target,
@@ -21,10 +23,15 @@ export default function NeuroLab() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
+  const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
+  
+  // State for daily training confirmation
+  const [showDailyConfirm, setShowDailyConfirm] = useState(false);
+  const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
 
   const getThinkingBadge = () => {
     const goals = user?.trainingGoals || [];
@@ -57,7 +64,28 @@ export default function NeuroLab() {
       return;
     }
     
-    navigate(`/neuro-lab/${areaId}`);
+    // If daily training not completed and outside reminder window, show confirmation
+    if (!isDailyCompleted && !isInReminderWindow && reminderTime) {
+      setPendingAreaId(areaId);
+      setShowDailyConfirm(true);
+      return;
+    }
+    
+    // Navigate with daily training flag
+    navigateToArea(areaId);
+  };
+
+  const navigateToArea = (areaId: NeuroLabArea) => {
+    const isDailyTraining = !isDailyCompleted;
+    navigate(`/neuro-lab/${areaId}?daily=${isDailyTraining}`);
+  };
+
+  const handleConfirmDailyTraining = () => {
+    if (pendingAreaId) {
+      navigateToArea(pendingAreaId);
+      setShowDailyConfirm(false);
+      setPendingAreaId(null);
+    }
   };
 
   const handleNeuroActivation = () => {
@@ -88,22 +116,33 @@ export default function NeuroLab() {
           </p>
         </div>
 
-        {/* Daily Sessions Counter (Free users only) */}
-        {!isPremium && (
-          <div className="mb-4 p-3 rounded-xl bg-card/50 border border-border/30">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Daily Sessions</span>
-              <span className="text-sm font-medium">
-                {maxDailySessions - remainingSessions}/{maxDailySessions}
-              </span>
-            </div>
-            <div className="mt-2 h-1.5 bg-border/30 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary transition-all"
-                style={{ width: `${((maxDailySessions - remainingSessions) / maxDailySessions) * 100}%` }}
-              />
+        {/* Daily Training Status */}
+        {isDailyCompleted ? (
+          <div className="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                <span className="text-green-400 text-xs">✓</span>
+              </div>
+              <span className="text-sm font-medium text-green-400">Daily Training Complete</span>
             </div>
           </div>
+        ) : (
+          !isPremium && (
+            <div className="mb-4 p-3 rounded-xl bg-card/50 border border-border/30">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Daily Sessions</span>
+                <span className="text-sm font-medium">
+                  {maxDailySessions - remainingSessions}/{maxDailySessions}
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 bg-border/30 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${((maxDailySessions - remainingSessions) / maxDailySessions) * 100}%` }}
+                />
+              </div>
+            </div>
+          )
         )}
 
         {/* Neuro Activation CTA */}
@@ -213,6 +252,13 @@ export default function NeuroLab() {
         onOpenChange={setShowPaywall}
         feature={paywallFeature}
         featureName={paywallFeatureName}
+      />
+
+      <DailyTrainingConfirmDialog
+        open={showDailyConfirm}
+        onOpenChange={setShowDailyConfirm}
+        reminderTime={reminderTime || "08:00"}
+        onConfirm={handleConfirmDailyTraining}
       />
     </AppShell>
   );

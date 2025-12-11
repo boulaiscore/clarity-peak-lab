@@ -7,7 +7,7 @@ export function useSaveNeuroLabSession() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (session: Omit<NeuroLabSession, "id" | "created_at">) => {
+    mutationFn: async (session: Omit<NeuroLabSession, "id" | "created_at"> & { is_daily_training?: boolean }) => {
       const { data, error } = await supabase
         .from("neuro_gym_sessions") // Database table name unchanged
         .insert({
@@ -19,6 +19,7 @@ export function useSaveNeuroLabSession() {
           correct_answers: session.correct_answers,
           total_questions: session.total_questions,
           completed_at: session.completed_at,
+          is_daily_training: session.is_daily_training || false,
         })
         .select()
         .single();
