@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { CognitiveExercise } from "@/lib/exercises";
 import { getDrillTypeForExercise, DRILL_CONFIGS } from "@/lib/drillMapping";
 import { DotTargetDrill } from "./DotTargetDrill";
@@ -24,7 +25,6 @@ import { RapidAssociationDrill } from "./RapidAssociationDrill";
 import { OpenReflectionDrill } from "./OpenReflectionDrill";
 import { 
   CRITICAL_REASONING_SLOW_DRILLS,
-  getRandomCriticalReasoningSlowDrill 
 } from "./critical-reasoning-slow";
 
 interface DrillRendererProps {
@@ -35,6 +35,15 @@ interface DrillRendererProps {
 export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
   const drillType = getDrillTypeForExercise(exercise.id);
   const config = DRILL_CONFIGS[drillType];
+  
+  // Memoize the critical reasoning slow drill selection based on exercise ID
+  const criticalReasoningSlowDrill = useMemo(() => {
+    if (drillType === "critical_reasoning_slow") {
+      const index = Math.abs(exercise.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % CRITICAL_REASONING_SLOW_DRILLS.length;
+      return CRITICAL_REASONING_SLOW_DRILLS[index];
+    }
+    return null;
+  }, [exercise.id, drillType]);
   
   // Normalize the completion result
   const handleComplete = (result: { 
@@ -462,9 +471,9 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
       );
 
     case "critical_reasoning_slow": {
-      // Pick a random Socratic drill from the set
-      const drill = getRandomCriticalReasoningSlowDrill();
-      const DrillComponent = drill.component;
+      // Use memoized drill selection
+      if (!criticalReasoningSlowDrill) return null;
+      const DrillComponent = criticalReasoningSlowDrill.component;
       return (
         <DrillComponent
           onComplete={(r) => handleComplete({ 
