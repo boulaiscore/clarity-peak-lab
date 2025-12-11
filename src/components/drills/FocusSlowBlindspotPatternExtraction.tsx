@@ -12,44 +12,47 @@ interface FocusSlowBlindspotPatternExtractionProps {
   onComplete: (result: DrillResult) => void;
 }
 
-type ItemType = 'symmetric' | 'hierarchical' | 'organic' | 'geometric';
-type Phase = 'intro' | 'demo' | 'scanning' | 'complete';
+type Phase = 'intro' | 'demo' | 'active' | 'complete';
 
-interface GridItem {
-  id: string;
-  type: ItemType;
-  isTarget: boolean;
-}
+// Different shape patterns - some are similar to make it challenging
+type ShapeType = 'circle' | 'square' | 'triangle' | 'diamond' | 'pentagon' | 'hexagon';
 
-const ITEM_TYPES: ItemType[] = ['symmetric', 'hierarchical', 'organic', 'geometric'];
+const SHAPES: ShapeType[] = ['circle', 'square', 'triangle', 'diamond', 'pentagon', 'hexagon'];
 
-const ItemIcon: React.FC<{ type: ItemType; size?: number }> = ({ type, size = 32 }) => {
-  const icons: Record<ItemType, JSX.Element> = {
-    symmetric: (
-      <svg width={size} height={size} viewBox="0 0 32 32">
-        <rect x="4" y="4" width="10" height="10" fill="currentColor" opacity="0.7" />
-        <rect x="18" y="4" width="10" height="10" fill="currentColor" opacity="0.7" />
-        <rect x="4" y="18" width="10" height="10" fill="currentColor" opacity="0.7" />
-        <rect x="18" y="18" width="10" height="10" fill="currentColor" opacity="0.7" />
+const ShapeIcon: React.FC<{ type: ShapeType; size?: number; filled?: boolean }> = ({ type, size = 48, filled = true }) => {
+  const color = filled ? 'currentColor' : 'none';
+  const stroke = filled ? 'none' : 'currentColor';
+  const strokeWidth = filled ? 0 : 3;
+  
+  const icons: Record<ShapeType, JSX.Element> = {
+    circle: (
+      <svg width={size} height={size} viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="18" fill={color} stroke={stroke} strokeWidth={strokeWidth} />
       </svg>
     ),
-    hierarchical: (
-      <svg width={size} height={size} viewBox="0 0 32 32">
-        <circle cx="16" cy="6" r="4" fill="currentColor" />
-        <circle cx="8" cy="18" r="3" fill="currentColor" opacity="0.8" />
-        <circle cx="24" cy="18" r="3" fill="currentColor" opacity="0.8" />
-        <circle cx="16" cy="28" r="2" fill="currentColor" opacity="0.6" />
+    square: (
+      <svg width={size} height={size} viewBox="0 0 48 48">
+        <rect x="8" y="8" width="32" height="32" fill={color} stroke={stroke} strokeWidth={strokeWidth} />
       </svg>
     ),
-    organic: (
-      <svg width={size} height={size} viewBox="0 0 32 32">
-        <path d="M16,4 Q28,8 24,16 Q20,24 16,28 Q12,24 8,16 Q4,8 16,4" fill="currentColor" opacity="0.7" />
+    triangle: (
+      <svg width={size} height={size} viewBox="0 0 48 48">
+        <polygon points="24,6 42,42 6,42" fill={color} stroke={stroke} strokeWidth={strokeWidth} />
       </svg>
     ),
-    geometric: (
-      <svg width={size} height={size} viewBox="0 0 32 32">
-        <polygon points="16,2 30,26 2,26" fill="none" stroke="currentColor" strokeWidth="2" />
-        <circle cx="16" cy="18" r="5" fill="currentColor" opacity="0.6" />
+    diamond: (
+      <svg width={size} height={size} viewBox="0 0 48 48">
+        <polygon points="24,4 44,24 24,44 4,24" fill={color} stroke={stroke} strokeWidth={strokeWidth} />
+      </svg>
+    ),
+    pentagon: (
+      <svg width={size} height={size} viewBox="0 0 48 48">
+        <polygon points="24,4 44,18 38,42 10,42 4,18" fill={color} stroke={stroke} strokeWidth={strokeWidth} />
+      </svg>
+    ),
+    hexagon: (
+      <svg width={size} height={size} viewBox="0 0 48 48">
+        <polygon points="24,4 42,14 42,34 24,44 6,34 6,14" fill={color} stroke={stroke} strokeWidth={strokeWidth} />
       </svg>
     ),
   };
@@ -57,15 +60,16 @@ const ItemIcon: React.FC<{ type: ItemType; size?: number }> = ({ type, size = 32
   return icons[type];
 };
 
-const DURATION = 25000; // 25 seconds
+const DURATION = 15000; // 15 seconds
+const ITEM_DISPLAY_TIME = 1200; // Show each item for 1.2s
 const TOTAL_ITEMS = 12;
 
 export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPatternExtractionProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<Phase>('intro');
-  const [items, setItems] = useState<GridItem[]>([]);
-  const [targetType, setTargetType] = useState<ItemType>('hierarchical');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [targetShape, setTargetShape] = useState<ShapeType>('circle');
+  const [currentItem, setCurrentItem] = useState<{ shape: ShapeType; isTarget: boolean } | null>(null);
+  const [itemIndex, setItemIndex] = useState(0);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [timeLeft, setTimeLeft] = useState(DURATION);
   
   const statsRef = useRef({
@@ -75,36 +79,63 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
     reactionTimes: [] as number[],
   });
   
+  const itemsRef = useRef<{ shape: ShapeType; isTarget: boolean }[]>([]);
   const itemStartRef = useRef(0);
   const startTimeRef = useRef(0);
+  const hasRespondedRef = useRef(false);
 
-  // Generate items when phase becomes scanning
+  // Generate sequence when phase becomes active
   useEffect(() => {
-    if (phase === 'scanning') {
-      // Pick a random target type
-      const target = ITEM_TYPES[Math.floor(Math.random() * ITEM_TYPES.length)];
-      setTargetType(target);
+    if (phase === 'active') {
+      // Pick a random target shape
+      const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+      setTargetShape(target);
       
-      // Generate items - about 30% are targets
-      const newItems: GridItem[] = [];
+      // Generate item sequence - about 35% are targets
+      const items: { shape: ShapeType; isTarget: boolean }[] = [];
       for (let i = 0; i < TOTAL_ITEMS; i++) {
         const isTarget = Math.random() < 0.35;
-        const type = isTarget ? target : ITEM_TYPES.filter(t => t !== target)[Math.floor(Math.random() * 3)];
-        newItems.push({
-          id: `item-${i}`,
-          type,
-          isTarget: type === target,
-        });
+        const shape = isTarget ? target : SHAPES.filter(s => s !== target)[Math.floor(Math.random() * 5)];
+        items.push({ shape, isTarget });
       }
-      setItems(newItems);
+      itemsRef.current = items;
       startTimeRef.current = Date.now();
+      setItemIndex(0);
+      setCurrentItem(items[0]);
       itemStartRef.current = Date.now();
+      hasRespondedRef.current = false;
     }
   }, [phase]);
 
+  // Item progression
+  useEffect(() => {
+    if (phase !== 'active' || !currentItem) return;
+    
+    const timer = setTimeout(() => {
+      // If didn't respond and it was a target, count as miss
+      if (!hasRespondedRef.current && currentItem.isTarget) {
+        statsRef.current.misses++;
+      }
+      
+      // Next item
+      const nextIndex = itemIndex + 1;
+      if (nextIndex >= TOTAL_ITEMS) {
+        setPhase('complete');
+      } else {
+        setItemIndex(nextIndex);
+        setCurrentItem(itemsRef.current[nextIndex]);
+        itemStartRef.current = Date.now();
+        hasRespondedRef.current = false;
+        setFeedback(null);
+      }
+    }, ITEM_DISPLAY_TIME);
+    
+    return () => clearTimeout(timer);
+  }, [phase, currentItem, itemIndex]);
+
   // Timer
   useEffect(() => {
-    if (phase !== 'scanning') return;
+    if (phase !== 'active') return;
     
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
@@ -112,53 +143,53 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
       setTimeLeft(remaining);
       
       if (remaining <= 0) {
-        // Calculate final score
-        const targets = items.filter(item => item.isTarget);
-        const correctHits = targets.filter(item => selectedItems.has(item.id)).length;
-        const falseHits = [...selectedItems].filter(id => !items.find(i => i.id === id)?.isTarget).length;
-        const misses = targets.length - correctHits;
-        
-        statsRef.current = { correctHits, falseHits, misses, reactionTimes: [] };
         setPhase('complete');
       }
     }, 100);
     
     return () => clearInterval(timer);
-  }, [phase, items, selectedItems]);
+  }, [phase]);
 
   // Complete calculation
   useEffect(() => {
     if (phase === 'complete') {
-      const { correctHits, falseHits, misses } = statsRef.current;
+      const { correctHits, falseHits, misses, reactionTimes } = statsRef.current;
       const totalTargets = correctHits + misses;
       const accuracy = totalTargets > 0 ? correctHits / totalTargets : 0;
-      const precision = (correctHits + falseHits) > 0 ? correctHits / (correctHits + falseHits) : 0;
+      const precision = (correctHits + falseHits) > 0 ? correctHits / (correctHits + falseHits) : 1;
       
-      const accuracyScore = accuracy * 60;
-      const precisionScore = precision * 40;
+      const accuracyScore = accuracy * 50;
+      const precisionScore = precision * 30;
+      const speedBonus = reactionTimes.length > 0 
+        ? Math.max(0, 20 - (reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length / 50))
+        : 0;
       
-      const score = Math.round(Math.max(0, Math.min(100, accuracyScore + precisionScore)));
+      const score = Math.round(Math.max(0, Math.min(100, accuracyScore + precisionScore + speedBonus)));
       
       onComplete({
         score,
         correct: correctHits,
-        avgReactionTime: 0,
+        avgReactionTime: reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0,
         metadata: { totalTargets, falseHits, misses },
       });
     }
   }, [phase, onComplete]);
 
-  const handleItemClick = useCallback((itemId: string) => {
-    setSelectedItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId);
-      } else {
-        newSet.add(itemId);
-      }
-      return newSet;
-    });
-  }, []);
+  const handleTap = useCallback(() => {
+    if (phase !== 'active' || !currentItem || hasRespondedRef.current) return;
+    
+    hasRespondedRef.current = true;
+    const reactionTime = Date.now() - itemStartRef.current;
+    
+    if (currentItem.isTarget) {
+      statsRef.current.correctHits++;
+      statsRef.current.reactionTimes.push(reactionTime);
+      setFeedback('correct');
+    } else {
+      statsRef.current.falseHits++;
+      setFeedback('wrong');
+    }
+  }, [phase, currentItem]);
 
   if (phase === 'intro') {
     return (
@@ -174,16 +205,13 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
           transition={{ delay: 0.2 }}
         >
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-            <svg width="32" height="32" viewBox="0 0 32 32">
-              <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="2" />
-              <circle cx="16" cy="16" r="4" fill="currentColor" />
-            </svg>
+            <ShapeIcon type="hexagon" size={32} />
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Pattern Recognition</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-3">Shape Vigilance</h2>
           <p className="text-muted-foreground mb-2 text-sm">Focus Arena • Slow Thinking</p>
           <p className="text-sm text-muted-foreground mb-6">
-            A target pattern type will be shown. Tap all items that match the target pattern. 
-            You have 25 seconds.
+            Shapes will appear one at a time. Tap only when you see the target shape. 
+            Don't tap for other shapes!
           </p>
           <motion.button
             className="w-full py-4 bg-cyan-500 text-black rounded-xl font-medium"
@@ -212,67 +240,57 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
           <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
           
           {/* Demo target */}
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <span className="text-sm text-muted-foreground">Find all:</span>
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="text-sm text-muted-foreground">Target:</span>
             <div className="flex items-center gap-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 rounded-lg">
               <span className="text-cyan-400">
-                <ItemIcon type="hierarchical" size={24} />
+                <ShapeIcon type="circle" size={28} />
               </span>
-              <span className="text-cyan-400 font-medium">Hierarchical</span>
             </div>
           </div>
           
-          {/* Demo grid */}
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
-              <ItemIcon type="symmetric" size={24} />
-            </div>
+          {/* Demo sequence */}
+          <div className="flex justify-center gap-4 mb-6">
             <motion.div 
-              className="aspect-square rounded-lg border-2 border-cyan-500 bg-cyan-500/30 flex items-center justify-center text-foreground"
-              initial={{ scale: 1 }}
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ delay: 0.5, duration: 0.5 }}
+              className="w-16 h-16 rounded-xl border border-border bg-card flex items-center justify-center text-foreground"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
             >
-              <ItemIcon type="hierarchical" size={24} />
+              <ShapeIcon type="square" size={32} />
             </motion.div>
-            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
-              <ItemIcon type="organic" size={24} />
-            </div>
-            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
-              <ItemIcon type="geometric" size={24} />
-            </div>
-            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
-              <ItemIcon type="organic" size={24} />
-            </div>
-            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
-              <ItemIcon type="symmetric" size={24} />
-            </div>
             <motion.div 
-              className="aspect-square rounded-lg border-2 border-cyan-500 bg-cyan-500/30 flex items-center justify-center text-foreground"
-              initial={{ scale: 1 }}
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ delay: 0.8, duration: 0.5 }}
+              className="w-16 h-16 rounded-xl border-2 border-green-500 bg-green-500/20 flex items-center justify-center text-foreground relative"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6 }}
             >
-              <ItemIcon type="hierarchical" size={24} />
+              <ShapeIcon type="circle" size={32} />
+              <span className="absolute -bottom-6 text-xs text-green-400">TAP ✓</span>
             </motion.div>
-            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
-              <ItemIcon type="geometric" size={24} />
-            </div>
+            <motion.div 
+              className="w-16 h-16 rounded-xl border border-border bg-card flex items-center justify-center text-foreground"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9 }}
+            >
+              <ShapeIcon type="triangle" size={32} />
+            </motion.div>
           </div>
           
           <motion.p 
-            className="text-xs text-cyan-400 mb-6"
+            className="text-xs text-muted-foreground mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
+            transition={{ delay: 1.2 }}
           >
-            ✓ Tap all matching patterns — 2 found!
+            Tap only for the target shape, ignore others
           </motion.p>
           
           <motion.button
             className="w-full py-4 bg-cyan-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
-            onClick={() => setPhase('scanning')}
+            onClick={() => setPhase('active')}
           >
             Start Exercise
           </motion.button>
@@ -282,19 +300,21 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
   }
 
   const progress = timeLeft / DURATION;
-  const targetLabel = targetType.charAt(0).toUpperCase() + targetType.slice(1);
+  const targetLabel = targetShape.charAt(0).toUpperCase() + targetShape.slice(1);
 
   return (
-    <div className="min-h-[400px] bg-background flex flex-col p-4">
+    <motion.div 
+      className="min-h-[400px] bg-background flex flex-col p-4"
+      onClick={handleTap}
+    >
       {/* Header with target */}
       <div className="text-center mb-4">
         <div className="flex items-center justify-center gap-3 mb-3">
-          <span className="text-sm text-muted-foreground">Find all:</span>
-          <div className="flex items-center gap-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 rounded-lg">
+          <span className="text-sm text-muted-foreground">Target:</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/20 border border-cyan-500/40 rounded-lg">
             <span className="text-cyan-400">
-              <ItemIcon type={targetType} size={24} />
+              <ShapeIcon type={targetShape} size={24} />
             </span>
-            <span className="text-cyan-400 font-medium">{targetLabel}</span>
           </div>
         </div>
         
@@ -306,36 +326,49 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
           />
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          {Math.ceil(timeLeft / 1000)}s • Selected: {selectedItems.size}
+          {itemIndex + 1}/{TOTAL_ITEMS}
         </p>
       </div>
       
-      {/* Grid */}
+      {/* Main shape display */}
       <div className="flex-1 flex items-center justify-center">
-        <div className="grid grid-cols-4 gap-3 max-w-[320px]">
-          {items.map((item) => {
-            const isSelected = selectedItems.has(item.id);
-            
-            return (
-              <motion.button
-                key={item.id}
-                className={`aspect-square rounded-xl flex items-center justify-center transition-all ${
-                  isSelected
-                    ? 'bg-cyan-500/30 border-2 border-cyan-500'
-                    : 'bg-card border border-border hover:border-cyan-500/50'
-                }`}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleItemClick(item.id)}
-              >
-                <span className="text-foreground">
-                  <ItemIcon type={item.type} size={28} />
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
+        <AnimatePresence mode="wait">
+          {currentItem && (
+            <motion.div
+              key={itemIndex}
+              className={`w-32 h-32 rounded-2xl flex items-center justify-center transition-colors ${
+                feedback === 'correct'
+                  ? 'bg-green-500/20 border-2 border-green-500'
+                  : feedback === 'wrong'
+                  ? 'bg-red-500/20 border-2 border-red-500'
+                  : 'bg-card border border-border'
+              }`}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className={
+                feedback === 'correct' 
+                  ? 'text-green-400' 
+                  : feedback === 'wrong' 
+                  ? 'text-red-400' 
+                  : 'text-foreground'
+              }>
+                <ShapeIcon type={currentItem.shape} size={64} />
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+      
+      {/* Instructions */}
+      <div className="text-center mt-4">
+        <p className="text-sm text-muted-foreground">
+          Tap anywhere when you see the target
+        </p>
+      </div>
+    </motion.div>
   );
 };
 
