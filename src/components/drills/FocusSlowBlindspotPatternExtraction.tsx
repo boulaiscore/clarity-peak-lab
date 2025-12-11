@@ -194,27 +194,25 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
   if (phase === 'intro') {
     return (
       <motion.div
-        className="min-h-[400px] bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
-          className="text-center max-w-sm"
-          initial={{ y: 20, opacity: 0 }}
+          className="text-center max-w-sm w-full"
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
         >
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-            <ShapeIcon type="hexagon" size={32} />
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <ShapeIcon type="hexagon" size={28} />
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Shape Vigilance</h2>
-          <p className="text-muted-foreground mb-2 text-sm">Focus Arena • Slow Thinking</p>
-          <p className="text-sm text-muted-foreground mb-6">
-            Shapes will appear one at a time. Tap only when you see the target shape. 
-            Don't tap for other shapes!
+          <h2 className="text-lg font-semibold text-foreground mb-2">Shape Vigilance</h2>
+          <p className="text-muted-foreground mb-1 text-xs">Focus Arena • Slow Thinking</p>
+          <p className="text-sm text-muted-foreground mb-5">
+            Tap only when you see the target shape. Ignore others!
           </p>
           <motion.button
-            className="w-full py-4 bg-cyan-500 text-black rounded-xl font-medium"
+            className="w-full py-3.5 bg-cyan-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('demo')}
           >
@@ -228,67 +226,62 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
   if (phase === 'demo') {
     return (
       <motion.div
-        className="min-h-[400px] bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
           className="text-center max-w-sm w-full"
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          <h3 className="text-base font-medium text-foreground mb-3">Example</h3>
           
           {/* Demo target */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <span className="text-sm text-muted-foreground">Target:</span>
-            <div className="flex items-center gap-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 rounded-lg">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <span className="text-xs text-muted-foreground">Target:</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/20 border border-cyan-500/40 rounded-lg">
               <span className="text-cyan-400">
-                <ShapeIcon type="circle" size={28} />
+                <ShapeIcon type="circle" size={24} />
               </span>
             </div>
           </div>
           
           {/* Demo sequence */}
-          <div className="flex justify-center gap-4 mb-6">
+          <div className="flex justify-center gap-3 mb-4">
             <motion.div 
-              className="w-16 h-16 rounded-xl border border-border bg-card flex items-center justify-center text-foreground"
+              className="w-14 h-14 rounded-xl border border-border bg-card flex items-center justify-center text-foreground"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <ShapeIcon type="square" size={32} />
+              <ShapeIcon type="square" size={28} />
             </motion.div>
             <motion.div 
-              className="w-16 h-16 rounded-xl border-2 border-green-500 bg-green-500/20 flex items-center justify-center text-foreground relative"
+              className="w-14 h-14 rounded-xl border-2 border-green-500 bg-green-500/20 flex items-center justify-center text-foreground relative"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <ShapeIcon type="circle" size={32} />
-              <span className="absolute -bottom-6 text-xs text-green-400">TAP ✓</span>
+              <ShapeIcon type="circle" size={28} />
+              <span className="absolute -bottom-5 text-xs text-green-400">TAP ✓</span>
             </motion.div>
             <motion.div 
-              className="w-16 h-16 rounded-xl border border-border bg-card flex items-center justify-center text-foreground"
+              className="w-14 h-14 rounded-xl border border-border bg-card flex items-center justify-center text-foreground"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.9 }}
             >
-              <ShapeIcon type="triangle" size={32} />
+              <ShapeIcon type="triangle" size={28} />
             </motion.div>
           </div>
           
-          <motion.p 
-            className="text-xs text-muted-foreground mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-          >
-            Tap only for the target shape, ignore others
-          </motion.p>
+          <p className="text-xs text-muted-foreground mb-4">
+            Tap only for the target shape
+          </p>
           
           <motion.button
-            className="w-full py-4 bg-cyan-500 text-black rounded-xl font-medium"
+            className="w-full py-3.5 bg-cyan-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >

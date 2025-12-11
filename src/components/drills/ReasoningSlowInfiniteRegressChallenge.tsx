@@ -143,35 +143,29 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
   if (phase === 'intro') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
-          className="text-center max-w-sm"
-          initial={{ y: 20, opacity: 0 }}
+          className="text-center max-w-sm w-full"
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
         >
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-500/20 flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 32 32" className="text-amber-500">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-500/20 flex items-center justify-center">
+            <svg width="24" height="24" viewBox="0 0 32 32" className="text-amber-500">
               <circle cx="8" cy="16" r="4" fill="currentColor" />
               <circle cx="24" cy="16" r="4" fill="currentColor" />
-              <path d="M12 16 L17 16" stroke="currentColor" strokeWidth="2" markerEnd="url(#arrow)" />
-              <defs>
-                <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                  <path d="M0,0 L6,3 L0,6 Z" fill="currentColor" />
-                </marker>
-              </defs>
+              <path d="M12 16 L20 16" stroke="currentColor" strokeWidth="2" />
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold text-foreground mb-3">Causal Reasoning</h2>
-          <p className="text-muted-foreground mb-2">Critical Reasoning • Slow Thinking</p>
-          <p className="text-sm text-muted-foreground mb-8">
-            Analyze cause-and-effect relationships. Judge how strongly one factor causes another.
+          <h2 className="text-lg font-semibold text-foreground mb-2">Causal Reasoning</h2>
+          <p className="text-muted-foreground mb-1 text-xs">Critical Reasoning • Slow Thinking</p>
+          <p className="text-sm text-muted-foreground mb-5">
+            Judge how strongly one factor causes another.
           </p>
           <motion.button
-            className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
+            className="w-full py-3.5 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('demo')}
           >
@@ -182,68 +176,60 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
     );
   }
 
-  // Demo phase - explain the three link types with interactive example
+  // Demo phase
   if (phase === 'demo') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
           className="text-center max-w-sm w-full"
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-4">How to Rate Causal Links</h3>
-          
-          <p className="text-sm text-muted-foreground mb-6">
-            You'll see a diagram showing factors that might have caused a problem. 
-            For each arrow, decide how strongly A causes B.
-          </p>
+          <h3 className="text-base font-medium text-foreground mb-3">How to Rate Causal Links</h3>
           
           {/* Visual example */}
-          <div className="bg-card border border-border rounded-xl p-4 mb-4">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <div className="px-3 py-2 bg-muted rounded-lg text-sm font-medium">Rain</div>
-              <svg width="40" height="20" viewBox="0 0 40 20">
-                <line x1="0" y1="10" x2="30" y2="10" stroke="hsl(var(--foreground))" strokeWidth="2"/>
-                <polygon points="30,5 40,10 30,15" fill="hsl(var(--foreground))"/>
-              </svg>
-              <div className="px-3 py-2 bg-muted rounded-lg text-sm font-medium">Wet Ground</div>
+          <div className="bg-card border border-border rounded-xl p-3 mb-3">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="px-2 py-1 bg-muted rounded text-xs font-medium">Rain</div>
+              <span className="text-muted-foreground">→</span>
+              <div className="px-2 py-1 bg-muted rounded text-xs font-medium">Wet Ground</div>
             </div>
             <p className="text-xs text-muted-foreground">
-              This is a <strong className="text-green-500">Strong</strong> link — rain directly causes wet ground.
+              <strong className="text-green-500">Strong</strong> — direct cause
             </p>
           </div>
           
           {/* Three categories */}
-          <div className="space-y-2 mb-6">
-            <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-              <div className="w-3 h-3 rounded-full bg-green-500"/>
+          <div className="space-y-1.5 mb-4">
+            <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500"/>
               <div className="text-left flex-1">
-                <p className="text-sm font-medium text-green-500">Strong</p>
-                <p className="text-xs text-muted-foreground">Direct, proven cause. A always leads to B.</p>
+                <p className="text-xs font-medium text-green-500">Strong</p>
+                <p className="text-[10px] text-muted-foreground">A directly causes B</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-yellow-500/10 rounded-lg">
-              <div className="w-3 h-3 rounded-full bg-yellow-500"/>
+            <div className="flex items-center gap-2 p-2 bg-yellow-500/10 rounded-lg">
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"/>
               <div className="text-left flex-1">
-                <p className="text-sm font-medium text-yellow-500">Contributory</p>
-                <p className="text-xs text-muted-foreground">One factor among many. A helps cause B.</p>
+                <p className="text-xs font-medium text-yellow-500">Contributory</p>
+                <p className="text-[10px] text-muted-foreground">A helps cause B</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-red-500/10 rounded-lg">
-              <div className="w-3 h-3 rounded-full bg-red-500"/>
+            <div className="flex items-center gap-2 p-2 bg-red-500/10 rounded-lg">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500"/>
               <div className="text-left flex-1">
-                <p className="text-sm font-medium text-red-500">Speculative</p>
-                <p className="text-xs text-muted-foreground">Uncertain or weak. Maybe A causes B, maybe not.</p>
+                <p className="text-xs font-medium text-red-500">Speculative</p>
+                <p className="text-[10px] text-muted-foreground">Uncertain link</p>
               </div>
             </div>
           </div>
           
           <motion.button
-            className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
+            className="w-full py-3.5 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('classify')}
           >
