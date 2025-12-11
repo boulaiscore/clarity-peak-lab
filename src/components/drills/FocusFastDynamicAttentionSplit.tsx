@@ -91,6 +91,7 @@ export const FocusFastDynamicAttentionSplit: React.FC<FocusFastDynamicAttentionS
   
   const symbolIdRef = useRef(0);
   const startTimeRef = useRef(0);
+  const currentRuleRef = useRef<Rule | null>(null);
 
   const generateRule = useCallback((): Rule => {
     return {
@@ -144,6 +145,7 @@ export const FocusFastDynamicAttentionSplit: React.FC<FocusFastDynamicAttentionS
     startTimeRef.current = Date.now();
     const rule = generateRule();
     setCurrentRule(rule);
+    currentRuleRef.current = rule;
     
     // Timer
     const timerInterval = setInterval(() => {
@@ -161,15 +163,17 @@ export const FocusFastDynamicAttentionSplit: React.FC<FocusFastDynamicAttentionS
     const ruleInterval = setInterval(() => {
       const newRule = generateRule();
       setCurrentRule(newRule);
+      currentRuleRef.current = newRule;
       setRuleFlash(true);
       setTimeout(() => setRuleFlash(false), 500);
     }, RULE_CHANGE_INTERVAL);
     
-    // Symbol generation
+    // Symbol generation - use ref to avoid stale closure
     const symbolInterval = setInterval(() => {
-      if (currentRule) {
-        const leftSymbol = generateSymbol('left', currentRule);
-        const rightSymbol = generateSymbol('right', currentRule);
+      const ruleNow = currentRuleRef.current;
+      if (ruleNow) {
+        const leftSymbol = generateSymbol('left', ruleNow);
+        const rightSymbol = generateSymbol('right', ruleNow);
         
         if (leftSymbol.isTarget || rightSymbol.isTarget) {
           statsRef.current.lastTargetTime = Date.now();
