@@ -35,6 +35,29 @@ const Account = () => {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [hasCompletedAssessment, setHasCompletedAssessment] = useState<boolean | null>(null);
+
+  // Check if user has completed assessment (non-default baseline values)
+  useEffect(() => {
+    const checkAssessmentStatus = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from("user_cognitive_metrics")
+        .select("baseline_fast_thinking, baseline_slow_thinking, baseline_captured_at")
+        .eq("user_id", user.id)
+        .single();
+      
+      // If all baselines are exactly 50, they likely skipped
+      const isSkipped = data?.baseline_fast_thinking === 50 && 
+                        data?.baseline_slow_thinking === 50 &&
+                        !data?.baseline_captured_at;
+      
+      setHasCompletedAssessment(!isSkipped && data?.baseline_fast_thinking !== null);
+    };
+    
+    checkAssessmentStatus();
+  }, [user?.id]);
 
   const handleResetAssessment = async () => {
     if (!user?.id) return;
@@ -391,36 +414,55 @@ const Account = () => {
           {/* Wearable Integration */}
           <WearableIntegrationSection />
 
-          {/* Reset Assessment */}
+          {/* Cognitive Baseline */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
             <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <RotateCcw className="w-4 h-4 text-primary" />
+              <Brain className="w-4 h-4 text-primary" />
               Cognitive Baseline
             </h3>
-            <p className="text-xs text-muted-foreground mb-4">
-              Reset your initial assessment to establish new baseline metrics for Fast/Slow thinking scores.
-            </p>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="w-full rounded-xl" disabled={isResetting}>
-                  <RotateCcw className="w-4 h-4" />
-                  {isResetting ? "Resetting..." : "Reset Assessment"}
+            
+            {hasCompletedAssessment === false ? (
+              <>
+                <p className="text-xs text-muted-foreground mb-4">
+                  You skipped the initial assessment. Take it now to get personalized baseline metrics.
+                </p>
+                <Button 
+                  variant="hero" 
+                  className="w-full rounded-xl" 
+                  onClick={() => navigate("/onboarding?step=assessment")}
+                >
+                  <Brain className="w-4 h-4" />
+                  Take Assessment
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-card border-border">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Reset Initial Assessment?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will clear your current baseline cognitive metrics and redirect you to retake the initial
-                    assessment. Your training history will be preserved.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleResetAssessment}>Reset & Retake</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Reset your initial assessment to establish new baseline metrics for Fast/Slow thinking scores.
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="w-full rounded-xl" disabled={isResetting}>
+                      <RotateCcw className="w-4 h-4" />
+                      {isResetting ? "Resetting..." : "Reset Assessment"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-card border-border">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset Initial Assessment?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will clear your current baseline cognitive metrics and redirect you to retake the initial
+                        assessment. Your training history will be preserved.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleResetAssessment}>Reset & Retake</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
           </div>
 
           {/* Help & Support */}

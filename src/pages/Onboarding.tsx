@@ -54,7 +54,7 @@ const Onboarding = () => {
     creativityScore: number;
     overallScore: number;
     cognitiveAge: number;
-  }) => {
+  }, skipped: boolean = false) => {
     // Save initial metrics to database
     if (user?.id) {
       await updateMetrics.mutateAsync({
@@ -68,7 +68,7 @@ const Onboarding = () => {
         },
       });
 
-      // Save baseline for progress tracking
+      // Save baseline for progress tracking (mark as skipped if applicable)
       await saveBaseline.mutateAsync({
         userId: user.id,
         fastThinking: results.fastScore,
@@ -100,6 +100,18 @@ const Onboarding = () => {
       onboardingCompleted: true,
     });
     navigate("/app");
+  };
+
+  const handleAssessmentSkipped = async (results: {
+    fastScore: number;
+    slowScore: number;
+    focusScore: number;
+    reasoningScore: number;
+    creativityScore: number;
+    overallScore: number;
+    cognitiveAge: number;
+  }) => {
+    await handleAssessmentComplete(results, true);
   };
 
   const handleComplete = async () => {
@@ -548,6 +560,7 @@ const Onboarding = () => {
             <InitialAssessment 
               userAge={calculatedAge} 
               onComplete={handleAssessmentComplete}
+              onSkip={handleAssessmentSkipped}
             />
           )}
         </div>

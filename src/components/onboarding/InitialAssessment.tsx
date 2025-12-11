@@ -53,6 +53,7 @@ interface AssessmentResults {
 interface InitialAssessmentProps {
   userAge: number;
   onComplete: (results: AssessmentResults) => void;
+  onSkip?: (results: AssessmentResults) => void;
 }
 
 const getAreaIcon = (area: string) => {
@@ -68,10 +69,28 @@ const getAreaIcon = (area: string) => {
   }
 };
 
-export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProps) {
+export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssessmentProps) {
   const [phase, setPhase] = useState<"intro" | "testing" | "results">("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<ExerciseResult[]>([]);
+
+  const defaultResults: AssessmentResults = {
+    fastScore: 50,
+    slowScore: 50,
+    focusScore: 50,
+    reasoningScore: 50,
+    creativityScore: 50,
+    overallScore: 50,
+    cognitiveAge: userAge,
+  };
+
+  const handleSkip = () => {
+    if (onSkip) {
+      onSkip(defaultResults);
+    } else {
+      onComplete(defaultResults);
+    }
+  };
 
   const currentExercise = ASSESSMENT_EXERCISES[currentIndex];
   const progress = (currentIndex / ASSESSMENT_EXERCISES.length) * 100;
@@ -232,10 +251,17 @@ export function InitialAssessment({ userAge, onComplete }: InitialAssessmentProp
           <span>Slow Thinking</span>
         </div>
 
-        <Button onClick={() => setPhase("testing")} variant="hero" className="w-full h-[52px] text-[15px] font-medium">
+        <Button onClick={() => setPhase("testing")} variant="hero" className="w-full h-[52px] text-[15px] font-medium mb-3">
           Start Assessment
           <ArrowRight className="w-4 h-4 ml-1" />
         </Button>
+        
+        <button
+          onClick={handleSkip}
+          className="w-full text-[13px] text-muted-foreground hover:text-foreground transition-colors py-2"
+        >
+          Skip for now — I'll do it later
+        </button>
       </div>
     );
   }
