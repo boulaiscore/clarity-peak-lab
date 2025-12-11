@@ -320,8 +320,20 @@ const handler = async (req: Request): Promise<Response> => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Resend API error:", data);
-      throw new Error(data.message || "Failed to send email");
+      // Log error but return success to prevent blocking the app
+      // This typically happens when Resend domain isn't verified yet
+      console.warn("Resend API error (non-blocking):", data);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        warning: "Email not sent - domain verification required",
+        details: data.message 
+      }), {
+        status: 200, // Return 200 to not block the app
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      });
     }
 
     console.log("Email sent successfully:", data);
