@@ -75,20 +75,17 @@ export function NecessaryConditionFinder({ onComplete }: Props) {
         <p className="text-muted-foreground text-sm text-center mb-4">{DRILL_DATA.question}</p>
 
         <div className="space-y-2 mb-4">
-          {DRILL_DATA.options.map((option, index) => {
+          {DRILL_DATA.options.map((option) => {
             const isSelected = selectedId === option.id;
             const isCorrect = option.isCorrect;
             const showCorrectness = showResult;
 
             return (
-              <motion.button
+              <button
                 key={option.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 + index * 0.05 }}
                 onClick={() => handleSelect(option.id)}
                 disabled={showResult}
-                className={`w-full p-3 rounded-xl border text-left transition-all ${
+                className={`w-full p-3 rounded-xl border text-left transition-colors duration-200 ${
                   showCorrectness
                     ? isCorrect
                       ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300"
@@ -101,7 +98,7 @@ export function NecessaryConditionFinder({ onComplete }: Props) {
                 }`}
               >
                 <span className="text-sm">{option.text}</span>
-              </motion.button>
+              </button>
             );
           })}
         </div>
