@@ -113,44 +113,46 @@ export default function NeuroLabArea() {
           </div>
         </div>
 
-        {/* Session Duration Selection */}
-        <div className="mb-6">
-          <h2 className="font-semibold mb-3">Session Duration</h2>
-          <div className="grid grid-cols-4 gap-2">
-            {ALL_DURATIONS.map(({ value, label }) => {
-              const locked = isDurationLocked(value);
-              const isSelected = selectedDuration === value;
-              
-              return (
-                <button
-                  key={value}
-                  onClick={() => handleDurationSelect(value)}
-                  className={cn(
-                    "relative p-3 rounded-xl border-2 transition-all text-center",
-                    isSelected && !locked
-                      ? "border-primary bg-primary/10"
-                      : locked
-                        ? "border-border/30 bg-muted/20"
-                        : "border-border/50 bg-card/50 hover:border-primary/50"
-                  )}
-                >
-                  <span className={cn(
-                    "font-semibold text-sm",
-                    locked && "text-muted-foreground"
-                  )}>
-                    {label}
-                  </span>
-                  {locked && (
-                    <span className="absolute -top-1.5 -right-1.5 flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground font-medium">
-                      <Lock className="w-2 h-2" />
-                      PRO
+        {/* Session Duration Selection - Hidden for Critical Reasoning */}
+        {area !== "reasoning" && (
+          <div className="mb-6">
+            <h2 className="font-semibold mb-3">Session Duration</h2>
+            <div className="grid grid-cols-4 gap-2">
+              {ALL_DURATIONS.map(({ value, label }) => {
+                const locked = isDurationLocked(value);
+                const isSelected = selectedDuration === value;
+                
+                return (
+                  <button
+                    key={value}
+                    onClick={() => handleDurationSelect(value)}
+                    className={cn(
+                      "relative p-3 rounded-xl border-2 transition-all text-center",
+                      isSelected && !locked
+                        ? "border-primary bg-primary/10"
+                        : locked
+                          ? "border-border/30 bg-muted/20"
+                          : "border-border/50 bg-card/50 hover:border-primary/50"
+                    )}
+                  >
+                    <span className={cn(
+                      "font-semibold text-sm",
+                      locked && "text-muted-foreground"
+                    )}>
+                      {label}
                     </span>
-                  )}
-                </button>
-              );
-            })}
+                    {locked && (
+                      <span className="absolute -top-1.5 -right-1.5 flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground font-medium">
+                        <Lock className="w-2 h-2" />
+                        PRO
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Thinking Mode Selection */}
         <div className="mb-6">
@@ -202,16 +204,18 @@ export default function NeuroLabArea() {
           </div>
         </div>
 
-        {/* Session Info */}
-        <div className="mb-6 p-4 rounded-xl bg-card/50 border border-border/50">
-          <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5 text-primary" />
-            <div>
-              <p className="font-semibold">{selectedDuration === "30s" ? "30 Seconds" : selectedDuration}</p>
-              <p className="text-xs text-muted-foreground">{getExerciseCount()}</p>
+        {/* Session Info - Hidden for Critical Reasoning */}
+        {area !== "reasoning" && (
+          <div className="mb-6 p-4 rounded-xl bg-card/50 border border-border/50">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-primary" />
+              <div>
+                <p className="font-semibold">{selectedDuration === "30s" ? "30 Seconds" : selectedDuration}</p>
+                <p className="text-xs text-muted-foreground">{getExerciseCount()}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Start Button */}
         <Button 
