@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface DrillResult {
   score: number;
@@ -190,17 +192,18 @@ export const CreativitySlowConceptForge: React.FC<CreativitySlowConceptForgeProp
     if (isCorrect) {
       setCorrectCount(prev => prev + 1);
     }
-    
-    // Move to next puzzle or finish
-    setTimeout(() => {
-      if (currentPuzzleIndex + 1 < puzzles.length) {
-        setCurrentPuzzleIndex(prev => prev + 1);
-        setStartTime(Date.now());
-      } else {
-        finishDrill();
-      }
-    }, 800);
-  }, [feedback, puzzles, currentPuzzleIndex, startTime, shuffledOptions, finishDrill]);
+  }, [feedback, puzzles, currentPuzzleIndex, startTime, shuffledOptions]);
+
+  const handleNextPuzzle = useCallback(() => {
+    if (currentPuzzleIndex + 1 < puzzles.length) {
+      setCurrentPuzzleIndex(prev => prev + 1);
+      setStartTime(Date.now());
+      setFeedback(null);
+      setSelectedOption(null);
+    } else {
+      finishDrill();
+    }
+  }, [currentPuzzleIndex, puzzles.length, finishDrill]);
 
   // Intro screen
   if (phase === 'intro') {
@@ -392,13 +395,24 @@ export const CreativitySlowConceptForge: React.FC<CreativitySlowConceptForgeProp
         
         {/* Feedback */}
         {feedback && (
-          <motion.p 
-            className={`mt-4 text-sm font-medium ${feedback === 'correct' ? 'text-green-400' : 'text-red-400'}`}
+          <motion.div 
+            className="mt-4 w-full max-w-xs"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {feedback === 'correct' ? '✓ Correct!' : `✗ Pattern: ${currentPuzzle.relationship}`}
-          </motion.p>
+            <p className={`text-sm font-medium mb-3 text-center ${feedback === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
+              {feedback === 'correct' ? '✓ Correct!' : `✗ Pattern: ${currentPuzzle.relationship}`}
+            </p>
+            
+            <Button 
+              onClick={handleNextPuzzle}
+              variant="hero"
+              className="w-full h-12"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </motion.div>
         )}
       </div>
     </div>

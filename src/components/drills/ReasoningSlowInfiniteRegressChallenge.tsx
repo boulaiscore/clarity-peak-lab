@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 interface DrillResult {
   score: number;
   correct: number;
@@ -102,16 +103,16 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
     const newAnswers = [...userAnswers, strength];
     setUserAnswers(newAnswers);
     setShowFeedback(true);
+  }, [userAnswers]);
 
-    setTimeout(() => {
-      setShowFeedback(false);
-      if (currentEdgeIndex < SCENARIO.edges.length - 1) {
-        setCurrentEdgeIndex(prev => prev + 1);
-      } else {
-        setPhase('summary');
-      }
-    }, 1500);
-  }, [userAnswers, currentEdgeIndex]);
+  const handleNextQuestion = useCallback(() => {
+    setShowFeedback(false);
+    if (currentEdgeIndex < SCENARIO.edges.length - 1) {
+      setCurrentEdgeIndex(prev => prev + 1);
+    } else {
+      setPhase('summary');
+    }
+  }, [currentEdgeIndex]);
 
   const score = useMemo(() => {
     let correct = 0;
@@ -381,14 +382,25 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`p-4 rounded-xl text-center ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}
+            className="space-y-4"
           >
-            <p className={`font-medium ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
-              {isCorrect ? '✓ Correct!' : `✗ Answer: ${STRENGTH_INFO[currentEdge.correctAnswer].label}`}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {currentEdge.explanation}
-            </p>
+            <div className={`p-4 rounded-xl text-center ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+              <p className={`font-medium ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
+                {isCorrect ? '✓ Correct!' : `✗ Answer: ${STRENGTH_INFO[currentEdge.correctAnswer].label}`}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentEdge.explanation}
+              </p>
+            </div>
+            
+            <Button 
+              onClick={handleNextQuestion}
+              variant="hero"
+              className="w-full h-12"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
           </motion.div>
         ) : (
           <div className="flex gap-2">
