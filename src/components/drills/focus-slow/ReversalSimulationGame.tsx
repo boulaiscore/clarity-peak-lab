@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Check } from "lucide-react";
+import { RotateCcw, Check, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   prompt: string;
@@ -14,6 +15,7 @@ export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanat
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
 
   const handleFlip = (index: number) => {
     if (showResult) return;
@@ -35,9 +37,13 @@ export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanat
     if (selectedIndex === null) return;
     setShowResult(true);
     const isCorrect = selectedIndex === correctIndex;
-    setTimeout(() => {
-      onComplete({ score: isCorrect ? 100 : 0, correct: isCorrect });
-    }, 3000);
+    resultRef.current = { score: isCorrect ? 100 : 0, correct: isCorrect };
+  };
+
+  const handleNext = () => {
+    if (resultRef.current) {
+      onComplete(resultRef.current);
+    }
   };
 
   const isCorrectOption = (index: number) => index === correctIndex;
@@ -160,16 +166,27 @@ export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanat
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`mt-4 p-4 rounded-xl border max-w-sm ${
+            className="mt-4 w-full max-w-sm"
+          >
+            <div className={`p-4 rounded-xl border mb-4 ${
               selectedIndex === correctIndex
                 ? "bg-green-500/10 border-green-500/30"
                 : "bg-destructive/10 border-destructive/30"
-            }`}
-          >
-            <div className="text-xs font-medium mb-2 text-foreground">
-              {selectedIndex === correctIndex ? "✓ Correct!" : "✗ Incorrect"}
+            }`}>
+              <div className="text-xs font-medium mb-2 text-foreground">
+                {selectedIndex === correctIndex ? "✓ Correct!" : "✗ Incorrect"}
+              </div>
+              <p className="text-xs text-muted-foreground">{explanation}</p>
             </div>
-            <p className="text-xs text-muted-foreground">{explanation}</p>
+            
+            <Button 
+              onClick={handleNext}
+              variant="hero"
+              className="w-full h-12"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>

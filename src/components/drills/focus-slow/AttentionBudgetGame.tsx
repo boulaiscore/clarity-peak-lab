@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Coins, Check, Minus, Plus } from "lucide-react";
+import { Coins, Check, Minus, Plus, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   prompt: string;
@@ -14,6 +15,7 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
   const [allocations, setAllocations] = useState<number[]>(options.map(() => 25));
   const [showResult, setShowResult] = useState(false);
   const [pulsingNode, setPulsingNode] = useState<number | null>(null);
+  const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
 
   const totalCoins = allocations.reduce((a, b) => a + b, 0);
   const remainingCoins = 100 - totalCoins;
@@ -48,9 +50,13 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
     const score = Math.round((correctAllocation / maxPossible) * 100);
     const isCorrect = allocations.indexOf(Math.max(...allocations)) === correctIndex;
     
-    setTimeout(() => {
-      onComplete({ score, correct: isCorrect });
-    }, 3000);
+    resultRef.current = { score, correct: isCorrect };
+  };
+
+  const handleNext = () => {
+    if (resultRef.current) {
+      onComplete(resultRef.current);
+    }
   };
 
   const getNodeSize = (allocation: number) => {
@@ -188,12 +194,23 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 p-4 rounded-xl border bg-amber-500/10 border-amber-500/30 max-w-sm"
+            className="mt-4 w-full max-w-sm"
           >
-            <div className="text-xs font-medium mb-2 text-foreground">
-              Allocation Score: {Math.round((allocations[correctIndex] / 100) * 100)}%
+            <div className="p-4 rounded-xl border bg-amber-500/10 border-amber-500/30 mb-4">
+              <div className="text-xs font-medium mb-2 text-foreground">
+                Allocation Score: {Math.round((allocations[correctIndex] / 100) * 100)}%
+              </div>
+              <p className="text-xs text-muted-foreground">{explanation}</p>
             </div>
-            <p className="text-xs text-muted-foreground">{explanation}</p>
+            
+            <Button 
+              onClick={handleNext}
+              variant="hero"
+              className="w-full h-12"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>

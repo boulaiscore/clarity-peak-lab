@@ -173,10 +173,8 @@ export const SocraticFocusGamifiedSession = ({ exerciseCount = 1, onComplete }: 
         correct: correctCount + (result.correct ? 1 : 0) > selectedExercises.length / 2 
       });
     } else {
-      // Move to next exercise
-      setTimeout(() => {
-        setCurrentIndex(prev => prev + 1);
-      }, 500);
+      // Move to next exercise immediately (user already clicked Next button)
+      setCurrentIndex(prev => prev + 1);
     }
   };
 

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Target, Zap } from "lucide-react";
+import { Target, Zap, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   prompt: string;
@@ -15,6 +16,7 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
   const [eliminatedCards, setEliminatedCards] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
 
   const getEliminationCount = (index: number) => {
     // The correct option eliminates the most hypotheses
@@ -47,10 +49,13 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
     setShowResult(true);
     
     const isCorrect = selectedIndex === correctIndex;
-    
-    setTimeout(() => {
-      onComplete({ score: isCorrect ? 100 : 0, correct: isCorrect });
-    }, 3000);
+    resultRef.current = { score: isCorrect ? 100 : 0, correct: isCorrect };
+  };
+
+  const handleNext = () => {
+    if (resultRef.current) {
+      onComplete(resultRef.current);
+    }
   };
 
   const handleReset = () => {
@@ -196,18 +201,29 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`mt-4 p-4 rounded-xl border max-w-sm ${
+            className="mt-4 w-full max-w-sm"
+          >
+            <div className={`p-4 rounded-xl border mb-4 ${
               selectedIndex === correctIndex
                 ? "bg-cyan-500/10 border-cyan-500/30"
                 : "bg-destructive/10 border-destructive/30"
-            }`}
-          >
-            <div className="text-xs font-medium mb-2 text-foreground">
-              {selectedIndex === correctIndex 
-                ? "✓ Maximum Elimination Power!" 
-                : "✗ Low Elimination Power"}
+            }`}>
+              <div className="text-xs font-medium mb-2 text-foreground">
+                {selectedIndex === correctIndex 
+                  ? "✓ Maximum Elimination Power!" 
+                  : "✗ Low Elimination Power"}
+              </div>
+              <p className="text-xs text-muted-foreground">{explanation}</p>
             </div>
-            <p className="text-xs text-muted-foreground">{explanation}</p>
+            
+            <Button 
+              onClick={handleNext}
+              variant="hero"
+              className="w-full h-12"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>
