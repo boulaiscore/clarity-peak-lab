@@ -143,29 +143,27 @@ export const ReasoningFastCognitiveWhiplash: React.FC<ReasoningFastCognitiveWhip
   if (phase === 'intro') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
-          className="text-center max-w-sm"
-          initial={{ y: 20, opacity: 0 }}
+          className="text-center max-w-sm w-full"
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
         >
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-500/20 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-amber-500 rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-amber-500 rounded-full" />
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-500/20 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-amber-500 rounded-full flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Causal Classification</h2>
-          <p className="text-muted-foreground mb-2 text-sm">Critical Reasoning • Fast Thinking</p>
-          <p className="text-sm text-muted-foreground mb-8">
-            Read each scenario and classify it as: <strong>Causal</strong> (direct cause), <strong>Correlational</strong> (linked but not causal), or <strong>Noise</strong> (irrelevant).
-            You have 6 seconds per question.
+          <h2 className="text-lg font-semibold text-foreground mb-2">Causal Classification</h2>
+          <p className="text-muted-foreground mb-1 text-xs">Critical Reasoning • Fast Thinking</p>
+          <p className="text-sm text-muted-foreground mb-5">
+            Classify each scenario: <strong>Causal</strong>, <strong>Correlational</strong>, or <strong>Noise</strong>.
           </p>
           <motion.button
-            className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
+            className="w-full py-3.5 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('demo')}
           >
@@ -179,49 +177,49 @@ export const ReasoningFastCognitiveWhiplash: React.FC<ReasoningFastCognitiveWhip
   if (phase === 'demo') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
           className="text-center max-w-sm w-full"
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          <h3 className="text-base font-medium text-foreground mb-3">Example</h3>
           
           {/* Demo scenario */}
-          <div className="bg-card border border-border rounded-2xl p-4 mb-6">
-            <p className="text-foreground leading-relaxed">
+          <div className="bg-card border border-border rounded-xl p-3 mb-4">
+            <p className="text-foreground text-sm leading-relaxed">
               "Adding a checkout button reduced cart abandonment by 30%."
             </p>
           </div>
           
           {/* Demo options */}
-          <div className="space-y-3 mb-6">
+          <div className="space-y-2 mb-4">
             <motion.div
-              className="w-full py-3 px-4 rounded-xl bg-green-500/20 text-green-400 border border-green-500/50 flex items-center justify-between"
+              className="w-full py-2.5 px-3 rounded-xl bg-green-500/20 text-green-400 border border-green-500/50 flex items-center justify-between text-sm"
               initial={{ x: -10, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
               <span>CAUSAL</span>
-              <span className="text-xs">✓ Direct cause and effect</span>
+              <span className="text-xs">✓ Direct cause</span>
             </motion.div>
-            <div className="w-full py-3 px-4 rounded-xl bg-muted/50 text-muted-foreground border border-transparent">
+            <div className="w-full py-2.5 px-3 rounded-xl bg-muted/50 text-muted-foreground border border-transparent text-sm">
               CORRELATIONAL
             </div>
-            <div className="w-full py-3 px-4 rounded-xl bg-muted/50 text-muted-foreground border border-transparent">
-              NOISE / INSUFFICIENT
+            <div className="w-full py-2.5 px-3 rounded-xl bg-muted/50 text-muted-foreground border border-transparent text-sm">
+              NOISE
             </div>
           </div>
           
-          <p className="text-xs text-muted-foreground mb-6">
-            <strong>CAUSAL</strong> = direct cause → effect. <strong>CORRELATIONAL</strong> = linked but not proven cause. <strong>NOISE</strong> = irrelevant data.
+          <p className="text-xs text-muted-foreground mb-4">
+            <strong>CAUSAL</strong> = direct cause. <strong>CORRELATIONAL</strong> = linked. <strong>NOISE</strong> = irrelevant.
           </p>
           
           <motion.button
-            className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
+            className="w-full py-3.5 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >

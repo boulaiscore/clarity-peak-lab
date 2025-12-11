@@ -239,27 +239,25 @@ export const FocusFastDynamicAttentionSplit: React.FC<FocusFastDynamicAttentionS
   if (phase === 'intro') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
-          className="text-center max-w-sm"
-          initial={{ y: 20, opacity: 0 }}
+          className="text-center max-w-sm w-full"
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
         >
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/20 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-primary rounded-lg" />
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary/20 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-primary rounded-lg" />
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Attention Split</h2>
-          <p className="text-muted-foreground mb-2 text-sm">Focus Arena • Fast Thinking</p>
-          <p className="text-sm text-muted-foreground mb-8">
-            Symbols stream down two lanes. The rule bar shows which shape+color to tap and in which lane. 
-            Tap only matching targets. The rule changes mid-exercise.
+          <h2 className="text-lg font-semibold text-foreground mb-2">Attention Split</h2>
+          <p className="text-muted-foreground mb-1 text-xs">Focus Arena • Fast Thinking</p>
+          <p className="text-sm text-muted-foreground mb-5">
+            Symbols stream down two lanes. Tap only shapes matching the rule (color + shape + lane).
           </p>
           <motion.button
-            className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-medium"
+            className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('demo')}
           >
@@ -273,74 +271,60 @@ export const FocusFastDynamicAttentionSplit: React.FC<FocusFastDynamicAttentionS
   if (phase === 'demo') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
           className="text-center max-w-sm w-full"
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          <h3 className="text-base font-medium text-foreground mb-3">Example</h3>
           
           {/* Demo rule */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <span className="text-sm text-muted-foreground">TAP:</span>
-            <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border">
-              <svg width="24" height="24" viewBox="0 0 40 40">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <span className="text-xs text-muted-foreground">TAP:</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-lg border border-border">
+              <svg width="20" height="20" viewBox="0 0 40 40">
                 <rect x="7" y="7" width="26" height="26" fill="hsl(0, 85%, 60%)" />
               </svg>
-              <span className="text-foreground font-medium">Red Squares in RIGHT</span>
+              <span className="text-foreground font-medium text-sm">Red Squares in RIGHT</span>
             </div>
           </div>
           
           {/* Demo lanes */}
-          <div className="flex border border-border rounded-xl overflow-hidden mb-6 h-48 relative">
-            <div className="flex-1 border-r border-border/30 flex flex-col items-center pt-4">
-              <span className="text-xs text-muted-foreground mb-4">LEFT</span>
-              {/* Wrong target - blue circle */}
-              <motion.div
-                className="mb-4 opacity-50"
-                initial={{ y: -20 }}
-                animate={{ y: 0 }}
-              >
-                <svg width="40" height="40" viewBox="0 0 40 40">
+          <div className="flex border border-border rounded-xl overflow-hidden mb-4 h-36">
+            <div className="flex-1 border-r border-border/30 flex flex-col items-center pt-3">
+              <span className="text-xs text-muted-foreground mb-3">LEFT</span>
+              <motion.div className="mb-2 opacity-50">
+                <svg width="36" height="36" viewBox="0 0 40 40">
                   <circle cx="20" cy="20" r="15" fill="hsl(210, 100%, 60%)" />
                 </svg>
               </motion.div>
-              <p className="text-xs text-muted-foreground/60 px-2">Don't tap</p>
+              <p className="text-xs text-muted-foreground/60">Don't tap</p>
             </div>
-            <div className="flex-1 flex flex-col items-center pt-4">
-              <span className="text-xs text-muted-foreground mb-4">RIGHT</span>
-              {/* Correct target - red square */}
+            <div className="flex-1 flex flex-col items-center pt-3">
+              <span className="text-xs text-muted-foreground mb-3">RIGHT</span>
               <motion.div
-                className="mb-2"
-                initial={{ y: -20, scale: 1 }}
-                animate={{ y: 0, scale: [1, 1.1, 1] }}
+                className="mb-1"
+                animate={{ scale: [1, 1.1, 1] }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <svg width="40" height="40" viewBox="0 0 40 40">
+                <svg width="36" height="36" viewBox="0 0 40 40">
                   <rect x="7" y="7" width="26" height="26" fill="hsl(0, 85%, 60%)" />
                 </svg>
               </motion.div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="flex items-center gap-1"
-              >
-                <span className="text-xs text-green-400">✓ Tap this!</span>
-              </motion.div>
+              <span className="text-xs text-green-400">✓ Tap this!</span>
             </div>
           </div>
           
-          <p className="text-xs text-muted-foreground mb-6">
+          <p className="text-xs text-muted-foreground mb-4">
             Only tap shapes that match the rule exactly (color + shape + lane).
           </p>
           
           <motion.button
-            className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-medium"
+            className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >

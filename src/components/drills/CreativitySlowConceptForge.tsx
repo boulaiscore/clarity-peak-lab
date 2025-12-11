@@ -206,28 +206,27 @@ export const CreativitySlowConceptForge: React.FC<CreativitySlowConceptForgeProp
   if (phase === 'intro') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
-          className="text-center max-w-sm"
-          initial={{ y: 20, opacity: 0 }}
+          className="text-center max-w-sm w-full"
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
           <motion.div 
-            className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-purple-500/20 flex items-center justify-center"
+            className="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-500/20 flex items-center justify-center"
           >
-            <span className="text-3xl">🔗</span>
+            <span className="text-2xl">🔗</span>
           </motion.div>
-          <h2 className="text-2xl font-semibold text-foreground mb-3">Visual Analogies</h2>
-          <p className="text-muted-foreground mb-2">Creativity • Slow Thinking</p>
-          <p className="text-sm text-muted-foreground mb-8">
-            Find the pattern: A is to B as C is to...?<br/>
-            Complete the analogy by selecting the correct option.
+          <h2 className="text-lg font-semibold text-foreground mb-2">Visual Analogies</h2>
+          <p className="text-muted-foreground mb-1 text-xs">Creativity • Slow Thinking</p>
+          <p className="text-sm text-muted-foreground mb-5">
+            A is to B as C is to...? Find the pattern.
           </p>
           <motion.button
-            className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
+            className="w-full py-3.5 bg-purple-500 text-white rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('demo')}
           >
@@ -242,52 +241,51 @@ export const CreativitySlowConceptForge: React.FC<CreativitySlowConceptForgeProp
   if (phase === 'demo') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
           className="text-center max-w-sm w-full"
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-6">Example</h3>
+          <h3 className="text-base font-medium text-foreground mb-4">Example</h3>
           
           {/* Analogy display */}
-          <div className="bg-card/50 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="bg-card/50 rounded-xl p-4 mb-4">
+            <div className="flex items-center justify-center gap-2 mb-3">
               <div className="flex flex-col items-center">
-                <span className="text-4xl text-red-400">●</span>
-                <span className="text-xs text-muted-foreground mt-1">A</span>
+                <span className="text-3xl text-red-400">●</span>
+                <span className="text-[10px] text-muted-foreground">A</span>
               </div>
-              <span className="text-muted-foreground text-xl">→</span>
+              <span className="text-muted-foreground">→</span>
               <div className="flex flex-col items-center">
-                <span className="text-4xl text-red-400">⬤</span>
-                <span className="text-xs text-muted-foreground mt-1">B</span>
+                <span className="text-3xl text-red-400">⬤</span>
+                <span className="text-[10px] text-muted-foreground">B</span>
               </div>
             </div>
             
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-2">
               <div className="flex flex-col items-center">
-                <span className="text-4xl text-blue-400">■</span>
-                <span className="text-xs text-muted-foreground mt-1">C</span>
+                <span className="text-3xl text-blue-400">■</span>
+                <span className="text-[10px] text-muted-foreground">C</span>
               </div>
-              <span className="text-muted-foreground text-xl">→</span>
+              <span className="text-muted-foreground">→</span>
               <div className="flex flex-col items-center">
-                <span className="text-4xl text-blue-400 bg-green-500/20 rounded-lg px-2">◼</span>
-                <span className="text-xs text-green-400 mt-1">? ✓</span>
+                <span className="text-3xl text-blue-400 bg-green-500/20 rounded px-1">◼</span>
+                <span className="text-[10px] text-green-400">? ✓</span>
               </div>
             </div>
           </div>
           
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-xs text-muted-foreground mb-4">
             <strong>Pattern:</strong> Small → Big<br/>
-            Small red circle → Big red circle<br/>
             So: Small blue square → <span className="text-green-400">Big blue square</span>
           </p>
           
           <motion.button
-            className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
+            className="w-full py-3.5 bg-purple-500 text-white rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >

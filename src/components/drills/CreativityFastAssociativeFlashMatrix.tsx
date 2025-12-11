@@ -304,27 +304,25 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
   if (phase === 'intro') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
-          className="text-center max-w-sm"
-          initial={{ y: 20, opacity: 0 }}
+          className="text-center max-w-sm w-full"
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
         >
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400">
-            <SymbolDisplay index={0} size={32} />
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+            <SymbolDisplay index={0} size={28} />
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Symbol Matching</h2>
-          <p className="text-muted-foreground mb-2 text-sm">Creativity Hub • Fast Thinking</p>
-          <p className="text-sm text-muted-foreground mb-8">
-            A concept word will appear. Tap the symbol that best represents it.
-            Trust your intuition — you have 7 seconds per word.
+          <h2 className="text-lg font-semibold text-foreground mb-2">Symbol Matching</h2>
+          <p className="text-muted-foreground mb-1 text-xs">Creativity Hub • Fast Thinking</p>
+          <p className="text-sm text-muted-foreground mb-5">
+            Tap the symbol that best represents the concept word.
           </p>
           <motion.button
-            className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
+            className="w-full py-3.5 bg-purple-500 text-white rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('demo')}
           >
@@ -338,62 +336,56 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
   if (phase === 'demo') {
     return (
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        className="flex-1 bg-background flex flex-col items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <motion.div
           className="text-center max-w-sm w-full"
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          <h3 className="text-base font-medium text-foreground mb-3">Example</h3>
           
           {/* Demo concept */}
-          <div className="inline-block px-6 py-3 bg-purple-500/10 border border-purple-500/30 rounded-2xl mb-6">
-            <h2 className="text-2xl font-semibold text-purple-400 uppercase tracking-wider">
+          <div className="inline-block px-5 py-2 bg-purple-500/10 border border-purple-500/30 rounded-xl mb-4">
+            <h2 className="text-xl font-semibold text-purple-400 uppercase tracking-wider">
               GROWTH
             </h2>
           </div>
           
           {/* Demo grid - 2x3 */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <SymbolDisplay index={2} size={36} />
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <SymbolDisplay index={2} size={32} />
             </div>
-            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <SymbolDisplay index={5} size={36} />
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <SymbolDisplay index={5} size={32} />
             </div>
             <motion.div 
-              className="aspect-square rounded-xl border-2 border-green-500 bg-green-500/20 flex items-center justify-center text-green-400"
-              initial={{ scale: 1 }}
+              className="aspect-square rounded-lg border-2 border-green-500 bg-green-500/20 flex items-center justify-center text-green-400"
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              <SymbolDisplay index={0} size={36} />
+              <SymbolDisplay index={0} size={32} />
             </motion.div>
-            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <SymbolDisplay index={3} size={36} />
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <SymbolDisplay index={3} size={32} />
             </div>
-            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <SymbolDisplay index={8} size={36} />
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <SymbolDisplay index={8} size={32} />
             </div>
-            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <SymbolDisplay index={4} size={36} />
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <SymbolDisplay index={4} size={32} />
             </div>
           </div>
           
-          <motion.p 
-            className="text-xs text-green-400 mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            ✓ The branching tree represents "growth" — upward expansion!
-          </motion.p>
+          <p className="text-xs text-green-400 mb-4">
+            ✓ The branching tree represents "growth"
+          </p>
           
           <motion.button
-            className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
+            className="w-full py-3.5 bg-purple-500 text-white rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >
