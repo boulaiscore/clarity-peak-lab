@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
@@ -7,12 +7,14 @@ import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
 import { DailyTrainingHistory } from "@/components/dashboard/DailyTrainingHistory";
 import { Button } from "@/components/ui/button";
-import { Info, Zap, Brain, Loader2 } from "lucide-react";
+import { Info, Zap, Brain, Loader2, Activity, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<"overview" | "training">("overview");
   
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
@@ -109,9 +111,9 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">Cognitive Performance</h1>
+            <h1 className="text-lg font-semibold text-foreground tracking-tight">Dashboard</h1>
             <p className="text-[9px] text-muted-foreground/60 uppercase tracking-widest mt-0.5">
-              Brain Age Index
+              Cognitive Performance
             </p>
           </div>
           <Link to="/cognitive-age">
@@ -121,84 +123,116 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Content */}
-        <div className="space-y-4">
-          {/* Cognitive Age */}
-          <CognitiveAgeSphere 
-            cognitiveAge={cognitiveAgeData.cognitiveAge} 
-            delta={cognitiveAgeData.delta}
-            chronologicalAge={cognitiveAgeData.chronologicalAge}
-          />
+        {/* Tab Switcher */}
+        <div className="flex p-1 bg-card/40 rounded-xl border border-border/20">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
+              activeTab === "overview"
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("training")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
+              activeTab === "training"
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            Training
+          </button>
+        </div>
 
-          {/* Neural Growth Animation */}
-          <NeuralGrowthAnimation
-            cognitiveAgeDelta={-cognitiveAgeData.delta}
-            overallCognitiveScore={overallScore}
-          />
+        {/* Tab Content */}
+        {activeTab === "overview" ? (
+          <div className="space-y-4">
+            {/* Cognitive Age */}
+            <CognitiveAgeSphere 
+              cognitiveAge={cognitiveAgeData.cognitiveAge} 
+              delta={cognitiveAgeData.delta}
+              chronologicalAge={cognitiveAgeData.chronologicalAge}
+            />
 
-          {/* Quick Training Links */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <Link to="/app/trainings?mode=fast">
-              <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-amber-500/30 transition-colors active:scale-[0.98]">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2">
-                  <Zap className="w-4 h-4 text-amber-400" />
-                </div>
-                <p className="text-[12px] font-medium text-foreground">System 1</p>
-                <p className="text-[10px] text-muted-foreground">Pattern Recognition</p>
+            {/* Neural Growth Animation */}
+            <NeuralGrowthAnimation
+              cognitiveAgeDelta={-cognitiveAgeData.delta}
+              overallCognitiveScore={overallScore}
+            />
+
+            {/* Thinking Systems Overview */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[13px] font-semibold text-foreground">Dual-Process Integration</h2>
+                <span className="text-[9px] text-muted-foreground/60 uppercase tracking-widest">
+                  vs baseline
+                </span>
               </div>
-            </Link>
-            <Link to="/app/trainings?mode=slow">
-              <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-teal-500/30 transition-colors active:scale-[0.98]">
-                <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2">
-                  <Brain className="w-4 h-4 text-teal-400" />
-                </div>
-                <p className="text-[12px] font-medium text-foreground">System 2</p>
-                <p className="text-[10px] text-muted-foreground">Strategic Analysis</p>
-              </div>
-            </Link>
-          </div>
-
-          {/* Thinking Systems Overview */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[13px] font-semibold text-foreground">Dual-Process Integration</h2>
-              <span className="text-[9px] text-muted-foreground/60 uppercase tracking-widest">
-                vs baseline
-              </span>
+              
+              <FastSlowBrainMap
+                fastScore={thinkingScores.fastScore}
+                fastBaseline={thinkingScores.baselineFast}
+                fastDelta={thinkingScores.fastDelta}
+                slowScore={thinkingScores.slowScore}
+                slowBaseline={thinkingScores.baselineSlow}
+                slowDelta={thinkingScores.slowDelta}
+              />
             </div>
-            
-            <FastSlowBrainMap
-              fastScore={thinkingScores.fastScore}
-              fastBaseline={thinkingScores.baselineFast}
-              fastDelta={thinkingScores.fastDelta}
-              slowScore={thinkingScores.slowScore}
-              slowBaseline={thinkingScores.baselineSlow}
-              slowDelta={thinkingScores.slowDelta}
+
+            {/* Training Sources */}
+            <ThinkingSystemSources 
+              baselineFocus={metrics?.baseline_focus || 50}
+              baselineReasoning={metrics?.baseline_reasoning || 50}
+              baselineCreativity={metrics?.baseline_creativity || 50}
+              currentFocus={metrics?.focus_stability || metrics?.baseline_focus || 50}
+              currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
+              currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
             />
           </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Quick Training Links */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <Link to="/app/trainings?mode=fast">
+                <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-amber-500/30 transition-colors active:scale-[0.98]">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <p className="text-[12px] font-medium text-foreground">System 1</p>
+                  <p className="text-[10px] text-muted-foreground">Pattern Recognition</p>
+                </div>
+              </Link>
+              <Link to="/app/trainings?mode=slow">
+                <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-teal-500/30 transition-colors active:scale-[0.98]">
+                  <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2">
+                    <Brain className="w-4 h-4 text-teal-400" />
+                  </div>
+                  <p className="text-[12px] font-medium text-foreground">System 2</p>
+                  <p className="text-[10px] text-muted-foreground">Strategic Analysis</p>
+                </div>
+              </Link>
+            </div>
 
-          {/* Training Sources */}
-          <ThinkingSystemSources 
-            baselineFocus={metrics?.baseline_focus || 50}
-            baselineReasoning={metrics?.baseline_reasoning || 50}
-            baselineCreativity={metrics?.baseline_creativity || 50}
-            currentFocus={metrics?.focus_stability || metrics?.baseline_focus || 50}
-            currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
-            currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
-          />
+            {/* Daily Training History */}
+            <DailyTrainingHistory />
 
-          {/* Daily Training History */}
-          <DailyTrainingHistory />
-        </div>
-
-        {/* CTA */}
-        <div className="pt-1 pb-4">
-          <Link to="/app">
-            <Button variant="premium" className="w-full h-11 text-[13px]">
-              Start Strategic Training
-            </Button>
-          </Link>
-        </div>
+            {/* CTA */}
+            <div className="pt-1">
+              <Link to="/app">
+                <Button variant="premium" className="w-full h-11 text-[13px]">
+                  Start Strategic Training
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
