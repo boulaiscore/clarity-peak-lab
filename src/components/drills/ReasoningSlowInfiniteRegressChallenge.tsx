@@ -13,7 +13,7 @@ interface ReasoningSlowInfiniteRegressChallengeProps {
 }
 
 type LinkStrength = 'strong' | 'contributory' | 'speculative';
-type Phase = 'intro' | 'build' | 'classify' | 'detect' | 'summary';
+type Phase = 'intro' | 'demo' | 'build' | 'classify' | 'detect' | 'summary';
 
 interface CausalNode {
   id: string;
@@ -211,11 +211,70 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
               <line x1="12" y1="8" x2="20" y2="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4" />
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold text-foreground mb-3">Infinite Regress Challenge</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-3">Causal Analysis</h2>
           <p className="text-muted-foreground mb-2">Critical Reasoning • Slow Thinking</p>
           <p className="text-sm text-muted-foreground mb-8">
             Analyze causal relationships between factors. Classify link strengths and detect circular reasoning patterns.
           </p>
+          <motion.button
+            className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setPhase('demo')}
+          >
+            See Example
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (phase === 'demo') {
+    return (
+      <motion.div
+        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          className="text-center max-w-sm w-full"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          
+          {/* Demo causal chain */}
+          <div className="bg-card border border-border rounded-xl p-4 mb-4">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="px-3 py-1 bg-muted rounded text-sm text-foreground">Price Cut</div>
+              <span className="text-muted-foreground">→</span>
+              <div className="px-3 py-1 bg-muted rounded text-sm text-foreground">More Sales</div>
+            </div>
+            <p className="text-xs text-muted-foreground">How strong is this link?</p>
+          </div>
+          
+          {/* Demo classification */}
+          <div className="flex gap-2 mb-6">
+            <motion.div
+              className="flex-1 py-2 rounded-lg text-center text-sm"
+              style={{ backgroundColor: 'hsl(140, 70%, 50%, 0.2)', color: 'hsl(140, 70%, 50%)' }}
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
+              Strong ✓
+            </motion.div>
+            <div className="flex-1 py-2 rounded-lg text-center text-sm bg-muted/30 text-muted-foreground">
+              Contributory
+            </div>
+            <div className="flex-1 py-2 rounded-lg text-center text-sm bg-muted/30 text-muted-foreground">
+              Speculative
+            </div>
+          </div>
+          
+          <p className="text-xs text-muted-foreground mb-6">
+            <strong>Strong</strong> = proven direct cause. <strong>Contributory</strong> = one factor among many. <strong>Speculative</strong> = uncertain link.
+          </p>
+          
           <motion.button
             className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
@@ -224,7 +283,7 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
               setPhase('classify');
             }}
           >
-            Begin Analysis
+            Start Exercise
           </motion.button>
         </motion.div>
       </motion.div>

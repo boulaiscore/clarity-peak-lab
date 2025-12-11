@@ -74,7 +74,7 @@ const ShapeIcon: React.FC<{ shape: Shape; color: Color; size?: number }> = ({ sh
 };
 
 export const FocusFastDynamicAttentionSplit: React.FC<FocusFastDynamicAttentionSplitProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'demo' | 'active' | 'complete'>('intro');
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [currentRule, setCurrentRule] = useState<Rule | null>(null);
   const [ruleFlash, setRuleFlash] = useState(false);
@@ -261,9 +261,90 @@ export const FocusFastDynamicAttentionSplit: React.FC<FocusFastDynamicAttentionS
           <motion.button
             className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
+            onClick={() => setPhase('demo')}
+          >
+            See Example
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (phase === 'demo') {
+    return (
+      <motion.div
+        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          className="text-center max-w-sm w-full"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          
+          {/* Demo rule */}
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="text-sm text-muted-foreground">TAP:</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border">
+              <svg width="24" height="24" viewBox="0 0 40 40">
+                <rect x="7" y="7" width="26" height="26" fill="hsl(0, 85%, 60%)" />
+              </svg>
+              <span className="text-foreground font-medium">Red Squares in RIGHT</span>
+            </div>
+          </div>
+          
+          {/* Demo lanes */}
+          <div className="flex border border-border rounded-xl overflow-hidden mb-6 h-48 relative">
+            <div className="flex-1 border-r border-border/30 flex flex-col items-center pt-4">
+              <span className="text-xs text-muted-foreground mb-4">LEFT</span>
+              {/* Wrong target - blue circle */}
+              <motion.div
+                className="mb-4 opacity-50"
+                initial={{ y: -20 }}
+                animate={{ y: 0 }}
+              >
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="15" fill="hsl(210, 100%, 60%)" />
+                </svg>
+              </motion.div>
+              <p className="text-xs text-muted-foreground/60 px-2">Don't tap</p>
+            </div>
+            <div className="flex-1 flex flex-col items-center pt-4">
+              <span className="text-xs text-muted-foreground mb-4">RIGHT</span>
+              {/* Correct target - red square */}
+              <motion.div
+                className="mb-2"
+                initial={{ y: -20, scale: 1 }}
+                animate={{ y: 0, scale: [1, 1.1, 1] }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <rect x="7" y="7" width="26" height="26" fill="hsl(0, 85%, 60%)" />
+                </svg>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="flex items-center gap-1"
+              >
+                <span className="text-xs text-green-400">✓ Tap this!</span>
+              </motion.div>
+            </div>
+          </div>
+          
+          <p className="text-xs text-muted-foreground mb-6">
+            Only tap shapes that match the rule exactly (color + shape + lane).
+          </p>
+          
+          <motion.button
+            className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-medium"
+            whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >
-            Begin
+            Start Exercise
           </motion.button>
         </motion.div>
       </motion.div>

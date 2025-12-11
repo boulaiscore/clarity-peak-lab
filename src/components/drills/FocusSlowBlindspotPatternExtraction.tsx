@@ -13,7 +13,7 @@ interface FocusSlowBlindspotPatternExtractionProps {
 }
 
 type ItemType = 'symmetric' | 'hierarchical' | 'organic' | 'geometric';
-type Phase = 'intro' | 'scanning' | 'complete';
+type Phase = 'intro' | 'demo' | 'scanning' | 'complete';
 
 interface GridItem {
   id: string;
@@ -188,9 +188,93 @@ export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPat
           <motion.button
             className="w-full py-4 bg-cyan-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
+            onClick={() => setPhase('demo')}
+          >
+            See Example
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (phase === 'demo') {
+    return (
+      <motion.div
+        className="min-h-[400px] bg-background flex flex-col items-center justify-center p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          className="text-center max-w-sm w-full"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          
+          {/* Demo target */}
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="text-sm text-muted-foreground">Find all:</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 rounded-lg">
+              <span className="text-cyan-400">
+                <ItemIcon type="hierarchical" size={24} />
+              </span>
+              <span className="text-cyan-400 font-medium">Hierarchical</span>
+            </div>
+          </div>
+          
+          {/* Demo grid */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
+              <ItemIcon type="symmetric" size={24} />
+            </div>
+            <motion.div 
+              className="aspect-square rounded-lg border-2 border-cyan-500 bg-cyan-500/30 flex items-center justify-center text-foreground"
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
+              <ItemIcon type="hierarchical" size={24} />
+            </motion.div>
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
+              <ItemIcon type="organic" size={24} />
+            </div>
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
+              <ItemIcon type="geometric" size={24} />
+            </div>
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
+              <ItemIcon type="organic" size={24} />
+            </div>
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
+              <ItemIcon type="symmetric" size={24} />
+            </div>
+            <motion.div 
+              className="aspect-square rounded-lg border-2 border-cyan-500 bg-cyan-500/30 flex items-center justify-center text-foreground"
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+            >
+              <ItemIcon type="hierarchical" size={24} />
+            </motion.div>
+            <div className="aspect-square rounded-lg border border-border bg-card flex items-center justify-center text-foreground">
+              <ItemIcon type="geometric" size={24} />
+            </div>
+          </div>
+          
+          <motion.p 
+            className="text-xs text-cyan-400 mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            ✓ Tap all matching patterns — 2 found!
+          </motion.p>
+          
+          <motion.button
+            className="w-full py-4 bg-cyan-500 text-black rounded-xl font-medium"
+            whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('scanning')}
           >
-            Begin
+            Start Exercise
           </motion.button>
         </motion.div>
       </motion.div>

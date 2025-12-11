@@ -82,7 +82,7 @@ const IconDisplay: React.FC<{ pathIndex: number; size?: number }> = ({ pathIndex
 );
 
 export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssociativeFlashMatrixProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'demo' | 'active' | 'complete'>('intro');
   const [currentTrial, setCurrentTrial] = useState<Trial | null>(null);
   const [trialIndex, setTrialIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_PER_TRIAL);
@@ -231,9 +231,78 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
           <motion.button
             className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
+            onClick={() => setPhase('demo')}
+          >
+            See Example
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (phase === 'demo') {
+    return (
+      <motion.div
+        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          className="text-center max-w-sm w-full"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          
+          {/* Demo concept */}
+          <div className="inline-block px-6 py-3 bg-purple-500/10 border border-purple-500/30 rounded-2xl mb-6">
+            <h2 className="text-2xl font-semibold text-purple-400 uppercase tracking-wider">
+              GROWTH
+            </h2>
+          </div>
+          
+          {/* Demo grid */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <IconDisplay pathIndex={2} size={32} />
+            </div>
+            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <IconDisplay pathIndex={5} size={32} />
+            </div>
+            <motion.div 
+              className="aspect-square rounded-xl border-2 border-green-500 bg-green-500/20 flex items-center justify-center text-green-400"
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
+              <IconDisplay pathIndex={6} size={32} />
+            </motion.div>
+            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <IconDisplay pathIndex={3} size={32} />
+            </div>
+            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <IconDisplay pathIndex={8} size={32} />
+            </div>
+            <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
+              <IconDisplay pathIndex={4} size={32} />
+            </div>
+          </div>
+          
+          <motion.p 
+            className="text-xs text-green-400 mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            ✓ The branching symbol represents "growth" — upward expansion!
+          </motion.p>
+          
+          <motion.button
+            className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
+            whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >
-            Begin
+            Start Exercise
           </motion.button>
         </motion.div>
       </motion.div>

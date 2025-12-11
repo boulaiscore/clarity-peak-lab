@@ -12,7 +12,7 @@ interface CreativitySlowConceptForgeProps {
   onComplete: (result: DrillResult) => void;
 }
 
-type Phase = 'intro' | 'select' | 'structure' | 'projection' | 'complete';
+type Phase = 'intro' | 'demo' | 'select' | 'structure' | 'projection' | 'complete';
 type Concept = 'emergence' | 'constraint' | 'flow' | 'tension' | 'equilibrium' | 'entropy';
 type Structure = 'linear' | 'hierarchical' | 'cyclic' | 'fractal' | 'networked' | 'chaotic';
 
@@ -196,7 +196,7 @@ export const CreativitySlowConceptForge: React.FC<CreativitySlowConceptForgeProp
               <circle cx="16" cy="16" r="2" fill="currentColor" />
             </svg>
           </motion.div>
-          <h2 className="text-2xl font-semibold text-foreground mb-3">The Concept Forge</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-3">Concept Forge</h2>
           <p className="text-muted-foreground mb-2">Creativity Hub • Slow Thinking</p>
           <p className="text-sm text-muted-foreground mb-8">
             Combine abstract concepts into coherent structures. Select two concepts, 
@@ -205,9 +205,92 @@ export const CreativitySlowConceptForge: React.FC<CreativitySlowConceptForgeProp
           <motion.button
             className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
+            onClick={() => setPhase('demo')}
+          >
+            See Example
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (phase === 'demo') {
+    return (
+      <motion.div
+        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          className="text-center max-w-sm w-full"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          
+          {/* Step 1: Concepts */}
+          <div className="mb-4">
+            <p className="text-xs text-muted-foreground mb-2">Step 1: Select two concepts</p>
+            <div className="flex justify-center gap-2">
+              <motion.div 
+                className="px-3 py-2 bg-purple-500/20 border border-purple-500 rounded-lg text-purple-400 text-sm"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                Flow
+              </motion.div>
+              <motion.div 
+                className="px-3 py-2 bg-purple-500/20 border border-purple-500 rounded-lg text-purple-400 text-sm"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                Constraint
+              </motion.div>
+            </div>
+          </div>
+          
+          {/* Step 2: Structure */}
+          <div className="mb-4">
+            <p className="text-xs text-muted-foreground mb-2">Step 2: Choose interaction pattern</p>
+            <motion.div 
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500 rounded-lg"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <svg width="24" height="24" viewBox="0 0 32 32" className="text-purple-400">
+                <circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+                <polygon points="26,16 22,12 22,20" fill="currentColor" />
+              </svg>
+              <span className="text-purple-400 text-sm">Cyclic</span>
+            </motion.div>
+          </div>
+          
+          {/* Step 3: Projection */}
+          <div className="mb-6">
+            <p className="text-xs text-muted-foreground mb-2">Step 3: Project to practice</p>
+            <motion.div 
+              className="px-4 py-3 bg-green-500/20 border border-green-500 rounded-lg text-green-400 text-sm"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 1.1 }}
+            >
+              "Creative discipline system" ✓
+            </motion.div>
+          </div>
+          
+          <p className="text-xs text-muted-foreground mb-6">
+            Combine concepts → Choose structure → Select best practical application.
+          </p>
+          
+          <motion.button
+            className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
+            whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('select')}
           >
-            Enter the Forge
+            Start Exercise
           </motion.button>
         </motion.div>
       </motion.div>

@@ -47,7 +47,7 @@ const DURATION = 25000; // 25 seconds total
 const TIME_PER_ITEM = 6000; // 6 seconds per question
 
 export const ReasoningFastCognitiveWhiplash: React.FC<ReasoningFastCognitiveWhiplashProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'demo' | 'active' | 'complete'>('intro');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemTimeLeft, setItemTimeLeft] = useState(TIME_PER_ITEM);
   const [totalTimeLeft, setTotalTimeLeft] = useState(DURATION);
@@ -177,9 +177,65 @@ export const ReasoningFastCognitiveWhiplash: React.FC<ReasoningFastCognitiveWhip
           <motion.button
             className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
+            onClick={() => setPhase('demo')}
+          >
+            See Example
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (phase === 'demo') {
+    return (
+      <motion.div
+        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <motion.div
+          className="text-center max-w-sm w-full"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          
+          {/* Demo scenario */}
+          <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+            <p className="text-foreground leading-relaxed">
+              "Adding a checkout button reduced cart abandonment by 30%."
+            </p>
+          </div>
+          
+          {/* Demo options */}
+          <div className="space-y-3 mb-6">
+            <motion.div
+              className="w-full py-3 px-4 rounded-xl bg-green-500/20 text-green-400 border border-green-500/50 flex items-center justify-between"
+              initial={{ x: -10, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <span>CAUSAL</span>
+              <span className="text-xs">✓ Direct cause and effect</span>
+            </motion.div>
+            <div className="w-full py-3 px-4 rounded-xl bg-muted/50 text-muted-foreground border border-transparent">
+              CORRELATIONAL
+            </div>
+            <div className="w-full py-3 px-4 rounded-xl bg-muted/50 text-muted-foreground border border-transparent">
+              NOISE / INSUFFICIENT
+            </div>
+          </div>
+          
+          <p className="text-xs text-muted-foreground mb-6">
+            <strong>CAUSAL</strong> = direct cause → effect. <strong>CORRELATIONAL</strong> = linked but not proven cause. <strong>NOISE</strong> = irrelevant data.
+          </p>
+          
+          <motion.button
+            className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
+            whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('active')}
           >
-            Begin
+            Start Exercise
           </motion.button>
         </motion.div>
       </motion.div>
