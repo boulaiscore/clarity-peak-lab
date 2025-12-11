@@ -9,7 +9,8 @@ const SOCRATIC_FOCUS_EXERCISES = [
   {
     id: "SF1",
     gameType: "hypothesis",
-    prompt: "Choose the detail whose truth eliminates the largest number of other explanations.",
+    context: "A project team has been missing deadlines consistently for the past month.",
+    prompt: "Which factor has the highest causal relevance?",
     options: [
       "The team is behind schedule.",
       "Tasks were never clearly defined.",
@@ -17,7 +18,7 @@ const SOCRATIC_FOCUS_EXERCISES = [
       "Meetings doubled in frequency."
     ],
     correctIndex: 1,
-    explanation: "Unclear tasks explain all the other symptoms."
+    explanation: "Unclear tasks explain all the other symptoms - stress, missed deadlines, and excessive meetings are all downstream effects."
   },
   {
     id: "SF2",
@@ -35,15 +36,16 @@ const SOCRATIC_FOCUS_EXERCISES = [
   {
     id: "SF3",
     gameType: "hypothesis",
-    prompt: "Select the detail that requires the fewest assumptions.",
+    context: "Sales dropped 15% last quarter. The team is debating what caused it.",
+    prompt: "Which explanation requires the fewest assumptions?",
     options: [
-      "Emotional interpretation.",
-      "Rumor about risk.",
-      "Controlled discrepancy.",
-      "Narrative of failures."
+      "Customers feel less valued.",
+      "A competitor launched a rumor campaign.",
+      "Pricing increased 10% in Q2.",
+      "The economy is hurting our segment."
     ],
     correctIndex: 2,
-    explanation: "Direct measurement demands the fewest assumptions."
+    explanation: "The pricing change is a direct, measurable factor requiring no speculation about customer feelings, competitor actions, or macro trends."
   },
   {
     id: "SF4",
@@ -74,15 +76,16 @@ const SOCRATIC_FOCUS_EXERCISES = [
   {
     id: "SF6",
     gameType: "hypothesis",
-    prompt: "Choose the detail with the highest causal relevance.",
+    context: "A remote team's productivity dropped noticeably over the past two weeks.",
+    prompt: "Which factor has the highest causal relevance?",
     options: [
-      "Lighting change.",
-      "Undefined tasks.",
-      "Longer breaks.",
-      "Coffee brand."
+      "Home office lighting changed.",
+      "Sprint goals were left undefined.",
+      "People are taking longer breaks.",
+      "The team switched to a new coffee brand."
     ],
     correctIndex: 1,
-    explanation: "Task ambiguity is causally dominant."
+    explanation: "Undefined goals create ambiguity that ripples through everything - longer breaks, confusion, and reduced output are symptoms, not causes."
   },
   {
     id: "SF7",
@@ -113,15 +116,16 @@ const SOCRATIC_FOCUS_EXERCISES = [
   {
     id: "SF9",
     gameType: "hypothesis",
-    prompt: "Which issue deserves real attention?",
+    context: "Your inbox is flooded with requests. You can only address one issue today.",
+    prompt: "Which issue deserves your real attention?",
     options: [
-      "Urgent but low impact.",
-      "Loud but superficial.",
-      "Quiet but high impact.",
-      "Emotionally charged."
+      "Urgent request from a loud colleague (minor impact).",
+      "Trending complaint on social media (superficial).",
+      "Quiet bug affecting 40% of revenue.",
+      "Emotionally charged team conflict."
     ],
     correctIndex: 2,
-    explanation: "Impact dominates urgency and salience."
+    explanation: "Impact dominates urgency and emotional salience. The quiet bug affecting revenue has real business consequences."
   },
   {
     id: "SF10",
@@ -193,7 +197,7 @@ export const SocraticFocusGamifiedSession = ({ exerciseCount = 1, onComplete }: 
       case "budget":
         return <AttentionBudgetGame {...props} />;
       case "hypothesis":
-        return <HypothesisEliminatorGame {...props} />;
+        return <HypothesisEliminatorGame {...props} context={(currentExercise as any).context} />;
       default:
         return <HypothesisEliminatorGame {...props} />;
     }

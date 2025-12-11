@@ -4,6 +4,7 @@ import { Target, Zap, ArrowRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
+  context?: string;
   prompt: string;
   options: string[];
   correctIndex: number;
@@ -19,7 +20,7 @@ const getEliminationPower = (index: number, correctIndex: number, totalOptions: 
   return Math.max(0, totalOptions - 2 - distance);
 };
 
-export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explanation, onComplete }: Props) => {
+export const HypothesisEliminatorGame = ({ context, prompt, options, correctIndex, explanation, onComplete }: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
@@ -60,19 +61,31 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
         </div>
       </motion.div>
 
-      {/* Prompt Section */}
+      {/* Context Section - scenario */}
+      {context && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="w-full max-w-sm mb-3 p-3 rounded-lg bg-muted/30 border border-border/50"
+        >
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {context}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Prompt */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="w-full max-w-sm mb-4 p-3 rounded-lg bg-muted/30 border border-border/50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.15 }}
+        className="w-full max-w-sm mb-4 text-center"
       >
-        <div className="flex items-start gap-2">
-          <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-foreground leading-relaxed">
-            {prompt}
-          </p>
-        </div>
+        <p className="text-sm font-medium text-foreground">{prompt}</p>
       </motion.div>
 
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
