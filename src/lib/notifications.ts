@@ -1,6 +1,8 @@
 // Push notification utilities for NeuroLoop Pro
 
 const VAPID_PUBLIC_KEY = ""; // Will be set when push notifications are configured
+const LAST_SESSION_KEY = "neuroloop_last_session_date";
+const MISSED_REMINDER_SHOWN_KEY = "neuroloop_missed_reminder_shown";
 
 export interface NotificationPermissionState {
   permission: NotificationPermission;
@@ -31,22 +33,35 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   return permission;
 }
 
-// Show a local notification (for testing and immediate notifications)
+// Show a local notification using Service Worker (works in background)
 export function showLocalNotification(title: string, options?: NotificationOptions): void {
   if (Notification.permission !== "granted") {
     console.warn("Notification permission not granted");
     return;
   }
   
-  // Use service worker to show notification if available
-  if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+  // Always prefer Service Worker for background support
+  if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready.then((registration) => {
       registration.showNotification(title, {
         icon: "/icon-192.png",
         badge: "/icon-192.png",
         tag: "neuroloop-training",
+        requireInteraction: true,
+        vibrate: [100, 50, 100],
+        actions: [
+          { action: "start", title: "Start Training" },
+          { action: "later", title: "Later" }
+        ],
         ...options,
       } as NotificationOptions);
+    }).catch((err) => {
+      console.warn("Service worker not ready, using fallback:", err);
+      // Fallback to regular notification
+      new Notification(title, {
+        icon: "/icon-192.png",
+        ...options,
+      });
     });
   } else {
     // Fallback to regular notification
@@ -54,6 +69,39 @@ export function showLocalNotification(title: string, options?: NotificationOptio
       icon: "/icon-192.png",
       ...options,
     });
+  }
+}
+
+// Check if user missed their scheduled reminder (app was closed at scheduled time)
+export function checkMissedReminder(reminderTime: string, dailyCommitment: string): void {
+  const today = new Date().toISOString().split("T")[0];
+  const missedKey = `${MISSED_REMINDER_SHOWN_KEY}_${today}`;
+  
+  // Already shown today
+  if (localStorage.getItem(missedKey)) {
+    return;
+  }
+  
+  // Check if scheduled time has passed today
+  const [hours, minutes] = reminderTime.split(":").map(Number);
+  const now = new Date();
+  const scheduledToday = new Date();
+  scheduledToday.setHours(hours, minutes, 0, 0);
+  
+  if (now > scheduledToday) {
+    // Check if user has done a session today
+    const lastSession = localStorage.getItem(LAST_SESSION_KEY);
+    if (lastSession !== today) {
+      // Show missed reminder notification
+      const exerciseCount = getExerciseCountForCommitment(dailyCommitment);
+      showLocalNotification("🧠 You missed your training reminder", {
+        body: `Your ${dailyCommitment} session is still waiting • ${exerciseCount} exercises`,
+        data: { url: "/app/daily-session" },
+        tag: "neuroloop-missed-reminder",
+      });
+      
+      localStorage.setItem(missedKey, "true");
+    }
   }
 }
 
@@ -131,6 +179,9 @@ export function setupLocalReminders(): void {
 // Mark that user completed a session
 export function markSessionCompleted(): void {
   localStorage.setItem("neuroloop_last_session", Date.now().toString());
+  // Also mark today's date for missed reminder check
+  const today = new Date().toISOString().split("T")[0];
+  localStorage.setItem(LAST_SESSION_KEY, today);
 }
 
 // ============================================

@@ -8,6 +8,7 @@ import {
   cancelDailyReminder,
   initializeDailyReminder,
   getScheduledReminderInfo,
+  checkMissedReminder,
   NotificationPermissionState,
 } from "@/lib/notifications";
 

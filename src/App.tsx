@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
+import { useNotificationInit } from "@/hooks/useNotificationInit";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -30,9 +31,10 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Component that handles auto-seeding
-function AutoSeedProvider({ children }: { children: React.ReactNode }) {
+// Component that handles auto-seeding and notification initialization
+function AppInitProvider({ children }: { children: React.ReactNode }) {
   useAutoSeedExercises();
+  useNotificationInit();
   return <>{children}</>;
 }
 
@@ -227,7 +229,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <SessionProvider>
-        <AutoSeedProvider>
+        <AppInitProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -235,7 +237,7 @@ const App = () => (
               <AppRoutes />
             </BrowserRouter>
           </TooltipProvider>
-        </AutoSeedProvider>
+        </AppInitProvider>
       </SessionProvider>
     </AuthProvider>
   </QueryClientProvider>
