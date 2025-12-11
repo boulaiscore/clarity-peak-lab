@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface DrillResult {
   score: number;
@@ -13,7 +13,7 @@ interface ReasoningSlowInfiniteRegressChallengeProps {
 }
 
 type LinkStrength = 'strong' | 'contributory' | 'speculative';
-type Phase = 'intro' | 'demo' | 'build' | 'classify' | 'detect' | 'summary';
+type Phase = 'intro' | 'demo' | 'classify' | 'summary';
 
 interface CausalNode {
   id: string;
@@ -25,169 +25,121 @@ interface CausalNode {
 interface CausalEdge {
   from: string;
   to: string;
-  strength: 'solid' | 'dashed' | 'dotted';
-  userStrength?: LinkStrength;
-  isCircular?: boolean;
+  explanation: string;
+  correctAnswer: LinkStrength;
 }
 
-interface Scenario {
-  description: string;
-  nodes: CausalNode[];
-  edges: CausalEdge[];
-  circularPaths: [string, string][];
-  referenceModel: Record<string, LinkStrength>;
-}
-
-const SCENARIO: Scenario = {
-  description: "A product team is analyzing why their conversion rate dropped.",
+// Simplified scenario with clear causal story
+const SCENARIO = {
+  title: "Sales Drop Analysis",
+  story: "Your e-commerce company's sales dropped 30% last month. The team identified these potential causes. Rate how strongly each factor DIRECTLY caused the next.",
   nodes: [
-    { id: 'A', label: 'New UI Design', x: 150, y: 50 },
-    { id: 'B', label: 'Page Load Time', x: 80, y: 150 },
-    { id: 'C', label: 'User Engagement', x: 220, y: 150 },
-    { id: 'D', label: 'Server Costs', x: 50, y: 250 },
-    { id: 'E', label: 'Conversion Rate', x: 150, y: 280 },
-  ],
+    { id: 'price', label: 'Price Increase', x: 150, y: 40 },
+    { id: 'traffic', label: 'Website Traffic', x: 60, y: 140 },
+    { id: 'competitors', label: 'New Competitor', x: 240, y: 140 },
+    { id: 'sales', label: 'Sales', x: 150, y: 240 },
+  ] as CausalNode[],
   edges: [
-    { from: 'A', to: 'B', strength: 'solid' },
-    { from: 'A', to: 'C', strength: 'dashed' },
-    { from: 'B', to: 'C', strength: 'dashed' },
-    { from: 'C', to: 'E', strength: 'solid' },
-    { from: 'D', to: 'B', strength: 'dotted' },
-    { from: 'E', to: 'D', strength: 'dotted' }, // Creates potential circular reasoning
-  ],
-  circularPaths: [['E', 'D'], ['D', 'B'], ['B', 'C'], ['C', 'E']],
-  referenceModel: {
-    'A-B': 'strong',
-    'A-C': 'contributory',
-    'B-C': 'contributory',
-    'C-E': 'strong',
-    'D-B': 'speculative',
-    'E-D': 'speculative',
-  },
+    { 
+      from: 'price', 
+      to: 'sales', 
+      explanation: "Higher prices often reduce purchases, but customers may still buy if product is valuable",
+      correctAnswer: 'contributory' as LinkStrength
+    },
+    { 
+      from: 'competitors', 
+      to: 'traffic', 
+      explanation: "A new competitor might steal some customers, reducing traffic to your site",
+      correctAnswer: 'contributory' as LinkStrength
+    },
+    { 
+      from: 'traffic', 
+      to: 'sales', 
+      explanation: "If fewer people visit your site, you'll have fewer potential buyers",
+      correctAnswer: 'strong' as LinkStrength
+    },
+    { 
+      from: 'competitors', 
+      to: 'sales', 
+      explanation: "New competitor might affect sales, but the connection isn't always direct",
+      correctAnswer: 'speculative' as LinkStrength
+    },
+  ] as CausalEdge[],
 };
 
-const STRENGTH_COLORS: Record<LinkStrength, string> = {
-  strong: 'hsl(140, 70%, 50%)',
-  contributory: 'hsl(45, 100%, 55%)',
-  speculative: 'hsl(0, 85%, 60%)',
+const STRENGTH_INFO = {
+  strong: {
+    color: 'hsl(140, 70%, 50%)',
+    label: 'Strong',
+    description: 'Direct proven cause',
+    example: 'Rain → Wet ground'
+  },
+  contributory: {
+    color: 'hsl(45, 100%, 55%)',
+    label: 'Contributory',
+    description: 'One factor among many',
+    example: 'Exercise → Weight loss'
+  },
+  speculative: {
+    color: 'hsl(0, 85%, 60%)',
+    label: 'Speculative',
+    description: 'Uncertain connection',
+    example: 'Full moon → Strange behavior'
+  },
 };
 
 export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfiniteRegressChallengeProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<Phase>('intro');
-  const [selectedPath, setSelectedPath] = useState<string[]>([]);
-  const [edgeClassifications, setEdgeClassifications] = useState<Record<string, LinkStrength>>({});
-  const [currentEdge, setCurrentEdge] = useState<CausalEdge | null>(null);
-  const [detectedCircular, setDetectedCircular] = useState<Set<string>>(new Set());
-  const [feedback, setFeedback] = useState<string[]>([]);
+  const [currentEdgeIndex, setCurrentEdgeIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<LinkStrength[]>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
 
-  const scenario = SCENARIO;
+  const currentEdge = SCENARIO.edges[currentEdgeIndex];
+  const fromNode = SCENARIO.nodes.find(n => n.id === currentEdge?.from);
+  const toNode = SCENARIO.nodes.find(n => n.id === currentEdge?.to);
 
-  const handlePathSelect = useCallback((nodeId: string) => {
-    setSelectedPath(prev => {
-      if (prev.includes(nodeId)) {
-        return prev.slice(0, prev.indexOf(nodeId) + 1);
-      }
-      return [...prev, nodeId];
-    });
-  }, []);
+  const handleClassify = useCallback((strength: LinkStrength) => {
+    const newAnswers = [...userAnswers, strength];
+    setUserAnswers(newAnswers);
+    setShowFeedback(true);
 
-  const handleEdgeClassify = useCallback((strength: LinkStrength) => {
-    if (!currentEdge) return;
-    
-    const edgeKey = `${currentEdge.from}-${currentEdge.to}`;
-    setEdgeClassifications(prev => ({ ...prev, [edgeKey]: strength }));
-    
-    // Move to next unclassified edge
-    const nextEdge = scenario.edges.find(e => {
-      const key = `${e.from}-${e.to}`;
-      return !edgeClassifications[key] && key !== edgeKey;
-    });
-    
-    if (nextEdge) {
-      setCurrentEdge(nextEdge);
-    } else {
-      setPhase('detect');
-    }
-  }, [currentEdge, edgeClassifications, scenario.edges]);
-
-  const handleCircularDetect = useCallback((fromId: string, toId: string) => {
-    const key = `${fromId}-${toId}`;
-    setDetectedCircular(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(key)) {
-        newSet.delete(key);
+    setTimeout(() => {
+      setShowFeedback(false);
+      if (currentEdgeIndex < SCENARIO.edges.length - 1) {
+        setCurrentEdgeIndex(prev => prev + 1);
       } else {
-        newSet.add(key);
+        setPhase('summary');
       }
-      return newSet;
-    });
-  }, []);
+    }, 1500);
+  }, [userAnswers, currentEdgeIndex]);
 
-  const calculateScore = useMemo(() => {
-    // Classification accuracy
-    let classificationScore = 0;
-    let totalEdges = Object.keys(scenario.referenceModel).length;
-    
-    Object.entries(edgeClassifications).forEach(([key, userStrength]) => {
-      const reference = scenario.referenceModel[key];
-      if (reference === userStrength) {
-        classificationScore += 100 / totalEdges;
-      } else if (
-        (reference === 'strong' && userStrength === 'contributory') ||
-        (reference === 'contributory' && userStrength === 'speculative')
-      ) {
-        classificationScore += 50 / totalEdges;
+  const score = useMemo(() => {
+    let correct = 0;
+    userAnswers.forEach((answer, i) => {
+      if (answer === SCENARIO.edges[i].correctAnswer) {
+        correct++;
       }
     });
-    
-    // Circular detection accuracy
-    const circularKeys = scenario.circularPaths.map(([a, b]) => `${a}-${b}`);
-    const correctDetections = circularKeys.filter(k => detectedCircular.has(k)).length;
-    const falseDetections = [...detectedCircular].filter(k => !circularKeys.includes(k)).length;
-    const regressScore = ((correctDetections / circularKeys.length) * 100) - (falseDetections * 10);
-    
     return {
-      causalIntegrity: Math.round(classificationScore),
-      regressDetection: Math.round(Math.max(0, regressScore)),
-      total: Math.round((classificationScore * 0.6) + (Math.max(0, regressScore) * 0.4)),
+      correct,
+      total: SCENARIO.edges.length,
+      percentage: Math.round((correct / SCENARIO.edges.length) * 100)
     };
-  }, [edgeClassifications, detectedCircular, scenario]);
+  }, [userAnswers]);
 
   const handleComplete = useCallback(() => {
-    const scores = calculateScore;
-    
-    // Generate feedback
-    const feedbackItems: string[] = [];
-    Object.entries(edgeClassifications).forEach(([key, userStrength]) => {
-      const reference = scenario.referenceModel[key];
-      if (reference !== userStrength) {
-        const [from, to] = key.split('-');
-        const fromNode = scenario.nodes.find(n => n.id === from);
-        const toNode = scenario.nodes.find(n => n.id === to);
-        feedbackItems.push(
-          `${fromNode?.label} → ${toNode?.label}: marked as ${userStrength}, likely ${reference}`
-        );
-      }
+    onComplete({
+      score: score.percentage,
+      correct: score.correct,
+      avgReactionTime: 0,
+      metadata: {
+        totalQuestions: SCENARIO.edges.length,
+        answers: userAnswers,
+      },
     });
-    setFeedback(feedbackItems);
-    
-    setPhase('summary');
-    
-    setTimeout(() => {
-      onComplete({
-        score: scores.total,
-        correct: Object.entries(edgeClassifications).filter(
-          ([key, value]) => scenario.referenceModel[key] === value
-        ).length,
-        avgReactionTime: 0,
-        metadata: {
-          causalIntegrity: scores.causalIntegrity,
-          regressDetection: scores.regressDetection,
-        },
-      });
-    }, 3000);
-  }, [calculateScore, edgeClassifications, scenario, onComplete]);
+  }, [score, userAnswers, onComplete]);
 
+  // Intro phase
   if (phase === 'intro') {
     return (
       <motion.div
@@ -203,31 +155,34 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
         >
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-500/20 flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 32 32" className="text-amber-500">
-              <circle cx="8" cy="8" r="4" fill="currentColor" />
-              <circle cx="24" cy="8" r="4" fill="currentColor" />
-              <circle cx="16" cy="24" r="4" fill="currentColor" />
-              <line x1="10" y1="10" x2="14" y2="22" stroke="currentColor" strokeWidth="2" />
-              <line x1="22" y1="10" x2="18" y2="22" stroke="currentColor" strokeWidth="2" />
-              <line x1="12" y1="8" x2="20" y2="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4" />
+              <circle cx="8" cy="16" r="4" fill="currentColor" />
+              <circle cx="24" cy="16" r="4" fill="currentColor" />
+              <path d="M12 16 L17 16" stroke="currentColor" strokeWidth="2" markerEnd="url(#arrow)" />
+              <defs>
+                <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 Z" fill="currentColor" />
+                </marker>
+              </defs>
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold text-foreground mb-3">Causal Analysis</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-3">Causal Reasoning</h2>
           <p className="text-muted-foreground mb-2">Critical Reasoning • Slow Thinking</p>
           <p className="text-sm text-muted-foreground mb-8">
-            Analyze causal relationships between factors. Classify link strengths and detect circular reasoning patterns.
+            Analyze cause-and-effect relationships. Judge how strongly one factor causes another.
           </p>
           <motion.button
             className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
             onClick={() => setPhase('demo')}
           >
-            See Example
+            See How It Works
           </motion.button>
         </motion.div>
       </motion.div>
     );
   }
 
+  // Demo phase - explain the three link types
   if (phase === 'demo') {
     return (
       <motion.div
@@ -240,48 +195,33 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-4">Example</h3>
+          <h3 className="text-lg font-medium text-foreground mb-6">How to Rate Causal Links</h3>
           
-          {/* Demo causal chain */}
-          <div className="bg-card border border-border rounded-xl p-4 mb-4">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <div className="px-3 py-1 bg-muted rounded text-sm text-foreground">Price Cut</div>
-              <span className="text-muted-foreground">→</span>
-              <div className="px-3 py-1 bg-muted rounded text-sm text-foreground">More Sales</div>
-            </div>
-            <p className="text-xs text-muted-foreground">How strong is this link?</p>
+          <div className="space-y-3 mb-8">
+            {(Object.entries(STRENGTH_INFO) as [LinkStrength, typeof STRENGTH_INFO.strong][]).map(([key, info]) => (
+              <div 
+                key={key}
+                className="bg-card border border-border rounded-xl p-4 text-left"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div 
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: info.color }}
+                  />
+                  <span className="font-medium text-foreground">{info.label}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">{info.description}</p>
+                <p className="text-xs text-muted-foreground/70">
+                  Example: {info.example}
+                </p>
+              </div>
+            ))}
           </div>
-          
-          {/* Demo classification */}
-          <div className="flex gap-2 mb-6">
-            <motion.div
-              className="flex-1 py-2 rounded-lg text-center text-sm"
-              style={{ backgroundColor: 'hsl(140, 70%, 50%, 0.2)', color: 'hsl(140, 70%, 50%)' }}
-              initial={{ scale: 1 }}
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              Strong ✓
-            </motion.div>
-            <div className="flex-1 py-2 rounded-lg text-center text-sm bg-muted/30 text-muted-foreground">
-              Contributory
-            </div>
-            <div className="flex-1 py-2 rounded-lg text-center text-sm bg-muted/30 text-muted-foreground">
-              Speculative
-            </div>
-          </div>
-          
-          <p className="text-xs text-muted-foreground mb-6">
-            <strong>Strong</strong> = proven direct cause. <strong>Contributory</strong> = one factor among many. <strong>Speculative</strong> = uncertain link.
-          </p>
           
           <motion.button
             className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
             whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setCurrentEdge(scenario.edges[0]);
-              setPhase('classify');
-            }}
+            onClick={() => setPhase('classify')}
           >
             Start Exercise
           </motion.button>
@@ -290,247 +230,235 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
     );
   }
 
-  if (phase === 'classify') {
+  // Classify phase
+  if (phase === 'classify' && currentEdge) {
+    const isCorrect = showFeedback && userAnswers[userAnswers.length - 1] === currentEdge.correctAnswer;
+    
     return (
       <div className="min-h-screen bg-background flex flex-col p-4">
+        {/* Header */}
         <div className="text-center mb-4">
-          <h3 className="text-lg font-medium text-foreground">Classify Relationships</h3>
-          <p className="text-sm text-muted-foreground">{scenario.description}</p>
+          <p className="text-xs text-muted-foreground mb-1">
+            Question {currentEdgeIndex + 1} of {SCENARIO.edges.length}
+          </p>
+          <h3 className="text-lg font-medium text-foreground">{SCENARIO.title}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{SCENARIO.story}</p>
         </div>
         
         {/* Graph visualization */}
-        <div className="flex-1 relative bg-card rounded-2xl border border-border overflow-hidden">
-          <svg width="100%" height="300" viewBox="0 0 300 320">
-            {/* Edges */}
-            {scenario.edges.map((edge, i) => {
-              const from = scenario.nodes.find(n => n.id === edge.from)!;
-              const to = scenario.nodes.find(n => n.id === edge.to)!;
-              const edgeKey = `${edge.from}-${edge.to}`;
-              const classified = edgeClassifications[edgeKey];
-              const isCurrent = currentEdge?.from === edge.from && currentEdge?.to === edge.to;
+        <div className="flex-1 relative bg-card rounded-2xl border border-border overflow-hidden mb-4">
+          <svg width="100%" height="280" viewBox="0 0 300 280">
+            <defs>
+              <marker 
+                id="arrowhead" 
+                markerWidth="10" 
+                markerHeight="10" 
+                refX="8" 
+                refY="5" 
+                orient="auto"
+              >
+                <polygon points="0,0 10,5 0,10" fill="hsl(var(--muted-foreground))" />
+              </marker>
+              <marker 
+                id="arrowhead-highlight" 
+                markerWidth="10" 
+                markerHeight="10" 
+                refX="8" 
+                refY="5" 
+                orient="auto"
+              >
+                <polygon points="0,0 10,5 0,10" fill="hsl(var(--primary))" />
+              </marker>
+            </defs>
+            
+            {/* Draw all edges */}
+            {SCENARIO.edges.map((edge, i) => {
+              const from = SCENARIO.nodes.find(n => n.id === edge.from)!;
+              const to = SCENARIO.nodes.find(n => n.id === edge.to)!;
+              const isCurrent = i === currentEdgeIndex;
+              const isAnswered = i < currentEdgeIndex;
+              const answer = userAnswers[i];
+              
+              // Calculate direction for arrow offset
+              const dx = to.x - from.x;
+              const dy = to.y - from.y;
+              const length = Math.sqrt(dx * dx + dy * dy);
+              const offsetX = (dx / length) * 30;
+              const offsetY = (dy / length) * 30;
               
               return (
                 <g key={`edge-${i}`}>
-                  <motion.line
-                    x1={from.x}
-                    y1={from.y}
-                    x2={to.x}
-                    y2={to.y}
-                    stroke={classified ? STRENGTH_COLORS[classified] : isCurrent ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
+                  <line
+                    x1={from.x + offsetX * 0.5}
+                    y1={from.y + offsetY * 0.5}
+                    x2={to.x - offsetX}
+                    y2={to.y - offsetY}
+                    stroke={
+                      isAnswered 
+                        ? STRENGTH_INFO[answer].color 
+                        : isCurrent 
+                          ? 'hsl(var(--primary))' 
+                          : 'hsl(var(--muted-foreground))'
+                    }
                     strokeWidth={isCurrent ? 3 : 2}
-                    strokeDasharray={edge.strength === 'dashed' ? '8,4' : edge.strength === 'dotted' ? '2,4' : undefined}
-                    animate={{ strokeWidth: isCurrent ? 3 : 2 }}
-                  />
-                  {/* Arrow */}
-                  <polygon
-                    points={`0,-5 10,0 0,5`}
-                    fill={classified ? STRENGTH_COLORS[classified] : isCurrent ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
-                    transform={`translate(${to.x - (to.x - from.x) * 0.2}, ${to.y - (to.y - from.y) * 0.2}) rotate(${Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI})`}
+                    strokeOpacity={isAnswered ? 0.5 : 1}
+                    markerEnd={isCurrent ? 'url(#arrowhead-highlight)' : 'url(#arrowhead)'}
                   />
                 </g>
               );
             })}
             
-            {/* Nodes */}
-            {scenario.nodes.map((node) => (
-              <g key={node.id}>
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r="25"
-                  fill="hsl(var(--card))"
-                  stroke="hsl(var(--border))"
-                  strokeWidth="2"
-                />
-                <text
-                  x={node.x}
-                  y={node.y}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fill="hsl(var(--foreground))"
-                  fontSize="10"
-                  fontWeight="500"
-                >
-                  {node.id}
-                </text>
-                <text
-                  x={node.x}
-                  y={node.y + 40}
-                  textAnchor="middle"
-                  fill="hsl(var(--muted-foreground))"
-                  fontSize="8"
-                >
-                  {node.label}
-                </text>
-              </g>
-            ))}
+            {/* Draw all nodes */}
+            {SCENARIO.nodes.map((node) => {
+              const isFromNode = currentEdge.from === node.id;
+              const isToNode = currentEdge.to === node.id;
+              const isHighlighted = isFromNode || isToNode;
+              
+              return (
+                <g key={node.id}>
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r="28"
+                    fill={isHighlighted ? 'hsl(var(--primary) / 0.2)' : 'hsl(var(--card))'}
+                    stroke={isHighlighted ? 'hsl(var(--primary))' : 'hsl(var(--border))'}
+                    strokeWidth={isHighlighted ? 2 : 1}
+                  />
+                  <text
+                    x={node.x}
+                    y={node.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill={isHighlighted ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
+                    fontSize="9"
+                    fontWeight="600"
+                  >
+                    {node.label.split(' ').map((word, i) => (
+                      <tspan key={i} x={node.x} dy={i === 0 ? -4 : 12}>{word}</tspan>
+                    ))}
+                  </text>
+                </g>
+              );
+            })}
           </svg>
         </div>
         
-        {/* Current edge classification */}
-        {currentEdge && (
-          <div className="mt-4">
-            <div className="text-center mb-4">
-              <p className="text-foreground">
-                <span className="font-medium">
-                  {scenario.nodes.find(n => n.id === currentEdge.from)?.label}
-                </span>
-                {' → '}
-                <span className="font-medium">
-                  {scenario.nodes.find(n => n.id === currentEdge.to)?.label}
-                </span>
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">How strong is this causal link?</p>
-            </div>
-            
-            <div className="flex gap-2">
-              {(['strong', 'contributory', 'speculative'] as LinkStrength[]).map((strength) => (
-                <motion.button
-                  key={strength}
-                  className="flex-1 py-3 rounded-xl font-medium capitalize"
-                  style={{ 
-                    backgroundColor: `${STRENGTH_COLORS[strength]}20`,
-                    color: STRENGTH_COLORS[strength],
-                    border: `1px solid ${STRENGTH_COLORS[strength]}50`,
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleEdgeClassify(strength)}
-                >
-                  {strength}
-                </motion.button>
-              ))}
-            </div>
+        {/* Current question */}
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <span className="font-semibold text-primary">{fromNode?.label}</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" className="text-primary">
+              <path d="M5 12h14M14 5l7 7-7 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="font-semibold text-primary">{toNode?.label}</span>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            How strongly does <strong>{fromNode?.label}</strong> cause <strong>{toNode?.label}</strong>?
+          </p>
+        </div>
+        
+        {/* Feedback or classification buttons */}
+        {showFeedback ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`p-4 rounded-xl text-center ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}
+          >
+            <p className={`font-medium ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
+              {isCorrect ? '✓ Correct!' : `✗ Answer: ${STRENGTH_INFO[currentEdge.correctAnswer].label}`}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {currentEdge.explanation}
+            </p>
+          </motion.div>
+        ) : (
+          <div className="flex gap-2">
+            {(Object.entries(STRENGTH_INFO) as [LinkStrength, typeof STRENGTH_INFO.strong][]).map(([key, info]) => (
+              <motion.button
+                key={key}
+                className="flex-1 py-3 rounded-xl font-medium text-sm flex flex-col items-center gap-1"
+                style={{ 
+                  backgroundColor: `${info.color}20`,
+                  color: info.color,
+                  border: `1px solid ${info.color}50`,
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleClassify(key)}
+              >
+                <span className="font-semibold">{info.label}</span>
+                <span className="text-xs opacity-70">{info.description}</span>
+              </motion.button>
+            ))}
           </div>
         )}
       </div>
     );
   }
 
-  if (phase === 'detect') {
-    return (
-      <div className="min-h-screen bg-background flex flex-col p-4">
-        <div className="text-center mb-4">
-          <h3 className="text-lg font-medium text-foreground">Detect Circular Reasoning</h3>
-          <p className="text-sm text-muted-foreground">Tap edges that form circular or infinite regress patterns</p>
-        </div>
-        
-        {/* Graph visualization */}
-        <div className="flex-1 relative bg-card rounded-2xl border border-border overflow-hidden">
-          <svg width="100%" height="300" viewBox="0 0 300 320">
-            {scenario.edges.map((edge, i) => {
-              const from = scenario.nodes.find(n => n.id === edge.from)!;
-              const to = scenario.nodes.find(n => n.id === edge.to)!;
-              const edgeKey = `${edge.from}-${edge.to}`;
-              const isDetected = detectedCircular.has(edgeKey);
-              
-              return (
-                <g 
-                  key={`edge-${i}`} 
-                  onClick={() => handleCircularDetect(edge.from, edge.to)}
-                  className="cursor-pointer"
-                >
-                  <line
-                    x1={from.x}
-                    y1={from.y}
-                    x2={to.x}
-                    y2={to.y}
-                    stroke={isDetected ? 'hsl(0, 85%, 60%)' : 'hsl(var(--muted-foreground))'}
-                    strokeWidth={isDetected ? 4 : 2}
-                    strokeDasharray={edge.strength === 'dashed' ? '8,4' : edge.strength === 'dotted' ? '2,4' : undefined}
-                  />
-                  {isDetected && (
-                    <motion.circle
-                      cx={(from.x + to.x) / 2}
-                      cy={(from.y + to.y) / 2}
-                      r="8"
-                      fill="hsl(0, 85%, 60%)"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                    >
-                      <text fill="white" fontSize="10" textAnchor="middle" dominantBaseline="middle">!</text>
-                    </motion.circle>
-                  )}
-                </g>
-              );
-            })}
-            
-            {scenario.nodes.map((node) => (
-              <g key={node.id}>
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r="25"
-                  fill="hsl(var(--card))"
-                  stroke="hsl(var(--border))"
-                  strokeWidth="2"
-                />
-                <text
-                  x={node.x}
-                  y={node.y}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fill="hsl(var(--foreground))"
-                  fontSize="10"
-                  fontWeight="500"
-                >
-                  {node.id}
-                </text>
-              </g>
-            ))}
-          </svg>
-        </div>
-        
-        <div className="mt-4">
-          <p className="text-center text-sm text-muted-foreground mb-4">
-            Flagged: {detectedCircular.size} edges
-          </p>
-          <motion.button
-            className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
-            whileTap={{ scale: 0.98 }}
-            onClick={handleComplete}
-          >
-            Complete Analysis
-          </motion.button>
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === 'summary') {
-    return (
+  // Summary phase
+  return (
+    <motion.div
+      className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
       <motion.div
-        className="min-h-screen bg-background flex flex-col items-center justify-center p-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        className="text-center max-w-sm"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
       >
-        <div className="text-center max-w-sm">
-          <h3 className="text-lg font-medium text-foreground mb-4">Analysis Complete</h3>
-          
-          <div className="space-y-3 mb-6">
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-sm text-muted-foreground">Causal Integrity</p>
-              <p className="text-2xl font-semibold text-foreground">{calculateScore.causalIntegrity}%</p>
-            </div>
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-sm text-muted-foreground">Regress Detection</p>
-              <p className="text-2xl font-semibold text-foreground">{calculateScore.regressDetection}%</p>
-            </div>
-          </div>
-          
-          {feedback.length > 0 && (
-            <div className="text-left bg-muted/50 rounded-xl p-4 mb-4">
-              <p className="text-sm font-medium text-foreground mb-2">Feedback:</p>
-              {feedback.slice(0, 2).map((f, i) => (
-                <p key={i} className="text-xs text-muted-foreground mb-1">• {f}</p>
-              ))}
-            </div>
-          )}
+        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-500/20 flex items-center justify-center">
+          <span className="text-3xl font-bold text-amber-500">{score.correct}/{score.total}</span>
         </div>
+        
+        <h3 className="text-2xl font-semibold text-foreground mb-2">
+          {score.percentage >= 75 ? 'Excellent!' : score.percentage >= 50 ? 'Good effort!' : 'Keep practicing!'}
+        </h3>
+        
+        <p className="text-muted-foreground mb-6">
+          You correctly identified {score.correct} out of {score.total} causal relationships.
+        </p>
+        
+        {/* Review answers */}
+        <div className="space-y-2 mb-6">
+          {SCENARIO.edges.map((edge, i) => {
+            const from = SCENARIO.nodes.find(n => n.id === edge.from);
+            const to = SCENARIO.nodes.find(n => n.id === edge.to);
+            const userAnswer = userAnswers[i];
+            const isCorrect = userAnswer === edge.correctAnswer;
+            
+            return (
+              <div 
+                key={i}
+                className={`text-xs p-2 rounded-lg ${isCorrect ? 'bg-green-500/10' : 'bg-red-500/10'}`}
+              >
+                <span className="text-muted-foreground">{from?.label} → {to?.label}:</span>
+                <span 
+                  className="ml-1"
+                  style={{ color: STRENGTH_INFO[userAnswer].color }}
+                >
+                  {STRENGTH_INFO[userAnswer].label}
+                </span>
+                {!isCorrect && (
+                  <span className="text-muted-foreground">
+                    {' '}(correct: {STRENGTH_INFO[edge.correctAnswer].label})
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+        <motion.button
+          className="w-full py-4 bg-amber-500 text-black rounded-xl font-medium"
+          whileTap={{ scale: 0.98 }}
+          onClick={handleComplete}
+        >
+          Continue
+        </motion.button>
       </motion.div>
-    );
-  }
-
-  return null;
+    </motion.div>
+  );
 };
 
 export default ReasoningSlowInfiniteRegressChallenge;
