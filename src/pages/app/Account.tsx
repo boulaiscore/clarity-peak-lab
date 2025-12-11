@@ -125,8 +125,8 @@ const Account = () => {
 
   const dailyTimeOptions: { value: DailyTimeCommitment; label: string }[] = [
     { value: "3min", label: "3 min" },
+    { value: "7min", label: "7 min" },
     { value: "10min", label: "10 min" },
-    { value: "30min", label: "30 min" },
   ];
 
   // Get member since date (from user creation or fallback)
