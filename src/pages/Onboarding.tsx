@@ -180,8 +180,8 @@ const Onboarding = () => {
 
   const dailyTimeOptions: { value: DailyTimeCommitment; label: string; description: string }[] = [
     { value: "3min", label: "3 min", description: "Micro-drills" },
+    { value: "7min", label: "7 min", description: "Quick session" },
     { value: "10min", label: "10 min", description: "Daily protocol" },
-    { value: "30min", label: "30 min", description: "Elite commitment" },
   ];
 
   return (

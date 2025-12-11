@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendWelcomeEmail } from "@/lib/emailService";
 export type TrainingGoal = "fast_thinking" | "slow_thinking";
 export type SessionDuration = "30s" | "2min" | "5min" | "7min";
-export type DailyTimeCommitment = "3min" | "10min" | "30min";
+export type DailyTimeCommitment = "3min" | "7min" | "10min";
 export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
 export type WorkType = "knowledge" | "creative" | "technical" | "management" | "student" | "other";
 export type EducationLevel = "high_school" | "bachelor" | "master" | "phd" | "other";
