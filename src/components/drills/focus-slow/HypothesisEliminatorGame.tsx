@@ -91,7 +91,8 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
         {options.map((option, index) => {
           const isSelected = selectedIndex === index;
           const isEliminated = eliminatedCards.has(index);
-          const eliminationPower = getEliminationCount(index);
+          // Only calculate elimination power for the selected card (to avoid revealing correct answer)
+          const eliminationPower = isSelected ? getEliminationCount(index) : 0;
           
           return (
             <motion.div
@@ -116,20 +117,25 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
                 }`}
                 whileTap={{ scale: 0.98 }}
               >
-                {/* Elimination power indicator */}
-                <div className="flex items-center gap-1 mb-2">
-                  {[...Array(4)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        i < eliminationPower ? "bg-cyan-400" : "bg-muted/30"
-                      }`}
-                      animate={isSelected && i < eliminationPower ? {
-                        scale: [1, 1.5, 1],
-                      } : {}}
-                      transition={{ delay: i * 0.1, duration: 0.3 }}
-                    />
-                  ))}
+                {/* Elimination power indicator - only show for selected card */}
+                <div className="flex items-center gap-1 mb-2 h-2">
+                  {isSelected ? (
+                    [...Array(4)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ scale: 0 }}
+                        animate={{ 
+                          scale: 1,
+                        }}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          i < eliminationPower ? "bg-cyan-400" : "bg-muted/30"
+                        }`}
+                        transition={{ delay: i * 0.1, duration: 0.3 }}
+                      />
+                    ))
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground/50">Tap to test</span>
+                  )}
                 </div>
                 
                 <span className="text-xs text-foreground">{option}</span>
