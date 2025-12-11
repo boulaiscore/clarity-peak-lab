@@ -24,26 +24,16 @@ const SCENARIOS: Scenario[] = [
   { text: "Sales increased 40% after we doubled our ad spend.", correct: 'causal', difficulty: 1 },
   { text: "Website crashes correlate with high user traffic.", correct: 'correlational', difficulty: 1 },
   { text: "One customer complained about the font size.", correct: 'noise', difficulty: 1 },
-  { text: "Revenue grew during months when the CEO traveled.", correct: 'correlational', difficulty: 2 },
   { text: "Removing the checkout step reduced cart abandonment by 25%.", correct: 'causal', difficulty: 2 },
-  { text: "A user mentioned they prefer blue buttons.", correct: 'noise', difficulty: 1 },
-  { text: "Conversion increased on days with good weather.", correct: 'correlational', difficulty: 2 },
-  { text: "Adding SSL encryption stopped the security breaches.", correct: 'causal', difficulty: 2 },
   { text: "Our best month coincided with a competitor's outage.", correct: 'correlational', difficulty: 3 },
-  { text: "Engagement dropped when we changed the algorithm.", correct: 'causal', difficulty: 2 },
   { text: "Two users from the same country signed up yesterday.", correct: 'noise', difficulty: 2 },
-  { text: "Team productivity increased after we moved to open office.", correct: 'correlational', difficulty: 3 },
   { text: "Reducing prices by 10% drove a 30% increase in volume.", correct: 'causal', difficulty: 2 },
-  { text: "Stock price rose on the same day we launched.", correct: 'correlational', difficulty: 3 },
-  { text: "A single server error occurred at 3am.", correct: 'noise', difficulty: 1 },
   { text: "Users who complete onboarding have 5x higher retention.", correct: 'correlational', difficulty: 3 },
-  { text: "The bug fix eliminated all crash reports.", correct: 'causal', difficulty: 2 },
-  { text: "Sales are higher when it's sunny outside.", correct: 'correlational', difficulty: 3 },
-  { text: "One employee suggested we add dark mode.", correct: 'noise', difficulty: 1 },
+  { text: "A single server error occurred at 3am.", correct: 'noise', difficulty: 1 },
   { text: "Implementing caching reduced load times by 60%.", correct: 'causal', difficulty: 2 },
 ];
 
-const DURATION = 40000; // 40 seconds total
+const DURATION = 25000; // 25 seconds total
 const TIME_PER_ITEM = 10000; // 10 seconds per question
 
 export const ReasoningFastCognitiveWhiplash: React.FC<ReasoningFastCognitiveWhiplashProps> = ({ onComplete }) => {
