@@ -9,9 +9,10 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: "welcome" | "premium_upgrade";
+  type: "welcome" | "premium_upgrade" | "password_reset";
   to: string;
   name?: string;
+  resetLink?: string;
 }
 
 const generateWelcomeEmail = (name: string) => ({
@@ -90,6 +91,85 @@ const generateWelcomeEmail = (name: string) => ({
   `,
 });
 
+const generatePasswordResetEmail = (name: string, resetLink: string) => ({
+  subject: "Reset Your NeuroLoop Pro Password",
+  html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #06070A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #06070A; padding: 40px 20px;">
+        <tr>
+          <td align="center">
+            <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #0E1014; border-radius: 16px; border: 1px solid #1a1d24;">
+              <!-- Header -->
+              <tr>
+                <td style="padding: 40px 40px 20px 40px; text-align: center;">
+                  <div style="display: inline-flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #6C5CE7, #4D55FF); border-radius: 8px;"></div>
+                    <span style="color: #ffffff; font-size: 20px; font-weight: 600;">NeuroLoop Pro</span>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Main Content -->
+              <tr>
+                <td style="padding: 20px 40px 40px 40px;">
+                  <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 16px 0; text-align: center;">
+                    Password Reset Request
+                  </h1>
+                  
+                  <p style="color: #A0A5B2; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                    Hi ${name || "there"}, we received a request to reset the password for your NeuroLoop Pro account.
+                  </p>
+                  
+                  <!-- Info Box -->
+                  <div style="background-color: #0A0C0F; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid #1a1d24;">
+                    <p style="color: #A0A5B2; font-size: 14px; line-height: 1.6; margin: 0;">
+                      Click the button below to create a new password. This link will expire in 1 hour for security reasons.
+                    </p>
+                  </div>
+                  
+                  <!-- CTA Button -->
+                  <div style="text-align: center; margin: 32px 0;">
+                    <a href="${resetLink}" style="display: inline-block; background: linear-gradient(135deg, #6C5CE7, #4D55FF); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 600;">
+                      Reset Password
+                    </a>
+                  </div>
+                  
+                  <!-- Security Note -->
+                  <div style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(77, 85, 255, 0.1)); border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid rgba(108, 92, 231, 0.2);">
+                    <p style="color: #A0A5B2; font-size: 13px; line-height: 1.6; margin: 0;">
+                      <strong style="color: #ffffff;">Did not request this?</strong><br/>
+                      If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
+                    </p>
+                  </div>
+                  
+                  <p style="color: #6b7280; font-size: 13px; text-align: center; margin: 24px 0 0 0;">
+                    For security, this link expires in 1 hour.
+                  </p>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 20px 40px 30px 40px; border-top: 1px solid #1a1d24;">
+                  <p style="color: #6b7280; font-size: 12px; text-align: center; margin: 0;">
+                    © ${new Date().getFullYear()} SuperHuman Labs. Cognitive Performance Engineering.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `,
+});
 const generatePremiumEmail = (name: string) => ({
   subject: "Welcome to NeuroLoop Pro Premium – Beta Access Confirmed",
   html: `
@@ -197,7 +277,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { type, to, name }: EmailRequest = await req.json();
+    const { type, to, name, resetLink }: EmailRequest = await req.json();
 
     console.log(`Sending ${type} email to ${to}`);
 
@@ -214,6 +294,11 @@ const handler = async (req: Request): Promise<Response> => {
       emailContent = generateWelcomeEmail(name || "");
     } else if (type === "premium_upgrade") {
       emailContent = generatePremiumEmail(name || "");
+    } else if (type === "password_reset") {
+      if (!resetLink) {
+        throw new Error("Reset link required for password reset email");
+      }
+      emailContent = generatePasswordResetEmail(name || "", resetLink);
     } else {
       throw new Error(`Unknown email type: ${type}`);
     }
