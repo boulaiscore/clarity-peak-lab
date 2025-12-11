@@ -20,12 +20,20 @@ const AREA_ICONS: Record<string, React.ElementType> = {
   Zap,
 };
 
-const AREA_COLORS: Record<string, string> = {
-  focus: "bg-pastel-teal",
-  reasoning: "bg-pastel-purple",
-  creativity: "bg-pastel-pink",
-  memory: "bg-pastel-green",
-  control: "bg-pastel-yellow",
+const AREA_GRADIENTS: Record<string, string> = {
+  focus: "from-emerald-500/20 to-emerald-600/10",
+  reasoning: "from-violet-500/20 to-violet-600/10",
+  creativity: "from-rose-500/20 to-rose-600/10",
+  memory: "from-cyan-500/20 to-cyan-600/10",
+  control: "from-amber-500/20 to-amber-600/10",
+};
+
+const AREA_ICON_COLORS: Record<string, string> = {
+  focus: "text-emerald-400",
+  reasoning: "text-violet-400",
+  creativity: "text-rose-400",
+  memory: "text-cyan-400",
+  control: "text-amber-400",
 };
 
 export default function NeuroLab() {
@@ -38,7 +46,6 @@ export default function NeuroLab() {
   const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   
-  // State for daily training confirmation
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
 
@@ -47,16 +54,15 @@ export default function NeuroLab() {
     const hasFast = goals.includes("fast_thinking");
     const hasSlow = goals.includes("slow_thinking");
     
-    if (hasFast && hasSlow) return { label: "System 1 & 2", color: "bg-primary/15 text-primary" };
-    if (hasFast) return { label: "System 1", color: "bg-pastel-yellow text-amber-700" };
-    if (hasSlow) return { label: "System 2", color: "bg-pastel-teal text-primary" };
+    if (hasFast && hasSlow) return { label: "System 1 & 2", color: "bg-primary/20 text-primary" };
+    if (hasFast) return { label: "System 1", color: "bg-amber-500/20 text-amber-400" };
+    if (hasSlow) return { label: "System 2", color: "bg-primary/20 text-primary" };
     return null;
   };
 
   const badge = getThinkingBadge();
 
   const handleEnterArea = (areaId: NeuroLabArea) => {
-    // Check session limit first
     if (!canStartSession()) {
       setPaywallFeature("session-limit");
       setPaywallFeatureName("");
@@ -64,7 +70,6 @@ export default function NeuroLab() {
       return;
     }
     
-    // Check area access
     if (isAreaLocked(areaId)) {
       const area = NEURO_LAB_AREAS.find(a => a.id === areaId);
       setPaywallFeature("area");
@@ -73,14 +78,12 @@ export default function NeuroLab() {
       return;
     }
     
-    // If daily training not completed and outside reminder window, show confirmation
     if (!isDailyCompleted && !isInReminderWindow && reminderTime) {
       setPendingAreaId(areaId);
       setShowDailyConfirm(true);
       return;
     }
     
-    // Navigate with daily training flag
     navigateToArea(areaId);
   };
 
@@ -109,50 +112,50 @@ export default function NeuroLab() {
 
   return (
     <AppShell>
-      <div className="px-5 py-6 max-w-md mx-auto">
+      <div className="px-5 py-8 max-w-md mx-auto min-h-screen">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-semibold tracking-tight">Cognitive Lab</h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-medium text-gradient">Cognitive Lab</h1>
             {badge && (
-              <span className={cn("text-xs px-2.5 py-1 rounded-full font-medium", badge.color)}>
+              <span className={cn("text-[10px] px-3 py-1 rounded-full font-medium tracking-wide uppercase", badge.color)}>
                 {badge.label}
               </span>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Strategic cognitive training
+            Elite cognitive performance training
           </p>
         </div>
 
         {/* Daily Training Status */}
         {isDailyCompleted ? (
-          <Card className="mb-5 bg-success/10 border-success/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-success" />
+          <Card variant="premium" className="mb-6">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-success/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-success" />
                 </div>
                 <div>
-                  <span className="text-sm font-semibold text-success">Daily Training Complete</span>
-                  <p className="text-xs text-success/70">Great work! See you tomorrow</p>
+                  <span className="text-base font-semibold text-success">Daily Training Complete</span>
+                  <p className="text-sm text-success/70 mt-0.5">Excellent work. See you tomorrow.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         ) : (
           !isPremium && (
-            <Card className="mb-5">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
+            <Card variant="glow" className="mb-6">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-sm text-muted-foreground">Daily Sessions</span>
-                  <span className="text-sm font-semibold">
-                    {maxDailySessions - remainingSessions}/{maxDailySessions}
+                  <span className="text-sm font-semibold text-foreground">
+                    {maxDailySessions - remainingSessions} / {maxDailySessions}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-primary transition-all rounded-full"
+                    className="h-full bg-gradient-gold transition-all duration-500 rounded-full"
                     style={{ width: `${((maxDailySessions - remainingSessions) / maxDailySessions) * 100}%` }}
                   />
                 </div>
@@ -162,91 +165,95 @@ export default function NeuroLab() {
         )}
 
         {/* Neuro Activation CTA */}
-        <Card className="mb-5 overflow-hidden">
+        <Card variant="premium" className="mb-6 overflow-hidden">
           <CardContent className="p-0">
             <button
               onClick={handleNeuroActivation}
               className={cn(
-                "w-full p-4 transition-all duration-200 text-left active:scale-[0.99]",
+                "w-full p-5 transition-all duration-200 text-left press-effect",
                 !canAccessNeuroActivation() && "opacity-80"
               )}
             >
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-pastel-purple flex items-center justify-center shrink-0">
-                  <Zap className="w-7 h-7 text-purple-600" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 flex items-center justify-center shrink-0 shadow-glow">
+                  <Zap className="w-7 h-7 text-primary" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-base">Neuro Activation</h3>
-                    <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-primary/15 rounded-full text-primary font-medium">
+                    <h3 className="font-semibold text-lg text-foreground">Neuro Activation</h3>
+                    <span className="flex items-center gap-1 text-[9px] px-2 py-0.5 bg-gradient-gold rounded-full text-primary-foreground font-semibold uppercase tracking-wider">
                       {!canAccessNeuroActivation() && <Crown className="w-3 h-3" />}
-                      PRO
+                      Pro
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    5-min cognitive warm-up
+                  <p className="text-sm text-muted-foreground mt-1">
+                    5-min cognitive warm-up ritual
                   </p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
             </button>
           </CardContent>
         </Card>
 
-        {/* Divider */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+        {/* Premium Divider */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex-1 premium-divider" />
+          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.2em]">
             Training Domains
           </span>
-          <div className="h-px flex-1 bg-border" />
+          <div className="flex-1 premium-divider" />
         </div>
 
         {/* Area Cards */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {NEURO_LAB_AREAS.map((area) => {
             const IconComponent = AREA_ICONS[area.icon] || Brain;
             const locked = isAreaLocked(area.id);
-            const areaColor = AREA_COLORS[area.id] || "bg-pastel-teal";
+            const gradient = AREA_GRADIENTS[area.id] || "from-emerald-500/20 to-emerald-600/10";
+            const iconColor = AREA_ICON_COLORS[area.id] || "text-emerald-400";
             
             return (
               <Card 
                 key={area.id}
+                variant={locked ? "default" : "glow"}
                 className={cn(
-                  "transition-all duration-200",
+                  "transition-all duration-300",
                   locked && "opacity-60"
                 )}
               >
                 <CardContent className="p-0">
                   <button
                     onClick={() => handleEnterArea(area.id)}
-                    className="w-full p-4 text-left transition-all active:scale-[0.99]"
+                    className="w-full p-5 text-left transition-all press-effect"
                   >
                     <div className="flex items-center gap-4">
                       <div className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                        locked ? "bg-muted" : areaColor
+                        "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0",
+                        locked 
+                          ? "bg-muted" 
+                          : `bg-gradient-to-br ${gradient}`
                       )}>
                         <IconComponent className={cn(
-                          "w-6 h-6",
-                          locked ? "text-muted-foreground" : "text-foreground"
+                          "w-7 h-7",
+                          locked ? "text-muted-foreground" : iconColor
                         )} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-base">{area.title}</h3>
+                          <h3 className="font-semibold text-lg text-foreground">{area.title}</h3>
                           {locked && (
-                            <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-muted rounded-full text-muted-foreground font-medium">
+                            <span className="flex items-center gap-1 text-[9px] px-2 py-0.5 bg-muted rounded-full text-muted-foreground font-medium uppercase tracking-wider">
                               <Lock className="w-3 h-3" />
-                              PRO
+                              Pro
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
                           {area.subtitle}
                         </p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground/40" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground/60" />
                     </div>
                   </button>
                 </CardContent>
@@ -256,11 +263,11 @@ export default function NeuroLab() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card shadow-card">
+        <div className="mt-10 text-center">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-card">
             <Brain className="w-4 h-4 text-primary" />
-            <p className="text-xs text-muted-foreground font-medium">
-              Strategic Cognitive Performance
+            <p className="text-xs text-muted-foreground font-medium tracking-wide">
+              Elite Cognitive Performance
             </p>
           </div>
         </div>

@@ -8,7 +8,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Lock, Zap, Clock, Brain } from "lucide-react";
+import { Crown, Check, Lock, Zap, Clock, Brain, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PremiumPaywallProps {
@@ -19,16 +19,16 @@ interface PremiumPaywallProps {
 }
 
 const FEATURES = [
-  { icon: Brain, text: "All 3 training areas" },
+  { icon: Brain, text: "All 5 training domains" },
   { icon: Clock, text: "Extended sessions (5min, 7min)" },
   { icon: Zap, text: "Neuro Activation warm-up" },
-  { icon: Check, text: "Unlimited daily sessions" },
+  { icon: Sparkles, text: "Unlimited daily sessions" },
 ];
 
 const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {
   area: {
-    title: "Premium Training Area",
-    description: "Unlock all cognitive training domains to develop complete mental fitness.",
+    title: "Premium Training Domain",
+    description: "Unlock all cognitive training domains for complete mental excellence.",
   },
   duration: {
     title: "Extended Sessions",
@@ -36,7 +36,7 @@ const FEATURE_MESSAGES: Record<string, { title: string; description: string }> =
   },
   "neuro-activation": {
     title: "Neuro Activation™",
-    description: "Prime your brain for peak performance with our 5-minute cognitive warm-up.",
+    description: "Prime your brain for peak performance with our 5-minute cognitive ritual.",
   },
   "session-limit": {
     title: "Daily Limit Reached",
@@ -55,42 +55,48 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm mx-auto">
-        <AlertDialogHeader className="text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
-            {feature === "session-limit" ? (
-              <Lock className="w-8 h-8 text-primary" />
-            ) : (
-              <Crown className="w-8 h-8 text-primary" />
-            )}
-          </div>
-          <AlertDialogTitle className="text-xl">
-            {message.title}
+      <AlertDialogContent className="max-w-sm mx-auto bg-card border-border rounded-3xl p-0 overflow-hidden">
+        {/* Premium Header */}
+        <div className="relative p-8 pb-6 text-center bg-gradient-to-b from-primary/10 to-transparent">
+          <div className="absolute inset-0 bg-gradient-glow opacity-50" />
+          <div className="relative">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-gold flex items-center justify-center mx-auto mb-5 shadow-glow animate-glow-pulse">
+              {feature === "session-limit" ? (
+                <Lock className="w-10 h-10 text-primary-foreground" />
+              ) : (
+                <Crown className="w-10 h-10 text-primary-foreground" />
+              )}
+            </div>
+            <AlertDialogTitle className="text-2xl font-medium text-foreground mb-2">
+              {message.title}
+            </AlertDialogTitle>
             {featureName && (
-              <span className="block text-sm font-normal text-muted-foreground mt-1">
+              <span className="text-sm font-medium text-primary">
                 {featureName}
               </span>
             )}
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-center">
-            {message.description}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+            <AlertDialogDescription className="text-center text-muted-foreground mt-3">
+              {message.description}
+            </AlertDialogDescription>
+          </div>
+        </div>
 
-        <div className="py-4 space-y-3">
+        {/* Features List */}
+        <div className="px-8 py-6 space-y-4">
           {FEATURES.map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon className="w-4 h-4 text-primary" />
+            <div key={text} className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-amber-500/10 flex items-center justify-center shrink-0">
+                <Icon className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-sm">{text}</span>
+              <span className="text-sm text-foreground font-medium">{text}</span>
             </div>
           ))}
         </div>
 
-        <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-          <Button onClick={handleUpgrade} variant="hero" className="w-full min-h-[48px]">
-            <Crown className="w-4 h-4 mr-2" />
+        {/* Footer */}
+        <AlertDialogFooter className="flex-col gap-3 p-8 pt-4 sm:flex-col">
+          <Button onClick={handleUpgrade} variant="hero" size="lg" className="w-full">
+            <Crown className="w-5 h-5 mr-2" />
             Upgrade to Premium
           </Button>
           <Button 
