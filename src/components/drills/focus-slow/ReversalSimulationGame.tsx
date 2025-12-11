@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Check, ArrowRight, Sparkles } from "lucide-react";
+import { RotateCcw, Check, ArrowRight, Sparkles, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -11,14 +11,206 @@ interface Props {
   onComplete: (result: { score: number; correct: boolean }) => void;
 }
 
-// Generic reversal consequence descriptions - all look equally plausible
-const REVERSAL_CONSEQUENCES = [
-  { impact: "Ripple effects across related areas", detail: "Multiple dependencies affected" },
-  { impact: "Cascading changes downstream", detail: "Core assumptions invalidated" },
-  { impact: "Foundation becomes unstable", detail: "Key constraints removed" },
-  { impact: "System equilibrium shifts", detail: "Balance point changes" },
-  { impact: "Chain reaction triggered", detail: "Interconnected elements impacted" },
-  { impact: "Structural realignment needed", detail: "Framework must adapt" },
+// Scenario-specific reversal consequences - keyed by a unique identifier from options
+const SCENARIO_CONSEQUENCES: Record<string, Record<string, { impact: string; detail: string }>> = {
+  // Scenario: Performance slowdown analysis (Dashboard color, Goal clarity, Team mood, Meeting room)
+  "Dashboard color|Goal clarity|Team mood|Meeting room": {
+    "Dashboard color": { 
+      impact: "No meaningful impact", 
+      detail: "UI appearance changes but workflows remain identical" 
+    },
+    "Goal clarity": { 
+      impact: "Team loses shared direction", 
+      detail: "Priorities misalign. Execution velocity collapses" 
+    },
+    "Team mood": { 
+      impact: "Morale shifts but processes stay functional", 
+      detail: "Local effect, minimal systemic change" 
+    },
+    "Meeting room": { 
+      impact: "Convenience changes slightly", 
+      detail: "No effect on decisions or execution" 
+    },
+  },
+  // Scenario: Project delay analysis
+  "Stakeholder alignment|Resource availability|Team expertise|Office location": {
+    "Stakeholder alignment": { 
+      impact: "Conflicting priorities emerge", 
+      detail: "Decisions stall. Rework cycles multiply" 
+    },
+    "Resource availability": { 
+      impact: "Bottlenecks form immediately", 
+      detail: "Critical path blocked. Timeline extends" 
+    },
+    "Team expertise": { 
+      impact: "Quality and speed both suffer", 
+      detail: "Learning curve slows all deliverables" 
+    },
+    "Office location": { 
+      impact: "Minor logistical adjustment", 
+      detail: "No impact on project fundamentals" 
+    },
+  },
+  // Scenario: Customer churn analysis
+  "Product pricing|Core feature reliability|Support response time|Brand logo design": {
+    "Product pricing": { 
+      impact: "Budget calculations shift", 
+      detail: "Some customers reconsider, but value proposition intact" 
+    },
+    "Core feature reliability": { 
+      impact: "Trust foundation collapses", 
+      detail: "Users cannot depend on product. Exodus begins" 
+    },
+    "Support response time": { 
+      impact: "Frustration increases locally", 
+      detail: "Issue resolution slows but product still works" 
+    },
+    "Brand logo design": { 
+      impact: "Visual identity changes", 
+      detail: "Zero functional impact on user experience" 
+    },
+  },
+  // Scenario: Innovation stagnation
+  "R&D budget|Psychological safety|Office furniture|Competitor monitoring": {
+    "R&D budget": { 
+      impact: "New initiatives pause", 
+      detail: "Exploration slows but existing products continue" 
+    },
+    "Psychological safety": { 
+      impact: "Risk-taking disappears", 
+      detail: "Ideas stay hidden. Innovation culture dies" 
+    },
+    "Office furniture": { 
+      impact: "Comfort level shifts", 
+      detail: "No impact on creative output or collaboration" 
+    },
+    "Competitor monitoring": { 
+      impact: "Strategic awareness decreases", 
+      detail: "Reactive but doesn't block internal innovation" 
+    },
+  },
+  // Scenario: Decision quality decline
+  "Data accuracy|Meeting frequency|Decision authority clarity|Snack options": {
+    "Data accuracy": { 
+      impact: "Wrong inputs lead to wrong outputs", 
+      detail: "All decisions built on faulty foundation" 
+    },
+    "Meeting frequency": { 
+      impact: "Communication rhythm changes", 
+      detail: "Adjustable without affecting decision quality" 
+    },
+    "Decision authority clarity": { 
+      impact: "Accountability gaps form", 
+      detail: "Decisions delayed or duplicated across teams" 
+    },
+    "Snack options": { 
+      impact: "Minor comfort change", 
+      detail: "Zero impact on cognitive or process quality" 
+    },
+  },
+  // Scenario: Team productivity drop
+  "Clear priorities|Tool stack|Work-life balance|Desk arrangement": {
+    "Clear priorities": { 
+      impact: "Efforts scatter across low-value work", 
+      detail: "Energy spent on wrong things. Output quality drops" 
+    },
+    "Tool stack": { 
+      impact: "Workflow friction increases", 
+      detail: "Slowdown but fundamentals still possible" 
+    },
+    "Work-life balance": { 
+      impact: "Burnout risk rises over time", 
+      detail: "Long-term issue but short-term output stable" 
+    },
+    "Desk arrangement": { 
+      impact: "Physical layout shifts", 
+      detail: "No meaningful impact on actual work output" 
+    },
+  },
+  // Scenario: Communication breakdown
+  "Shared context|Channel choice|Feedback loops|Email signature style": {
+    "Shared context": { 
+      impact: "Misunderstandings multiply", 
+      detail: "Every message requires clarification. Trust erodes" 
+    },
+    "Channel choice": { 
+      impact: "Message delivery path changes", 
+      detail: "Adaptable preference, not structural blocker" 
+    },
+    "Feedback loops": { 
+      impact: "Course corrections slow", 
+      detail: "Problems persist longer but still detectable" 
+    },
+    "Email signature style": { 
+      impact: "Visual formatting shifts", 
+      detail: "Zero impact on information exchange" 
+    },
+  },
+  // Scenario: Strategy execution failure
+  "Strategic clarity|Execution discipline|Market conditions|Company swag": {
+    "Strategic clarity": { 
+      impact: "Actions diverge from goals", 
+      detail: "Teams optimize locally, miss global objective" 
+    },
+    "Execution discipline": { 
+      impact: "Plans stay plans", 
+      detail: "Ideas never reach implementation. Gap widens" 
+    },
+    "Market conditions": { 
+      impact: "External pressure shifts", 
+      detail: "Reactive adjustment needed but controllable" 
+    },
+    "Company swag": { 
+      impact: "Branded items change", 
+      detail: "No connection to strategy or execution" 
+    },
+  },
+  // Scenario: Learning velocity decline
+  "Curiosity culture|Knowledge sharing systems|Learning time allocation|Office plant selection": {
+    "Curiosity culture": { 
+      impact: "Questions stop being asked", 
+      detail: "Stagnation sets in. Growth mindset disappears" 
+    },
+    "Knowledge sharing systems": { 
+      impact: "Information silos form", 
+      detail: "Relearning same lessons. Efficiency drops" 
+    },
+    "Learning time allocation": { 
+      impact: "Development slows", 
+      detail: "Skills plateau but existing capability remains" 
+    },
+    "Office plant selection": { 
+      impact: "Aesthetic environment shifts", 
+      detail: "No impact on learning or knowledge transfer" 
+    },
+  },
+  // Scenario: Quality degradation
+  "Quality standards|Review processes|Automation coverage|Desk nameplate font": {
+    "Quality standards": { 
+      impact: "Bar drops system-wide", 
+      detail: "What's acceptable expands. Excellence becomes rare" 
+    },
+    "Review processes": { 
+      impact: "Errors slip through more often", 
+      detail: "Detection delayed but still possible downstream" 
+    },
+    "Automation coverage": { 
+      impact: "Manual work increases", 
+      detail: "Slower but quality still achievable" 
+    },
+    "Desk nameplate font": { 
+      impact: "Visual identifier changes", 
+      detail: "Zero connection to output quality" 
+    },
+  },
+};
+
+// Fallback consequences if scenario not found - still specific but generic enough
+const FALLBACK_CONSEQUENCES = [
+  { impact: "Significant structural change", detail: "Core system dynamics affected" },
+  { impact: "Moderate local effect", detail: "Some processes impacted" },
+  { impact: "Minor adjustment needed", detail: "Limited downstream effects" },
+  { impact: "Negligible impact", detail: "No meaningful change to system" },
 ];
 
 export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanation, onComplete }: Props) => {
@@ -27,11 +219,21 @@ export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanat
   const [showResult, setShowResult] = useState(false);
   const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
 
-  // Randomize consequences for each option (but keep stable during session)
+  // Get scenario-specific consequences based on options
   const cardConsequences = useMemo(() => {
-    const shuffled = [...REVERSAL_CONSEQUENCES].sort(() => Math.random() - 0.5);
-    return options.map((_, i) => shuffled[i % shuffled.length]);
-  }, [options]);
+    const scenarioKey = options.join("|");
+    const scenarioConsequences = SCENARIO_CONSEQUENCES[scenarioKey];
+    
+    if (scenarioConsequences) {
+      return options.map(option => scenarioConsequences[option] || FALLBACK_CONSEQUENCES[0]);
+    }
+    
+    // Fallback: assign consequences based on position (correct answer gets "significant" consequence)
+    return options.map((_, i) => {
+      if (i === correctIndex) return FALLBACK_CONSEQUENCES[0];
+      return FALLBACK_CONSEQUENCES[Math.min(i + 1, FALLBACK_CONSEQUENCES.length - 1)];
+    });
+  }, [options, correctIndex]);
 
   const handleFlip = (index: number) => {
     if (showResult) return;
@@ -73,10 +275,25 @@ export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanat
           <RotateCcw className="w-5 h-5 text-primary" />
           <span className="text-xs uppercase tracking-wider text-muted-foreground">Reversal Simulation</span>
         </div>
-        <p className="text-foreground text-sm max-w-md mb-2">{prompt}</p>
-        <p className="text-muted-foreground text-xs max-w-sm">
-          Flip each card to imagine its reversal. Which one would cause the biggest change?
-        </p>
+        <p className="text-foreground text-sm max-w-md mb-3">{prompt}</p>
+      </motion.div>
+
+      {/* Context Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="w-full max-w-sm mb-4 p-3 rounded-lg bg-muted/30 border border-border/50"
+      >
+        <div className="flex items-start gap-2">
+          <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div>
+            <div className="text-xs font-medium text-foreground mb-1">Context</div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              You are analyzing a system where performance has slowed down. Your goal is to identify which underlying factor, if reversed, would create the largest structural change in the situation. Each card represents a condition in the current state. Flip the cards to see the reversal effect—what would happen if its opposite were true—and choose the factor whose reversal produces the most significant systemic shift.
+            </p>
+          </div>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
@@ -92,7 +309,7 @@ export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanat
               key={index}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.1 + 0.2 }}
             >
               {/* Card container with proper 3D flip */}
               <div
@@ -150,7 +367,7 @@ export const ReversalSimulationGame = ({ prompt, options, correctIndex, explanat
                       <RotateCcw className="w-3 h-3 text-muted-foreground" />
                       <span className="text-muted-foreground text-[10px] font-medium">If reversed:</span>
                     </div>
-                    <span className="text-foreground text-xs">{consequence.impact}</span>
+                    <span className="text-foreground text-xs font-medium">{consequence.impact}</span>
                     <div className="text-[10px] text-muted-foreground mt-1">{consequence.detail}</div>
                   </div>
                 </motion.div>
