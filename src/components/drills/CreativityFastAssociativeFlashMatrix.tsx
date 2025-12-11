@@ -177,7 +177,7 @@ const SymbolDisplay: React.FC<{ index: number; size?: number }> = ({ index, size
 );
 
 export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssociativeFlashMatrixProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'intro' | 'demo' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'demo' | 'active' | 'transitioning' | 'complete'>('intro');
   const [currentTrial, setCurrentTrial] = useState<Trial | null>(null);
   const [trialIndex, setTrialIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_PER_TRIAL);
@@ -193,12 +193,26 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
   
   const trialStartRef = useRef(0);
   const startTimeRef = useRef(0);
+  const usedConceptsRef = useRef<number[]>([]);
 
   const generateTrial = useCallback((): Trial => {
-    const conceptIndex = Math.floor(Math.random() * CONCEPT_DATA.length);
+    // Avoid repeating concepts until we've used most of them
+    let conceptIndex: number;
+    const availableConcepts = CONCEPT_DATA.map((_, i) => i).filter(
+      i => !usedConceptsRef.current.includes(i)
+    );
+    
+    if (availableConcepts.length === 0) {
+      usedConceptsRef.current = [];
+      conceptIndex = Math.floor(Math.random() * CONCEPT_DATA.length);
+    } else {
+      conceptIndex = availableConcepts[Math.floor(Math.random() * availableConcepts.length)];
+    }
+    usedConceptsRef.current.push(conceptIndex);
+    
     const concept = CONCEPT_DATA[conceptIndex].concept;
     
-    // Generate 6 unique symbol indices with the correct one included (smaller grid)
+    // Generate 6 unique symbol indices with the correct one included
     const icons: number[] = [];
     const correctPosition = Math.floor(Math.random() * 6);
     
@@ -217,8 +231,24 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
     return { concept, icons, correctIndex: correctPosition };
   }, []);
 
+  const goToNextTrial = useCallback(() => {
+    if (totalTimeLeft <= 0) {
+      setPhase('complete');
+      return;
+    }
+    
+    // Batch all state updates together
+    const newTrial = generateTrial();
+    setCurrentTrial(newTrial);
+    setTrialIndex(prev => prev + 1);
+    setSelectedIndex(null);
+    setTimeLeft(TIME_PER_TRIAL);
+    trialStartRef.current = Date.now();
+    setPhase('active');
+  }, [totalTimeLeft, generateTrial]);
+
   const handleSelect = useCallback((index: number, e: React.MouseEvent) => {
-    if (selectedIndex !== null) return;
+    if (selectedIndex !== null || phase !== 'active') return;
     
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     setRipple({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
@@ -233,32 +263,29 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
     statsRef.current.total++;
     
     setSelectedIndex(index);
+    setPhase('transitioning');
     
+    // Wait for feedback to show, then transition
     setTimeout(() => {
-      if (totalTimeLeft > 0) {
-        const newTrial = generateTrial();
-        setCurrentTrial(newTrial);
-        setTrialIndex(prev => prev + 1);
-        setSelectedIndex(null);
-        setTimeLeft(TIME_PER_TRIAL);
-        trialStartRef.current = Date.now();
-      } else {
-        setPhase('complete');
-      }
-    }, 300);
-  }, [selectedIndex, currentTrial, totalTimeLeft, generateTrial]);
+      goToNextTrial();
+    }, 500);
+  }, [selectedIndex, currentTrial, phase, goToNextTrial]);
 
   useEffect(() => {
-    if (phase !== 'active') return;
+    if (phase !== 'active' && phase !== 'transitioning') return;
     
-    startTimeRef.current = Date.now();
-    trialStartRef.current = Date.now();
-    setCurrentTrial(generateTrial());
+    if (!currentTrial && phase === 'active') {
+      startTimeRef.current = Date.now();
+      trialStartRef.current = Date.now();
+      setCurrentTrial(generateTrial());
+    }
     
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
       const remaining = Math.max(0, DURATION - elapsed);
       setTotalTimeLeft(remaining);
+      
+      if (phase === 'transitioning') return; // Don't update trial timer during transition
       
       const trialElapsed = Date.now() - trialStartRef.current;
       const trialRemaining = Math.max(0, TIME_PER_TRIAL - trialElapsed);
@@ -266,18 +293,14 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
       
       if (remaining <= 0) {
         setPhase('complete');
-      } else if (trialRemaining <= 0 && selectedIndex === null) {
+      } else if (trialRemaining <= 0 && selectedIndex === null && phase === 'active') {
         statsRef.current.total++;
-        const newTrial = generateTrial();
-        setCurrentTrial(newTrial);
-        setTrialIndex(prev => prev + 1);
-        setTimeLeft(TIME_PER_TRIAL);
-        trialStartRef.current = Date.now();
+        goToNextTrial();
       }
     }, 50);
     
     return () => clearInterval(timer);
-  }, [phase, selectedIndex, generateTrial]);
+  }, [phase, selectedIndex, generateTrial, currentTrial, goToNextTrial]);
 
   useEffect(() => {
     if (phase === 'complete') {
@@ -396,7 +419,16 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
     );
   }
 
-  const progress = timeLeft / TIME_PER_TRIAL;
+  const progress = phase === 'transitioning' ? 1 : timeLeft / TIME_PER_TRIAL;
+  const isTransitioning = phase === 'transitioning';
+
+  if (!currentTrial) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -416,71 +448,75 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
       
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={trialIndex}
-            className="w-full max-w-sm"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-          >
-            {/* Concept word */}
-            <div className="text-center mb-8">
-              <motion.div
-                className="inline-block px-6 py-3 bg-purple-500/10 border border-purple-500/30 rounded-2xl"
-                animate={{ 
-                  boxShadow: [
-                    '0 0 20px rgba(168, 85, 247, 0.1)',
-                    '0 0 40px rgba(168, 85, 247, 0.2)',
-                    '0 0 20px rgba(168, 85, 247, 0.1)',
-                  ]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <h2 className="text-2xl font-semibold text-purple-400 uppercase tracking-wider">
-                  {currentTrial?.concept}
-                </h2>
-              </motion.div>
-              
-              {/* Timer indicator */}
-              <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden max-w-[200px] mx-auto">
-                <motion.div
-                  className="h-full bg-purple-500"
-                  style={{ width: `${progress * 100}%` }}
-                />
-              </div>
-            </div>
+        <motion.div
+          className="w-full max-w-sm"
+          animate={{ opacity: isTransitioning ? 0.5 : 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          {/* Concept word */}
+          <div className="text-center mb-8">
+            <motion.div
+              key={currentTrial.concept}
+              className="inline-block px-6 py-3 bg-purple-500/10 border border-purple-500/30 rounded-2xl"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ 
+                opacity: 1,
+                y: 0,
+                boxShadow: [
+                  '0 0 20px rgba(168, 85, 247, 0.1)',
+                  '0 0 40px rgba(168, 85, 247, 0.2)',
+                  '0 0 20px rgba(168, 85, 247, 0.1)',
+                ]
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 className="text-2xl font-semibold text-purple-400 uppercase tracking-wider">
+                {currentTrial.concept}
+              </h2>
+            </motion.div>
             
-            {/* 2x3 Grid */}
-            <div className="grid grid-cols-3 gap-4">
-              {currentTrial?.icons.map((iconIndex, i) => {
-                const isSelected = selectedIndex === i;
-                const isCorrect = i === currentTrial.correctIndex;
-                
-                return (
-                  <motion.button
-                    key={`${trialIndex}-${i}`}
-                    className={`aspect-square rounded-xl border-2 flex items-center justify-center transition-colors ${
-                      selectedIndex !== null
-                        ? isCorrect
-                          ? 'border-green-500 bg-green-500/20 text-green-400'
-                          : isSelected
-                            ? 'border-red-500 bg-red-500/20 text-red-400'
-                            : 'border-border bg-card text-muted-foreground'
-                        : 'border-border bg-card text-foreground hover:border-purple-500/50 hover:bg-purple-500/10'
-                    }`}
-                    whileHover={{ scale: selectedIndex === null ? 1.05 : 1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => handleSelect(i, e)}
-                    disabled={selectedIndex !== null}
-                  >
-                    <SymbolDisplay index={iconIndex} size={42} />
-                  </motion.button>
-                );
-              })}
+            {/* Timer indicator */}
+            <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden max-w-[200px] mx-auto">
+              <motion.div
+                className="h-full bg-purple-500"
+                style={{ width: `${progress * 100}%` }}
+              />
             </div>
-          </motion.div>
-        </AnimatePresence>
+          </div>
+          
+          {/* 2x3 Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            {currentTrial.icons.map((iconIndex, i) => {
+              const isSelected = selectedIndex === i;
+              const isCorrect = i === currentTrial.correctIndex;
+              const showFeedback = selectedIndex !== null;
+              
+              return (
+                <motion.button
+                  key={`${trialIndex}-${i}`}
+                  className={`aspect-square rounded-xl border-2 flex items-center justify-center transition-colors ${
+                    showFeedback
+                      ? isCorrect
+                        ? 'border-green-500 bg-green-500/20 text-green-400'
+                        : isSelected
+                          ? 'border-red-500 bg-red-500/20 text-red-400'
+                          : 'border-border bg-card text-muted-foreground'
+                      : 'border-border bg-card text-foreground hover:border-purple-500/50 hover:bg-purple-500/10'
+                  }`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  whileHover={{ scale: !showFeedback ? 1.05 : 1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => handleSelect(i, e)}
+                  disabled={showFeedback}
+                >
+                  <SymbolDisplay index={iconIndex} size={42} />
+                </motion.button>
+              );
+          })}
+          </div>
+        </motion.div>
       </div>
       
       {/* Ripple effect */}
