@@ -61,15 +61,15 @@ const SOCRATIC_FOCUS_EXERCISES = [
   {
     id: "SF5",
     gameType: "budget",
-    prompt: "Which detail deserves the least attention? Allocate your 100 focus coins.",
+    prompt: "Rank these signals by informational value. Drag weights (50, 30, 15, 5) to each option.",
     options: [
-      "A 12% conversion drop.",
-      "Funnel unchanged.",
-      "One customer's long email.",
-      "Drop isolated to mobile."
+      "Sudden 12% conversion drop (was stable).",
+      "Minor daily fluctuations.",
+      "Metric that's always volatile.",
+      "Unclear tracking data."
     ],
-    correctIndex: 2,
-    explanation: "Single anecdotes have minimal informational value."
+    correctIndex: 0,
+    explanation: "Unexpected deviations in stable metrics carry the highest informational value."
   },
   {
     id: "SF6",
@@ -100,15 +100,15 @@ const SOCRATIC_FOCUS_EXERCISES = [
   {
     id: "SF8",
     gameType: "budget",
-    prompt: "Which metric deserves the highest share of attention?",
+    prompt: "Allocate cognitive attention to these performance metrics. Drag weights (50, 30, 15, 5).",
     options: [
-      "Harmless fluctuations.",
-      "Sudden deviation in stable metric.",
-      "Always noisy metric.",
-      "Unclear metric."
+      "Sudden spike in error rate (was near-zero).",
+      "Slight dip in response time.",
+      "Random noise in load balancer.",
+      "Ambiguous logging data."
     ],
-    correctIndex: 1,
-    explanation: "An unexpected deviation in a stable metric is a strong signal."
+    correctIndex: 0,
+    explanation: "Unexpected deviations in stable metrics carry the highest informational value."
   },
   {
     id: "SF9",
@@ -126,15 +126,15 @@ const SOCRATIC_FOCUS_EXERCISES = [
   {
     id: "SF10",
     gameType: "budget",
-    prompt: "Where should you allocate most cognitive attention?",
+    prompt: "Prioritize these user behavior signals. Drag weights (50, 30, 15, 5).",
     options: [
-      "Meeting impressions.",
-      "Metric tied to core objective.",
-      "Anecdote.",
-      "Random variance."
+      "Sudden drop in engagement (was consistent).",
+      "Normal weekend dip pattern.",
+      "Feature rarely used by anyone.",
+      "Incomplete analytics setup."
     ],
-    correctIndex: 1,
-    explanation: "The variable tied to core objective gives highest inferential leverage."
+    correctIndex: 0,
+    explanation: "Unexpected deviations in stable metrics carry the highest informational value."
   }
 ];
 
