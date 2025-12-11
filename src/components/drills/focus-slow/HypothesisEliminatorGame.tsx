@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Target, Zap, ArrowRight } from "lucide-react";
+import { Target, Zap, ArrowRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -11,19 +11,27 @@ interface Props {
   onComplete: (result: { score: number; correct: boolean }) => void;
 }
 
-export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explanation, onComplete }: Props) => {
+// Fixed scenario for Hypothesis Eliminator
+const SCENARIO = {
+  context: "A team's productivity has noticeably dropped over the past two weeks. You need to identify which factor, if addressed, would eliminate the most alternative explanations for the decline. Tap each hypothesis to see how many other factors it rules out, then choose the one with the highest elimination power.",
+  prompt: "Choose the detail with the highest causal relevance.",
+  options: [
+    { text: "The team lead was on vacation.", eliminates: 3, isCorrect: true },
+    { text: "Office lighting was changed.", eliminates: 1, isCorrect: false },
+    { text: "Two team members are new.", eliminates: 2, isCorrect: false },
+    { text: "The coffee machine broke.", eliminates: 0, isCorrect: false }
+  ],
+  explanation: "The team lead's absence affects direction, decision-making, and morale simultaneously—eliminating multiple competing explanations. Other factors have more limited scope."
+};
+
+export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [eliminatedCards, setEliminatedCards] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const resultRef = useRef<{ score: number; correct: boolean } | null>(null);
 
-  const getEliminationCount = (index: number) => {
-    // The correct option eliminates the most hypotheses
-    if (index === correctIndex) return options.length - 1;
-    // Others eliminate fewer
-    return Math.max(0, Math.floor(Math.random() * 2));
-  };
+  const correctIndex = SCENARIO.options.findIndex(opt => opt.isCorrect);
 
   const handleCardTap = (index: number) => {
     if (showResult) return;
@@ -31,12 +39,12 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
     setSelectedIndex(index);
     setPreviewMode(true);
     
-    // Show which cards would be eliminated
-    const eliminationCount = getEliminationCount(index);
+    // Show which cards would be eliminated based on predefined elimination power
+    const eliminationCount = SCENARIO.options[index].eliminates;
     const toEliminate = new Set<number>();
     
     // Eliminate other cards based on power
-    const otherIndices = options.map((_, i) => i).filter(i => i !== index);
+    const otherIndices = SCENARIO.options.map((_, i) => i).filter(i => i !== index);
     for (let i = 0; i < Math.min(eliminationCount, otherIndices.length); i++) {
       toEliminate.add(otherIndices[i]);
     }
@@ -69,30 +77,47 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
+        className="text-center mb-4"
       >
         <div className="flex items-center justify-center gap-2 mb-3">
           <Target className="w-5 h-5 text-cyan-400" />
           <span className="text-xs uppercase tracking-wider text-muted-foreground">Hypothesis Eliminator</span>
         </div>
-        <p className="text-foreground text-sm max-w-md">{prompt}</p>
-        {previewMode && !showResult && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-cyan-400 text-xs mt-2"
-          >
-            {eliminatedCards.size} hypothesis{eliminatedCards.size !== 1 ? 'es' : ''} eliminated
-          </motion.p>
-        )}
       </motion.div>
 
+      {/* Context Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="w-full max-w-sm mb-4 p-3 rounded-lg bg-muted/30 border border-border/50"
+      >
+        <div className="flex items-start gap-2">
+          <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div>
+            <div className="text-xs font-medium text-foreground mb-1">Context</div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              {SCENARIO.context}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      {previewMode && !showResult && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-cyan-400 text-xs mb-3"
+        >
+          {eliminatedCards.size} hypothesis{eliminatedCards.size !== 1 ? 'es' : ''} eliminated
+        </motion.p>
+      )}
+
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
-        {options.map((option, index) => {
+        {SCENARIO.options.map((option, index) => {
           const isSelected = selectedIndex === index;
           const isEliminated = eliminatedCards.has(index);
-          // Only calculate elimination power for the selected card (to avoid revealing correct answer)
-          const eliminationPower = isSelected ? getEliminationCount(index) : 0;
+          const eliminationPower = isSelected ? option.eliminates : 0;
           
           return (
             <motion.div
@@ -138,7 +163,7 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
                   )}
                 </div>
                 
-                <span className="text-xs text-foreground">{option}</span>
+                <span className="text-xs text-foreground">{option.text}</span>
                 
                 {/* Selection indicator */}
                 {isSelected && (
@@ -219,7 +244,7 @@ export const HypothesisEliminatorGame = ({ prompt, options, correctIndex, explan
                   ? "✓ Maximum Elimination Power!" 
                   : "✗ Low Elimination Power"}
               </div>
-              <p className="text-xs text-muted-foreground">{explanation}</p>
+              <p className="text-xs text-muted-foreground">{SCENARIO.explanation}</p>
             </div>
             
             <Button 
