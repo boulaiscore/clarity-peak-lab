@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface CognitiveAgeSphereProps {
   cognitiveAge: number;
@@ -24,7 +25,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     requestAnimationFrame(animate);
   }, [cognitiveAge]);
 
-  // Particle animation
+  // Particle animation with light theme colors
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -33,12 +34,11 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     if (!ctx) return;
 
     const particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[] = [];
-    const particleCount = 60;
+    const particleCount = 50;
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = 80;
+    const radius = 90;
 
-    // Initialize particles
     for (let i = 0; i < particleCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const r = Math.random() * radius * 0.8;
@@ -48,7 +48,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         vx: (Math.random() - 0.5) * 0.3,
         vy: (Math.random() - 0.5) * 0.3,
         size: Math.random() * 2 + 1,
-        alpha: Math.random() * 0.5 + 0.3,
+        alpha: Math.random() * 0.4 + 0.2,
       });
     }
 
@@ -57,13 +57,10 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw particles
       particles.forEach((p) => {
-        // Move particle
         p.x += p.vx;
         p.y += p.vy;
 
-        // Keep within circle
         const dx = p.x - centerX;
         const dy = p.y - centerY;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -76,16 +73,14 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           p.vy = -p.vy * 0.5;
         }
 
-        // Draw particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(165, 82%, 51%, ${p.alpha})`;
+        ctx.fillStyle = `hsla(185, 45%, 40%, ${p.alpha})`;
         ctx.fill();
 
-        // Subtle glow
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(165, 82%, 51%, ${p.alpha * 0.2})`;
+        ctx.fillStyle = `hsla(185, 45%, 40%, ${p.alpha * 0.15})`;
         ctx.fill();
       });
 
@@ -93,11 +88,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     };
 
     draw();
-
     return () => cancelAnimationFrame(animationId);
   }, []);
 
-  // Determine if cognitive age is better (lower) than chronological
   const isImproved = delta < 0;
   const deltaYears = Math.abs(delta);
   
@@ -108,60 +101,59 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     : "at baseline";
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-6">
-      {/* Main sphere container */}
-      <div className="relative">
-        {/* Outer glow */}
-        <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/20 via-primary/5 to-transparent blur-2xl scale-150 animate-glow" />
+    <Card>
+      <CardContent className="py-8 flex flex-col items-center justify-center">
+        {/* Main sphere container */}
+        <div className="relative">
+          {/* Outer glow */}
+          <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/15 via-primary/5 to-transparent blur-2xl scale-150" />
 
-        {/* Canvas for particles */}
-        <canvas
-          ref={canvasRef}
-          width={200}
-          height={200}
-          className="absolute inset-0"
-        />
+          {/* Canvas for particles */}
+          <canvas
+            ref={canvasRef}
+            width={220}
+            height={220}
+            className="absolute inset-0"
+          />
 
-        {/* Main circle */}
-        <div className="relative w-[200px] h-[200px] rounded-full border border-primary/30 flex flex-col items-center justify-center animate-glow-pulse">
-          {/* Inner border ring */}
-          <div className="absolute inset-2 rounded-full border border-primary/10" />
-          
-          <span className="label-uppercase mb-1">Cognitive Age</span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-5xl font-semibold text-foreground number-display">
-              {Math.round(animatedAge)}
+          {/* Main circle */}
+          <div className="relative w-[220px] h-[220px] rounded-full bg-card border-2 border-primary/20 flex flex-col items-center justify-center shadow-soft">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Cognitive Age</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-5xl font-bold text-foreground number-display">
+                {Math.round(animatedAge)}
+              </span>
+              <span className="text-lg text-muted-foreground">years</span>
+            </div>
+            <span
+              className={`text-sm font-medium mt-2 ${
+                isImproved ? "text-success" : delta > 0 ? "text-warning" : "text-muted-foreground"
+              }`}
+            >
+              {deltaText}
             </span>
-            <span className="text-lg text-muted-foreground">years</span>
           </div>
-          <span
-            className={`text-sm font-medium mt-1 ${
-              isImproved ? "text-primary" : delta > 0 ? "text-warning" : "text-muted-foreground"
-            }`}
-          >
-            {deltaText}
-          </span>
         </div>
-      </div>
 
-      {/* Chronological age reference */}
-      {chronologicalAge && (
-        <p className="text-muted-foreground text-xs text-center mt-4">
-          Chronological age: {chronologicalAge} years
+        {/* Chronological age reference */}
+        {chronologicalAge && (
+          <p className="text-muted-foreground text-sm text-center mt-5">
+            Chronological age: {chronologicalAge} years
+          </p>
+        )}
+
+        {/* Description */}
+        <p className="text-muted-foreground text-xs text-center mt-3 max-w-[280px]">
+          Your brain's functional age based on reasoning speed, clarity, decision quality, and focus.
         </p>
-      )}
 
-      {/* Description */}
-      <p className="text-muted-foreground text-xs text-center mt-2 max-w-[280px]">
-        Your brain's functional age based on reasoning speed, clarity, decision quality, and focus.
-      </p>
-
-      {/* Disclaimer */}
-      <div className="mt-4 px-3 py-2 rounded-lg bg-card/50 border border-border/30">
-        <p className="text-[9px] text-muted-foreground/60 text-center uppercase tracking-wider">
-          Cognitive performance index · Not a medical measurement
-        </p>
-      </div>
-    </div>
+        {/* Disclaimer */}
+        <div className="mt-4 px-4 py-2 rounded-xl bg-muted">
+          <p className="text-[10px] text-muted-foreground text-center font-medium">
+            Cognitive performance index · Not a medical measurement
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
