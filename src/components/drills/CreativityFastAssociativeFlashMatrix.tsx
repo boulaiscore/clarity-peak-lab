@@ -18,67 +18,162 @@ interface Trial {
   correctIndex: number;
 }
 
-const CONCEPTS = [
-  'tension', 'emergence', 'equilibrium', 'disruption', 'flow',
-  'harmony', 'chaos', 'growth', 'decay', 'resonance',
-  'convergence', 'divergence', 'entropy', 'synthesis', 'fragmentation'
+// Unique concepts with distinct symbols
+const CONCEPT_DATA: { concept: string; symbol: JSX.Element; description: string }[] = [
+  {
+    concept: 'growth',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <path d="M20,35 L20,10" stroke="currentColor" strokeWidth="2.5" fill="none" />
+        <path d="M20,10 L12,20" stroke="currentColor" strokeWidth="2" fill="none" />
+        <path d="M20,10 L28,20" stroke="currentColor" strokeWidth="2" fill="none" />
+        <circle cx="12" cy="22" r="3" fill="currentColor" opacity="0.6" />
+        <circle cx="28" cy="22" r="3" fill="currentColor" opacity="0.6" />
+        <path d="M20,5 L17,10 L23,10 Z" fill="currentColor" />
+      </svg>
+    ),
+    description: 'Upward branching tree'
+  },
+  {
+    concept: 'tension',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <path d="M8,20 L16,20" stroke="currentColor" strokeWidth="2.5" fill="none" />
+        <path d="M24,20 L32,20" stroke="currentColor" strokeWidth="2.5" fill="none" />
+        <path d="M5,20 L10,17 L10,23 Z" fill="currentColor" />
+        <path d="M35,20 L30,17 L30,23 Z" fill="currentColor" />
+        <circle cx="20" cy="20" r="4" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="2,2" />
+      </svg>
+    ),
+    description: 'Opposing forces'
+  },
+  {
+    concept: 'harmony',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <circle cx="20" cy="20" r="12" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="20" cy="20" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="20" cy="20" r="2" fill="currentColor" />
+      </svg>
+    ),
+    description: 'Concentric circles'
+  },
+  {
+    concept: 'chaos',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <path d="M10,10 L18,25 L8,18 L22,12 L15,30 L30,15 L25,28 L32,22" stroke="currentColor" strokeWidth="2" fill="none" strokeLinejoin="round" />
+        <circle cx="12" cy="28" r="2" fill="currentColor" />
+        <circle cx="30" cy="10" r="2" fill="currentColor" />
+      </svg>
+    ),
+    description: 'Jagged zigzag'
+  },
+  {
+    concept: 'flow',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <path d="M5,20 Q15,10 20,20 Q25,30 35,20" stroke="currentColor" strokeWidth="2.5" fill="none" />
+        <path d="M32,17 L35,20 L32,23" stroke="currentColor" strokeWidth="2" fill="none" />
+      </svg>
+    ),
+    description: 'Flowing wave with arrow'
+  },
+  {
+    concept: 'balance',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <path d="M20,8 L20,32" stroke="currentColor" strokeWidth="2" fill="none" />
+        <path d="M8,14 L32,14" stroke="currentColor" strokeWidth="2.5" fill="none" />
+        <circle cx="8" cy="14" r="4" fill="currentColor" opacity="0.7" />
+        <circle cx="32" cy="14" r="4" fill="currentColor" opacity="0.7" />
+        <path d="M16,32 L24,32" stroke="currentColor" strokeWidth="3" fill="none" />
+      </svg>
+    ),
+    description: 'Scale balance'
+  },
+  {
+    concept: 'explosion',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <circle cx="20" cy="20" r="5" fill="currentColor" />
+        <path d="M20,20 L20,5" stroke="currentColor" strokeWidth="2" />
+        <path d="M20,20 L35,20" stroke="currentColor" strokeWidth="2" />
+        <path d="M20,20 L20,35" stroke="currentColor" strokeWidth="2" />
+        <path d="M20,20 L5,20" stroke="currentColor" strokeWidth="2" />
+        <path d="M20,20 L30,10" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M20,20 L10,30" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M20,20 L30,30" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M20,20 L10,10" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    ),
+    description: 'Radial burst'
+  },
+  {
+    concept: 'connection',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <circle cx="10" cy="10" r="4" fill="currentColor" />
+        <circle cx="30" cy="10" r="4" fill="currentColor" />
+        <circle cx="20" cy="30" r="4" fill="currentColor" />
+        <path d="M12,12 L18,28" stroke="currentColor" strokeWidth="2" />
+        <path d="M28,12 L22,28" stroke="currentColor" strokeWidth="2" />
+        <path d="M14,10 L26,10" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    ),
+    description: 'Connected nodes'
+  },
+  {
+    concept: 'cycle',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <circle cx="20" cy="20" r="12" fill="none" stroke="currentColor" strokeWidth="2.5" />
+        <path d="M26,8 L32,12 L28,16" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    ),
+    description: 'Circular arrow'
+  },
+  {
+    concept: 'stability',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <path d="M20,8 L32,32 L8,32 Z" fill="none" stroke="currentColor" strokeWidth="2.5" />
+        <circle cx="20" cy="24" r="3" fill="currentColor" />
+      </svg>
+    ),
+    description: 'Grounded triangle'
+  },
+  {
+    concept: 'transformation',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <rect x="6" y="14" width="10" height="10" fill="currentColor" opacity="0.5" />
+        <path d="M18,19 L24,19" stroke="currentColor" strokeWidth="2" />
+        <path d="M22,16 L25,19 L22,22" stroke="currentColor" strokeWidth="2" fill="none" />
+        <circle cx="30" cy="19" r="5" fill="currentColor" />
+      </svg>
+    ),
+    description: 'Square to circle'
+  },
+  {
+    concept: 'isolation',
+    symbol: (
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <circle cx="20" cy="20" r="6" fill="currentColor" />
+        <circle cx="20" cy="20" r="12" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4,3" />
+      </svg>
+    ),
+    description: 'Dotted boundary'
+  },
 ];
 
-// Abstract icon SVG paths
-const ICON_PATHS = [
-  // Upward lines
-  'M20,35 L20,5 M15,15 L20,5 L25,15',
-  // Spiral
-  'M20,20 Q30,10 35,20 Q40,30 30,35 Q20,40 15,30',
-  // Grid
-  'M10,10 L30,10 M10,20 L30,20 M10,30 L30,30 M10,10 L10,30 M20,10 L20,30 M30,10 L30,30',
-  // Wave
-  'M5,20 Q12,10 20,20 Q28,30 35,20',
-  // Circle burst
-  'M20,20 m-12,0 a12,12 0 1,1 24,0 a12,12 0 1,1 -24,0 M20,5 L20,2 M20,35 L20,38 M5,20 L2,20 M35,20 L38,20',
-  // Diamond
-  'M20,5 L35,20 L20,35 L5,20 Z',
-  // Branches
-  'M20,35 L20,15 M20,15 L10,5 M20,15 L30,5',
-  // Nested squares
-  'M10,10 L30,10 L30,30 L10,30 Z M15,15 L25,15 L25,25 L15,25 Z',
-  // Arrows out
-  'M20,20 L10,10 M20,20 L30,10 M20,20 L30,30 M20,20 L10,30',
-];
+const DURATION = 30000; // 30 seconds total
+const TIME_PER_TRIAL = 7000; // 7 seconds per question
 
-// Map concepts to their "correct" icon indices
-const CONCEPT_ICON_MAP: Record<string, number> = {
-  'tension': 0,
-  'emergence': 1,
-  'equilibrium': 2,
-  'disruption': 8,
-  'flow': 3,
-  'harmony': 4,
-  'chaos': 8,
-  'growth': 6,
-  'decay': 7,
-  'resonance': 4,
-  'convergence': 5,
-  'divergence': 8,
-  'entropy': 8,
-  'synthesis': 7,
-  'fragmentation': 8,
-};
-
-const DURATION = 25000; // 25 seconds total
-const TIME_PER_TRIAL = 5000; // 5 seconds per question
-
-const IconDisplay: React.FC<{ pathIndex: number; size?: number }> = ({ pathIndex, size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40">
-    <path
-      d={ICON_PATHS[pathIndex % ICON_PATHS.length]}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+const SymbolDisplay: React.FC<{ index: number; size?: number }> = ({ index, size = 40 }) => (
+  <div style={{ width: size, height: size }}>
+    {CONCEPT_DATA[index % CONCEPT_DATA.length].symbol}
+  </div>
 );
 
 export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssociativeFlashMatrixProps> = ({ onComplete }) => {
@@ -100,21 +195,21 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
   const startTimeRef = useRef(0);
 
   const generateTrial = useCallback((): Trial => {
-    const concept = CONCEPTS[Math.floor(Math.random() * CONCEPTS.length)];
-    const correctIconIndex = CONCEPT_ICON_MAP[concept] ?? Math.floor(Math.random() * ICON_PATHS.length);
+    const conceptIndex = Math.floor(Math.random() * CONCEPT_DATA.length);
+    const concept = CONCEPT_DATA[conceptIndex].concept;
     
-    // Generate 9 unique icon indices with the correct one included
+    // Generate 6 unique symbol indices with the correct one included (smaller grid)
     const icons: number[] = [];
-    const correctPosition = Math.floor(Math.random() * 9);
+    const correctPosition = Math.floor(Math.random() * 6);
     
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 6; i++) {
       if (i === correctPosition) {
-        icons.push(correctIconIndex);
+        icons.push(conceptIndex);
       } else {
         let randomIcon;
         do {
-          randomIcon = Math.floor(Math.random() * ICON_PATHS.length);
-        } while (icons.includes(randomIcon) || randomIcon === correctIconIndex);
+          randomIcon = Math.floor(Math.random() * CONCEPT_DATA.length);
+        } while (icons.includes(randomIcon) || randomIcon === conceptIndex);
         icons.push(randomIcon);
       }
     }
@@ -220,13 +315,13 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
           transition={{ delay: 0.2 }}
         >
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400">
-            <IconDisplay pathIndex={1} size={32} />
+            <SymbolDisplay index={0} size={32} />
           </div>
           <h2 className="text-xl font-semibold text-foreground mb-3">Symbol Matching</h2>
           <p className="text-muted-foreground mb-2 text-sm">Creativity Hub • Fast Thinking</p>
           <p className="text-sm text-muted-foreground mb-8">
-            A concept word will appear. Tap the abstract symbol that best represents it.
-            Trust your intuition — you have 5 seconds per word.
+            A concept word will appear. Tap the symbol that best represents it.
+            Trust your intuition — you have 7 seconds per word.
           </p>
           <motion.button
             className="w-full py-4 bg-purple-500 text-white rounded-xl font-medium"
@@ -261,13 +356,13 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
             </h2>
           </div>
           
-          {/* Demo grid */}
+          {/* Demo grid - 2x3 */}
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <IconDisplay pathIndex={2} size={32} />
+              <SymbolDisplay index={2} size={36} />
             </div>
             <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <IconDisplay pathIndex={5} size={32} />
+              <SymbolDisplay index={5} size={36} />
             </div>
             <motion.div 
               className="aspect-square rounded-xl border-2 border-green-500 bg-green-500/20 flex items-center justify-center text-green-400"
@@ -275,16 +370,16 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              <IconDisplay pathIndex={6} size={32} />
+              <SymbolDisplay index={0} size={36} />
             </motion.div>
             <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <IconDisplay pathIndex={3} size={32} />
+              <SymbolDisplay index={3} size={36} />
             </div>
             <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <IconDisplay pathIndex={8} size={32} />
+              <SymbolDisplay index={8} size={36} />
             </div>
             <div className="aspect-square rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground">
-              <IconDisplay pathIndex={4} size={32} />
+              <SymbolDisplay index={4} size={36} />
             </div>
           </div>
           
@@ -294,7 +389,7 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            ✓ The branching symbol represents "growth" — upward expansion!
+            ✓ The branching tree represents "growth" — upward expansion!
           </motion.p>
           
           <motion.button
@@ -317,12 +412,12 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted-foreground">Trial {trialIndex + 1}</span>
-          <span className="text-sm text-muted-foreground">{Math.ceil(totalTimeLeft / 1000)}s</span>
+          <span className="text-sm text-muted-foreground">{Math.ceil(timeLeft / 1000)}s</span>
         </div>
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-purple-500"
-            style={{ width: `${(totalTimeLeft / DURATION) * 100}%` }}
+            style={{ width: `${progress * 100}%` }}
           />
         </div>
       </div>
@@ -356,7 +451,7 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
               </motion.div>
               
               {/* Timer indicator */}
-              <div className="mt-4 h-1 bg-muted rounded-full overflow-hidden max-w-[200px] mx-auto">
+              <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden max-w-[200px] mx-auto">
                 <motion.div
                   className="h-full bg-purple-500"
                   style={{ width: `${progress * 100}%` }}
@@ -364,8 +459,8 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
               </div>
             </div>
             
-            {/* 3x3 Grid */}
-            <div className="grid grid-cols-3 gap-3">
+            {/* 2x3 Grid */}
+            <div className="grid grid-cols-3 gap-4">
               {currentTrial?.icons.map((iconIndex, i) => {
                 const isSelected = selectedIndex === i;
                 const isCorrect = i === currentTrial.correctIndex;
@@ -387,7 +482,7 @@ export const CreativityFastAssociativeFlashMatrix: React.FC<CreativityFastAssoci
                     onClick={(e) => handleSelect(i, e)}
                     disabled={selectedIndex !== null}
                   >
-                    <IconDisplay pathIndex={iconIndex} size={36} />
+                    <SymbolDisplay index={iconIndex} size={42} />
                   </motion.button>
                 );
               })}
