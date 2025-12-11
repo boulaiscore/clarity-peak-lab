@@ -12,7 +12,7 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "1rem",
+      padding: "2rem",
       screens: {
         "2xl": "1400px",
       },
@@ -81,20 +81,14 @@ export default {
         "accent-secondary": "hsl(var(--accent-secondary))",
         "text-primary": "hsl(var(--text-primary))",
         "text-secondary": "hsl(var(--text-secondary))",
-        // Pastel colors
-        "pastel-teal": "hsl(var(--pastel-teal))",
-        "pastel-pink": "hsl(var(--pastel-pink))",
-        "pastel-green": "hsl(var(--pastel-green))",
-        "pastel-purple": "hsl(var(--pastel-purple))",
-        "pastel-yellow": "hsl(var(--pastel-yellow))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 4px)",
         sm: "calc(var(--radius) - 8px)",
-        xl: "1.5rem",
-        "2xl": "2rem",
-        "3xl": "2.5rem",
+        xl: "1.25rem",
+        "2xl": "1.5rem",
+        "3xl": "2rem",
       },
       keyframes: {
         "accordion-down": {
@@ -126,12 +120,8 @@ export default {
           "50%": { opacity: "0.8" },
         },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 40px -15px hsl(185, 45%, 40%, 0.2)" },
-          "50%": { boxShadow: "0 0 60px -10px hsl(185, 45%, 40%, 0.3)" },
-        },
-        "bounce-soft": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-4px)" },
+          "0%, 100%": { boxShadow: "0 0 60px -20px hsl(165, 82%, 51%, 0.3)" },
+          "50%": { boxShadow: "0 0 80px -15px hsl(165, 82%, 51%, 0.5)" },
         },
       },
       animation: {
@@ -143,16 +133,10 @@ export default {
         shimmer: "shimmer 3s linear infinite",
         glow: "glow 3s ease-in-out infinite",
         "glow-pulse": "glow-pulse 4s ease-in-out infinite",
-        "bounce-soft": "bounce-soft 2s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-      },
-      boxShadow: {
-        "soft": "0 8px 32px -8px hsl(210, 20%, 20%, 0.1)",
-        "card": "0 4px 24px -4px hsl(210, 20%, 20%, 0.08)",
-        "button": "0 2px 12px -2px hsl(185, 45%, 40%, 0.2)",
       },
     },
   },

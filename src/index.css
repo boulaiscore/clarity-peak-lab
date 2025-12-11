@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,89 +6,72 @@
 
 @layer base {
   :root {
-    /* Premium Dark Luxe Palette */
-    --background: 220 20% 8%;
-    --background-surface: 220 18% 11%;
-    --foreground: 40 20% 96%;
+    /* WHOOP-inspired pure dark palette */
+    --background: 0 0% 0%;
+    --background-surface: 0 0% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 220 18% 12%;
-    --card-foreground: 40 20% 96%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 40 20% 96%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Gold/Champagne primary accent */
-    --primary: 38 65% 58%;
-    --primary-foreground: 220 20% 8%;
+    /* Teal/Cyan accent like WHOOP */
+    --primary: 165 82% 51%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 40 20% 90%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 38 50% 50%;
-    --accent-foreground: 220 20% 8%;
+    --accent: 165 70% 45%;
+    --accent-foreground: 0 0% 0%;
 
-    --destructive: 0 65% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
 
-    --success: 155 60% 45%;
-    --success-foreground: 0 0% 100%;
+    --success: 165 82% 51%;
+    --success-foreground: 0 0% 0%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 10%;
+    --warning-foreground: 0 0% 0%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 15%;
-    --ring: 38 65% 58%;
+    --border: 0 0% 12%;
+    --input: 0 0% 10%;
+    --ring: 165 82% 51%;
 
     --radius: 1rem;
 
-    /* Premium brand tokens */
-    --bg-primary: 220 20% 8%;
-    --bg-surface: 220 18% 12%;
-    --accent-primary: 38 65% 58%;
-    --accent-secondary: 280 40% 50%;
-    --text-primary: 40 20% 96%;
-    --text-secondary: 220 10% 60%;
+    /* Brand tokens - WHOOP style */
+    --bg-primary: 0 0% 0%;
+    --bg-surface: 0 0% 6%;
+    --accent-primary: 165 82% 51%;
+    --accent-secondary: 165 70% 40%;
+    --text-primary: 0 0% 98%;
+    --text-secondary: 0 0% 55%;
     
-    /* Luxe accent colors */
-    --pastel-teal: 180 30% 25%;
-    --pastel-pink: 340 30% 30%;
-    --pastel-green: 155 30% 25%;
-    --pastel-purple: 270 30% 28%;
-    --pastel-yellow: 38 50% 25%;
+    /* Gradients - Teal glow */
+    --gradient-primary: linear-gradient(135deg, hsl(165, 82%, 51%) 0%, hsl(165, 70%, 40%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(165, 82%, 51%, 0.15) 0%, transparent 70%);
+    --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 8%) 0%, hsl(0, 0%, 0%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(165, 82%, 51%, 0.03) 0%, transparent 100%);
     
-    /* Premium gold tones */
-    --gold-light: 38 70% 70%;
-    --gold: 38 65% 58%;
-    --gold-dark: 38 50% 40%;
-    
-    /* Premium gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(38, 65%, 58%) 0%, hsl(38, 70%, 70%) 50%, hsl(38, 65%, 58%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(38, 70%, 70%) 0%, hsl(38, 65%, 58%) 50%, hsl(35, 50%, 45%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(220, 18%, 14%) 0%, hsl(220, 18%, 10%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(38, 65%, 58%, 0.08) 0%, transparent 100%);
-    --gradient-page: linear-gradient(180deg, hsl(220, 20%, 8%) 0%, hsl(220, 18%, 6%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(220, 18%, 14%) 0%, hsl(220, 18%, 11%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(38, 65%, 58%, 0.15) 0%, transparent 70%);
-    
-    /* Premium shadows */
-    --shadow-glow: 0 0 80px -20px hsl(38, 65%, 58%, 0.3);
-    --shadow-card: 0 8px 40px -12px hsl(0, 0%, 0%, 0.4);
-    --shadow-button: 0 4px 20px -4px hsl(38, 65%, 58%, 0.35);
-    --shadow-soft: 0 12px 48px -12px hsl(0, 0%, 0%, 0.5);
-    --shadow-inset: inset 0 1px 0 0 hsl(40, 20%, 96%, 0.05);
+    /* Shadows - Subtle, premium */
+    --shadow-glow: 0 0 120px -40px hsl(165, 82%, 51%, 0.35);
+    --shadow-card: 0 2px 24px -4px hsl(0, 0%, 0%, 0.8);
+    --shadow-button: 0 0 32px -4px hsl(165, 82%, 51%, 0.25);
 
-    --sidebar-background: 220 18% 10%;
-    --sidebar-foreground: 40 20% 96%;
-    --sidebar-primary: 38 65% 58%;
-    --sidebar-primary-foreground: 220 20% 8%;
-    --sidebar-accent: 220 15% 16%;
-    --sidebar-accent-foreground: 40 20% 90%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 38 65% 58%;
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 165 82% 51%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 10%;
+    --sidebar-ring: 165 82% 51%;
   }
 }
 
@@ -98,7 +81,7 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
@@ -107,35 +90,27 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "ss01" 1, "ss02" 1;
-    background: linear-gradient(180deg, hsl(220, 20%, 8%) 0%, hsl(220, 18%, 5%) 100%);
-    min-height: 100vh;
-    min-height: 100dvh;
   }
 
-  /* Premium typography */
-  h1, h2 {
-    font-family: 'Playfair Display', Georgia, serif;
-    @apply font-medium tracking-tight text-foreground;
-  }
-
-  h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight text-foreground;
+  /* WHOOP-style typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
   }
 }
 
-/* Calendar dropdown styling */
+/* Calendar dropdown styling for dark theme */
 .rdp-dropdown {
   appearance: none;
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
+  background-color: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 0.5rem;
   padding: 0.375rem 2rem 0.375rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: hsl(var(--foreground));
   cursor: pointer;
   transition: all 0.2s;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
   background-size: 1.25em 1.25em;
@@ -143,12 +118,12 @@
 
 .rdp-dropdown:focus {
   outline: none;
-  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.3);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.5);
   border-color: hsl(var(--primary));
 }
 
 .rdp-dropdown:hover {
-  background-color: hsl(var(--muted));
+  background-color: hsl(var(--muted) / 0.5);
 }
 
 .rdp-dropdown option {
@@ -170,26 +145,18 @@
 }
 
 @layer utilities {
-  /* Premium label style */
+  /* Label style like WHOOP */
   .label-uppercase {
-    @apply text-[10px] uppercase tracking-[0.2em] font-medium text-muted-foreground;
+    @apply text-[10px] uppercase tracking-[0.15em] font-medium text-muted-foreground;
   }
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-gold);
-  }
-
-  .text-gold {
-    color: hsl(var(--primary));
+    background-image: var(--gradient-primary);
   }
   
   .bg-gradient-primary {
     background-image: var(--gradient-primary);
-  }
-
-  .bg-gradient-gold {
-    background-image: var(--gradient-gold);
   }
   
   .bg-gradient-glow {
@@ -202,14 +169,6 @@
 
   .bg-gradient-subtle {
     background-image: var(--gradient-subtle);
-  }
-
-  .bg-gradient-page {
-    background-image: var(--gradient-page);
-  }
-
-  .bg-gradient-card {
-    background-image: var(--gradient-card);
   }
   
   .shadow-glow {
@@ -224,53 +183,9 @@
     box-shadow: var(--shadow-button);
   }
 
-  .shadow-soft {
-    box-shadow: var(--shadow-soft);
-  }
-
-  /* Premium accent backgrounds */
-  .bg-pastel-teal {
-    background: linear-gradient(135deg, hsl(180, 40%, 25%) 0%, hsl(180, 30%, 20%) 100%);
-  }
-
-  .bg-pastel-pink {
-    background: linear-gradient(135deg, hsl(340, 40%, 30%) 0%, hsl(340, 30%, 25%) 100%);
-  }
-
-  .bg-pastel-green {
-    background: linear-gradient(135deg, hsl(155, 40%, 25%) 0%, hsl(155, 30%, 20%) 100%);
-  }
-
-  .bg-pastel-purple {
-    background: linear-gradient(135deg, hsl(270, 40%, 30%) 0%, hsl(270, 30%, 25%) 100%);
-  }
-
-  .bg-pastel-yellow {
-    background: linear-gradient(135deg, hsl(38, 50%, 28%) 0%, hsl(38, 40%, 22%) 100%);
-  }
-
-  /* Premium gold accent */
-  .bg-gold {
-    background: linear-gradient(135deg, hsl(38, 70%, 65%) 0%, hsl(38, 65%, 55%) 100%);
-  }
-
-  /* Premium card glow */
+  /* Subtle glow effect for cards */
   .card-glow {
     position: relative;
-  }
-
-  .card-glow::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, hsl(38, 65%, 58%, 0.2) 0%, transparent 50%, hsl(38, 65%, 58%, 0.1) 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
   }
 
   .card-glow::after {
@@ -278,32 +193,17 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(ellipse at 50% 0%, hsl(38, 65%, 58%, 0.08) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 50% 0%, hsl(165, 82%, 51%, 0.08) 0%, transparent 60%);
     pointer-events: none;
   }
 
-  /* Premium inner glow */
-  .inner-glow {
-    box-shadow: inset 0 1px 0 0 hsl(40, 20%, 96%, 0.06), inset 0 0 20px 0 hsl(38, 65%, 58%, 0.03);
-  }
-
-  /* Sphere glow for visual elements */
+  /* Particle glow for sphere */
   .sphere-glow {
-    background: radial-gradient(ellipse at center, hsl(38, 65%, 58%, 0.2) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, hsl(165, 82%, 51%, 0.2) 0%, transparent 70%);
   }
 
-  /* Premium animations */
   .animate-pulse-slow {
-    animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes pulse-slow {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   .animate-float {
@@ -316,32 +216,6 @@
     }
     50% {
       transform: translateY(-12px);
-    }
-  }
-
-  .animate-shimmer {
-    animation: shimmer 3s ease-in-out infinite;
-  }
-
-  @keyframes shimmer {
-    0%, 100% {
-      opacity: 0.5;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-
-  .animate-glow-pulse {
-    animation: glow-pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes glow-pulse {
-    0%, 100% {
-      box-shadow: 0 0 20px -5px hsl(38, 65%, 58%, 0.3);
-    }
-    50% {
-      box-shadow: 0 0 40px -5px hsl(38, 65%, 58%, 0.5);
     }
   }
 
@@ -370,42 +244,13 @@
 
   /* Touch-friendly spacing */
   .touch-target {
-    min-height: 52px;
+    min-height: 48px;
     @apply flex items-center justify-center;
   }
 
   /* Premium number styling */
   .number-display {
-    font-family: 'Playfair Display', Georgia, serif;
-    @apply font-medium tracking-tight tabular-nums;
+    @apply font-semibold tracking-tight tabular-nums;
     font-variant-numeric: tabular-nums;
-  }
-
-  /* Glass effect for dark theme */
-  .glass-card {
-    background: hsl(220, 18%, 12%, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsl(40, 20%, 96%, 0.06);
-  }
-
-  /* Premium divider */
-  .premium-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, hsl(38, 65%, 58%, 0.3) 50%, transparent 100%);
-  }
-
-  /* Gold border */
-  .border-gold {
-    border-color: hsl(38, 65%, 58%, 0.3);
-  }
-
-  /* Premium button pressed state */
-  .press-effect {
-    transition: transform 0.1s ease;
-  }
-
-  .press-effect:active {
-    transform: scale(0.98);
   }
 }

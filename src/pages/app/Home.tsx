@@ -1,9 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { Zap, Brain, ChevronRight, Dumbbell, Settings, Sparkles, Crown } from "lucide-react";
+import { Zap, Brain, ChevronRight, Dumbbell, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -17,156 +16,148 @@ const Home = () => {
 
   const getDurationLabel = (duration?: string) => {
     switch (duration) {
-      case "30s": return "30s";
-      case "2min": return "2min";
-      case "5min": return "5min";
-      case "7min": return "7min";
-      default: return "—";
+      case "30s":
+        return "30s";
+      case "2min":
+        return "2min";
+      case "5min":
+        return "5min";
+      case "7min":
+        return "7min";
+      default:
+        return "—";
     }
   };
 
   const getDailyTimeLabel = (time?: string) => {
     switch (time) {
-      case "1min": return "1min/day";
-      case "5min": return "5min/day";
-      case "10min": return "10min/day";
-      default: return "—";
+      case "1min":
+        return "1min/day";
+      case "5min":
+        return "5min/day";
+      case "10min":
+        return "10min/day";
+      default:
+        return "—";
     }
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
   };
 
   return (
     <AppShell>
-      <div className="px-5 py-8 max-w-md mx-auto min-h-screen">
-        {/* Premium Header */}
-        <div className="mb-8">
-          <p className="text-sm text-muted-foreground mb-1">{getGreeting()}</p>
-          <h1 className="text-3xl font-medium">
-            <span className="text-gradient">{firstName}</span>
-          </h1>
+      <div className="px-5 py-5 max-w-md mx-auto">
+        {/* Header */}
+        <div className="mb-5">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-0.5">
+            Strategic Cognitive Training
+          </p>
+          <h1 className="text-lg font-semibold tracking-tight">Hello, {firstName}</h1>
         </div>
 
-        {/* Main CTA Card */}
-        <Card variant="premium" className="mb-6 overflow-hidden">
-          <CardContent className="p-0">
-            <button
-              onClick={() => navigate("/neuro-lab")}
-              className="group w-full p-6 text-left transition-all duration-200 press-effect"
-            >
-              <div className="flex items-center gap-5">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/30 to-amber-500/20 flex items-center justify-center shrink-0 shadow-glow">
-                  <Dumbbell className="w-8 h-8 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-semibold text-foreground">Cognitive Lab</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Strategic drills • 5 domains</p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-muted/50 flex items-center justify-center">
-                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
-              </div>
-            </button>
-          </CardContent>
-        </Card>
+        {/* Training Profile Card */}
+        <div className="p-4 rounded-xl bg-card/60 border border-border/30 mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-medium text-[13px]">Training Protocol</h2>
+            <Link to="/app/account" className="text-[11px] text-primary/80 hover:text-primary flex items-center gap-1">
+              <Settings className="w-3 h-3" />
+              Edit
+            </Link>
+          </div>
 
-        {/* Training Protocol Card */}
-        <Card variant="glow" className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-foreground">Training Protocol</h2>
-              <Link to="/app/account" className="text-xs text-primary hover:text-primary/80 flex items-center gap-1.5 transition-colors">
-                <Settings className="w-3.5 h-3.5" />
-                Edit
+          {hasGoals ? (
+            <div className="space-y-2.5">
+              {/* Goals */}
+              <div className="flex gap-2">
+                {hasFastThinking && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <Zap className="w-3 h-3 text-amber-400" />
+                    <span className="text-[11px] font-medium text-amber-400">System 1</span>
+                  </div>
+                )}
+                {hasSlowThinking && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20">
+                    <Brain className="w-3 h-3 text-teal-400" />
+                    <span className="text-[11px] font-medium text-teal-400">System 2</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Preferences */}
+              <div className="flex gap-3 text-[11px] text-muted-foreground">
+                <span>{getDurationLabel(user?.sessionDuration)} drills</span>
+                <span className="text-muted-foreground/40">•</span>
+                <span>{getDailyTimeLabel(user?.dailyTimeCommitment)}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-3">
+              <p className="text-[12px] text-muted-foreground mb-2">Configure your training</p>
+              <Link to="/onboarding" className="text-[12px] text-primary hover:underline">
+                Complete Setup →
               </Link>
             </div>
+          )}
+        </div>
 
-            {hasGoals ? (
-              <div className="space-y-4">
-                {/* Goals */}
-                <div className="flex gap-3">
-                  {hasFastThinking && (
-                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20">
-                      <Zap className="w-4 h-4 text-amber-400" />
-                      <span className="text-sm font-medium text-foreground">System 1</span>
-                    </div>
-                  )}
-                  {hasSlowThinking && (
-                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-emerald-500/10 border border-primary/20">
-                      <Brain className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">System 2</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Preferences */}
-                <div className="flex gap-4 text-sm text-muted-foreground">
-                  <span>{getDurationLabel(user?.sessionDuration)} drills</span>
-                  <span className="text-border">•</span>
-                  <span>{getDailyTimeLabel(user?.dailyTimeCommitment)}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-muted-foreground mb-4">Configure your training protocol</p>
-                <Link to="/onboarding" className="text-sm text-primary hover:underline font-semibold">
-                  Complete Setup →
-                </Link>
-              </div>
+        {/* Quick Access to Gym */}
+        <div className="mb-5">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-2.5">Begin Training</p>
+          <button
+            onClick={() => navigate("/neuro-lab")}
+            className={cn(
+              "group w-full p-4 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5",
+              "border border-primary/25 hover:border-primary/40",
+              "transition-all duration-200 text-left active:scale-[0.98]",
             )}
-          </CardContent>
-        </Card>
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                <Dumbbell className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[15px] font-semibold text-foreground">Cognitive Lab</h3>
+                <p className="text-[12px] text-muted-foreground mt-0.5">Strategic drills • 5 domains</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+            </div>
+          </button>
+        </div>
 
-        {/* Cognitive Systems */}
-        <div className="mb-8">
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.2em] mb-4">Cognitive Systems</p>
-          <div className="grid grid-cols-2 gap-4">
-            <Card 
-              variant={hasFastThinking ? "premium" : "default"}
+        {/* Training Focus Overview */}
+        <div className="mb-5">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-2.5">Cognitive Systems</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div
               className={cn(
-                "transition-all duration-300",
-                !hasFastThinking && "opacity-50"
+                "p-3.5 rounded-xl border transition-colors",
+                hasFastThinking ? "bg-amber-500/5 border-amber-500/20" : "bg-card/40 border-border/30 opacity-40",
               )}
             >
-              <CardContent className="p-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-amber-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">System 1</h3>
-                <p className="text-xs text-muted-foreground mt-1">Intuitive Processing</p>
-              </CardContent>
-            </Card>
-            <Card 
-              variant={hasSlowThinking ? "premium" : "default"}
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2.5">
+                <Zap className="w-4 h-4 text-amber-400" />
+              </div>
+              <h3 className="text-[13px] font-semibold text-foreground">System 1</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Intuitive Processing</p>
+            </div>
+            <div
               className={cn(
-                "transition-all duration-300",
-                !hasSlowThinking && "opacity-50"
+                "p-3.5 rounded-xl border transition-colors",
+                hasSlowThinking ? "bg-teal-500/5 border-teal-500/20" : "bg-card/40 border-border/30 opacity-40",
               )}
             >
-              <CardContent className="p-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-emerald-500/20 flex items-center justify-center mb-4">
-                  <Brain className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">System 2</h3>
-                <p className="text-xs text-muted-foreground mt-1">Deliberate Analysis</p>
-              </CardContent>
-            </Card>
+              <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2.5">
+                <Brain className="w-4 h-4 text-teal-400" />
+              </div>
+              <h3 className="text-[13px] font-semibold text-foreground">System 2</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Deliberate Analysis</p>
+            </div>
           </div>
         </div>
 
         {/* Tagline */}
-        <div className="text-center pt-4">
-          <div className="inline-flex items-center gap-2.5 px-5 py-3 rounded-full glass-card">
-            <Crown className="w-4 h-4 text-primary" />
-            <p className="text-xs text-muted-foreground font-medium tracking-wide">
-              Build strategic cognitive advantage
-            </p>
-          </div>
+        <div className="text-center pt-2">
+          <p className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">
+            Build strategic cognitive advantage
+          </p>
         </div>
       </div>
     </AppShell>

@@ -5,34 +5,37 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 press-effect",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-button hover:opacity-90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/85 active:scale-[0.98]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-border bg-transparent text-foreground hover:bg-muted",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
+        outline: "border border-border/60 bg-transparent text-foreground hover:bg-card hover:border-border",
+        secondary: "bg-card text-foreground hover:bg-muted border border-border/40",
+        ghost: "text-muted-foreground hover:bg-card hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline font-normal",
-        premium: "bg-gradient-gold text-primary-foreground shadow-button hover:opacity-95",
-        gold: "bg-gradient-gold text-primary-foreground font-semibold shadow-button hover:shadow-glow",
-        soft: "bg-muted/50 text-foreground hover:bg-muted",
-        subtle: "border border-border/60 bg-card text-foreground hover:bg-muted",
+        // WHOOP-style primary button - subtle glow
+        premium: "bg-primary text-primary-foreground shadow-button hover:shadow-glow active:scale-[0.98]",
+        // Subtle outline for secondary actions
+        subtle: "border border-border/40 bg-card/50 text-foreground hover:bg-card hover:border-border/60 backdrop-blur-sm",
+        // Ghost with teal accent
         "ghost-accent": "text-primary hover:bg-primary/10 hover:text-primary",
-        hero: "bg-gradient-gold text-primary-foreground font-semibold shadow-button hover:shadow-glow animate-glow-pulse",
-        "hero-outline": "border border-border bg-card text-foreground hover:bg-muted",
-        glow: "bg-primary text-primary-foreground shadow-lg",
-        control: "bg-card border border-border text-foreground hover:bg-muted",
-        dark: "bg-foreground text-background hover:bg-foreground/90",
+        // Dark solid button
+        dark: "bg-card border border-border/40 text-foreground hover:bg-muted active:scale-[0.98]",
+        // Legacy variants for compatibility
+        hero: "bg-primary text-primary-foreground shadow-button hover:shadow-glow hover:bg-primary/90 active:scale-[0.98]",
+        "hero-outline": "border border-border/60 bg-card/50 text-foreground hover:bg-card hover:border-primary/30 backdrop-blur-sm",
+        glow: "bg-primary text-primary-foreground shadow-glow hover:shadow-button active:scale-[0.98]",
+        control: "bg-card border border-border/40 text-foreground hover:bg-muted hover:border-border/60",
       },
       size: {
-        default: "h-12 px-5 py-3",
-        sm: "h-10 rounded-lg px-4 text-sm",
-        lg: "h-14 rounded-xl px-8 text-base",
-        xl: "h-16 rounded-2xl px-10 text-lg font-semibold",
-        icon: "h-12 w-12 rounded-xl",
-        "icon-sm": "h-10 w-10 rounded-lg",
+        default: "h-11 px-6 py-2",
+        sm: "h-9 rounded-lg px-4 text-xs",
+        lg: "h-12 rounded-xl px-8",
+        xl: "h-14 rounded-xl px-10 text-base font-semibold",
+        icon: "h-10 w-10 rounded-xl",
+        "icon-sm": "h-8 w-8 rounded-lg",
       },
     },
     defaultVariants: {
