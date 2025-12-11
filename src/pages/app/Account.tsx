@@ -6,7 +6,7 @@ import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment } from "@/c
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Clock, Calendar, Lock, RotateCcw } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,12 +103,6 @@ const Account = () => {
     setIsSaving(false);
   };
 
-  const durationOptions: { value: SessionDuration; label: string }[] = [
-    { value: "30s", label: "30s" },
-    { value: "2min", label: "2min" },
-    { value: "5min", label: "5min" },
-    { value: "7min", label: "7min" },
-  ];
 
   const dailyTimeOptions: { value: DailyTimeCommitment; label: string }[] = [
     { value: "3min", label: "3 min" },
@@ -229,29 +223,6 @@ const Account = () => {
             </div>
           </div>
 
-          {/* Session Duration */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              Exercise Duration
-            </h3>
-            <div className="flex gap-2">
-              {durationOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSessionDuration(option.value)}
-                  className={cn(
-                    "flex-1 p-3 rounded-xl border text-sm transition-all",
-                    sessionDuration === option.value
-                      ? "border-primary bg-primary/8"
-                      : "border-border hover:border-primary/30"
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Daily Time */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
