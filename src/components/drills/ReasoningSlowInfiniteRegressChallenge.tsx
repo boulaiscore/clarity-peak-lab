@@ -258,8 +258,8 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
   if (phase === 'classify' && currentEdge) {
     const isCorrect = showFeedback && userAnswers[userAnswers.length - 1] === currentEdge.correctAnswer;
     
-    // Neutral highlight color (white/light) instead of green
-    const highlightColor = 'hsl(210, 20%, 70%)';
+    // Pure white/yellow highlight for current link - NOT green
+    const highlightColor = '#ffffff';
     
     return (
       <div className="min-h-screen bg-background flex flex-col p-4">
@@ -275,30 +275,7 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
         {/* Graph visualization */}
         <div className="flex-1 relative bg-card rounded-2xl border border-border overflow-hidden mb-4">
           <svg width="100%" height="280" viewBox="0 0 300 280">
-            <defs>
-              <marker 
-                id="arrowhead" 
-                markerWidth="8" 
-                markerHeight="8" 
-                refX="0" 
-                refY="4" 
-                orient="auto"
-              >
-                <polygon points="0,0 8,4 0,8" fill="hsl(var(--muted-foreground))" opacity="0.5"/>
-              </marker>
-              <marker 
-                id="arrowhead-highlight" 
-                markerWidth="10" 
-                markerHeight="10" 
-                refX="0" 
-                refY="5" 
-                orient="auto"
-              >
-                <polygon points="0,0 10,5 0,10" fill={highlightColor} />
-              </marker>
-            </defs>
-            
-            {/* Draw all edges */}
+            {/* Draw all edges - NO markers, arrows drawn manually */}
             {SCENARIO.edges.map((edge, i) => {
               const from = SCENARIO.nodes.find(n => n.id === edge.from)!;
               const to = SCENARIO.nodes.find(n => n.id === edge.to)!;
@@ -306,38 +283,59 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
               const isAnswered = i < currentEdgeIndex;
               const answer = userAnswers[i];
               
-              // Calculate direction and proper offset to stop before circle
+              // Calculate direction
               const dx = to.x - from.x;
               const dy = to.y - from.y;
               const length = Math.sqrt(dx * dx + dy * dy);
-              const nodeRadius = 28;
-              const arrowOffset = 12; // Extra offset for arrow head
+              const nodeRadius = 32;
+              const arrowGap = 8; // Gap before arrow tip
+              
+              // Normalize direction
+              const nx = dx / length;
+              const ny = dy / length;
               
               // Start point: edge of from circle
-              const startX = from.x + (dx / length) * nodeRadius;
-              const startY = from.y + (dy / length) * nodeRadius;
+              const startX = from.x + nx * nodeRadius;
+              const startY = from.y + ny * nodeRadius;
               
-              // End point: edge of to circle minus arrow space
-              const endX = to.x - (dx / length) * (nodeRadius + arrowOffset);
-              const endY = to.y - (dy / length) * (nodeRadius + arrowOffset);
+              // End point: BEFORE the circle edge (with gap for arrow)
+              const endX = to.x - nx * (nodeRadius + arrowGap);
+              const endY = to.y - ny * (nodeRadius + arrowGap);
+              
+              // Arrow head points (triangle pointing toward target)
+              const arrowSize = 8;
+              const arrowTipX = to.x - nx * nodeRadius;
+              const arrowTipY = to.y - ny * nodeRadius;
+              const arrowBackX = arrowTipX - nx * arrowSize;
+              const arrowBackY = arrowTipY - ny * arrowSize;
+              
+              // Perpendicular for arrow wings
+              const perpX = -ny * (arrowSize * 0.6);
+              const perpY = nx * (arrowSize * 0.6);
+              
+              const arrowColor = isAnswered 
+                ? STRENGTH_INFO[answer].color 
+                : isCurrent 
+                  ? highlightColor
+                  : 'hsl(var(--muted-foreground))';
+              
+              const opacity = isAnswered ? 0.7 : isCurrent ? 1 : 0.3;
               
               return (
-                <g key={`edge-${i}`}>
+                <g key={`edge-${i}`} opacity={opacity}>
+                  {/* Line */}
                   <line
                     x1={startX}
                     y1={startY}
                     x2={endX}
                     y2={endY}
-                    stroke={
-                      isAnswered 
-                        ? STRENGTH_INFO[answer].color 
-                        : isCurrent 
-                          ? highlightColor
-                          : 'hsl(var(--muted-foreground))'
-                    }
+                    stroke={arrowColor}
                     strokeWidth={isCurrent ? 3 : 2}
-                    strokeOpacity={isAnswered ? 0.6 : isCurrent ? 1 : 0.4}
-                    markerEnd={isCurrent ? 'url(#arrowhead-highlight)' : 'url(#arrowhead)'}
+                  />
+                  {/* Arrow head as polygon */}
+                  <polygon
+                    points={`${arrowTipX},${arrowTipY} ${arrowBackX + perpX},${arrowBackY + perpY} ${arrowBackX - perpX},${arrowBackY - perpY}`}
+                    fill={arrowColor}
                   />
                 </g>
               );
@@ -354,10 +352,11 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
                   <circle
                     cx={node.x}
                     cy={node.y}
-                    r="28"
-                    fill={isHighlighted ? 'hsl(210, 20%, 70%, 0.15)' : 'hsl(var(--card))'}
+                    r="30"
+                    fill="hsl(var(--card))"
                     stroke={isHighlighted ? highlightColor : 'hsl(var(--border))'}
                     strokeWidth={isHighlighted ? 2 : 1}
+                    opacity={isHighlighted ? 1 : 0.6}
                   />
                   <text
                     x={node.x}
@@ -365,11 +364,11 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fill={isHighlighted ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}
-                    fontSize="9"
+                    fontSize="10"
                     fontWeight={isHighlighted ? "600" : "500"}
                   >
                     {node.label.split(' ').map((word, i) => (
-                      <tspan key={i} x={node.x} dy={i === 0 ? -4 : 12}>{word}</tspan>
+                      <tspan key={i} x={node.x} dy={i === 0 ? -5 : 12}>{word}</tspan>
                     ))}
                   </text>
                 </g>
@@ -381,14 +380,12 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
         {/* Current question */}
         <div className="bg-card border border-border rounded-xl p-4 mb-4">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="font-semibold text-primary">{fromNode?.label}</span>
-            <svg width="24" height="24" viewBox="0 0 24 24" className="text-primary">
-              <path d="M5 12h14M14 5l7 7-7 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="font-semibold text-primary">{toNode?.label}</span>
+            <span className="font-semibold text-foreground">{fromNode?.label}</span>
+            <span className="text-muted-foreground">→</span>
+            <span className="font-semibold text-foreground">{toNode?.label}</span>
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            How strongly does <strong>{fromNode?.label}</strong> cause <strong>{toNode?.label}</strong>?
+            How strongly does this cause the next?
           </p>
         </div>
         
@@ -415,13 +412,12 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
                 style={{ 
                   backgroundColor: `${info.color}20`,
                   color: info.color,
-                  border: `1px solid ${info.color}50`,
+                  border: `1px solid ${info.color}40`,
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleClassify(key)}
               >
                 <span className="font-semibold">{info.label}</span>
-                <span className="text-xs opacity-70">{info.description}</span>
               </motion.button>
             ))}
           </div>
