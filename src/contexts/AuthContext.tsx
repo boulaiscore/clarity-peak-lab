@@ -90,37 +90,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
-  // Fetch user profile from database
-  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-    
-    if (error) {
-      console.error("Error fetching profile:", error);
-      return null;
+  // Fetch user profile from database with retry
+  const fetchProfile = async (userId: string, retries = 3): Promise<UserProfile | null> => {
+    for (let i = 0; i < retries; i++) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching profile (attempt " + (i + 1) + "):", error);
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        return null;
+      }
+      return data as UserProfile | null;
     }
-    return data as UserProfile | null;
+    return null;
   };
 
   useEffect(() => {
+    let isMounted = true;
+    let initialLoadDone = false;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
+        if (!isMounted) return;
+        
         setSession(newSession);
         
         if (newSession?.user) {
+          // Skip if initial load already handled this
+          if (initialLoadDone && event === 'INITIAL_SESSION') return;
+          
           // Defer profile fetch to avoid deadlock
           setTimeout(async () => {
+            if (!isMounted) return;
             const profile = await fetchProfile(newSession.user.id);
+            if (!isMounted) return;
             setUser(mapProfileToUser(newSession.user, profile));
+            setProfileLoaded(true);
             setIsLoading(false);
           }, 0);
         } else {
           setUser(null);
+          setProfileLoaded(false);
           setIsLoading(false);
         }
       }
@@ -128,16 +148,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // THEN check for existing session
     supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
+      if (!isMounted) return;
+      initialLoadDone = true;
+      
       setSession(existingSession);
       
       if (existingSession?.user) {
         const profile = await fetchProfile(existingSession.user.id);
+        if (!isMounted) return;
         setUser(mapProfileToUser(existingSession.user, profile));
+        setProfileLoaded(true);
       }
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
