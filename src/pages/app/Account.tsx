@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment } from "@/contexts/AuthContext";
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
+import { useNotifications } from "@/hooks/useNotifications";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +28,7 @@ import { format } from "date-fns";
 const Account = () => {
   const { user, updateUser, logout } = useAuth();
   const { isPremium, dailySessionsUsed, remainingSessions } = usePremiumGating();
+  const { permission, isSupported, requestPermission, setDailyReminder, scheduledAt } = useNotifications();
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>(user?.trainingGoals || []);
@@ -36,6 +39,33 @@ const Account = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState<boolean | null>(null);
+  
+  // Daily Reminder states
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState("08:30");
+
+  // Load reminder settings from database
+  useEffect(() => {
+    const loadReminderSettings = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("reminder_enabled, reminder_time")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (data) {
+        setReminderEnabled(data.reminder_enabled || false);
+        if (data.reminder_time) {
+          // Format time from "HH:mm:ss" to "HH:mm"
+          setReminderTime(data.reminder_time.substring(0, 5));
+        }
+      }
+    };
+    
+    loadReminderSettings();
+  }, [user?.id]);
 
   // Check if user has completed assessment (non-default baseline values)
   useEffect(() => {
@@ -108,6 +138,55 @@ const Account = () => {
 
   const toggleGoal = (goal: TrainingGoal) => {
     setTrainingGoals((prev) => (prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]));
+  };
+
+  const handleReminderToggle = async (enabled: boolean) => {
+    if (enabled && permission !== "granted") {
+      const result = await requestPermission();
+      if (result !== "granted") {
+        toast({
+          title: "Notifications blocked",
+          description: "Please enable notifications in your browser settings.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    setReminderEnabled(enabled);
+    
+    // Update reminder in notification system
+    setDailyReminder(enabled, reminderTime, dailyTimeCommitment || "7min");
+    
+    // Save to database
+    if (user?.id) {
+      await supabase
+        .from("profiles")
+        .update({ reminder_enabled: enabled })
+        .eq("user_id", user.id);
+    }
+    
+    toast({
+      title: enabled ? "Reminder enabled" : "Reminder disabled",
+      description: enabled ? `You'll receive a daily notification at ${reminderTime}` : "Daily reminders have been turned off.",
+    });
+  };
+
+  const handleReminderTimeChange = async (time: string) => {
+    setReminderTime(time);
+    
+    // Update reminder in notification system
+    if (reminderEnabled) {
+      setDailyReminder(true, time, dailyTimeCommitment || "7min");
+    }
+    
+    // Save to database
+    if (user?.id) {
+      await supabase
+        .from("profiles")
+        .update({ reminder_time: time + ":00" })
+        .eq("user_id", user.id);
+    }
   };
 
   const handleSave = async () => {
@@ -410,6 +489,62 @@ const Account = () => {
               ))}
             </div>
           </div>
+
+          {/* Daily Reminder */}
+          {isSupported && (
+            <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary" />
+                Daily Reminder
+              </h3>
+              
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium">Enable daily training reminder</p>
+                  <p className="text-xs text-muted-foreground">Get notified when it's time to train</p>
+                </div>
+                <Switch 
+                  checked={reminderEnabled} 
+                  onCheckedChange={handleReminderToggle}
+                />
+              </div>
+              
+              {reminderEnabled && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-2 block">Reminder time</label>
+                    <Input 
+                      type="time" 
+                      value={reminderTime} 
+                      onChange={(e) => handleReminderTimeChange(e.target.value)}
+                      className="h-12"
+                    />
+                  </div>
+                  
+                  <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                    <div className="flex items-center gap-2 text-sm">
+                      <BellRing className="w-4 h-4 text-primary" />
+                      <span>
+                        Daily {dailyTimeCommitment || "7min"} session reminder at{" "}
+                        <span className="font-semibold">{reminderTime}</span>
+                      </span>
+                    </div>
+                    {scheduledAt && (
+                      <p className="text-xs text-muted-foreground mt-1 ml-6">
+                        Next: {format(scheduledAt, "MMM d, h:mm a")}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {permission !== "granted" && (
+                    <p className="text-xs text-amber-400 flex items-center gap-1">
+                      ⚠️ Enable browser notifications to receive reminders
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Wearable Integration */}
           <WearableIntegrationSection />

@@ -25,6 +25,7 @@ import NeuroLab from "./pages/app/NeuroLab";
 import NeuroLabArea from "./pages/app/NeuroLabArea";
 import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
 import NeuroActivationRunner from "./pages/app/NeuroActivationRunner";
+import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -206,6 +207,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <CognitiveAgeExplained />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/daily-session"
+        element={
+          <ProtectedRoute>
+            <DailySession />
           </ProtectedRoute>
         }
       />

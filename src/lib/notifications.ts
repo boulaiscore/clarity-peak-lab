@@ -132,3 +132,101 @@ export function setupLocalReminders(): void {
 export function markSessionCompleted(): void {
   localStorage.setItem("neuroloop_last_session", Date.now().toString());
 }
+
+// ============================================
+// Daily Training Reminder System
+// ============================================
+
+const REMINDER_TIMEOUT_KEY = "neuroloop_reminder_timeout_id";
+const REMINDER_SCHEDULED_KEY = "neuroloop_reminder_scheduled_at";
+
+// Get exercise count based on daily commitment
+function getExerciseCountForCommitment(dailyCommitment: string): number {
+  switch (dailyCommitment) {
+    case "3min": return 6;
+    case "7min": return 14;
+    case "10min": return 20;
+    default: return 14;
+  }
+}
+
+// Show personalized daily training notification
+export function showDailyTrainingNotification(dailyCommitment: string): void {
+  const exerciseCount = getExerciseCountForCommitment(dailyCommitment);
+  
+  showLocalNotification("🧠 Your daily cognitive training is ready", {
+    body: `${dailyCommitment} session • ${exerciseCount} exercises across Focus, Reasoning, Creativity`,
+    data: { url: "/app/daily-session" },
+    requireInteraction: true,
+  });
+}
+
+// Schedule daily reminder at specific time
+export function scheduleDailyReminder(reminderTime: string, dailyCommitment: string): void {
+  // Cancel any existing reminder first
+  cancelDailyReminder();
+  
+  // Parse time (HH:mm format)
+  const [hours, minutes] = reminderTime.split(':').map(Number);
+  
+  if (isNaN(hours) || isNaN(minutes)) {
+    console.warn("Invalid reminder time format:", reminderTime);
+    return;
+  }
+  
+  // Calculate milliseconds until next reminder
+  const now = new Date();
+  const next = new Date();
+  next.setHours(hours, minutes, 0, 0);
+  
+  // If time already passed today, schedule for tomorrow
+  if (next <= now) {
+    next.setDate(next.getDate() + 1);
+  }
+  
+  const msUntilReminder = next.getTime() - now.getTime();
+  
+  console.log(`Scheduling daily reminder for ${next.toLocaleString()} (in ${Math.round(msUntilReminder / 1000 / 60)} minutes)`);
+  
+  // Store timeout ID for cancellation
+  const timeoutId = window.setTimeout(() => {
+    showDailyTrainingNotification(dailyCommitment);
+    // Re-schedule for next day
+    scheduleDailyReminder(reminderTime, dailyCommitment);
+  }, msUntilReminder);
+  
+  localStorage.setItem(REMINDER_TIMEOUT_KEY, String(timeoutId));
+  localStorage.setItem(REMINDER_SCHEDULED_KEY, next.toISOString());
+}
+
+// Cancel existing daily reminder
+export function cancelDailyReminder(): void {
+  const timeoutId = localStorage.getItem(REMINDER_TIMEOUT_KEY);
+  if (timeoutId) {
+    window.clearTimeout(Number(timeoutId));
+    localStorage.removeItem(REMINDER_TIMEOUT_KEY);
+    localStorage.removeItem(REMINDER_SCHEDULED_KEY);
+    console.log("Daily reminder cancelled");
+  }
+}
+
+// Get scheduled reminder info
+export function getScheduledReminderInfo(): { scheduledAt: Date | null } {
+  const scheduledAt = localStorage.getItem(REMINDER_SCHEDULED_KEY);
+  return {
+    scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+  };
+}
+
+// Initialize reminder on app load (if enabled)
+export function initializeDailyReminder(
+  reminderEnabled: boolean,
+  reminderTime: string | null,
+  dailyCommitment: string
+): void {
+  if (reminderEnabled && reminderTime && Notification.permission === "granted") {
+    scheduleDailyReminder(reminderTime, dailyCommitment);
+  } else {
+    cancelDailyReminder();
+  }
+}

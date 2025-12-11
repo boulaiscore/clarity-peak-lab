@@ -4,6 +4,10 @@ import {
   requestNotificationPermission,
   setupLocalReminders,
   registerPeriodicSync,
+  scheduleDailyReminder,
+  cancelDailyReminder,
+  initializeDailyReminder,
+  getScheduledReminderInfo,
   NotificationPermissionState,
 } from "@/lib/notifications";
 
@@ -14,9 +18,12 @@ export function useNotifications() {
     isPushSupported: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
 
   useEffect(() => {
     setState(getNotificationState());
+    const { scheduledAt } = getScheduledReminderInfo();
+    setScheduledAt(scheduledAt);
   }, []);
 
   const requestPermission = async (): Promise<NotificationPermission> => {
@@ -47,10 +54,38 @@ export function useNotifications() {
     }
   };
 
+  const setDailyReminder = (
+    enabled: boolean,
+    time: string | null,
+    dailyCommitment: string
+  ) => {
+    if (enabled && time && state.permission === "granted") {
+      scheduleDailyReminder(time, dailyCommitment);
+      const { scheduledAt } = getScheduledReminderInfo();
+      setScheduledAt(scheduledAt);
+    } else {
+      cancelDailyReminder();
+      setScheduledAt(null);
+    }
+  };
+
+  const initializeReminder = (
+    enabled: boolean,
+    time: string | null,
+    dailyCommitment: string
+  ) => {
+    initializeDailyReminder(enabled, time, dailyCommitment);
+    const { scheduledAt } = getScheduledReminderInfo();
+    setScheduledAt(scheduledAt);
+  };
+
   return {
     ...state,
     isLoading,
+    scheduledAt,
     requestPermission,
     checkReminders,
+    setDailyReminder,
+    initializeReminder,
   };
 }

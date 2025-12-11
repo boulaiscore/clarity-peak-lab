@@ -124,6 +124,8 @@ export type Database = {
           last_session_date: string | null
           name: string | null
           onboarding_completed: boolean | null
+          reminder_enabled: boolean | null
+          reminder_time: string | null
           session_duration: string | null
           subscription_status: string | null
           training_goals: string[] | null
@@ -144,6 +146,8 @@ export type Database = {
           last_session_date?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
+          reminder_enabled?: boolean | null
+          reminder_time?: string | null
           session_duration?: string | null
           subscription_status?: string | null
           training_goals?: string[] | null
@@ -164,6 +168,8 @@ export type Database = {
           last_session_date?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
+          reminder_enabled?: boolean | null
+          reminder_time?: string | null
           session_duration?: string | null
           subscription_status?: string | null
           training_goals?: string[] | null
