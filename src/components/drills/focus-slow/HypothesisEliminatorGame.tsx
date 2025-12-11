@@ -13,15 +13,15 @@ interface Props {
 
 // Fixed scenario for Hypothesis Eliminator
 const SCENARIO = {
-  context: "A team's productivity has noticeably dropped over the past two weeks. You need to identify which factor, if addressed, would eliminate the most alternative explanations for the decline. Tap each hypothesis to see how many other factors it rules out, then choose the one with the highest elimination power.",
-  prompt: "Choose the detail with the highest causal relevance.",
+  context: "A team's productivity has noticeably dropped over the past two weeks.",
+  prompt: "Which factor has the highest causal relevance?",
   options: [
     { text: "The team lead was on vacation.", eliminates: 3, isCorrect: true },
     { text: "Office lighting was changed.", eliminates: 1, isCorrect: false },
     { text: "Two team members are new.", eliminates: 2, isCorrect: false },
     { text: "The coffee machine broke.", eliminates: 0, isCorrect: false }
   ],
-  explanation: "The team lead's absence affects direction, decision-making, and morale simultaneously—eliminating multiple competing explanations. Other factors have more limited scope."
+  explanation: "In this exercise, you tested each hypothesis to see how many alternative explanations it could eliminate. The team lead's absence affects direction, decision-making, and morale simultaneously—eliminating multiple competing explanations. Other factors have more limited scope."
 };
 
 export const HypothesisEliminatorGame = ({ onComplete }: Props) => {
