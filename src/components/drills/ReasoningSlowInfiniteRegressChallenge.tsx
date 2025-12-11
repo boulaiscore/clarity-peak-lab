@@ -182,7 +182,7 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
     );
   }
 
-  // Demo phase - explain the three link types
+  // Demo phase - explain the three link types with interactive example
   if (phase === 'demo') {
     return (
       <motion.div
@@ -195,27 +195,51 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <h3 className="text-lg font-medium text-foreground mb-6">How to Rate Causal Links</h3>
+          <h3 className="text-lg font-medium text-foreground mb-4">How to Rate Causal Links</h3>
           
-          <div className="space-y-3 mb-8">
-            {(Object.entries(STRENGTH_INFO) as [LinkStrength, typeof STRENGTH_INFO.strong][]).map(([key, info]) => (
-              <div 
-                key={key}
-                className="bg-card border border-border rounded-xl p-4 text-left"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div 
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: info.color }}
-                  />
-                  <span className="font-medium text-foreground">{info.label}</span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">{info.description}</p>
-                <p className="text-xs text-muted-foreground/70">
-                  Example: {info.example}
-                </p>
+          <p className="text-sm text-muted-foreground mb-6">
+            You'll see a diagram showing factors that might have caused a problem. 
+            For each arrow, decide how strongly A causes B.
+          </p>
+          
+          {/* Visual example */}
+          <div className="bg-card border border-border rounded-xl p-4 mb-4">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="px-3 py-2 bg-muted rounded-lg text-sm font-medium">Rain</div>
+              <svg width="40" height="20" viewBox="0 0 40 20">
+                <line x1="0" y1="10" x2="30" y2="10" stroke="hsl(var(--foreground))" strokeWidth="2"/>
+                <polygon points="30,5 40,10 30,15" fill="hsl(var(--foreground))"/>
+              </svg>
+              <div className="px-3 py-2 bg-muted rounded-lg text-sm font-medium">Wet Ground</div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This is a <strong className="text-green-500">Strong</strong> link — rain directly causes wet ground.
+            </p>
+          </div>
+          
+          {/* Three categories */}
+          <div className="space-y-2 mb-6">
+            <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-green-500"/>
+              <div className="text-left flex-1">
+                <p className="text-sm font-medium text-green-500">Strong</p>
+                <p className="text-xs text-muted-foreground">Direct, proven cause. A always leads to B.</p>
               </div>
-            ))}
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-yellow-500/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-yellow-500"/>
+              <div className="text-left flex-1">
+                <p className="text-sm font-medium text-yellow-500">Contributory</p>
+                <p className="text-xs text-muted-foreground">One factor among many. A helps cause B.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-red-500/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-red-500"/>
+              <div className="text-left flex-1">
+                <p className="text-sm font-medium text-red-500">Speculative</p>
+                <p className="text-xs text-muted-foreground">Uncertain or weak. Maybe A causes B, maybe not.</p>
+              </div>
+            </div>
           </div>
           
           <motion.button
@@ -234,6 +258,9 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
   if (phase === 'classify' && currentEdge) {
     const isCorrect = showFeedback && userAnswers[userAnswers.length - 1] === currentEdge.correctAnswer;
     
+    // Neutral highlight color (white/light) instead of green
+    const highlightColor = 'hsl(210, 20%, 70%)';
+    
     return (
       <div className="min-h-screen bg-background flex flex-col p-4">
         {/* Header */}
@@ -251,23 +278,23 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
             <defs>
               <marker 
                 id="arrowhead" 
-                markerWidth="10" 
-                markerHeight="10" 
-                refX="8" 
-                refY="5" 
+                markerWidth="8" 
+                markerHeight="8" 
+                refX="0" 
+                refY="4" 
                 orient="auto"
               >
-                <polygon points="0,0 10,5 0,10" fill="hsl(var(--muted-foreground))" />
+                <polygon points="0,0 8,4 0,8" fill="hsl(var(--muted-foreground))" opacity="0.5"/>
               </marker>
               <marker 
                 id="arrowhead-highlight" 
                 markerWidth="10" 
                 markerHeight="10" 
-                refX="8" 
+                refX="0" 
                 refY="5" 
                 orient="auto"
               >
-                <polygon points="0,0 10,5 0,10" fill="hsl(var(--primary))" />
+                <polygon points="0,0 10,5 0,10" fill={highlightColor} />
               </marker>
             </defs>
             
@@ -279,29 +306,37 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
               const isAnswered = i < currentEdgeIndex;
               const answer = userAnswers[i];
               
-              // Calculate direction for arrow offset
+              // Calculate direction and proper offset to stop before circle
               const dx = to.x - from.x;
               const dy = to.y - from.y;
               const length = Math.sqrt(dx * dx + dy * dy);
-              const offsetX = (dx / length) * 30;
-              const offsetY = (dy / length) * 30;
+              const nodeRadius = 28;
+              const arrowOffset = 12; // Extra offset for arrow head
+              
+              // Start point: edge of from circle
+              const startX = from.x + (dx / length) * nodeRadius;
+              const startY = from.y + (dy / length) * nodeRadius;
+              
+              // End point: edge of to circle minus arrow space
+              const endX = to.x - (dx / length) * (nodeRadius + arrowOffset);
+              const endY = to.y - (dy / length) * (nodeRadius + arrowOffset);
               
               return (
                 <g key={`edge-${i}`}>
                   <line
-                    x1={from.x + offsetX * 0.5}
-                    y1={from.y + offsetY * 0.5}
-                    x2={to.x - offsetX}
-                    y2={to.y - offsetY}
+                    x1={startX}
+                    y1={startY}
+                    x2={endX}
+                    y2={endY}
                     stroke={
                       isAnswered 
                         ? STRENGTH_INFO[answer].color 
                         : isCurrent 
-                          ? 'hsl(var(--primary))' 
+                          ? highlightColor
                           : 'hsl(var(--muted-foreground))'
                     }
                     strokeWidth={isCurrent ? 3 : 2}
-                    strokeOpacity={isAnswered ? 0.5 : 1}
+                    strokeOpacity={isAnswered ? 0.6 : isCurrent ? 1 : 0.4}
                     markerEnd={isCurrent ? 'url(#arrowhead-highlight)' : 'url(#arrowhead)'}
                   />
                 </g>
@@ -320,8 +355,8 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
                     cx={node.x}
                     cy={node.y}
                     r="28"
-                    fill={isHighlighted ? 'hsl(var(--primary) / 0.2)' : 'hsl(var(--card))'}
-                    stroke={isHighlighted ? 'hsl(var(--primary))' : 'hsl(var(--border))'}
+                    fill={isHighlighted ? 'hsl(210, 20%, 70%, 0.15)' : 'hsl(var(--card))'}
+                    stroke={isHighlighted ? highlightColor : 'hsl(var(--border))'}
                     strokeWidth={isHighlighted ? 2 : 1}
                   />
                   <text
@@ -329,9 +364,9 @@ export const ReasoningSlowInfiniteRegressChallenge: React.FC<ReasoningSlowInfini
                     y={node.y}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    fill={isHighlighted ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
+                    fill={isHighlighted ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}
                     fontSize="9"
-                    fontWeight="600"
+                    fontWeight={isHighlighted ? "600" : "500"}
                   >
                     {node.label.split(' ').map((word, i) => (
                       <tspan key={i} x={node.x} dy={i === 0 ? -4 : 12}>{word}</tspan>
