@@ -43,8 +43,8 @@ const SCENARIOS: Scenario[] = [
   { text: "Implementing caching reduced load times by 60%.", correct: 'causal', difficulty: 2 },
 ];
 
-const DURATION = 25000; // 25 seconds total
-const TIME_PER_ITEM = 6000; // 6 seconds per question
+const DURATION = 40000; // 40 seconds total
+const TIME_PER_ITEM = 10000; // 10 seconds per question
 
 export const ReasoningFastCognitiveWhiplash: React.FC<ReasoningFastCognitiveWhiplashProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<'intro' | 'demo' | 'active' | 'complete'>('intro');
