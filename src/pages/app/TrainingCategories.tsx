@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { 
@@ -28,13 +29,15 @@ import {
   Grid3X3,
   Trophy,
   TrendingUp,
-  Play
+  Play,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExerciseCategory, ExerciseDuration, CATEGORY_INFO } from "@/lib/exercises";
 import { useExerciseCount } from "@/hooks/useExercises";
 import { useDailyTraining, useDailyTrainingStreak } from "@/hooks/useDailyTraining";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 
 const CATEGORY_ICONS: Record<ExerciseCategory, React.ElementType> = {
@@ -66,11 +69,24 @@ const DURATION_OPTIONS: { value: ExerciseDuration; label: string; description: s
   { value: "5min", label: "5 min", description: "Deep training" },
 ];
 
-// Recommended category based on cognitive balance
-const getRecommendedCategory = (): ExerciseCategory => {
-  const options: ExerciseCategory[] = ["reasoning", "fast", "slow", "creative"];
-  return options[Math.floor(Math.random() * options.length)];
+// Map metrics to training categories
+const METRIC_TO_CATEGORY: Record<string, ExerciseCategory> = {
+  reasoning_accuracy: "reasoning",
+  clarity_score: "clarity",
+  decision_quality: "decision",
+  fast_thinking: "fast",
+  slow_thinking: "slow",
+  bias_resistance: "bias",
+  creativity: "creative",
+  focus_stability: "clarity",
 };
+
+interface WeakArea {
+  category: ExerciseCategory;
+  metric: string;
+  score: number;
+  label: string;
+}
 
 const TrainingCategories = () => {
   const navigate = useNavigate();
@@ -81,8 +97,61 @@ const TrainingCategories = () => {
   const { data: exerciseCount = 0, isLoading } = useExerciseCount();
   const { isDailyCompleted } = useDailyTraining();
   const { data: streakData } = useDailyTrainingStreak(user?.id);
-  
-  const recommendedCategory = getRecommendedCategory();
+
+  // Fetch user's cognitive metrics
+  const { data: metrics } = useQuery({
+    queryKey: ['user-metrics-for-recommendations', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('user_cognitive_metrics')
+        .select('reasoning_accuracy, clarity_score, decision_quality, fast_thinking, slow_thinking, bias_resistance, creativity, focus_stability')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Calculate weak areas and recommendations
+  const { weakAreas, recommendedCategory } = useMemo(() => {
+    if (!metrics) {
+      return { 
+        weakAreas: [] as WeakArea[], 
+        recommendedCategory: "reasoning" as ExerciseCategory 
+      };
+    }
+
+    const metricLabels: Record<string, string> = {
+      reasoning_accuracy: "Reasoning",
+      clarity_score: "Clarity",
+      decision_quality: "Decision Making",
+      fast_thinking: "Fast Thinking",
+      slow_thinking: "Slow Thinking",
+      bias_resistance: "Bias Resistance",
+      creativity: "Creativity",
+      focus_stability: "Focus",
+    };
+
+    const scores = Object.entries(metrics)
+      .filter(([key]) => METRIC_TO_CATEGORY[key])
+      .map(([key, value]) => ({
+        metric: key,
+        score: Number(value) || 50,
+        category: METRIC_TO_CATEGORY[key],
+        label: metricLabels[key] || key,
+      }))
+      .sort((a, b) => a.score - b.score);
+
+    // Get top 3 weakest areas (below 70)
+    const weak = scores.filter(s => s.score < 70).slice(0, 3);
+    
+    return {
+      weakAreas: weak,
+      recommendedCategory: weak[0]?.category || "reasoning",
+    };
+  }, [metrics]);
   
   const categories: ExerciseCategory[] = [
     "reasoning",
@@ -175,6 +244,44 @@ const TrainingCategories = () => {
           )}
         </motion.div>
 
+        {/* Personalized Recommendation */}
+        {!isDailyCompleted && weakAreas.length > 0 && (
+          <motion.div
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6"
+          >
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Focus Areas Detected</p>
+                  <p className="text-xs text-muted-foreground">Based on your cognitive profile</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {weakAreas.map((area) => (
+                  <button
+                    key={area.metric}
+                    onClick={() => setSelectedCategory(area.category)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                      selectedCategory === area.category
+                        ? "bg-amber-500 text-white"
+                        : "bg-amber-500/20 text-amber-200 hover:bg-amber-500/30"
+                    )}
+                  >
+                    {area.label} <span className="opacity-70">({area.score})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Quick Start Button */}
         {!isDailyCompleted && (
           <motion.div
@@ -192,7 +299,9 @@ const TrainingCategories = () => {
                   <Play className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-semibold">Quick Start</p>
+                  <p className="text-sm font-semibold">
+                    {weakAreas.length > 0 ? "Train Your Weakest Area" : "Quick Start"}
+                  </p>
                   <p className="text-xs opacity-80">2 min • {CATEGORY_INFO[recommendedCategory].title}</p>
                 </div>
               </div>
@@ -224,7 +333,7 @@ const TrainingCategories = () => {
               const Icon = CATEGORY_ICONS[cat];
               const isSelected = selectedCategory === cat;
               const isFast = cat === "fast";
-              const isRecommended = cat === recommendedCategory;
+              const isWeakArea = weakAreas.some(w => w.category === cat);
               
               return (
                 <motion.button
@@ -240,21 +349,28 @@ const TrainingCategories = () => {
                       ? isFast
                         ? "bg-warning/10 border-warning/50"
                         : "bg-primary/10 border-primary/50"
-                      : "bg-card border-border/40 hover:border-border"
+                      : isWeakArea
+                        ? "bg-amber-500/5 border-amber-500/30 hover:border-amber-500/50"
+                        : "bg-card border-border/40 hover:border-border"
                   )}
                 >
-                  {isRecommended && !isSelected && (
-                    <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-primary text-primary-foreground rounded-full">
-                      Try
+                  {isWeakArea && !isSelected && (
+                    <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full">
+                      Focus
                     </span>
                   )}
                   <div className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center mb-2",
                     isSelected
                       ? isFast ? "bg-warning/20" : "bg-primary/20"
-                      : isFast ? "bg-warning/10" : "bg-primary/10"
+                      : isWeakArea
+                        ? "bg-amber-500/20"
+                        : isFast ? "bg-warning/10" : "bg-primary/10"
                   )}>
-                    <Icon className={cn("w-5 h-5", isFast ? "text-warning" : "text-primary")} />
+                    <Icon className={cn(
+                      "w-5 h-5", 
+                      isWeakArea && !isSelected ? "text-amber-500" : isFast ? "text-warning" : "text-primary"
+                    )} />
                   </div>
                   <h3 className="text-sm font-semibold text-foreground">{info.title}</h3>
                   <p className="text-[9px] text-muted-foreground mt-0.5 leading-relaxed">
