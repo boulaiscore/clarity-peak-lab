@@ -6,9 +6,10 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment } from "@/contexts/AuthContext";
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ const Account = () => {
   const { user, updateUser, logout } = useAuth();
   const { isPremium, dailySessionsUsed, remainingSessions } = usePremiumGating();
   const { permission, isSupported, requestPermission, setDailyReminder, scheduledAt } = useNotifications();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>(user?.trainingGoals || []);
@@ -542,7 +544,26 @@ const Account = () => {
                     </p>
                   )}
                 </div>
-              )}
+          )}
+
+          {/* Theme Toggle */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              {theme === "dark" ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
+              Appearance
+            </h3>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Light Mode</p>
+                <p className="text-xs text-muted-foreground">Switch to light theme</p>
+              </div>
+              <Switch 
+                checked={theme === "light"} 
+                onCheckedChange={toggleTheme}
+              />
+            </div>
+          </div>
             </div>
           )}
 
