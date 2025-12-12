@@ -6,6 +6,7 @@ import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimat
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
 import { DailyTrainingHistory } from "@/components/dashboard/DailyTrainingHistory";
+import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { Button } from "@/components/ui/button";
 import { Info, Zap, Brain, Loader2, Activity, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -219,6 +220,9 @@ const Dashboard = () => {
                 </div>
               </Link>
             </div>
+
+            {/* Performance Chart */}
+            <PerformanceChart />
 
             {/* Daily Training History */}
             <DailyTrainingHistory />
