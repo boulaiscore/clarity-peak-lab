@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
@@ -7,8 +8,9 @@ import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSources";
 import { DailyTrainingHistory } from "@/components/dashboard/DailyTrainingHistory";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
+import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
 import { Button } from "@/components/ui/button";
-import { Info, Zap, Brain, Loader2, Activity, BarChart3 } from "lucide-react";
+import { Info, Loader2, Activity, BarChart3, Play } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
@@ -199,42 +201,41 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Quick Training Links */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <Link to="/app/trainings?mode=fast">
-                <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-amber-500/30 transition-colors active:scale-[0.98]">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2">
-                    <Zap className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <p className="text-[12px] font-medium text-foreground">System 1</p>
-                  <p className="text-[10px] text-muted-foreground">Pattern Recognition</p>
-                </div>
-              </Link>
-              <Link to="/app/trainings?mode=slow">
-                <div className="p-3.5 rounded-xl bg-card/60 border border-border/30 hover:border-teal-500/30 transition-colors active:scale-[0.98]">
-                  <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center mb-2">
-                    <Brain className="w-4 h-4 text-teal-400" />
-                  </div>
-                  <p className="text-[12px] font-medium text-foreground">System 2</p>
-                  <p className="text-[10px] text-muted-foreground">Strategic Analysis</p>
-                </div>
-              </Link>
-            </div>
+            {/* Progress Header with Animation */}
+            <TrainingProgressHeader />
 
-            {/* Performance Chart */}
-            <PerformanceChart />
+            {/* Performance Chart with fade-in */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <PerformanceChart />
+            </motion.div>
 
-            {/* Daily Training History */}
-            <DailyTrainingHistory />
+            {/* Daily Training History with fade-in */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <DailyTrainingHistory />
+            </motion.div>
 
             {/* CTA */}
-            <div className="pt-1">
-              <Link to="/app">
-                <Button variant="premium" className="w-full h-11 text-[13px]">
-                  Start Strategic Training
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="pt-1"
+            >
+              <Link to="/app/neuro-lab">
+                <Button variant="premium" className="w-full h-11 text-[13px] gap-2">
+                  <Play className="w-4 h-4" />
+                  Inizia allenamento
                 </Button>
               </Link>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>
