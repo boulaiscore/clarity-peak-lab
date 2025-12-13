@@ -50,24 +50,32 @@ const Premium = () => {
       return;
     }
 
-    if (betaCount !== null && betaCount >= BETA_LIMIT) {
-      toast({
-        title: "Beta spots filled",
-        description: "All beta spots have been claimed. Stay tuned for launch!",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ subscription_status: 'premium' })
-        .eq('user_id', user.id);
+      // Call server-side Edge Function for secure beta upgrade
+      const { data, error } = await supabase.functions.invoke('claim-beta-access');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Beta upgrade error:', error);
+        throw new Error(error.message || 'Failed to claim beta access');
+      }
+
+      if (data?.error) {
+        // Handle specific error cases from the Edge Function
+        if (data.error === 'Beta full') {
+          toast({
+            title: "Beta spots filled",
+            description: data.message || "All beta spots have been claimed. Stay tuned for launch!",
+            variant: "destructive",
+          });
+          if (data.betaCount !== undefined) {
+            setBetaCount(data.betaCount);
+          }
+          return;
+        }
+        throw new Error(data.message || 'Failed to claim beta access');
+      }
 
       // Update local state
       await upgradeToPremium();
@@ -81,17 +89,21 @@ const Premium = () => {
       
       toast({
         title: "Welcome to the Beta! 🎉",
-        description: "You now have full access to all premium features. Check your email for confirmation.",
+        description: data?.message || "You now have full access to all premium features. Check your email for confirmation.",
       });
 
-      // Refresh beta count
-      setBetaCount(prev => (prev !== null ? prev + 1 : 1));
+      // Refresh beta count from server response
+      if (data?.betaCount !== undefined) {
+        setBetaCount(data.betaCount);
+      } else {
+        setBetaCount(prev => (prev !== null ? prev + 1 : 1));
+      }
       
     } catch (error) {
       console.error('Beta upgrade error:', error);
       toast({
         title: "Error",
-        description: "Failed to claim beta access. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to claim beta access. Please try again.",
         variant: "destructive",
       });
     } finally {
