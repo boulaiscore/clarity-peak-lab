@@ -215,7 +215,11 @@ function AppRoutes() {
       />
       <Route
         path="/brain-science"
-        element={<BrainScienceDeepDive />}
+        element={
+          <ProtectedRoute>
+            <BrainScienceDeepDive />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/app/daily-session"

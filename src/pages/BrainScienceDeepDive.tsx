@@ -1,8 +1,9 @@
-import { ArrowLeft, Brain, Zap, Clock, AlertTriangle, Smartphone, Bot, BookOpen, ExternalLink } from "lucide-react";
+import { Brain, Zap, Clock, AlertTriangle, Smartphone, Bot, BookOpen, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AppShell } from "@/components/app/AppShell";
 import eegBrainScan from "@/assets/eeg-brain-scan-1.png";
 import dualBrainSystems from "@/assets/dual-brain-systems.png";
 
@@ -10,26 +11,8 @@ export default function BrainScienceDeepDive() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/40">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-lg font-semibold">The Science of Thinking</h1>
-            <p className="text-xs text-muted-foreground">Kahneman's Dual-Process Theory & Modern Threats</p>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-12">
+    <AppShell>
+      <div className="px-4 py-6 max-w-lg mx-auto space-y-8">
         {/* Hero Section */}
         <section className="text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -333,7 +316,7 @@ export default function BrainScienceDeepDive() {
             <li>• Torous, J. et al. (2025). Social Media Detox and Mental Health. JAMA Network Open.</li>
           </ul>
         </section>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
