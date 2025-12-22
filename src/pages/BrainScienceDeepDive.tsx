@@ -23,8 +23,8 @@ export default function BrainScienceDeepDive() {
             </div>
             <h1 className="text-xl font-semibold tracking-tight">Built on Neuroscience</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Our cognitive training protocols are developed in collaboration with cognitive scientists 
-              and validated through published research from leading institutions.
+              Our cognitive training protocols are designed by applying principles from peer-reviewed research 
+              published by MIT Media Lab, Harvard Medical School, and Nobel Prize-winning cognitive scientist Daniel Kahneman.
             </p>
             
             {/* Institution Logos/Badges */}
@@ -45,36 +45,6 @@ export default function BrainScienceDeepDive() {
           </div>
         </section>
 
-        {/* Research Team Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Advisory Board</h3>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="border-border/30 bg-card/30">
-              <CardContent className="p-4 space-y-2">
-                <div className="w-8 h-8 rounded-full bg-foreground/10 flex items-center justify-center">
-                  <Brain className="w-4 h-4 text-foreground/60" />
-                </div>
-                <p className="text-xs font-medium">Cognitive Neuroscientists</p>
-                <p className="text-[10px] text-muted-foreground">From Stanford, MIT, Oxford</p>
-              </CardContent>
-            </Card>
-            <Card className="border-border/30 bg-card/30">
-              <CardContent className="p-4 space-y-2">
-                <div className="w-8 h-8 rounded-full bg-foreground/10 flex items-center justify-center">
-                  <FlaskConical className="w-4 h-4 text-foreground/60" />
-                </div>
-                <p className="text-xs font-medium">Clinical Psychologists</p>
-                <p className="text-[10px] text-muted-foreground">15+ years research exp.</p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        <Separator className="opacity-30" />
 
         {/* Hero Section - Kahneman */}
         <section className="text-center space-y-4">
