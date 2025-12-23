@@ -103,6 +103,7 @@ const Onboarding = () => {
       reminderTime,
       onboardingCompleted: true,
     });
+    await refreshUser();
     navigate("/app");
   };
 
