@@ -17,7 +17,7 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 const Onboarding = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { updateUser, user, refreshUser } = useAuth();
+  const { updateUser, user } = useAuth();
   const updateMetrics = useUpdateUserMetrics();
   const saveBaseline = useSaveBaseline();
   
@@ -132,12 +132,12 @@ const Onboarding = () => {
         onboardingCompleted: true,
       });
   
-      await refreshUser();
       navigate("/app");
     } catch (err) {
       console.error("[Onboarding] handleAssessmentSkipped FAILED", err);
     }
   };
+
 
   const handleComplete = async () => {
     // Move to reminder time step
