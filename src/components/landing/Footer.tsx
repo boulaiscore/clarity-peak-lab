@@ -22,6 +22,9 @@ export function Footer() {
             <Link to="/auth" className="hover:text-foreground transition-colors">
               Get Started
             </Link>
+            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
+              Privacy Policy
+            </Link>
           </nav>
 
           <p className="text-xs text-muted-foreground">
