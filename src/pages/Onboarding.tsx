@@ -104,7 +104,6 @@ const Onboarding = () => {
         onboardingCompleted: true,
       });
   
-      await refreshUser(); // ← FONDAMENTALE
       navigate("/app");
     } catch (err) {
       console.error("[Onboarding] handleAssessmentComplete FAILED", err);
