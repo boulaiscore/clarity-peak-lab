@@ -17,7 +17,7 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 const Onboarding = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { updateUser, user } = useAuth();
+  const { updateUser, user, refreshUser } = useAuth();
   const updateMetrics = useUpdateUserMetrics();
   const saveBaseline = useSaveBaseline();
   
@@ -48,83 +48,96 @@ const Onboarding = () => {
     }
   };
 
-  const handleAssessmentComplete = async (results: {
-    fastScore: number;
-    slowScore: number;
-    focusScore: number;
-    reasoningScore: number;
-    creativityScore: number;
-    overallScore: number;
-    cognitiveAge: number;
-  }, skipped: boolean = false) => {
-    // Save initial metrics to database
-    if (user?.id) {
-      await updateMetrics.mutateAsync({
-        userId: user.id,
-        metricUpdates: {
-          fast_thinking: results.fastScore,
-          slow_thinking: results.slowScore,
-          focus_stability: results.focusScore,
-          reasoning_accuracy: results.reasoningScore,
+  const handleAssessmentComplete = async (
+    results: {
+      fastScore: number;
+      slowScore: number;
+      focusScore: number;
+      reasoningScore: number;
+      creativityScore: number;
+      overallScore: number;
+      cognitiveAge: number;
+    },
+    skipped: boolean = false
+  ) => {
+    try {
+      if (user?.id && !skipped) {
+        await updateMetrics.mutateAsync({
+          userId: user.id,
+          metricUpdates: {
+            fast_thinking: results.fastScore,
+            slow_thinking: results.slowScore,
+            focus_stability: results.focusScore,
+            reasoning_accuracy: results.reasoningScore,
+            creativity: results.creativityScore,
+          },
+        });
+  
+        await saveBaseline.mutateAsync({
+          userId: user.id,
+          fastThinking: results.fastScore,
+          slowThinking: results.slowScore,
+          focus: results.focusScore,
+          reasoning: results.reasoningScore,
           creativity: results.creativityScore,
-        },
+          cognitiveAge: results.cognitiveAge,
+        });
+      }
+  
+      if (isResetAssessment) {
+        navigate("/app/dashboard");
+        return;
+      }
+  
+      await updateUser({
+        age: calculatedAge,
+        birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
+        gender,
+        workType,
+        educationLevel,
+        degreeDiscipline,
+        trainingGoals,
+        sessionDuration: "2min",
+        dailyTimeCommitment,
+        reminderEnabled: true,
+        reminderTime,
+        onboardingCompleted: true,
       });
-
-      // Save baseline for progress tracking (mark as skipped if applicable)
-      await saveBaseline.mutateAsync({
-        userId: user.id,
-        fastThinking: results.fastScore,
-        slowThinking: results.slowScore,
-        focus: results.focusScore,
-        reasoning: results.reasoningScore,
-        creativity: results.creativityScore,
-        cognitiveAge: results.cognitiveAge,
-      });
+  
+      await refreshUser(); // ← FONDAMENTALE
+      navigate("/app");
+    } catch (err) {
+      console.error("[Onboarding] handleAssessmentComplete FAILED", err);
     }
-
-    // If reset assessment, just go back to dashboard
-    if (isResetAssessment) {
-      navigate("/app/dashboard");
-      return;
-    }
-
-    // Complete onboarding (only for new users)
-    await updateUser({
-      age: calculatedAge,
-      birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
-      gender,
-      workType,
-      educationLevel,
-      degreeDiscipline,
-      trainingGoals,
-      sessionDuration: "2min", // Default value
-      dailyTimeCommitment,
-      reminderEnabled: true,
-      reminderTime,
-      onboardingCompleted: true,
-    });
-    await refreshUser();
-    navigate("/app");
   };
 
-  const handleAssessmentSkipped = async (results: {
-    fastScore: number;
-    slowScore: number;
-    focusScore: number;
-    reasoningScore: number;
-    creativityScore: number;
-    overallScore: number;
-    cognitiveAge: number;
-  }) => {
-    console.log("[Onboarding] Assessment skipped → forcing onboardingCompleted");
-    await handleAssessmentComplete(
-      {
-        ...results,
-        overallScore: results.overallScore ?? 0,
-        cognitiveAge: results.cognitiveAge ?? 0,
-      },
-      true
-    );
+  const handleAssessmentSkipped = async () => {
+    try {
+      if (isResetAssessment) {
+        navigate("/app/dashboard");
+        return;
+      }
+  
+      await updateUser({
+        age: calculatedAge,
+        birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
+        gender,
+        workType,
+        educationLevel,
+        degreeDiscipline,
+        trainingGoals,
+        sessionDuration: "2min",
+        dailyTimeCommitment,
+        reminderEnabled: true,
+        reminderTime,
+        onboardingCompleted: true,
+      });
+  
+      await refreshUser();
+      navigate("/app");
+    } catch (err) {
+      console.error("[Onboarding] handleAssessmentSkipped FAILED", err);
+    }
   };
 
   const handleComplete = async () => {
