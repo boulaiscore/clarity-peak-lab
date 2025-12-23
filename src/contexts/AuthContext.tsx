@@ -103,21 +103,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch user profile from database with retry
   const fetchProfile = async (userId: string, retries = 3): Promise<UserProfile | null> => {
     for (let i = 0; i < retries; i++) {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error fetching profile (attempt " + (i + 1) + "):", error);
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error(`Error fetching profile (attempt ${i + 1}):`, error.message, error.code, error.details);
+          if (i < retries - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
+        return data as UserProfile | null;
+      } catch (err) {
+        const e = err as Error;
+        console.error(`Network error fetching profile (attempt ${i + 1}):`, e.message);
         if (i < retries - 1) {
           await new Promise(resolve => setTimeout(resolve, 500));
           continue;
         }
         return null;
       }
-      return data as UserProfile | null;
     }
     return null;
   };
@@ -254,13 +264,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.reminderTime !== undefined) profileUpdates.reminder_time = updates.reminderTime;
     if (updates.onboardingCompleted !== undefined) profileUpdates.onboarding_completed = updates.onboardingCompleted;
 
+    // Use upsert to create profile if missing (e.g., if trigger didn't fire)
     const { error } = await supabase
       .from("profiles")
-      .update(profileUpdates)
-      .eq("user_id", user.id);
+      .upsert(
+        { user_id: user.id, ...profileUpdates },
+        { onConflict: "user_id" }
+      );
 
     if (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error updating profile:", error.message, error.code, error.details);
       return;
     }
 
