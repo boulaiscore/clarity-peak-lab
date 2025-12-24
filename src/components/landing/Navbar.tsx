@@ -16,9 +16,17 @@ export function Navbar() {
 
           {/* Nav links - hidden on mobile */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button 
+              onClick={() => {
+                const element = document.getElementById('how-it-works');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               How It Works
-            </a>
+            </button>
             <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Sign In
             </Link>
