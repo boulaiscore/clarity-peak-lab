@@ -10,7 +10,7 @@ import { DailyTrainingHistory } from "@/components/dashboard/DailyTrainingHistor
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen } from "lucide-react";
+import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
@@ -199,6 +199,21 @@ const Dashboard = () => {
               currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
               currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
             />
+
+            {/* Generate Report CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="pt-2"
+            >
+              <Link to="/app/report">
+                <Button variant="outline" className="w-full h-11 text-[13px] gap-2 border-primary/30 hover:bg-primary/5">
+                  <FileText className="w-4 h-4" />
+                  Generate Cognitive Report
+                </Button>
+              </Link>
+            </motion.div>
           </div>
         ) : (
           <div className="space-y-4">
