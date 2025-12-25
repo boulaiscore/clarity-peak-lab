@@ -28,17 +28,31 @@
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   font-size: 14px;
+  width: 210mm;
+  margin: 0 auto;
 }
 
 /* Page Structure */
 .report-page {
   width: 210mm;
   min-height: auto;
-  padding: 20mm 18mm;
-  margin: 0 auto;
+  padding: 15mm 18mm;
+  margin: 0;
   box-sizing: border-box;
   background: var(--report-bg);
   position: relative;
+  page-break-after: always;
+  break-after: page;
+}
+
+.report-page:first-child {
+  page-break-before: avoid;
+  break-before: avoid;
+}
+
+.report-page:last-child {
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 .report-page::before {
@@ -46,18 +60,24 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 8px;
+  width: 6px;
   height: 100%;
   background: linear-gradient(180deg, var(--report-primary) 0%, var(--report-primary-light) 100%);
 }
 
 .report-page + .report-page {
-  border-top: 1px solid var(--report-border);
+  border-top: none;
 }
 
+/* Page break control */
 .avoid-break {
-  break-inside: avoid;
-  page-break-inside: avoid;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+.page-break-before {
+  break-before: page;
+  page-break-before: always;
 }
 
 /* Button UI */
@@ -120,11 +140,16 @@
 .report-cover-cognifit {
   display: flex;
   flex-direction: column;
-  min-height: 280mm;
+  min-height: 297mm;
+  height: 297mm;
   padding: 0 !important;
   position: relative;
   overflow: hidden;
   background: #fff;
+  page-break-after: always;
+  break-after: page;
+  page-break-before: avoid;
+  break-before: avoid;
 }
 
 .report-cover-cognifit::before {
@@ -133,61 +158,78 @@
 
 /* Teal header banner */
 .cognifit-header {
-  background: linear-gradient(135deg, #4db6ac 0%, #80cbc4 100%);
-  padding: 40px 50px;
+  background: linear-gradient(135deg, #26a69a 0%, #4db6ac 50%, #80cbc4 100%);
+  padding: 30px 40px 80px 40px;
   position: relative;
+  flex-shrink: 0;
+}
+
+.cognifit-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
 }
 
 .cognifit-header::after {
-  content: '';
+  content: 'RESULTS';
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(to right, transparent, rgba(255,255,255,0.1));
+  top: 50%;
+  right: -30px;
+  transform: rotate(-45deg) translateY(-50%);
+  font-size: 80px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.08);
+  letter-spacing: 8px;
+  white-space: nowrap;
 }
 
 .cognifit-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 60px;
+  gap: 10px;
+  margin-bottom: 40px;
 }
 
 .cognifit-logo svg {
   color: #fff;
+  width: 32px;
+  height: 32px;
 }
 
 .cognifit-logo span {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.5px;
 }
 
 .cognifit-title-section h1 {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: #fff;
-  margin: 0 0 8px 0;
-  letter-spacing: 1px;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.5px;
 }
 
 .cognifit-title-section p {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.9);
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
 }
 
 /* Main content area */
 .cognifit-content {
   display: flex;
   flex: 1;
-  padding: 50px;
-  gap: 50px;
+  padding: 40px;
+  gap: 40px;
+  align-items: center;
 }
 
 /* Left panel - user info */
@@ -195,28 +237,27 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: 40px;
+  justify-content: center;
 }
 
 .cognifit-user-name {
-  font-size: 42px;
+  font-size: 36px;
   font-weight: 700;
   color: #2d3748;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   line-height: 1.1;
 }
 
 .cognifit-user-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .detail-row {
   display: flex;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12px;
 }
 
 .detail-label {
@@ -225,7 +266,7 @@
 }
 
 .detail-value {
-  color: #4db6ac;
+  color: #26a69a;
   font-weight: 600;
 }
 
@@ -239,50 +280,24 @@
 }
 
 .cognifit-radar {
-  width: 280px;
-  height: 280px;
+  width: 260px;
+  height: 260px;
 }
 
 .cognifit-radar .radar-label {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   fill: #4a5568;
 }
 
 /* Legend styles */
 .cognifit-legend {
-  margin-top: 20px;
+  margin-top: 16px;
   display: flex;
   justify-content: center;
 }
 
 .legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #4a5568;
-}
-
-.legend-box {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #2d3748;
-}
-
-.legend-box.user-profile {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.cognifit-risk-legend {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-top: 16px;
-}
-
-.risk-item {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -291,9 +306,38 @@
   color: #4a5568;
 }
 
-.risk-box {
+.legend-box {
   width: 16px;
-  height: 12px;
+  height: 16px;
+  border: 2px solid #2d3748;
+}
+
+.legend-box.user-profile {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.cognifit-risk-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.risk-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.risk-box {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
 }
 
 .risk-box.low {
@@ -310,12 +354,14 @@
 
 /* Footer */
 .cognifit-footer {
-  padding: 20px 50px;
-  font-size: 10px;
+  padding: 16px 40px;
+  font-size: 9px;
   color: #718096;
   text-align: center;
-  line-height: 1.5;
-  border-top: 1px solid #e0e0e0;
+  line-height: 1.4;
+  border-top: 1px solid #e8e8e8;
+  background: #fafafa;
+  flex-shrink: 0;
 }
 
 /* ====== SUMMARY SECTION ====== */
@@ -328,6 +374,8 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .summary-check {
@@ -338,6 +386,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .summary-check svg {
@@ -362,6 +411,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   margin-bottom: 24px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .summary-card {
@@ -371,6 +422,8 @@
   display: flex;
   align-items: flex-start;
   gap: 16px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .summary-card-icon {
@@ -382,6 +435,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  flex-shrink: 0;
 }
 
 .summary-card-content h3 {
@@ -530,6 +584,8 @@
   gap: 16px;
   margin-top: 24px;
   border: 1px solid rgba(0, 137, 123, 0.15);
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .conclusions-icon {
@@ -645,6 +701,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .dual-process-card {
@@ -653,6 +711,8 @@
   border: 2px solid;
   position: relative;
   overflow: hidden;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .dual-process-card::before {
@@ -806,6 +866,8 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .domain-card {
@@ -814,6 +876,8 @@
   padding: 18px;
   position: relative;
   overflow: hidden;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .domain-card::before {
@@ -1726,10 +1790,10 @@
 
   .report-page + .report-page {
     border-top: none;
-    page-break-before: auto;
   }
 
-  .report-cover {
+  .report-cover-cognifit {
+    height: 100vh;
     min-height: 100vh;
     page-break-after: always;
   }
@@ -1738,4 +1802,40 @@
 @page {
   size: A4;
   margin: 0;
+}
+
+/* PDF optimization - prevent orphan elements */
+.indicators-table {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.indicators-table tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.sci-section {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.sci-grid {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.integration-row {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.report-section-title {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.report-subsection-title {
+  break-after: avoid;
+  page-break-after: avoid;
 }
