@@ -51,6 +51,8 @@ export default function NeuroLabSessionRunner() {
   const [newBadges, setNewBadges] = useState<Badge[]>([]);
   const [showPaywall, setShowPaywall] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const hasCompletedRef = useRef(false);
 
   // Check session limit and generate exercises
   useEffect(() => {
@@ -114,9 +116,17 @@ export default function NeuroLabSessionRunner() {
   }, [currentExercise]);
 
   const handleNext = async () => {
+    // Prevent multiple calls
+    if (hasCompletedRef.current || isSaving) return;
+    
     if (currentIndex < sessionExercises.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
+      // Prevent duplicate completion
+      if (hasCompletedRef.current) return;
+      hasCompletedRef.current = true;
+      setIsSaving(true);
+      
       // Complete session - use ref for most up-to-date values
       let totalScore = 0;
       let totalCorrect = 0;
@@ -203,7 +213,11 @@ export default function NeuroLabSessionRunner() {
         } catch (error) {
           console.error("Error saving session:", error);
           toast.error("Failed to save session");
+        } finally {
+          setIsSaving(false);
         }
+      } else {
+        setIsSaving(false);
       }
     }
   };
