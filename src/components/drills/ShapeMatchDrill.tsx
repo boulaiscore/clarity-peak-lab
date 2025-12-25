@@ -1,8 +1,10 @@
 // Shape Match Drill - Tap when two consecutive shapes are identical
-import { useState, useEffect, useCallback, useRef } from "react";
+// Progressive difficulty: display time decreases as you get consecutive correct answers
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { Zap } from "lucide-react";
 
 interface ShapeMatchDrillProps {
   config: {
@@ -47,33 +49,51 @@ const SHAPE_RENDERS: Record<string, (size: number, color: string) => JSX.Element
 
 const COLORS = ["#6C5CE7", "#00B894", "#E17055", "#FDCB6E", "#74B9FF", "#A29BFE"];
 
-export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDrillProps) {
-  const [phase, setPhase] = useState<'intro' | 'playing' | 'complete'>('intro');
-  const [currentShape, setCurrentShape] = useState<{ shape: string; color: string } | null>(null);
-  const [previousShape, setPreviousShape] = useState<{ shape: string; color: string } | null>(null);
-  const [trial, setTrial] = useState(0);
-  const [canRespond, setCanRespond] = useState(false);
-  const [correct, setCorrect] = useState(0);
-  const [reactionTimes, setReactionTimes] = useState<number[]>([]);
-  const [shapeShownAt, setShapeShownAt] = useState(0);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
-  const [isMatch, setIsMatch] = useState(false);
-  const [streak, setStreak] = useState(0);
-  
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const completedRef = useRef(false);
+// Difficulty levels based on consecutive correct answers
+const DIFFICULTY_LEVELS = [
+  { streak: 0, displayTime: 2500, label: "Normal" },
+  { streak: 3, displayTime: 2000, label: "Fast" },
+  { streak: 5, displayTime: 1500, label: "Faster" },
+  { streak: 7, displayTime: 1200, label: "Expert" },
+  { streak: 10, displayTime: 900, label: "Master" },
+];
 
+function getDifficultyForStreak(streak: number) {
+  let level = DIFFICULTY_LEVELS[0];
+  for (const l of DIFFICULTY_LEVELS) {
+    if (streak >= l.streak) level = l;
+  }
+  return level;
+}
+
+interface TrialData {
+  shape: string;
+  color: string;
+  isMatch: boolean;
+}
+
+export function ShapeMatchDrill({ config, onComplete }: ShapeMatchDrillProps) {
+  const [phase, setPhase] = useState<'intro' | 'playing' | 'complete'>('intro');
+  const [trial, setTrial] = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [reactionTimes, setReactionTimes] = useState<number[]>([]);
+  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [speedUpNotice, setSpeedUpNotice] = useState(false);
+  
   const shapes = config?.shapes || ["circle", "square", "triangle", "diamond", "hexagon", "pentagon"];
-  const displayTime = config?.displayTime || 2500; // Increased from 1200ms to 2500ms
   const totalTrials = config?.totalTrials || 12;
   const matchProb = config?.matchProbability || 0.35;
 
-  // Pre-generate the entire trial sequence on mount
-  const trialSequence = useRef<Array<{ shape: string; color: string; isMatch: boolean }>>([]);
+  // Pre-generate all trials
+  const trialsRef = useRef<TrialData[]>([]);
+  const shapeShownAtRef = useRef(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasCompletedRef = useRef(false);
 
+  // Generate trials once
   useEffect(() => {
-    // Generate all trials upfront with deterministic match/no-match
-    const sequence: Array<{ shape: string; color: string; isMatch: boolean }> = [];
+    const sequence: TrialData[] = [];
     let prev: { shape: string; color: string } | null = null;
     
     for (let i = 0; i < totalTrials; i++) {
@@ -81,13 +101,9 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       let newShape: { shape: string; color: string };
       
       if (shouldMatch && prev) {
-        // Match: same shape, same color
         newShape = { shape: prev.shape, color: prev.color };
       } else {
-        // Different: pick a different shape
-        const availableShapes = prev 
-          ? shapes.filter(s => s !== prev.shape)
-          : shapes;
+        const availableShapes = prev ? shapes.filter(s => s !== prev!.shape) : shapes;
         newShape = {
           shape: availableShapes[Math.floor(Math.random() * availableShapes.length)],
           color: COLORS[Math.floor(Math.random() * COLORS.length)]
@@ -98,65 +114,96 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       prev = newShape;
     }
     
-    trialSequence.current = sequence;
+    trialsRef.current = sequence;
   }, [totalTrials, matchProb, shapes]);
 
-  const finishDrill = useCallback(() => {
-    if (completedRef.current) return;
-    completedRef.current = true;
+  const currentTrial = trialsRef.current[trial];
+  const previousTrial = trial > 0 ? trialsRef.current[trial - 1] : null;
+  const difficulty = getDifficultyForStreak(streak);
+
+  // Start timer when trial changes during playing phase
+  useEffect(() => {
+    if (phase !== 'playing' || feedback !== null) return;
+    
+    shapeShownAtRef.current = Date.now();
+    
+    // Clear any existing timer
+    if (timerRef.current) clearTimeout(timerRef.current);
+    
+    // Auto-fail if no response within display time
+    timerRef.current = setTimeout(() => {
+      if (feedback === null && phase === 'playing') {
+        handleMiss();
+      }
+    }, difficulty.displayTime);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [trial, phase, feedback, difficulty.displayTime]);
+
+  const handleMiss = () => {
+    setStreak(0);
+    setFeedback("wrong");
+    
+    setTimeout(() => {
+      advanceToNextTrial();
+    }, 400);
+  };
+
+  const advanceToNextTrial = () => {
+    setFeedback(null);
+    if (trial + 1 >= totalTrials) {
+      finishDrill();
+    } else {
+      setTrial(t => t + 1);
+    }
+  };
+
+  const finishDrill = () => {
+    if (hasCompletedRef.current) return;
+    hasCompletedRef.current = true;
     
     setPhase('complete');
     const avgRT = reactionTimes.length > 0 
       ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
       : 0;
     onComplete({ correct, total: totalTrials, avgReactionTime: avgRT });
-  }, [correct, reactionTimes, totalTrials, onComplete]);
+  };
 
-  const showNextTrial = useCallback(() => {
-    if (trial >= totalTrials) {
-      finishDrill();
-      return;
-    }
-
-    const trialData = trialSequence.current[trial];
-    if (!trialData) return;
-
-    // Save current shape as previous before showing new one
-    setPreviousShape(currentShape);
-    setCurrentShape({ shape: trialData.shape, color: trialData.color });
-    setIsMatch(trialData.isMatch);
-    setCanRespond(true);
-    setShapeShownAt(Date.now());
-    setFeedback(null);
-
-    // Auto-advance after display time (miss)
+  const handleResponse = (userSaysMatch: boolean) => {
+    if (feedback !== null || phase !== 'playing') return;
+    
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      if (canRespond) {
-        // User didn't respond - count as incorrect
-        setFeedback("wrong");
-        setStreak(0);
-        setTimeout(() => {
-          setTrial(prev => prev + 1);
-        }, 300);
+    
+    const rt = Date.now() - shapeShownAtRef.current;
+    setReactionTimes(prev => [...prev, rt]);
+
+    const wasCorrect = userSaysMatch === (currentTrial?.isMatch ?? false);
+    const prevStreak = streak;
+
+    if (wasCorrect) {
+      const newStreak = streak + 1;
+      setCorrect(c => c + 1);
+      setStreak(newStreak);
+      setFeedback("correct");
+      
+      // Check if we leveled up
+      const prevLevel = getDifficultyForStreak(prevStreak);
+      const newLevel = getDifficultyForStreak(newStreak);
+      if (newLevel.streak > prevLevel.streak && newLevel.streak > 0) {
+        setSpeedUpNotice(true);
+        setTimeout(() => setSpeedUpNotice(false), 1500);
       }
-    }, displayTime);
-  }, [trial, totalTrials, currentShape, displayTime, finishDrill, canRespond]);
-
-  // Start game when phase changes to playing
-  useEffect(() => {
-    if (phase === 'playing' && trial === 0 && trialSequence.current.length > 0) {
-      showNextTrial();
+    } else {
+      setStreak(0);
+      setFeedback("wrong");
     }
-  }, [phase, trial, showNextTrial]);
 
-  // Advance to next trial
-  useEffect(() => {
-    if (phase === 'playing' && trial > 0 && trial < totalTrials && feedback === null) {
-      const timeout = setTimeout(showNextTrial, 400);
-      return () => clearTimeout(timeout);
-    }
-  }, [trial, phase, totalTrials, feedback, showNextTrial]);
+    setTimeout(() => {
+      advanceToNextTrial();
+    }, 400);
+  };
 
   // Cleanup
   useEffect(() => {
@@ -164,32 +211,6 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
-
-  const handleResponse = (userSaysMatch: boolean) => {
-    if (!canRespond || feedback !== null) return;
-    
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setCanRespond(false);
-
-    const wasCorrect = userSaysMatch === isMatch;
-    const rt = Date.now() - shapeShownAt;
-    setReactionTimes(prev => [...prev, rt]);
-
-    if (wasCorrect) {
-      setCorrect(prev => prev + 1);
-      setStreak(prev => prev + 1);
-      setFeedback("correct");
-    } else {
-      setStreak(0);
-      setFeedback("wrong");
-    }
-
-    // Advance after showing feedback
-    setTimeout(() => {
-      setFeedback(null);
-      setTrial(prev => prev + 1);
-    }, 500);
-  };
 
   // Intro screen
   if (phase === 'intro') {
@@ -205,23 +226,34 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
           </div>
           <h2 className="text-2xl font-bold mb-2">Shape Match</h2>
           <p className="text-muted-foreground max-w-xs">
-            Compare each shape to the <strong>previous one</strong>. Tap MATCH if they're identical, DIFFERENT if they're not.
+            Compare each shape to the <strong>previous one</strong>. Tap MATCH if identical, DIFFERENT otherwise.
           </p>
         </div>
 
-        <div className="space-y-3 mb-8 text-sm text-left bg-muted/50 p-4 rounded-xl max-w-xs">
+        <div className="space-y-3 mb-6 text-sm text-left bg-muted/50 p-4 rounded-xl max-w-xs">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-xs">1</div>
-            <span>First shape has no "previous" - just observe it</span>
+            <span>First shape: just observe, then tap DIFFERENT</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-xs">2</div>
-            <span>Same shape + same color = MATCH</span>
+            <span>Same shape + color = MATCH</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-xs">3</div>
-            <span>Different shape or color = DIFFERENT</span>
+            <span>Different = DIFFERENT</span>
           </div>
+        </div>
+
+        {/* Progressive difficulty notice */}
+        <div className="mb-6 p-3 rounded-xl bg-primary/10 border border-primary/20 max-w-xs">
+          <div className="flex items-center gap-2 text-primary font-medium text-sm mb-1">
+            <Zap size={16} />
+            <span>Difficoltà Progressiva</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Più risposte corrette consecutive = meno tempo per rispondere. Mantieni la serie per aumentare la sfida!
+          </p>
         </div>
 
         <Button size="lg" onClick={() => setPhase('playing')} className="w-full max-w-xs">
@@ -256,25 +288,48 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
     );
   }
 
-  const ShapeComponent = currentShape ? SHAPE_RENDERS[currentShape.shape] : null;
+  if (!currentTrial) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
+  const ShapeComponent = SHAPE_RENDERS[currentTrial.shape];
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6">
+      {/* Speed up notice */}
+      <AnimatePresence>
+        {speedUpNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium flex items-center gap-2 z-50"
+          >
+            <Zap size={16} />
+            Speed Up! {difficulty.label}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Progress & Stats */}
       <div className="w-full max-w-sm mb-6">
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
           <span>Trial {trial + 1} / {totalTrials}</span>
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <span>✓ {correct}</span>
             {streak >= 2 && (
               <span className="text-primary font-medium">🔥 {streak}</span>
             )}
+            <span className="text-xs opacity-70">{difficulty.label}</span>
           </div>
         </div>
         <div className="h-2 bg-border rounded-full overflow-hidden">
           <motion.div 
             className="h-full bg-primary"
-            initial={{ width: 0 }}
             animate={{ width: `${((trial) / totalTrials) * 100}%` }}
             transition={{ duration: 0.3 }}
           />
@@ -282,11 +337,11 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       </div>
 
       {/* Previous shape indicator */}
-      {previousShape && trial > 0 && (
+      {previousTrial && (
         <div className="mb-4 text-center">
           <p className="text-xs text-muted-foreground mb-2">Previous shape:</p>
-          <div className="w-12 h-12 mx-auto opacity-50 flex items-center justify-center">
-            {SHAPE_RENDERS[previousShape.shape]?.(40, previousShape.color)}
+          <div className="w-14 h-14 mx-auto opacity-60 flex items-center justify-center border border-dashed border-border rounded-xl">
+            {SHAPE_RENDERS[previousTrial.shape]?.(45, previousTrial.color)}
           </div>
         </div>
       )}
@@ -299,22 +354,22 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
         feedback === "wrong" && "border-red-500 bg-red-500/10"
       )}>
         <AnimatePresence mode="wait">
-          {feedback === null && currentShape && ShapeComponent && (
+          {feedback === null && ShapeComponent && (
             <motion.div
-              key={`${currentShape.shape}-${trial}`}
+              key={`shape-${trial}`}
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {ShapeComponent(90, currentShape.color)}
+              {ShapeComponent(90, currentTrial.color)}
             </motion.div>
           )}
           {feedback === "correct" && (
             <motion.span 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="text-5xl"
+              className="text-5xl text-green-500"
             >
               ✓
             </motion.span>
@@ -323,7 +378,7 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
             <motion.span 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="text-5xl"
+              className="text-5xl text-red-500"
             >
               ✗
             </motion.span>
@@ -334,7 +389,7 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       {/* Instructions */}
       <p className="text-sm text-muted-foreground mb-6 text-center">
         {trial === 0 
-          ? "This is the first shape. Observe it, then press DIFFERENT to continue." 
+          ? "This is the first shape. Observe it, then press DIFFERENT." 
           : "Is this the same shape & color as the previous one?"
         }
       </p>
@@ -345,7 +400,7 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
           variant="outline" 
           size="lg"
           onClick={() => handleResponse(false)}
-          disabled={!canRespond || feedback !== null}
+          disabled={feedback !== null}
           className="w-32 h-14 text-lg"
         >
           Different
@@ -353,7 +408,7 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
         <Button 
           size="lg"
           onClick={() => handleResponse(true)}
-          disabled={!canRespond || feedback !== null || trial === 0}
+          disabled={feedback !== null || trial === 0}
           className="w-32 h-14 text-lg"
         >
           MATCH
@@ -361,15 +416,19 @@ export function ShapeMatchDrill({ config, timeLimit, onComplete }: ShapeMatchDri
       </div>
 
       {/* Timer indicator */}
-      {canRespond && feedback === null && (
+      {feedback === null && (
         <motion.div 
-          className="mt-6 w-full max-w-sm h-1 bg-muted rounded-full overflow-hidden"
+          className="mt-6 w-full max-w-sm h-1.5 bg-muted rounded-full overflow-hidden"
         >
           <motion.div
-            className="h-full bg-primary/50"
+            key={`timer-${trial}-${streak}`}
+            className={cn(
+              "h-full rounded-full",
+              streak >= 7 ? "bg-red-500" : streak >= 5 ? "bg-orange-500" : streak >= 3 ? "bg-yellow-500" : "bg-primary/50"
+            )}
             initial={{ width: "100%" }}
             animate={{ width: "0%" }}
-            transition={{ duration: displayTime / 1000, ease: "linear" }}
+            transition={{ duration: difficulty.displayTime / 1000, ease: "linear" }}
           />
         </motion.div>
       )}
