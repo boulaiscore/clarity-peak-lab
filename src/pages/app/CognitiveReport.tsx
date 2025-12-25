@@ -1,10 +1,11 @@
 // src/pages/app/CognitiveReport.tsx
 import React, { useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Brain, Play } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { useAuth } from "@/contexts/AuthContext";
 import html2pdf from "html2pdf.js";
+import { Button } from "@/components/ui/button";
 
 import "@/styles/report-print.css";
 
@@ -61,7 +62,37 @@ export default function CognitiveReport() {
   };
 
   if (loading) return <div className="p-6">Generating report data…</div>;
-  if (error || !metrics || !profile || !aggregates) return <div className="p-6">Error: {error ?? "Missing data"}</div>;
+  
+  if (error) return <div className="p-6">Error: {error}</div>;
+
+  // Show empty state when user has no training data yet
+  if (!metrics || !profile || !aggregates) {
+    return (
+      <div className="p-4 max-w-md mx-auto min-h-[60vh] flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+          <Brain className="w-8 h-8 text-primary" />
+        </div>
+        <h1 className="text-lg font-semibold mb-2">No Data Available</h1>
+        <p className="text-sm text-muted-foreground mb-6 max-w-xs">
+          Complete your initial assessment or a training session to generate your cognitive intelligence report.
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Link to="/neuro-lab">
+            <Button variant="premium" className="w-full gap-2">
+              <Play className="w-4 h-4" />
+              Start Training
+            </Button>
+          </Link>
+          <button 
+            onClick={() => navigate(-1)} 
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 max-w-[220mm] mx-auto">
