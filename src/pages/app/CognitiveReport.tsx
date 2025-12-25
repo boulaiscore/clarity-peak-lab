@@ -9,8 +9,10 @@ import { ReportCover } from "@/components/report/ReportCover";
 import { ReportSCI } from "@/components/report/ReportSCI";
 import { ReportDualProcess } from "@/components/report/ReportDualProcess";
 import { ReportDomains } from "@/components/report/ReportDomains";
+import { ReportTrends } from "@/components/report/ReportTrends";
 import { ReportMetaCognitive } from "@/components/report/ReportMetaCognitive";
 import { ReportTrainingAnalytics } from "@/components/report/ReportTrainingAnalytics";
+import { ReportRecommendations } from "@/components/report/ReportRecommendations";
 import { ReportAchievements } from "@/components/report/ReportAchievements";
 import { ReportPhysio } from "@/components/report/ReportPhysio";
 import { ReportActionable } from "@/components/report/ReportActionable";
@@ -20,7 +22,7 @@ export default function CognitiveReport() {
   const { user } = useAuth();
   const userId = user?.id as string;
 
-  const { loading, error, metrics, profile, badges, wearable, aggregates } = useReportData(userId);
+  const { loading, error, metrics, profile, sessions, badges, wearable, aggregates } = useReportData(userId);
 
   const printRef = useRef<HTMLDivElement>(null);
   const generatedAt = useMemo(() => new Date(), []);
@@ -49,8 +51,10 @@ export default function CognitiveReport() {
         <ReportSCI metrics={metrics} />
         <ReportDualProcess profile={profile} metrics={metrics} />
         <ReportDomains metrics={metrics} aggregates={aggregates} />
+        <ReportTrends sessions={sessions} metrics={metrics} />
         <ReportMetaCognitive metrics={metrics} />
         <ReportTrainingAnalytics profile={profile} metrics={metrics} aggregates={aggregates} />
+        <ReportRecommendations metrics={metrics} aggregates={aggregates} profile={profile} />
         <ReportAchievements badges={badges} />
         <ReportPhysio metrics={metrics} wearable={wearable} />
         <ReportActionable profile={profile} metrics={metrics} aggregates={aggregates} />
