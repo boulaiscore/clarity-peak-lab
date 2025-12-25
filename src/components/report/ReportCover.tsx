@@ -31,10 +31,10 @@ export function ReportCover({ profile, metrics, generatedAt }: any) {
     { name: "Reasoning", value: metrics.reasoning_accuracy ?? 50, icon: Brain, color: "#42a5f5" },
   ];
 
-  // Radar chart setup
-  const centerX = 100;
-  const centerY = 100;
-  const maxRadius = 80;
+  // Radar chart setup - increased viewBox for labels
+  const centerX = 140;
+  const centerY = 140;
+  const maxRadius = 70;
   const angleStep = (2 * Math.PI) / domains.length;
   
   const points = domains.map((d, i) => {
@@ -90,7 +90,7 @@ export function ReportCover({ profile, metrics, generatedAt }: any) {
           </div>
 
           <div className="report-cover-chart">
-            <svg viewBox="0 0 200 200" className="report-cover-radar">
+            <svg viewBox="0 0 280 280" className="report-cover-radar">
               {/* Grid circles */}
               {[25, 50, 75, 100].map((pct) => (
                 <polygon
@@ -130,14 +130,14 @@ export function ReportCover({ profile, metrics, generatedAt }: any) {
               {/* Labels */}
               {domains.map((d, i) => {
                 const angle = i * angleStep - Math.PI / 2;
-                const lx = centerX + (maxRadius + 25) * Math.cos(angle);
-                const ly = centerY + (maxRadius + 25) * Math.sin(angle);
+                const lx = centerX + (maxRadius + 35) * Math.cos(angle);
+                const ly = centerY + (maxRadius + 35) * Math.sin(angle);
                 return (
                   <g key={i}>
                     <text
                       x={lx}
-                      y={ly - 6}
-                      fontSize="9"
+                      y={ly - 8}
+                      fontSize="11"
                       fontWeight="600"
                       textAnchor="middle"
                       dominantBaseline="middle"
@@ -147,8 +147,8 @@ export function ReportCover({ profile, metrics, generatedAt }: any) {
                     </text>
                     <text
                       x={lx}
-                      y={ly + 6}
-                      fontSize="11"
+                      y={ly + 8}
+                      fontSize="13"
                       fontWeight="700"
                       textAnchor="middle"
                       dominantBaseline="middle"
