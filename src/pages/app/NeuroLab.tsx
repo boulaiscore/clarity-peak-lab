@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
+import { CognitiveInputs } from "@/components/dashboard/CognitiveInputs";
 import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, ChevronRight, Lock, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -238,6 +239,18 @@ export default function NeuroLab() {
             );
           })}
         </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-5">
+          <div className="h-px flex-1 bg-border/30" />
+          <span className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">
+            Passive Training
+          </span>
+          <div className="h-px flex-1 bg-border/30" />
+        </div>
+
+        {/* Cognitive Inputs */}
+        <CognitiveInputs />
 
         {/* Footer */}
         <div className="mt-6 text-center">

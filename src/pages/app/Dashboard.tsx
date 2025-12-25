@@ -9,7 +9,6 @@ import { ThinkingSystemSources } from "@/components/dashboard/ThinkingSystemSour
 import { DailyTrainingHistory } from "@/components/dashboard/DailyTrainingHistory";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
-import { CognitiveInputs } from "@/components/dashboard/CognitiveInputs";
 import { Button } from "@/components/ui/button";
 import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -200,15 +199,6 @@ const Dashboard = () => {
               currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
               currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
             />
-
-            {/* Cognitive Inputs */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <CognitiveInputs />
-            </motion.div>
 
             {/* Generate Report CTA */}
             <motion.div
