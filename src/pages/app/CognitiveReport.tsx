@@ -2,7 +2,6 @@
 import React, { useMemo, useRef } from "react";
 import { useReportData } from "@/hooks/useReportData";
 import { useAuth } from "@/contexts/AuthContext";
-import { useReactToPrint } from "react-to-print";
 
 import "@/styles/report-print.css";
 
@@ -24,20 +23,16 @@ export default function CognitiveReport() {
   const { loading, error, metrics, profile, badges, wearable, aggregates } = useReportData(userId);
 
   const printRef = useRef<HTMLDivElement>(null);
-
   const generatedAt = useMemo(() => new Date(), []);
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `NeuroLoop_Cognitive_Report_${profile?.name ?? "User"}_${generatedAt.toISOString().slice(0,10)}`,
-  });
+  const handlePrint = () => window.print();
 
   if (loading) return <div className="p-6">Generating report data…</div>;
   if (error || !metrics || !profile || !aggregates) return <div className="p-6">Error: {error ?? "Missing data"}</div>;
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="flex items-center justify-between gap-4 mb-4 print:hidden">
         <div>
           <h1 className="text-xl font-semibold">Cognitive Intelligence Report</h1>
           <div className="text-sm opacity-70">
@@ -50,7 +45,6 @@ export default function CognitiveReport() {
         </button>
       </div>
 
-      {/* Render A4 container */}
       <div ref={printRef} className="report-root">
         <ReportCover profile={profile} metrics={metrics} generatedAt={generatedAt} />
         <ReportSCI metrics={metrics} />
