@@ -86,9 +86,15 @@ export function getLevelFromXP(xp: number): { level: number; name: string; progr
 }
 
 // Calculate improvement percentage from baseline
-export function calculateImprovement(current: number, baseline?: number): number {
-  if (!baseline || baseline === 0) return 0;
+// Returns 0 if baseline is undefined, null, or 0 (no valid baseline to compare)
+export function calculateImprovement(current: number, baseline?: number | null): number {
+  if (baseline === undefined || baseline === null || baseline === 0) return 0;
   return Math.round(((current - baseline) / baseline) * 100);
+}
+
+// Check if a valid baseline exists for improvement comparison
+export function hasValidBaseline(baseline?: number | null): boolean {
+  return baseline !== undefined && baseline !== null && baseline > 0;
 }
 
 // All available badges
@@ -136,6 +142,7 @@ export const BADGES: Badge[] = [
   },
 
   // Improvement badges (compared to baseline)
+  // IMPORTANT: These require a valid baseline to be set first
   {
     id: "fast_improvement_10",
     name: "Quick Learner",
@@ -144,7 +151,7 @@ export const BADGES: Badge[] = [
     icon: Zap,
     iconColor: "text-amber-400",
     bgColor: "bg-amber-500/15",
-    requirement: (m) => calculateImprovement(m.fastThinking, m.baselineFastThinking) >= 10,
+    requirement: (m) => hasValidBaseline(m.baselineFastThinking) && calculateImprovement(m.fastThinking, m.baselineFastThinking) >= 10,
   },
   {
     id: "fast_improvement_25",
@@ -154,7 +161,7 @@ export const BADGES: Badge[] = [
     icon: Zap,
     iconColor: "text-amber-400",
     bgColor: "bg-amber-500/15",
-    requirement: (m) => calculateImprovement(m.fastThinking, m.baselineFastThinking) >= 25,
+    requirement: (m) => hasValidBaseline(m.baselineFastThinking) && calculateImprovement(m.fastThinking, m.baselineFastThinking) >= 25,
   },
   {
     id: "slow_improvement_10",
@@ -164,7 +171,7 @@ export const BADGES: Badge[] = [
     icon: Brain,
     iconColor: "text-teal-400",
     bgColor: "bg-teal-500/15",
-    requirement: (m) => calculateImprovement(m.slowThinking, m.baselineSlowThinking) >= 10,
+    requirement: (m) => hasValidBaseline(m.baselineSlowThinking) && calculateImprovement(m.slowThinking, m.baselineSlowThinking) >= 10,
   },
   {
     id: "slow_improvement_25",
@@ -174,7 +181,7 @@ export const BADGES: Badge[] = [
     icon: Brain,
     iconColor: "text-teal-400",
     bgColor: "bg-teal-500/15",
-    requirement: (m) => calculateImprovement(m.slowThinking, m.baselineSlowThinking) >= 25,
+    requirement: (m) => hasValidBaseline(m.baselineSlowThinking) && calculateImprovement(m.slowThinking, m.baselineSlowThinking) >= 25,
   },
   {
     id: "focus_improvement_10",
@@ -184,7 +191,7 @@ export const BADGES: Badge[] = [
     icon: Target,
     iconColor: "text-emerald-400",
     bgColor: "bg-emerald-500/15",
-    requirement: (m) => calculateImprovement(m.focus, m.baselineFocus) >= 10,
+    requirement: (m) => hasValidBaseline(m.baselineFocus) && calculateImprovement(m.focus, m.baselineFocus) >= 10,
   },
   {
     id: "reasoning_improvement_10",
@@ -194,7 +201,7 @@ export const BADGES: Badge[] = [
     icon: Lightbulb,
     iconColor: "text-blue-400",
     bgColor: "bg-blue-500/15",
-    requirement: (m) => calculateImprovement(m.reasoning, m.baselineReasoning) >= 10,
+    requirement: (m) => hasValidBaseline(m.baselineReasoning) && calculateImprovement(m.reasoning, m.baselineReasoning) >= 10,
   },
   {
     id: "creativity_improvement_10",
@@ -204,7 +211,7 @@ export const BADGES: Badge[] = [
     icon: Sparkles,
     iconColor: "text-violet-400",
     bgColor: "bg-violet-500/15",
-    requirement: (m) => calculateImprovement(m.creativity, m.baselineCreativity) >= 10,
+    requirement: (m) => hasValidBaseline(m.baselineCreativity) && calculateImprovement(m.creativity, m.baselineCreativity) >= 10,
   },
 
   // Mastery badges (score thresholds)
@@ -277,11 +284,30 @@ export const BADGES: Badge[] = [
   },
 ];
 
-// Check which badges a user has earned
+// Maximum badges that can be earned in a single session
+const MAX_BADGES_PER_SESSION = 2;
+
+// Check which badges a user has earned (limited to prevent badge spam)
 export function checkEarnedBadges(metrics: BadgeMetrics, existingBadgeIds: string[]): Badge[] {
-  return BADGES.filter(badge => 
+  const eligibleBadges = BADGES.filter(badge => 
     !existingBadgeIds.includes(badge.id) && badge.requirement(metrics)
   );
+  
+  // Prioritize: progress > milestone > mastery > special
+  // Then limit to MAX_BADGES_PER_SESSION
+  const priorityOrder: Record<string, number> = {
+    progress: 1,
+    milestone: 2,
+    mastery: 3,
+    special: 4,
+    streak: 5,
+  };
+  
+  const sorted = eligibleBadges.sort((a, b) => 
+    (priorityOrder[a.category] || 99) - (priorityOrder[b.category] || 99)
+  );
+  
+  return sorted.slice(0, MAX_BADGES_PER_SESSION);
 }
 
 // Get badge by ID

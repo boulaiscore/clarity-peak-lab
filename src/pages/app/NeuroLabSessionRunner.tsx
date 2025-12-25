@@ -254,7 +254,7 @@ export default function NeuroLabSessionRunner() {
   if (isComplete) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+        <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-6 animate-scale-in">
           <Trophy className="w-10 h-10 text-primary" />
         </div>
         
@@ -281,23 +281,30 @@ export default function NeuroLabSessionRunner() {
           <span className="text-sm font-medium text-amber-400">+{earnedXP} XP</span>
         </div>
 
-        {/* New Badges */}
+        {/* New Badges - Redesigned */}
         {newBadges.length > 0 && (
-          <div className="mb-4 p-4 rounded-xl bg-primary/10 border border-primary/20 w-full max-w-sm">
-            <p className="text-xs uppercase tracking-widest text-primary text-center mb-3">New Badge Earned!</p>
-            <div className="flex justify-center gap-3">
-              {newBadges.map((badge) => {
-                const Icon = badge.icon;
-                return (
-                  <div key={badge.id} className="flex flex-col items-center gap-1">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${badge.bgColor}`}>
-                      <Icon className={`w-6 h-6 ${badge.iconColor}`} />
+          <div className="mb-6 w-full max-w-sm space-y-3">
+            {newBadges.map((badge, index) => {
+              const Icon = badge.icon;
+              return (
+                <div 
+                  key={badge.id} 
+                  className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 animate-fade-in"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${badge.bgColor} ring-2 ring-primary/30`}>
+                      <Icon className={`w-7 h-7 ${badge.iconColor}`} />
                     </div>
-                    <span className="text-[10px] text-muted-foreground">{badge.name}</span>
+                    <div className="flex-1">
+                      <p className="text-xs uppercase tracking-widest text-primary mb-1">New Badge</p>
+                      <p className="font-semibold text-foreground">{badge.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{badge.description}</p>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         )}
         
@@ -308,7 +315,7 @@ export default function NeuroLabSessionRunner() {
               Average Score
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              {sessionScore.correctAnswers} targets hit across {sessionScore.totalQuestions} exercises
+              {sessionScore.correctAnswers} target{sessionScore.correctAnswers !== 1 ? "s" : ""} hit across {sessionScore.totalQuestions} exercise{sessionScore.totalQuestions !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
