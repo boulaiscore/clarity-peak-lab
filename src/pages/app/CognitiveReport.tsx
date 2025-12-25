@@ -44,7 +44,8 @@ export default function CognitiveReport() {
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { 
-        mode: ['avoid-all'], 
+        mode: ['css', 'avoid-all'],
+        before: ['.page-break-before'],
         avoid: ['.avoid-break', '.summary-card', '.domain-card', '.conclusions-box', '.dual-process-card', '.sci-stat']
       }
     };
