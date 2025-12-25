@@ -2,80 +2,41 @@ import React from "react";
 
 export function ReportMethodology() {
   return (
-    <section className="report-page methodology-page">
-      <h2 className="report-section-title">Methodology & Framework</h2>
+    <section className="report-page">
+      <h2 className="report-section-title">Methodology & Disclaimer</h2>
+      <p className="report-subtitle">Scientific foundation and data sources</p>
 
-      <div className="methodology-content">
-        <div className="methodology-section">
-          <h3 className="methodology-heading">Scientific Foundation</h3>
-          <p>
-            NeuroLoop's assessment framework is built on Daniel Kahneman's Dual-Process Theory of cognition,
-            distinguishing between <strong>System 1 (Fast Thinking)</strong> — intuitive, automatic responses — and
-            <strong> System 2 (Slow Thinking)</strong> — deliberate, analytical processing.
-          </p>
+      <div className="methodology-grid">
+        <div className="methodology-card">
+          <h4>Framework</h4>
+          <p>Based on Kahneman's Dual-Process Theory: System 1 (fast, intuitive) and System 2 (slow, analytical) cognitive processing.</p>
         </div>
-
-        <div className="methodology-section">
-          <h3 className="methodology-heading">Data Sources</h3>
-          <ul className="methodology-list">
-            <li>NeuroLab training sessions and drill performance</li>
-            <li>Initial baseline cognitive assessment</li>
-            <li>Wearable biometric data (if connected)</li>
-            <li>Session consistency and progression patterns</li>
+        <div className="methodology-card">
+          <h4>Data Sources</h4>
+          <ul>
+            <li>NeuroLab training sessions</li>
+            <li>Initial assessment baseline</li>
+            <li>Wearable physiological data</li>
           </ul>
         </div>
-
-        <div className="methodology-section">
-          <h3 className="methodology-heading">Metric Calculation</h3>
-          <p>
-            All scores are normalized to a 0-100 scale. The Strategic Cognitive Index (SCI) represents a 
-            weighted composite of dual-process integration, domain performance, and training consistency.
-            Deltas show improvement from baseline assessment.
-          </p>
+        <div className="methodology-card">
+          <h4>Metric Calculation</h4>
+          <p>SCI = weighted composite of thinking systems, domain performance, and training consistency.</p>
         </div>
-
-        <div className="methodology-section">
-          <h3 className="methodology-heading">Performance Levels</h3>
-          <div className="levels-grid">
-            <div className="level-item">
-              <span className="level-badge elite">Elite</span>
-              <span className="level-range">85-100</span>
-            </div>
-            <div className="level-item">
-              <span className="level-badge high">High</span>
-              <span className="level-range">70-84</span>
-            </div>
-            <div className="level-item">
-              <span className="level-badge moderate">Moderate</span>
-              <span className="level-range">50-69</span>
-            </div>
-            <div className="level-item">
-              <span className="level-badge developing">Developing</span>
-              <span className="level-range">0-49</span>
-            </div>
-          </div>
+        <div className="methodology-card">
+          <h4>Performance Levels</h4>
+          <ul>
+            <li>Elite: 85+ (top performers)</li>
+            <li>High: 70-84 (above average)</li>
+            <li>Moderate: 50-69 (average)</li>
+            <li>Developing: &lt;50 (growth focus)</li>
+          </ul>
         </div>
-
-        <div className="methodology-section references">
-          <h3 className="methodology-heading">References</h3>
-          <p className="reference-text">
-            Kahneman, D. (2011). <em>Thinking, Fast and Slow.</em> Farrar, Straus and Giroux.
-          </p>
-        </div>
-      </div>
-
-      <div className="disclaimer">
-        <h3 className="disclaimer-title">Disclaimer</h3>
-        <p>
-          This report provides cognitive performance metrics for informational and self-improvement purposes only.
-          It is not a clinical assessment and should not be used for medical diagnosis.
-          NeuroLoop is designed for individuals seeking to optimize their cognitive performance.
-        </p>
       </div>
 
       <div className="report-footer">
-        <p>NeuroLoop Labs — Cognitive Intelligence Platform</p>
-        <p>support@neurolooplabs.com</p>
+        <span>NeuroLoop Pro · Cognitive Intelligence Report</span>
+        <span>For informational purposes only · Not medical advice</span>
       </div>
     </section>
   );
