@@ -204,15 +204,16 @@ export default function NeuroLabSessionRunner() {
             metrics: badgeMetrics,
             existingBadgeIds,
           });
-          
+
           if (awarded.length > 0) {
             setNewBadges(awarded);
           }
-          
-          toast.success("Session completed!");
+
+          // De-dupe toasts to avoid flicker if something triggers completion twice
+          toast.success("Session completed!", { id: "neuro-session-complete" });
         } catch (error) {
           console.error("Error saving session:", error);
-          toast.error("Failed to save session");
+          toast.error("Failed to save session", { id: "neuro-session-save-failed" });
         } finally {
           setIsSaving(false);
         }
