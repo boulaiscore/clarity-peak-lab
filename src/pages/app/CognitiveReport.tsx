@@ -1,7 +1,7 @@
 // src/pages/app/CognitiveReport.tsx
 import React, { useMemo, useRef } from "react";
 import { useReportData } from "@/hooks/useReportData";
-import { useAuth } from "@/hooks/useAuth"; // o dove prendi userId
+import { useAuth } from "@/contexts/AuthContext";
 import { useReactToPrint } from "react-to-print";
 
 import "@/styles/report-print.css";
