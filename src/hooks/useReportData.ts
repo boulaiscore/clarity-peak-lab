@@ -134,8 +134,8 @@ export function useReportData(userId: string) {
 
       try {
         const [mRes, pRes, sRes, bRes, wRes] = await Promise.all([
-          supabase.from("user_cognitive_metrics").select("*").eq("user_id", userId).single(),
-          supabase.from("profiles").select("*").eq("user_id", userId).single(),
+          supabase.from("user_cognitive_metrics").select("*").eq("user_id", userId).maybeSingle(),
+          supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
           supabase
             .from("neuro_gym_sessions")
             .select("*")
