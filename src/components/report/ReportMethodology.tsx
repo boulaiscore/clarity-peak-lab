@@ -3,7 +3,7 @@ import { BookOpen, Database, Calculator, BarChart3, Shield, FileText } from "luc
 
 export function ReportMethodology() {
   return (
-    <section className="report-page page-break-before">
+    <section className="report-page">
       <h2 className="report-section-title">Methodology & Scientific Framework</h2>
       <p className="report-subtitle">Evidence-based foundations of the NeuroLoop cognitive assessment system</p>
 

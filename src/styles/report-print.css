@@ -1580,8 +1580,6 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-bottom: 24px;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .methodology-card {
@@ -1663,8 +1661,6 @@
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 24px;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .methodology-references h4 {
@@ -1702,8 +1698,6 @@
   gap: 16px;
   margin-bottom: 24px;
   border: 1px solid rgba(113, 128, 150, 0.15);
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .disclaimer-icon {
@@ -1744,8 +1738,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .footer-brand {
