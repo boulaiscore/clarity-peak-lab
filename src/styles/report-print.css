@@ -116,269 +116,206 @@
   letter-spacing: 0.5px;
 }
 
-/* ====== COVER PAGE ====== */
-.report-cover {
+/* ====== COGNIFIT-STYLE COVER PAGE ====== */
+.report-cover-cognifit {
   display: flex;
   flex-direction: column;
   min-height: 280mm;
-  padding: 0;
+  padding: 0 !important;
   position: relative;
   overflow: hidden;
+  background: #fff;
 }
 
-.report-cover::before {
+.report-cover-cognifit::before {
+  display: none;
+}
+
+/* Teal header banner */
+.cognifit-header {
+  background: linear-gradient(135deg, #4db6ac 0%, #80cbc4 100%);
+  padding: 40px 50px;
+  position: relative;
+}
+
+.cognifit-header::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 50%;
-  background: linear-gradient(135deg, #00897b 0%, #26a69a 50%, #4db6ac 100%);
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.1));
 }
 
-.report-cover-header {
-  position: relative;
-  z-index: 1;
-  padding: 28px 36px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.report-cover-brand {
-  display: flex;
-  flex-direction: column;
-}
-
-.report-cover-logo {
-  font-size: 32px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -1px;
-}
-
-.report-cover-tagline {
-  font-size: 11px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.75);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-.report-cover-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.report-cover-version {
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.6);
-  background: rgba(255,255,255,0.15);
-  padding: 3px 8px;
-  border-radius: 10px;
-}
-
-.report-cover-date {
-  font-size: 11px;
-  color: rgba(255,255,255,0.8);
-}
-
-.report-cover-main {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 24px 36px;
-}
-
-.report-cover-icon {
-  width: 72px;
-  height: 72px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 50%;
+.cognifit-logo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  border: 2px solid rgba(255,255,255,0.25);
+  gap: 12px;
+  margin-bottom: 60px;
 }
 
-.report-cover-icon svg {
-  width: 40px;
-  height: 40px;
+.cognifit-logo svg {
   color: #fff;
 }
 
-.report-cover-title {
-  font-size: 42px;
+.cognifit-logo span {
+  font-size: 28px;
   font-weight: 700;
-  color: #ffffff;
-  line-height: 1.1;
-  margin: 0 0 12px 0;
-  letter-spacing: -1px;
+  color: #fff;
+  letter-spacing: -0.5px;
 }
 
-.report-cover-subtitle {
-  font-size: 14px;
+.cognifit-title-section h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.cognifit-title-section p {
+  font-size: 18px;
+  font-weight: 500;
   color: rgba(255,255,255,0.85);
-  margin: 0 0 36px 0;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+/* Main content area */
+.cognifit-content {
+  display: flex;
+  flex: 1;
+  padding: 50px;
+  gap: 50px;
+}
+
+/* Left panel - user info */
+.cognifit-user-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 40px;
+}
+
+.cognifit-user-name {
+  font-size: 42px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 20px 0;
+  line-height: 1.1;
+}
+
+.cognifit-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.detail-label {
+  color: #718096;
   font-weight: 500;
 }
 
-.report-cover-user-section {
-  background: #fff;
-  border-radius: 20px;
-  padding: 28px 36px;
-  margin-top: auto;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.12);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 32px;
-}
-
-.report-cover-user-info {
-  flex: 1;
-}
-
-.report-cover-tier {
-  font-size: 10px;
-  font-weight: 700;
-  color: #00897b;
-  background: rgba(0, 137, 123, 0.1);
-  padding: 4px 12px;
-  border-radius: 12px;
-  display: inline-block;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.report-cover-user-info h2 {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  color: var(--report-text);
-}
-
-.report-cover-user-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.meta-row {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-}
-
-.meta-label {
-  color: var(--report-text-light);
-  min-width: 120px;
-}
-
-.meta-value {
-  color: var(--report-text);
+.detail-value {
+  color: #4db6ac;
   font-weight: 600;
 }
 
-.report-cover-chart {
-  width: 200px;
-  height: 200px;
-  flex-shrink: 0;
-}
-
-.report-cover-radar {
-  width: 100%;
-  height: 100%;
-}
-
-.report-cover-footer {
+/* Right panel - radar chart */
+.cognifit-chart-panel {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  gap: 24px;
+  justify-content: center;
+}
+
+.cognifit-radar {
+  width: 280px;
+  height: 280px;
+}
+
+.cognifit-radar .radar-label {
+  font-size: 12px;
+  font-weight: 500;
+  fill: #4a5568;
+}
+
+/* Legend styles */
+.cognifit-legend {
   margin-top: 20px;
-  padding: 20px 36px;
-  background: var(--report-bg-light);
-  border-radius: 16px;
-}
-
-.report-cover-sci {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
   align-items: center;
-}
-
-.report-cover-sci .sci-value {
-  font-size: 48px;
-  font-weight: 700;
-  color: #00897b;
-  line-height: 1;
-}
-
-.report-cover-sci .sci-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--report-text-light);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 4px;
-}
-
-.report-cover-classification {
-  text-align: center;
-  flex: 1;
-}
-
-.report-cover-classification .class-label {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--report-text);
-  display: block;
-}
-
-.report-cover-classification .class-desc {
+  gap: 8px;
   font-size: 11px;
-  color: var(--report-text-light);
-  display: block;
-  margin-top: 2px;
-}
-
-.report-cover-ref {
-  text-align: right;
-}
-
-.report-cover-ref .ref-label {
-  font-size: 10px;
-  color: var(--report-text-light);
-  text-transform: uppercase;
-  display: block;
-}
-
-.report-cover-ref .ref-value {
-  font-size: 12px;
   font-weight: 600;
-  color: var(--report-text);
-  display: block;
-  margin-top: 2px;
+  color: #4a5568;
 }
 
-.report-cover-disclaimer {
+.legend-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2d3748;
+}
+
+.legend-box.user-profile {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.cognifit-risk-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.risk-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 10px;
-  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.risk-box {
+  width: 16px;
+  height: 12px;
+}
+
+.risk-box.low {
+  background: #7CB342;
+}
+
+.risk-box.moderate {
+  background: #FDD835;
+}
+
+.risk-box.high {
+  background: #E53935;
+}
+
+/* Footer */
+.cognifit-footer {
+  padding: 20px 50px;
+  font-size: 10px;
+  color: #718096;
   text-align: center;
-  padding: 16px 36px;
   line-height: 1.5;
-  position: relative;
-  z-index: 1;
-  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.1));
+  border-top: 1px solid #e0e0e0;
 }
 
 /* ====== SUMMARY SECTION ====== */
