@@ -140,16 +140,11 @@
 .report-cover-cognifit {
   display: flex;
   flex-direction: column;
-  min-height: 297mm;
-  height: 297mm;
+  min-height: 265mm;
   padding: 0 !important;
   position: relative;
   overflow: hidden;
   background: #fff;
-  page-break-after: always;
-  break-after: page;
-  page-break-before: avoid;
-  break-before: avoid;
 }
 
 .report-cover-cognifit::before {
@@ -1793,9 +1788,7 @@
   }
 
   .report-cover-cognifit {
-    height: 100vh;
-    min-height: 100vh;
-    page-break-after: always;
+    min-height: auto;
   }
 }
 

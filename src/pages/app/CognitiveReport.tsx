@@ -32,19 +32,20 @@ export default function CognitiveReport() {
     setDownloading(true);
     
     const opt = {
-      margin: 0,
+      margin: [0, 0, 0, 0],
       filename: `NeuroLoop_Report_${generatedAt.toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { 
         scale: 2, 
         useCORS: true, 
         logging: false,
-        windowWidth: 794, // A4 width in pixels at 96dpi
+        width: 794,
+        windowWidth: 794,
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { 
-        mode: ['avoid-all', 'css'], 
-        avoid: ['.avoid-break', '.summary-card', '.domain-card', '.conclusions-box', '.indicators-table tr']
+        mode: ['avoid-all'], 
+        avoid: ['.avoid-break', '.summary-card', '.domain-card', '.conclusions-box', '.dual-process-card', '.sci-stat']
       }
     };
 
