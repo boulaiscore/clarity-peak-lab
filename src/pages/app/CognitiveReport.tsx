@@ -28,9 +28,8 @@ export default function CognitiveReport() {
   const generatedAt = useMemo(() => new Date(), []);
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
     documentTitle: `NeuroLoop_Cognitive_Report_${profile?.name ?? "User"}_${generatedAt.toISOString().slice(0,10)}`,
-    removeAfterPrint: true,
   });
 
   if (loading) return <div className="p-6">Generating report data…</div>;
