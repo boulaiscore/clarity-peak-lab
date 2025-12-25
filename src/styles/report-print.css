@@ -1089,8 +1089,12 @@
     print-color-adjust: exact;
   }
 
-  /* nasconde elementi UI */
-  .nl-btn,
+  /* utilità: nasconde elementi solo in stampa */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* opzionale: se vuoi nascondere anche header/nav di layout */
   header,
   nav {
     display: none !important;
@@ -1100,3 +1104,4 @@
     margin: 0;
   }
 }
+
