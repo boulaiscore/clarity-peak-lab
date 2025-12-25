@@ -1,5 +1,4 @@
-// src/components/report/ReportDualProcess.tsx
-import React, { useMemo } from "react";
+import React from "react";
 
 function classify(score: number) {
   if (score >= 85) return "Elite";
@@ -9,50 +8,72 @@ function classify(score: number) {
 }
 
 export function ReportDualProcess({ profile, metrics }: any) {
-  const fastDelta = metrics.fast_thinking - metrics.baseline_fast_thinking;
-  const slowDelta = metrics.slow_thinking - metrics.baseline_slow_thinking;
-  const ratio = metrics.slow_thinking > 0 ? metrics.fast_thinking / metrics.slow_thinking : null;
-
-  const goals = (profile.training_goals ?? []).join(", ");
+  const fast = metrics.fast_thinking ?? 50;
+  const slow = metrics.slow_thinking ?? 50;
+  const baselineFast = metrics.baseline_fast_thinking ?? fast;
+  const baselineSlow = metrics.baseline_slow_thinking ?? slow;
+  const fastDelta = fast - baselineFast;
+  const slowDelta = slow - baselineSlow;
+  const total = fast + slow;
+  const fastPct = total > 0 ? (fast / total) * 100 : 50;
+  const slowPct = total > 0 ? (slow / total) * 100 : 50;
 
   return (
     <section className="report-page">
-      <h2 style={{ fontSize: 20, marginBottom: 10 }}>Dual-Process Architecture</h2>
+      <h2 className="report-section-title">Dual-Process Architecture</h2>
+      <p className="report-subtitle">System 1 (Fast) vs System 2 (Slow) cognitive integration</p>
 
-      <div className="avoid-break" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14 }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>System 1</div>
-          <div style={{ fontSize: 24, fontWeight: 700 }}>{Math.round(metrics.fast_thinking)}/100</div>
-          <div style={{ fontSize: 13 }}>
-            Baseline: {Math.round(metrics.baseline_fast_thinking)} · Delta: {fastDelta >= 0 ? "+" : ""}{Math.round(fastDelta)}
+      <div className="dual-process-section">
+        <div className="dual-process-card fast">
+          <div className="dual-process-header">
+            <span className="dual-process-system">System 1 · Fast</span>
+            <span className="dual-process-level">{classify(fast)}</span>
           </div>
-          <div style={{ marginTop: 8, fontSize: 13 }}>
-            Level: <strong>{classify(metrics.fast_thinking)}</strong>
+          <div className="dual-process-score-row">
+            <span className="dual-process-score">{Math.round(fast)}</span>
+            {fastDelta !== 0 && (
+              <span className={`dual-process-delta ${fastDelta >= 0 ? "positive" : "negative"}`}>
+                {fastDelta >= 0 ? "+" : ""}{Math.round(fastDelta)}
+              </span>
+            )}
+          </div>
+          <div className="dual-process-meta">Baseline: {Math.round(baselineFast)}</div>
+          <div className="dual-process-bar">
+            <div className="dual-process-bar-fill" style={{ width: `${fast}%` }} />
+          </div>
+        </div>
+
+        <div className="dual-process-card slow">
+          <div className="dual-process-header">
+            <span className="dual-process-system">System 2 · Slow</span>
+            <span className="dual-process-level">{classify(slow)}</span>
+          </div>
+          <div className="dual-process-score-row">
+            <span className="dual-process-score">{Math.round(slow)}</span>
+            {slowDelta !== 0 && (
+              <span className={`dual-process-delta ${slowDelta >= 0 ? "positive" : "negative"}`}>
+                {slowDelta >= 0 ? "+" : ""}{Math.round(slowDelta)}
+              </span>
+            )}
+          </div>
+          <div className="dual-process-meta">Baseline: {Math.round(baselineSlow)}</div>
+          <div className="dual-process-bar">
+            <div className="dual-process-bar-fill" style={{ width: `${slow}%` }} />
           </div>
         </div>
 
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14 }}>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>System 2</div>
-          <div style={{ fontSize: 24, fontWeight: 700 }}>{Math.round(metrics.slow_thinking)}/100</div>
-          <div style={{ fontSize: 13 }}>
-            Baseline: {Math.round(metrics.baseline_slow_thinking)} · Delta: {slowDelta >= 0 ? "+" : ""}{Math.round(slowDelta)}
-          </div>
-          <div style={{ marginTop: 8, fontSize: 13 }}>
-            Level: <strong>{classify(metrics.slow_thinking)}</strong>
+        <div className="integration-row">
+          <span className="integration-label">Balance</span>
+          <div className="integration-bar">
+            <div className="integration-fast" style={{ width: `${fastPct}%` }}>
+              {Math.round(fastPct)}%
+            </div>
+            <div className="integration-slow" style={{ width: `${slowPct}%` }}>
+              {Math.round(slowPct)}%
+            </div>
           </div>
         </div>
       </div>
-
-      <div style={{ marginTop: 14, fontSize: 13, opacity: 0.85 }}>
-        Integration balance (Fast:Slow): <strong>{ratio ? ratio.toFixed(2) : "N/A"}</strong>
-      </div>
-
-      <div style={{ marginTop: 10, fontSize: 13, opacity: 0.85 }}>
-        Training goals: <strong>{goals || "not set"}</strong>
-      </div>
-
-      {/* Se hai già il componente grafico FastSlowBrainMap, qui lo inserisci */}
-      {/* <FastSlowBrainMap fast={metrics.fast_thinking} slow={metrics.slow_thinking} /> */}
     </section>
   );
 }

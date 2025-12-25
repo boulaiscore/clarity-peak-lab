@@ -43,16 +43,16 @@ export function ReportTrainingAnalytics({ profile, metrics, aggregates }: Report
           <span className="training-stat-label">Total Sessions</span>
         </div>
         <div className="training-stat-card">
-          <span className="training-stat-value">{accuracy.toFixed(1)}%</span>
-          <span className="training-stat-label">Accuracy Rate</span>
+          <span className="training-stat-value">{accuracy.toFixed(0)}%</span>
+          <span className="training-stat-label">Accuracy</span>
         </div>
         <div className="training-stat-card">
           <span className="training-stat-value">{preferredDuration}</span>
-          <span className="training-stat-label">Preferred Duration</span>
+          <span className="training-stat-label">Preferred</span>
         </div>
         <div className="training-stat-card">
           <span className="training-stat-value">{profile.daily_time_commitment ?? "10min"}</span>
-          <span className="training-stat-label">Daily Commitment</span>
+          <span className="training-stat-label">Daily Goal</span>
         </div>
       </div>
 
@@ -67,13 +67,10 @@ export function ReportTrainingAnalytics({ profile, metrics, aggregates }: Report
             <div key={area.key} className="area-bar-row">
               <span className="area-bar-label">{area.name}</span>
               <div className="area-bar-container">
-                <div
-                  className="area-bar-fill"
-                  style={{ width: `${width}%`, backgroundColor: area.color }}
-                />
+                <div className="area-bar-fill" style={{ width: `${width}%`, backgroundColor: area.color }} />
               </div>
               <span className="area-bar-count">{count}</span>
-              <span className="area-bar-avg">{Math.round(avg)}% avg</span>
+              <span className="area-bar-avg">{Math.round(avg)}%</span>
             </div>
           );
         })}
@@ -81,13 +78,11 @@ export function ReportTrainingAnalytics({ profile, metrics, aggregates }: Report
 
       {aggregates.mostUsedExercises.length > 0 && (
         <>
-          <h3 className="report-subsection-title">Most Trained Exercises</h3>
-          <div className="exercises-list">
-            {aggregates.mostUsedExercises.slice(0, 5).map((ex, i) => (
-              <div key={ex.exerciseId} className="exercise-item">
-                <span className="exercise-rank">{i + 1}</span>
-                <span className="exercise-id">{ex.exerciseId}</span>
-                <span className="exercise-count">{ex.count}x</span>
+          <h3 className="report-subsection-title">Top Exercises</h3>
+          <div className="exercises-grid">
+            {aggregates.mostUsedExercises.slice(0, 6).map((ex) => (
+              <div key={ex.exerciseId} className="exercise-tag">
+                {ex.exerciseId}<span>×{ex.count}</span>
               </div>
             ))}
           </div>

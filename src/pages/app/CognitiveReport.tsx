@@ -31,15 +31,14 @@ export default function CognitiveReport() {
   if (error || !metrics || !profile || !aggregates) return <div className="p-6">Error: {error ?? "Missing data"}</div>;
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between gap-4 mb-4 print:hidden">
+    <div className="p-4 max-w-[220mm] mx-auto">
+      <div className="flex items-center justify-between gap-4 mb-3 print:hidden">
         <div>
-          <h1 className="text-xl font-semibold">Cognitive Intelligence Report</h1>
-          <div className="text-sm opacity-70">
-            Generated on {generatedAt.toLocaleDateString("en-GB")}
+          <h1 className="text-lg font-semibold">Cognitive Intelligence Report</h1>
+          <div className="text-xs opacity-70">
+            Generated {generatedAt.toLocaleDateString("en-GB")}
           </div>
         </div>
-
         <button className="nl-btn" onClick={handlePrint}>
           Download PDF
         </button>

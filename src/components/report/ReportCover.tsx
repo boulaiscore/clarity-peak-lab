@@ -1,42 +1,47 @@
-// src/components/report/ReportCover.tsx
 import React, { useMemo } from "react";
 
 function goalsBadge(goals: string[]) {
   const hasFast = goals?.includes("fast_thinking");
   const hasSlow = goals?.includes("slow_thinking");
-  if (hasFast && hasSlow) return "Balanced";
-  if (hasFast) return "Fast Thinker";
-  if (hasSlow) return "Deep Thinker";
-  return "Adaptive";
+  if (hasFast && hasSlow) return "⚖️ Balanced Thinker";
+  if (hasFast) return "⚡ Fast Thinker";
+  if (hasSlow) return "🧠 Deep Thinker";
+  return "🎯 Adaptive";
 }
 
 export function ReportCover({ profile, metrics, generatedAt }: any) {
   const badge = useMemo(() => goalsBadge(profile.training_goals ?? []), [profile]);
+  const sci = Math.round(metrics.cognitive_performance_score ?? 50);
+  const level = metrics.cognitive_level ?? 1;
+  const totalSessions = metrics.total_sessions ?? 0;
 
   return (
-    <section className="report-page">
-      <div className="avoid-break">
-        <div style={{ fontSize: 12, letterSpacing: 1, opacity: 0.7 }}>NEUROLOOP PRO</div>
-        <h1 style={{ fontSize: 34, margin: "10px 0 6px 0" }}>Cognitive Intelligence Report</h1>
-        <div style={{ fontSize: 14, opacity: 0.8 }}>
-          {profile.name ?? "User"} · Generated {generatedAt.toLocaleDateString("en-GB")}
+    <section className="report-page report-cover">
+      <div className="report-cover-header">
+        <div className="report-cover-logo">NeuroLoop Pro</div>
+        <div className="report-cover-date">{generatedAt.toLocaleDateString("en-GB")}</div>
+      </div>
+
+      <div className="report-cover-main">
+        <h1 className="report-cover-title">Cognitive<br />Intelligence Report</h1>
+        <p className="report-cover-user">{profile.name ?? "User"}</p>
+
+        <div className="report-cover-stats">
+          <div className="report-cover-stat">
+            <span className="report-cover-stat-value">{sci}</span>
+            <span className="report-cover-stat-label">SCI Score</span>
+          </div>
+          <div className="report-cover-stat">
+            <span className="report-cover-stat-value">{level}</span>
+            <span className="report-cover-stat-label">Level</span>
+          </div>
+          <div className="report-cover-stat">
+            <span className="report-cover-stat-value">{totalSessions}</span>
+            <span className="report-cover-stat-label">Sessions</span>
+          </div>
         </div>
 
-        <div style={{ marginTop: 18, display: "flex", gap: 10, alignItems: "center" }}>
-          <div style={{ padding: "8px 10px", border: "1px solid #e5e7eb", borderRadius: 999 }}>
-            Training Goal: <strong>{badge}</strong>
-          </div>
-          <div style={{ padding: "8px 10px", border: "1px solid #e5e7eb", borderRadius: 999 }}>
-            SCI: <strong>{Math.round(metrics.cognitive_performance_score)}</strong>/100
-          </div>
-          <div style={{ padding: "8px 10px", border: "1px solid #e5e7eb", borderRadius: 999 }}>
-            Level: <strong>{metrics.cognitive_level}</strong>
-          </div>
-        </div>
-
-        <div style={{ marginTop: 24, fontSize: 16, maxWidth: 520 }}>
-          Think faster. Decide better.
-        </div>
+        <div className="report-cover-badge">{badge}</div>
       </div>
     </section>
   );

@@ -14,19 +14,18 @@ interface ReportMetaCognitiveProps {
 
 export function ReportMetaCognitive({ metrics }: ReportMetaCognitiveProps) {
   const skills = [
-    { name: "Decision Quality", value: metrics.decision_quality ?? 50, key: "decision" },
-    { name: "Clarity Score", value: metrics.clarity_score ?? 50, key: "clarity" },
-    { name: "Bias Resistance", value: metrics.bias_resistance ?? 50, key: "bias" },
-    { name: "Philosophical Depth", value: metrics.philosophical_reasoning ?? 50, key: "philosophical" },
-    { name: "Spatial Reasoning", value: metrics.spatial_reasoning ?? 50, key: "spatial" },
-    { name: "Visual Processing", value: metrics.visual_processing ?? 50, key: "visual" },
-    { name: "Reaction Speed", value: metrics.reaction_speed ?? 50, key: "reaction" },
+    { name: "Decision Quality", value: metrics.decision_quality ?? 50 },
+    { name: "Clarity", value: metrics.clarity_score ?? 50 },
+    { name: "Bias Resistance", value: metrics.bias_resistance ?? 50 },
+    { name: "Philosophical", value: metrics.philosophical_reasoning ?? 50 },
+    { name: "Spatial", value: metrics.spatial_reasoning ?? 50 },
+    { name: "Visual", value: metrics.visual_processing ?? 50 },
+    { name: "Reaction", value: metrics.reaction_speed ?? 50 },
   ];
 
-  // Calculate radar chart points
-  const centerX = 150;
-  const centerY = 150;
-  const maxRadius = 120;
+  const centerX = 90;
+  const centerY = 90;
+  const maxRadius = 70;
   const angleStep = (2 * Math.PI) / skills.length;
 
   const points = skills.map((skill, i) => {
@@ -35,16 +34,10 @@ export function ReportMetaCognitive({ metrics }: ReportMetaCognitiveProps) {
     return {
       x: centerX + radius * Math.cos(angle),
       y: centerY + radius * Math.sin(angle),
-      labelX: centerX + (maxRadius + 25) * Math.cos(angle),
-      labelY: centerY + (maxRadius + 25) * Math.sin(angle),
-      name: skill.name,
-      value: skill.value,
     };
   });
 
   const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
-
-  // Grid circles
   const gridCircles = [25, 50, 75, 100];
 
   return (
@@ -52,9 +45,8 @@ export function ReportMetaCognitive({ metrics }: ReportMetaCognitiveProps) {
       <h2 className="report-section-title">Meta-Cognitive Metrics</h2>
       <p className="report-subtitle">Granular cognitive skill assessment</p>
 
-      <div className="metacog-container">
-        <svg viewBox="0 0 300 300" className="radar-chart">
-          {/* Grid circles */}
+      <div className="metacog-section">
+        <svg viewBox="0 0 180 180" className="metacog-radar">
           {gridCircles.map((pct) => (
             <circle
               key={pct}
@@ -62,38 +54,30 @@ export function ReportMetaCognitive({ metrics }: ReportMetaCognitiveProps) {
               cy={centerY}
               r={(pct / 100) * maxRadius}
               fill="none"
-              stroke="var(--report-grid)"
+              stroke="#e2e8f0"
               strokeWidth="1"
-              opacity="0.3"
             />
           ))}
-
-          {/* Axis lines */}
-          {points.map((p, i) => (
+          {skills.map((_, i) => (
             <line
               key={i}
               x1={centerX}
               y1={centerY}
               x2={centerX + maxRadius * Math.cos(i * angleStep - Math.PI / 2)}
               y2={centerY + maxRadius * Math.sin(i * angleStep - Math.PI / 2)}
-              stroke="var(--report-grid)"
+              stroke="#e2e8f0"
               strokeWidth="1"
-              opacity="0.3"
             />
           ))}
-
-          {/* Data polygon */}
-          <path d={pathD} fill="var(--report-accent)" fillOpacity="0.3" stroke="var(--report-accent)" strokeWidth="2" />
-
-          {/* Data points */}
+          <path d={pathD} fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" strokeWidth="2" />
           {points.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="4" fill="var(--report-accent)" />
+            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#3b82f6" />
           ))}
         </svg>
 
         <div className="metacog-list">
           {skills.map((skill) => (
-            <div key={skill.key} className="metacog-item">
+            <div key={skill.name} className="metacog-item">
               <span className="metacog-name">{skill.name}</span>
               <div className="metacog-bar-container">
                 <div className="metacog-bar" style={{ width: `${skill.value}%` }} />
