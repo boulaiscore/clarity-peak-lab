@@ -1,61 +1,98 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import heroVideo from "@/assets/hero-video.mp4";
 
 export function Hero() {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-radial from-primary/8 via-transparent to-transparent" />
-      <div className="absolute top-1/3 left-1/3 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[150px] animate-pulse-slow" />
-      <div
-        className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[120px] animate-pulse-slow"
-        style={{ animationDelay: "2s" }}
-      />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+      {/* Video Background */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          onLoadedData={() => setVideoLoaded(true)}
+          className={`w-full h-full object-cover transition-opacity duration-1000 ${
+            videoLoaded ? "opacity-40" : "opacity-0"
+          }`}
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
+        {/* Gradient overlays for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
+      </div>
 
-      {/* Subtle grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
+      {/* Subtle animated accent */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[200px] animate-pulse" />
 
+      {/* Content */}
       <div className="container relative z-10 px-6 py-24">
-        <div className="max-w-3xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/15 mb-10 animate-fade-in">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm font-medium text-primary/90 tracking-wide">Strategic Cognitive Performance</span>
-          </div>
-
-          {/* Main headline */}
-          <h1
-            className="text-3xl sm:text-5xl md:text-6xl lg:text-4xl font-semibold tracking-tight mb-8 animate-fade-in leading-[1.1]"
-            style={{ animationDelay: "0.1s" }}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="max-w-4xl mx-auto text-center"
+        >
+          {/* Elite Badge */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 mb-12 backdrop-blur-sm"
           >
-            Unlock elite reasoning.
-          </h1>
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-sm font-medium text-white/80 tracking-widest uppercase">
+              Cognitive Performance Platform
+            </span>
+          </motion.div>
+
+          {/* Main Headline - Bold, Premium */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.7 }}
+            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8 leading-[0.95] text-white"
+          >
+            Train Your Mind.
+            <br />
+            <span className="text-primary">Dominate Your Field.</span>
+          </motion.h1>
 
           {/* Subheadline */}
-          <p
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in leading-relaxed"
-            style={{ animationDelay: "0.2s" }}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.7 }}
+            className="text-lg sm:text-xl md:text-2xl text-white/60 max-w-2xl mx-auto mb-14 leading-relaxed font-light"
           >
-            In an age of AI automation and constant distraction, your strategic thinking is your competitive edge.
-            NeuroLoop builds elite reasoning and decision-making clarity.
-          </p>
+            The cognitive training system for executives, founders, and high performers 
+            who refuse to leave their mental edge to chance.
+          </motion.p>
 
-          {/* CTAs - Mobile optimized */}
-          <div
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in px-4 sm:px-0"
-            style={{ animationDelay: "0.3s" }}
+          {/* CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.7 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <Button asChild variant="hero" size="xl" className="w-full sm:w-auto min-h-[56px]">
+            <Button asChild size="xl" className="min-h-[60px] px-10 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground">
               <Link to="/auth">
-                Start Training
-                <ArrowRight className="w-5 h-5" />
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
             <Button 
-              variant="hero-outline" 
+              variant="outline" 
               size="xl" 
-              className="w-full sm:w-auto min-h-[56px]"
+              className="min-h-[60px] px-10 text-lg font-semibold bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/30"
               onClick={() => {
                 const element = document.getElementById('how-it-works');
                 if (element) {
@@ -63,29 +100,50 @@ export function Hero() {
                 }
               }}
             >
-              How It Works
+              <Play className="w-5 h-5 mr-2" />
+              See How It Works
             </Button>
-          </div>
+          </motion.div>
 
-          {/* Trust indicators */}
-          <div
-            className="mt-20 flex flex-col sm:flex-row flex-wrap justify-center gap-6 sm:gap-10 text-muted-foreground text-sm animate-fade-in"
-            style={{ animationDelay: "0.4s" }}
+          {/* Elite Stats/Social Proof */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+            className="mt-20 pt-10 border-t border-white/10"
           >
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              <span>Research-backed protocols</span>
+            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-bold text-white mb-1">2M+</p>
+                <p className="text-sm text-white/50 uppercase tracking-wider">Sessions</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-bold text-white mb-1">23%</p>
+                <p className="text-sm text-white/50 uppercase tracking-wider">Avg. Improvement</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-bold text-white mb-1">Elite</p>
+                <p className="text-sm text-white/50 uppercase tracking-wider">Level Protocol</p>
+              </div>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              <span>No tracking or wearables</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              <span>30 seconds to 7 minutes</span>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+
+          {/* Scroll indicator */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          >
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
+            >
+              <div className="w-1 h-2 rounded-full bg-white/50" />
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );
