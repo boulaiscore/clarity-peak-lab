@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { CognitiveTasksSection } from "@/components/dashboard/CognitiveInputs";
+import { CognitiveTasksSection, CognitiveTasksLegend } from "@/components/dashboard/CognitiveInputs";
 import { 
   Target, Brain, Lightbulb, Sparkles, Zap, ChevronRight, Lock, Crown, 
   Gamepad2, BookMarked, Headphones, BookOpen, FileText
@@ -261,14 +261,16 @@ export default function NeuroLab() {
             </div>
           </TabsContent>
 
-          {/* Cognitive Tasks Tab */}
           <TabsContent value="tasks" className="mt-0">
             <div className="space-y-6">
-              {/* Intro */}
-              <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">Passive training:</span> Curated content for deep cognitive development. Complete 1–2 per week for optimal integration.
-                </p>
+              {/* Intro + Legend */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30 flex-1">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">Passive training:</span> Curated content for deep cognitive development. Complete 1–2 per week for optimal integration.
+                  </p>
+                </div>
+                <CognitiveTasksLegend />
               </div>
 
               {/* Podcasts Section */}

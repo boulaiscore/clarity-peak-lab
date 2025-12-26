@@ -592,7 +592,7 @@ export function CognitiveTasksSection({ type, title, subtitle }: CognitiveTasksS
 }
 
 // Legend component
-function CognitiveTasksLegend() {
+export function CognitiveTasksLegend() {
   return (
     <Popover>
       <PopoverTrigger asChild>
