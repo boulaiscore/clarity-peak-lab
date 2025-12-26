@@ -131,14 +131,6 @@ export default function NeuroLab() {
   return (
     <AppShell>
       <div className="px-5 py-5 max-w-md mx-auto">
-        {/* Whoop-Style Header with Ring */}
-        <TrainHeader
-          trainingPlan={trainingPlan}
-          sessionsCompleted={sessionsCompleted}
-          sessionsRequired={sessionsRequired}
-          weeklyXPEarned={weeklyXPEarned}
-          weeklyXPTarget={weeklyXPTarget}
-        />
 
         {/* Current Session Banner - Shows what to do based on plan */}
         {!isWeekComplete && nextSession ? (

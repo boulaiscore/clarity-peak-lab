@@ -3,20 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { Play, Sparkles, Flame, Leaf, Target, Settings2 } from "lucide-react";
-import { TrainingPlanId, getTrainingPlan } from "@/lib/trainingPlans";
+import { Play, Sparkles } from "lucide-react";
+import { TrainingPlanId } from "@/lib/trainingPlans";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { LastSessionCard } from "@/components/app/LastSessionCard";
+import { TrainHeader } from "@/components/app/TrainHeader";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useLastSession } from "@/hooks/useLastSession";
 import { cn } from "@/lib/utils";
-
-const PLAN_ICONS: Record<TrainingPlanId, React.ElementType> = {
-  light: Leaf,
-  expert: Target,
-  superhuman: Flame,
-};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -24,8 +19,6 @@ const Home = () => {
 
   const firstName = user?.name?.split(" ")[0] || "there";
   const trainingPlan = (user?.trainingPlan || "light") as TrainingPlanId;
-  const plan = getTrainingPlan(trainingPlan);
-  const PlanIcon = PLAN_ICONS[trainingPlan];
 
   const {
     sessionsCompleted,
@@ -75,37 +68,15 @@ const Home = () => {
   return (
     <AppShell>
       <main className="flex flex-col h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-4 py-4 max-w-md mx-auto overflow-hidden">
-        {/* Minimal Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-4"
-        >
-          <div>
-            <h1 className="text-lg font-semibold">Hey {firstName}</h1>
-            <p className="text-xs text-muted-foreground">Ready to train?</p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate("/app/account")}
-              className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full",
-                "border border-border/50 bg-card/50",
-                "hover:bg-card/80 transition-colors"
-              )}
-            >
-              <PlanIcon className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[11px] font-medium">{plan.name}</span>
-            </button>
-            <button
-              onClick={() => navigate("/app/account")}
-              className="w-8 h-8 rounded-full bg-card/50 border border-border/50 flex items-center justify-center hover:bg-card/80 transition-colors"
-            >
-              <Settings2 className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-        </motion.div>
+        {/* Train Header with Ring */}
+        <TrainHeader
+          trainingPlan={trainingPlan}
+          sessionsCompleted={sessionsCompleted}
+          sessionsRequired={sessionsRequired}
+          weeklyXPEarned={weeklyXPEarned}
+          weeklyXPTarget={weeklyXPTarget}
+          greetingName={firstName}
+        />
 
         {/* Cognitive Age Sphere - centered and prominent */}
         <div className="flex-1 flex items-center justify-center min-h-0">
