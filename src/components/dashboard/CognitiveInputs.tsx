@@ -400,43 +400,17 @@ function ThinkingSystemIcon({ system }: { system: ThinkingSystem }) {
   );
 }
 
-// Prescription block for active items
+// Prescription block for active items - compact version
 function PrescriptionBlockDisplay({ prescription }: { prescription: PrescriptionBlock }) {
   return (
-    <div className="bg-primary/5 border border-primary/20 rounded-md p-3 space-y-2">
-      <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-primary/80">
-        <Target className="h-3 w-3" />
-        Training Protocol
+    <div className="flex items-center gap-4 text-[10px] text-muted-foreground bg-primary/5 rounded-md px-3 py-2">
+      <div className="flex items-center gap-1.5">
+        <Calendar className="h-3 w-3 text-primary/60" />
+        <span>{prescription.whenToUse}</span>
       </div>
-      <div className="grid grid-cols-2 gap-2 text-[11px]">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Calendar className="h-3 w-3" />
-            When
-          </div>
-          <p className="text-foreground/90">{prescription.whenToUse}</p>
-        </div>
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Target className="h-3 w-3" />
-            Purpose
-          </div>
-          <p className="text-foreground/90">{prescription.purpose}</p>
-        </div>
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Timer className="h-3 w-3" />
-            Duration
-          </div>
-          <p className="text-foreground/90">{prescription.duration}</p>
-        </div>
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <StopCircle className="h-3 w-3" />
-            Stop rule
-          </div>
-          <p className="text-foreground/90">{prescription.stopRule}</p>
-        </div>
+      <div className="flex items-center gap-1.5">
+        <StopCircle className="h-3 w-3 text-primary/60" />
+        <span>{prescription.stopRule}</span>
       </div>
     </div>
   );
@@ -670,8 +644,8 @@ function PrescriptionCard({
   );
 }
 
-// Alternative item card (non-active, available)
-function AlternativeCard({ 
+// Compact swipeable alternative card (IG-style)
+function SwipeableAlternativeCard({ 
   input, 
   isLogged, 
   onToggleLogged,
@@ -687,103 +661,60 @@ function AlternativeCard({
   const config = INPUT_TYPE_CONFIG[input.type];
   const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
   const Icon = config.icon;
-  const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className={`border border-border/20 bg-card/20 rounded-lg overflow-hidden transition-all opacity-70 hover:opacity-100 ${
-      isLogged ? 'opacity-50' : ''
-    }`}>
-      {/* Main row */}
-      <div className="flex items-center gap-3 p-2.5">
+    <a
+      href={input.primaryUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`flex-shrink-0 w-28 p-2.5 border border-border/20 bg-card/30 rounded-xl 
+        transition-all hover:bg-card/50 hover:border-border/40 active:scale-95
+        ${isLogged ? 'opacity-40' : 'opacity-80 hover:opacity-100'}`}
+    >
+      {/* Icon + log button */}
+      <div className="flex items-center justify-between mb-2">
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+          input.type === "podcast" ? "bg-primary/15" : 
+          input.type === "book" ? "bg-amber-500/15" : 
+          "bg-blue-500/15"
+        }`}>
+          <Icon className={`h-3.5 w-3.5 ${config.color}`} />
+        </div>
         <button 
-          onClick={onToggleLogged}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleLogged();
+          }}
           disabled={isToggling || !isLoggedIn}
           className="shrink-0 disabled:opacity-50"
           aria-label={isLogged ? "Remove log" : "Log exposure"}
-          title={isLogged ? "Exposure logged" : "Log exposure"}
         >
           {isToggling ? (
-            <div className="h-4 w-4 border-2 border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
+            <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
           ) : isLogged ? (
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary/60" />
           ) : (
-            <div className="h-4 w-4 border border-muted-foreground/30 rounded-full hover:border-muted-foreground/60 transition-colors" />
+            <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full" />
           )}
         </button>
-        
-        <Icon className={`h-3.5 w-3.5 shrink-0 ${config.color} opacity-60`} />
-        
-        <div className="flex-1 min-w-0">
-          <div className={`text-xs truncate ${isLogged ? 'line-through text-muted-foreground/60' : 'text-foreground/70'}`}>
-            {input.title}
-          </div>
-          {input.author && (
-            <div className="text-[9px] text-muted-foreground/40 truncate">{input.author}</div>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-1.5 shrink-0">
-          <div title={thinkingConfig.description} className="opacity-60">
-            <ThinkingSystemIcon system={input.thinkingSystem} />
-          </div>
-          <DifficultyIndicator level={input.difficulty} />
-          <button 
-            onClick={() => setExpanded(!expanded)}
-            className="p-0.5 hover:bg-muted/50 rounded transition-colors"
-          >
-            {expanded ? (
-              <ChevronUp className="h-3 w-3 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-3 w-3 text-muted-foreground" />
-            )}
-          </button>
-        </div>
       </div>
       
-      {/* Expanded details */}
-      {expanded && (
-        <div className="px-3 pb-2.5 pt-0 space-y-2 border-t border-border/10">
-          <div className="flex items-center gap-3 pt-2 text-[10px] text-muted-foreground/60">
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {input.duration}
-            </span>
-          </div>
-          <div className="flex items-start gap-2">
-            <Target className="h-3 w-3 text-primary/30 mt-0.5 shrink-0" />
-            <span className="text-[10px] text-muted-foreground/60">{input.cognitivePurpose}</span>
-          </div>
-          <div className="flex items-center gap-2 pt-1">
-            <a
-              href={input.primaryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center gap-1 text-[10px] opacity-70 hover:opacity-100 hover:underline ${
-                input.type === "podcast" 
-                  ? "text-emerald-600/70 dark:text-emerald-400/70" 
-                  : input.type === "book"
-                  ? "text-amber-600/70 dark:text-amber-400/70"
-                  : "text-blue-600/70 dark:text-blue-400/70"
-              }`}
-            >
-              <ExternalLink className="h-2.5 w-2.5" />
-              {input.type === "podcast" ? "Spotify" : "Read"}
-            </a>
-            {input.type === "podcast" && input.secondaryUrl && (
-              <a
-                href={input.secondaryUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-[10px] text-purple-600/70 dark:text-purple-400/70 opacity-70 hover:opacity-100 hover:underline"
-              >
-                <ExternalLink className="h-2.5 w-2.5" />
-                Apple
-              </a>
-            )}
-          </div>
+      {/* Title */}
+      <p className={`text-[10px] font-medium leading-tight line-clamp-2 mb-1.5 h-7 ${
+        isLogged ? 'text-muted-foreground/50' : 'text-foreground/80'
+      }`}>
+        {input.title}
+      </p>
+      
+      {/* Meta */}
+      <div className="flex items-center justify-between">
+        <div title={thinkingConfig.description} className="opacity-70">
+          <ThinkingSystemIcon system={input.thinkingSystem} />
         </div>
-      )}
-    </div>
+        <DifficultyIndicator level={input.difficulty} />
+      </div>
+    </a>
   );
 }
 
@@ -890,16 +821,16 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
         />
       )}
 
-      {/* Alternatives (collapsed by default) */}
+      {/* Alternatives - horizontal swipe carousel */}
       {alternatives.length > 0 && (
-        <details className="group">
-          <summary className="cursor-pointer text-[10px] text-muted-foreground/50 hover:text-muted-foreground py-1 list-none flex items-center gap-1">
-            <ChevronDown className="h-3 w-3 group-open:rotate-180 transition-transform" />
-            View alternatives ({alternatives.length})
-          </summary>
-          <div className="space-y-1.5 pt-2">
+        <div className="space-y-1.5">
+          <p className="text-[10px] text-muted-foreground/40">
+            Swipe for alternatives
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide"
+               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {alternatives.map((input) => (
-              <AlternativeCard 
+              <SwipeableAlternativeCard 
                 key={input.id} 
                 input={input} 
                 isLogged={loggedIds.includes(input.id)}
@@ -909,7 +840,7 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
               />
             ))}
           </div>
-        </details>
+        </div>
       )}
     </div>
   );
