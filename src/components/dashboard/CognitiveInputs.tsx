@@ -1230,64 +1230,51 @@ export function CognitiveLibrary() {
 
   return (
     <div className="space-y-6">
-      {/* Score Header - Normalized 0-100 */}
+      {/* XP Score Header */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-amber-500/10 border border-primary/20">
-        <div className="flex items-center justify-between mb-2">
+        {/* Total XP */}
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
-            <span className="text-sm font-medium">Overall Progress</span>
+            <span className="text-sm font-medium">Total XP</span>
           </div>
           <div className="text-right">
-            <span className="text-2xl font-bold text-primary">{stats.totalScore}</span>
-            <span className="text-sm text-muted-foreground">/100</span>
+            <span className="text-2xl font-bold text-primary">{stats.rawTotal}</span>
+            <span className="text-xs text-muted-foreground ml-1">XP</span>
           </div>
+        </div>
+        
+        {/* Progress info */}
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-3 px-1">
+          <span>{stats.completedCount} of {stats.totalItems} items</span>
+          <span>{stats.progressPercent}% complete</span>
         </div>
         
         {/* Progress bar */}
-        <div className="h-2 bg-muted/30 rounded-full mb-3 overflow-hidden">
+        <div className="h-2 bg-muted/30 rounded-full mb-4 overflow-hidden">
           <div 
             className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
-            style={{ width: `${stats.totalScore}%` }}
+            style={{ width: `${stats.progressPercent}%` }}
           />
         </div>
-        
-        <p className="text-[10px] text-muted-foreground text-center mb-3">
-          {stats.completedCount} of {stats.totalItems} items completed ({stats.progressPercent}%)
-        </p>
 
-        {/* S1 vs S2 breakdown - normalized */}
+        {/* S1 vs S2 XP breakdown */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-amber-400" />
-                <span className="text-[10px] font-medium text-amber-400">System 1</span>
-              </div>
-              <span className="text-sm font-semibold">{stats.s1Score}<span className="text-[9px] text-muted-foreground">/100</span></span>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Zap className="h-3.5 w-3.5 text-amber-400" />
+              <span className="text-[10px] font-medium text-amber-400">System 1</span>
             </div>
-            <div className="h-1.5 bg-amber-500/20 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-amber-400 rounded-full transition-all duration-500"
-                style={{ width: `${stats.s1Score}%` }}
-              />
-            </div>
-            <p className="text-[9px] text-muted-foreground mt-1">{stats.s1Items} items + {stats.dualItems} dual</p>
+            <p className="text-lg font-semibold">{stats.rawS1} <span className="text-xs font-normal text-muted-foreground">XP</span></p>
+            <p className="text-[9px] text-muted-foreground">{stats.s1Items} items{stats.dualItems > 0 && ` + ${stats.dualItems} dual`}</p>
           </div>
           <div className="p-2.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <Brain className="h-3.5 w-3.5 text-teal-400" />
-                <span className="text-[10px] font-medium text-teal-400">System 2</span>
-              </div>
-              <span className="text-sm font-semibold">{stats.s2Score}<span className="text-[9px] text-muted-foreground">/100</span></span>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Brain className="h-3.5 w-3.5 text-teal-400" />
+              <span className="text-[10px] font-medium text-teal-400">System 2</span>
             </div>
-            <div className="h-1.5 bg-teal-500/20 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-teal-400 rounded-full transition-all duration-500"
-                style={{ width: `${stats.s2Score}%` }}
-              />
-            </div>
-            <p className="text-[9px] text-muted-foreground mt-1">{stats.s2Items} items + {stats.dualItems} dual</p>
+            <p className="text-lg font-semibold">{stats.rawS2} <span className="text-xs font-normal text-muted-foreground">XP</span></p>
+            <p className="text-[9px] text-muted-foreground">{stats.s2Items} items{stats.dualItems > 0 && ` + ${stats.dualItems} dual`}</p>
           </div>
         </div>
       </div>
@@ -1373,7 +1360,7 @@ function LibrarySection({
 
       <div className="space-y-2">
         {items.map(item => {
-          const normalizedScore = getItemNormalizedScore(item);
+          const xpEarned = calculateItemRawPoints(item);
           return (
             <a
               key={item.id}
@@ -1388,7 +1375,7 @@ function LibrarySection({
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">{item.title}</p>
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">
-                      +{normalizedScore}/100
+                      +{xpEarned} XP
                     </span>
                   </div>
                   {item.author && (
