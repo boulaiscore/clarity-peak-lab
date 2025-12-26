@@ -264,14 +264,14 @@ export default function NeuroLab() {
 
           <TabsContent value="tasks" className="mt-0">
             {/* Sub-navigation for Tasks */}
-            <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-lg mb-4">
+            <div className="flex items-center gap-1 p-1.5 bg-card border border-border/50 rounded-xl mb-4">
               <button
                 onClick={() => setTasksSubTab("active")}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-medium transition-all",
                   tasksSubTab === "active" 
-                    ? "bg-background shadow-sm text-foreground" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
                 <BookMarked className="w-3.5 h-3.5" />
@@ -280,10 +280,10 @@ export default function NeuroLab() {
               <button
                 onClick={() => setTasksSubTab("library")}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-medium transition-all",
                   tasksSubTab === "library" 
-                    ? "bg-background shadow-sm text-foreground" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
                 <Library className="w-3.5 h-3.5" />
