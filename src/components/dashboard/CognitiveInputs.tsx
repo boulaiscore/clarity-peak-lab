@@ -529,17 +529,18 @@ function PrescriptionCard({
 
   return (
     <>
-      <div className={`border rounded-lg overflow-hidden transition-all ${
+      <div className={`border rounded-xl overflow-hidden transition-all ${
         isLogged 
           ? "border-primary/30 bg-primary/5" 
-          : "border-primary/40 bg-gradient-to-r from-primary/5 to-transparent"
+          : "border-primary/40 bg-gradient-to-br from-primary/5 via-card/50 to-transparent"
       }`}>
-        {/* Main row */}
-        <div className="flex items-center gap-3 p-3">
+        {/* Header row - compact */}
+        <div className="flex items-start gap-3 p-3">
+          {/* Checkbox */}
           <button 
             onClick={handleToggle}
             disabled={isToggling || !isLoggedIn}
-            className="shrink-0 disabled:opacity-50 group"
+            className="shrink-0 disabled:opacity-50 group mt-1"
             aria-label={isLogged ? "Mark as incomplete" : "Mark as completed"}
             title={isLogged ? "Completed" : "Mark as completed"}
           >
@@ -554,55 +555,61 @@ function PrescriptionCard({
             )}
           </button>
           
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+          {/* Icon */}
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
             input.type === "podcast" ? "bg-primary/20" : 
             input.type === "book" ? "bg-amber-500/20" : 
             "bg-blue-500/20"
           }`}>
-            <Icon className={`h-4 w-4 ${config.color}`} />
+            <Icon className={`h-4.5 w-4.5 ${config.color}`} />
           </div>
           
+          {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className={`text-sm font-medium ${isLogged ? 'text-muted-foreground' : 'text-foreground'}`}>
-                {input.title}
-              </span>
+            {/* Title line */}
+            <p className={`text-sm font-medium leading-snug line-clamp-2 ${isLogged ? 'text-muted-foreground' : 'text-foreground'}`}>
+              {input.title}
+            </p>
+            
+            {/* Author */}
+            {input.author && (
+              <p className="text-[11px] text-muted-foreground/60 mt-0.5">{input.author}</p>
+            )}
+            
+            {/* Badges row */}
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               {isLogged ? (
-                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400">
+                <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400">
                   Completed
                 </Badge>
               ) : (
                 <>
-                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
+                  <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-primary/10 border-primary/30 text-primary">
                     Active
                   </Badge>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500 font-semibold">
                     +{calculateItemRawPoints(input)} XP
                   </span>
                 </>
               )}
+              <div className="flex items-center gap-1.5 ml-auto">
+                <ThinkingSystemIcon system={input.thinkingSystem} />
+                <DifficultyIndicator level={input.difficulty} />
+              </div>
             </div>
-            {input.author && (
-              <div className="text-[10px] text-muted-foreground/60">{input.author}</div>
-            )}
           </div>
           
-          <div className="flex items-center gap-2 shrink-0">
-            <div title={thinkingConfig.description}>
-              <ThinkingSystemIcon system={input.thinkingSystem} />
-            </div>
-            <DifficultyIndicator level={input.difficulty} />
-            <button 
-              onClick={() => setExpanded(!expanded)}
-              className="p-1 hover:bg-muted/50 rounded transition-colors"
-            >
-              {expanded ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-          </div>
+          {/* Expand button */}
+          <button 
+            onClick={() => setExpanded(!expanded)}
+            className="p-1.5 hover:bg-muted/50 rounded-lg transition-colors shrink-0 mt-0.5"
+          >
+            {expanded ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </button>
         </div>
         
         {/* Expanded details with prescription */}
