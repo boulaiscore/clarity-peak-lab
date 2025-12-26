@@ -828,8 +828,6 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string>(ACTIVE_PRESCRIPTIONS[type]);
 
-  console.log(`[CognitiveTasksSection] type=${type}, user=${user?.id}, isLoading=${isLoading}, loggedIds=`, loggedIds);
-
   const toggleMutation = useMutation({
     mutationFn: async ({ inputId, isCurrentlyLogged }: { inputId: string; isCurrentlyLogged: boolean }) => {
       if (!user?.id) throw new Error("Not authenticated");
@@ -1094,41 +1092,99 @@ export function CognitiveInputs() {
   );
 }
 
-// Calculate points for a completed item based on difficulty and thinking system
-function calculateItemPoints(item: CognitiveInput): number {
+// Calculate raw points for a completed item based on difficulty
+function calculateItemRawPoints(item: CognitiveInput): number {
   // Base points by difficulty: 1=10, 2=20, 3=35, 4=50, 5=75
   const difficultyPoints: Record<number, number> = { 1: 10, 2: 20, 3: 35, 4: 50, 5: 75 };
   return difficultyPoints[item.difficulty] || 10;
 }
 
-// Calculate total stats from completed items
+// Calculate max possible points for an item (difficulty 5 = 75)
+const MAX_ITEM_POINTS = 75;
+
+// Get total max points for all available items
+function getTotalMaxPoints(): { total: number; s1Max: number; s2Max: number } {
+  let total = 0;
+  let s1Max = 0;
+  let s2Max = 0;
+  
+  COGNITIVE_INPUTS.forEach(item => {
+    const maxPoints = calculateItemRawPoints(item);
+    total += maxPoints;
+    
+    if (item.thinkingSystem === "S1") {
+      s1Max += maxPoints;
+    } else if (item.thinkingSystem === "S2") {
+      s2Max += maxPoints;
+    } else {
+      // S1+S2 contributes to both
+      s1Max += Math.floor(maxPoints / 2);
+      s2Max += Math.floor(maxPoints / 2);
+    }
+  });
+  
+  return { total, s1Max, s2Max };
+}
+
+// Calculate normalized stats (0-100 scale) from completed items
 function calculateLibraryStats(items: CognitiveInput[]) {
-  let totalPoints = 0;
-  let s1Points = 0;
-  let s2Points = 0;
+  let rawTotal = 0;
+  let rawS1 = 0;
+  let rawS2 = 0;
   let s1Items = 0;
   let s2Items = 0;
   let dualItems = 0;
 
   items.forEach(item => {
-    const points = calculateItemPoints(item);
-    totalPoints += points;
+    const points = calculateItemRawPoints(item);
+    rawTotal += points;
 
     if (item.thinkingSystem === "S1") {
-      s1Points += points;
+      rawS1 += points;
       s1Items++;
     } else if (item.thinkingSystem === "S2") {
-      s2Points += points;
+      rawS2 += points;
       s2Items++;
     } else {
       // S1+S2 contributes to both
-      s1Points += Math.floor(points / 2);
-      s2Points += Math.floor(points / 2);
+      rawS1 += Math.floor(points / 2);
+      rawS2 += Math.floor(points / 2);
       dualItems++;
     }
   });
 
-  return { totalPoints, s1Points, s2Points, s1Items, s2Items, dualItems };
+  const maxPoints = getTotalMaxPoints();
+  
+  // Normalize to 0-100 scale
+  const totalScore = maxPoints.total > 0 ? Math.round((rawTotal / maxPoints.total) * 100) : 0;
+  const s1Score = maxPoints.s1Max > 0 ? Math.round((rawS1 / maxPoints.s1Max) * 100) : 0;
+  const s2Score = maxPoints.s2Max > 0 ? Math.round((rawS2 / maxPoints.s2Max) * 100) : 0;
+
+  // Progress percentage (items completed)
+  const totalItems = COGNITIVE_INPUTS.length;
+  const completedCount = items.length;
+  const progressPercent = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
+
+  return { 
+    totalScore, 
+    s1Score, 
+    s2Score, 
+    s1Items, 
+    s2Items, 
+    dualItems, 
+    completedCount,
+    totalItems,
+    progressPercent,
+    rawTotal,
+    rawS1,
+    rawS2
+  };
+}
+
+// Get normalized score for a single item (0-100 based on difficulty)
+function getItemNormalizedScore(item: CognitiveInput): number {
+  const raw = calculateItemRawPoints(item);
+  return Math.round((raw / MAX_ITEM_POINTS) * 100);
 }
 
 // Library component - shows all completed items
@@ -1174,33 +1230,64 @@ export function CognitiveLibrary() {
 
   return (
     <div className="space-y-6">
-      {/* Score Header */}
+      {/* Score Header - Normalized 0-100 */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-amber-500/10 border border-primary/20">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
-            <span className="text-sm font-medium">Total Score</span>
+            <span className="text-sm font-medium">Overall Progress</span>
           </div>
-          <span className="text-2xl font-bold text-primary">{stats.totalPoints}</span>
+          <div className="text-right">
+            <span className="text-2xl font-bold text-primary">{stats.totalScore}</span>
+            <span className="text-sm text-muted-foreground">/100</span>
+          </div>
         </div>
+        
+        {/* Progress bar */}
+        <div className="h-2 bg-muted/30 rounded-full mb-3 overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
+            style={{ width: `${stats.totalScore}%` }}
+          />
+        </div>
+        
+        <p className="text-[10px] text-muted-foreground text-center mb-3">
+          {stats.completedCount} of {stats.totalItems} items completed ({stats.progressPercent}%)
+        </p>
 
-        {/* S1 vs S2 breakdown */}
+        {/* S1 vs S2 breakdown - normalized */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              <span className="text-[10px] font-medium text-amber-400">System 1</span>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                <span className="text-[10px] font-medium text-amber-400">System 1</span>
+              </div>
+              <span className="text-sm font-semibold">{stats.s1Score}<span className="text-[9px] text-muted-foreground">/100</span></span>
             </div>
-            <p className="text-lg font-semibold">{stats.s1Points}</p>
-            <p className="text-[9px] text-muted-foreground">{stats.s1Items} items + {stats.dualItems} dual</p>
+            <div className="h-1.5 bg-amber-500/20 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                style={{ width: `${stats.s1Score}%` }}
+              />
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1">{stats.s1Items} items + {stats.dualItems} dual</p>
           </div>
           <div className="p-2.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Brain className="h-3.5 w-3.5 text-teal-400" />
-              <span className="text-[10px] font-medium text-teal-400">System 2</span>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <Brain className="h-3.5 w-3.5 text-teal-400" />
+                <span className="text-[10px] font-medium text-teal-400">System 2</span>
+              </div>
+              <span className="text-sm font-semibold">{stats.s2Score}<span className="text-[9px] text-muted-foreground">/100</span></span>
             </div>
-            <p className="text-lg font-semibold">{stats.s2Points}</p>
-            <p className="text-[9px] text-muted-foreground">{stats.s2Items} items + {stats.dualItems} dual</p>
+            <div className="h-1.5 bg-teal-500/20 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-teal-400 rounded-full transition-all duration-500"
+                style={{ width: `${stats.s2Score}%` }}
+              />
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1">{stats.s2Items} items + {stats.dualItems} dual</p>
           </div>
         </div>
       </div>
@@ -1286,7 +1373,7 @@ function LibrarySection({
 
       <div className="space-y-2">
         {items.map(item => {
-          const points = calculateItemPoints(item);
+          const normalizedScore = getItemNormalizedScore(item);
           return (
             <a
               key={item.id}
@@ -1301,7 +1388,7 @@ function LibrarySection({
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">{item.title}</p>
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">
-                      +{points} pts
+                      +{normalizedScore}/100
                     </span>
                   </div>
                   {item.author && (

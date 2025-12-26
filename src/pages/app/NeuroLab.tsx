@@ -28,8 +28,6 @@ export default function NeuroLab() {
   const { user } = useAuth();
   const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
   const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
-
-  console.log("[NeuroLab] Render - user:", user?.id, "isPremium:", isPremium, "isDailyCompleted:", isDailyCompleted);
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");
