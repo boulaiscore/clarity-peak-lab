@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { XP_VALUES } from "@/lib/trainingPlans";
 import { useState } from "react";
+import { ExercisePickerSheet } from "./ExercisePickerSheet";
+import { CognitiveExercise } from "@/lib/exercises";
 
 interface GamesLibraryProps {
   weeklyXPEarned: number;
@@ -30,21 +32,25 @@ const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> 
 // Define game types within each area
 const GAME_TYPES = {
   focus: [
-    { id: "focus-fast", name: "Fast Attention", mode: "fast", description: "Visual search & reaction speed" },
-    { id: "focus-slow", name: "Deep Focus", mode: "slow", description: "Sustained attention & pattern extraction" },
+    { id: "focus-fast", name: "Fast Attention", mode: "fast" as const, description: "Visual search & reaction speed" },
+    { id: "focus-slow", name: "Deep Focus", mode: "slow" as const, description: "Sustained attention & pattern extraction" },
   ],
   reasoning: [
-    { id: "reasoning-fast", name: "Quick Logic", mode: "fast", description: "Rapid pattern recognition" },
-    { id: "reasoning-slow", name: "Critical Analysis", mode: "slow", description: "Deep reasoning & bias detection" },
+    { id: "reasoning-fast", name: "Quick Logic", mode: "fast" as const, description: "Rapid pattern recognition" },
+    { id: "reasoning-slow", name: "Critical Analysis", mode: "slow" as const, description: "Deep reasoning & bias detection" },
   ],
   creativity: [
-    { id: "creativity-fast", name: "Flash Association", mode: "fast", description: "Rapid divergent thinking" },
-    { id: "creativity-slow", name: "Concept Forge", mode: "slow", description: "Novel concept generation" },
+    { id: "creativity-fast", name: "Flash Association", mode: "fast" as const, description: "Rapid divergent thinking" },
+    { id: "creativity-slow", name: "Concept Forge", mode: "slow" as const, description: "Novel concept generation" },
   ],
 } as const;
 
 export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: GamesLibraryProps) {
+  const navigate = useNavigate();
   const [selectedArea, setSelectedArea] = useState<NeuroLabArea | "all">("all");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
+  const [pickerMode, setPickerMode] = useState<"fast" | "slow">("fast");
   
   const xpProgress = Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100);
   const xpRemaining = Math.max(0, weeklyXPTarget - weeklyXPEarned);
@@ -53,6 +59,18 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
   const filteredAreas = selectedArea === "all" 
     ? NEURO_LAB_AREAS 
     : NEURO_LAB_AREAS.filter(a => a.id === selectedArea);
+
+  const handleGameTypeClick = (areaId: NeuroLabArea, mode: "fast" | "slow") => {
+    setPickerArea(areaId);
+    setPickerMode(mode);
+    setPickerOpen(true);
+  };
+
+  const handleStartExercise = (exercise: CognitiveExercise) => {
+    setPickerOpen(false);
+    // Navigate to session runner with specific exercise
+    navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
+  };
 
   return (
     <div className="space-y-5">
@@ -146,7 +164,7 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => onStartGame(area.id)}
+                    onClick={() => handleGameTypeClick(area.id, game.mode)}
                     className={cn(
                       "w-full p-3 rounded-xl border transition-all duration-200 text-left",
                       "bg-card/50 hover:bg-card/80",
@@ -191,7 +209,7 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
                           <span className="text-[10px] font-semibold text-amber-400">+{XP_VALUES.gameComplete}</span>
                         </div>
                         <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Play className="w-3.5 h-3.5 text-primary fill-current" />
+                          <ChevronRight className="w-4 h-4 text-primary" />
                         </div>
                       </div>
                     </div>
@@ -202,6 +220,15 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
           );
         })}
       </div>
+
+      {/* Exercise Picker Sheet */}
+      <ExercisePickerSheet
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        area={pickerArea}
+        thinkingMode={pickerMode}
+        onStartExercise={handleStartExercise}
+      />
     </div>
   );
 }
