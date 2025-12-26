@@ -1,12 +1,24 @@
 import { useState } from "react";
-import { Headphones, Clock, Target, Zap, ExternalLink, CheckCircle2, Circle, Loader2, BookOpen, FileText, ChevronDown, ChevronUp, Brain, Info } from "lucide-react";
+import { 
+  Headphones, Clock, Target, ExternalLink, 
+  BookOpen, FileText, ChevronDown, ChevronUp, Brain, Info, 
+  Zap, CheckCircle2, Timer, StopCircle, Calendar
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
+
+interface PrescriptionBlock {
+  whenToUse: string;
+  purpose: string;
+  duration: string;
+  stopRule: string;
+}
 
 interface CognitiveInput {
   id: string;
@@ -20,12 +32,13 @@ interface CognitiveInput {
   secondaryUrl?: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
   thinkingSystem: ThinkingSystem;
+  prescription?: PrescriptionBlock;
 }
 
 const INPUT_TYPE_CONFIG: Record<InputType, { label: string; icon: typeof Headphones; color: string }> = {
   podcast: { label: "Podcast", icon: Headphones, color: "text-primary/70" },
   book: { label: "Book", icon: BookOpen, color: "text-amber-500/70" },
-  article: { label: "Article", icon: FileText, color: "text-blue-500/70" },
+  article: { label: "Reading", icon: FileText, color: "text-blue-500/70" },
 };
 
 const THINKING_SYSTEM_CONFIG: Record<ThinkingSystem, { label: string; description: string }> = {
@@ -43,6 +56,13 @@ const THINKING_SYSTEM_CONFIG: Record<ThinkingSystem, { label: string; descriptio
   },
 };
 
+// Default active prescriptions for each category
+const ACTIVE_PRESCRIPTIONS: Record<InputType, string> = {
+  podcast: "in-our-time",
+  book: "apology-plato",
+  article: "ones-who-walk-away-from-omelas",
+};
+
 const COGNITIVE_INPUTS: CognitiveInput[] = [
   // PODCASTS
   {
@@ -51,12 +71,18 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     title: "In Our Time",
     author: "BBC Radio 4",
     duration: "35–55 min",
-    cognitivePurpose: "Rapid conceptualization, distinguishing claims from evidence",
+    cognitivePurpose: "Conceptual depth + evidence tracking",
     reflectionPrompt: "What's the main thesis? What evidence supports it?",
     primaryUrl: "https://open.spotify.com/show/17YfG23eMbfLBaDPqucgzZ",
     secondaryUrl: "https://podcasts.apple.com/us/podcast/in-our-time/id73330895",
     difficulty: 3,
     thinkingSystem: "S2",
+    prescription: {
+      whenToUse: "Before Slow-Reasoning sessions or on Rest Days",
+      purpose: "Conceptual depth + evidence tracking",
+      duration: "25–45 min",
+      stopRule: "Stop after 1 episode; answer 1 reflection prompt",
+    },
   },
   {
     id: "partially-examined-life",
@@ -143,11 +169,17 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     title: "Apology",
     author: "Plato",
     duration: "1–2 hrs",
-    cognitivePurpose: "Argumentation under pressure",
+    cognitivePurpose: "Argument reconstruction + steelmanning",
     reflectionPrompt: "Which premise is most vulnerable?",
     primaryUrl: "https://www.gutenberg.org/ebooks/1656",
     difficulty: 3,
     thinkingSystem: "S2",
+    prescription: {
+      whenToUse: "Evening consolidation / post-training",
+      purpose: "Argument reconstruction + steelmanning",
+      duration: "15–25 min",
+      stopRule: "Stop after 5 pages; write 3-sentence summary",
+    },
   },
   {
     id: "meditations-aurelius",
@@ -300,17 +332,23 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     title: "The Ones Who Walk Away from Omelas",
     author: "Ursula K. Le Guin",
     duration: "10–15 min",
-    cognitivePurpose: "Unresolvable moral dilemmas",
+    cognitivePurpose: "Moral trade-offs + principle clarity",
     reflectionPrompt: "What cost am I willing to accept?",
     primaryUrl: "https://shsdavisapes.pbworks.com/f/Omelas.pdf",
     difficulty: 2,
     thinkingSystem: "S1+S2",
+    prescription: {
+      whenToUse: "After high-intensity Fast Thinking days",
+      purpose: "Moral trade-offs + principle clarity",
+      duration: "10–15 min",
+      stopRule: "Stop after finishing; answer 2 questions",
+    },
   },
 ];
 
-function useListenedPodcasts(userId: string | undefined) {
+function useLoggedExposures(userId: string | undefined) {
   return useQuery({
-    queryKey: ["listened-podcasts", userId],
+    queryKey: ["logged-exposures", userId],
     queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
@@ -327,7 +365,7 @@ function useListenedPodcasts(userId: string | undefined) {
 // Difficulty indicator component
 function DifficultyIndicator({ level }: { level: 1 | 2 | 3 | 4 | 5 }) {
   return (
-    <div className="flex items-center gap-0.5" title={`Difficulty: ${level}/5`}>
+    <div className="flex items-center gap-0.5" title={`Cognitive load: ${level}/5`}>
       {[1, 2, 3, 4, 5].map((i) => (
         <div
           key={i}
@@ -354,7 +392,6 @@ function ThinkingSystemIcon({ system }: { system: ThinkingSystem }) {
   if (system === "S2") {
     return <Brain className="h-3.5 w-3.5 text-teal-400" />;
   }
-  // S1+S2
   return (
     <div className="flex items-center -space-x-1">
       <Zap className="h-3 w-3 text-amber-400" />
@@ -363,63 +400,180 @@ function ThinkingSystemIcon({ system }: { system: ThinkingSystem }) {
   );
 }
 
-// Compact task card for the weekly view
-function TaskCard({ 
+// Prescription block for active items
+function PrescriptionBlockDisplay({ prescription }: { prescription: PrescriptionBlock }) {
+  return (
+    <div className="bg-primary/5 border border-primary/20 rounded-md p-3 space-y-2">
+      <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-primary/80">
+        <Target className="h-3 w-3" />
+        Training Protocol
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-[11px]">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            When
+          </div>
+          <p className="text-foreground/90">{prescription.whenToUse}</p>
+        </div>
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Target className="h-3 w-3" />
+            Purpose
+          </div>
+          <p className="text-foreground/90">{prescription.purpose}</p>
+        </div>
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Timer className="h-3 w-3" />
+            Duration
+          </div>
+          <p className="text-foreground/90">{prescription.duration}</p>
+        </div>
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <StopCircle className="h-3 w-3" />
+            Stop rule
+          </div>
+          <p className="text-foreground/90">{prescription.stopRule}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Reflection prompt after logging exposure
+function ReflectionPrompt({ 
+  onRespond, 
+  onDismiss 
+}: { 
+  onRespond: (response: "yes" | "no" | "not_sure") => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="bg-card/50 border border-border/30 rounded-md p-3 space-y-2 mt-2">
+      <p className="text-xs text-foreground/80">
+        Did this input change how you approached today's training?
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onRespond("yes")}
+          className="px-3 py-1 text-[10px] bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors"
+        >
+          Yes
+        </button>
+        <button
+          onClick={() => onRespond("no")}
+          className="px-3 py-1 text-[10px] bg-muted/50 hover:bg-muted text-muted-foreground rounded-md transition-colors"
+        >
+          No
+        </button>
+        <button
+          onClick={() => onRespond("not_sure")}
+          className="px-3 py-1 text-[10px] bg-muted/50 hover:bg-muted text-muted-foreground rounded-md transition-colors"
+        >
+          Not sure
+        </button>
+        <button
+          onClick={onDismiss}
+          className="ml-auto text-[10px] text-muted-foreground/50 hover:text-muted-foreground"
+        >
+          Skip
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Prescription card (active item)
+function PrescriptionCard({ 
   input, 
-  isListened, 
-  onToggleListened,
+  isLogged, 
+  onToggleLogged,
   isToggling,
   isLoggedIn
 }: { 
   input: CognitiveInput; 
-  isListened: boolean;
-  onToggleListened: () => void;
+  isLogged: boolean;
+  onToggleLogged: () => void;
   isToggling: boolean;
   isLoggedIn: boolean;
 }) {
   const config = INPUT_TYPE_CONFIG[input.type];
   const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
   const Icon = config.icon;
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Active items default to expanded
+  const [showReflection, setShowReflection] = useState(false);
+  const [justLogged, setJustLogged] = useState(false);
+
+  const handleToggle = () => {
+    const wasNotLogged = !isLogged;
+    onToggleLogged();
+    if (wasNotLogged) {
+      setJustLogged(true);
+      setShowReflection(true);
+    }
+  };
+
+  const handleReflectionResponse = (response: "yes" | "no" | "not_sure") => {
+    // Store response for future personalization (could be expanded)
+    console.log("Reflection response:", response);
+    setShowReflection(false);
+  };
 
   return (
-    <div className={`border border-border/30 bg-card/30 rounded-lg overflow-hidden transition-all ${isListened ? 'opacity-50' : ''}`}>
+    <div className={`border rounded-lg overflow-hidden transition-all ${
+      isLogged 
+        ? "border-primary/30 bg-primary/5" 
+        : "border-primary/40 bg-gradient-to-r from-primary/5 to-transparent"
+    }`}>
       {/* Main row */}
       <div className="flex items-center gap-3 p-3">
         <button 
-          onClick={onToggleListened}
+          onClick={handleToggle}
           disabled={isToggling || !isLoggedIn}
-          className="shrink-0 disabled:opacity-50"
-          aria-label={isListened ? "Mark as not completed" : "Mark as completed"}
+          className="shrink-0 disabled:opacity-50 group"
+          aria-label={isLogged ? "Mark as not logged" : "Log exposure"}
+          title={isLogged ? "Exposure logged" : "Log exposure"}
         >
           {isToggling ? (
-            <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
-          ) : isListened ? (
+            <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          ) : isLogged ? (
             <CheckCircle2 className="h-5 w-5 text-primary" />
           ) : (
-            <Circle className="h-5 w-5 text-muted-foreground hover:text-primary/70 transition-colors" />
+            <div className="h-5 w-5 border-2 border-primary/50 rounded-full group-hover:border-primary transition-colors flex items-center justify-center">
+              <div className="h-2 w-2 rounded-full bg-primary/0 group-hover:bg-primary/50 transition-colors" />
+            </div>
           )}
         </button>
         
-        <Icon className={`h-4 w-4 shrink-0 ${config.color}`} />
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+          input.type === "podcast" ? "bg-primary/20" : 
+          input.type === "book" ? "bg-amber-500/20" : 
+          "bg-blue-500/20"
+        }`}>
+          <Icon className={`h-4 w-4 ${config.color}`} />
+        </div>
         
         <div className="flex-1 min-w-0">
-          <div className={`text-sm font-medium truncate ${isListened ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-            {input.title}
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium ${isLogged ? 'text-muted-foreground' : 'text-foreground'}`}>
+              {input.title}
+            </span>
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
+              Active
+            </Badge>
           </div>
           {input.author && (
-            <div className="text-[10px] text-muted-foreground/60 truncate">{input.author}</div>
+            <div className="text-[10px] text-muted-foreground/60">{input.author}</div>
           )}
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-          {/* Thinking System Icon */}
           <div title={thinkingConfig.description}>
             <ThinkingSystemIcon system={input.thinkingSystem} />
           </div>
-          {/* Difficulty */}
           <DifficultyIndicator level={input.difficulty} />
-          {/* Expand button */}
           <button 
             onClick={() => setExpanded(!expanded)}
             className="p-1 hover:bg-muted/50 rounded transition-colors"
@@ -433,9 +587,9 @@ function TaskCard({
         </div>
       </div>
       
-      {/* Expanded details */}
+      {/* Expanded details with prescription */}
       {expanded && (
-        <div className="px-3 pb-3 pt-0 space-y-2 border-t border-border/20 mt-0">
+        <div className="px-3 pb-3 pt-0 space-y-3 border-t border-border/20 mt-0">
           {/* Meta row */}
           <div className="flex items-center gap-3 pt-2 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1">
@@ -448,40 +602,181 @@ function TaskCard({
             </span>
           </div>
           
-          <div className="flex items-start gap-2">
-            <Target className="h-3 w-3 text-primary/50 mt-0.5 shrink-0" />
-            <span className="text-xs text-muted-foreground">{input.cognitivePurpose}</span>
-          </div>
-          <div className="flex items-start gap-2">
+          {/* Prescription block */}
+          {input.prescription && (
+            <PrescriptionBlockDisplay prescription={input.prescription} />
+          )}
+
+          {/* Reflection prompt */}
+          <div className="flex items-start gap-2 bg-muted/20 rounded-md p-2">
             <Zap className="h-3 w-3 text-amber-500/70 mt-0.5 shrink-0" />
             <span className="text-[11px] text-amber-600/80 dark:text-amber-400/80 italic">
               "{input.reflectionPrompt}"
             </span>
           </div>
+
+          {/* Platform links */}
           <div className="flex items-center gap-3 pt-1">
+            {input.type === "podcast" ? (
+              <>
+                <a
+                  href={input.primaryUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Open in Spotify
+                </a>
+                {input.secondaryUrl && (
+                  <a
+                    href={input.secondaryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Open in Apple Podcasts
+                  </a>
+                )}
+              </>
+            ) : (
+              <a
+                href={input.primaryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-1.5 text-xs hover:underline ${
+                  input.type === "book"
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-blue-600 dark:text-blue-400"
+                }`}
+              >
+                <ExternalLink className="h-3 w-3" />
+                Read
+              </a>
+            )}
+          </div>
+
+          {/* Reflection prompt after logging */}
+          {showReflection && justLogged && (
+            <ReflectionPrompt 
+              onRespond={handleReflectionResponse}
+              onDismiss={() => setShowReflection(false)}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Alternative item card (non-active, available)
+function AlternativeCard({ 
+  input, 
+  isLogged, 
+  onToggleLogged,
+  isToggling,
+  isLoggedIn
+}: { 
+  input: CognitiveInput; 
+  isLogged: boolean;
+  onToggleLogged: () => void;
+  isToggling: boolean;
+  isLoggedIn: boolean;
+}) {
+  const config = INPUT_TYPE_CONFIG[input.type];
+  const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
+  const Icon = config.icon;
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className={`border border-border/20 bg-card/20 rounded-lg overflow-hidden transition-all opacity-70 hover:opacity-100 ${
+      isLogged ? 'opacity-50' : ''
+    }`}>
+      {/* Main row */}
+      <div className="flex items-center gap-3 p-2.5">
+        <button 
+          onClick={onToggleLogged}
+          disabled={isToggling || !isLoggedIn}
+          className="shrink-0 disabled:opacity-50"
+          aria-label={isLogged ? "Remove log" : "Log exposure"}
+          title={isLogged ? "Exposure logged" : "Log exposure"}
+        >
+          {isToggling ? (
+            <div className="h-4 w-4 border-2 border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
+          ) : isLogged ? (
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <div className="h-4 w-4 border border-muted-foreground/30 rounded-full hover:border-muted-foreground/60 transition-colors" />
+          )}
+        </button>
+        
+        <Icon className={`h-3.5 w-3.5 shrink-0 ${config.color} opacity-60`} />
+        
+        <div className="flex-1 min-w-0">
+          <div className={`text-xs truncate ${isLogged ? 'line-through text-muted-foreground/60' : 'text-foreground/70'}`}>
+            {input.title}
+          </div>
+          {input.author && (
+            <div className="text-[9px] text-muted-foreground/40 truncate">{input.author}</div>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div title={thinkingConfig.description} className="opacity-60">
+            <ThinkingSystemIcon system={input.thinkingSystem} />
+          </div>
+          <DifficultyIndicator level={input.difficulty} />
+          <button 
+            onClick={() => setExpanded(!expanded)}
+            className="p-0.5 hover:bg-muted/50 rounded transition-colors"
+          >
+            {expanded ? (
+              <ChevronUp className="h-3 w-3 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-3 w-3 text-muted-foreground" />
+            )}
+          </button>
+        </div>
+      </div>
+      
+      {/* Expanded details */}
+      {expanded && (
+        <div className="px-3 pb-2.5 pt-0 space-y-2 border-t border-border/10">
+          <div className="flex items-center gap-3 pt-2 text-[10px] text-muted-foreground/60">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {input.duration}
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <Target className="h-3 w-3 text-primary/30 mt-0.5 shrink-0" />
+            <span className="text-[10px] text-muted-foreground/60">{input.cognitivePurpose}</span>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
             <a
               href={input.primaryUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-1 text-xs hover:underline ${
+              className={`flex items-center gap-1 text-[10px] opacity-70 hover:opacity-100 hover:underline ${
                 input.type === "podcast" 
-                  ? "text-emerald-600 dark:text-emerald-400" 
+                  ? "text-emerald-600/70 dark:text-emerald-400/70" 
                   : input.type === "book"
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-blue-600 dark:text-blue-400"
+                  ? "text-amber-600/70 dark:text-amber-400/70"
+                  : "text-blue-600/70 dark:text-blue-400/70"
               }`}
             >
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="h-2.5 w-2.5" />
               {input.type === "podcast" ? "Spotify" : "Read"}
             </a>
-            {input.secondaryUrl && (
+            {input.type === "podcast" && input.secondaryUrl && (
               <a
                 href={input.secondaryUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 hover:underline"
+                className="flex items-center gap-1 text-[10px] text-purple-600/70 dark:text-purple-400/70 opacity-70 hover:opacity-100 hover:underline"
               >
-                <ExternalLink className="h-3 w-3" />
+                <ExternalLink className="h-2.5 w-2.5" />
                 Apple
               </a>
             )}
@@ -492,46 +787,45 @@ function TaskCard({
   );
 }
 
-interface CognitiveTasksSectionProps {
+interface PrescriptionSectionProps {
   type: InputType;
   title: string;
-  subtitle: string;
 }
 
-export function CognitiveTasksSection({ type, title, subtitle }: CognitiveTasksSectionProps) {
+export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: listenedIds = [], isLoading } = useListenedPodcasts(user?.id);
+  const { data: loggedIds = [], isLoading } = useLoggedExposures(user?.id);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const toggleMutation = useMutation({
-    mutationFn: async ({ podcastId, isCurrentlyListened }: { podcastId: string; isCurrentlyListened: boolean }) => {
+    mutationFn: async ({ inputId, isCurrentlyLogged }: { inputId: string; isCurrentlyLogged: boolean }) => {
       if (!user?.id) throw new Error("Not authenticated");
       
-      if (isCurrentlyListened) {
+      if (isCurrentlyLogged) {
         const { error } = await supabase
           .from("user_listened_podcasts")
           .delete()
           .eq("user_id", user.id)
-          .eq("podcast_id", podcastId);
+          .eq("podcast_id", inputId);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("user_listened_podcasts")
-          .insert({ user_id: user.id, podcast_id: podcastId });
+          .insert({ user_id: user.id, podcast_id: inputId });
         if (error) throw error;
       }
     },
-    onMutate: async ({ podcastId, isCurrentlyListened }) => {
-      setTogglingId(podcastId);
-      await queryClient.cancelQueries({ queryKey: ["listened-podcasts", user?.id] });
-      const previousData = queryClient.getQueryData<string[]>(["listened-podcasts", user?.id]);
+    onMutate: async ({ inputId, isCurrentlyLogged }) => {
+      setTogglingId(inputId);
+      await queryClient.cancelQueries({ queryKey: ["logged-exposures", user?.id] });
+      const previousData = queryClient.getQueryData<string[]>(["logged-exposures", user?.id]);
       
-      queryClient.setQueryData<string[]>(["listened-podcasts", user?.id], (old = []) => {
-        if (isCurrentlyListened) {
-          return old.filter(id => id !== podcastId);
+      queryClient.setQueryData<string[]>(["logged-exposures", user?.id], (old = []) => {
+        if (isCurrentlyLogged) {
+          return old.filter(id => id !== inputId);
         } else {
-          return [...old, podcastId];
+          return [...old, inputId];
         }
       });
       
@@ -539,23 +833,25 @@ export function CognitiveTasksSection({ type, title, subtitle }: CognitiveTasksS
     },
     onError: (_err, _vars, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(["listened-podcasts", user?.id], context.previousData);
+        queryClient.setQueryData(["logged-exposures", user?.id], context.previousData);
       }
     },
     onSettled: () => {
       setTogglingId(null);
-      queryClient.invalidateQueries({ queryKey: ["listened-podcasts", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["logged-exposures", user?.id] });
     },
   });
 
-  const handleToggle = (podcastId: string) => {
+  const handleToggle = (inputId: string) => {
     if (!user?.id) return;
-    const isCurrentlyListened = listenedIds.includes(podcastId);
-    toggleMutation.mutate({ podcastId, isCurrentlyListened });
+    const isCurrentlyLogged = loggedIds.includes(inputId);
+    toggleMutation.mutate({ inputId, isCurrentlyLogged });
   };
 
-  const inputs = COGNITIVE_INPUTS.filter(i => i.type === type);
-  const completedCount = inputs.filter(i => listenedIds.includes(i.id)).length;
+  const allInputs = COGNITIVE_INPUTS.filter(i => i.type === type);
+  const activeId = ACTIVE_PRESCRIPTIONS[type];
+  const activeInput = allInputs.find(i => i.id === activeId);
+  const alternatives = allInputs.filter(i => i.id !== activeId);
   const config = INPUT_TYPE_CONFIG[type];
   const Icon = config.icon;
 
@@ -573,27 +869,48 @@ export function CognitiveTasksSection({ type, title, subtitle }: CognitiveTasksS
           </div>
           <div>
             <h4 className="text-sm font-medium">{title}</h4>
-            <p className="text-[10px] text-muted-foreground">{subtitle}</p>
+            <p className="text-[10px] text-muted-foreground">
+              {isLoading ? "..." : "1 Active prescription"}
+            </p>
           </div>
         </div>
-        <div className="text-[10px] text-muted-foreground/60 font-medium">
-          {isLoading ? "..." : `${completedCount}/${inputs.length}`}
+        <div className="text-[10px] text-muted-foreground/50">
+          {alternatives.length} alternatives
         </div>
       </div>
 
-      {/* Task list */}
-      <div className="space-y-2">
-        {inputs.map((input) => (
-          <TaskCard 
-            key={input.id} 
-            input={input} 
-            isListened={listenedIds.includes(input.id)}
-            onToggleListened={() => handleToggle(input.id)}
-            isToggling={togglingId === input.id}
-            isLoggedIn={!!user}
-          />
-        ))}
-      </div>
+      {/* Active prescription */}
+      {activeInput && (
+        <PrescriptionCard 
+          input={activeInput}
+          isLogged={loggedIds.includes(activeInput.id)}
+          onToggleLogged={() => handleToggle(activeInput.id)}
+          isToggling={togglingId === activeInput.id}
+          isLoggedIn={!!user}
+        />
+      )}
+
+      {/* Alternatives (collapsed by default) */}
+      {alternatives.length > 0 && (
+        <details className="group">
+          <summary className="cursor-pointer text-[10px] text-muted-foreground/50 hover:text-muted-foreground py-1 list-none flex items-center gap-1">
+            <ChevronDown className="h-3 w-3 group-open:rotate-180 transition-transform" />
+            View alternatives ({alternatives.length})
+          </summary>
+          <div className="space-y-1.5 pt-2">
+            {alternatives.map((input) => (
+              <AlternativeCard 
+                key={input.id} 
+                input={input} 
+                isLogged={loggedIds.includes(input.id)}
+                onToggleLogged={() => handleToggle(input.id)}
+                isToggling={togglingId === input.id}
+                isLoggedIn={!!user}
+              />
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
@@ -669,53 +986,41 @@ export function CognitiveTasksLegend() {
   );
 }
 
-// Legacy export for backward compatibility
+// Main export - now a prescription-based cognitive conditioning module
 export function CognitiveInputs() {
   const { user } = useAuth();
-  const { data: listenedIds = [], isLoading } = useListenedPodcasts(user?.id);
-  
-  const totalCount = COGNITIVE_INPUTS.length;
-  const completedCount = listenedIds.length;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-            Cognitive Tasks
+            Training Prescriptions
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Max 1–2 per week for deep processing
+            This week: 3 prescribed inputs
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <CognitiveTasksLegend />
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-medium">
-            {isLoading ? "..." : `${completedCount}/${totalCount}`}
-          </div>
-        </div>
+        <CognitiveTasksLegend />
       </div>
 
       <CognitiveTasksSection 
         type="podcast" 
-        title="Podcasts" 
-        subtitle="Audio-first cognitive training"
+        title="Podcast"
       />
       
       <CognitiveTasksSection 
         type="book" 
-        title="Books" 
-        subtitle="Deep reading for critical reasoning"
+        title="Book"
       />
       
       <CognitiveTasksSection 
         type="article" 
-        title="Articles & Essays" 
-        subtitle="Focused thinking exercises"
+        title="Reading"
       />
 
-      <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wide text-center pt-2">
-        {user ? "Progress synced across devices" : "Login to track progress"}
+      <p className="text-[10px] text-muted-foreground/40 text-center pt-2">
+        {user ? "Exposure logs synced" : "Login to log exposures"}
       </p>
     </div>
   );

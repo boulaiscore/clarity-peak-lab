@@ -276,27 +276,24 @@ export default function NeuroLab() {
               {/* Podcasts Section */}
               <CognitiveTasksSection 
                 type="podcast" 
-                title="Podcasts" 
-                subtitle="Audio cognitive training"
+                title="Podcast"
               />
 
               {/* Books Section */}
               <CognitiveTasksSection 
                 type="book" 
-                title="Books" 
-                subtitle="Deep critical reasoning"
+                title="Book"
               />
 
               {/* Articles Section */}
               <CognitiveTasksSection 
                 type="article" 
-                title="Articles & Essays" 
-                subtitle="Focused thinking exercises"
+                title="Reading"
               />
 
               {/* Tasks info */}
-              <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wide text-center pt-2">
-                Progress synced across devices
+              <p className="text-[10px] text-muted-foreground/40 text-center pt-2">
+                Exposure logs synced
               </p>
             </div>
           </TabsContent>
