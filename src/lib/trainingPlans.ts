@@ -44,14 +44,28 @@ export interface TrainingPlan {
 
 // XP Points configuration
 export const XP_VALUES = {
-  // Games
-  gameComplete: 25,        // Per game completed (5 exercises)
+  // Games (full session of ~5 exercises)
+  gameComplete: 25,        // Per game session completed
   gamePerfect: 10,         // Bonus for 90%+ score
+  // Individual exercise XP by difficulty
+  exerciseEasy: 3,
+  exerciseMedium: 5,
+  exerciseHard: 8,
   // Content
   podcastComplete: 15,     // Per podcast listened
   readingComplete: 20,     // Per reading completed
   bookChapterComplete: 30, // Per book chapter read
 } as const;
+
+// Helper to get XP for exercise difficulty
+export function getExerciseXP(difficulty: "easy" | "medium" | "hard"): number {
+  switch (difficulty) {
+    case "easy": return XP_VALUES.exerciseEasy;
+    case "medium": return XP_VALUES.exerciseMedium;
+    case "hard": return XP_VALUES.exerciseHard;
+    default: return XP_VALUES.exerciseMedium;
+  }
+}
 
 export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   light: {

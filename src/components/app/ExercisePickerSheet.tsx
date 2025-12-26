@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
-  Brain, Target, Lightbulb, Star, Play, Zap, X,
-  Clock, Sparkles, ArrowRight
+  Brain, Target, Lightbulb, Star, Play, Zap,
+  Clock, Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
-import { XP_VALUES } from "@/lib/trainingPlans";
+import { XP_VALUES, getExerciseXP } from "@/lib/trainingPlans";
 import { CognitiveExercise } from "@/lib/exercises";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useExercises } from "@/hooks/useExercises";
-import { Badge } from "@/components/ui/badge";
 
 interface ExercisePickerSheetProps {
   open: boolean;
@@ -66,6 +65,11 @@ export function ExercisePickerSheet({
   const modeConfig = MODE_LABELS[thinkingMode];
   const AreaIcon = AREA_ICONS[area] || Brain;
 
+  // Calculate total XP available
+  const totalAvailableXP = filteredExercises.reduce((sum, e) => {
+    return sum + getExerciseXP(e.difficulty as "easy" | "medium" | "hard");
+  }, 0);
+
   // Group by difficulty for display
   const easyCount = filteredExercises.filter(e => e.difficulty === "easy").length;
   const mediumCount = filteredExercises.filter(e => e.difficulty === "medium").length;
@@ -89,9 +93,12 @@ export function ExercisePickerSheet({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20">
-              <Star className="w-3 h-3 text-primary" />
-              <span className="text-[11px] font-semibold text-primary">+{XP_VALUES.gameComplete} XP</span>
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <Star className="w-3 h-3 text-amber-400" />
+                <span className="text-[11px] font-semibold text-amber-400">{totalAvailableXP} XP</span>
+              </div>
+              <span className="text-[9px] text-muted-foreground">total available</span>
             </div>
           </div>
         </SheetHeader>
@@ -119,7 +126,7 @@ export function ExercisePickerSheet({
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
-              Easy ({easyCount})
+              Easy ({easyCount}) • {XP_VALUES.exerciseEasy} XP
             </button>
             <button
               onClick={() => setSelectedDifficulty("medium")}
@@ -130,7 +137,7 @@ export function ExercisePickerSheet({
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
-              Medium ({mediumCount})
+              Medium ({mediumCount}) • {XP_VALUES.exerciseMedium} XP
             </button>
             <button
               onClick={() => setSelectedDifficulty("hard")}
@@ -141,7 +148,7 @@ export function ExercisePickerSheet({
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
-              Hard ({hardCount})
+              Hard ({hardCount}) • {XP_VALUES.exerciseHard} XP
             </button>
           </div>
 
@@ -159,7 +166,7 @@ export function ExercisePickerSheet({
             <div className="space-y-2">
               {displayedExercises.map((exercise, index) => {
                 const diffConfig = DIFFICULTY_CONFIG[exercise.difficulty as keyof typeof DIFFICULTY_CONFIG] || DIFFICULTY_CONFIG.medium;
-                
+                const exerciseXP = getExerciseXP(exercise.difficulty as "easy" | "medium" | "hard");
                 return (
                   <motion.button
                     key={exercise.id}
@@ -199,11 +206,11 @@ export function ExercisePickerSheet({
                         </p>
                       </div>
 
-                      {/* Action */}
+                      {/* XP & Action */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          30s
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
+                          <Star className="w-3 h-3 text-amber-400" />
+                          <span className="text-[10px] font-bold text-amber-400">+{exerciseXP}</span>
                         </div>
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                           <Play className="w-4 h-4 text-primary fill-current" />
