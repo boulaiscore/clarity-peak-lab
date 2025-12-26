@@ -35,6 +35,7 @@ export default function NeuroLab() {
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   const [activeTab, setActiveTab] = useState("games");
+  const [tasksSubTab, setTasksSubTab] = useState<"active" | "library">("active");
 
   const getThinkingBadge = () => {
     const goals = user?.trainingGoals || [];
@@ -182,7 +183,7 @@ export default function NeuroLab() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-4">
+          <TabsList className="w-full grid grid-cols-2 mb-4">
             <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
               <Gamepad2 className="w-3.5 h-3.5" />
               Games
@@ -190,10 +191,6 @@ export default function NeuroLab() {
             <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
               <BookMarked className="w-3.5 h-3.5" />
               Tasks
-            </TabsTrigger>
-            <TabsTrigger value="library" className="flex items-center gap-1.5 text-xs">
-              <Library className="w-3.5 h-3.5" />
-              Library
             </TabsTrigger>
           </TabsList>
 
@@ -266,45 +263,72 @@ export default function NeuroLab() {
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-0">
-            <div className="space-y-6">
-              {/* Intro + Legend */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="p-3 rounded-xl bg-muted/30 border border-border/30 flex-1">
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">Passive training:</span> Curated content for deep cognitive development. Complete 1–2 per week for optimal integration.
-                  </p>
-                </div>
-                <CognitiveTasksLegend />
-              </div>
-
-              {/* Podcasts Section */}
-              <CognitiveTasksSection 
-                type="podcast" 
-                title="Podcast"
-              />
-
-              {/* Books Section */}
-              <CognitiveTasksSection 
-                type="book" 
-                title="Book"
-              />
-
-              {/* Articles Section */}
-              <CognitiveTasksSection 
-                type="article" 
-                title="Reading"
-              />
-
-              {/* Tasks info */}
-              <p className="text-[10px] text-muted-foreground/40 text-center pt-2">
-                Exposure logs synced
-              </p>
+            {/* Sub-navigation for Tasks */}
+            <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-lg mb-4">
+              <button
+                onClick={() => setTasksSubTab("active")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+                  tasksSubTab === "active" 
+                    ? "bg-background shadow-sm text-foreground" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <BookMarked className="w-3.5 h-3.5" />
+                Active
+              </button>
+              <button
+                onClick={() => setTasksSubTab("library")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+                  tasksSubTab === "library" 
+                    ? "bg-background shadow-sm text-foreground" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Library className="w-3.5 h-3.5" />
+                Library
+              </button>
             </div>
-          </TabsContent>
 
-          {/* Library Tab */}
-          <TabsContent value="library" className="mt-0">
-            <CognitiveLibrary />
+            {tasksSubTab === "active" ? (
+              <div className="space-y-6">
+                {/* Intro + Legend */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/30 flex-1">
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">Passive training:</span> Curated content for deep cognitive development. Complete 1–2 per week for optimal integration.
+                    </p>
+                  </div>
+                  <CognitiveTasksLegend />
+                </div>
+
+                {/* Podcasts Section */}
+                <CognitiveTasksSection 
+                  type="podcast" 
+                  title="Podcast"
+                />
+
+                {/* Books Section */}
+                <CognitiveTasksSection 
+                  type="book" 
+                  title="Book"
+                />
+
+                {/* Articles Section */}
+                <CognitiveTasksSection 
+                  type="article" 
+                  title="Reading"
+                />
+
+                {/* Tasks info */}
+                <p className="text-[10px] text-muted-foreground/40 text-center pt-2">
+                  Exposure logs synced
+                </p>
+              </div>
+            ) : (
+              <CognitiveLibrary />
+            )}
           </TabsContent>
         </Tabs>
 
