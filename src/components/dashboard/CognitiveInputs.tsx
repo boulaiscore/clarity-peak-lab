@@ -572,9 +572,14 @@ function PrescriptionCard({
                   Completed
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
-                  Active
-                </Badge>
+                <>
+                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
+                    Active
+                  </Badge>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
+                    +{calculateItemRawPoints(input)} XP
+                  </span>
+                </>
               )}
             </div>
             {input.author && (
@@ -786,12 +791,14 @@ function SwipeableAlternativeCard({
           </p>
         )}
         
-        {/* Meta */}
+        {/* Meta + XP */}
         <div className="flex items-center justify-between">
           <div title={thinkingConfig.description} className="opacity-70">
             <ThinkingSystemIcon system={input.thinkingSystem} />
           </div>
-          <DifficultyIndicator level={input.difficulty} />
+          <span className="text-[8px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium">
+            +{calculateItemRawPoints(input)}
+          </span>
         </div>
       </button>
 
