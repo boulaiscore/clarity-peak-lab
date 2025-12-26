@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Headphones, Clock, Target, Zap, ExternalLink, CheckCircle2, Circle, Loader2, BookOpen, FileText, ChevronDown, ChevronUp, Brain, Gauge } from "lucide-react";
+import { Headphones, Clock, Target, Zap, ExternalLink, CheckCircle2, Circle, Loader2, BookOpen, FileText, ChevronDown, ChevronUp, Brain, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -27,21 +28,18 @@ const INPUT_TYPE_CONFIG: Record<InputType, { label: string; icon: typeof Headpho
   article: { label: "Article", icon: FileText, color: "text-blue-500/70" },
 };
 
-const THINKING_SYSTEM_CONFIG: Record<ThinkingSystem, { label: string; description: string; color: string }> = {
+const THINKING_SYSTEM_CONFIG: Record<ThinkingSystem, { label: string; description: string }> = {
   "S1": { 
-    label: "S1", 
+    label: "Fast Thinking", 
     description: "Intuition, pattern recognition, immediate judgment",
-    color: "bg-amber-500/15 text-amber-500" 
   },
   "S2": { 
-    label: "S2", 
+    label: "Slow Thinking", 
     description: "Analysis, argumentation, rigorous reasoning",
-    color: "bg-teal-500/15 text-teal-500" 
   },
   "S1+S2": { 
-    label: "S1+S2", 
+    label: "Dual Process", 
     description: "Activates both intuition and analytical reasoning",
-    color: "bg-primary/15 text-primary" 
   },
 };
 
@@ -341,6 +339,23 @@ function DifficultyIndicator({ level }: { level: 1 | 2 | 3 | 4 | 5 }) {
   );
 }
 
+// Thinking System Icon component
+function ThinkingSystemIcon({ system }: { system: ThinkingSystem }) {
+  if (system === "S1") {
+    return <Zap className="h-3.5 w-3.5 text-amber-400" />;
+  }
+  if (system === "S2") {
+    return <Brain className="h-3.5 w-3.5 text-teal-400" />;
+  }
+  // S1+S2
+  return (
+    <div className="flex items-center -space-x-1">
+      <Zap className="h-3 w-3 text-amber-400" />
+      <Brain className="h-3 w-3 text-teal-400" />
+    </div>
+  );
+}
+
 // Compact task card for the weekly view
 function TaskCard({ 
   input, 
@@ -391,10 +406,10 @@ function TaskCard({
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-          {/* Thinking System Badge */}
-          <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${thinkingConfig.color}`}>
-            {thinkingConfig.label}
-          </span>
+          {/* Thinking System Icon */}
+          <div title={thinkingConfig.description}>
+            <ThinkingSystemIcon system={input.thinkingSystem} />
+          </div>
           {/* Difficulty */}
           <DifficultyIndicator level={input.difficulty} />
           {/* Expand button */}
@@ -420,9 +435,9 @@ function TaskCard({
               <Clock className="h-3 w-3" />
               {input.duration}
             </span>
-            <span className="flex items-center gap-1" title={thinkingConfig.description}>
-              <Brain className="h-3 w-3" />
-              {thinkingConfig.description}
+            <span className="flex items-center gap-1">
+              <ThinkingSystemIcon system={input.thinkingSystem} />
+              <span>{thinkingConfig.label}</span>
             </span>
           </div>
           
@@ -576,6 +591,77 @@ export function CognitiveTasksSection({ type, title, subtitle }: CognitiveTasksS
   );
 }
 
+// Legend component
+function CognitiveTasksLegend() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+          <Info className="h-3 w-3" />
+          Legend
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-3" align="end">
+        <div className="space-y-3">
+          <h4 className="text-xs font-semibold">Thinking Systems</h4>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-amber-400" />
+              <div>
+                <p className="text-xs font-medium">Fast Thinking (S1)</p>
+                <p className="text-[10px] text-muted-foreground">Intuition, pattern recognition</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Brain className="h-4 w-4 text-teal-400" />
+              <div>
+                <p className="text-xs font-medium">Slow Thinking (S2)</p>
+                <p className="text-[10px] text-muted-foreground">Analysis, argumentation</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center -space-x-1">
+                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                <Brain className="h-3.5 w-3.5 text-teal-400" />
+              </div>
+              <div>
+                <p className="text-xs font-medium">Dual Process (S1+S2)</p>
+                <p className="text-[10px] text-muted-foreground">Both systems activated</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-border/30 pt-3">
+            <h4 className="text-xs font-semibold mb-2">Cognitive Load</h4>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[1, 2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-green-500/70" />)}
+                  {[3, 4, 5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-muted/30" />)}
+                </div>
+                <span className="text-[10px] text-muted-foreground">Light (1-2)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-amber-500/70" />)}
+                  {[4, 5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-muted/30" />)}
+                </div>
+                <span className="text-[10px] text-muted-foreground">Moderate (3)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-red-500/70" />)}
+                </div>
+                <span className="text-[10px] text-muted-foreground">Dense (4-5)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // Legacy export for backward compatibility
 export function CognitiveInputs() {
   const { user } = useAuth();
@@ -595,8 +681,11 @@ export function CognitiveInputs() {
             Max 1–2 per week for deep processing
           </p>
         </div>
-        <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-medium">
-          {isLoading ? "..." : `${completedCount}/${totalCount}`}
+        <div className="flex items-center gap-3">
+          <CognitiveTasksLegend />
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-medium">
+            {isLoading ? "..." : `${completedCount}/${totalCount}`}
+          </div>
         </div>
       </div>
 
