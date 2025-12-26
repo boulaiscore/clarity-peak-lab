@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { 
-  Target, Brain, Lightbulb, Sparkles, Zap, ChevronRight, Lock, Crown, 
+  Zap, ChevronRight, Crown, 
   Gamepad2, BookMarked, Play, CheckCircle2, Library, Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,14 +20,7 @@ import { TrainingPlanId } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
-
-const AREA_ICONS: Record<string, React.ElementType> = {
-  Target,
-  Brain,
-  Lightbulb,
-  Sparkles,
-  Zap,
-};
+import { TrainHeader } from "@/components/app/TrainHeader";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -138,15 +131,14 @@ export default function NeuroLab() {
   return (
     <AppShell>
       <div className="px-5 py-5 max-w-md mx-auto">
-        {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold tracking-tight">Cognitive Lab</h1>
-            <span className="text-[10px] text-muted-foreground">
-              {sessionsCompleted}/{sessionsRequired} this week
-            </span>
-          </div>
-        </div>
+        {/* Whoop-Style Header with Ring */}
+        <TrainHeader
+          trainingPlan={trainingPlan}
+          sessionsCompleted={sessionsCompleted}
+          sessionsRequired={sessionsRequired}
+          weeklyXPEarned={weeklyXPEarned}
+          weeklyXPTarget={weeklyXPTarget}
+        />
 
         {/* Current Session Banner - Shows what to do based on plan */}
         {!isWeekComplete && nextSession ? (
