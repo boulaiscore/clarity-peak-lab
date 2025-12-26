@@ -9,6 +9,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -494,182 +505,197 @@ function PrescriptionCard({
   const config = INPUT_TYPE_CONFIG[input.type];
   const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
   const Icon = config.icon;
-  const [expanded, setExpanded] = useState(true); // Active items default to expanded
-  const [showReflection, setShowReflection] = useState(false);
-  const [justLogged, setJustLogged] = useState(false);
+  const [expanded, setExpanded] = useState(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleToggle = () => {
-    const wasNotLogged = !isLogged;
-    onToggleLogged();
-    if (wasNotLogged) {
-      setJustLogged(true);
-      setShowReflection(true);
+    if (!isLogged) {
+      // Show confirmation dialog before marking as completed
+      setShowConfirmDialog(true);
+    } else {
+      // If already logged, just toggle (remove from library)
+      onToggleLogged();
     }
   };
 
-  const handleReflectionResponse = (response: "yes" | "no" | "not_sure") => {
-    // Store response for future personalization (could be expanded)
-    console.log("Reflection response:", response);
-    setShowReflection(false);
+  const handleConfirmComplete = () => {
+    onToggleLogged();
+    setShowConfirmDialog(false);
+    toast({
+      title: "Added to Library",
+      description: `"${input.title}" moved to your library shelf.`,
+    });
   };
 
   return (
-    <div className={`border rounded-lg overflow-hidden transition-all ${
-      isLogged 
-        ? "border-primary/30 bg-primary/5" 
-        : "border-primary/40 bg-gradient-to-r from-primary/5 to-transparent"
-    }`}>
-      {/* Main row */}
-      <div className="flex items-center gap-3 p-3">
-        <button 
-          onClick={handleToggle}
-          disabled={isToggling || !isLoggedIn}
-          className="shrink-0 disabled:opacity-50 group"
-          aria-label={isLogged ? "Mark as incomplete" : "Mark as completed"}
-          title={isLogged ? "Completed" : "Mark as completed"}
-        >
-          {isToggling ? (
-            <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          ) : isLogged ? (
-            <CheckCircle2 className="h-5 w-5 text-primary" />
-          ) : (
-            <div className="h-5 w-5 border-2 border-primary/50 rounded-full group-hover:border-primary transition-colors flex items-center justify-center">
-              <div className="h-2 w-2 rounded-full bg-primary/0 group-hover:bg-primary/50 transition-colors" />
-            </div>
-          )}
-        </button>
-        
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-          input.type === "podcast" ? "bg-primary/20" : 
-          input.type === "book" ? "bg-amber-500/20" : 
-          "bg-blue-500/20"
-        }`}>
-          <Icon className={`h-4 w-4 ${config.color}`} />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${isLogged ? 'text-muted-foreground' : 'text-foreground'}`}>
-              {input.title}
-            </span>
-            {isLogged ? (
-              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400">
-                Completed
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
-                Active
-              </Badge>
-            )}
-          </div>
-          {input.author && (
-            <div className="text-[10px] text-muted-foreground/60">{input.author}</div>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2 shrink-0">
-          <div title={thinkingConfig.description}>
-            <ThinkingSystemIcon system={input.thinkingSystem} />
-          </div>
-          <DifficultyIndicator level={input.difficulty} />
+    <>
+      <div className={`border rounded-lg overflow-hidden transition-all ${
+        isLogged 
+          ? "border-primary/30 bg-primary/5" 
+          : "border-primary/40 bg-gradient-to-r from-primary/5 to-transparent"
+      }`}>
+        {/* Main row */}
+        <div className="flex items-center gap-3 p-3">
           <button 
-            onClick={() => setExpanded(!expanded)}
-            className="p-1 hover:bg-muted/50 rounded transition-colors"
+            onClick={handleToggle}
+            disabled={isToggling || !isLoggedIn}
+            className="shrink-0 disabled:opacity-50 group"
+            aria-label={isLogged ? "Mark as incomplete" : "Mark as completed"}
+            title={isLogged ? "Completed" : "Mark as completed"}
           >
-            {expanded ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            {isToggling ? (
+              <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            ) : isLogged ? (
+              <CheckCircle2 className="h-5 w-5 text-primary" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <div className="h-5 w-5 border-2 border-primary/50 rounded-full group-hover:border-primary transition-colors flex items-center justify-center">
+                <div className="h-2 w-2 rounded-full bg-primary/0 group-hover:bg-primary/50 transition-colors" />
+              </div>
             )}
           </button>
-        </div>
-      </div>
-      
-      {/* Expanded details with prescription */}
-      {expanded && (
-        <div className="px-3 pb-3 pt-0 space-y-3 border-t border-border/20 mt-0">
-          {/* Meta row */}
-          <div className="flex items-center gap-3 pt-2 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {input.duration}
-            </span>
-            <span className="flex items-center gap-1">
+          
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+            input.type === "podcast" ? "bg-primary/20" : 
+            input.type === "book" ? "bg-amber-500/20" : 
+            "bg-blue-500/20"
+          }`}>
+            <Icon className={`h-4 w-4 ${config.color}`} />
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-medium ${isLogged ? 'text-muted-foreground' : 'text-foreground'}`}>
+                {input.title}
+              </span>
+              {isLogged ? (
+                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400">
+                  Completed
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
+                  Active
+                </Badge>
+              )}
+            </div>
+            {input.author && (
+              <div className="text-[10px] text-muted-foreground/60">{input.author}</div>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2 shrink-0">
+            <div title={thinkingConfig.description}>
               <ThinkingSystemIcon system={input.thinkingSystem} />
-              <span>{thinkingConfig.label}</span>
-            </span>
+            </div>
+            <DifficultyIndicator level={input.difficulty} />
+            <button 
+              onClick={() => setExpanded(!expanded)}
+              className="p-1 hover:bg-muted/50 rounded transition-colors"
+            >
+              {expanded ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
           </div>
-          
-          {/* Summary */}
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            {input.summary}
-          </p>
-          
-          {/* Prescription block */}
-          {input.prescription && (
-            <PrescriptionBlockDisplay prescription={input.prescription} />
-          )}
+        </div>
+        
+        {/* Expanded details with prescription */}
+        {expanded && (
+          <div className="px-3 pb-3 pt-0 space-y-3 border-t border-border/20 mt-0">
+            {/* Meta row */}
+            <div className="flex items-center gap-3 pt-2 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {input.duration}
+              </span>
+              <span className="flex items-center gap-1">
+                <ThinkingSystemIcon system={input.thinkingSystem} />
+                <span>{thinkingConfig.label}</span>
+              </span>
+            </div>
+            
+            {/* Summary */}
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              {input.summary}
+            </p>
+            
+            {/* Prescription block */}
+            {input.prescription && (
+              <PrescriptionBlockDisplay prescription={input.prescription} />
+            )}
 
-          {/* Reflection prompt */}
-          <div className="flex items-start gap-2 bg-muted/20 rounded-md p-2">
-            <Zap className="h-3 w-3 text-amber-500/70 mt-0.5 shrink-0" />
-            <span className="text-[11px] text-amber-600/80 dark:text-amber-400/80 italic">
-              "{input.reflectionPrompt}"
-            </span>
-          </div>
+            {/* Reflection prompt */}
+            <div className="flex items-start gap-2 bg-muted/20 rounded-md p-2">
+              <Zap className="h-3 w-3 text-amber-500/70 mt-0.5 shrink-0" />
+              <span className="text-[11px] text-amber-600/80 dark:text-amber-400/80 italic">
+                "{input.reflectionPrompt}"
+              </span>
+            </div>
 
-          {/* Platform links */}
-          <div className="flex items-center gap-3 pt-1">
-            {input.type === "podcast" ? (
-              <>
+            {/* Platform links */}
+            <div className="flex items-center gap-3 pt-1">
+              {input.type === "podcast" ? (
+                <>
+                  <a
+                    href={input.primaryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Open in Spotify
+                  </a>
+                  {input.secondaryUrl && (
+                    <a
+                      href={input.secondaryUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Open in Apple Podcasts
+                    </a>
+                  )}
+                </>
+              ) : (
                 <a
                   href={input.primaryUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                  className={`flex items-center gap-1.5 text-xs hover:underline ${
+                    input.type === "book"
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-blue-600 dark:text-blue-400"
+                  }`}
                 >
                   <ExternalLink className="h-3 w-3" />
-                  Open in Spotify
+                  Read
                 </a>
-                {input.secondaryUrl && (
-                  <a
-                    href={input.secondaryUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Open in Apple Podcasts
-                  </a>
-                )}
-              </>
-            ) : (
-              <a
-                href={input.primaryUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`flex items-center gap-1.5 text-xs hover:underline ${
-                  input.type === "book"
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-blue-600 dark:text-blue-400"
-                }`}
-              >
-                <ExternalLink className="h-3 w-3" />
-                Read
-              </a>
-            )}
+              )}
+            </div>
           </div>
+        )}
+      </div>
 
-          {/* Reflection prompt after logging */}
-          {showReflection && justLogged && (
-            <ReflectionPrompt 
-              onRespond={handleReflectionResponse}
-              onDismiss={() => setShowReflection(false)}
-            />
-          )}
-        </div>
-      )}
-    </div>
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as Completed?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Move "{input.title}" to your Library shelf? This will remove it from your active tasks.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmComplete}>
+              Add to Library
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -692,65 +718,101 @@ function SwipeableAlternativeCard({
   const config = INPUT_TYPE_CONFIG[input.type];
   const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
   const Icon = config.icon;
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const handleToggleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isLogged) {
+      setShowConfirmDialog(true);
+    } else {
+      onToggleLogged();
+    }
+  };
+
+  const handleConfirmComplete = () => {
+    onToggleLogged();
+    setShowConfirmDialog(false);
+    toast({
+      title: "Added to Library",
+      description: `"${input.title}" moved to your library shelf.`,
+    });
+  };
 
   return (
-    <button
-      onClick={onSelect}
-      className={`flex-shrink-0 w-36 p-2.5 border border-border/20 bg-card/30 rounded-xl 
-        transition-all hover:bg-card/50 hover:border-primary/40 active:scale-95 text-left
-        ${isLogged ? 'opacity-40' : 'opacity-80 hover:opacity-100'}`}
-    >
-      {/* Icon + log button */}
-      <div className="flex items-center justify-between mb-2">
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-          input.type === "podcast" ? "bg-primary/15" : 
-          input.type === "book" ? "bg-amber-500/15" : 
-          "bg-blue-500/15"
+    <>
+      <button
+        onClick={onSelect}
+        className={`flex-shrink-0 w-36 p-2.5 border border-border/20 bg-card/30 rounded-xl 
+          transition-all hover:bg-card/50 hover:border-primary/40 active:scale-95 text-left
+          ${isLogged ? 'opacity-40' : 'opacity-80 hover:opacity-100'}`}
+      >
+        {/* Icon + log button */}
+        <div className="flex items-center justify-between mb-2">
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+            input.type === "podcast" ? "bg-primary/15" : 
+            input.type === "book" ? "bg-amber-500/15" : 
+            "bg-blue-500/15"
+          }`}>
+            <Icon className={`h-3.5 w-3.5 ${config.color}`} />
+          </div>
+          <div 
+            onClick={handleToggleClick}
+            className={`shrink-0 ${(!isLoggedIn || isToggling) ? 'opacity-50' : 'cursor-pointer'}`}
+            role="button"
+            aria-label={isLogged ? "Mark as incomplete" : "Mark as completed"}
+          >
+            {isToggling ? (
+              <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
+            ) : isLogged ? (
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary/60" />
+            ) : (
+              <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full" />
+            )}
+          </div>
+        </div>
+        
+        {/* Title - single line truncated */}
+        <p className={`text-[11px] font-medium truncate mb-1 ${
+          isLogged ? 'text-muted-foreground/50' : 'text-foreground/80'
         }`}>
-          <Icon className={`h-3.5 w-3.5 ${config.color}`} />
-        </div>
-        <div 
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleLogged();
-          }}
-          className={`shrink-0 ${(!isLoggedIn || isToggling) ? 'opacity-50' : 'cursor-pointer'}`}
-          role="button"
-          aria-label={isLogged ? "Mark as incomplete" : "Mark as completed"}
-        >
-          {isToggling ? (
-            <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
-          ) : isLogged ? (
-            <CheckCircle2 className="h-3.5 w-3.5 text-primary/60" />
-          ) : (
-            <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full" />
-          )}
-        </div>
-      </div>
-      
-      {/* Title - single line truncated */}
-      <p className={`text-[11px] font-medium truncate mb-1 ${
-        isLogged ? 'text-muted-foreground/50' : 'text-foreground/80'
-      }`}>
-        {input.title}
-      </p>
-      
-      {/* Author - if available */}
-      {input.author && (
-        <p className="text-[9px] text-muted-foreground/50 truncate mb-1.5">
-          {input.author}
+          {input.title}
         </p>
-      )}
-      
-      {/* Meta */}
-      <div className="flex items-center justify-between">
-        <div title={thinkingConfig.description} className="opacity-70">
-          <ThinkingSystemIcon system={input.thinkingSystem} />
+        
+        {/* Author - if available */}
+        {input.author && (
+          <p className="text-[9px] text-muted-foreground/50 truncate mb-1.5">
+            {input.author}
+          </p>
+        )}
+        
+        {/* Meta */}
+        <div className="flex items-center justify-between">
+          <div title={thinkingConfig.description} className="opacity-70">
+            <ThinkingSystemIcon system={input.thinkingSystem} />
+          </div>
+          <DifficultyIndicator level={input.difficulty} />
         </div>
-        <DifficultyIndicator level={input.difficulty} />
-      </div>
-    </button>
+      </button>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as Completed?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Move "{input.title}" to your Library shelf? This will remove it from your active tasks.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmComplete}>
+              Add to Library
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -816,15 +878,46 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
     toggleMutation.mutate({ inputId, isCurrentlyLogged });
   };
 
-  const allInputs = COGNITIVE_INPUTS.filter(i => i.type === type);
-  const activeInput = allInputs.find(i => i.id === activeId);
-  const alternatives = allInputs.filter(i => i.id !== activeId);
+  // Filter out completed items - they only appear in Library
+  const allInputs = COGNITIVE_INPUTS.filter(i => i.type === type && !loggedIds.includes(i.id));
+  const activeInput = allInputs.find(i => i.id === activeId) || allInputs[0];
+  const alternatives = allInputs.filter(i => i.id !== activeInput?.id);
   const config = INPUT_TYPE_CONFIG[type];
   const Icon = config.icon;
+  const completedCount = COGNITIVE_INPUTS.filter(i => i.type === type && loggedIds.includes(i.id)).length;
 
   const handleSelectAlternative = (newActiveId: string) => {
     setActiveId(newActiveId);
   };
+
+  // If all items are completed, show empty state
+  if (allInputs.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              type === "podcast" ? "bg-primary/10" : 
+              type === "book" ? "bg-amber-500/10" : 
+              "bg-blue-500/10"
+            }`}>
+              <Icon className={`h-4 w-4 ${config.color}`} />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium">{title}</h4>
+              <p className="text-[10px] text-green-500">
+                All {completedCount} completed ✓
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-4 rounded-xl border border-border/20 bg-muted/20 text-center">
+          <CheckCircle2 className="h-6 w-6 text-green-500/50 mx-auto mb-2" />
+          <p className="text-xs text-muted-foreground">All items moved to Library</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -841,7 +934,8 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
           <div>
             <h4 className="text-sm font-medium">{title}</h4>
             <p className="text-[10px] text-muted-foreground">
-              {isLoading ? "..." : "1 Active prescription"}
+              {isLoading ? "..." : `${allInputs.length} remaining`}
+              {completedCount > 0 && <span className="text-green-500 ml-1">({completedCount} in library)</span>}
             </p>
           </div>
         </div>
