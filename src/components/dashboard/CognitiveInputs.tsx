@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Headphones, Clock, Target, Zap, ExternalLink, CheckCircle2, Circle, Loader2, BookOpen, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Headphones, Clock, Target, Zap, ExternalLink, CheckCircle2, Circle, Loader2, BookOpen, FileText, ChevronDown, ChevronUp, Brain, Gauge } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type InputType = "podcast" | "book" | "article";
+type ThinkingSystem = "S1" | "S2" | "S1+S2";
 
 interface CognitiveInput {
   id: string;
@@ -16,12 +17,32 @@ interface CognitiveInput {
   reflectionPrompt: string;
   primaryUrl: string;
   secondaryUrl?: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  thinkingSystem: ThinkingSystem;
 }
 
 const INPUT_TYPE_CONFIG: Record<InputType, { label: string; icon: typeof Headphones; color: string }> = {
   podcast: { label: "Podcast", icon: Headphones, color: "text-primary/70" },
   book: { label: "Book", icon: BookOpen, color: "text-amber-500/70" },
   article: { label: "Article", icon: FileText, color: "text-blue-500/70" },
+};
+
+const THINKING_SYSTEM_CONFIG: Record<ThinkingSystem, { label: string; description: string; color: string }> = {
+  "S1": { 
+    label: "S1", 
+    description: "Intuition, pattern recognition, immediate judgment",
+    color: "bg-amber-500/15 text-amber-500" 
+  },
+  "S2": { 
+    label: "S2", 
+    description: "Analysis, argumentation, rigorous reasoning",
+    color: "bg-teal-500/15 text-teal-500" 
+  },
+  "S1+S2": { 
+    label: "S1+S2", 
+    description: "Activates both intuition and analytical reasoning",
+    color: "bg-primary/15 text-primary" 
+  },
 };
 
 const COGNITIVE_INPUTS: CognitiveInput[] = [
@@ -35,6 +56,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     reflectionPrompt: "Qual è la tesi principale? Che evidenze la sorreggono?",
     primaryUrl: "https://open.spotify.com/show/17YfG23eMbfLBaDPqucgzZ",
     secondaryUrl: "https://podcasts.apple.com/us/podcast/in-our-time/id73330895",
+    difficulty: 3,
+    thinkingSystem: "S2",
   },
   {
     id: "partially-examined-life",
@@ -45,6 +68,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     reflectionPrompt: "Riesco a ricostruire l'argomento in 5 frasi?",
     primaryUrl: "https://open.spotify.com/show/1APpUKebKOXJZjoCaCfoVk",
     secondaryUrl: "https://podcasts.apple.com/it/podcast/the-partially-examined-life-philosophy-podcast/id318345767",
+    difficulty: 5,
+    thinkingSystem: "S2",
   },
   {
     id: "very-bad-wizards",
@@ -55,6 +80,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     reflectionPrompt: "Quale principio morale stanno usando?",
     primaryUrl: "https://open.spotify.com/show/4gGFerFYkDHnezTlwExEbu",
     secondaryUrl: "https://podcasts.apple.com/us/podcast/very-bad-wizards/id557975157",
+    difficulty: 3,
+    thinkingSystem: "S1+S2",
   },
   {
     id: "mindscape",
@@ -65,6 +92,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     reflectionPrompt: "Quali assunzioni reggono la visione dell'ospite?",
     primaryUrl: "https://open.spotify.com/show/622lvLwp8CVu6dvCsYAJhN",
     secondaryUrl: "https://podcasts.apple.com/us/podcast/sean-carrolls-mindscape-science-society-philosophy/id1406534739",
+    difficulty: 4,
+    thinkingSystem: "S2",
   },
   {
     id: "philosophy-bites",
@@ -75,6 +104,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     reflectionPrompt: "Definisci il concetto e genera 1 controesempio.",
     primaryUrl: "https://open.spotify.com/show/6UmBytzR58EY4hN1jzQG2o",
     secondaryUrl: "https://podcasts.apple.com/gb/podcast/philosophy-bites/id257042117",
+    difficulty: 2,
+    thinkingSystem: "S2",
   },
   {
     id: "econtalk",
@@ -85,6 +116,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     reflectionPrompt: "Qual è il meccanismo causale proposto?",
     primaryUrl: "https://open.spotify.com/show/4M5Gb71lskQ0Rg6e08uQhi",
     secondaryUrl: "https://podcasts.apple.com/us/podcast/econtalk/id135066958",
+    difficulty: 4,
+    thinkingSystem: "S2",
   },
   {
     id: "conversations-with-tyler",
@@ -95,6 +128,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     reflectionPrompt: "Qual è l'idea più non ovvia?",
     primaryUrl: "https://open.spotify.com/show/0Z1234tGXD2hVhjFrrhJ7g",
     secondaryUrl: "https://podcasts.apple.com/us/podcast/conversations-with-tyler/id983795625",
+    difficulty: 4,
+    thinkingSystem: "S2",
   },
   // BOOKS
   {
@@ -106,6 +141,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Argomentazione sotto pressione",
     reflectionPrompt: "Quale premessa è più vulnerabile?",
     primaryUrl: "https://www.gutenberg.org/ebooks/1656",
+    difficulty: 3,
+    thinkingSystem: "S2",
   },
   {
     id: "meditations-aurelius",
@@ -116,6 +153,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Controllo delle inferenze; igiene del giudizio",
     reflectionPrompt: "Quale giudizio sto aggiungendo io ai fatti?",
     primaryUrl: "https://www.gutenberg.org/ebooks/2680",
+    difficulty: 2,
+    thinkingSystem: "S2",
   },
   {
     id: "tao-te-ching",
@@ -126,6 +165,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Tolleranza dell'ambiguità; pensiero non lineare",
     reflectionPrompt: "Che interpretazione opposta è ugualmente plausibile?",
     primaryUrl: "https://www.gutenberg.org/ebooks/216",
+    difficulty: 3,
+    thinkingSystem: "S1+S2",
   },
   {
     id: "notes-from-underground",
@@ -136,6 +177,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Distinguere ragione da razionalizzazione",
     reflectionPrompt: "Dove l'argomento diventa auto-giustificazione?",
     primaryUrl: "https://www.gutenberg.org/ebooks/600",
+    difficulty: 4,
+    thinkingSystem: "S1+S2",
   },
   {
     id: "death-of-ivan-ilyich",
@@ -146,6 +189,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Smontare narrazioni di status",
     reflectionPrompt: "Quali segnali ignoriamo perché socialmente costosi?",
     primaryUrl: "https://www.gutenberg.org/ebooks/284",
+    difficulty: 3,
+    thinkingSystem: "S1+S2",
   },
   {
     id: "the-stranger",
@@ -156,6 +201,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Etica senza spiegazioni",
     reflectionPrompt: "Il giudizio morale nasce dai fatti o dal contesto?",
     primaryUrl: "https://archive.org/details/stranger00camu",
+    difficulty: 3,
+    thinkingSystem: "S1+S2",
   },
   {
     id: "little-prince",
@@ -166,6 +213,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Lettura a più livelli; simboli",
     reflectionPrompt: "Qual è il messaggio implicito?",
     primaryUrl: "https://archive.org/details/littleprince0000sain",
+    difficulty: 2,
+    thinkingSystem: "S1+S2",
   },
   // ARTICLES
   {
@@ -177,6 +226,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Pulizia del linguaggio → chiarezza del pensiero",
     reflectionPrompt: "Quali parole mascherano l'argomento?",
     primaryUrl: "https://www.orwellfoundation.com/the-orwell-foundation/orwell/essays-and-other-works/politics-and-the-english-language/",
+    difficulty: 3,
+    thinkingSystem: "S2",
   },
   {
     id: "what-is-it-like-to-be-a-bat",
@@ -187,6 +238,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Limiti della prospettiva",
     reflectionPrompt: "Cosa resta inaccessibile per principio?",
     primaryUrl: "https://warwick.ac.uk/fac/soc/philosophy/people/martin_bayley/what_is_it_like_to_be_a_bat.pdf",
+    difficulty: 4,
+    thinkingSystem: "S2",
   },
   {
     id: "hedgehog-and-fox",
@@ -197,6 +250,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Pluralismo dei modelli",
     reflectionPrompt: "Sto forzando un modello unico?",
     primaryUrl: "https://archive.org/details/hedgehogfox00berl",
+    difficulty: 4,
+    thinkingSystem: "S2",
   },
   {
     id: "in-praise-of-idleness",
@@ -207,6 +262,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Argomentare contro norme sociali implicite",
     reflectionPrompt: "Quale assunzione culturale regge l'argomento?",
     primaryUrl: "https://harpers.org/archive/1932/10/in-praise-of-idleness/",
+    difficulty: 3,
+    thinkingSystem: "S2",
   },
   {
     id: "of-cannibals",
@@ -217,6 +274,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Sospensione del giudizio",
     reflectionPrompt: "Quale criterio sto assumendo come universale?",
     primaryUrl: "https://www.gutenberg.org/ebooks/3600",
+    difficulty: 3,
+    thinkingSystem: "S2",
   },
   {
     id: "on-liberty-chapter-2",
@@ -227,6 +286,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Steelmanning; valore delle idee avverse",
     reflectionPrompt: "So difendere la tesi opposta meglio del suo autore?",
     primaryUrl: "https://www.gutenberg.org/ebooks/34901",
+    difficulty: 4,
+    thinkingSystem: "S2",
   },
   {
     id: "ones-who-walk-away-from-omelas",
@@ -237,6 +298,8 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
     cognitivePurpose: "Dilemmi morali non risolvibili",
     reflectionPrompt: "Quale costo sono disposto ad accettare?",
     primaryUrl: "https://shsdavisapes.pbworks.com/f/Omelas.pdf",
+    difficulty: 2,
+    thinkingSystem: "S1+S2",
   },
 ];
 
@@ -256,6 +319,28 @@ function useListenedPodcasts(userId: string | undefined) {
   });
 }
 
+// Difficulty indicator component
+function DifficultyIndicator({ level }: { level: 1 | 2 | 3 | 4 | 5 }) {
+  return (
+    <div className="flex items-center gap-0.5" title={`Difficulty: ${level}/5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div
+          key={i}
+          className={`w-1.5 h-1.5 rounded-full ${
+            i <= level 
+              ? level >= 4 
+                ? "bg-red-500/70" 
+                : level >= 3 
+                ? "bg-amber-500/70" 
+                : "bg-green-500/70"
+              : "bg-muted/30"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
 // Compact task card for the weekly view
 function TaskCard({ 
   input, 
@@ -271,6 +356,7 @@ function TaskCard({
   isLoggedIn: boolean;
 }) {
   const config = INPUT_TYPE_CONFIG[input.type];
+  const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
   const Icon = config.icon;
   const [expanded, setExpanded] = useState(false);
 
@@ -305,10 +391,13 @@ function TaskCard({
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {input.duration}
+          {/* Thinking System Badge */}
+          <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${thinkingConfig.color}`}>
+            {thinkingConfig.label}
           </span>
+          {/* Difficulty */}
+          <DifficultyIndicator level={input.difficulty} />
+          {/* Expand button */}
           <button 
             onClick={() => setExpanded(!expanded)}
             className="p-1 hover:bg-muted/50 rounded transition-colors"
@@ -325,7 +414,19 @@ function TaskCard({
       {/* Expanded details */}
       {expanded && (
         <div className="px-3 pb-3 pt-0 space-y-2 border-t border-border/20 mt-0">
-          <div className="flex items-start gap-2 pt-2">
+          {/* Meta row */}
+          <div className="flex items-center gap-3 pt-2 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {input.duration}
+            </span>
+            <span className="flex items-center gap-1" title={thinkingConfig.description}>
+              <Brain className="h-3 w-3" />
+              {thinkingConfig.description}
+            </span>
+          </div>
+          
+          <div className="flex items-start gap-2">
             <Target className="h-3 w-3 text-primary/50 mt-0.5 shrink-0" />
             <span className="text-xs text-muted-foreground">{input.cognitivePurpose}</span>
           </div>
