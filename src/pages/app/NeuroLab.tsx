@@ -18,6 +18,7 @@ import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
+import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -47,7 +48,7 @@ export default function NeuroLab() {
   const { user } = useAuth();
   const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
   const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
-  const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan } = useWeeklyProgress();
+  const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPEarned, weeklyXPTarget } = useWeeklyProgress();
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");
@@ -259,62 +260,11 @@ export default function NeuroLab() {
 
           {/* Games Tab */}
           <TabsContent value="games" className="mt-0">
-            <div className="space-y-3">
-              {/* Game Area Cards */}
-              {NEURO_LAB_AREAS.map((area) => {
-                const IconComponent = AREA_ICONS[area.icon] || Brain;
-                const locked = isAreaLocked(area.id);
-                const isRecommended = recommendedAreas.includes(area.id);
-                
-                return (
-                  <button
-                    key={area.id}
-                    onClick={() => handleEnterArea(area.id)}
-                    className={cn(
-                      "w-full p-3.5 rounded-xl border transition-all duration-200 text-left",
-                      "bg-card/50 hover:bg-card/80",
-                      isRecommended && !locked 
-                        ? "border-primary/40 bg-primary/5" 
-                        : "border-border/30 hover:border-primary/30",
-                      "active:scale-[0.98]",
-                      locked && "opacity-70"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-                        locked ? "bg-muted/50" : isRecommended ? "bg-primary/20" : "bg-primary/10"
-                      )}>
-                        <IconComponent className={cn(
-                          "w-5 h-5",
-                          locked ? "text-muted-foreground" : "text-primary"
-                        )} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-[13px]">{area.title}</h3>
-                          {isRecommended && !locked && (
-                            <span className="text-[8px] px-1.5 py-0.5 bg-primary/20 rounded text-primary font-semibold uppercase">
-                              Recommended
-                            </span>
-                          )}
-                          {locked && (
-                            <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-muted/50 rounded text-muted-foreground font-medium">
-                              <Lock className="w-2.5 h-2.5" />
-                              PRO
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
-                          {area.subtitle}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            <GamesLibrary 
+              weeklyXPEarned={weeklyXPEarned}
+              weeklyXPTarget={weeklyXPTarget}
+              onStartGame={handleEnterArea}
+            />
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-0">
@@ -405,6 +355,8 @@ export default function NeuroLab() {
         sessionType={nextSession?.id || null}
         recommendedAreas={recommendedAreas}
         contentDifficulty={sessionDifficulty}
+        weeklyXPTarget={weeklyXPTarget}
+        weeklyXPEarned={weeklyXPEarned}
       />
     </AppShell>
   );

@@ -9,12 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { 
   Gamepad2, Headphones, BookOpen, ChevronRight, Clock, 
-  Brain, Target, Lightbulb, Play, CheckCircle2, Sparkles, Circle
+  Brain, Target, Lightbulb, Play, Sparkles, Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONTENT_LIBRARY, ContentDifficulty } from "@/lib/contentLibrary";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { SessionType } from "@/lib/trainingPlans";
+import { SessionType, XP_VALUES } from "@/lib/trainingPlans";
 
 interface SessionPickerProps {
   open: boolean;
@@ -24,6 +24,8 @@ interface SessionPickerProps {
   sessionType: SessionType | null;
   recommendedAreas: NeuroLabArea[];
   contentDifficulty: ContentDifficulty;
+  weeklyXPTarget: number;
+  weeklyXPEarned: number;
 }
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -41,13 +43,14 @@ const DIFFICULTY_LABELS: Record<ContentDifficulty, { label: string; gameCount: n
 interface SessionStep {
   id: string;
   type: "game" | "content";
+  contentType?: "podcast" | "reading" | "book";
   title: string;
   subtitle: string;
   duration: string;
+  xp: number;
   icon: React.ElementType;
   areaId?: NeuroLabArea;
   contentId?: string;
-  completed: boolean;
 }
 
 export function SessionPicker({
@@ -58,10 +61,13 @@ export function SessionPicker({
   sessionType,
   recommendedAreas,
   contentDifficulty,
+  weeklyXPTarget,
+  weeklyXPEarned,
 }: SessionPickerProps) {
   const navigate = useNavigate();
   
   const difficultyConfig = DIFFICULTY_LABELS[contentDifficulty];
+  const xpProgress = Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100);
 
   // Build the session steps
   const buildSessionSteps = (): SessionStep[] => {
@@ -77,9 +83,9 @@ export function SessionPicker({
         title: area?.title || areaId,
         subtitle: "Complete 5 exercises",
         duration: "5-10 min",
+        xp: XP_VALUES.gameComplete,
         icon: AREA_ICONS[areaId] || Brain,
         areaId,
-        completed: false,
       });
     }
 
@@ -101,15 +107,22 @@ export function SessionPicker({
           book: BookOpen,
         };
         
+        const xpMap = {
+          podcast: XP_VALUES.podcastComplete,
+          reading: XP_VALUES.readingComplete,
+          book: XP_VALUES.bookChapterComplete,
+        };
+        
         steps.push({
           id: content.id,
           type: "content",
+          contentType: format,
           title: content.title,
           subtitle: content.author || "",
           duration: `${content.durationMinutes} min`,
+          xp: xpMap[format],
           icon: iconMap[format],
           contentId: content.id,
-          completed: false,
         });
         contentAdded++;
       }
@@ -119,10 +132,7 @@ export function SessionPicker({
   };
 
   const sessionSteps = buildSessionSteps();
-  const totalDuration = sessionSteps.reduce((acc, step) => {
-    const match = step.duration.match(/(\d+)/);
-    return acc + (match ? parseInt(match[1]) : 0);
-  }, 0);
+  const totalSessionXP = sessionSteps.reduce((acc, step) => acc + step.xp, 0);
 
   const handleStartGame = (areaId: NeuroLabArea) => {
     onOpenChange(false);
@@ -131,7 +141,6 @@ export function SessionPicker({
   };
 
   const handleStartContent = (contentId: string) => {
-    // For now just close - content player can be added later
     onOpenChange(false);
   };
 
@@ -158,9 +167,32 @@ export function SessionPicker({
 
         {/* Content */}
         <div className="p-4 space-y-4">
+          {/* Weekly XP Progress */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-amber-400" />
+                <span className="text-[12px] font-semibold">Weekly Progress</span>
+              </div>
+              <span className="text-[12px] font-bold text-amber-400">
+                {weeklyXPEarned} / {weeklyXPTarget} XP
+              </span>
+            </div>
+            <div className="h-2 bg-amber-500/10 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${xpProgress}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Complete this session to earn <span className="text-amber-400 font-semibold">+{totalSessionXP} XP</span>
+            </p>
+          </div>
+
           {/* Session Overview Card */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-            <h3 className="text-[13px] font-semibold mb-2">Your Session Plan</h3>
+          <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
             <div className="flex items-center gap-4 text-[11px]">
               <div className="flex items-center gap-1.5">
                 <Gamepad2 className="w-3.5 h-3.5 text-primary" />
@@ -170,24 +202,13 @@ export function SessionPicker({
                 <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{difficultyConfig.contentCount} content</span>
               </div>
-              <div className="flex items-center gap-1.5 ml-auto">
-                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-muted-foreground">~{totalDuration} min total</span>
-              </div>
             </div>
-          </div>
-
-          {/* How it works */}
-          <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-            <p className="text-[11px] text-muted-foreground">
-              <span className="font-medium text-foreground">How it works:</span> Start with a game to activate your brain, then reinforce with curated content. Complete all steps to finish your session.
-            </p>
           </div>
 
           {/* Session Steps */}
           <div className="space-y-3">
             <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Complete in order
+              Complete to earn XP
             </h4>
             
             {sessionSteps.map((step, index) => {
@@ -234,26 +255,18 @@ export function SessionPicker({
                         <h4 className="text-[13px] font-medium line-clamp-1">
                           {step.title}
                         </h4>
-                        <span className={cn(
-                          "text-[8px] px-1.5 py-0.5 rounded font-medium uppercase",
-                          isGame 
-                            ? "bg-primary/15 text-primary" 
-                            : "bg-emerald-500/10 text-emerald-400"
-                        )}>
-                          {isGame ? "Game" : "Content"}
-                        </span>
                       </div>
                       <p className="text-[10px] text-muted-foreground line-clamp-1">
                         {step.subtitle}
                       </p>
                     </div>
 
-                    {/* Duration & Action */}
+                    {/* XP Badge & Action */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        {step.duration}
-                      </span>
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
+                        <Star className="w-3 h-3 text-amber-400" />
+                        <span className="text-[10px] font-semibold text-amber-400">+{step.xp}</span>
+                      </div>
                       {isGame && step.areaId && (
                         <button
                           onClick={() => handleStartGame(step.areaId!)}
@@ -278,9 +291,9 @@ export function SessionPicker({
           </div>
 
           {/* Tip */}
-          <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
-            <p className="text-[10px] text-amber-200/80">
-              <span className="font-medium text-amber-300">💡 Tip:</span> Each game has 5 exercises. Try to complete them without breaks to maximize cognitive training effect.
+          <div className="p-3 rounded-xl bg-primary/5 border border-primary/20">
+            <p className="text-[10px] text-muted-foreground">
+              <span className="font-medium text-primary">💡 Why these activities?</span> Your plan requires {weeklyXPTarget} XP/week. Games train cognitive skills, content reinforces deep learning.
             </p>
           </div>
         </div>
