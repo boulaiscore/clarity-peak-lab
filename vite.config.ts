@@ -79,7 +79,8 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       devOptions: {
-        enabled: true,
+        // Disable PWA service worker in dev to avoid stale cached UI in the preview.
+        enabled: false,
       },
     }),
   ].filter(Boolean),
