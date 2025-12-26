@@ -2,7 +2,7 @@ import { useState } from "react";
 import { 
   Headphones, Clock, Target, ExternalLink, 
   BookOpen, FileText, ChevronDown, ChevronUp, Brain, Info, 
-  Zap, CheckCircle2, Timer, StopCircle, Calendar
+  Zap, CheckCircle2, Timer, StopCircle, Calendar, Library
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -994,6 +994,156 @@ export function CognitiveInputs() {
       <p className="text-[10px] text-muted-foreground/40 text-center pt-2">
         {user ? "Exposure logs synced" : "Login to log exposures"}
       </p>
+    </div>
+  );
+}
+
+// Library component - shows all completed items
+export function CognitiveLibrary() {
+  const { user } = useAuth();
+  const { data: completedIds = [], isLoading } = useLoggedExposures(user?.id);
+
+  const completedItems = COGNITIVE_INPUTS.filter(input => completedIds.includes(input.id));
+  
+  const podcastsCompleted = completedItems.filter(i => i.type === "podcast");
+  const booksCompleted = completedItems.filter(i => i.type === "book");
+  const articlesCompleted = completedItems.filter(i => i.type === "article");
+
+  if (!user) {
+    return (
+      <div className="text-center py-12">
+        <Library className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground">Login to see your library</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="h-6 w-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground">Loading library...</p>
+      </div>
+    );
+  }
+
+  if (completedItems.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Library className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground mb-1">Your library is empty</p>
+        <p className="text-xs text-muted-foreground/60">Mark content as completed to add it here</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Header */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+          <Headphones className="h-4 w-4 text-primary mx-auto mb-1" />
+          <p className="text-lg font-semibold">{podcastsCompleted.length}</p>
+          <p className="text-[10px] text-muted-foreground">Podcasts</p>
+        </div>
+        <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center">
+          <BookOpen className="h-4 w-4 text-amber-500 mx-auto mb-1" />
+          <p className="text-lg font-semibold">{booksCompleted.length}</p>
+          <p className="text-[10px] text-muted-foreground">Books</p>
+        </div>
+        <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 text-center">
+          <FileText className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+          <p className="text-lg font-semibold">{articlesCompleted.length}</p>
+          <p className="text-[10px] text-muted-foreground">Articles</p>
+        </div>
+      </div>
+
+      {/* Podcasts Section */}
+      {podcastsCompleted.length > 0 && (
+        <LibrarySection 
+          title="Podcasts" 
+          icon={Headphones}
+          items={podcastsCompleted}
+          iconColor="text-primary"
+          bgColor="bg-primary/10"
+        />
+      )}
+
+      {/* Books Section */}
+      {booksCompleted.length > 0 && (
+        <LibrarySection 
+          title="Books" 
+          icon={BookOpen}
+          items={booksCompleted}
+          iconColor="text-amber-500"
+          bgColor="bg-amber-500/10"
+        />
+      )}
+
+      {/* Articles Section */}
+      {articlesCompleted.length > 0 && (
+        <LibrarySection 
+          title="Articles" 
+          icon={FileText}
+          items={articlesCompleted}
+          iconColor="text-blue-500"
+          bgColor="bg-blue-500/10"
+        />
+      )}
+    </div>
+  );
+}
+
+// Library section component
+function LibrarySection({ 
+  title, 
+  icon: Icon, 
+  items,
+  iconColor,
+  bgColor
+}: { 
+  title: string; 
+  icon: React.ElementType;
+  items: CognitiveInput[];
+  iconColor: string;
+  bgColor: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={`w-6 h-6 rounded-lg ${bgColor} flex items-center justify-center`}>
+          <Icon className={`h-3.5 w-3.5 ${iconColor}`} />
+        </div>
+        <h4 className="text-sm font-medium">{title}</h4>
+        <span className="text-[10px] text-muted-foreground">({items.length})</span>
+      </div>
+
+      <div className="space-y-2">
+        {items.map(item => (
+          <a
+            key={item.id}
+            href={item.primaryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 hover:border-primary/30 transition-all"
+          >
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{item.title}</p>
+                {item.author && (
+                  <p className="text-[10px] text-muted-foreground/60">{item.author}</p>
+                )}
+                <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{item.summary}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <ThinkingSystemIcon system={item.thinkingSystem} />
+                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40" />
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }

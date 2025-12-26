@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { CognitiveTasksSection, CognitiveTasksLegend } from "@/components/dashboard/CognitiveInputs";
+import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { 
   Target, Brain, Lightbulb, Sparkles, Zap, ChevronRight, Lock, Crown, 
-  Gamepad2, BookMarked, Headphones, BookOpen, FileText
+  Gamepad2, BookMarked, Headphones, BookOpen, FileText, Library
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -182,14 +182,18 @@ export default function NeuroLab() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-2 mb-4">
-            <TabsTrigger value="games" className="flex items-center gap-2 text-xs">
-              <Gamepad2 className="w-4 h-4" />
+          <TabsList className="w-full grid grid-cols-3 mb-4">
+            <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
+              <Gamepad2 className="w-3.5 h-3.5" />
               Games
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center gap-2 text-xs">
-              <BookMarked className="w-4 h-4" />
-              Cognitive Tasks
+            <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
+              <BookMarked className="w-3.5 h-3.5" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="library" className="flex items-center gap-1.5 text-xs">
+              <Library className="w-3.5 h-3.5" />
+              Library
             </TabsTrigger>
           </TabsList>
 
@@ -296,6 +300,11 @@ export default function NeuroLab() {
                 Exposure logs synced
               </p>
             </div>
+          </TabsContent>
+
+          {/* Library Tab */}
+          <TabsContent value="library" className="mt-0">
+            <CognitiveLibrary />
           </TabsContent>
         </Tabs>
 
