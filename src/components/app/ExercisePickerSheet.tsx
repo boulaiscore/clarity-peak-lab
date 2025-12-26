@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Star, Play, Zap,
-  Clock, Sparkles
+  Clock, Sparkles, Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
@@ -10,6 +10,7 @@ import { XP_VALUES, getExerciseXP } from "@/lib/trainingPlans";
 import { CognitiveExercise } from "@/lib/exercises";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useExercises } from "@/hooks/useExercises";
+import { useCompletedExerciseIds } from "@/hooks/useExerciseXP";
 
 interface ExercisePickerSheetProps {
   open: boolean;
@@ -51,6 +52,7 @@ export function ExercisePickerSheet({
 }: ExercisePickerSheetProps) {
   const { data: exercises = [], isLoading } = useExercises();
   const [selectedDifficulty, setSelectedDifficulty] = useState<"all" | "easy" | "medium" | "hard">("all");
+  const completedExerciseIds = useCompletedExerciseIds();
 
   // Filter exercises by area and thinking mode
   const filteredExercises = exercises.filter(
@@ -167,6 +169,8 @@ export function ExercisePickerSheet({
               {displayedExercises.map((exercise, index) => {
                 const diffConfig = DIFFICULTY_CONFIG[exercise.difficulty as keyof typeof DIFFICULTY_CONFIG] || DIFFICULTY_CONFIG.medium;
                 const exerciseXP = getExerciseXP(exercise.difficulty as "easy" | "medium" | "hard");
+                const isCompleted = completedExerciseIds.has(exercise.id);
+                
                 return (
                   <motion.button
                     key={exercise.id}
@@ -176,14 +180,21 @@ export function ExercisePickerSheet({
                     onClick={() => onStartExercise(exercise)}
                     className={cn(
                       "w-full p-4 rounded-xl border transition-all duration-200 text-left",
-                      "bg-card/50 hover:bg-card/80 border-border/30 hover:border-primary/30",
+                      isCompleted 
+                        ? "bg-emerald-500/5 border-emerald-500/30 hover:bg-emerald-500/10" 
+                        : "bg-card/50 hover:bg-card/80 border-border/30 hover:border-primary/30",
                       "active:scale-[0.98]"
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      {/* Icon */}
-                      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0", modeConfig.bg)}>
-                        {thinkingMode === "fast" ? (
+                      {/* Icon / Completed indicator */}
+                      <div className={cn(
+                        "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                        isCompleted ? "bg-emerald-500/20" : modeConfig.bg
+                      )}>
+                        {isCompleted ? (
+                          <Check className="w-5 h-5 text-emerald-400" />
+                        ) : thinkingMode === "fast" ? (
                           <Zap className={cn("w-5 h-5", modeConfig.color)} />
                         ) : (
                           <Brain className={cn("w-5 h-5", modeConfig.color)} />
@@ -193,13 +204,23 @@ export function ExercisePickerSheet({
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-[13px] font-medium">{exercise.title}</h4>
+                          <h4 className={cn(
+                            "text-[13px] font-medium",
+                            isCompleted && "text-emerald-400"
+                          )}>
+                            {exercise.title}
+                          </h4>
                           <span className={cn(
                             "text-[8px] px-1.5 py-0.5 rounded font-medium uppercase",
                             diffConfig.bg, diffConfig.color
                           )}>
                             {diffConfig.label}
                           </span>
+                          {isCompleted && (
+                            <span className="text-[8px] px-1.5 py-0.5 rounded font-medium uppercase bg-emerald-500/20 text-emerald-400">
+                              Done
+                            </span>
+                          )}
                         </div>
                         <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
                           {exercise.prompt?.slice(0, 60)}...
@@ -208,12 +229,26 @@ export function ExercisePickerSheet({
 
                       {/* XP & Action */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
-                          <Star className="w-3 h-3 text-amber-400" />
-                          <span className="text-[10px] font-bold text-amber-400">+{exerciseXP}</span>
-                        </div>
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Play className="w-4 h-4 text-primary fill-current" />
+                        {isCompleted ? (
+                          <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                            <Check className="w-3 h-3 text-emerald-400" />
+                            <span className="text-[10px] font-bold text-emerald-400">+{exerciseXP}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
+                            <Star className="w-3 h-3 text-amber-400" />
+                            <span className="text-[10px] font-bold text-amber-400">+{exerciseXP}</span>
+                          </div>
+                        )}
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center",
+                          isCompleted ? "bg-emerald-500/10" : "bg-primary/10"
+                        )}>
+                          {isCompleted ? (
+                            <Play className="w-4 h-4 text-emerald-400 fill-current" />
+                          ) : (
+                            <Play className="w-4 h-4 text-primary fill-current" />
+                          )}
                         </div>
                       </div>
                     </div>

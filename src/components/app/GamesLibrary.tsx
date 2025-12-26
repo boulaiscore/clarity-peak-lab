@@ -7,9 +7,10 @@ import {
 import { cn } from "@/lib/utils";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { XP_VALUES } from "@/lib/trainingPlans";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { CognitiveExercise } from "@/lib/exercises";
+import { XPCelebration } from "./XPCelebration";
 
 interface GamesLibraryProps {
   weeklyXPEarned: number;
@@ -51,10 +52,25 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
   const [pickerMode, setPickerMode] = useState<"fast" | "slow">("fast");
+  const [showCelebration, setShowCelebration] = useState(false);
+  const previousXPRef = useRef(weeklyXPEarned);
   
   const xpProgress = Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100);
   const xpRemaining = Math.max(0, weeklyXPTarget - weeklyXPEarned);
   const gamesNeeded = Math.ceil(xpRemaining / XP_VALUES.gameComplete);
+  const goalReached = weeklyXPEarned >= weeklyXPTarget;
+
+  // Trigger celebration when goal is reached
+  useEffect(() => {
+    const wasBelow = previousXPRef.current < weeklyXPTarget;
+    const isNowReached = weeklyXPEarned >= weeklyXPTarget;
+    
+    if (wasBelow && isNowReached) {
+      setShowCelebration(true);
+    }
+    
+    previousXPRef.current = weeklyXPEarned;
+  }, [weeklyXPEarned, weeklyXPTarget]);
 
   const filteredAreas = selectedArea === "all" 
     ? NEURO_LAB_AREAS 
@@ -74,6 +90,12 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
 
   return (
     <div className="space-y-5">
+      {/* XP Celebration Modal */}
+      <XPCelebration 
+        show={showCelebration} 
+        onComplete={() => setShowCelebration(false)} 
+      />
+
       {/* Weekly XP Progress Card */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
         <div className="flex items-center justify-between mb-2">
