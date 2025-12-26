@@ -667,7 +667,7 @@ function SwipeableAlternativeCard({
   return (
     <button
       onClick={onSelect}
-      className={`flex-shrink-0 w-28 p-2.5 border border-border/20 bg-card/30 rounded-xl 
+      className={`flex-shrink-0 w-36 p-2.5 border border-border/20 bg-card/30 rounded-xl 
         transition-all hover:bg-card/50 hover:border-primary/40 active:scale-95 text-left
         ${isLogged ? 'opacity-40' : 'opacity-80 hover:opacity-100'}`}
     >
@@ -700,12 +700,19 @@ function SwipeableAlternativeCard({
         </div>
       </div>
       
-      {/* Title */}
-      <p className={`text-[10px] font-medium leading-tight line-clamp-2 mb-1.5 h-7 ${
+      {/* Title - single line truncated */}
+      <p className={`text-[11px] font-medium truncate mb-1 ${
         isLogged ? 'text-muted-foreground/50' : 'text-foreground/80'
       }`}>
         {input.title}
       </p>
+      
+      {/* Author - if available */}
+      {input.author && (
+        <p className="text-[9px] text-muted-foreground/50 truncate mb-1.5">
+          {input.author}
+        </p>
+      )}
       
       {/* Meta */}
       <div className="flex items-center justify-between">
