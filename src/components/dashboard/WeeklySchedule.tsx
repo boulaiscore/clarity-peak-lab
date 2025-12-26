@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { TRAINING_PLANS, TrainingPlanId, SessionConfig } from "@/lib/trainingPlans";
+import { TRAINING_PLANS, TrainingPlanId, SessionConfig, SessionType } from "@/lib/trainingPlans";
 import { Check, Zap, Brain, Sparkles } from "lucide-react";
 
 interface WeeklyScheduleProps {
   planId: TrainingPlanId;
+  completedSessionTypes?: SessionType[];
+  gamesCompletedThisWeek?: number;
   className?: string;
 }
 
@@ -18,17 +20,17 @@ const SESSION_DAYS: Record<TrainingPlanId, number[]> = {
   superhuman: [1, 3, 5], // Tue, Thu, Sat
 };
 
-const getSessionIcon = (session: SessionConfig) => {
-  if (session.thinkingSystems.length === 2) {
-    return Sparkles; // Dual process
-  }
-  if (session.thinkingSystems.includes("S1")) {
-    return Zap; // Fast thinking
-  }
-  return Brain; // Slow thinking
+const getSessionIcon = (session: SessionConfig, isCompleted: boolean) => {
+  if (isCompleted) return Check;
+  if (session.thinkingSystems.length === 2) return Sparkles;
+  if (session.thinkingSystems.includes("S1")) return Zap;
+  return Brain;
 };
 
-const getSessionColor = (session: SessionConfig) => {
+const getSessionColor = (session: SessionConfig, isCompleted: boolean) => {
+  if (isCompleted) {
+    return "from-emerald-500/30 to-emerald-600/30 border-emerald-500/50";
+  }
   if (session.thinkingSystems.length === 2) {
     return "from-purple-500/20 to-purple-600/20 border-purple-500/30";
   }
@@ -38,7 +40,12 @@ const getSessionColor = (session: SessionConfig) => {
   return "from-teal-500/20 to-teal-600/20 border-teal-500/30";
 };
 
-export function WeeklySchedule({ planId, className }: WeeklyScheduleProps) {
+export function WeeklySchedule({ 
+  planId, 
+  completedSessionTypes = [],
+  gamesCompletedThisWeek = 0,
+  className 
+}: WeeklyScheduleProps) {
   const plan = TRAINING_PLANS[planId];
   const sessionDays = SESSION_DAYS[planId];
   
@@ -54,22 +61,58 @@ export function WeeklySchedule({ planId, className }: WeeklyScheduleProps) {
     return plan.sessions[sessionIndex] || null;
   };
 
+  const isSessionCompleted = (session: SessionConfig | null): boolean => {
+    if (!session) return false;
+    return completedSessionTypes.includes(session.id);
+  };
+
+  // Calculate progress
+  const sessionsCompleted = completedSessionTypes.length;
+  const sessionsTotal = plan.sessionsPerWeek;
+  const progressPercent = Math.round((sessionsCompleted / sessionsTotal) * 100);
+
   return (
     <div className={cn("", className)}>
+      {/* Header with progress */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[12px] font-medium text-muted-foreground uppercase tracking-wider">
-          Weekly Schedule
-        </h3>
-        <span className="text-[11px] text-muted-foreground/70">
-          {plan.sessionsPerWeek} sessions • {plan.sessionDuration}
+        <div className="flex items-center gap-2">
+          <h3 className="text-[12px] font-medium text-muted-foreground uppercase tracking-wider">
+            This Week
+          </h3>
+          <span className={cn(
+            "text-[10px] font-medium px-1.5 py-0.5 rounded",
+            progressPercent === 100 
+              ? "bg-emerald-500/20 text-emerald-400"
+              : "bg-primary/10 text-primary"
+          )}>
+            {sessionsCompleted}/{sessionsTotal}
+          </span>
+        </div>
+        <span className="text-[10px] text-muted-foreground/70">
+          {gamesCompletedThisWeek} games played
         </span>
       </div>
       
+      {/* Progress bar */}
+      <div className="h-1 bg-muted/30 rounded-full mb-4 overflow-hidden">
+        <motion.div 
+          className={cn(
+            "h-full rounded-full",
+            progressPercent === 100 ? "bg-emerald-500" : "bg-primary"
+          )}
+          initial={{ width: 0 }}
+          animate={{ width: `${progressPercent}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+      
+      {/* Days grid */}
       <div className="grid grid-cols-7 gap-1.5">
         {DAY_LABELS.map((label, index) => {
           const session = getSessionForDay(index);
           const isToday = index === currentDayIndex;
-          const SessionIcon = session ? getSessionIcon(session) : null;
+          const isCompleted = isSessionCompleted(session);
+          const SessionIcon = session ? getSessionIcon(session, isCompleted) : null;
           
           return (
             <motion.div
@@ -91,18 +134,20 @@ export function WeeklySchedule({ planId, className }: WeeklyScheduleProps) {
               <div className={cn(
                 "w-9 h-9 rounded-xl flex items-center justify-center relative transition-all",
                 session 
-                  ? cn("bg-gradient-to-br border", getSessionColor(session))
+                  ? cn("bg-gradient-to-br border", getSessionColor(session, isCompleted))
                   : "bg-muted/20 border border-border/20",
-                isToday && "ring-2 ring-primary/50 ring-offset-1 ring-offset-background"
+                isToday && !isCompleted && "ring-2 ring-primary/50 ring-offset-1 ring-offset-background"
               )}>
                 {session && SessionIcon ? (
                   <SessionIcon className={cn(
                     "w-4 h-4",
-                    session.thinkingSystems.length === 2 
-                      ? "text-purple-400" 
-                      : session.thinkingSystems.includes("S1") 
-                        ? "text-amber-400" 
-                        : "text-teal-400"
+                    isCompleted 
+                      ? "text-emerald-400"
+                      : session.thinkingSystems.length === 2 
+                        ? "text-purple-400" 
+                        : session.thinkingSystems.includes("S1") 
+                          ? "text-amber-400" 
+                          : "text-teal-400"
                   )} />
                 ) : (
                   <span className="text-[10px] text-muted-foreground/40">—</span>
@@ -111,7 +156,10 @@ export function WeeklySchedule({ planId, className }: WeeklyScheduleProps) {
               
               {/* Session name (only for session days) */}
               {session && (
-                <span className="text-[8px] text-muted-foreground/70 mt-1 text-center leading-tight max-w-[40px] truncate">
+                <span className={cn(
+                  "text-[8px] mt-1 text-center leading-tight max-w-[40px] truncate",
+                  isCompleted ? "text-emerald-400/70" : "text-muted-foreground/70"
+                )}>
                   {session.name.split(" ")[0]}
                 </span>
               )}
@@ -121,18 +169,22 @@ export function WeeklySchedule({ planId, className }: WeeklyScheduleProps) {
       </div>
       
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-border/20">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
-          <span className="text-[9px] text-muted-foreground">S1 Fast</span>
+      <div className="flex items-center justify-center gap-3 mt-4 pt-3 border-t border-border/20">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-emerald-500/50" />
+          <span className="text-[8px] text-muted-foreground">Done</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-teal-500/50" />
-          <span className="text-[9px] text-muted-foreground">S2 Slow</span>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-amber-500/50" />
+          <span className="text-[8px] text-muted-foreground">S1</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-purple-500/50" />
-          <span className="text-[9px] text-muted-foreground">Dual</span>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-teal-500/50" />
+          <span className="text-[8px] text-muted-foreground">S2</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-purple-500/50" />
+          <span className="text-[8px] text-muted-foreground">Dual</span>
         </div>
       </div>
     </div>

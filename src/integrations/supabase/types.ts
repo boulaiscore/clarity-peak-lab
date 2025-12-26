@@ -71,6 +71,60 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_content_assignments: {
+        Row: {
+          completed_at: string | null
+          content_id: string
+          content_type: string
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_required: boolean
+          month_start: string
+          session_type: string | null
+          status: string
+          time_spent_minutes: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_required?: boolean
+          month_start: string
+          session_type?: string | null
+          status?: string
+          time_spent_minutes?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_required?: boolean
+          month_start?: string
+          session_type?: string | null
+          status?: string
+          time_spent_minutes?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       neuro_gym_sessions: {
         Row: {
           area: string
@@ -425,6 +479,36 @@ export type Database = {
           source?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      weekly_training_progress: {
+        Row: {
+          created_at: string
+          id: string
+          plan_id: string
+          sessions_completed: Json
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_id?: string
+          sessions_completed?: Json
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_id?: string
+          sessions_completed?: Json
+          updated_at?: string
+          user_id?: string
+          week_start?: string
         }
         Relationships: []
       }

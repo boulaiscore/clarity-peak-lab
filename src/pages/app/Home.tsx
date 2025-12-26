@@ -5,7 +5,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, Dumbbell, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WeeklySchedule } from "@/components/dashboard/WeeklySchedule";
+import { MonthlyContentCard } from "@/components/dashboard/MonthlyContentCard";
 import { TRAINING_PLANS } from "@/lib/trainingPlans";
+import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
+import { useMonthlyContent } from "@/hooks/useMonthlyContent";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -15,7 +18,22 @@ const Home = () => {
   const trainingPlan = user?.trainingPlan || "light";
   const plan = TRAINING_PLANS[trainingPlan];
 
+  const { 
+    completedSessionTypes, 
+    gamesCompletedThisWeek,
+    getNextSession,
+  } = useWeeklyProgress();
+
+  const {
+    assignments,
+    completedContent,
+    totalContent,
+    totalReadingTime,
+    requiredContentPerWeek,
+  } = useMonthlyContent();
+
   const hasProtocol = !!user?.trainingPlan;
+  const nextSession = getNextSession();
 
   return (
     <AppShell>
@@ -60,10 +78,13 @@ const Home = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-[16px] font-semibold text-foreground mb-0.5">
-                  Start Training
+                  {nextSession ? `Start: ${nextSession.name}` : "Start Training"}
                 </h3>
                 <p className="text-[12px] text-muted-foreground">
-                  Focus • Reasoning • Creativity
+                  {nextSession 
+                    ? `${nextSession.duration} • ${nextSession.thinkingSystems.join(" + ")}`
+                    : "Focus • Reasoning • Creativity"
+                  }
                 </p>
               </div>
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -78,7 +99,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="p-4 rounded-xl bg-card/50 border border-border/30 mb-5"
+          className="p-4 rounded-xl bg-card/50 border border-border/30 mb-4"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -95,7 +116,11 @@ const Home = () => {
           </div>
 
           {hasProtocol ? (
-            <WeeklySchedule planId={trainingPlan} />
+            <WeeklySchedule 
+              planId={trainingPlan} 
+              completedSessionTypes={completedSessionTypes}
+              gamesCompletedThisWeek={gamesCompletedThisWeek}
+            />
           ) : (
             <div className="text-center py-4">
               <Sparkles className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
@@ -106,6 +131,15 @@ const Home = () => {
             </div>
           )}
         </motion.div>
+
+        {/* Monthly Content Card */}
+        <MonthlyContentCard
+          assignments={assignments || []}
+          completedContent={completedContent}
+          totalContent={totalContent}
+          totalReadingTime={totalReadingTime}
+          requiredPerWeek={requiredContentPerWeek}
+        />
 
         {/* Quick Stats or Tips */}
         <motion.div
