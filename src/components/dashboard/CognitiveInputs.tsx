@@ -525,8 +525,8 @@ function PrescriptionCard({
           onClick={handleToggle}
           disabled={isToggling || !isLoggedIn}
           className="shrink-0 disabled:opacity-50 group"
-          aria-label={isLogged ? "Mark as not logged" : "Log exposure"}
-          title={isLogged ? "Exposure logged" : "Log exposure"}
+          aria-label={isLogged ? "Mark as incomplete" : "Mark as completed"}
+          title={isLogged ? "Completed" : "Mark as completed"}
         >
           {isToggling ? (
             <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -552,9 +552,15 @@ function PrescriptionCard({
             <span className={`text-sm font-medium ${isLogged ? 'text-muted-foreground' : 'text-foreground'}`}>
               {input.title}
             </span>
-            <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
-              Active
-            </Badge>
+            {isLogged ? (
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400">
+                Completed
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 border-primary/30 text-primary">
+                Active
+              </Badge>
+            )}
           </div>
           {input.author && (
             <div className="text-[10px] text-muted-foreground/60">{input.author}</div>
@@ -711,7 +717,7 @@ function SwipeableAlternativeCard({
           }}
           className={`shrink-0 ${(!isLoggedIn || isToggling) ? 'opacity-50' : 'cursor-pointer'}`}
           role="button"
-          aria-label={isLogged ? "Remove log" : "Log exposure"}
+          aria-label={isLogged ? "Mark as incomplete" : "Mark as completed"}
         >
           {isToggling ? (
             <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
