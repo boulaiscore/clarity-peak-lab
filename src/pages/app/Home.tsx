@@ -30,6 +30,7 @@ const Home = () => {
     totalContent,
     totalReadingTime,
     requiredContentPerWeek,
+    isLoading: isLoadingContent,
   } = useMonthlyContent();
 
   const hasProtocol = !!user?.trainingPlan;
@@ -139,6 +140,7 @@ const Home = () => {
           totalContent={totalContent}
           totalReadingTime={totalReadingTime}
           requiredPerWeek={requiredContentPerWeek}
+          isLoading={isLoadingContent}
         />
 
         {/* Quick Stats or Tips */}

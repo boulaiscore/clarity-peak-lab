@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Book, Headphones, FileText, Clock, Check, Play } from "lucide-react";
+import { Book, Headphones, FileText, Clock, Check, Play, Loader2, Sparkles } from "lucide-react";
 import { ContentAssignment, ContentType } from "@/hooks/useMonthlyContent";
 
 interface MonthlyContentCardProps {
@@ -9,6 +9,7 @@ interface MonthlyContentCardProps {
   totalContent: number;
   totalReadingTime: number;
   requiredPerWeek: number;
+  isLoading?: boolean;
   onStartReading?: (contentId: string) => void;
   className?: string;
 }
@@ -42,6 +43,7 @@ export function MonthlyContentCard({
   totalContent,
   totalReadingTime,
   requiredPerWeek,
+  isLoading = false,
   onStartReading,
   className
 }: MonthlyContentCardProps) {
@@ -87,7 +89,15 @@ export function MonthlyContentCard({
       </div>
 
       {/* Content list */}
-      {assignments.length > 0 ? (
+      {isLoading ? (
+        <div className="text-center py-8">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          </div>
+          <p className="text-[11px] text-muted-foreground">Generazione contenuti con AI...</p>
+          <p className="text-[10px] text-muted-foreground/70 mt-1">Basato sul tuo piano {requiredPerWeek}/settimana</p>
+        </div>
+      ) : assignments.length > 0 ? (
         <div className="space-y-2">
           {assignments.slice(0, 4).map((content) => {
             const Icon = getContentIcon(content.content_type);

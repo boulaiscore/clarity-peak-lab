@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { startOfMonth, format } from "date-fns";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 export type ContentType = "podcast" | "reading" | "book";
 export type ContentStatus = "pending" | "in_progress" | "completed" | "skipped";
@@ -26,12 +28,13 @@ export interface ContentAssignment {
 export function useMonthlyContent() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const hasAttemptedAssignment = useRef(false);
   
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
 
-  const { data: assignments, isLoading } = useQuery({
+  const { data: assignments, isLoading, refetch } = useQuery({
     queryKey: ["monthly-content", user?.id, monthStart],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -48,6 +51,63 @@ export function useMonthlyContent() {
     },
     enabled: !!user?.id,
   });
+
+  // Auto-assign content when user visits and no content exists for the month
+  const assignContent = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("Not authenticated");
+      
+      console.log("[useMonthlyContent] Requesting content suggestions...");
+      
+      const { data, error } = await supabase.functions.invoke("suggest-content", {
+        body: {
+          userId: user.id,
+          planId,
+          monthStart,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.alreadyAssigned) {
+        console.log("[useMonthlyContent] Content was already assigned");
+      } else {
+        console.log(`[useMonthlyContent] Assigned ${data.assigned} content items`);
+        toast.success(`${data.assigned} contenuti assegnati per questo mese`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["monthly-content"] });
+    },
+    onError: (error: Error) => {
+      console.error("[useMonthlyContent] Assignment error:", error);
+      if (error.message.includes("429")) {
+        toast.error("Troppi richieste. Riprova più tardi.");
+      } else if (error.message.includes("402")) {
+        toast.error("Crediti AI esauriti.");
+      } else {
+        toast.error("Errore nell'assegnazione contenuti");
+      }
+    },
+  });
+
+  // Auto-trigger content assignment when:
+  // 1. User is authenticated
+  // 2. No content exists for this month
+  // 3. Haven't attempted assignment yet in this session
+  useEffect(() => {
+    if (
+      user?.id && 
+      !isLoading && 
+      assignments && 
+      assignments.length === 0 && 
+      !hasAttemptedAssignment.current &&
+      !assignContent.isPending
+    ) {
+      hasAttemptedAssignment.current = true;
+      assignContent.mutate();
+    }
+  }, [user?.id, isLoading, assignments, assignContent.isPending]);
 
   const addContent = useMutation({
     mutationFn: async (content: {
@@ -161,10 +221,13 @@ export function useMonthlyContent() {
 
   return {
     assignments,
-    isLoading,
+    isLoading: isLoading || assignContent.isPending,
+    isAssigning: assignContent.isPending,
     addContent,
     updateContentStatus,
     addReadingTime,
+    assignContent,
+    refetch,
     contentByType,
     completedContent,
     totalContent,

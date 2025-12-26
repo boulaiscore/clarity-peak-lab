@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.claim-beta-access]
 verify_jwt = false
+
+[functions.suggest-content]
+verify_jwt = false
