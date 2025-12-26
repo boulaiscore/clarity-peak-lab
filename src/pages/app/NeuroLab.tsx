@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
@@ -43,6 +43,7 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
 
 export default function NeuroLab() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
   const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
@@ -55,7 +56,10 @@ export default function NeuroLab() {
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   const [activeTab, setActiveTab] = useState("games");
   const [tasksSubTab, setTasksSubTab] = useState<"active" | "library">("active");
-  const [showSessionPicker, setShowSessionPicker] = useState(false);
+  
+  // Auto-open session picker if continuing session
+  const continueSession = searchParams.get("continueSession") === "true";
+  const [showSessionPicker, setShowSessionPicker] = useState(continueSession);
 
   const trainingPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const nextSession = getNextSession();
@@ -398,6 +402,7 @@ export default function NeuroLab() {
         onOpenChange={setShowSessionPicker}
         sessionName={nextSession?.name || "Training Session"}
         sessionDescription={nextSession?.description || ""}
+        sessionType={nextSession?.id || null}
         recommendedAreas={recommendedAreas}
         contentDifficulty={sessionDifficulty}
       />

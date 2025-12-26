@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { X, Trophy, Brain, Star, CheckCircle } from "lucide-react";
+import { X, Trophy, Brain, Star, CheckCircle, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExercises, useUpdateUserMetrics, useUserMetrics } from "@/hooks/useExercises";
 import { useSaveNeuroLabSession, useCompletedExerciseIds } from "@/hooks/useNeuroLab";
 import { useUpdateXP, useCheckAndAwardBadges, useUserBadges } from "@/hooks/useBadges";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useDailyTraining } from "@/hooks/useDailyTraining";
+import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { XP_REWARDS, BadgeMetrics, Badge } from "@/lib/badges";
 import { 
@@ -16,6 +17,7 @@ import {
   NEURO_LAB_AREAS,
   generateNeuroLabSession,
 } from "@/lib/neuroLab";
+import { SessionType } from "@/lib/trainingPlans";
 import { CognitiveExercise, getMetricUpdates } from "@/lib/exercises";
 import { toast } from "sonner";
 import { DrillRenderer } from "@/components/drills/DrillRenderer";
@@ -26,11 +28,13 @@ export default function NeuroLabSessionRunner() {
   const { user } = useAuth();
   const { canStartSession, incrementSession } = usePremiumGating();
   const { isDailyCompleted, invalidateDailyTraining } = useDailyTraining();
+  const { recordSession, getNextSession } = useWeeklyProgress();
   
   const area = searchParams.get("area") as NeuroLabArea;
   const duration = searchParams.get("duration") as NeuroLabDuration;
   const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
   const isDailyTraining = searchParams.get("daily") === "true" && !isDailyCompleted;
+  const sessionTypeParam = searchParams.get("sessionType") as SessionType | null;
   
   const { data: allExercises, isLoading: exercisesLoading } = useExercises();
   const { data: completedExerciseIds, isLoading: completedLoading } = useCompletedExerciseIds(user?.id);
@@ -40,6 +44,10 @@ export default function NeuroLabSessionRunner() {
   const updateMetrics = useUpdateUserMetrics();
   const updateXP = useUpdateXP();
   const checkBadges = useCheckAndAwardBadges();
+  
+  // Get current session type from param or from next session
+  const nextSession = getNextSession();
+  const currentSessionType = sessionTypeParam || nextSession?.id || null;
   
   const [sessionExercises, setSessionExercises] = useState<CognitiveExercise[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -161,6 +169,14 @@ export default function NeuroLabSessionRunner() {
             completed_at: new Date().toISOString(),
             is_daily_training: isDailyTraining,
           });
+          
+          // Record this game in weekly progress if we have a session type
+          if (currentSessionType) {
+            await recordSession.mutateAsync({
+              sessionType: currentSessionType,
+              gamesCount: 1,
+            });
+          }
           
           // Invalidate daily training queries if this was a daily session
           if (isDailyTraining) {
@@ -336,10 +352,24 @@ export default function NeuroLabSessionRunner() {
         </div>
         
         <div className="flex flex-col gap-3 w-full max-w-sm">
-          <Button onClick={() => navigate("/app/dashboard")} className="w-full">
+          {/* Primary action: continue session if there's a session type */}
+          {currentSessionType && (
+            <Button 
+              onClick={() => navigate(`/neuro-lab?continueSession=true`)} 
+              className="w-full gap-2"
+            >
+              Continue Session
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          )}
+          <Button 
+            variant={currentSessionType ? "outline" : "default"}
+            onClick={() => navigate("/app/dashboard")} 
+            className="w-full"
+          >
             View Dashboard
           </Button>
-          <Button variant="outline" onClick={() => navigate("/neuro-lab")} className="w-full">
+          <Button variant="ghost" onClick={() => navigate("/neuro-lab")} className="w-full">
             Back to Neuro Lab
           </Button>
         </div>
