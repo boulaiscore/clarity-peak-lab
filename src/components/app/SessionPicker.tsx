@@ -14,12 +14,14 @@ import {
 import { cn } from "@/lib/utils";
 import { CONTENT_LIBRARY, ContentDifficulty } from "@/lib/contentLibrary";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
+import { SessionType } from "@/lib/trainingPlans";
 
 interface SessionPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sessionName: string;
   sessionDescription: string;
+  sessionType: SessionType | null;
   recommendedAreas: NeuroLabArea[];
   contentDifficulty: ContentDifficulty;
 }
@@ -53,6 +55,7 @@ export function SessionPicker({
   onOpenChange,
   sessionName,
   sessionDescription,
+  sessionType,
   recommendedAreas,
   contentDifficulty,
 }: SessionPickerProps) {
@@ -123,7 +126,8 @@ export function SessionPicker({
 
   const handleStartGame = (areaId: NeuroLabArea) => {
     onOpenChange(false);
-    navigate(`/neuro-lab/${areaId}?daily=true`);
+    const sessionParam = sessionType ? `&sessionType=${sessionType}` : "";
+    navigate(`/neuro-lab/${areaId}?daily=true${sessionParam}`);
   };
 
   const handleStartContent = (contentId: string) => {
