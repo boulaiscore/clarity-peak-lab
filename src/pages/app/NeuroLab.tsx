@@ -17,6 +17,8 @@ import { useDailyTraining } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrainingPlanId } from "@/lib/trainingPlans";
+import { SessionPicker } from "@/components/app/SessionPicker";
+import { ContentDifficulty } from "@/lib/contentLibrary";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
   Target,
@@ -53,11 +55,26 @@ export default function NeuroLab() {
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   const [activeTab, setActiveTab] = useState("games");
   const [tasksSubTab, setTasksSubTab] = useState<"active" | "library">("active");
+  const [showSessionPicker, setShowSessionPicker] = useState(false);
 
   const trainingPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const nextSession = getNextSession();
   const recommendedAreas = nextSession ? SESSION_TO_AREAS[nextSession.id] || [] : [];
   const isWeekComplete = sessionsCompleted >= sessionsRequired;
+
+  // Map session type to content difficulty
+  const SESSION_DIFFICULTY: Record<string, ContentDifficulty> = {
+    "fast-focus": "light",
+    "mixed": "medium",
+    "consolidation": "medium",
+    "fast-control": "light",
+    "slow-reasoning": "dense",
+    "dual-process": "medium",
+    "heavy-slow": "dense",
+    "dual-stress": "medium",
+    "reflection": "dense",
+  };
+  const sessionDifficulty = nextSession ? SESSION_DIFFICULTY[nextSession.id] || "medium" : "medium";
 
   const handleEnterArea = (areaId: NeuroLabArea) => {
     if (!canStartSession()) {
@@ -108,8 +125,8 @@ export default function NeuroLab() {
   };
 
   const handleStartRecommended = () => {
-    if (recommendedAreas.length > 0) {
-      handleEnterArea(recommendedAreas[0]);
+    if (nextSession && recommendedAreas.length > 0) {
+      setShowSessionPicker(true);
     }
   };
 
@@ -374,6 +391,15 @@ export default function NeuroLab() {
         onOpenChange={setShowDailyConfirm}
         reminderTime={reminderTime || "08:00"}
         onConfirm={handleConfirmDailyTraining}
+      />
+
+      <SessionPicker
+        open={showSessionPicker}
+        onOpenChange={setShowSessionPicker}
+        sessionName={nextSession?.name || "Training Session"}
+        sessionDescription={nextSession?.description || ""}
+        recommendedAreas={recommendedAreas}
+        contentDifficulty={sessionDifficulty}
       />
     </AppShell>
   );
