@@ -9,8 +9,10 @@ import { useUpdateXP, useCheckAndAwardBadges, useUserBadges } from "@/hooks/useB
 import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useDailyTraining } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
+import { useRecordExerciseCompletion } from "@/hooks/useExerciseXP";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { XP_REWARDS, BadgeMetrics, Badge } from "@/lib/badges";
+import { getExerciseXP } from "@/lib/trainingPlans";
 import { 
   NeuroLabArea, 
   NeuroLabDuration, 
@@ -29,7 +31,7 @@ export default function NeuroLabSessionRunner() {
   const { canStartSession, incrementSession } = usePremiumGating();
   const { isDailyCompleted, invalidateDailyTraining } = useDailyTraining();
   const { recordSession, getNextSession } = useWeeklyProgress();
-  
+  const recordExerciseCompletion = useRecordExerciseCompletion();
   const area = searchParams.get("area") as NeuroLabArea;
   const duration = searchParams.get("duration") as NeuroLabDuration;
   const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
@@ -108,7 +110,7 @@ export default function NeuroLabSessionRunner() {
   const currentExercise = sessionExercises[currentIndex];
   const progress = sessionExercises.length > 0 ? ((currentIndex + 1) / sessionExercises.length) * 100 : 0;
 
-  const handleExerciseComplete = useCallback((result: { score: number; correct: number }) => {
+  const handleExerciseComplete = useCallback(async (result: { score: number; correct: number }) => {
     if (!currentExercise) return;
     
     // Update both state and ref (ref is used for immediate access in handleNext)
@@ -117,11 +119,26 @@ export default function NeuroLabSessionRunner() {
     responsesRef.current = updated;
     setResponses(updated);
     
+    // Record individual exercise completion with XP
+    if (user?.id && currentExercise.gym_area) {
+      try {
+        await recordExerciseCompletion.mutateAsync({
+          exerciseId: currentExercise.id,
+          gymArea: currentExercise.gym_area,
+          thinkingMode: currentExercise.thinking_mode || null,
+          difficulty: (currentExercise.difficulty as "easy" | "medium" | "hard") || "medium",
+          score: result.score,
+        });
+      } catch (error) {
+        console.error("Failed to record exercise XP:", error);
+      }
+    }
+    
     // Auto advance after brief delay
     setTimeout(() => {
       handleNext();
     }, 1000);
-  }, [currentExercise]);
+  }, [currentExercise, user?.id, recordExerciseCompletion]);
 
   const handleNext = async () => {
     // Prevent multiple calls

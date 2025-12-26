@@ -71,6 +71,48 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_completions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          difficulty: string
+          exercise_id: string
+          gym_area: string
+          id: string
+          score: number | null
+          thinking_mode: string | null
+          user_id: string
+          week_start: string
+          xp_earned: number
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          difficulty: string
+          exercise_id: string
+          gym_area: string
+          id?: string
+          score?: number | null
+          thinking_mode?: string | null
+          user_id: string
+          week_start?: string
+          xp_earned: number
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          difficulty?: string
+          exercise_id?: string
+          gym_area?: string
+          id?: string
+          score?: number | null
+          thinking_mode?: string | null
+          user_id?: string
+          week_start?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       monthly_content_assignments: {
         Row: {
           completed_at: string | null

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { startOfWeek, format } from "date-fns";
-import { TrainingPlanId, TRAINING_PLANS, SessionType, XP_VALUES } from "@/lib/trainingPlans";
+import { TrainingPlanId, TRAINING_PLANS, SessionType } from "@/lib/trainingPlans";
 import type { Json } from "@/integrations/supabase/types";
 
 interface SessionCompleted {
@@ -27,6 +27,7 @@ export function useWeeklyProgress() {
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
 
+  // Fetch weekly progress record
   const { data: progress, isLoading } = useQuery({
     queryKey: ["weekly-progress", user?.id, weekStart],
     queryFn: async () => {
@@ -56,6 +57,28 @@ export function useWeeklyProgress() {
         ...data,
         sessions_completed: (data.sessions_completed as unknown as SessionCompleted[]) || [],
       } as WeeklyProgress;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch weekly XP from exercise_completions table (real XP)
+  const { data: weeklyXPData } = useQuery({
+    queryKey: ["weekly-exercise-xp", user?.id, weekStart],
+    queryFn: async () => {
+      if (!user?.id) return { totalXP: 0, completions: [] };
+
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("week_start", weekStart);
+
+      if (error) throw error;
+
+      const completions = data || [];
+      const totalXP = completions.reduce((sum, c) => sum + (c.xp_earned || 0), 0);
+
+      return { totalXP, completions };
     },
     enabled: !!user?.id,
   });
@@ -122,6 +145,7 @@ export function useWeeklyProgress() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
     },
   });
 
@@ -135,8 +159,8 @@ export function useWeeklyProgress() {
     (sum, s) => sum + s.games_count, 0
   ) || 0;
 
-  // Calculate weekly XP earned (games only for now, content tracking can be added)
-  const weeklyXPEarned = gamesCompletedThisWeek * XP_VALUES.gameComplete;
+  // Weekly XP from real exercise completions
+  const weeklyXPEarned = weeklyXPData?.totalXP || 0;
   const weeklyXPTarget = plan.weeklyXPTarget;
 
   // Get which session types have been completed
