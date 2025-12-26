@@ -193,3 +193,36 @@ export function useSaveBaseline() {
     },
   });
 }
+
+// Get user's current XP and level
+export function useBadges() {
+  const { data: metrics, isLoading } = useQuery({
+    queryKey: ["user-xp-level"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { experiencePoints: 0, cognitiveLevel: 1 };
+      
+      const { data, error } = await supabase
+        .from("user_cognitive_metrics")
+        .select("experience_points, cognitive_level")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching XP:", error);
+        return { experiencePoints: 0, cognitiveLevel: 1 };
+      }
+      
+      return {
+        experiencePoints: data?.experience_points || 0,
+        cognitiveLevel: data?.cognitive_level || 1,
+      };
+    },
+  });
+  
+  return {
+    experiencePoints: metrics?.experiencePoints || 0,
+    cognitiveLevel: metrics?.cognitiveLevel || 1,
+    isLoading,
+  };
+}
