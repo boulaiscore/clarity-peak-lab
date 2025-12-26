@@ -1,0 +1,246 @@
+// NeuroLoop Official Training Plans
+
+export type TrainingPlanId = "light" | "expert" | "superhuman";
+
+export type SessionType = "fast-focus" | "mixed" | "consolidation" | "fast-control" | "slow-reasoning" | "dual-process" | "heavy-slow" | "dual-stress" | "reflection";
+
+export type ContentType = "podcast" | "reading" | "book-extract" | "none";
+
+export interface SessionConfig {
+  id: SessionType;
+  name: string;
+  description: string;
+  duration: string; // e.g. "15-18 min"
+  thinkingSystems: ("S1" | "S2")[];
+  content: {
+    type: ContentType;
+    required: boolean;
+    duration?: string; // e.g. "5-10 min"
+    description: string;
+  } | null;
+  games: {
+    focus: "S1" | "S2" | "S1+S2";
+    intensity: "light" | "medium" | "heavy";
+  };
+}
+
+export interface TrainingPlan {
+  id: TrainingPlanId;
+  name: string;
+  tagline: string;
+  description: string;
+  philosophy: string;
+  targetAudience: string[];
+  sessionsPerWeek: number;
+  sessionDuration: string; // e.g. "15-18 min"
+  contentPerWeek: number;
+  contentTypes: ContentType[];
+  intensity: "low" | "medium" | "high";
+  color: string;
+  icon: "leaf" | "target" | "flame";
+  sessions: SessionConfig[];
+}
+
+export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
+  light: {
+    id: "light",
+    name: "Light Training",
+    tagline: "Maintain & Sharpen",
+    description: "Allenamento leggero ma intelligente. I contenuti aiutano, non pesano.",
+    philosophy: "Per chi vuole restare lucido senza affaticarsi. Entry point ideale.",
+    targetAudience: [
+      "Professionisti con poco tempo",
+      "Chi vuole mantenimento cognitivo",
+      "Nuovi utenti"
+    ],
+    sessionsPerWeek: 3,
+    sessionDuration: "15-18 min",
+    contentPerWeek: 1,
+    contentTypes: ["podcast", "reading"],
+    intensity: "low",
+    color: "emerald",
+    icon: "leaf",
+    sessions: [
+      {
+        id: "fast-focus",
+        name: "Fast Focus",
+        description: "Attenzione e reattività",
+        duration: "15-18 min",
+        thinkingSystems: ["S1"],
+        content: null,
+        games: { focus: "S1", intensity: "light" }
+      },
+      {
+        id: "mixed",
+        name: "Mixed",
+        description: "S1 + leggero S2",
+        duration: "15-18 min",
+        thinkingSystems: ["S1", "S2"],
+        content: {
+          type: "podcast",
+          required: false,
+          duration: "5-10 min",
+          description: "Podcast breve o reading non tecnico (opzionale)"
+        },
+        games: { focus: "S1+S2", intensity: "light" }
+      },
+      {
+        id: "consolidation",
+        name: "Consolidation",
+        description: "Consolidamento leggero",
+        duration: "15-18 min",
+        thinkingSystems: ["S2"],
+        content: {
+          type: "reading",
+          required: false,
+          duration: "10 min",
+          description: "Articolo riflessivo"
+        },
+        games: { focus: "S2", intensity: "light" }
+      }
+    ]
+  },
+  expert: {
+    id: "expert",
+    name: "Expert Training",
+    tagline: "Build Depth & Control",
+    description: "Bilanciare rapidità e profondità. Pensare meglio sotto pressione.",
+    philosophy: "Per decision-maker che vogliono controllo, non solo velocità.",
+    targetAudience: [
+      "Utenti già ingaggiati",
+      "Decision-maker",
+      "Chi cerca profondità"
+    ],
+    sessionsPerWeek: 3,
+    sessionDuration: "22-25 min",
+    contentPerWeek: 2,
+    contentTypes: ["podcast", "reading", "book-extract"],
+    intensity: "medium",
+    color: "blue",
+    icon: "target",
+    sessions: [
+      {
+        id: "fast-control",
+        name: "Fast Control",
+        description: "System 1 intensivo",
+        duration: "22-25 min",
+        thinkingSystems: ["S1"],
+        content: null,
+        games: { focus: "S1", intensity: "medium" }
+      },
+      {
+        id: "slow-reasoning",
+        name: "Slow Reasoning",
+        description: "System 2 con priming",
+        duration: "22-25 min",
+        thinkingSystems: ["S2"],
+        content: {
+          type: "podcast",
+          required: true,
+          duration: "10-15 min",
+          description: "Podcast denso o reading strutturato (prescritto)"
+        },
+        games: { focus: "S2", intensity: "medium" }
+      },
+      {
+        id: "dual-process",
+        name: "Dual Process",
+        description: "S1 + S2 integrati",
+        duration: "22-25 min",
+        thinkingSystems: ["S1", "S2"],
+        content: {
+          type: "book-extract",
+          required: true,
+          duration: "10-15 min",
+          description: "Estratto libro o articolo MIT/HBR"
+        },
+        games: { focus: "S1+S2", intensity: "medium" }
+      }
+    ]
+  },
+  superhuman: {
+    id: "superhuman",
+    name: "Superhuman Training",
+    tagline: "Elite Cognitive Conditioning",
+    description: "Il contenuto non accompagna il training. È parte del carico.",
+    philosophy: "Per high performers con tolleranza allo sforzo cognitivo.",
+    targetAudience: [
+      "Utenti avanzati",
+      "High performers",
+      "Chi cerca l'elite"
+    ],
+    sessionsPerWeek: 3,
+    sessionDuration: "30-35 min",
+    contentPerWeek: 3,
+    contentTypes: ["podcast", "reading", "book-extract"],
+    intensity: "high",
+    color: "red",
+    icon: "flame",
+    sessions: [
+      {
+        id: "heavy-slow",
+        name: "Heavy Slow Thinking",
+        description: "Priming obbligatorio + S2 intensivo",
+        duration: "30-35 min",
+        thinkingSystems: ["S2"],
+        content: {
+          type: "podcast",
+          required: true,
+          duration: "10-15 min",
+          description: "Podcast o reading denso (obbligatorio)"
+        },
+        games: { focus: "S2", intensity: "heavy" }
+      },
+      {
+        id: "dual-stress",
+        name: "Dual-Process Stress",
+        description: "Dual-task con interferenza",
+        duration: "30-35 min",
+        thinkingSystems: ["S1", "S2"],
+        content: {
+          type: "reading",
+          required: true,
+          duration: "10 min",
+          description: "Reading dilemma o saggio breve"
+        },
+        games: { focus: "S1+S2", intensity: "heavy" }
+      },
+      {
+        id: "reflection",
+        name: "Consolidation & Reflection",
+        description: "Libro + riflessione obbligatoria",
+        duration: "30-35 min",
+        thinkingSystems: ["S2"],
+        content: {
+          type: "book-extract",
+          required: true,
+          duration: "15-20 min",
+          description: "Estratto libro + prompt riflessivo obbligatorio"
+        },
+        games: { focus: "S2", intensity: "medium" }
+      }
+    ]
+  }
+};
+
+export function getTrainingPlan(id: TrainingPlanId): TrainingPlan {
+  return TRAINING_PLANS[id];
+}
+
+export function getPlanColor(id: TrainingPlanId): string {
+  const colors: Record<TrainingPlanId, string> = {
+    light: "emerald",
+    expert: "blue",
+    superhuman: "red"
+  };
+  return colors[id];
+}
+
+export function getPlanIntensityLabel(intensity: "low" | "medium" | "high"): string {
+  const labels: Record<string, string> = {
+    low: "Basso",
+    medium: "Medio",
+    high: "Alto"
+  };
+  return labels[intensity];
+}

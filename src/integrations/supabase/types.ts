@@ -132,6 +132,7 @@ export type Database = {
           session_duration: string | null
           subscription_status: string | null
           training_goals: string[] | null
+          training_plan: string | null
           updated_at: string
           user_id: string
           work_type: string | null
@@ -154,6 +155,7 @@ export type Database = {
           session_duration?: string | null
           subscription_status?: string | null
           training_goals?: string[] | null
+          training_plan?: string | null
           updated_at?: string
           user_id: string
           work_type?: string | null
@@ -176,6 +178,7 @@ export type Database = {
           session_duration?: string | null
           subscription_status?: string | null
           training_goals?: string[] | null
+          training_plan?: string | null
           updated_at?: string
           user_id?: string
           work_type?: string | null

@@ -3,15 +3,17 @@ import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useAuth, TrainingGoal, SessionDuration, DailyTimeCommitment } from "@/contexts/AuthContext";
+import { useAuth, TrainingGoal, SessionDuration } from "@/contexts/AuthContext";
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing, Sun, Moon } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
+import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
+import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -35,9 +37,7 @@ const Account = () => {
   const [name, setName] = useState(user?.name || "");
   const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>(user?.trainingGoals || []);
   const [sessionDuration, setSessionDuration] = useState<SessionDuration | undefined>(user?.sessionDuration);
-  const [dailyTimeCommitment, setDailyTimeCommitment] = useState<DailyTimeCommitment | undefined>(
-    user?.dailyTimeCommitment,
-  );
+  const [trainingPlan, setTrainingPlan] = useState<TrainingPlanId>(user?.trainingPlan || "light");
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState<boolean | null>(null);
@@ -134,7 +134,7 @@ const Account = () => {
       setName(user.name || "");
       setTrainingGoals(user.trainingGoals || []);
       setSessionDuration(user.sessionDuration);
-      setDailyTimeCommitment(user.dailyTimeCommitment);
+      setTrainingPlan(user.trainingPlan || "light");
     }
   }, [user]);
 
@@ -157,8 +157,12 @@ const Account = () => {
     
     setReminderEnabled(enabled);
     
+    // Get session duration from selected plan
+    const planConfig = TRAINING_PLANS[trainingPlan];
+    const planDuration = planConfig.sessionDuration.split("-")[0]; // e.g. "15-18 min" -> "15"
+    
     // Update reminder in notification system
-    setDailyReminder(enabled, reminderTime, dailyTimeCommitment || "7min");
+    setDailyReminder(enabled, reminderTime, `${planDuration}min`);
     
     // Save to database
     if (user?.id) {
@@ -177,9 +181,13 @@ const Account = () => {
   const handleReminderTimeChange = async (time: string) => {
     setReminderTime(time);
     
+    // Get session duration from selected plan
+    const planConfig = TRAINING_PLANS[trainingPlan];
+    const planDuration = planConfig.sessionDuration.split("-")[0];
+    
     // Update reminder in notification system
     if (reminderEnabled) {
-      setDailyReminder(true, time, dailyTimeCommitment || "7min");
+      setDailyReminder(true, time, `${planDuration}min`);
     }
     
     // Save to database
@@ -198,17 +206,11 @@ const Account = () => {
       name,
       trainingGoals,
       sessionDuration,
-      dailyTimeCommitment,
+      trainingPlan,
     });
     toast({ title: "Settings saved", description: "Your preferences have been updated." });
     setIsSaving(false);
   };
-
-  const dailyTimeOptions: { value: DailyTimeCommitment; label: string }[] = [
-    { value: "3min", label: "3 min" },
-    { value: "7min", label: "7 min" },
-    { value: "10min", label: "10 min" },
-  ];
 
   // Get member since date (from user creation or fallback)
   const memberSince = user?.id ? format(new Date(), "MMMM yyyy") : "—";
@@ -468,28 +470,17 @@ const Account = () => {
             </div>
           </div>
 
-          {/* Daily Time */}
+          {/* Training Plan */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              Daily Commitment
+              <Dumbbell className="w-4 h-4 text-primary" />
+              Training Plan
             </h3>
-            <div className="flex gap-2">
-              {dailyTimeOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setDailyTimeCommitment(option.value)}
-                  className={cn(
-                    "flex-1 p-3 rounded-xl border text-sm transition-all",
-                    dailyTimeCommitment === option.value
-                      ? "border-primary bg-primary/8"
-                      : "border-border hover:border-primary/30",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            <TrainingPlanSelector 
+              selectedPlan={trainingPlan} 
+              onSelectPlan={setTrainingPlan}
+              showDetails={true}
+            />
           </div>
 
           {/* Daily Reminder */}
@@ -527,7 +518,7 @@ const Account = () => {
                     <div className="flex items-center gap-2 text-sm">
                       <BellRing className="w-4 h-4 text-primary" />
                       <span>
-                        Daily {dailyTimeCommitment || "7min"} session reminder at{" "}
+                        Daily training reminder at{" "}
                         <span className="font-semibold">{reminderTime}</span>
                       </span>
                     </div>
@@ -544,6 +535,8 @@ const Account = () => {
                     </p>
                   )}
                 </div>
+              )}
+            </div>
           )}
 
           {/* Theme Toggle */}
@@ -564,8 +557,6 @@ const Account = () => {
               />
             </div>
           </div>
-            </div>
-          )}
 
           {/* Wearable Integration */}
           <WearableIntegrationSection />

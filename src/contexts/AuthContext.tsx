@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { sendWelcomeEmail } from "@/lib/emailService";
+import { TrainingPlanId } from "@/lib/trainingPlans";
+
 export type TrainingGoal = "fast_thinking" | "slow_thinking";
 export type SessionDuration = "30s" | "2min" | "5min" | "7min";
 export type DailyTimeCommitment = "3min" | "7min" | "10min";
@@ -23,6 +25,7 @@ export interface UserProfile {
   training_goals: TrainingGoal[];
   session_duration: SessionDuration;
   daily_time_commitment: DailyTimeCommitment;
+  training_plan: TrainingPlanId;
   subscription_status: "free" | "premium";
   onboarding_completed: boolean;
   reminder_enabled: boolean | null;
@@ -50,6 +53,7 @@ export interface User {
   trainingGoals?: TrainingGoal[];
   sessionDuration?: SessionDuration;
   dailyTimeCommitment?: DailyTimeCommitment;
+  trainingPlan?: TrainingPlanId;
   
   // Reminder settings
   reminderEnabled?: boolean;
@@ -88,6 +92,7 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     trainingGoals: profile?.training_goals || [],
     sessionDuration: profile?.session_duration || "2min",
     dailyTimeCommitment: profile?.daily_time_commitment || "10min",
+    trainingPlan: (profile?.training_plan as TrainingPlanId) || "light",
     reminderEnabled: profile?.reminder_enabled ?? false,
     reminderTime: profile?.reminder_time || undefined,
     onboardingCompleted: profile?.onboarding_completed || false,
@@ -259,6 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.trainingGoals !== undefined) profileUpdates.training_goals = updates.trainingGoals;
     if (updates.sessionDuration !== undefined) profileUpdates.session_duration = updates.sessionDuration;
     if (updates.dailyTimeCommitment !== undefined) profileUpdates.daily_time_commitment = updates.dailyTimeCommitment;
+    if (updates.trainingPlan !== undefined) profileUpdates.training_plan = updates.trainingPlan;
     if (updates.subscriptionStatus !== undefined) profileUpdates.subscription_status = updates.subscriptionStatus;
     if (updates.reminderEnabled !== undefined) profileUpdates.reminder_enabled = updates.reminderEnabled;
     if (updates.reminderTime !== undefined) profileUpdates.reminder_time = updates.reminderTime;
