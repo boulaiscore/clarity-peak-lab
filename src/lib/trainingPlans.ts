@@ -38,8 +38,20 @@ export interface TrainingPlan {
   intensity: "low" | "medium" | "high";
   color: string;
   icon: "leaf" | "target" | "flame";
+  weeklyXPTarget: number; // Target XP to earn per week
   sessions: SessionConfig[];
 }
+
+// XP Points configuration
+export const XP_VALUES = {
+  // Games
+  gameComplete: 25,        // Per game completed (5 exercises)
+  gamePerfect: 10,         // Bonus for 90%+ score
+  // Content
+  podcastComplete: 15,     // Per podcast listened
+  readingComplete: 20,     // Per reading completed
+  bookChapterComplete: 30, // Per book chapter read
+} as const;
 
 export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   light: {
@@ -60,6 +72,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "low",
     color: "emerald",
     icon: "leaf",
+    weeklyXPTarget: 150, // 3 games (75) + 1-2 content (35-50) + bonuses
     sessions: [
       {
         id: "fast-focus",
@@ -118,6 +131,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "medium",
     color: "blue",
     icon: "target",
+    weeklyXPTarget: 250, // 3 games (75) + 2 content (50-60) + bonuses + more intensity
     sessions: [
       {
         id: "fast-control",
@@ -176,6 +190,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "high",
     color: "red",
     icon: "flame",
+    weeklyXPTarget: 400, // 3+ games (100+) + 3 content (75) + bonuses + max intensity
     sessions: [
       {
         id: "heavy-slow",

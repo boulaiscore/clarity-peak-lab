@@ -1,0 +1,207 @@
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { 
+  Brain, Target, Lightbulb, Star, Play, Clock, Zap,
+  ChevronRight, Filter
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
+import { XP_VALUES } from "@/lib/trainingPlans";
+import { useState } from "react";
+
+interface GamesLibraryProps {
+  weeklyXPEarned: number;
+  weeklyXPTarget: number;
+  onStartGame: (areaId: NeuroLabArea) => void;
+}
+
+const AREA_ICONS: Record<string, React.ElementType> = {
+  focus: Target,
+  reasoning: Brain,
+  creativity: Lightbulb,
+};
+
+const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  focus: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
+  reasoning: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20" },
+  creativity: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20" },
+};
+
+// Define game types within each area
+const GAME_TYPES = {
+  focus: [
+    { id: "focus-fast", name: "Fast Attention", mode: "fast", description: "Visual search & reaction speed" },
+    { id: "focus-slow", name: "Deep Focus", mode: "slow", description: "Sustained attention & pattern extraction" },
+  ],
+  reasoning: [
+    { id: "reasoning-fast", name: "Quick Logic", mode: "fast", description: "Rapid pattern recognition" },
+    { id: "reasoning-slow", name: "Critical Analysis", mode: "slow", description: "Deep reasoning & bias detection" },
+  ],
+  creativity: [
+    { id: "creativity-fast", name: "Flash Association", mode: "fast", description: "Rapid divergent thinking" },
+    { id: "creativity-slow", name: "Concept Forge", mode: "slow", description: "Novel concept generation" },
+  ],
+} as const;
+
+export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: GamesLibraryProps) {
+  const [selectedArea, setSelectedArea] = useState<NeuroLabArea | "all">("all");
+  
+  const xpProgress = Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100);
+  const xpRemaining = Math.max(0, weeklyXPTarget - weeklyXPEarned);
+  const gamesNeeded = Math.ceil(xpRemaining / XP_VALUES.gameComplete);
+
+  const filteredAreas = selectedArea === "all" 
+    ? NEURO_LAB_AREAS 
+    : NEURO_LAB_AREAS.filter(a => a.id === selectedArea);
+
+  return (
+    <div className="space-y-5">
+      {/* Weekly XP Progress Card */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-amber-400" />
+            <span className="text-[12px] font-semibold">Weekly Goal</span>
+          </div>
+          <span className="text-[12px] font-bold text-amber-400">
+            {weeklyXPEarned} / {weeklyXPTarget} XP
+          </span>
+        </div>
+        <div className="h-2 bg-amber-500/10 rounded-full overflow-hidden mb-2">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${xpProgress}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          />
+        </div>
+        {xpRemaining > 0 ? (
+          <p className="text-[10px] text-muted-foreground">
+            <span className="text-amber-400 font-medium">{gamesNeeded} more game{gamesNeeded > 1 ? 's' : ''}</span> to reach your weekly target
+          </p>
+        ) : (
+          <p className="text-[10px] text-emerald-400 font-medium">
+            🎉 Weekly goal achieved! Keep training to level up faster.
+          </p>
+        )}
+      </div>
+
+      {/* Area Filter */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <button
+          onClick={() => setSelectedArea("all")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all shrink-0",
+            selectedArea === "all"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted/50 text-muted-foreground hover:bg-muted"
+          )}
+        >
+          <Filter className="w-3 h-3" />
+          All
+        </button>
+        {NEURO_LAB_AREAS.map((area) => {
+          const Icon = AREA_ICONS[area.id] || Brain;
+          const colors = AREA_COLORS[area.id];
+          return (
+            <button
+              key={area.id}
+              onClick={() => setSelectedArea(area.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all shrink-0",
+                selectedArea === area.id
+                  ? `${colors.bg} ${colors.text} ${colors.border} border`
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              )}
+            >
+              <Icon className="w-3 h-3" />
+              {area.title.split(" ")[0]}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Games Grid */}
+      <div className="space-y-4">
+        {filteredAreas.map((area) => {
+          const Icon = AREA_ICONS[area.id] || Brain;
+          const colors = AREA_COLORS[area.id];
+          const games = GAME_TYPES[area.id as keyof typeof GAME_TYPES] || [];
+
+          return (
+            <div key={area.id} className="space-y-2">
+              {/* Area Header */}
+              <div className="flex items-center gap-2">
+                <div className={cn("w-6 h-6 rounded-lg flex items-center justify-center", colors.bg)}>
+                  <Icon className={cn("w-3.5 h-3.5", colors.text)} />
+                </div>
+                <h3 className="text-[13px] font-semibold">{area.title}</h3>
+              </div>
+
+              {/* Games in this area */}
+              <div className="grid gap-2">
+                {games.map((game, index) => (
+                  <motion.button
+                    key={game.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => onStartGame(area.id)}
+                    className={cn(
+                      "w-full p-3 rounded-xl border transition-all duration-200 text-left",
+                      "bg-card/50 hover:bg-card/80",
+                      colors.border, "hover:border-primary/30",
+                      "active:scale-[0.98]"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Mode indicator */}
+                      <div className={cn(
+                        "w-10 h-10 rounded-lg flex items-center justify-center",
+                        game.mode === "fast" ? "bg-amber-500/10" : "bg-blue-500/10"
+                      )}>
+                        <Zap className={cn(
+                          "w-5 h-5",
+                          game.mode === "fast" ? "text-amber-400" : "text-blue-400"
+                        )} />
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-[13px] font-medium">{game.name}</h4>
+                          <span className={cn(
+                            "text-[8px] px-1.5 py-0.5 rounded font-medium uppercase",
+                            game.mode === "fast" 
+                              ? "bg-amber-500/10 text-amber-400" 
+                              : "bg-blue-500/10 text-blue-400"
+                          )}>
+                            {game.mode === "fast" ? "S1" : "S2"}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground line-clamp-1">
+                          {game.description}
+                        </p>
+                      </div>
+
+                      {/* XP & Action */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
+                          <Star className="w-3 h-3 text-amber-400" />
+                          <span className="text-[10px] font-semibold text-amber-400">+{XP_VALUES.gameComplete}</span>
+                        </div>
+                        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Play className="w-3.5 h-3.5 text-primary fill-current" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

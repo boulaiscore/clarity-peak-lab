@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { startOfWeek, format } from "date-fns";
-import { TrainingPlanId, TRAINING_PLANS, SessionType } from "@/lib/trainingPlans";
+import { TrainingPlanId, TRAINING_PLANS, SessionType, XP_VALUES } from "@/lib/trainingPlans";
 import type { Json } from "@/integrations/supabase/types";
 
 interface SessionCompleted {
@@ -135,6 +135,10 @@ export function useWeeklyProgress() {
     (sum, s) => sum + s.games_count, 0
   ) || 0;
 
+  // Calculate weekly XP earned (games only for now, content tracking can be added)
+  const weeklyXPEarned = gamesCompletedThisWeek * XP_VALUES.gameComplete;
+  const weeklyXPTarget = plan.weeklyXPTarget;
+
   // Get which session types have been completed
   const completedSessionTypes = progress?.sessions_completed?.map(s => s.session_type) || [];
 
@@ -153,6 +157,8 @@ export function useWeeklyProgress() {
     sessionsRequired,
     weeklyProgress,
     gamesCompletedThisWeek,
+    weeklyXPEarned,
+    weeklyXPTarget,
     completedSessionTypes,
     getNextSession,
     plan,
