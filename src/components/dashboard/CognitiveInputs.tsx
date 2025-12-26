@@ -650,25 +650,25 @@ function SwipeableAlternativeCard({
   isLogged, 
   onToggleLogged,
   isToggling,
-  isLoggedIn
+  isLoggedIn,
+  onSelect
 }: { 
   input: CognitiveInput; 
   isLogged: boolean;
   onToggleLogged: () => void;
   isToggling: boolean;
   isLoggedIn: boolean;
+  onSelect: () => void;
 }) {
   const config = INPUT_TYPE_CONFIG[input.type];
   const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
   const Icon = config.icon;
 
   return (
-    <a
-      href={input.primaryUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <button
+      onClick={onSelect}
       className={`flex-shrink-0 w-28 p-2.5 border border-border/20 bg-card/30 rounded-xl 
-        transition-all hover:bg-card/50 hover:border-border/40 active:scale-95
+        transition-all hover:bg-card/50 hover:border-primary/40 active:scale-95 text-left
         ${isLogged ? 'opacity-40' : 'opacity-80 hover:opacity-100'}`}
     >
       {/* Icon + log button */}
@@ -680,14 +680,14 @@ function SwipeableAlternativeCard({
         }`}>
           <Icon className={`h-3.5 w-3.5 ${config.color}`} />
         </div>
-        <button 
+        <div 
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onToggleLogged();
           }}
-          disabled={isToggling || !isLoggedIn}
-          className="shrink-0 disabled:opacity-50"
+          className={`shrink-0 ${(!isLoggedIn || isToggling) ? 'opacity-50' : 'cursor-pointer'}`}
+          role="button"
           aria-label={isLogged ? "Remove log" : "Log exposure"}
         >
           {isToggling ? (
@@ -697,7 +697,7 @@ function SwipeableAlternativeCard({
           ) : (
             <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full" />
           )}
-        </button>
+        </div>
       </div>
       
       {/* Title */}
@@ -714,7 +714,7 @@ function SwipeableAlternativeCard({
         </div>
         <DifficultyIndicator level={input.difficulty} />
       </div>
-    </a>
+    </button>
   );
 }
 
@@ -728,6 +728,7 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   const queryClient = useQueryClient();
   const { data: loggedIds = [], isLoading } = useLoggedExposures(user?.id);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string>(ACTIVE_PRESCRIPTIONS[type]);
 
   const toggleMutation = useMutation({
     mutationFn: async ({ inputId, isCurrentlyLogged }: { inputId: string; isCurrentlyLogged: boolean }) => {
@@ -780,11 +781,14 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   };
 
   const allInputs = COGNITIVE_INPUTS.filter(i => i.type === type);
-  const activeId = ACTIVE_PRESCRIPTIONS[type];
   const activeInput = allInputs.find(i => i.id === activeId);
   const alternatives = allInputs.filter(i => i.id !== activeId);
   const config = INPUT_TYPE_CONFIG[type];
   const Icon = config.icon;
+
+  const handleSelectAlternative = (newActiveId: string) => {
+    setActiveId(newActiveId);
+  };
 
   return (
     <div className="space-y-3">
@@ -825,7 +829,7 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
       {alternatives.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-[10px] text-muted-foreground/40">
-            Swipe for alternatives
+            Tap to switch
           </p>
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide"
                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -837,6 +841,7 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
                 onToggleLogged={() => handleToggle(input.id)}
                 isToggling={togglingId === input.id}
                 isLoggedIn={!!user}
+                onSelect={() => handleSelectAlternative(input.id)}
               />
             ))}
           </div>
