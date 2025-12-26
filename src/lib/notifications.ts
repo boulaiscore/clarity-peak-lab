@@ -119,7 +119,7 @@ export function scheduleTrainingReminder(): void {
   
   showLocalNotification(randomMessage.title, {
     body: randomMessage.body,
-    data: { url: "/app/categories" },
+    data: { url: "/neuro-lab" },
   });
 }
 

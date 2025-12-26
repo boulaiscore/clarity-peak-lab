@@ -19,7 +19,6 @@ import Premium from "./pages/app/Premium";
 import Account from "./pages/app/Account";
 import TrainingsList from "./pages/app/TrainingsList";
 import TrainingRunner from "./pages/app/TrainingRunner";
-import TrainingCategories from "./pages/app/TrainingCategories";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
 import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
 import BrainScienceDeepDive from "./pages/BrainScienceDeepDive";
@@ -132,14 +131,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <TrainingRunner />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/app/categories"
-        element={
-          <ProtectedRoute>
-            <TrainingCategories />
           </ProtectedRoute>
         }
       />
