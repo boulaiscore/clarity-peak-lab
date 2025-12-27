@@ -77,7 +77,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all shrink-0",
             selectedArea === "all"
-              ? "bg-primary text-primary-foreground"
+              ? "bg-blue-500 text-white"
               : "bg-muted/50 text-muted-foreground hover:bg-muted"
           )}
         >
@@ -134,7 +134,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                     className={cn(
                       "w-full p-3 rounded-xl border transition-all duration-200 text-left",
                       "bg-card/50 hover:bg-card/80",
-                      colors.border, "hover:border-primary/30",
+                      "border-blue-500/20 hover:border-blue-500/40",
                       "active:scale-[0.98]"
                     )}
                   >
@@ -174,8 +174,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                           <Star className="w-3 h-3 text-amber-400" />
                           <span className="text-[10px] font-semibold text-amber-400">+{game.xpRange} XP</span>
                         </div>
-                        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <ChevronRight className="w-4 h-4 text-primary" />
+                        <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                          <ChevronRight className="w-4 h-4 text-blue-400" />
                         </div>
                       </div>
                     </div>
