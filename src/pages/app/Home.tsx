@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
 import { cn } from "@/lib/utils";
+import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { toast } from "@/hooks/use-toast";
 
 // Circular progress ring component
 interface RingProps {
@@ -67,12 +71,23 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
   );
 };
 
+const PLAN_ICONS: Record<TrainingPlanId, React.ElementType> = {
+  light: Leaf,
+  expert: Target,
+  superhuman: Flame,
+};
+
 const Home = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { sessionsCompleted, weeklyXPEarned } = useWeeklyProgress();
   const { cognitiveReadinessScore, isLoading: readinessLoading } = useCognitiveReadiness();
+  
+  const [showProtocolSheet, setShowProtocolSheet] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
+  const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
   const readinessScore = cognitiveReadinessScore ?? 50;
   
@@ -85,6 +100,36 @@ const Home = () => {
 
   const handleStartSession = () => {
     navigate("/neuro-lab");
+  };
+
+  const handleOpenProtocolSheet = () => {
+    setSelectedPlan(currentPlan);
+    setShowProtocolSheet(true);
+  };
+
+  const handleConfirmProtocolChange = async () => {
+    if (!selectedPlan || selectedPlan === currentPlan) {
+      setShowProtocolSheet(false);
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateUser({ trainingPlan: selectedPlan });
+      toast({
+        title: "Protocol updated",
+        description: `Switched to ${TRAINING_PLANS[selectedPlan].name}`,
+      });
+      setShowProtocolSheet(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update protocol",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Get insight based on readiness
@@ -215,17 +260,23 @@ const Home = () => {
           transition={{ delay: 0.15 }}
           className="grid grid-cols-2 gap-3 mb-8"
         >
-          <div className="p-4 rounded-xl bg-card border border-border/40">
+          <button 
+            onClick={handleOpenProtocolSheet}
+            className="p-4 rounded-xl bg-card border border-border/40 text-left hover:bg-muted/30 transition-colors active:scale-[0.98]"
+          >
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
               Active Protocol
             </p>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-xs font-medium text-primary uppercase tracking-wide">
-                Superhuman
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span className="text-xs font-medium text-primary uppercase tracking-wide">
+                  {TRAINING_PLANS[currentPlan].name.replace(" Training", "")}
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
-          </div>
+          </button>
           <div className="p-4 rounded-xl bg-card border border-border/40">
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
               Weekly XP
@@ -287,6 +338,83 @@ const Home = () => {
           </p>
         </motion.div>
       </main>
+
+      {/* Protocol Change Sheet */}
+      <Sheet open={showProtocolSheet} onOpenChange={setShowProtocolSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="text-lg">Change Protocol</SheetTitle>
+          </SheetHeader>
+          
+          <div className="space-y-3 mb-6">
+            {(Object.keys(TRAINING_PLANS) as TrainingPlanId[]).map((planId) => {
+              const plan = TRAINING_PLANS[planId];
+              const PlanIcon = PLAN_ICONS[planId];
+              const isSelected = selectedPlan === planId;
+              const isCurrent = currentPlan === planId;
+              
+              return (
+                <button
+                  key={planId}
+                  onClick={() => setSelectedPlan(planId)}
+                  className={cn(
+                    "w-full p-4 rounded-xl border text-left transition-all",
+                    isSelected 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border/40 bg-card hover:bg-muted/30"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center",
+                        isSelected ? "bg-primary/10" : "bg-muted/50"
+                      )}>
+                        <PlanIcon className={cn(
+                          "w-5 h-5",
+                          isSelected ? "text-primary" : "text-muted-foreground"
+                        )} />
+                      </div>
+                      <div>
+                        <p className={cn(
+                          "text-sm font-medium",
+                          isSelected && "text-primary"
+                        )}>
+                          {plan.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {plan.sessionsPerWeek} sessions/week · {plan.sessionDuration}
+                        </p>
+                      </div>
+                    </div>
+                    {isCurrent && (
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-0.5 rounded-full bg-muted/50">
+                        Current
+                      </span>
+                    )}
+                    {isSelected && !isCurrent && (
+                      <Check className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={handleConfirmProtocolChange}
+            disabled={isUpdating || selectedPlan === currentPlan}
+            className={cn(
+              "w-full py-4 rounded-xl text-base font-semibold transition-all",
+              selectedPlan && selectedPlan !== currentPlan
+                ? "bg-primary text-primary-foreground active:scale-[0.98]"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
+            )}
+          >
+            {isUpdating ? "Updating..." : "Confirm Change"}
+          </button>
+        </SheetContent>
+      </Sheet>
     </AppShell>
   );
 };
