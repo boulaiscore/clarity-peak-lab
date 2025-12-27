@@ -87,7 +87,7 @@ const PLAN_ICONS: Record<TrainingPlanId, React.ElementType> = {
 const Home = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
-  const { sessionsCompleted, weeklyXPEarned } = useWeeklyProgress();
+  const { sessionsCompleted, weeklyXPEarned, weeklyXPTarget, plan } = useWeeklyProgress();
   const { cognitiveReadinessScore, isLoading: readinessLoading } = useCognitiveReadiness();
   
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
@@ -277,9 +277,18 @@ const Home = () => {
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
               Weekly XP
             </p>
-            <p className="text-sm font-semibold tabular-nums">
-              {weeklyXPEarned} <span className="text-muted-foreground font-normal">points</span>
-            </p>
+            <div className="flex items-center gap-1.5">
+              <Star className="w-3.5 h-3.5 text-amber-400" />
+              <p className="text-sm font-semibold tabular-nums text-amber-400">
+                {weeklyXPEarned} <span className="text-muted-foreground font-normal">/ {weeklyXPTarget}</span>
+              </p>
+            </div>
+            <div className="h-1 bg-amber-500/10 rounded-full overflow-hidden mt-2">
+              <div 
+                className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100)}%` }}
+              />
+            </div>
           </div>
         </motion.section>
 
