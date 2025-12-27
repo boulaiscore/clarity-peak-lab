@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Headphones, BookOpen, FileText, CheckCircle2, 
-  Brain, Zap, Target, ChevronRight, ExternalLink
+  Brain, Zap, Target, ChevronRight, ExternalLink, Star
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -266,7 +266,7 @@ export function TrainingTasks() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   
   // Get weekly progress for content XP toward plan goal
-  const { weeklyContentXP, weeklyXPTarget, plan } = useWeeklyProgress();
+  const { weeklyContentXP, weeklyGamesXP, weeklyXPEarned, weeklyXPTarget, plan } = useWeeklyProgress();
 
   const toggleMutation = useMutation({
     mutationFn: async ({ taskId, taskType }: { taskId: string; taskType: InputType }) => {
@@ -334,10 +334,13 @@ export function TrainingTasks() {
   const earnedXP = completedTasks.reduce((sum, t) => sum + calculateXP(t.type), 0);
   const completionPercent = ACTIVE_TASKS.length > 0 ? Math.round((completedTasks.length / ACTIVE_TASKS.length) * 100) : 0;
   
-  // Weekly goal progress (content XP toward plan target)
-  // Content contributes ~40% of weekly target typically
-  const contentTarget = Math.round(weeklyXPTarget * 0.4);
-  const weeklyGoalPercent = Math.min(100, Math.round((weeklyContentXP / contentTarget) * 100));
+  // Weekly goal progress
+  const xpProgress = Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100);
+  const xpRemaining = Math.max(0, weeklyXPTarget - weeklyXPEarned);
+  // Estimate content items needed based on average XP (article = 20)
+  const avgXPPerContent = XP_VALUES.readingComplete;
+  const contentItemsNeeded = Math.ceil(xpRemaining / avgXPPerContent);
+  const goalReached = weeklyXPEarned >= weeklyXPTarget;
 
   if (isLoading) {
     return (
@@ -357,32 +360,51 @@ export function TrainingTasks() {
       transition={{ duration: 0.4 }}
       className="space-y-4"
     >
-      {/* Weekly Goal Card - like GamesLibrary */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-teal-500/10 via-card/50 to-primary/5 border border-teal-500/20">
-        <div className="flex items-center justify-between mb-3">
+      {/* Weekly Goal Card - exactly like GamesLibrary */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-teal-500" />
-            <h3 className="text-[13px] font-semibold">Weekly Goal</h3>
+            <Star className="w-4 h-4 text-amber-400" />
+            <span className="text-[12px] font-semibold">Weekly Goal</span>
           </div>
-          <div className="text-right">
-            <span className="text-lg font-bold text-teal-500">{weeklyContentXP}</span>
-            <span className="text-[10px] text-muted-foreground">/{contentTarget} XP</span>
-          </div>
+          <span className="text-[12px] font-bold text-amber-400">
+            {weeklyXPEarned} / {weeklyXPTarget} XP
+          </span>
         </div>
-        
-        {/* Progress bar */}
-        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden mb-2">
-          <motion.div
+        <div className="h-2 bg-amber-500/10 rounded-full overflow-hidden mb-2">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
             initial={{ width: 0 }}
-            animate={{ width: `${weeklyGoalPercent}%` }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-teal-500 to-primary rounded-full"
+            animate={{ width: `${xpProgress}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
         
-        <p className="text-[10px] text-muted-foreground">
-          {weeklyGoalPercent >= 100 ? "Goal reached!" : `${100 - weeklyGoalPercent}% to goal`} • {plan.name} plan
-        </p>
+        {/* XP Breakdown */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400" />
+            <span className="text-[10px] text-muted-foreground">
+              Games: <span className="text-blue-400 font-medium">{weeklyGamesXP}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-purple-400" />
+            <span className="text-[10px] text-muted-foreground">
+              Content: <span className="text-purple-400 font-medium">{weeklyContentXP}</span>
+            </span>
+          </div>
+        </div>
+        
+        {xpRemaining > 0 ? (
+          <p className="text-[10px] text-muted-foreground">
+            ~<span className="text-amber-400 font-medium">{contentItemsNeeded} task{contentItemsNeeded > 1 ? 's' : ''}</span> to reach weekly target
+          </p>
+        ) : (
+          <p className="text-[10px] text-emerald-400 font-medium">
+            🎉 Weekly goal achieved! Keep training to level up faster.
+          </p>
+        )}
       </div>
 
       {/* Tasks Progress */}
