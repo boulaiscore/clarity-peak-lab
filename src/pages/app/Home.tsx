@@ -3,11 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+
+// XP split based on plan structure
+const PLAN_XP_SPLIT: Record<TrainingPlanId, { gamesPercent: number; tasksPercent: number }> = {
+  light: { gamesPercent: 0.75, tasksPercent: 0.25 },
+  expert: { gamesPercent: 0.60, tasksPercent: 0.40 },
+  superhuman: { gamesPercent: 0.58, tasksPercent: 0.42 },
+};
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 
@@ -339,6 +346,11 @@ const Home = () => {
               const isSelected = selectedPlan === planId;
               const isCurrent = currentPlan === planId;
               
+              // Calculate XP breakdown
+              const split = PLAN_XP_SPLIT[planId];
+              const gamesXPTarget = Math.round(plan.weeklyXPTarget * split.gamesPercent);
+              const tasksXPTarget = Math.round(plan.weeklyXPTarget * split.tasksPercent);
+              
               return (
                 <button
                   key={planId}
@@ -350,10 +362,10 @@ const Home = () => {
                       : "border-border/40 bg-card hover:bg-muted/30"
                   )}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center",
+                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
                         isSelected ? "bg-primary/10" : "bg-muted/50"
                       )}>
                         <PlanIcon className={cn(
@@ -369,7 +381,7 @@ const Home = () => {
                           {plan.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {plan.sessionsPerWeek} sessions/week · {plan.sessionDuration}
+                          {plan.sessionDuration}/session
                         </p>
                       </div>
                     </div>
@@ -381,6 +393,28 @@ const Home = () => {
                     {isSelected && !isCurrent && (
                       <Check className="w-5 h-5 text-primary" />
                     )}
+                  </div>
+                  
+                  {/* XP Breakdown */}
+                  <div className="ml-13 pl-13 border-t border-border/20 pt-2 mt-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Star className="w-3 h-3 text-amber-400" />
+                      <span className="text-[11px] font-medium text-amber-400">{plan.weeklyXPTarget} XP/week</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5">
+                        <Gamepad2 className="w-3 h-3 text-blue-400" />
+                        <span className="text-[10px] text-muted-foreground">
+                          Games: <span className="text-blue-400 font-medium">{gamesXPTarget}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <BookMarked className="w-3 h-3 text-purple-400" />
+                        <span className="text-[10px] text-muted-foreground">
+                          Tasks: <span className="text-purple-400 font-medium">{tasksXPTarget}</span>
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </button>
               );
