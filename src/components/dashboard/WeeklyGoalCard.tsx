@@ -40,10 +40,8 @@ export function WeeklyGoalCard() {
   const xpRemaining = Math.max(0, totalXPTarget - totalXPEarned);
   const goalReached = totalXPEarned >= totalXPTarget && totalXPTarget > 0;
 
-  // Derive an explicit detox target from the plan so Detox is not treated as "bonus".
-  const detoxXPTarget = Math.round(
-    plan.detox.weeklyMinutes * plan.detox.xpPerMinute + plan.detox.bonusXP
-  );
+  // Derive an explicit detox target from the plan (base XP only, bonus is extra when goal is hit).
+  const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
   const nonDetoxTarget = Math.max(0, totalXPTarget - detoxXPTarget);
 
   // Calculate XP targets for games and tasks from the non-detox target
