@@ -232,10 +232,10 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     // 3 sessions × ~8 exercises × 6 avg XP = 144 + 3 content (65) + detox = ~210
     weeklyXPTarget: 250,
     detox: {
-      weeklyMinutes: 120,      // 2 hours per week
+      weeklyMinutes: 180,      // 3 hours per week
       minSessionMinutes: 20,   // Min 20 min to count
       xpPerMinute: 1,
-      bonusXP: 75,
+      bonusXP: 100,
     },
     sessions: [
       {
