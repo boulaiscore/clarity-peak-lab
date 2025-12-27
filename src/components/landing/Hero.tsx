@@ -80,7 +80,7 @@ export function Hero() {
           >
             Train Your Mind.
             <br />
-            <span className="text-primary">Dominate Your Field.</span>
+            <span className="text-primary">Unlock Elite Reasoning.</span>
           </motion.h1>
 
           {/* Subheadline */}
