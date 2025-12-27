@@ -17,6 +17,7 @@ const PLAN_XP_SPLIT: Record<TrainingPlanId, { gamesPercent: number; tasksPercent
 };
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
+import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
 
 // Circular progress ring component
 interface RingProps {
@@ -383,6 +384,16 @@ const Home = () => {
               />
             </div>
           </div>
+        </motion.section>
+
+        {/* Distraction Load Card */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          className="mb-4"
+        >
+          <DistractionLoadCard />
         </motion.section>
 
         {/* Today's Session */}

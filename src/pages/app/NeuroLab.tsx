@@ -22,6 +22,7 @@ import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { TrainHeader } from "@/components/app/TrainHeader";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
+import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -236,6 +237,11 @@ export default function NeuroLab() {
 
         {/* Weekly Goal - shared across Games/Tasks */}
         <WeeklyGoalCard />
+
+        {/* Distraction Load Card */}
+        <div className="mb-5">
+          <DistractionLoadCard />
+        </div>
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
