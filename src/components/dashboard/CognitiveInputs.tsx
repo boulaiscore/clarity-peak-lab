@@ -48,7 +48,7 @@ interface CognitiveInput {
 }
 
 const INPUT_TYPE_CONFIG: Record<InputType, { label: string; icon: typeof Headphones; color: string }> = {
-  podcast: { label: "Podcast", icon: Headphones, color: "text-primary/70" },
+  podcast: { label: "Podcast", icon: Headphones, color: "text-violet-500/70" },
   book: { label: "Book", icon: BookOpen, color: "text-amber-500/70" },
   article: { label: "Reading", icon: FileText, color: "text-blue-500/70" },
 };
@@ -432,13 +432,13 @@ function ThinkingSystemIcon({ system }: { system: ThinkingSystem }) {
 // Prescription block for active items - compact version
 function PrescriptionBlockDisplay({ prescription }: { prescription: PrescriptionBlock }) {
   return (
-    <div className="flex items-center gap-4 text-[10px] text-muted-foreground bg-primary/5 rounded-md px-3 py-2">
+    <div className="flex items-center gap-4 text-[10px] text-muted-foreground bg-violet-500/5 rounded-md px-3 py-2">
       <div className="flex items-center gap-1.5">
-        <Calendar className="h-3 w-3 text-primary/60" />
+        <Calendar className="h-3 w-3 text-violet-500/60" />
         <span>{prescription.whenToUse}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <StopCircle className="h-3 w-3 text-primary/60" />
+        <StopCircle className="h-3 w-3 text-violet-500/60" />
         <span>{prescription.stopRule}</span>
       </div>
     </div>
@@ -461,7 +461,7 @@ function ReflectionPrompt({
       <div className="flex items-center gap-2">
         <button
           onClick={() => onRespond("yes")}
-          className="px-3 py-1 text-[10px] bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors"
+          className="px-3 py-1 text-[10px] bg-violet-500/10 hover:bg-violet-500/20 text-violet-500 rounded-md transition-colors"
         >
           Yes
         </button>
@@ -531,8 +531,8 @@ function PrescriptionCard({
     <>
       <div className={`border rounded-xl overflow-hidden transition-all ${
         isLogged 
-          ? "border-primary/30 bg-primary/5" 
-          : "border-primary/40 bg-gradient-to-br from-primary/5 via-card/50 to-transparent"
+          ? "border-violet-500/30 bg-violet-500/5" 
+          : "border-violet-500/40 bg-gradient-to-br from-violet-500/5 via-card/50 to-transparent"
       }`}>
         {/* Header row - compact */}
         <div className="flex items-start gap-3 p-3">
@@ -545,19 +545,19 @@ function PrescriptionCard({
             title={isLogged ? "Completed" : "Mark as completed"}
           >
             {isToggling ? (
-              <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <div className="h-5 w-5 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
             ) : isLogged ? (
-              <CheckCircle2 className="h-5 w-5 text-primary" />
+              <CheckCircle2 className="h-5 w-5 text-violet-500" />
             ) : (
-              <div className="h-5 w-5 border-2 border-primary/50 rounded-full group-hover:border-primary transition-colors flex items-center justify-center">
-                <div className="h-2 w-2 rounded-full bg-primary/0 group-hover:bg-primary/50 transition-colors" />
+              <div className="h-5 w-5 border-2 border-violet-500/50 rounded-full group-hover:border-violet-500 transition-colors flex items-center justify-center">
+                <div className="h-2 w-2 rounded-full bg-violet-500/0 group-hover:bg-violet-500/50 transition-colors" />
               </div>
             )}
           </button>
           
           {/* Icon */}
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-            input.type === "podcast" ? "bg-primary/20" : 
+            input.type === "podcast" ? "bg-violet-500/20" : 
             input.type === "book" ? "bg-amber-500/20" : 
             "bg-blue-500/20"
           }`}>
@@ -584,7 +584,7 @@ function PrescriptionCard({
                 </Badge>
               ) : (
                 <>
-                  <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-primary/10 border-primary/30 text-primary">
+                  <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-violet-500/10 border-violet-500/30 text-violet-500">
                     Active
                   </Badge>
                   <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500 font-semibold">
@@ -756,13 +756,13 @@ function SwipeableAlternativeCard({
       <button
         onClick={onSelect}
         className={`flex-shrink-0 w-36 p-2.5 border border-border/20 bg-card/30 rounded-xl 
-          transition-all hover:bg-card/50 hover:border-primary/40 active:scale-95 text-left
+          transition-all hover:bg-card/50 hover:border-violet-500/40 active:scale-95 text-left
           ${isLogged ? 'opacity-40' : 'opacity-80 hover:opacity-100'}`}
       >
         {/* Icon + log button */}
         <div className="flex items-center justify-between mb-2">
           <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-            input.type === "podcast" ? "bg-primary/15" : 
+            input.type === "podcast" ? "bg-violet-500/15" : 
             input.type === "book" ? "bg-amber-500/15" : 
             "bg-blue-500/15"
           }`}>
@@ -777,7 +777,7 @@ function SwipeableAlternativeCard({
             {isToggling ? (
               <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
             ) : isLogged ? (
-              <CheckCircle2 className="h-3.5 w-3.5 text-primary/60" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-violet-500/60" />
             ) : (
               <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full" />
             )}
@@ -911,7 +911,7 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              type === "podcast" ? "bg-primary/10" : 
+              type === "podcast" ? "bg-violet-500/10" : 
               type === "book" ? "bg-amber-500/10" : 
               "bg-blue-500/10"
             }`}>
@@ -939,7 +939,7 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-            type === "podcast" ? "bg-primary/10" : 
+            type === "podcast" ? "bg-violet-500/10" : 
             type === "book" ? "bg-amber-500/10" : 
             "bg-blue-500/10"
           }`}>
@@ -1226,7 +1226,7 @@ export function CognitiveLibrary() {
   if (isLoading) {
     return (
       <div className="text-center py-12">
-        <div className="h-6 w-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+        <div className="h-6 w-6 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin mx-auto mb-3" />
         <p className="text-sm text-muted-foreground">Loading library...</p>
       </div>
     );
@@ -1245,15 +1245,15 @@ export function CognitiveLibrary() {
   return (
     <div className="space-y-6">
       {/* XP Score Header */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-amber-500/10 border border-primary/20">
+      <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 via-transparent to-amber-500/10 border border-violet-500/20">
         {/* Total XP */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
+            <Target className="h-5 w-5 text-violet-500" />
             <span className="text-sm font-medium">Total XP</span>
           </div>
           <div className="text-right">
-            <span className="text-2xl font-bold text-primary">{stats.rawTotal}</span>
+            <span className="text-2xl font-bold text-violet-500">{stats.rawTotal}</span>
             <span className="text-xs text-muted-foreground ml-1">XP</span>
           </div>
         </div>
@@ -1267,7 +1267,7 @@ export function CognitiveLibrary() {
         {/* Progress bar */}
         <div className="h-2 bg-muted/30 rounded-full mb-4 overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-violet-500 to-violet-500/70 rounded-full transition-all duration-500"
             style={{ width: `${stats.progressPercent}%` }}
           />
         </div>
@@ -1295,8 +1295,8 @@ export function CognitiveLibrary() {
 
       {/* Content Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
-          <Headphones className="h-4 w-4 text-primary mx-auto mb-1" />
+        <div className="p-3 rounded-xl bg-violet-500/5 border border-violet-500/20 text-center">
+          <Headphones className="h-4 w-4 text-violet-500 mx-auto mb-1" />
           <p className="text-lg font-semibold">{podcastsCompleted.length}</p>
           <p className="text-[10px] text-muted-foreground">Podcasts</p>
         </div>
@@ -1318,8 +1318,8 @@ export function CognitiveLibrary() {
           title="Podcasts" 
           icon={Headphones}
           items={podcastsCompleted}
-          iconColor="text-primary"
-          bgColor="bg-primary/10"
+          iconColor="text-violet-500"
+          bgColor="bg-violet-500/10"
         />
       )}
 
@@ -1381,14 +1381,14 @@ function LibrarySection({
               href={item.primaryUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 hover:border-primary/30 transition-all"
+              className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 hover:border-violet-500/30 transition-all"
             >
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">{item.title}</p>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-500 font-medium shrink-0">
                       +{xpEarned} XP
                     </span>
                   </div>
