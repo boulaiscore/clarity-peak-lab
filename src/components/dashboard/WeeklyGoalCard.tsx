@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Star, Gamepad2, BookMarked, Target, CheckCircle2, Smartphone, Ban, Gift } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
+import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 import { XPCelebration } from "@/components/app/XPCelebration";
 
 // Estimated XP split based on plan structure
@@ -22,6 +23,7 @@ export function WeeklyGoalCard() {
     weeklyContentXP,
     plan 
   } = useWeeklyProgress();
+  const { data: detoxData } = useWeeklyDetoxXP();
   const [showCelebration, setShowCelebration] = useState(false);
   const prevGoalReached = useRef(false);
 
@@ -42,8 +44,8 @@ export function WeeklyGoalCard() {
   const gamesComplete = weeklyGamesXP >= gamesXPTarget;
   const tasksComplete = weeklyContentXP >= tasksXPTarget;
 
-  // Mock detox XP for now (will be replaced with real data from DetoxChallengeTab)
-  const weeklyDetoxXP = 25; // TODO: integrate with actual detox tracking
+  // Real detox XP from database
+  const weeklyDetoxXP = detoxData?.totalXP || 0;
   const detoxProgress = Math.min(100, (weeklyDetoxXP / DETOX_BONUS_TARGET) * 100);
 
   // Trigger celebration when goal is reached for the first time

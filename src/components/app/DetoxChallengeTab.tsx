@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Smartphone, Clock, Trophy, 
@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useWeeklyDetoxXP, useTodayDetoxMinutes, useRecordDetoxCompletion } from "@/hooks/useDetoxProgress";
+import { toast } from "@/hooks/use-toast";
 
 interface DetoxSession {
   targetMinutes: number;
@@ -25,11 +27,23 @@ export function DetoxChallengeTab() {
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mock data - in reality this would track real screen time
-  const todayDetoxMinutes = 45;
-  const weeklyDetoxMinutes = 180;
-  const weeklyDetoxXP = 75;
+  // Real data from database
+  const { data: weeklyData } = useWeeklyDetoxXP();
+  const { data: todayMinutes } = useTodayDetoxMinutes();
+  const recordCompletion = useRecordDetoxCompletion();
+
+  const todayDetoxMinutes = todayMinutes || 0;
+  const weeklyDetoxMinutes = weeklyData?.totalMinutes || 0;
+  const weeklyDetoxXP = weeklyData?.totalXP || 0;
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   const handleStart = () => {
     if (!selectedOption) return;
@@ -37,15 +51,25 @@ export function DetoxChallengeTab() {
     setElapsedSeconds(0);
     setCompleted(false);
     
-    // In a real app, this would use Capacitor to monitor screen time
-    // For now, we simulate the timer
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setElapsedSeconds(prev => {
         const newValue = prev + 1;
         if (selectedOption && newValue >= selectedOption.targetMinutes * 60) {
-          clearInterval(interval);
+          if (intervalRef.current) clearInterval(intervalRef.current);
           setIsRunning(false);
           setCompleted(true);
+          // Record completion to database
+          recordCompletion.mutate({
+            durationMinutes: selectedOption.targetMinutes,
+            xpEarned: selectedOption.xp,
+          }, {
+            onSuccess: () => {
+              toast({
+                title: "Detox Complete!",
+                description: `You earned +${selectedOption.xp} XP`,
+              });
+            },
+          });
         }
         return newValue;
       });
@@ -53,6 +77,7 @@ export function DetoxChallengeTab() {
   };
 
   const handleCancel = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
     setIsRunning(false);
     setElapsedSeconds(0);
   };
