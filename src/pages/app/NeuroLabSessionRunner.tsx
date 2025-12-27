@@ -122,12 +122,19 @@ export default function NeuroLabSessionRunner() {
     // Record individual exercise completion with XP
     if (user?.id && currentExercise.gym_area) {
       try {
+        const xpEarned = getExerciseXP((currentExercise.difficulty as "easy" | "medium" | "hard") || "medium");
         await recordExerciseCompletion.mutateAsync({
           exerciseId: currentExercise.id,
           gymArea: currentExercise.gym_area,
           thinkingMode: currentExercise.thinking_mode || null,
           difficulty: (currentExercise.difficulty as "easy" | "medium" | "hard") || "medium",
           score: result.score,
+        });
+        // Show XP earned toast immediately
+        toast.success(`+${xpEarned} XP earned!`, { 
+          id: `xp-${currentExercise.id}`,
+          duration: 2000,
+          icon: "⭐"
         });
       } catch (error) {
         console.error("Failed to record exercise XP:", error);

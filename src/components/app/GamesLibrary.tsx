@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { XP_VALUES } from "@/lib/trainingPlans";
+import { XP_VALUES, getExerciseXP } from "@/lib/trainingPlans";
 import { useState, useEffect, useRef } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { CognitiveExercise } from "@/lib/exercises";
@@ -31,18 +31,20 @@ const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> 
 };
 
 // Define game types within each area
+// Define game types within each area
+// XP per exercise: easy=3, medium=5, hard=8
 const GAME_TYPES = {
   focus: [
-    { id: "focus-fast", name: "Fast Attention", mode: "fast" as const, description: "Visual search & reaction speed" },
-    { id: "focus-slow", name: "Deep Focus", mode: "slow" as const, description: "Sustained attention & pattern extraction" },
+    { id: "focus-fast", name: "Fast Attention", mode: "fast" as const, description: "Visual search & reaction speed", xpRange: "3-8" },
+    { id: "focus-slow", name: "Deep Focus", mode: "slow" as const, description: "Sustained attention & pattern extraction", xpRange: "3-8" },
   ],
   reasoning: [
-    { id: "reasoning-fast", name: "Quick Logic", mode: "fast" as const, description: "Rapid pattern recognition" },
-    { id: "reasoning-slow", name: "Critical Analysis", mode: "slow" as const, description: "Deep reasoning & bias detection" },
+    { id: "reasoning-fast", name: "Quick Logic", mode: "fast" as const, description: "Rapid pattern recognition", xpRange: "3-8" },
+    { id: "reasoning-slow", name: "Critical Analysis", mode: "slow" as const, description: "Deep reasoning & bias detection", xpRange: "3-8" },
   ],
   creativity: [
-    { id: "creativity-fast", name: "Flash Association", mode: "fast" as const, description: "Rapid divergent thinking" },
-    { id: "creativity-slow", name: "Concept Forge", mode: "slow" as const, description: "Novel concept generation" },
+    { id: "creativity-fast", name: "Flash Association", mode: "fast" as const, description: "Rapid divergent thinking", xpRange: "3-8" },
+    { id: "creativity-slow", name: "Concept Forge", mode: "slow" as const, description: "Novel concept generation", xpRange: "3-8" },
   ],
 } as const;
 
@@ -57,7 +59,9 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
   
   const xpProgress = Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100);
   const xpRemaining = Math.max(0, weeklyXPTarget - weeklyXPEarned);
-  const gamesNeeded = Math.ceil(xpRemaining / XP_VALUES.gameComplete);
+  // Estimate exercises needed based on average XP (medium = 5)
+  const avgXPPerExercise = XP_VALUES.exerciseMedium;
+  const exercisesNeeded = Math.ceil(xpRemaining / avgXPPerExercise);
   const goalReached = weeklyXPEarned >= weeklyXPTarget;
 
   // Trigger celebration when goal is reached
@@ -117,7 +121,7 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
         </div>
         {xpRemaining > 0 ? (
           <p className="text-[10px] text-muted-foreground">
-            <span className="text-amber-400 font-medium">{gamesNeeded} more game{gamesNeeded > 1 ? 's' : ''}</span> to reach your weekly target
+            ~<span className="text-amber-400 font-medium">{exercisesNeeded} exercise{exercisesNeeded > 1 ? 's' : ''}</span> to reach weekly target ({avgXPPerExercise} XP each avg.)
           </p>
         ) : (
           <p className="text-[10px] text-emerald-400 font-medium">
@@ -228,7 +232,7 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
                       <div className="flex items-center gap-2 shrink-0">
                         <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
                           <Star className="w-3 h-3 text-amber-400" />
-                          <span className="text-[10px] font-semibold text-amber-400">+{XP_VALUES.gameComplete}</span>
+                          <span className="text-[10px] font-semibold text-amber-400">+{game.xpRange} XP</span>
                         </div>
                         <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
                           <ChevronRight className="w-4 h-4 text-primary" />
