@@ -199,6 +199,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/neuro-lab/:area/session"
+        element={
+          <ProtectedRoute>
+            <NeuroLabSessionRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/neuro-lab/neuro-activation"
         element={
           <ProtectedRoute>
