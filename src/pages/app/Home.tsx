@@ -224,13 +224,13 @@ const Home = () => {
             displayValue={`${cognitivePerformance}%`}
           />
           <ProgressRing
-            value={sessionsCompleted}
-            max={weeklyTarget}
+            value={totalWeeklyXP}
+            max={weeklyXPTarget}
             size={90}
             strokeWidth={6}
             color="hsl(38, 92%, 50%)"
-            label="Sessions"
-            displayValue={`${sessionsCompleted}/${weeklyTarget}`}
+            label="Weekly XP"
+            displayValue={`${Math.round((totalWeeklyXP / weeklyXPTarget) * 100)}%`}
           />
         </motion.section>
 
