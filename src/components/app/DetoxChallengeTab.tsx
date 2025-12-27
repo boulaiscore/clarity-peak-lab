@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Smartphone, Clock, Trophy, 
-  Play, Pause, Check, Sparkles, Target, Ban, Settings, Save, Shield
+  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,6 @@ import {
   useWeeklyDetoxXP, 
   useTodayDetoxMinutes, 
   useRecordDetoxCompletion,
-  useDetoxGoal,
-  useUpdateDetoxGoal
 } from "@/hooks/useDetoxProgress";
 import { useAppBlocker } from "@/hooks/useAppBlocker";
 import { toast } from "@/hooks/use-toast";
@@ -22,52 +20,55 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DetoxBlockerSettings } from "./DetoxBlockerSettings";
-interface DetoxSession {
-  targetMinutes: number;
-  label: string;
-  xp: number;
-}
-
-const DETOX_OPTIONS: DetoxSession[] = [
-  { targetMinutes: 15, label: "15 min", xp: 10 },
-  { targetMinutes: 30, label: "30 min", xp: 25 },
-  { targetMinutes: 60, label: "1 hour", xp: 50 },
-  { targetMinutes: 120, label: "2 hours", xp: 100 },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { TRAINING_PLANS, type TrainingPlanId } from "@/lib/trainingPlans";
 
 export function DetoxChallengeTab() {
-  const [selectedOption, setSelectedOption] = useState<DetoxSession | null>(null);
+  const { user } = useAuth();
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [completed, setCompleted] = useState(false);
-  const [showGoalSettings, setShowGoalSettings] = useState(false);
-  const [goalMinutes, setGoalMinutes] = useState(120);
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedAppsToBlock, setSelectedAppsToBlock] = useState<string[]>([]);
-  const [settingsTab, setSettingsTab] = useState<string>("goal");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Get user's training plan
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('training_plan')
+        .eq('user_id', user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const planId = (profile?.training_plan || 'light') as TrainingPlanId;
+  const plan = TRAINING_PLANS[planId];
+  const detoxRequirement = plan.detox;
 
   // Real data from database
   const { data: weeklyData } = useWeeklyDetoxXP();
   const { data: todayMinutes } = useTodayDetoxMinutes();
-  const { data: goal } = useDetoxGoal();
-  const updateGoal = useUpdateDetoxGoal();
   const recordCompletion = useRecordDetoxCompletion();
   const { startBlocking, stopBlocking, isNative } = useAppBlocker();
+
   const todayDetoxMinutes = todayMinutes || 0;
   const weeklyDetoxMinutes = weeklyData?.totalMinutes || 0;
   const weeklyDetoxXP = weeklyData?.totalXP || 0;
-  const weeklyGoal = goal?.weeklyMinutesTarget || 120;
-  const goalProgress = Math.min(100, (weeklyDetoxMinutes / weeklyGoal) * 100);
+  const weeklyTarget = detoxRequirement.weeklyMinutes;
+  const goalProgress = Math.min(100, (weeklyDetoxMinutes / weeklyTarget) * 100);
+  const goalReached = weeklyDetoxMinutes >= weeklyTarget;
 
-  // Initialize goal slider when goal data loads
-  useEffect(() => {
-    if (goal) {
-      setGoalMinutes(goal.weeklyMinutesTarget);
-    }
-  }, [goal]);
+  // Calculate XP for current session
+  const currentSessionXP = Math.floor(elapsedSeconds / 60) * detoxRequirement.xpPerMinute;
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -77,7 +78,6 @@ export function DetoxChallengeTab() {
   }, []);
 
   const handleStart = async () => {
-    if (!selectedOption) return;
     setIsRunning(true);
     setElapsedSeconds(0);
     setCompleted(false);
@@ -86,34 +86,61 @@ export function DetoxChallengeTab() {
     if (isNative && selectedAppsToBlock.length > 0) {
       await startBlocking(
         selectedAppsToBlock, 
-        selectedOption.targetMinutes,
+        120, // Block for 2 hours max
         "Detox in corso. Rimani concentrato!"
       );
     }
     
     intervalRef.current = setInterval(() => {
-      setElapsedSeconds(prev => {
-        const newValue = prev + 1;
-        if (selectedOption && newValue >= selectedOption.targetMinutes * 60) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setIsRunning(false);
-          setCompleted(true);
-          // Record completion to database
-          recordCompletion.mutate({
-            durationMinutes: selectedOption.targetMinutes,
-            xpEarned: selectedOption.xp,
-          }, {
-            onSuccess: () => {
-              toast({
-                title: "Detox Complete!",
-                description: `You earned +${selectedOption.xp} XP`,
-              });
-            },
-          });
-        }
-        return newValue;
-      });
+      setElapsedSeconds(prev => prev + 1);
     }, 1000);
+  };
+
+  const handleStop = async () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    const minutes = Math.floor(elapsedSeconds / 60);
+    
+    // Check if session meets minimum requirement
+    if (minutes < detoxRequirement.minSessionMinutes) {
+      toast({
+        title: "Sessione troppo breve",
+        description: `Minimo ${detoxRequirement.minSessionMinutes} minuti per registrare la sessione`,
+        variant: "destructive",
+      });
+      setIsRunning(false);
+      setElapsedSeconds(0);
+      return;
+    }
+
+    // Calculate XP
+    const baseXP = minutes * detoxRequirement.xpPerMinute;
+    const newTotal = weeklyDetoxMinutes + minutes;
+    const justReachedGoal = weeklyDetoxMinutes < weeklyTarget && newTotal >= weeklyTarget;
+    const totalXP = baseXP + (justReachedGoal ? detoxRequirement.bonusXP : 0);
+
+    setIsRunning(false);
+    setCompleted(true);
+    
+    // Stop app blocking
+    if (isNative) {
+      await stopBlocking();
+    }
+
+    // Record completion to database
+    recordCompletion.mutate({
+      durationMinutes: minutes,
+      xpEarned: totalXP,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Detox completato!",
+          description: justReachedGoal 
+            ? `+${totalXP} XP (incluso bonus obiettivo settimanale!)` 
+            : `+${totalXP} XP guadagnati`,
+        });
+      },
+    });
   };
 
   const handleCancel = async () => {
@@ -121,40 +148,32 @@ export function DetoxChallengeTab() {
     setIsRunning(false);
     setElapsedSeconds(0);
     
-    // Stop app blocking
     if (isNative) {
       await stopBlocking();
     }
   };
 
-  const handleSaveGoal = () => {
-    updateGoal.mutate({
-      weeklyMinutesTarget: goalMinutes,
-      weeklySessionsTarget: Math.ceil(goalMinutes / 30), // Estimate sessions
-    }, {
-      onSuccess: () => {
-        toast({
-          title: "Goal Updated",
-          description: `Weekly target set to ${goalMinutes} minutes`,
-        });
-        setShowGoalSettings(false);
-      },
-    });
-  };
-
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const progress = selectedOption 
-    ? Math.min((elapsedSeconds / (selectedOption.targetMinutes * 60)) * 100, 100) 
-    : 0;
+  const formatMinutesToHours = (minutes: number) => {
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hrs === 0) return `${mins} min`;
+    if (mins === 0) return `${hrs}h`;
+    return `${hrs}h ${mins}m`;
+  };
 
   return (
     <div className="space-y-5">
-      {/* Stats Banner with Goal */}
+      {/* Plan Requirement Banner */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-teal-500/10 via-teal-500/5 to-transparent border border-teal-500/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -163,10 +182,13 @@ export function DetoxChallengeTab() {
               <Ban className="w-4 h-4 text-teal-400 absolute inset-0" />
             </div>
             <span className="text-xs font-medium text-teal-400">Digital Detox</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">
+              {plan.name}
+            </span>
           </div>
           
-          {/* Goal Settings Button */}
-          <Dialog open={showGoalSettings} onOpenChange={setShowGoalSettings}>
+          {/* Settings Button */}
+          <Dialog open={showSettings} onOpenChange={setShowSettings}>
             <DialogTrigger asChild>
               <button className="p-1.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                 <Settings className="w-3.5 h-3.5 text-muted-foreground" />
@@ -174,106 +196,75 @@ export function DetoxChallengeTab() {
             </DialogTrigger>
             <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-base">Detox Settings</DialogTitle>
+                <DialogTitle className="text-base flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  App Blocking (Android)
+                </DialogTitle>
               </DialogHeader>
-              
-              <Tabs value={settingsTab} onValueChange={setSettingsTab} className="w-full">
-                <TabsList className="w-full grid grid-cols-2 mb-4">
-                  <TabsTrigger value="goal" className="text-xs gap-1">
-                    <Target className="w-3 h-3" />
-                    Goal
-                  </TabsTrigger>
-                  <TabsTrigger value="blocking" className="text-xs gap-1">
-                    <Shield className="w-3 h-3" />
-                    App Blocking
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="goal" className="space-y-6 py-2">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm text-muted-foreground">Target minutes per week</span>
-                      <span className="text-lg font-bold text-teal-400">{goalMinutes} min</span>
-                    </div>
-                    <Slider
-                      value={[goalMinutes]}
-                      onValueChange={(v) => setGoalMinutes(v[0])}
-                      min={30}
-                      max={420}
-                      step={15}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
-                      <span>30 min</span>
-                      <span>7 hours</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
-                    <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">Suggested:</span> Start with 2 hours/week and gradually increase. 
-                      This equals about {Math.ceil(goalMinutes / 30)} sessions of 30 min each.
-                    </p>
-                  </div>
-
-                  <Button onClick={handleSaveGoal} className="w-full gap-2 bg-teal-600 hover:bg-teal-700">
-                    <Save className="w-4 h-4" />
-                    Save Goal
-                  </Button>
-                </TabsContent>
-                
-                <TabsContent value="blocking" className="py-2">
-                  <DetoxBlockerSettings 
-                    selectedApps={selectedAppsToBlock}
-                    onAppsChange={setSelectedAppsToBlock}
-                    onBlockingConfigured={(apps) => {
-                      toast({
-                        title: "App Blocking Configured",
-                        description: `${apps.length} apps will be blocked during detox`,
-                      });
-                    }}
-                  />
-                </TabsContent>
-              </Tabs>
+              <DetoxBlockerSettings 
+                selectedApps={selectedAppsToBlock}
+                onAppsChange={setSelectedAppsToBlock}
+                onBlockingConfigured={(apps) => {
+                  toast({
+                    title: "App Blocking Configurato",
+                    description: `${apps.length} app verranno bloccate durante il detox`,
+                  });
+                }}
+              />
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Goal Progress Bar */}
+        {/* Weekly Progress */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-muted-foreground">Weekly Goal Progress</span>
-            <span className="text-[10px] font-semibold text-teal-400">
-              {weeklyDetoxMinutes} / {weeklyGoal} min
+            <span className="text-[10px] text-muted-foreground">Obiettivo Settimanale</span>
+            <span className={cn(
+              "text-[10px] font-semibold",
+              goalReached ? "text-emerald-400" : "text-teal-400"
+            )}>
+              {formatMinutesToHours(weeklyDetoxMinutes)} / {formatMinutesToHours(weeklyTarget)}
+              {goalReached && <Check className="w-3 h-3 inline ml-1" />}
             </span>
           </div>
           <div className="h-2 bg-teal-500/10 rounded-full overflow-hidden">
             <motion.div 
-              className="h-full rounded-full bg-gradient-to-r from-teal-400 to-cyan-400"
+              className={cn(
+                "h-full rounded-full",
+                goalReached 
+                  ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
+                  : "bg-gradient-to-r from-teal-400 to-cyan-400"
+              )}
               initial={{ width: 0 }}
               animate={{ width: `${goalProgress}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
+          {goalReached && (
+            <p className="text-[10px] text-emerald-400 mt-1.5 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              Obiettivo raggiunto! +{detoxRequirement.bonusXP} XP bonus
+            </p>
+          )}
         </div>
         
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center">
             <div className="text-lg font-bold text-foreground">{todayDetoxMinutes}</div>
-            <div className="text-[10px] text-muted-foreground">min today</div>
+            <div className="text-[10px] text-muted-foreground">min oggi</div>
           </div>
           <div className="text-center border-x border-border/30">
             <div className="text-lg font-bold text-foreground">{weeklyDetoxMinutes}</div>
-            <div className="text-[10px] text-muted-foreground">min this week</div>
+            <div className="text-[10px] text-muted-foreground">min settimana</div>
           </div>
           <div className="text-center">
             <div className="text-lg font-bold text-teal-400">+{weeklyDetoxXP}</div>
-            <div className="text-[10px] text-muted-foreground">XP earned</div>
+            <div className="text-[10px] text-muted-foreground">XP</div>
           </div>
         </div>
       </div>
 
-      {/* Active Challenge or Selection */}
+      {/* Active Session or Start */}
       {isRunning || completed ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -290,28 +281,28 @@ export function DetoxChallengeTab() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <Check className="w-8 h-8 text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold text-emerald-400 mb-1">Challenge Complete!</h3>
+              <h3 className="text-lg font-semibold text-emerald-400 mb-1">Detox Completato!</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                You stayed off social media for {selectedOption?.label}
+                Hai trascorso {formatTime(elapsedSeconds)} senza social media
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium">
                 <Sparkles className="w-4 h-4" />
-                +{selectedOption?.xp} XP
+                +{Math.floor(elapsedSeconds / 60) * detoxRequirement.xpPerMinute} XP
               </div>
               <Button 
                 onClick={() => {
                   setCompleted(false);
-                  setSelectedOption(null);
+                  setElapsedSeconds(0);
                 }}
                 variant="ghost"
                 className="w-full mt-4"
               >
-                Start New Challenge
+                Nuova Sessione
               </Button>
             </>
           ) : (
             <>
-              <div className="relative w-28 h-28 mx-auto mb-4">
+              <div className="relative w-32 h-32 mx-auto mb-4">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                   <circle
                     cx="50"
@@ -319,128 +310,97 @@ export function DetoxChallengeTab() {
                     r="45"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="6"
-                    className="text-muted/30"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="6"
-                    strokeDasharray={`${progress * 2.83} 283`}
-                    strokeLinecap="round"
-                    className="text-teal-500 transition-all duration-1000"
+                    strokeWidth="4"
+                    className="text-muted/20"
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="relative mb-1">
-                    <Smartphone className="w-5 h-5 text-teal-400" />
-                    <Ban className="w-5 h-5 text-teal-400 absolute inset-0" />
+                  <div className="relative mb-2">
+                    <Smartphone className="w-6 h-6 text-teal-400" />
+                    <Ban className="w-6 h-6 text-teal-400 absolute inset-0" />
                   </div>
-                  <span className="text-xl font-mono font-bold">{formatTime(elapsedSeconds)}</span>
+                  <span className="text-2xl font-mono font-bold">{formatTime(elapsedSeconds)}</span>
+                  <span className="text-xs text-teal-400 font-medium">+{currentSessionXP} XP</span>
                 </div>
               </div>
               
-              <h3 className="text-sm font-medium text-foreground mb-1">Detox in progress...</h3>
+              <h3 className="text-sm font-medium text-foreground mb-1">Detox in corso...</h3>
               <p className="text-xs text-muted-foreground mb-4">
-                Stay off social media for {selectedOption?.label}
+                Minimo {detoxRequirement.minSessionMinutes} min per registrare
               </p>
               
-              <Button 
-                onClick={handleCancel}
-                variant="outline"
-                className="gap-2"
-              >
-                <Pause className="w-4 h-4" />
-                Cancel Challenge
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleCancel}
+                  variant="outline"
+                  className="flex-1 gap-2"
+                >
+                  <Pause className="w-4 h-4" />
+                  Annulla
+                </Button>
+                <Button 
+                  onClick={handleStop}
+                  className="flex-1 gap-2 bg-teal-600 hover:bg-teal-700"
+                  disabled={elapsedSeconds < detoxRequirement.minSessionMinutes * 60}
+                >
+                  <Check className="w-4 h-4" />
+                  Completa
+                </Button>
+              </div>
             </>
           )}
         </motion.div>
       ) : (
         <>
-          {/* Intro */}
-          <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Earn XP by disconnecting:</span> Choose a challenge duration and stay off social media to earn points.
+          {/* Start Session Card */}
+          <div className="p-6 rounded-2xl bg-card border border-border text-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-teal-500/10 flex items-center justify-center">
+              <div className="relative">
+                <Smartphone className="w-8 h-8 text-teal-400" />
+                <Ban className="w-8 h-8 text-teal-400 absolute inset-0" />
+              </div>
+            </div>
+            
+            <h3 className="text-base font-semibold text-foreground mb-2">
+              Inizia una Sessione Detox
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Disconnettiti dai social e guadagna <span className="text-teal-400 font-medium">{detoxRequirement.xpPerMinute} XP/min</span>
             </p>
+
+            <Button 
+              onClick={handleStart}
+              className="w-full gap-2 bg-teal-600 hover:bg-teal-700"
+              size="lg"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              Avvia Detox
+            </Button>
           </div>
 
-          {/* Challenge Options */}
-          <div className="grid grid-cols-2 gap-3">
-            {DETOX_OPTIONS.map((option) => (
-              <motion.button
-                key={option.targetMinutes}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedOption(option)}
-                className={cn(
-                  "p-4 rounded-xl border transition-all text-left",
-                  selectedOption?.targetMinutes === option.targetMinutes
-                    ? "bg-teal-500/15 border-teal-500/40"
-                    : "bg-card border-border/50 hover:border-border"
-                )}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold">{option.label}</span>
-                </div>
-                <div className="flex items-center gap-1 text-teal-400 text-xs font-medium">
-                  <Trophy className="w-3 h-3" />
-                  +{option.xp} XP
-                </div>
-              </motion.button>
-            ))}
+          {/* Info Card */}
+          <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
+            <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5" />
+              Requisiti Piano {plan.name}
+            </h4>
+            <ul className="space-y-1.5 text-[11px] text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <Target className="w-3 h-3 text-teal-400" />
+                <span><strong>{formatMinutesToHours(weeklyTarget)}</strong> di detox a settimana</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Clock className="w-3 h-3 text-teal-400" />
+                <span>Sessione minima: <strong>{detoxRequirement.minSessionMinutes} min</strong></span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Trophy className="w-3 h-3 text-teal-400" />
+                <span>Bonus obiettivo: <strong>+{detoxRequirement.bonusXP} XP</strong></span>
+              </li>
+            </ul>
           </div>
-
-          {/* Start Button */}
-          <AnimatePresence>
-            {selectedOption && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-              >
-              <Button 
-                  onClick={handleStart}
-                  className="w-full gap-2 bg-teal-600 hover:bg-teal-700"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  Start {selectedOption.label} Detox
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </>
       )}
-
-      {/* How It Works */}
-      <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
-        <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-          <Target className="w-3.5 h-3.5" />
-          How It Works
-        </h4>
-        <ul className="space-y-1.5 text-[11px] text-muted-foreground">
-          <li className="flex items-start gap-2">
-            <span className="text-teal-400">1.</span>
-            Select a challenge duration
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-teal-400">2.</span>
-            Start the timer and put your phone down
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-teal-400">3.</span>
-            Avoid opening social apps until time is up
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-teal-400">4.</span>
-            Earn XP and build healthier habits
-          </li>
-        </ul>
-      </div>
     </div>
   );
 }

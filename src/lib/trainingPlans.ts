@@ -24,6 +24,13 @@ export interface SessionConfig {
   };
 }
 
+export interface DetoxRequirement {
+  weeklyMinutes: number;      // Target minutes per week
+  minSessionMinutes: number;  // Minimum session length to count
+  xpPerMinute: number;        // XP earned per minute
+  bonusXP: number;            // Bonus for hitting weekly target
+}
+
 export interface TrainingPlan {
   id: TrainingPlanId;
   name: string;
@@ -39,6 +46,7 @@ export interface TrainingPlan {
   color: string;
   icon: "leaf" | "target" | "flame";
   weeklyXPTarget: number; // Target XP to earn per week
+  detox: DetoxRequirement; // Required detox configuration
   sessions: SessionConfig[];
 }
 
@@ -55,6 +63,9 @@ export const XP_VALUES = {
   podcastComplete: 15,     // Per podcast listened
   readingComplete: 20,     // Per reading completed
   bookChapterComplete: 30, // Per book chapter read
+  // Detox
+  detoxPerMinute: 1,       // XP per minute of detox
+  detoxWeeklyBonus: 50,    // Bonus for hitting weekly target
 } as const;
 
 // Helper to get XP for exercise difficulty
@@ -86,8 +97,14 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "low",
     color: "emerald",
     icon: "leaf",
-    // 3 sessions × ~5 exercises × 5 avg XP = 75 + 1 content (15-20) = ~90-95
+    // 3 sessions × ~5 exercises × 5 avg XP = 75 + 1 content (15-20) + detox = ~90-95
     weeklyXPTarget: 100,
+    detox: {
+      weeklyMinutes: 60,       // 1 hour per week
+      minSessionMinutes: 10,   // Min 10 min to count
+      xpPerMinute: 1,
+      bonusXP: 30,
+    },
     sessions: [
       {
         id: "fast-focus",
@@ -146,8 +163,14 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "medium",
     color: "blue",
     icon: "target",
-    // 3 sessions × ~6 exercises × 5 avg XP = 90 + 2 content (35) = ~125
+    // 3 sessions × ~6 exercises × 5 avg XP = 90 + 2 content (35) + detox = ~125
     weeklyXPTarget: 150,
+    detox: {
+      weeklyMinutes: 90,       // 1.5 hours per week
+      minSessionMinutes: 15,   // Min 15 min to count
+      xpPerMinute: 1,
+      bonusXP: 50,
+    },
     sessions: [
       {
         id: "fast-control",
@@ -206,8 +229,14 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "high",
     color: "red",
     icon: "flame",
-    // 3 sessions × ~8 exercises × 6 avg XP = 144 + 3 content (65) = ~210
+    // 3 sessions × ~8 exercises × 6 avg XP = 144 + 3 content (65) + detox = ~210
     weeklyXPTarget: 250,
+    detox: {
+      weeklyMinutes: 120,      // 2 hours per week
+      minSessionMinutes: 20,   // Min 20 min to count
+      xpPerMinute: 1,
+      bonusXP: 75,
+    },
     sessions: [
       {
         id: "heavy-slow",

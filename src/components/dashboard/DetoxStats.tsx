@@ -1,15 +1,38 @@
 import { motion } from "framer-motion";
-import { Smartphone, Ban, Clock, Calendar, Flame, Trophy, TrendingUp } from "lucide-react";
-import { useWeeklyDetoxXP, useTodayDetoxMinutes, useDetoxHistory, useDetoxGoal } from "@/hooks/useDetoxProgress";
+import { Smartphone, Ban, Clock, Calendar, Flame, Trophy, TrendingUp, Check } from "lucide-react";
+import { useWeeklyDetoxXP, useTodayDetoxMinutes, useDetoxHistory } from "@/hooks/useDetoxProgress";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, Area, AreaChart } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { TRAINING_PLANS, type TrainingPlanId } from "@/lib/trainingPlans";
 
 export function DetoxStats() {
+  const { user } = useAuth();
   const { data: weeklyData, isLoading } = useWeeklyDetoxXP();
   const { data: todayMinutes } = useTodayDetoxMinutes();
   const { data: historyData } = useDetoxHistory(14);
-  const { data: goal } = useDetoxGoal();
+
+  // Get user's training plan
+  const { data: profile } = useQuery({
+    queryKey: ['profile-detox', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('training_plan')
+        .eq('user_id', user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const planId = (profile?.training_plan || 'light') as TrainingPlanId;
+  const plan = TRAINING_PLANS[planId];
+  const detoxRequirement = plan.detox;
 
   const totalMinutes = weeklyData?.totalMinutes || 0;
   const totalHours = Math.floor(totalMinutes / 60);
@@ -18,9 +41,10 @@ export function DetoxStats() {
   const completions = weeklyData?.completions || [];
   const sessionsCount = completions.length;
 
-  // Goal progress
-  const weeklyMinutesTarget = goal?.weeklyMinutesTarget || 120;
+  // Goal progress from plan
+  const weeklyMinutesTarget = detoxRequirement.weeklyMinutes;
   const goalProgress = Math.min(100, (totalMinutes / weeklyMinutesTarget) * 100);
+  const goalReached = totalMinutes >= weeklyMinutesTarget;
 
   // Calculate streak (consecutive days with detox)
   const uniqueDays = new Set(
@@ -52,7 +76,10 @@ export function DetoxStats() {
               <Smartphone className="w-3 h-3 text-teal-400" />
               <Ban className="w-1.5 h-1.5 text-teal-400 absolute -bottom-0.5 -right-0.5" />
             </div>
-            <span className="text-[11px] font-medium text-foreground">Weekly Goal</span>
+            <span className="text-[11px] font-medium text-foreground">Obiettivo Settimanale</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">
+              {plan.name}
+            </span>
           </div>
           <span className="text-[11px] font-semibold text-teal-400">
             {totalMinutes} / {weeklyMinutesTarget} min
@@ -66,10 +93,15 @@ export function DetoxStats() {
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
-        <p className="text-[9px] text-muted-foreground mt-1.5">
-          {goalProgress >= 100 
-            ? "Weekly goal achieved! Keep it up!" 
-            : `${Math.max(0, weeklyMinutesTarget - totalMinutes)} minutes remaining`}
+        <p className="text-[9px] text-muted-foreground mt-1.5 flex items-center gap-1">
+          {goalReached ? (
+            <>
+              <Check className="w-3 h-3 text-emerald-400" />
+              <span className="text-emerald-400">Obiettivo raggiunto! +{detoxRequirement.bonusXP} XP bonus</span>
+            </>
+          ) : (
+            `${Math.max(0, weeklyMinutesTarget - totalMinutes)} minuti rimanenti`
+          )}
         </p>
       </div>
 
