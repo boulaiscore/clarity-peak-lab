@@ -65,22 +65,22 @@ export function WeeklyGoalCard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 mb-4"
+        className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-amber-400" />
+            <Target className="w-4 h-4 text-foreground" />
             <span className="text-[12px] font-semibold">Weekly Goal</span>
           </div>
-          <span className="text-[12px] font-bold text-amber-400">
+          <span className="text-[12px] font-bold text-foreground">
             {weeklyXPEarned} / {weeklyXPTarget} XP
           </span>
         </div>
 
-        {/* Total XP Progress Bar */}
-        <div className="h-2 bg-amber-500/10 rounded-full overflow-hidden mb-4">
+        {/* Total XP Progress Bar - multi-color gradient */}
+        <div className="h-2 bg-muted/50 rounded-full overflow-hidden mb-4">
           <motion.div 
-            className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
+            className="h-full bg-gradient-to-r from-blue-400 via-purple-400 to-teal-400 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${xpProgress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -90,7 +90,7 @@ export function WeeklyGoalCard() {
         {/* XP Breakdown by Source */}
         <div className="p-2.5 rounded-lg bg-muted/30 border border-border/30 mb-3">
           <div className="flex items-center gap-1.5 mb-3">
-            <Target className="w-3 h-3 text-muted-foreground" />
+            <Star className="w-3 h-3 text-muted-foreground" />
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
               {plan.name} Breakdown
             </span>
@@ -191,7 +191,7 @@ export function WeeklyGoalCard() {
         
         {xpRemaining > 0 ? (
           <p className="text-[10px] text-muted-foreground">
-            <span className="text-amber-400 font-medium">{xpRemaining} XP</span> remaining to reach weekly target
+            <span className="text-foreground font-medium">{xpRemaining} XP</span> remaining to reach weekly target
           </p>
         ) : (
           <p className="text-[10px] text-emerald-400 font-medium">
