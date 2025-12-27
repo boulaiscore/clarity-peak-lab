@@ -2,12 +2,26 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Smartphone, Clock, Trophy, 
-  Play, Pause, Check, Sparkles, Target, Ban
+  Play, Pause, Check, Sparkles, Target, Ban, Settings, Save
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useWeeklyDetoxXP, useTodayDetoxMinutes, useRecordDetoxCompletion } from "@/hooks/useDetoxProgress";
+import { 
+  useWeeklyDetoxXP, 
+  useTodayDetoxMinutes, 
+  useRecordDetoxCompletion,
+  useDetoxGoal,
+  useUpdateDetoxGoal
+} from "@/hooks/useDetoxProgress";
 import { toast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
 
 interface DetoxSession {
   targetMinutes: number;
@@ -27,16 +41,29 @@ export function DetoxChallengeTab() {
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [showGoalSettings, setShowGoalSettings] = useState(false);
+  const [goalMinutes, setGoalMinutes] = useState(120);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Real data from database
   const { data: weeklyData } = useWeeklyDetoxXP();
   const { data: todayMinutes } = useTodayDetoxMinutes();
+  const { data: goal } = useDetoxGoal();
+  const updateGoal = useUpdateDetoxGoal();
   const recordCompletion = useRecordDetoxCompletion();
 
   const todayDetoxMinutes = todayMinutes || 0;
   const weeklyDetoxMinutes = weeklyData?.totalMinutes || 0;
   const weeklyDetoxXP = weeklyData?.totalXP || 0;
+  const weeklyGoal = goal?.weeklyMinutesTarget || 120;
+  const goalProgress = Math.min(100, (weeklyDetoxMinutes / weeklyGoal) * 100);
+
+  // Initialize goal slider when goal data loads
+  useEffect(() => {
+    if (goal) {
+      setGoalMinutes(goal.weeklyMinutesTarget);
+    }
+  }, [goal]);
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -82,6 +109,21 @@ export function DetoxChallengeTab() {
     setElapsedSeconds(0);
   };
 
+  const handleSaveGoal = () => {
+    updateGoal.mutate({
+      weeklyMinutesTarget: goalMinutes,
+      weeklySessionsTarget: Math.ceil(goalMinutes / 30), // Estimate sessions
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Goal Updated",
+          description: `Weekly target set to ${goalMinutes} minutes`,
+        });
+        setShowGoalSettings(false);
+      },
+    });
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -94,14 +136,80 @@ export function DetoxChallengeTab() {
 
   return (
     <div className="space-y-5">
-      {/* Stats Banner */}
+      {/* Stats Banner with Goal */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-teal-500/10 via-teal-500/5 to-transparent border border-teal-500/20">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="relative">
-            <Smartphone className="w-4 h-4 text-teal-400" />
-            <Ban className="w-4 h-4 text-teal-400 absolute inset-0" />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Smartphone className="w-4 h-4 text-teal-400" />
+              <Ban className="w-4 h-4 text-teal-400 absolute inset-0" />
+            </div>
+            <span className="text-xs font-medium text-teal-400">Digital Detox</span>
           </div>
-          <span className="text-xs font-medium text-teal-400">Digital Detox</span>
+          
+          {/* Goal Settings Button */}
+          <Dialog open={showGoalSettings} onOpenChange={setShowGoalSettings}>
+            <DialogTrigger asChild>
+              <button className="p-1.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="text-base">Weekly Detox Goal</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm text-muted-foreground">Target minutes per week</span>
+                    <span className="text-lg font-bold text-teal-400">{goalMinutes} min</span>
+                  </div>
+                  <Slider
+                    value={[goalMinutes]}
+                    onValueChange={(v) => setGoalMinutes(v[0])}
+                    min={30}
+                    max={420}
+                    step={15}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+                    <span>30 min</span>
+                    <span>7 hours</span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">Suggested:</span> Start with 2 hours/week and gradually increase. 
+                    This equals about {Math.ceil(goalMinutes / 30)} sessions of 30 min each.
+                  </p>
+                </div>
+
+                <Button onClick={handleSaveGoal} className="w-full gap-2 bg-teal-600 hover:bg-teal-700">
+                  <Save className="w-4 h-4" />
+                  Save Goal
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Goal Progress Bar */}
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] text-muted-foreground">Weekly Goal Progress</span>
+            <span className="text-[10px] font-semibold text-teal-400">
+              {weeklyDetoxMinutes} / {weeklyGoal} min
+            </span>
+          </div>
+          <div className="h-2 bg-teal-500/10 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full rounded-full bg-gradient-to-r from-teal-400 to-cyan-400"
+              initial={{ width: 0 }}
+              animate={{ width: `${goalProgress}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
         </div>
         
         <div className="grid grid-cols-3 gap-3">
