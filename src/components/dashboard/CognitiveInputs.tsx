@@ -579,7 +579,7 @@ function PrescriptionCard({
             {/* Badges row */}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               {isLogged ? (
-                <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400">
+                <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-violet-500/10 border-violet-500/30 text-violet-600 dark:text-violet-400">
                   Completed
                 </Badge>
               ) : (
@@ -653,7 +653,7 @@ function PrescriptionCard({
                     href={input.primaryUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                    className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400 hover:underline"
                   >
                     <ExternalLink className="h-3 w-3" />
                     Open in Spotify
@@ -919,14 +919,14 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
             </div>
             <div>
               <h4 className="text-sm font-medium">{title}</h4>
-              <p className="text-[10px] text-green-500">
+              <p className="text-[10px] text-violet-500">
                 All {completedCount} completed ✓
               </p>
             </div>
           </div>
         </div>
         <div className="p-4 rounded-xl border border-border/20 bg-muted/20 text-center">
-          <CheckCircle2 className="h-6 w-6 text-green-500/50 mx-auto mb-2" />
+          <CheckCircle2 className="h-6 w-6 text-violet-500/50 mx-auto mb-2" />
           <p className="text-xs text-muted-foreground">All items moved to Library</p>
         </div>
       </div>
@@ -949,7 +949,7 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
             <h4 className="text-sm font-medium">{title}</h4>
             <p className="text-[10px] text-muted-foreground">
               {isLoading ? "..." : `${allInputs.length} remaining`}
-              {completedCount > 0 && <span className="text-green-500 ml-1">({completedCount} in library)</span>}
+              {completedCount > 0 && <span className="text-violet-500 ml-1">({completedCount} in library)</span>}
             </p>
           </div>
         </div>
@@ -1384,7 +1384,7 @@ function LibrarySection({
               className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 hover:border-primary/30 transition-all"
             >
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">{item.title}</p>
