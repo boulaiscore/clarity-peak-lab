@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
@@ -36,6 +36,10 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
 };
 
 export default function NeuroLab() {
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
