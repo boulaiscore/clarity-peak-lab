@@ -1106,15 +1106,24 @@ export function CognitiveInputs() {
   );
 }
 
-// Calculate raw points for a completed item based on difficulty
+// Calculate raw points for a completed item based on type and difficulty
+// Aligned with XP_VALUES from trainingPlans: podcast=8, reading=10, book=12
 function calculateItemRawPoints(item: CognitiveInput): number {
-  // Base points by difficulty: 1=10, 2=20, 3=35, 4=50, 5=75
-  const difficultyPoints: Record<number, number> = { 1: 10, 2: 20, 3: 35, 4: 50, 5: 75 };
-  return difficultyPoints[item.difficulty] || 10;
+  // Base XP by content type (matches XP_VALUES)
+  const baseByType: Record<InputType, number> = {
+    podcast: 8,
+    article: 10,
+    book: 12,
+  };
+  
+  // Small difficulty bonus: +1 for each level above 1
+  const difficultyBonus = Math.max(0, item.difficulty - 1);
+  
+  return baseByType[item.type] + difficultyBonus;
 }
 
-// Calculate max possible points for an item (difficulty 5 = 75)
-const MAX_ITEM_POINTS = 75;
+// Calculate max possible points for an item (book difficulty 5 = 12 + 4 = 16)
+const MAX_ITEM_POINTS = 16;
 
 // Get total max points for all available items
 function getTotalMaxPoints(): { total: number; s1Max: number; s2Max: number } {
