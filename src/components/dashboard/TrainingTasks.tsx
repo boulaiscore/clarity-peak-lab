@@ -21,6 +21,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { XP_VALUES } from "@/lib/trainingPlans";
 import { startOfWeek, format } from "date-fns";
+import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -263,6 +264,9 @@ export function TrainingTasks() {
   const queryClient = useQueryClient();
   const { data: completedIds = [], isLoading } = useLoggedExposures(user?.id);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  
+  // Get weekly progress for content XP toward plan goal
+  const { weeklyContentXP, weeklyXPTarget, plan } = useWeeklyProgress();
 
   const toggleMutation = useMutation({
     mutationFn: async ({ taskId, taskType }: { taskId: string; taskType: InputType }) => {
@@ -325,10 +329,15 @@ export function TrainingTasks() {
   const activeTasks = ACTIVE_TASKS.filter(t => !completedIds.includes(t.id));
   const completedTasks = ACTIVE_TASKS.filter(t => completedIds.includes(t.id));
   
-  // Calculate stats
+  // Calculate stats for tasks only
   const totalPossibleXP = ACTIVE_TASKS.reduce((sum, t) => sum + calculateXP(t.type), 0);
   const earnedXP = completedTasks.reduce((sum, t) => sum + calculateXP(t.type), 0);
   const completionPercent = ACTIVE_TASKS.length > 0 ? Math.round((completedTasks.length / ACTIVE_TASKS.length) * 100) : 0;
+  
+  // Weekly goal progress (content XP toward plan target)
+  // Content contributes ~40% of weekly target typically
+  const contentTarget = Math.round(weeklyXPTarget * 0.4);
+  const weeklyGoalPercent = Math.min(100, Math.round((weeklyContentXP / contentTarget) * 100));
 
   if (isLoading) {
     return (
@@ -348,12 +357,40 @@ export function TrainingTasks() {
       transition={{ duration: 0.4 }}
       className="space-y-4"
     >
-      {/* Header with XP progress */}
+      {/* Weekly Goal Card - like GamesLibrary */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-teal-500/10 via-card/50 to-primary/5 border border-teal-500/20">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4 text-teal-500" />
+            <h3 className="text-[13px] font-semibold">Weekly Goal</h3>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-teal-500">{weeklyContentXP}</span>
+            <span className="text-[10px] text-muted-foreground">/{contentTarget} XP</span>
+          </div>
+        </div>
+        
+        {/* Progress bar */}
+        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden mb-2">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${weeklyGoalPercent}%` }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="h-full bg-gradient-to-r from-teal-500 to-primary rounded-full"
+          />
+        </div>
+        
+        <p className="text-[10px] text-muted-foreground">
+          {weeklyGoalPercent >= 100 ? "Goal reached!" : `${100 - weeklyGoalPercent}% to goal`} • {plan.name} plan
+        </p>
+      </div>
+
+      {/* Tasks Progress */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-primary" />
-            <h3 className="text-[13px] font-semibold">Weekly Tasks</h3>
+            <FileText className="h-4 w-4 text-primary" />
+            <h3 className="text-[13px] font-semibold">Tasks Progress</h3>
           </div>
           <div className="text-right">
             <span className="text-lg font-bold text-primary">{earnedXP}</span>
