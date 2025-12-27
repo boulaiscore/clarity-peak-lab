@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { TRAINING_PLANS, TrainingPlanId, TrainingPlan } from "@/lib/trainingPlans";
-import { Leaf, Target, Flame, Check, Clock, BookOpen, Gamepad2, ChevronDown, ChevronUp } from "lucide-react";
+import { Leaf, Target, Flame, Check, Clock, BookOpen, Gamepad2, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PLAN_ICONS: Record<TrainingPlanId, typeof Leaf> = {
@@ -31,6 +31,13 @@ const PLAN_COLORS: Record<TrainingPlanId, { bg: string; border: string; text: st
   },
 };
 
+// XP split based on plan structure (same as WeeklyGoalCard)
+const PLAN_XP_SPLIT: Record<TrainingPlanId, { gamesPercent: number; tasksPercent: number }> = {
+  light: { gamesPercent: 0.75, tasksPercent: 0.25 },
+  expert: { gamesPercent: 0.60, tasksPercent: 0.40 },
+  superhuman: { gamesPercent: 0.58, tasksPercent: 0.42 },
+};
+
 interface TrainingPlanSelectorProps {
   selectedPlan: TrainingPlanId;
   onSelectPlan: (plan: TrainingPlanId) => void;
@@ -52,6 +59,11 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
         const colors = PLAN_COLORS[planId];
         const isSelected = selectedPlan === planId;
         const isExpanded = expandedPlan === planId;
+
+        // Calculate XP targets for games and tasks
+        const split = PLAN_XP_SPLIT[planId];
+        const gamesXPTarget = Math.round(plan.weeklyXPTarget * split.gamesPercent);
+        const tasksXPTarget = Math.round(plan.weeklyXPTarget * split.tasksPercent);
 
         return (
           <motion.div
@@ -98,12 +110,8 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                       <span>{plan.sessionDuration}/session</span>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Gamepad2 className="w-3 h-3" />
-                      <span>{plan.sessionsPerWeek}x/week</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <BookOpen className="w-3 h-3" />
-                      <span>{plan.contentPerWeek} content/week</span>
+                      <Star className="w-3 h-3" />
+                      <span>{plan.weeklyXPTarget} XP/week</span>
                     </div>
                   </div>
                 </div>
@@ -126,12 +134,12 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
               >
                 {isExpanded ? (
                   <>
-                    <span>Hide schedule</span>
+                    <span>Hide details</span>
                     <ChevronUp className="w-3 h-3" />
                   </>
                 ) : (
                   <>
-                    <span>View weekly schedule</span>
+                    <span>View details</span>
                     <ChevronDown className="w-3 h-3" />
                   </>
                 )}
@@ -147,6 +155,39 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                 className="px-4 pb-4 border-t border-border/20"
               >
                 <div className="pt-3 space-y-3">
+                  {/* XP Breakdown */}
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly XP Target</p>
+                    <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-amber-400" />
+                          <span className="text-[12px] font-semibold">{plan.weeklyXPTarget} XP total</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center">
+                            <Gamepad2 className="w-3 h-3 text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-semibold text-blue-400">{gamesXPTarget} XP</p>
+                            <p className="text-[9px] text-muted-foreground">Games</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center">
+                            <BookOpen className="w-3 h-3 text-purple-400" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-semibold text-purple-400">{tasksXPTarget} XP</p>
+                            <p className="text-[9px] text-muted-foreground">Tasks</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Target Audience */}
                   <div>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">For</p>
