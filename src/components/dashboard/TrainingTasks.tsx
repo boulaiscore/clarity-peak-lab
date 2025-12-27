@@ -51,8 +51,8 @@ const ACTIVE_PRESCRIPTIONS: Record<InputType, string> = {
   article: "hbr-critical-thinking",
 };
 
-// Simplified active tasks data (only the active ones)
-const ACTIVE_TASKS: CognitiveInput[] = [
+// All available tasks - ordered by priority for each plan
+const ALL_TASKS: CognitiveInput[] = [
   {
     id: "in-our-time",
     type: "podcast",
@@ -64,16 +64,6 @@ const ACTIVE_TASKS: CognitiveInput[] = [
     primaryUrl: "https://open.spotify.com/show/17YfG23eMbfLBaDPqucgzZ",
   },
   {
-    id: "apology-plato",
-    type: "book",
-    title: "Apology",
-    author: "Plato",
-    duration: "1–2 hrs",
-    difficulty: 3,
-    thinkingSystem: "S2",
-    primaryUrl: "https://www.amazon.it/s?k=Plato+Apology",
-  },
-  {
     id: "hbr-critical-thinking",
     type: "article",
     title: "Critical Thinking Is About Asking Better Questions",
@@ -83,7 +73,26 @@ const ACTIVE_TASKS: CognitiveInput[] = [
     thinkingSystem: "S2",
     primaryUrl: "https://hbr.org/2022/04/critical-thinking-is-about-asking-better-questions",
   },
+  {
+    id: "apology-plato",
+    type: "book",
+    title: "Apology",
+    author: "Plato",
+    duration: "1–2 hrs",
+    difficulty: 3,
+    thinkingSystem: "S2",
+    primaryUrl: "https://www.amazon.it/s?k=Plato+Apology",
+  },
 ];
+
+// Get tasks for specific plan based on contentPerWeek
+function getTasksForPlan(planId: TrainingPlanId): CognitiveInput[] {
+  const plan = TRAINING_PLANS[planId];
+  if (!plan) return ALL_TASKS.slice(0, 1);
+  
+  // Return tasks based on plan's contentPerWeek requirement
+  return ALL_TASKS.slice(0, plan.contentPerWeek);
+}
 
 // Hook to get completed content for THIS WEEK only
 function useWeeklyCompletedContent(userId: string | undefined) {
@@ -352,13 +361,17 @@ export function TrainingTasks() {
     toggleMutation.mutate({ taskId, taskType });
   };
 
-  // Filter active tasks (not completed THIS WEEK)
-  const activeTasks = ACTIVE_TASKS.filter(t => !completedThisWeek.includes(t.id));
-  const completedTasks = ACTIVE_TASKS.filter(t => completedThisWeek.includes(t.id));
+  // Get tasks for the user's plan only
+  const planTasks = getTasksForPlan(userPlan);
   
-  // Use plan-based XP target and calculate progress
+  // Filter active tasks (not completed THIS WEEK) - only from plan tasks
+  const activeTasks = planTasks.filter(t => !completedThisWeek.includes(t.id));
+  const completedTasks = planTasks.filter(t => completedThisWeek.includes(t.id));
+  
+  // Calculate XP target for tasks only (based on plan's content requirements)
+  const planTasksXPTarget = planTasks.reduce((sum, t) => sum + calculateXP(t.type), 0);
   const earnedXP = weeklyTasksXPEarned;
-  const completionPercent = planXPTarget > 0 ? Math.min(100, Math.round((earnedXP / planXPTarget) * 100)) : 0;
+  const completionPercent = planTasksXPTarget > 0 ? Math.min(100, Math.round((earnedXP / planTasksXPTarget) * 100)) : 0;
   if (isLoading) {
     return (
       <div className="p-4 rounded-xl bg-card/40 border border-border/30">
@@ -386,7 +399,7 @@ export function TrainingTasks() {
           </div>
           <div className="text-right">
             <span className="text-lg font-bold text-primary">{earnedXP}</span>
-            <span className="text-[10px] text-muted-foreground">/{planXPTarget} XP</span>
+            <span className="text-[10px] text-muted-foreground">/{planTasksXPTarget} XP</span>
           </div>
         </div>
         
