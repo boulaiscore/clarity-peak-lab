@@ -6,7 +6,7 @@ import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { 
   Zap, ChevronRight, Crown, 
-  Gamepad2, BookMarked, Play, CheckCircle2, Library, Star
+  Gamepad2, BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,7 @@ import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { TrainHeader } from "@/components/app/TrainHeader";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
-import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
+import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -238,14 +238,9 @@ export default function NeuroLab() {
         {/* Weekly Goal - shared across Games/Tasks */}
         <WeeklyGoalCard />
 
-        {/* Distraction Load Card */}
-        <div className="mb-5">
-          <DistractionLoadCard />
-        </div>
-
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-2 mb-4">
+          <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
               <Gamepad2 className="w-3.5 h-3.5" />
               Games
@@ -253,6 +248,13 @@ export default function NeuroLab() {
             <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
               <BookMarked className="w-3.5 h-3.5" />
               Tasks
+            </TabsTrigger>
+            <TabsTrigger value="detox" className="flex items-center gap-1.5 text-xs">
+              <div className="relative w-3.5 h-3.5">
+                <Smartphone className="w-3.5 h-3.5" />
+                <Ban className="w-3.5 h-3.5 absolute inset-0" />
+              </div>
+              Detox
             </TabsTrigger>
           </TabsList>
 
@@ -325,6 +327,11 @@ export default function NeuroLab() {
             ) : (
               <CognitiveLibrary />
             )}
+          </TabsContent>
+
+          {/* Detox Tab */}
+          <TabsContent value="detox" className="mt-0">
+            <DetoxChallengeTab />
           </TabsContent>
         </Tabs>
       </div>
