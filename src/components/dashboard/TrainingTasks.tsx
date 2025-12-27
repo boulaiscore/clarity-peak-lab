@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { 
   Headphones, BookOpen, FileText, CheckCircle2, 
   Brain, Zap, Target, ChevronRight, ExternalLink, Star
 } from "lucide-react";
+import { XPCelebration } from "@/components/app/XPCelebration";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -264,6 +265,8 @@ export function TrainingTasks() {
   const queryClient = useQueryClient();
   const { data: completedIds = [], isLoading } = useLoggedExposures(user?.id);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const prevGoalReached = useRef(false);
   
   // Get weekly progress for content XP toward plan goal
   const { weeklyContentXP, weeklyGamesXP, weeklyXPEarned, weeklyXPTarget, plan } = useWeeklyProgress();
@@ -342,6 +345,14 @@ export function TrainingTasks() {
   const contentItemsNeeded = Math.ceil(xpRemaining / avgXPPerContent);
   const goalReached = weeklyXPEarned >= weeklyXPTarget;
 
+  // Trigger celebration when goal is reached for the first time
+  useEffect(() => {
+    if (goalReached && !prevGoalReached.current && weeklyXPTarget > 0) {
+      setShowCelebration(true);
+    }
+    prevGoalReached.current = goalReached;
+  }, [goalReached, weeklyXPTarget]);
+
   if (isLoading) {
     return (
       <div className="p-4 rounded-xl bg-card/40 border border-border/30">
@@ -354,13 +365,20 @@ export function TrainingTasks() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-4"
-    >
-      {/* Weekly Goal Card - exactly like GamesLibrary */}
+    <>
+      {/* XP Celebration Modal */}
+      <XPCelebration 
+        show={showCelebration} 
+        onComplete={() => setShowCelebration(false)}
+      />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="space-y-4"
+      >
+        {/* Weekly Goal Card - exactly like GamesLibrary */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -485,6 +503,7 @@ export function TrainingTasks() {
           <p className="text-[10px] text-muted-foreground">You earned {earnedXP} XP this week</p>
         </div>
       )}
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
