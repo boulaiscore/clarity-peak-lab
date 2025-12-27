@@ -218,34 +218,32 @@ const Dashboard = () => {
             {/* Weekly Goal - shared across Games/Tasks */}
             <WeeklyGoalCard />
 
-            {/* Sub-tabs for Games/Tasks - Navigate to NeuroLab */}
+            {/* Sub-tabs for Games/Tasks */}
             <div className="flex items-center gap-1 p-1 bg-card/40 border border-border/30 rounded-xl">
-              <Link
-                to="/neuro-lab"
+              <button
+                onClick={() => setTrainingSubTab("games")}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all",
                   trainingSubTab === "games"
                     ? "bg-primary/15 text-primary shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
-                onClick={() => setTrainingSubTab("games")}
               >
                 <Gamepad2 className="w-3.5 h-3.5" />
                 Games
-              </Link>
-              <Link
-                to="/neuro-lab"
+              </button>
+              <button
+                onClick={() => setTrainingSubTab("tasks")}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all",
                   trainingSubTab === "tasks"
                     ? "bg-primary/15 text-primary shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
-                onClick={() => setTrainingSubTab("tasks")}
               >
                 <BookMarked className="w-3.5 h-3.5" />
                 Tasks
-              </Link>
+              </button>
             </div>
 
             {/* Games or Tasks Content */}
