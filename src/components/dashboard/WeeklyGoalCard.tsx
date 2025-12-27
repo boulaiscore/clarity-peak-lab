@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Star, Gamepad2, BookMarked, Target } from "lucide-react";
+import { Star, Gamepad2, BookMarked, Target, CheckCircle2 } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { XPCelebration } from "@/components/app/XPCelebration";
 
@@ -34,6 +34,10 @@ export function WeeklyGoalCard() {
   // Progress percentages
   const gamesProgress = Math.min(100, (weeklyGamesXP / gamesXPTarget) * 100);
   const tasksProgress = Math.min(100, (weeklyContentXP / tasksXPTarget) * 100);
+
+  // Check if each category is complete
+  const gamesComplete = weeklyGamesXP >= gamesXPTarget;
+  const tasksComplete = weeklyContentXP >= tasksXPTarget;
 
   // Trigger celebration when goal is reached for the first time
   useEffect(() => {
@@ -93,6 +97,12 @@ export function WeeklyGoalCard() {
                   <Gamepad2 className="w-3 h-3 text-blue-400" />
                 </div>
                 <span className="text-[11px] font-medium text-foreground">Games</span>
+                {gamesComplete && (
+                  <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
+                    <CheckCircle2 className="w-2.5 h-2.5" />
+                    Completato
+                  </span>
+                )}
               </div>
               <span className="text-[11px] font-semibold text-blue-400">
                 {weeklyGamesXP} / {gamesXPTarget} XP
@@ -100,7 +110,7 @@ export function WeeklyGoalCard() {
             </div>
             <div className="h-1.5 bg-blue-500/10 rounded-full overflow-hidden">
               <motion.div 
-                className="h-full bg-blue-400 rounded-full"
+                className={`h-full rounded-full ${gamesComplete ? 'bg-emerald-400' : 'bg-blue-400'}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${gamesProgress}%` }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
@@ -116,6 +126,12 @@ export function WeeklyGoalCard() {
                   <BookMarked className="w-3 h-3 text-purple-400" />
                 </div>
                 <span className="text-[11px] font-medium text-foreground">Tasks</span>
+                {tasksComplete && (
+                  <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
+                    <CheckCircle2 className="w-2.5 h-2.5" />
+                    Completato
+                  </span>
+                )}
               </div>
               <span className="text-[11px] font-semibold text-purple-400">
                 {weeklyContentXP} / {tasksXPTarget} XP
@@ -123,7 +139,7 @@ export function WeeklyGoalCard() {
             </div>
             <div className="h-1.5 bg-purple-500/10 rounded-full overflow-hidden">
               <motion.div 
-                className="h-full bg-purple-400 rounded-full"
+                className={`h-full rounded-full ${tasksComplete ? 'bg-emerald-400' : 'bg-purple-400'}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${tasksProgress}%` }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
