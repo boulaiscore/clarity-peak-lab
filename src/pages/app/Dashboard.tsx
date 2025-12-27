@@ -11,6 +11,7 @@ import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
+import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { Button } from "@/components/ui/button";
 import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Gamepad2, BookMarked } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -213,6 +214,9 @@ const Dashboard = () => {
           <div className="space-y-5">
             {/* Progress Header with Animation */}
             <TrainingProgressHeader />
+
+            {/* Weekly Goal - shared across Games/Tasks */}
+            <WeeklyGoalCard />
 
             {/* Sub-tabs for Games/Tasks */}
             <div className="flex items-center gap-1 p-1 bg-card/40 border border-border/30 rounded-xl">

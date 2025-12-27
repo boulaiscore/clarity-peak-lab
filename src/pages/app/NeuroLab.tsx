@@ -21,6 +21,7 @@ import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { TrainHeader } from "@/components/app/TrainHeader";
+import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -233,6 +234,9 @@ export default function NeuroLab() {
           </div>
         </button>
 
+        {/* Weekly Goal - shared across Games/Tasks */}
+        <WeeklyGoalCard />
+
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-2 mb-4">
@@ -249,10 +253,6 @@ export default function NeuroLab() {
           {/* Games Tab */}
           <TabsContent value="games" className="mt-0">
             <GamesLibrary 
-              weeklyXPEarned={weeklyXPEarned}
-              weeklyGamesXP={weeklyGamesXP}
-              weeklyContentXP={weeklyContentXP}
-              weeklyXPTarget={weeklyXPTarget}
               onStartGame={handleEnterArea}
             />
           </TabsContent>

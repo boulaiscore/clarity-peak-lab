@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Headphones, BookOpen, FileText, CheckCircle2, 
-  Brain, Zap, Target, ChevronRight, ExternalLink, Star
+  Brain, Zap, ExternalLink
 } from "lucide-react";
-import { XPCelebration } from "@/components/app/XPCelebration";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,7 +21,6 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { XP_VALUES } from "@/lib/trainingPlans";
 import { startOfWeek, format } from "date-fns";
-import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -265,11 +263,6 @@ export function TrainingTasks() {
   const queryClient = useQueryClient();
   const { data: completedIds = [], isLoading } = useLoggedExposures(user?.id);
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const prevGoalReached = useRef(false);
-  
-  // Get weekly progress for content XP toward plan goal
-  const { weeklyContentXP, weeklyGamesXP, weeklyXPEarned, weeklyXPTarget, plan } = useWeeklyProgress();
 
   const toggleMutation = useMutation({
     mutationFn: async ({ taskId, taskType }: { taskId: string; taskType: InputType }) => {
@@ -336,23 +329,6 @@ export function TrainingTasks() {
   const totalPossibleXP = ACTIVE_TASKS.reduce((sum, t) => sum + calculateXP(t.type), 0);
   const earnedXP = completedTasks.reduce((sum, t) => sum + calculateXP(t.type), 0);
   const completionPercent = ACTIVE_TASKS.length > 0 ? Math.round((completedTasks.length / ACTIVE_TASKS.length) * 100) : 0;
-  
-  // Weekly goal progress
-  const xpProgress = Math.min(100, (weeklyXPEarned / weeklyXPTarget) * 100);
-  const xpRemaining = Math.max(0, weeklyXPTarget - weeklyXPEarned);
-  // Estimate content items needed based on average XP (article = 20)
-  const avgXPPerContent = XP_VALUES.readingComplete;
-  const contentItemsNeeded = Math.ceil(xpRemaining / avgXPPerContent);
-  const goalReached = weeklyXPEarned >= weeklyXPTarget;
-
-  // Trigger celebration when goal is reached for the first time
-  useEffect(() => {
-    if (goalReached && !prevGoalReached.current && weeklyXPTarget > 0) {
-      setShowCelebration(true);
-    }
-    prevGoalReached.current = goalReached;
-  }, [goalReached, weeklyXPTarget]);
-
   if (isLoading) {
     return (
       <div className="p-4 rounded-xl bg-card/40 border border-border/30">
@@ -365,66 +341,12 @@ export function TrainingTasks() {
   }
 
   return (
-    <>
-      {/* XP Celebration Modal */}
-      <XPCelebration 
-        show={showCelebration} 
-        onComplete={() => setShowCelebration(false)}
-      />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="space-y-4"
-      >
-        {/* Weekly Goal Card - exactly like GamesLibrary */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-amber-400" />
-            <span className="text-[12px] font-semibold">Weekly Goal</span>
-          </div>
-          <span className="text-[12px] font-bold text-amber-400">
-            {weeklyXPEarned} / {weeklyXPTarget} XP
-          </span>
-        </div>
-        <div className="h-2 bg-amber-500/10 rounded-full overflow-hidden mb-2">
-          <motion.div 
-            className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${xpProgress}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
-        
-        {/* XP Breakdown */}
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-blue-400" />
-            <span className="text-[10px] text-muted-foreground">
-              Games: <span className="text-blue-400 font-medium">{weeklyGamesXP}</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-purple-400" />
-            <span className="text-[10px] text-muted-foreground">
-              Content: <span className="text-purple-400 font-medium">{weeklyContentXP}</span>
-            </span>
-          </div>
-        </div>
-        
-        {xpRemaining > 0 ? (
-          <p className="text-[10px] text-muted-foreground">
-            ~<span className="text-amber-400 font-medium">{contentItemsNeeded} task{contentItemsNeeded > 1 ? 's' : ''}</span> to reach weekly target
-          </p>
-        ) : (
-          <p className="text-[10px] text-emerald-400 font-medium">
-            🎉 Weekly goal achieved! Keep training to level up faster.
-          </p>
-        )}
-      </div>
-
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-4"
+    >
       {/* Tasks Progress */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
         <div className="flex items-center justify-between mb-3">
@@ -503,7 +425,6 @@ export function TrainingTasks() {
           <p className="text-[10px] text-muted-foreground">You earned {earnedXP} XP this week</p>
         </div>
       )}
-      </motion.div>
-    </>
+    </motion.div>
   );
 }
