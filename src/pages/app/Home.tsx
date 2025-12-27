@@ -283,9 +283,6 @@ const Home = () => {
           transition={{ delay: 0.2 }}
           className="mb-4"
         >
-          <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
-            My day
-          </p>
           <button
             onClick={handleStartSession}
             className="w-full p-4 rounded-xl bg-card border border-border/40 flex items-center justify-between hover:bg-muted/30 transition-colors active:scale-[0.99]"
