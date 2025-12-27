@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Smartphone, Instagram, MessageCircle, Facebook, Clock, Shield } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Smartphone, Instagram, MessageCircle, Facebook, Clock, Shield, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SocialAppUsage {
@@ -15,6 +15,7 @@ export function DistractionLoadCard() {
     const stored = localStorage.getItem("distraction-load-enabled");
     return stored === "true";
   });
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Mock usage data - in production this would come from device APIs
   const [usageData, setUsageData] = useState<SocialAppUsage[]>([
@@ -37,7 +38,8 @@ export function DistractionLoadCard() {
     }
   }, [isEnabled]);
 
-  const handleEnable = () => {
+  const handleEnable = (e: React.MouseEvent) => {
+    e.stopPropagation();
     // In production, this would trigger native permission dialogs
     setIsEnabled(true);
     localStorage.setItem("distraction-load-enabled", "true");
@@ -45,28 +47,45 @@ export function DistractionLoadCard() {
 
   const totalMinutes = usageData.reduce((sum, app) => sum + app.minutes, 0);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl bg-card border border-border/40"
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-          <Smartphone className="w-4 h-4 text-orange-400" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-medium">Distraction Load</h3>
-          <p className="text-[10px] text-muted-foreground">Social media screen time</p>
-        </div>
-      </div>
+  // Get distraction level based on total usage
+  const getDistractionLevel = () => {
+    if (!isEnabled) return { level: "Unknown", color: "text-muted-foreground" };
+    if (totalMinutes <= 60) return { level: "Low", color: "text-emerald-400" };
+    if (totalMinutes <= 120) return { level: "Elevated", color: "text-amber-400" };
+    return { level: "High", color: "text-red-400" };
+  };
 
-      {!isEnabled ? (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-muted-foreground/50" />
-            <span className="text-xs text-muted-foreground">Not enabled</span>
+  const distractionLevel = getDistractionLevel();
+
+  return (
+    <div className="rounded-xl bg-card border border-border/40 overflow-hidden">
+      {/* Collapsed Header - Always visible */}
+      <button
+        onClick={() => isEnabled && setIsExpanded(!isExpanded)}
+        className={cn(
+          "w-full p-4 flex items-center justify-between transition-colors",
+          isEnabled && "hover:bg-muted/30 cursor-pointer"
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+            <Smartphone className="w-4 h-4 text-orange-400" />
           </div>
+          <div className="text-left">
+            <h3 className="text-sm font-medium">Distraction Load</h3>
+            <div className="flex items-center gap-1.5">
+              {isEnabled ? (
+                <span className={cn("text-[11px] font-medium", distractionLevel.color)}>
+                  {distractionLevel.level}
+                </span>
+              ) : (
+                <span className="text-[11px] text-muted-foreground">Not enabled</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {!isEnabled ? (
           <button
             onClick={handleEnable}
             className={cn(
@@ -76,33 +95,51 @@ export function DistractionLoadCard() {
           >
             Enable Usage Access
           </button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Today</span>
-            <span className={cn(
-              "text-xs font-semibold",
-              totalMinutes > 120 ? "text-red-400" : 
-              totalMinutes > 60 ? "text-amber-400" : "text-emerald-400"
-            )}>
-              {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m total
-            </span>
-          </div>
-          
-          {usageData.map((app) => (
-            <div key={app.app} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <app.icon className={cn("w-3.5 h-3.5", app.color)} />
-                <span className="text-xs text-muted-foreground">{app.app}</span>
+        ) : (
+          <ChevronDown className={cn(
+            "w-4 h-4 text-muted-foreground transition-transform duration-200",
+            isExpanded && "rotate-180"
+          )} />
+        )}
+      </button>
+
+      {/* Expanded Content */}
+      <AnimatePresence>
+        {isEnabled && isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-0 space-y-2">
+              <div className="flex items-center justify-between mb-2 pt-2 border-t border-border/20">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Today</span>
+                <span className={cn(
+                  "text-xs font-semibold",
+                  totalMinutes > 120 ? "text-red-400" : 
+                  totalMinutes > 60 ? "text-amber-400" : "text-emerald-400"
+                )}>
+                  {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m total
+                </span>
               </div>
-              <span className={cn("text-xs font-medium tabular-nums", app.color)}>
-                {app.minutes}m
-              </span>
+              
+              {usageData.map((app) => (
+                <div key={app.app} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <app.icon className={cn("w-3.5 h-3.5", app.color)} />
+                    <span className="text-xs text-muted-foreground">{app.app}</span>
+                  </div>
+                  <span className={cn("text-xs font-medium tabular-nums", app.color)}>
+                    {app.minutes}m
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
-    </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

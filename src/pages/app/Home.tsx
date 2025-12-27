@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked, ChevronDown } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
 import { cn } from "@/lib/utils";
@@ -94,7 +94,7 @@ const Home = () => {
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [showDistractionLoad, setShowDistractionLoad] = useState(false);
+  
 
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
@@ -141,43 +141,6 @@ const Home = () => {
     }
   };
 
-  // Get distraction load based on readiness and sessions
-  const getDistractionLoad = () => {
-    const baseLoad = 100 - readinessScore;
-    const sessionFatigue = sessionsCompleted * 5;
-    const totalLoad = Math.min(baseLoad + sessionFatigue, 100);
-    
-    if (totalLoad <= 35) {
-      return {
-        level: "Low" as const,
-        factors: [
-          { label: "Environmental noise", value: "Minimal" },
-          { label: "Task switching cost", value: "Low" },
-          { label: "Attention residue", value: "Clear" }
-        ]
-      };
-    }
-    if (totalLoad <= 60) {
-      return {
-        level: "Elevated" as const,
-        factors: [
-          { label: "Environmental noise", value: "Moderate" },
-          { label: "Task switching cost", value: "Present" },
-          { label: "Attention residue", value: "Some carry-over" }
-        ]
-      };
-    }
-    return {
-      level: "High" as const,
-      factors: [
-        { label: "Environmental noise", value: "Significant" },
-        { label: "Task switching cost", value: "Heavy" },
-        { label: "Attention residue", value: "Accumulated" }
-      ]
-    };
-  };
-
-  const distractionLoad = getDistractionLoad();
 
   // Get insight based on readiness
   const getInsight = () => {
@@ -267,65 +230,11 @@ const Home = () => {
           />
         </motion.section>
 
-        {/* Distraction Load - Collapsible insight */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.08 }}
-          className="mb-4"
-        >
-          <button
-            onClick={() => setShowDistractionLoad(!showDistractionLoad)}
-            className="w-full flex items-center justify-center gap-2 py-2 text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-          >
-            <span className="text-[10px] uppercase tracking-[0.15em]">
-              Distraction load: <span className={cn(
-                "font-medium",
-                distractionLoad.level === "Low" && "text-emerald-400",
-                distractionLoad.level === "Elevated" && "text-amber-400",
-                distractionLoad.level === "High" && "text-red-400"
-              )}>{distractionLoad.level}</span>
-            </span>
-            <ChevronDown className={cn(
-              "w-3 h-3 transition-transform duration-200",
-              showDistractionLoad && "rotate-180"
-            )} />
-          </button>
-          
-          <AnimatePresence>
-            {showDistractionLoad && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="px-4 py-3 rounded-lg bg-muted/30 border border-border/20 mt-1">
-                  <div className="space-y-2">
-                    {distractionLoad.factors.map((factor, idx) => (
-                      <div key={idx} className="flex items-center justify-between">
-                        <span className="text-[11px] text-muted-foreground">{factor.label}</span>
-                        <span className={cn(
-                          "text-[11px] font-medium",
-                          distractionLoad.level === "Low" && "text-emerald-400/80",
-                          distractionLoad.level === "Elevated" && "text-amber-400/80",
-                          distractionLoad.level === "High" && "text-red-400/80"
-                        )}>{factor.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.section>
-
-        {/* Distraction Load Card */}
+        {/* Distraction Load Card - Collapsible */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.08 }}
           className="mb-4"
         >
           <DistractionLoadCard />
