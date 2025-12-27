@@ -71,6 +71,36 @@ export type Database = {
         }
         Relationships: []
       }
+      detox_completions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          user_id: string
+          week_start: string
+          xp_earned: number
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          user_id: string
+          week_start?: string
+          xp_earned: number
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          user_id?: string
+          week_start?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       exercise_completions: {
         Row: {
           completed_at: string
