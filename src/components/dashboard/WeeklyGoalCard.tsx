@@ -158,10 +158,10 @@ export function WeeklyGoalCard() {
         </div>
 
         {/* Detox Bonus Section */}
-        <div className="p-2.5 rounded-lg bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/20 mb-3">
+        <div className="p-2.5 rounded-lg bg-muted/30 border border-border/30 mb-3">
           <div className="flex items-center gap-1.5 mb-2">
-            <Gift className="w-3 h-3 text-teal-400" />
-            <span className="text-[10px] text-teal-400 font-semibold uppercase tracking-wide">
+            <Star className="w-3 h-3 text-amber-400" />
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
               Bonus XP
             </span>
           </div>
