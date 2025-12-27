@@ -59,10 +59,10 @@ export const XP_VALUES = {
   exerciseEasy: 3,
   exerciseMedium: 5,
   exerciseHard: 8,
-  // Content
-  podcastComplete: 15,     // Per podcast listened
-  readingComplete: 20,     // Per reading completed
-  bookChapterComplete: 30, // Per book chapter read
+  // Content - reduced values to require multiple pieces
+  podcastComplete: 8,        // Per podcast listened
+  readingComplete: 10,       // Per reading/article completed
+  bookChapterComplete: 12,   // Per book chapter read
   // Detox - uniform rate across all plans
   detoxPerMinute: 0.3,       // XP per minute of detox (same for all plans)
   detoxWeeklyBonus: 15,      // Average bonus for hitting weekly target
