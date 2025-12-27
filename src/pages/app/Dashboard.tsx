@@ -215,8 +215,6 @@ const Dashboard = () => {
             {/* Progress Header with Animation */}
             <TrainingProgressHeader />
 
-            {/* Weekly Goal - shared across Games/Tasks */}
-            <WeeklyGoalCard />
 
             {/* Sub-tabs for Games/Tasks */}
             <div className="flex items-center gap-1 p-1 bg-card/40 border border-border/30 rounded-xl">
