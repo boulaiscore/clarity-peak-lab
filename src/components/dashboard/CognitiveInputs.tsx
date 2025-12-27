@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import { useRecordContentCompletion, useRemoveContentCompletion } from "@/hooks/useExerciseXP";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -841,23 +842,35 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   const { data: loggedIds = [], isLoading } = useLoggedExposures(user?.id);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string>(ACTIVE_PRESCRIPTIONS[type]);
+  
+  // XP tracking hooks
+  const recordContentCompletion = useRecordContentCompletion();
+  const removeContentCompletion = useRemoveContentCompletion();
 
   const toggleMutation = useMutation({
-    mutationFn: async ({ inputId, isCurrentlyLogged }: { inputId: string; isCurrentlyLogged: boolean }) => {
+    mutationFn: async ({ inputId, isCurrentlyLogged, xpEarned }: { inputId: string; isCurrentlyLogged: boolean; xpEarned: number }) => {
       if (!user?.id) throw new Error("Not authenticated");
       
       if (isCurrentlyLogged) {
+        // Remove from logged podcasts
         const { error } = await supabase
           .from("user_listened_podcasts")
           .delete()
           .eq("user_id", user.id)
           .eq("podcast_id", inputId);
         if (error) throw error;
+        
+        // Remove XP record
+        await removeContentCompletion.mutateAsync({ contentId: inputId, contentType: type });
       } else {
+        // Add to logged podcasts
         const { error } = await supabase
           .from("user_listened_podcasts")
           .insert({ user_id: user.id, podcast_id: inputId });
         if (error) throw error;
+        
+        // Record XP earned
+        await recordContentCompletion.mutateAsync({ contentId: inputId, contentType: type, xpEarned });
       }
     },
     onMutate: async ({ inputId, isCurrentlyLogged }) => {
@@ -889,7 +902,9 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   const handleToggle = (inputId: string) => {
     if (!user?.id) return;
     const isCurrentlyLogged = loggedIds.includes(inputId);
-    toggleMutation.mutate({ inputId, isCurrentlyLogged });
+    const input = COGNITIVE_INPUTS.find(i => i.id === inputId);
+    const xpEarned = input ? calculateItemRawPoints(input) : 8;
+    toggleMutation.mutate({ inputId, isCurrentlyLogged, xpEarned });
   };
 
   // Filter out completed items - they only appear in Library

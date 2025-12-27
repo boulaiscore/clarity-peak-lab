@@ -101,6 +101,84 @@ export function useRecordExerciseCompletion() {
   });
 }
 
+// Record a completed content item (podcast, book, article)
+export function useRecordContentCompletion() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      contentId,
+      contentType,
+      xpEarned,
+    }: {
+      contentId: string;
+      contentType: "podcast" | "book" | "article";
+      xpEarned: number;
+    }) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const weekStart = getCurrentWeekStart();
+
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .insert({
+          user_id: user.id,
+          exercise_id: `content-${contentType}-${contentId}`,
+          gym_area: "content",
+          thinking_mode: null,
+          difficulty: "medium",
+          xp_earned: xpEarned,
+          score: 100,
+          week_start: weekStart,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as ExerciseCompletion;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+    },
+  });
+}
+
+// Remove a content completion record (when user uncompletes)
+export function useRemoveContentCompletion() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      contentId,
+      contentType,
+    }: {
+      contentId: string;
+      contentType: "podcast" | "book" | "article";
+    }) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const weekStart = getCurrentWeekStart();
+      const exerciseId = `content-${contentType}-${contentId}`;
+
+      const { error } = await supabase
+        .from("exercise_completions")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("exercise_id", exerciseId)
+        .eq("week_start", weekStart);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+    },
+  });
+}
+
 // Get completed exercise IDs for this week
 export function useCompletedExerciseIds() {
   const { data } = useWeeklyExerciseXP();
