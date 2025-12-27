@@ -91,19 +91,19 @@ const Home = () => {
   const getInsight = () => {
     if (readinessScore >= 75) {
       return {
-        title: "Condizione ottimale",
-        body: "Il tuo sistema cognitivo è al massimo rendimento. È il momento ideale per affrontare sessioni ad alto carico. Spingi i tuoi limiti oggi per consolidare i progressi."
+        title: "Peak condition",
+        body: "Your cognitive system is operating at maximum capacity. This is the ideal time for high-load sessions. Push your limits today to consolidate your progress."
       };
     }
     if (readinessScore >= 55) {
       return {
-        title: "Buona base operativa",
-        body: "Hai margine per lavorare con intensità controllata. Mantieni il focus sulla qualità dell'esecuzione. La costanza oggi costruisce la performance di domani."
+        title: "Solid foundation",
+        body: "You have room to work with controlled intensity. Focus on execution quality. Today's consistency builds tomorrow's performance."
       };
     }
     return {
-      title: "Fase di ricarica",
-      body: "Il tuo sistema richiede consolidamento. Una sessione leggera oggi preparerà le condizioni per prestazioni superiori nei prossimi giorni."
+      title: "Recovery phase",
+      body: "Your system requires consolidation. A lighter session today will prepare optimal conditions for superior performance in the coming days."
     };
   };
 
@@ -119,15 +119,15 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-sm"
           >
-            <h1 className="text-xl font-semibold mb-2">Configura Protocollo</h1>
+            <h1 className="text-xl font-semibold mb-2">Configure Protocol</h1>
             <p className="text-sm text-muted-foreground/60 mb-8">
-              Assessment richiesto prima del training
+              Assessment required before training
             </p>
             <button
               onClick={() => navigate("/onboarding")}
               className="inline-flex items-center px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
             >
-              Inizia Assessment
+              Begin Assessment
             </button>
           </motion.div>
         </main>
@@ -181,7 +181,7 @@ const Home = () => {
             size={90}
             strokeWidth={6}
             color="hsl(38, 92%, 50%)"
-            label="Sessioni"
+            label="Sessions"
             displayValue={`${sessionsCompleted}/${weeklyTarget}`}
           />
         </motion.section>
@@ -217,7 +217,7 @@ const Home = () => {
         >
           <div className="p-4 rounded-xl bg-card border border-border/40">
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              Protocollo attivo
+              Active Protocol
             </p>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-primary" />
@@ -228,10 +228,10 @@ const Home = () => {
           </div>
           <div className="p-4 rounded-xl bg-card border border-border/40">
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              XP Settimanali
+              Weekly XP
             </p>
             <p className="text-sm font-semibold tabular-nums">
-              {weeklyXPEarned} <span className="text-muted-foreground font-normal">punti</span>
+              {weeklyXPEarned} <span className="text-muted-foreground font-normal">points</span>
             </p>
           </div>
         </motion.section>
@@ -244,7 +244,7 @@ const Home = () => {
           className="mb-6"
         >
           <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-3">
-            La mia giornata
+            My day
           </p>
           <button
             onClick={handleStartSession}
@@ -255,7 +255,7 @@ const Home = () => {
                 <div className="w-3 h-3 rounded-full bg-primary" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium">Sessione di oggi</p>
+                <p className="text-sm font-medium">Today's session</p>
                 <p className="text-xs text-muted-foreground">Heavy Slow Thinking · 30 min</p>
               </div>
             </div>
@@ -268,7 +268,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="mt-auto pt-4"
+          className="pt-2"
         >
           <button
             onClick={handleStartSession}
@@ -280,10 +280,10 @@ const Home = () => {
               "active:scale-[0.98] transition-transform"
             )}
           >
-            Inizia Training
+            Start Training
           </button>
           <p className="text-[10px] text-muted-foreground/50 text-center mt-3 uppercase tracking-[0.1em]">
-            Focus: chiarezza sotto carico cognitivo
+            Focus: clarity under cognitive load
           </p>
         </motion.div>
       </main>
