@@ -14,6 +14,8 @@ import { XPCelebration } from "./XPCelebration";
 
 interface GamesLibraryProps {
   weeklyXPEarned: number;
+  weeklyGamesXP?: number;
+  weeklyContentXP?: number;
   weeklyXPTarget: number;
   onStartGame: (areaId: NeuroLabArea) => void;
 }
@@ -48,7 +50,7 @@ const GAME_TYPES = {
   ],
 } as const;
 
-export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: GamesLibraryProps) {
+export function GamesLibrary({ weeklyXPEarned, weeklyGamesXP = 0, weeklyContentXP = 0, weeklyXPTarget, onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
   const [selectedArea, setSelectedArea] = useState<NeuroLabArea | "all">("all");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -119,9 +121,26 @@ export function GamesLibrary({ weeklyXPEarned, weeklyXPTarget, onStartGame }: Ga
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
+        
+        {/* XP Breakdown */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400" />
+            <span className="text-[10px] text-muted-foreground">
+              Games: <span className="text-blue-400 font-medium">{weeklyGamesXP}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-purple-400" />
+            <span className="text-[10px] text-muted-foreground">
+              Content: <span className="text-purple-400 font-medium">{weeklyContentXP}</span>
+            </span>
+          </div>
+        </div>
+        
         {xpRemaining > 0 ? (
           <p className="text-[10px] text-muted-foreground">
-            ~<span className="text-amber-400 font-medium">{exercisesNeeded} exercise{exercisesNeeded > 1 ? 's' : ''}</span> to reach weekly target ({avgXPPerExercise} XP each avg.)
+            ~<span className="text-amber-400 font-medium">{exercisesNeeded} exercise{exercisesNeeded > 1 ? 's' : ''}</span> to reach weekly target
           </p>
         ) : (
           <p className="text-[10px] text-emerald-400 font-medium">

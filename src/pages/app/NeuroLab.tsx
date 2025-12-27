@@ -45,7 +45,7 @@ export default function NeuroLab() {
   const { user } = useAuth();
   const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
   const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
-  const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPEarned, weeklyXPTarget } = useWeeklyProgress();
+  const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPEarned, weeklyGamesXP, weeklyContentXP, weeklyXPTarget } = useWeeklyProgress();
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");
@@ -250,6 +250,8 @@ export default function NeuroLab() {
           <TabsContent value="games" className="mt-0">
             <GamesLibrary 
               weeklyXPEarned={weeklyXPEarned}
+              weeklyGamesXP={weeklyGamesXP}
+              weeklyContentXP={weeklyContentXP}
               weeklyXPTarget={weeklyXPTarget}
               onStartGame={handleEnterArea}
             />

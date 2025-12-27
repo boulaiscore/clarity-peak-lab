@@ -19,6 +19,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import { XP_VALUES } from "@/lib/trainingPlans";
+import { startOfWeek, format } from "date-fns";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -97,9 +99,19 @@ function useLoggedExposures(userId: string | undefined) {
   });
 }
 
-function calculateXP(difficulty: number): number {
-  const points: Record<number, number> = { 1: 10, 2: 20, 3: 35, 4: 50, 5: 75 };
-  return points[difficulty] || 10;
+// Content XP values aligned with training plans
+function calculateXP(type: InputType): number {
+  switch (type) {
+    case "podcast": return XP_VALUES.podcastComplete;     // 15 XP
+    case "article": return XP_VALUES.readingComplete;     // 20 XP
+    case "book": return XP_VALUES.bookChapterComplete;    // 30 XP
+    default: return 15;
+  }
+}
+
+function getCurrentWeekStart(): string {
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  return format(weekStart, "yyyy-MM-dd");
 }
 
 function ThinkingSystemBadge({ system }: { system: ThinkingSystem }) {
@@ -139,7 +151,7 @@ function TaskCard({ task, isCompleted, onComplete, isToggling }: TaskCardProps) 
   const [showConfirm, setShowConfirm] = useState(false);
   const config = INPUT_TYPE_CONFIG[task.type];
   const Icon = config.icon;
-  const xp = calculateXP(task.difficulty);
+  const xp = calculateXP(task.type);
 
   const handleClick = () => {
     if (!isCompleted) {
@@ -253,13 +265,32 @@ export function TrainingTasks() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const toggleMutation = useMutation({
-    mutationFn: async ({ taskId }: { taskId: string }) => {
+    mutationFn: async ({ taskId, taskType }: { taskId: string; taskType: InputType }) => {
       if (!user?.id) throw new Error("Not authenticated");
       
-      const { error } = await supabase
+      const weekStart = getCurrentWeekStart();
+      const xpEarned = calculateXP(taskType);
+      
+      // Record completion in user_listened_podcasts (legacy tracking)
+      const { error: legacyError } = await supabase
         .from("user_listened_podcasts")
         .insert({ user_id: user.id, podcast_id: taskId });
-      if (error) throw error;
+      if (legacyError) throw legacyError;
+      
+      // Also record in exercise_completions to count toward weekly XP
+      const { error: xpError } = await supabase
+        .from("exercise_completions")
+        .insert({
+          user_id: user.id,
+          exercise_id: `content-${taskId}`,
+          gym_area: "content",
+          thinking_mode: "slow",
+          difficulty: taskType === "book" ? "hard" : taskType === "article" ? "medium" : "easy",
+          xp_earned: xpEarned,
+          score: 100,
+          week_start: weekStart,
+        });
+      if (xpError) throw xpError;
     },
     onMutate: async ({ taskId }) => {
       setTogglingId(taskId);
@@ -280,12 +311,14 @@ export function TrainingTasks() {
     onSettled: () => {
       setTogglingId(null);
       queryClient.invalidateQueries({ queryKey: ["logged-exposures", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
     },
   });
 
-  const handleComplete = (taskId: string) => {
+  const handleComplete = (taskId: string, taskType: InputType) => {
     if (!user?.id) return;
-    toggleMutation.mutate({ taskId });
+    toggleMutation.mutate({ taskId, taskType });
   };
 
   // Filter active tasks (not completed)
@@ -293,8 +326,8 @@ export function TrainingTasks() {
   const completedTasks = ACTIVE_TASKS.filter(t => completedIds.includes(t.id));
   
   // Calculate stats
-  const totalPossibleXP = ACTIVE_TASKS.reduce((sum, t) => sum + calculateXP(t.difficulty), 0);
-  const earnedXP = completedTasks.reduce((sum, t) => sum + calculateXP(t.difficulty), 0);
+  const totalPossibleXP = ACTIVE_TASKS.reduce((sum, t) => sum + calculateXP(t.type), 0);
+  const earnedXP = completedTasks.reduce((sum, t) => sum + calculateXP(t.type), 0);
   const completionPercent = ACTIVE_TASKS.length > 0 ? Math.round((completedTasks.length / ACTIVE_TASKS.length) * 100) : 0;
 
   if (isLoading) {
@@ -359,7 +392,7 @@ export function TrainingTasks() {
               <TaskCard
                 task={task}
                 isCompleted={false}
-                onComplete={() => handleComplete(task.id)}
+                onComplete={() => handleComplete(task.id, task.type)}
                 isToggling={togglingId === task.id}
               />
             </motion.div>

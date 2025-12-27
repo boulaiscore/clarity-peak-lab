@@ -86,7 +86,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "low",
     color: "emerald",
     icon: "leaf",
-    weeklyXPTarget: 150, // 3 games (75) + 1-2 content (35-50) + bonuses
+    // 3 sessions × ~5 exercises × 5 avg XP = 75 + 1 content (15-20) = ~90-95
+    weeklyXPTarget: 100,
     sessions: [
       {
         id: "fast-focus",
@@ -145,7 +146,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "medium",
     color: "blue",
     icon: "target",
-    weeklyXPTarget: 250, // 3 games (75) + 2 content (50-60) + bonuses + more intensity
+    // 3 sessions × ~6 exercises × 5 avg XP = 90 + 2 content (35) = ~125
+    weeklyXPTarget: 150,
     sessions: [
       {
         id: "fast-control",
@@ -204,7 +206,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "high",
     color: "red",
     icon: "flame",
-    weeklyXPTarget: 400, // 3+ games (100+) + 3 content (75) + bonuses + max intensity
+    // 3 sessions × ~8 exercises × 6 avg XP = 144 + 3 content (65) = ~210
+    weeklyXPTarget: 250,
     sessions: [
       {
         id: "heavy-slow",

@@ -65,7 +65,7 @@ export function useWeeklyProgress() {
   const { data: weeklyXPData } = useQuery({
     queryKey: ["weekly-exercise-xp", user?.id, weekStart],
     queryFn: async () => {
-      if (!user?.id) return { totalXP: 0, completions: [] };
+      if (!user?.id) return { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] };
 
       const { data, error } = await supabase
         .from("exercise_completions")
@@ -77,8 +77,14 @@ export function useWeeklyProgress() {
 
       const completions = data || [];
       const totalXP = completions.reduce((sum, c) => sum + (c.xp_earned || 0), 0);
+      
+      // Separate XP by source (content starts with "content-" prefix)
+      const contentXP = completions
+        .filter(c => c.exercise_id.startsWith("content-"))
+        .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
+      const gamesXP = totalXP - contentXP;
 
-      return { totalXP, completions };
+      return { totalXP, gamesXP, contentXP, completions };
     },
     enabled: !!user?.id,
   });
@@ -161,6 +167,8 @@ export function useWeeklyProgress() {
 
   // Weekly XP from real exercise completions
   const weeklyXPEarned = weeklyXPData?.totalXP || 0;
+  const weeklyGamesXP = weeklyXPData?.gamesXP || 0;
+  const weeklyContentXP = weeklyXPData?.contentXP || 0;
   const weeklyXPTarget = plan.weeklyXPTarget;
 
   // Get which session types have been completed
@@ -182,6 +190,8 @@ export function useWeeklyProgress() {
     weeklyProgress,
     gamesCompletedThisWeek,
     weeklyXPEarned,
+    weeklyGamesXP,
+    weeklyContentXP,
     weeklyXPTarget,
     completedSessionTypes,
     getNextSession,
