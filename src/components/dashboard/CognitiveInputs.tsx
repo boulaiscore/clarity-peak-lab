@@ -414,18 +414,18 @@ function DifficultyIndicator({ level }: { level: 1 | 2 | 3 | 4 | 5 }) {
   );
 }
 
-// Thinking System Icon component
+// Thinking System Icon component - matches GamesLibrary icons
 function ThinkingSystemIcon({ system }: { system: ThinkingSystem }) {
   if (system === "S1") {
     return <Zap className="h-3.5 w-3.5 text-amber-400" />;
   }
   if (system === "S2") {
-    return <Brain className="h-3.5 w-3.5 text-teal-400" />;
+    return <Timer className="h-3.5 w-3.5 text-blue-400" />;
   }
   return (
     <div className="flex items-center -space-x-1">
       <Zap className="h-3 w-3 text-amber-400" />
-      <Brain className="h-3 w-3 text-teal-400" />
+      <Timer className="h-3 w-3 text-blue-400" />
     </div>
   );
 }
