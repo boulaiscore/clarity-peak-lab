@@ -182,25 +182,14 @@ const Home = () => {
 
   return (
     <AppShell>
-      <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-5 py-6 max-w-md mx-auto">
-        
-        {/* Header */}
-        <motion.header
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center justify-center mb-8"
-        >
-          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground/60">
-            NeuroLoop
-          </span>
-        </motion.header>
+      <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-5 py-4 max-w-md mx-auto">
 
         {/* Three Rings - WHOOP style */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex justify-center gap-6 mb-10"
+          className="flex justify-center gap-6 mb-8"
         >
           <ProgressRing
             value={readinessLoading ? 0 : readinessScore}
