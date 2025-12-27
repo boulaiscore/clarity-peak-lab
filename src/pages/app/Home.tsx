@@ -321,11 +321,21 @@ const Home = () => {
           </AnimatePresence>
         </motion.section>
 
-        {/* Insight Card - Coaching message */}
+        {/* Distraction Load Card */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="mb-4"
+        >
+          <DistractionLoadCard />
+        </motion.section>
+
+        {/* Insight Card - Coaching message */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
           className="mb-8"
         >
           <div className="p-5 rounded-2xl bg-card border border-border/40">
@@ -384,16 +394,6 @@ const Home = () => {
               />
             </div>
           </div>
-        </motion.section>
-
-        {/* Distraction Load Card */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.18 }}
-          className="mb-4"
-        >
-          <DistractionLoadCard />
         </motion.section>
 
         {/* Today's Session */}
