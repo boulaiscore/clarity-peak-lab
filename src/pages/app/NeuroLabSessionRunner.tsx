@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { X, Trophy, Brain, Star, CheckCircle, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,13 +26,15 @@ import { DrillRenderer } from "@/components/drills/DrillRenderer";
 
 export default function NeuroLabSessionRunner() {
   const [searchParams] = useSearchParams();
+  const { area: pathArea } = useParams<{ area: NeuroLabArea }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { canStartSession, incrementSession } = usePremiumGating();
   const { isDailyCompleted, invalidateDailyTraining } = useDailyTraining();
   const { recordSession, getNextSession } = useWeeklyProgress();
   const recordExerciseCompletion = useRecordExerciseCompletion();
-  const area = searchParams.get("area") as NeuroLabArea;
+  // Support both path param (/neuro-lab/:area/session) and query param (?area=)
+  const area = (pathArea || searchParams.get("area")) as NeuroLabArea;
   const duration = searchParams.get("duration") as NeuroLabDuration;
   const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
   const isDailyTraining = searchParams.get("daily") === "true" && !isDailyCompleted;
