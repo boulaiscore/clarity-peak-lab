@@ -3,14 +3,17 @@ package app.lovable.f84e62a560cb4db59ded2b07c99a786f.plugins
 import android.app.AppOpsManager
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Process
 import android.provider.Settings
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -38,6 +41,62 @@ class AppBlockerPlugin : Plugin() {
         "com.discord",
         "com.youtube"
     )
+
+    private var violationReceiver: BroadcastReceiver? = null
+
+    override fun load() {
+        super.load()
+        registerViolationReceiver()
+    }
+
+    override fun handleOnDestroy() {
+        unregisterViolationReceiver()
+        super.handleOnDestroy()
+    }
+
+    private fun registerViolationReceiver() {
+        violationReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == AppBlockerService.ACTION_VIOLATION_DETECTED) {
+                    val blockedPackage = intent.getStringExtra(AppBlockerService.EXTRA_BLOCKED_PACKAGE) ?: ""
+                    val blockedAppName = intent.getStringExtra(AppBlockerService.EXTRA_BLOCKED_APP_NAME) ?: ""
+                    val violationCount = intent.getIntExtra(AppBlockerService.EXTRA_VIOLATION_COUNT, 0)
+
+                    // Notify the frontend about the violation
+                    val data = JSObject().apply {
+                        put("packageName", blockedPackage)
+                        put("appName", blockedAppName)
+                        put("violationCount", violationCount)
+                        put("timestamp", System.currentTimeMillis())
+                    }
+                    notifyListeners("violationDetected", data)
+                }
+            }
+        }
+
+        // Register for local broadcasts
+        val filter = IntentFilter(AppBlockerService.ACTION_VIOLATION_DETECTED)
+        LocalBroadcastManager.getInstance(context).registerReceiver(violationReceiver!!, filter)
+        
+        // Also register for global broadcasts
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(violationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(violationReceiver, filter)
+        }
+    }
+
+    private fun unregisterViolationReceiver() {
+        violationReceiver?.let {
+            try {
+                LocalBroadcastManager.getInstance(context).unregisterReceiver(it)
+                context.unregisterReceiver(it)
+            } catch (e: Exception) {
+                // Ignore if already unregistered
+            }
+            violationReceiver = null
+        }
+    }
 
     @PluginMethod
     fun hasUsageAccessPermission(call: PluginCall) {
@@ -182,6 +241,7 @@ class AppBlockerPlugin : Plugin() {
             putLong("block_end_time", System.currentTimeMillis() + (durationMinutes * 60 * 1000))
             putString("block_message", message)
             putBoolean("blocking_active", true)
+            putInt("violation_count", 0) // Reset violation count on new session
             apply()
         }
 
@@ -215,6 +275,7 @@ class AppBlockerPlugin : Plugin() {
         val prefs = context.getSharedPreferences("app_blocker", Context.MODE_PRIVATE)
         val isActive = prefs.getBoolean("blocking_active", false)
         val blockEndTime = prefs.getLong("block_end_time", 0)
+        val violationCount = prefs.getInt("violation_count", 0)
         
         val remainingMinutes = if (isActive && blockEndTime > System.currentTimeMillis()) {
             ((blockEndTime - System.currentTimeMillis()) / 1000 / 60).toInt()
@@ -225,7 +286,35 @@ class AppBlockerPlugin : Plugin() {
         val result = JSObject()
         result.put("active", isActive && remainingMinutes > 0)
         result.put("remainingMinutes", remainingMinutes)
+        result.put("violationCount", violationCount)
         call.resolve(result)
+    }
+
+    @PluginMethod
+    fun getViolationCount(call: PluginCall) {
+        val prefs = context.getSharedPreferences("app_blocker", Context.MODE_PRIVATE)
+        val violationCount = prefs.getInt("violation_count", 0)
+        
+        val result = JSObject()
+        result.put("violationCount", violationCount)
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun resetTimer(call: PluginCall) {
+        // Reset the block end time to extend from now
+        val prefs = context.getSharedPreferences("app_blocker", Context.MODE_PRIVATE)
+        val isActive = prefs.getBoolean("blocking_active", false)
+        
+        if (isActive) {
+            val durationMinutes = call.getInt("durationMinutes", 30) ?: 30
+            prefs.edit().apply {
+                putLong("block_end_time", System.currentTimeMillis() + (durationMinutes * 60 * 1000))
+                apply()
+            }
+        }
+        
+        call.resolve()
     }
 
     private fun checkUsageAccessPermission(): Boolean {

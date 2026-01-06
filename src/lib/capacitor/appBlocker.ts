@@ -1,4 +1,11 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin, PluginListenerHandle } from '@capacitor/core';
+
+export interface ViolationEvent {
+  packageName: string;
+  appName: string;
+  violationCount: number;
+  timestamp: number;
+}
 
 export interface AppBlockerPlugin {
   // Check if usage access permission is granted
@@ -27,10 +34,25 @@ export interface AppBlockerPlugin {
   stopBlocking(): Promise<void>;
   
   // Check if blocking is currently active
-  isBlockingActive(): Promise<{ active: boolean; remainingMinutes: number }>;
+  isBlockingActive(): Promise<{ active: boolean; remainingMinutes: number; violationCount: number }>;
   
   // Get usage stats for today
   getUsageStats(): Promise<{ stats: AppUsageStat[] }>;
+
+  // Get current violation count
+  getViolationCount(): Promise<{ violationCount: number }>;
+
+  // Reset the blocking timer
+  resetTimer(options: { durationMinutes: number }): Promise<void>;
+
+  // Add listener for violation events
+  addListener(
+    eventName: 'violationDetected',
+    listenerFunc: (event: ViolationEvent) => void
+  ): Promise<PluginListenerHandle>;
+
+  // Remove all listeners
+  removeAllListeners(): Promise<void>;
 }
 
 export interface SocialApp {
@@ -101,10 +123,23 @@ const AppBlocker = registerPlugin<AppBlockerPlugin>('AppBlocker', {
       console.log('[AppBlocker] Web: Blocking stopped');
     },
     async isBlockingActive() {
-      return { active: false, remainingMinutes: 0 };
+      return { active: false, remainingMinutes: 0, violationCount: 0 };
     },
     async getUsageStats() {
       return { stats: [] };
+    },
+    async getViolationCount() {
+      return { violationCount: 0 };
+    },
+    async resetTimer() {
+      console.log('[AppBlocker] Web: Timer reset simulated');
+    },
+    async addListener() {
+      console.log('[AppBlocker] Web: Listener not available');
+      return { remove: async () => {} };
+    },
+    async removeAllListeners() {
+      console.log('[AppBlocker] Web: Listeners removed');
     },
   },
 });

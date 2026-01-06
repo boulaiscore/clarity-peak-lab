@@ -16,18 +16,29 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 /**
  * Background service that monitors app usage and shows a blocking overlay
  * when the user tries to open a blocked app during a detox session.
+ * 
+ * When a violation is detected, it broadcasts an event that resets the timer.
  */
 class AppBlockerService : Service() {
+
+    companion object {
+        const val ACTION_VIOLATION_DETECTED = "app.lovable.DETOX_VIOLATION"
+        const val EXTRA_BLOCKED_PACKAGE = "blocked_package"
+        const val EXTRA_BLOCKED_APP_NAME = "blocked_app_name"
+        const val EXTRA_VIOLATION_COUNT = "violation_count"
+    }
 
     private val handler = Handler(Looper.getMainLooper())
     private var isRunning = false
     private var blockedPackages = setOf<String>()
     private var blockEndTime = 0L
     private var blockMessage = ""
+    private var violationCount = 0
     
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
@@ -71,6 +82,7 @@ class AppBlockerService : Service() {
         blockedPackages = prefs.getStringSet("blocked_packages", emptySet()) ?: emptySet()
         blockEndTime = prefs.getLong("block_end_time", 0)
         blockMessage = prefs.getString("block_message", "Stay focused!") ?: "Stay focused!"
+        violationCount = prefs.getInt("violation_count", 0)
     }
 
     private fun createNotificationChannel() {
@@ -91,10 +103,11 @@ class AppBlockerService : Service() {
 
     private fun createNotification(): Notification {
         val remainingMinutes = ((blockEndTime - System.currentTimeMillis()) / 1000 / 60).toInt()
+        val violationText = if (violationCount > 0) " • $violationCount violations" else ""
         
         return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("Detox Mode Active")
-            .setContentText("${blockedPackages.size} apps blocked • ${remainingMinutes}m remaining")
+            .setContentText("${blockedPackages.size} apps blocked • ${remainingMinutes}m remaining$violationText")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
@@ -140,7 +153,19 @@ class AppBlockerService : Service() {
             if (blockedPackages.contains(packageName)) {
                 if (currentlyBlockedApp != packageName) {
                     currentlyBlockedApp = packageName
+                    
+                    // Increment violation count and save
+                    violationCount++
+                    saveViolationCount()
+                    
+                    // Broadcast violation event to reset timer
+                    broadcastViolation(packageName)
+                    
+                    // Show overlay and go home
                     showOverlay(packageName)
+                    
+                    // Update notification with new violation count
+                    updateNotification()
                 }
             } else {
                 if (currentlyBlockedApp != null) {
@@ -149,6 +174,42 @@ class AppBlockerService : Service() {
                 }
             }
         }
+    }
+
+    private fun saveViolationCount() {
+        val prefs = getSharedPreferences("app_blocker", Context.MODE_PRIVATE)
+        prefs.edit().putInt("violation_count", violationCount).apply()
+    }
+
+    private fun broadcastViolation(blockedPackage: String) {
+        val appName = try {
+            val appInfo = packageManager.getApplicationInfo(blockedPackage, 0)
+            packageManager.getApplicationLabel(appInfo).toString()
+        } catch (e: Exception) {
+            blockedPackage
+        }
+
+        // Send local broadcast
+        val intent = Intent(ACTION_VIOLATION_DETECTED).apply {
+            putExtra(EXTRA_BLOCKED_PACKAGE, blockedPackage)
+            putExtra(EXTRA_BLOCKED_APP_NAME, appName)
+            putExtra(EXTRA_VIOLATION_COUNT, violationCount)
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        
+        // Also send a global broadcast for the plugin to catch
+        val globalIntent = Intent(ACTION_VIOLATION_DETECTED).apply {
+            putExtra(EXTRA_BLOCKED_PACKAGE, blockedPackage)
+            putExtra(EXTRA_BLOCKED_APP_NAME, appName)
+            putExtra(EXTRA_VIOLATION_COUNT, violationCount)
+            setPackage(packageName)
+        }
+        sendBroadcast(globalIntent)
+    }
+
+    private fun updateNotification() {
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(NOTIFICATION_ID, createNotification())
     }
 
     private fun showOverlay(blockedPackage: String) {
@@ -194,8 +255,6 @@ class AppBlockerService : Service() {
     }
 
     private fun createBlockingView(appName: String): View {
-        val remainingMinutes = ((blockEndTime - System.currentTimeMillis()) / 1000 / 60).toInt()
-        
         // Create a simple blocking view programmatically
         val context = this
         val view = android.widget.LinearLayout(context).apply {
@@ -228,6 +287,20 @@ class AppBlockerService : Service() {
             bottomMargin = 16
         })
 
+        // Violation warning message
+        val warningView = TextView(context).apply {
+            text = "⚠️ Timer reset! Violation #$violationCount"
+            textSize = 18f
+            setTextColor(0xFFFFAA00.toInt()) // Orange/amber color
+            gravity = Gravity.CENTER
+        }
+        view.addView(warningView, android.widget.LinearLayout.LayoutParams(
+            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            bottomMargin = 16
+        })
+
         // Message
         val messageView = TextView(context).apply {
             text = blockMessage
@@ -242,14 +315,14 @@ class AppBlockerService : Service() {
             bottomMargin = 24
         })
 
-        // Remaining time
-        val timeView = TextView(context).apply {
-            text = "${remainingMinutes}m remaining in detox session"
+        // Info text about timer reset
+        val infoView = TextView(context).apply {
+            text = "Your detox timer has been reset to 0"
             textSize = 14f
             setTextColor(0x88FFFFFF.toInt())
             gravity = Gravity.CENTER
         }
-        view.addView(timeView)
+        view.addView(infoView)
 
         return view
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import AppBlocker, { isNativeAndroid, SocialApp, AppUsageStat } from '@/lib/capacitor/appBlocker';
+import AppBlocker, { isNativeAndroid, SocialApp, AppUsageStat, ViolationEvent } from '@/lib/capacitor/appBlocker';
+import { PluginListenerHandle } from '@capacitor/core';
 
 interface BlockerState {
   isNative: boolean;
@@ -7,9 +8,11 @@ interface BlockerState {
   hasOverlayPermission: boolean;
   isBlockingActive: boolean;
   remainingMinutes: number;
+  violationCount: number;
   socialApps: SocialApp[];
   usageStats: AppUsageStat[];
   isLoading: boolean;
+  lastViolation: ViolationEvent | null;
 }
 
 export function useAppBlocker() {
@@ -19,10 +22,14 @@ export function useAppBlocker() {
     hasOverlayPermission: false,
     isBlockingActive: false,
     remainingMinutes: 0,
+    violationCount: 0,
     socialApps: [],
     usageStats: [],
     isLoading: true,
+    lastViolation: null,
   });
+
+  const [violationListeners, setViolationListeners] = useState<((event: ViolationEvent) => void)[]>([]);
 
   const checkPermissions = useCallback(async () => {
     if (!isNativeAndroid()) {
@@ -76,6 +83,7 @@ export function useAppBlocker() {
         ...prev,
         isBlockingActive: result.active,
         remainingMinutes: result.remainingMinutes,
+        violationCount: result.violationCount,
       }));
     } catch (error) {
       console.error('[useAppBlocker] Error checking blocking status:', error);
@@ -112,6 +120,7 @@ export function useAppBlocker() {
         ...prev,
         isBlockingActive: true,
         remainingMinutes: durationMinutes,
+        violationCount: 0,
       }));
       return true;
     } catch (error) {
@@ -127,6 +136,7 @@ export function useAppBlocker() {
         ...prev,
         isBlockingActive: false,
         remainingMinutes: 0,
+        violationCount: 0,
       }));
       return true;
     } catch (error) {
@@ -134,6 +144,47 @@ export function useAppBlocker() {
       return false;
     }
   }, []);
+
+  // Subscribe to violation events
+  const onViolation = useCallback((callback: (event: ViolationEvent) => void) => {
+    setViolationListeners(prev => [...prev, callback]);
+    return () => {
+      setViolationListeners(prev => prev.filter(cb => cb !== callback));
+    };
+  }, []);
+
+  // Setup native violation listener
+  useEffect(() => {
+    if (!isNativeAndroid()) return;
+
+    let listenerHandle: PluginListenerHandle | null = null;
+
+    const setupListener = async () => {
+      try {
+        listenerHandle = await AppBlocker.addListener('violationDetected', (event: ViolationEvent) => {
+          console.log('[useAppBlocker] Violation detected:', event);
+          
+          // Update state
+          setState(prev => ({
+            ...prev,
+            violationCount: event.violationCount,
+            lastViolation: event,
+          }));
+
+          // Notify all registered listeners
+          violationListeners.forEach(listener => listener(event));
+        });
+      } catch (error) {
+        console.error('[useAppBlocker] Error setting up violation listener:', error);
+      }
+    };
+
+    setupListener();
+
+    return () => {
+      listenerHandle?.remove();
+    };
+  }, [violationListeners]);
 
   useEffect(() => {
     checkPermissions();
@@ -160,5 +211,6 @@ export function useAppBlocker() {
     stopBlocking,
     refreshPermissions: checkPermissions,
     refreshUsageStats: loadUsageStats,
+    onViolation,
   };
 }

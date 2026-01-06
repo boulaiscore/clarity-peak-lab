@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import AppBlocker, { isNativeAndroid } from '@/lib/capacitor/appBlocker';
+import AppBlocker, { isNativeAndroid, ViolationEvent } from '@/lib/capacitor/appBlocker';
 import { DETOX_XP_PER_MINUTE } from '@/hooks/useDetoxProgress';
 
 interface DetoxSession {
@@ -43,6 +43,12 @@ export function useDetoxSession() {
   const [activeSession, setActiveSession] = useState<DetoxSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [remainingMinutes, setRemainingMinutes] = useState(0);
+  const [violationCount, setViolationCount] = useState(0);
+  const [lastViolation, setLastViolation] = useState<ViolationEvent | null>(null);
+  const [timerResetAt, setTimerResetAt] = useState<Date | null>(null);
+  
+  // Track session start for timer reset calculation
+  const effectiveStartTimeRef = useRef<Date | null>(null);
 
   // Load active session on mount
   const loadActiveSession = useCallback(async () => {
@@ -70,6 +76,7 @@ export function useDetoxSession() {
         if (endTime > now) {
           setActiveSession(data as DetoxSession);
           setRemainingMinutes(Math.ceil((endTime - now) / 1000 / 60));
+          effectiveStartTimeRef.current = new Date(data.started_at);
           
           // Sync with native blocker if on Android
           if (isNativeAndroid()) {
@@ -78,6 +85,10 @@ export function useDetoxSession() {
               durationMinutes: Math.ceil((endTime - now) / 1000 / 60),
               message: 'Stay focused! Detox session in progress.',
             });
+            
+            // Get current violation count
+            const { violationCount: count } = await AppBlocker.isBlockingActive();
+            setViolationCount(count);
           }
         } else {
           // Session expired, mark as completed
@@ -90,6 +101,50 @@ export function useDetoxSession() {
       setIsLoading(false);
     }
   }, [user?.id]);
+
+  // Reset timer when violation is detected
+  const handleViolation = useCallback((event: ViolationEvent) => {
+    if (!activeSession) return;
+
+    console.log('[useDetoxSession] Timer reset due to violation:', event.appName);
+    
+    // Update violation tracking
+    setViolationCount(event.violationCount);
+    setLastViolation(event);
+    setTimerResetAt(new Date());
+    
+    // Reset the effective start time to now
+    effectiveStartTimeRef.current = new Date();
+    
+    // Show toast about the reset
+    toast({
+      title: `⚠️ Timer azzerato!`,
+      description: `Hai aperto ${event.appName}. Violazione #${event.violationCount}`,
+      variant: "destructive",
+    });
+  }, [activeSession, toast]);
+
+  // Setup violation listener
+  useEffect(() => {
+    if (!isNativeAndroid() || !activeSession) return;
+
+    let cleanup: (() => void) | null = null;
+
+    const setupListener = async () => {
+      try {
+        const handle = await AppBlocker.addListener('violationDetected', handleViolation);
+        cleanup = () => handle.remove();
+      } catch (error) {
+        console.error('[useDetoxSession] Error setting up violation listener:', error);
+      }
+    };
+
+    setupListener();
+
+    return () => {
+      cleanup?.();
+    };
+  }, [activeSession, handleViolation]);
 
   // Start a new detox session
   const startSession = useCallback(async (
@@ -125,6 +180,10 @@ export function useDetoxSession() {
 
       setActiveSession(data as DetoxSession);
       setRemainingMinutes(durationMinutes);
+      setViolationCount(0);
+      setLastViolation(null);
+      setTimerResetAt(null);
+      effectiveStartTimeRef.current = startedAt;
 
       // Start native blocking on Android
       if (isNativeAndroid()) {
@@ -166,8 +225,13 @@ export function useDetoxSession() {
     if (!id) return false;
 
     try {
-      // Calculate XP based on duration (0.05 XP per minute)
-      const xpEarned = Math.round(duration * DETOX_XP_PER_MINUTE * 100) / 100;
+      // Calculate actual elapsed time from last reset (or session start)
+      const effectiveStart = effectiveStartTimeRef.current || (activeSession ? new Date(activeSession.started_at) : new Date());
+      const elapsedMinutes = Math.floor((Date.now() - effectiveStart.getTime()) / 1000 / 60);
+      
+      // XP is based on actual elapsed time since last violation (or start)
+      const actualMinutes = Math.min(elapsedMinutes, duration);
+      const xpEarned = Math.round(actualMinutes * DETOX_XP_PER_MINUTE * 100) / 100;
 
       // Cancel any pending notification for this session
       cancelDetoxEndNotification(id);
@@ -183,16 +247,20 @@ export function useDetoxSession() {
       if (error) throw error;
 
       // Also record in detox_completions for weekly tracking
-      if (user?.id) {
+      if (user?.id && actualMinutes >= 30) {
         await supabase.from('detox_completions').insert({
           user_id: user.id,
-          duration_minutes: duration,
+          duration_minutes: actualMinutes,
           xp_earned: xpEarned,
         });
       }
 
       setActiveSession(null);
       setRemainingMinutes(0);
+      setViolationCount(0);
+      setLastViolation(null);
+      setTimerResetAt(null);
+      effectiveStartTimeRef.current = null;
 
       // Stop native blocking
       if (isNativeAndroid()) {
@@ -201,7 +269,9 @@ export function useDetoxSession() {
 
       toast({
         title: "Detox completato! 🎉",
-        description: `Hai guadagnato ${xpEarned} XP`,
+        description: actualMinutes >= 30 
+          ? `Hai guadagnato ${xpEarned.toFixed(1)} XP (${actualMinutes} min effettivi)`
+          : `Sessione troppo breve per XP (${actualMinutes} min, min 30)`,
       });
 
       return true;
@@ -228,6 +298,10 @@ export function useDetoxSession() {
 
       setActiveSession(null);
       setRemainingMinutes(0);
+      setViolationCount(0);
+      setLastViolation(null);
+      setTimerResetAt(null);
+      effectiveStartTimeRef.current = null;
 
       // Stop native blocking
       if (isNativeAndroid()) {
@@ -245,6 +319,12 @@ export function useDetoxSession() {
       return false;
     }
   }, [activeSession?.id, toast]);
+
+  // Calculate elapsed seconds since last reset
+  const getElapsedSeconds = useCallback(() => {
+    if (!effectiveStartTimeRef.current) return 0;
+    return Math.floor((Date.now() - effectiveStartTimeRef.current.getTime()) / 1000);
+  }, []);
 
   // Update remaining time every minute
   useEffect(() => {
@@ -276,6 +356,10 @@ export function useDetoxSession() {
     isLoading,
     remainingMinutes,
     isActive: !!activeSession,
+    violationCount,
+    lastViolation,
+    timerResetAt,
+    getElapsedSeconds,
     startSession,
     completeSession: () => completeSession(),
     cancelSession,

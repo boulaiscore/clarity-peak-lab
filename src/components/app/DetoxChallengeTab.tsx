@@ -55,7 +55,10 @@ export function DetoxChallengeTab() {
     isActive, 
     startSession, 
     completeSession, 
-    cancelSession 
+    cancelSession,
+    violationCount,
+    timerResetAt,
+    getElapsedSeconds,
   } = useDetoxSession();
 
   // Daily progress and settings
@@ -89,16 +92,21 @@ export function DetoxChallengeTab() {
   // Current session XP
   const currentSessionXP = Math.floor(displaySeconds / 60) * DETOX_XP_PER_MINUTE;
 
-  // Sync display timer with active session
+  // Sync display timer with active session (resets on violation)
   useEffect(() => {
     if (isActive && activeSession) {
-      const startTime = new Date(activeSession.started_at).getTime();
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      setDisplaySeconds(elapsed);
-
-      timerRef.current = setInterval(() => {
-        setDisplaySeconds(prev => prev + 1);
-      }, 1000);
+      // If timer was reset due to violation, use that time
+      const effectiveStart = timerResetAt 
+        ? timerResetAt.getTime() 
+        : new Date(activeSession.started_at).getTime();
+      
+      const updateTimer = () => {
+        const elapsed = Math.floor((Date.now() - effectiveStart) / 1000);
+        setDisplaySeconds(elapsed);
+      };
+      
+      updateTimer();
+      timerRef.current = setInterval(updateTimer, 1000);
 
       return () => {
         if (timerRef.current) clearInterval(timerRef.current);
@@ -107,7 +115,7 @@ export function DetoxChallengeTab() {
       setDisplaySeconds(0);
       if (timerRef.current) clearInterval(timerRef.current);
     }
-  }, [isActive, activeSession]);
+  }, [isActive, activeSession, timerResetAt]);
 
   useEffect(() => {
     return () => {
@@ -432,6 +440,11 @@ export function DetoxChallengeTab() {
                   </div>
                   <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
                   <span className="text-xs text-primary font-medium">+{currentSessionXP.toFixed(1)} XP</span>
+                  {violationCount > 0 && (
+                    <span className="text-[10px] text-amber-400 mt-1">
+                      ⚠️ {violationCount} violazion{violationCount === 1 ? 'e' : 'i'}
+                    </span>
+                  )}
                 </div>
               </div>
               
