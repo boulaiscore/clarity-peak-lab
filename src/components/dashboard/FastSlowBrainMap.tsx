@@ -385,7 +385,10 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
             </span>
             <div className="flex items-center gap-1 ml-auto">
               <DeltaIndicator delta={fastDelta} />
-              <span className="text-[10px]"><DeltaText delta={fastDelta} /></span>
+              <span className="text-[10px]">
+                <DeltaText delta={fastDelta} />
+                <span className="text-muted-foreground/60 ml-0.5">vs last</span>
+              </span>
             </div>
           </div>
           
@@ -405,7 +408,10 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
             </span>
             <div className="flex items-center gap-1 ml-auto">
               <DeltaIndicator delta={slowDelta} />
-              <span className="text-[10px]"><DeltaText delta={slowDelta} /></span>
+              <span className="text-[10px]">
+                <DeltaText delta={slowDelta} />
+                <span className="text-muted-foreground/60 ml-0.5">vs last</span>
+              </span>
             </div>
           </div>
           
