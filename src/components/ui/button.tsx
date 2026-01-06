@@ -24,7 +24,7 @@ const buttonVariants = cva(
         // Dark solid button
         dark: "bg-card border border-border/40 text-foreground hover:bg-muted active:scale-[0.98]",
         // Legacy variants for compatibility
-        hero: "bg-primary text-primary-foreground shadow-button hover:shadow-glow hover:bg-primary/90 active:scale-[0.98]",
+        hero: "bg-primary text-primary-foreground shadow-button hover:shadow-glow hover:bg-primary/90 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] active:translate-y-0 transition-all duration-300 ease-out",
         "hero-outline": "border border-border/60 bg-card/50 text-foreground hover:bg-card hover:border-primary/30 backdrop-blur-sm",
         glow: "bg-primary text-primary-foreground shadow-glow hover:shadow-button active:scale-[0.98]",
         control: "bg-card border border-border/40 text-foreground hover:bg-muted hover:border-border/60",
