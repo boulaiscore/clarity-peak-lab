@@ -468,8 +468,8 @@ export function TrainingTasks() {
         </div>
       )}
 
-      {/* All completed state */}
-      {activeTasks.length === 0 && completedTasks.length > 0 && (
+      {/* Goal reached state */}
+      {earnedXP >= planTasksXPTarget && planTasksXPTarget > 0 && (
         <div className="text-center py-4">
           <CheckCircle2 className="h-8 w-8 text-green-500/60 mx-auto mb-2" />
           <p className="text-sm font-medium text-green-500">All tasks completed!</p>
