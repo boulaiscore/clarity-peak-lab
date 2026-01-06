@@ -128,8 +128,8 @@ export function DetoxChallengeTab() {
     const success = await startSession(selectedDuration, selectedAppsToBlock);
     if (!success) {
       toast({
-        title: "Errore",
-        description: "Impossibile avviare la sessione",
+        title: "Error",
+        description: "Unable to start session",
         variant: "destructive",
       });
     }
@@ -140,8 +140,8 @@ export function DetoxChallengeTab() {
     
     if (sessionMinutes < 30) {
       toast({
-        title: "Sessione troppo breve",
-        description: "Minimo 30 minuti per registrare la sessione",
+        title: "Session too short",
+        description: "Minimum 30 minutes to record the session",
         variant: "destructive",
       });
       return;
@@ -169,9 +169,9 @@ export function DetoxChallengeTab() {
     if (notificationState.permission !== "granted") {
       const permission = await requestNotificationPermission();
       if (permission !== "granted") {
-        toast({
-          title: "Notifiche non abilitate",
-          description: "Attiva le notifiche nelle impostazioni del browser",
+      toast({
+          title: "Notifications not enabled",
+          description: "Enable notifications in browser settings",
           variant: "destructive",
         });
         return;
@@ -230,16 +230,16 @@ export function DetoxChallengeTab() {
               <DialogHeader>
                 <DialogTitle className="text-base flex items-center gap-2">
                   <Target className="w-4 h-4" />
-                  Impostazioni Detox
+                  Detox Settings
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-2">
                 {/* Reminder Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-sm">Promemoria</Label>
+                    <Label className="text-sm">Reminder</Label>
                     <p className="text-[10px] text-muted-foreground">
-                      Ricevi una notifica per ricordarti del detox
+                      Get a notification to remind you about detox
                     </p>
                   </div>
                   <Switch
@@ -257,7 +257,7 @@ export function DetoxChallengeTab() {
                 {/* Reminder Time */}
                 {dailySettings?.reminderEnabled && (
                   <div className="space-y-2">
-                    <Label className="text-sm">Orario Promemoria</Label>
+                    <Label className="text-sm">Reminder Time</Label>
                     <Select
                       value={dailySettings?.reminderTime || "20:00"}
                       onValueChange={(val) => updateSettings.mutate({ reminderTime: val })}
@@ -282,7 +282,7 @@ export function DetoxChallengeTab() {
                     <DialogTrigger asChild>
                       <Button variant="outline" className="w-full gap-2" size="sm">
                         <Shield className="w-4 h-4" />
-                        Configura App Blocking (Android)
+                        Configure App Blocking (Android)
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
@@ -297,8 +297,8 @@ export function DetoxChallengeTab() {
                         onAppsChange={setSelectedAppsToBlock}
                         onBlockingConfigured={(apps) => {
                           toast({
-                            title: "App Blocking Configurato",
-                            description: `${apps.length} app verranno bloccate`,
+                            title: "App Blocking Configured",
+                            description: `${apps.length} apps will be blocked`,
                           });
                         }}
                       />
@@ -313,7 +313,7 @@ export function DetoxChallengeTab() {
         {/* Weekly Progress */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-muted-foreground">Progresso Settimanale</span>
+            <span className="text-[10px] text-muted-foreground">Weekly Progress</span>
             <span className="text-[10px] font-semibold text-primary">
               {formatMinutesToHours(weeklyDetoxMinutes)} • +{weeklyDetoxXP.toFixed(1)} XP
             </span>
@@ -327,18 +327,18 @@ export function DetoxChallengeTab() {
             />
           </div>
           <p className="text-[10px] text-muted-foreground mt-1.5">
-            7h settimanali raccomandate per benefici cognitivi
+            7h weekly recommended for cognitive benefits
           </p>
         </div>
         
         <div className="grid grid-cols-2 gap-3">
           <div className="text-center">
             <div className="text-lg font-bold text-foreground">{weeklyDetoxMinutes}</div>
-            <div className="text-[10px] text-muted-foreground">minuti questa settimana</div>
+            <div className="text-[10px] text-muted-foreground">minutes this week</div>
           </div>
           <div className="text-center border-l border-border/30">
             <div className="text-lg font-bold text-primary">+{weeklyDetoxXP.toFixed(1)}</div>
-            <div className="text-[10px] text-muted-foreground">XP guadagnati</div>
+            <div className="text-[10px] text-muted-foreground">XP earned</div>
           </div>
         </div>
       </div>
@@ -360,9 +360,9 @@ export function DetoxChallengeTab() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <Check className="w-8 h-8 text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold text-emerald-400 mb-1">Detox Completato!</h3>
+              <h3 className="text-lg font-semibold text-emerald-400 mb-1">Detox Complete!</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Hai trascorso {formatTime(lastSessionSeconds)} senza distrazioni
+                You spent {formatTime(lastSessionSeconds)} distraction-free
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium">
                 <Sparkles className="w-4 h-4" />
@@ -373,7 +373,7 @@ export function DetoxChallengeTab() {
                 variant="ghost"
                 className="w-full mt-4"
               >
-                Nuova Sessione
+                New Session
               </Button>
             </>
           ) : (
@@ -399,15 +399,15 @@ export function DetoxChallengeTab() {
                   <span className="text-xs text-primary font-medium">+{currentSessionXP.toFixed(1)} XP</span>
                   {violationCount > 0 && (
                     <span className="text-[10px] text-amber-400 mt-1">
-                      ⚠️ {violationCount} violazion{violationCount === 1 ? 'e' : 'i'}
+                      ⚠️ {violationCount} violation{violationCount === 1 ? '' : 's'}
                     </span>
                   )}
                 </div>
               </div>
               
-              <h3 className="text-sm font-medium text-foreground mb-1">Detox in corso...</h3>
+              <h3 className="text-sm font-medium text-foreground mb-1">Detox in progress...</h3>
               <p className="text-xs text-muted-foreground mb-4">
-                Minimo 30 min per registrare
+                Minimum 30 min to record
               </p>
               
               <div className="flex gap-2">
@@ -417,7 +417,7 @@ export function DetoxChallengeTab() {
                   className="flex-1 gap-2"
                 >
                   <Pause className="w-4 h-4" />
-                  Annulla
+                  Cancel
                 </Button>
                 <Button 
                   onClick={handleComplete}
@@ -425,7 +425,7 @@ export function DetoxChallengeTab() {
                   disabled={displaySeconds < 30 * 60}
                 >
                   <Check className="w-4 h-4" />
-                  Completa
+                  Complete
                 </Button>
               </div>
             </>
@@ -443,15 +443,15 @@ export function DetoxChallengeTab() {
             </div>
             
             <h3 className="text-base font-semibold text-foreground mb-2">
-              Inizia una Sessione Detox
+              Start a Detox Session
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Disconnettiti e guadagna <span className="text-primary font-medium">{DETOX_XP_PER_MINUTE} XP/min</span>
+              Disconnect and earn <span className="text-primary font-medium">{DETOX_XP_PER_MINUTE} XP/min</span>
             </p>
 
             {/* Duration Selector */}
             <div className="mb-4">
-              <Label className="text-xs text-muted-foreground mb-2 block">Durata sessione</Label>
+              <Label className="text-xs text-muted-foreground mb-2 block">Session duration</Label>
               <div className="flex flex-wrap gap-2 justify-center">
                 {DETOX_SLOT_OPTIONS.map((slot) => (
                   <button
@@ -476,7 +476,7 @@ export function DetoxChallengeTab() {
               size="lg"
             >
               <Play className="w-5 h-5 fill-current" />
-              Avvia Detox ({selectedDuration} min)
+              Start Detox ({selectedDuration} min)
             </Button>
           </div>
 
@@ -484,20 +484,16 @@ export function DetoxChallengeTab() {
           <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
             <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5" />
-              Come funziona
+              How it works
             </h4>
             <ul className="space-y-1.5 text-[11px] text-muted-foreground">
               <li className="flex items-center gap-2">
-                <Target className="w-3 h-3 text-primary" />
-                <span>Obiettivo: <strong>{formatMinutesToHours(dailyProgress.dailyGoal)}</strong> di detox al giorno</span>
-              </li>
-              <li className="flex items-center gap-2">
                 <Clock className="w-3 h-3 text-primary" />
-                <span>Sessione minima: <strong>30 min</strong></span>
+                <span>Minimum session: <strong>30 min</strong></span>
               </li>
               <li className="flex items-center gap-2">
                 <Trophy className="w-3 h-3 text-primary" />
-                <span>XP potenziali oggi: <strong>+{dailyProgress.potentialXP} XP</strong></span>
+                <span>Earn <strong>{DETOX_XP_PER_MINUTE} XP</strong> per minute</span>
               </li>
               <li className="flex items-center gap-2">
                 {dailySettings?.reminderEnabled ? (
@@ -506,7 +502,7 @@ export function DetoxChallengeTab() {
                   <BellOff className="w-3 h-3 text-muted-foreground" />
                 )}
                 <span>
-                  Promemoria: <strong>{dailySettings?.reminderEnabled ? `alle ${dailySettings.reminderTime}` : "disattivato"}</strong>
+                  Reminder: <strong>{dailySettings?.reminderEnabled ? `at ${dailySettings.reminderTime}` : "disabled"}</strong>
                 </span>
               </li>
             </ul>
