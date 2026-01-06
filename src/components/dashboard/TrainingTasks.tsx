@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Headphones, BookOpen, FileText, CheckCircle2, 
-  Brain, Zap, ExternalLink
+  Zap, Timer, ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -141,7 +141,7 @@ function getCurrentWeekStart(): string {
 function ThinkingSystemBadge({ system }: { system: ThinkingSystem }) {
   if (system === "S1") {
     return (
-      <div className="flex items-center gap-1 text-[9px] text-amber-500">
+      <div className="flex items-center gap-1 text-[9px] text-amber-400">
         <Zap className="h-3 w-3" />
         <span>Fast</span>
       </div>
@@ -149,16 +149,16 @@ function ThinkingSystemBadge({ system }: { system: ThinkingSystem }) {
   }
   if (system === "S2") {
     return (
-      <div className="flex items-center gap-1 text-[9px] text-teal-500">
-        <Brain className="h-3 w-3" />
+      <div className="flex items-center gap-1 text-[9px] text-blue-400">
+        <Timer className="h-3 w-3" />
         <span>Slow</span>
       </div>
     );
   }
   return (
-    <div className="flex items-center gap-1 text-[9px] text-purple-500">
+    <div className="flex items-center gap-1 text-[9px] text-purple-400">
       <Zap className="h-2.5 w-2.5" />
-      <Brain className="h-2.5 w-2.5" />
+      <Timer className="h-2.5 w-2.5" />
       <span>Dual</span>
     </div>
   );
@@ -411,6 +411,18 @@ export function TrainingTasks() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="h-full bg-gradient-to-r from-primary to-amber-500 rounded-full"
           />
+        </div>
+        
+        {/* S1/S2 Legend */}
+        <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/20">
+          <div className="flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-[10px] text-muted-foreground">S1 · Fast</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Timer className="h-3.5 w-3.5 text-blue-400" />
+            <span className="text-[10px] text-muted-foreground">S2 · Slow</span>
+          </div>
         </div>
       </div>
 
