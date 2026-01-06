@@ -64,8 +64,8 @@ export const XP_VALUES = {
   readingComplete: 10,       // Per reading/article completed
   bookChapterComplete: 12,   // Per book chapter read
   // Detox - uniform rate across all plans
-  detoxPerMinute: 0.3,       // XP per minute of detox (same for all plans)
-  detoxWeeklyBonus: 15,      // Average bonus for hitting weekly target
+  detoxPerMinute: 0.05,      // XP per minute of detox (same for all plans)
+  detoxWeeklyBonus: 5,       // Average bonus for hitting weekly target
 } as const;
 
 // Helper to get XP for exercise difficulty
@@ -102,8 +102,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     detox: {
       weeklyMinutes: 60,       // 1 hour per week
       minSessionMinutes: 10,   // Min 10 min to count
-      xpPerMinute: 0.3,        // 60 min × 0.3 = 18 XP base
-      bonusXP: 10,             // Total ~28 XP from detox
+      xpPerMinute: 0.05,       // 60 min × 0.05 = 3 XP base
+      bonusXP: 2,              // Total ~5 XP from detox
     },
     sessions: [
       {
@@ -168,8 +168,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     detox: {
       weeklyMinutes: 90,       // 1.5 hours per week
       minSessionMinutes: 15,   // Min 15 min to count
-      xpPerMinute: 0.3,        // 90 min × 0.3 = 27 XP base
-      bonusXP: 15,             // Total ~42 XP from detox
+      xpPerMinute: 0.05,       // 90 min × 0.05 = 4.5 XP base
+      bonusXP: 3,              // Total ~7.5 XP from detox
     },
     sessions: [
       {
@@ -234,8 +234,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     detox: {
       weeklyMinutes: 180,      // 3 hours per week
       minSessionMinutes: 20,   // Min 20 min to count
-      xpPerMinute: 0.3,        // 180 min × 0.3 = 54 XP base
-      bonusXP: 25,             // Total ~79 XP from detox
+      xpPerMinute: 0.05,       // 180 min × 0.05 = 9 XP base
+      bonusXP: 5,              // Total ~14 XP from detox
     },
     sessions: [
       {

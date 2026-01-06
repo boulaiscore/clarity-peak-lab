@@ -38,8 +38,8 @@ export const DETOX_SLOT_OPTIONS = [
   { value: 120, label: "2 ore" },
 ];
 
-// XP per minute of detox
-export const DETOX_XP_PER_MINUTE = 2;
+// XP per minute of detox (0.05 XP/min)
+export const DETOX_XP_PER_MINUTE = 0.05;
 
 // Default goals
 const DEFAULT_DETOX_GOAL: DetoxGoal = {

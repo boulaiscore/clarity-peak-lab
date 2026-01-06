@@ -245,7 +245,7 @@ export function DetoxChallengeTab() {
                     </SelectContent>
                   </Select>
                   <p className="text-[10px] text-muted-foreground">
-                    Guadagni {DETOX_XP_PER_MINUTE} XP per ogni minuto di detox
+                    Guadagni 0.05 XP per ogni minuto di detox
                   </p>
                 </div>
 
