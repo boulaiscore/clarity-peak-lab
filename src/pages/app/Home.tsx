@@ -372,10 +372,12 @@ const Home = () => {
               const isSelected = selectedPlan === planId;
               const isCurrent = currentPlan === planId;
               
-              // Calculate XP breakdown
+              // Calculate XP breakdown properly (subtract detox from total first)
+              const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
+              const nonDetoxTarget = Math.max(0, plan.weeklyXPTarget - detoxXPTarget);
               const split = PLAN_XP_SPLIT[planId];
-              const gamesXPTarget = Math.round(plan.weeklyXPTarget * split.gamesPercent);
-              const tasksXPTarget = Math.round(plan.weeklyXPTarget * split.tasksPercent);
+              const gamesXPTarget = Math.round(nonDetoxTarget * split.gamesPercent);
+              const tasksXPTarget = Math.max(0, nonDetoxTarget - gamesXPTarget);
               
               return (
                 <button
@@ -442,9 +444,10 @@ const Home = () => {
                       </div>
                       {plan.detox && (
                         <div className="flex items-center gap-1.5">
-                          <Smartphone className="w-3 h-3 text-green-400" />
+                          <Smartphone className="w-3 h-3 text-teal-400" />
                           <span className="text-[10px] text-muted-foreground">
-                            Detox: <span className="text-green-400 font-medium">{Math.round(plan.detox.weeklyMinutes / 60)}h/week</span>
+                            Detox: <span className="text-teal-400 font-medium">{detoxXPTarget} XP</span>
+                            <span className="text-muted-foreground/60"> ({Math.round(plan.detox.weeklyMinutes / 60)}h)</span>
                           </span>
                         </div>
                       )}
