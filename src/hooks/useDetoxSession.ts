@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import AppBlocker, { isNativeAndroid } from '@/lib/capacitor/appBlocker';
+import { DETOX_XP_PER_MINUTE } from '@/hooks/useDetoxProgress';
 
 interface DetoxSession {
   id: string;
@@ -12,6 +13,28 @@ interface DetoxSession {
   blocked_apps: string[];
   status: 'active' | 'completed' | 'cancelled';
   xp_earned: number;
+}
+
+// Schedule notification via Service Worker
+function scheduleDetoxEndNotification(sessionId: string, endTime: string, durationMinutes: number) {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SCHEDULE_DETOX_END',
+      data: { sessionId, endTime, durationMinutes }
+    });
+    console.log('[DetoxSession] Scheduled end notification for:', endTime);
+  }
+}
+
+// Cancel scheduled notification
+function cancelDetoxEndNotification(sessionId: string) {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'CANCEL_DETOX_NOTIFICATION',
+      data: { sessionId }
+    });
+    console.log('[DetoxSession] Cancelled notification for session:', sessionId);
+  }
 }
 
 export function useDetoxSession() {
@@ -112,9 +135,12 @@ export function useDetoxSession() {
         });
       }
 
+      // Schedule background notification for when session ends
+      scheduleDetoxEndNotification(data.id, endTime.toISOString(), durationMinutes);
+
       toast({
         title: "Detox iniziato",
-        description: `Sessione di ${durationMinutes} minuti avviata`,
+        description: `Sessione di ${durationMinutes} minuti avviata. Riceverai una notifica a fine sessione.`,
       });
 
       return true;
@@ -140,8 +166,11 @@ export function useDetoxSession() {
     if (!id) return false;
 
     try {
-      // Calculate XP based on duration
-      const xpEarned = Math.floor(duration * 2); // 2 XP per minute
+      // Calculate XP based on duration (0.05 XP per minute)
+      const xpEarned = Math.round(duration * DETOX_XP_PER_MINUTE * 100) / 100;
+
+      // Cancel any pending notification for this session
+      cancelDetoxEndNotification(id);
 
       const { error } = await supabase
         .from('detox_sessions')
@@ -187,6 +216,9 @@ export function useDetoxSession() {
     if (!activeSession?.id) return false;
 
     try {
+      // Cancel scheduled notification
+      cancelDetoxEndNotification(activeSession.id);
+
       const { error } = await supabase
         .from('detox_sessions')
         .update({ status: 'cancelled' })

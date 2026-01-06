@@ -1,8 +1,67 @@
 // NeuroLoop Pro - Custom Service Worker for Background Notifications
 
+// Store scheduled timers
+const scheduledTimers = new Map();
+
+// Handle messages from the main app
+self.addEventListener('message', (event) => {
+  const { type, data } = event.data;
+  
+  if (type === 'SCHEDULE_DETOX_END') {
+    const { sessionId, endTime, durationMinutes } = data;
+    const now = Date.now();
+    const endTimeMs = new Date(endTime).getTime();
+    const delay = endTimeMs - now;
+    
+    console.log('[SW] Scheduling detox end notification in', Math.round(delay / 1000 / 60), 'minutes');
+    
+    // Clear any existing timer for this session
+    if (scheduledTimers.has(sessionId)) {
+      clearTimeout(scheduledTimers.get(sessionId));
+    }
+    
+    if (delay > 0) {
+      const timerId = setTimeout(() => {
+        self.registration.showNotification('🎉 Detox Completato!', {
+          body: `Hai completato ${durationMinutes} minuti di detox. Torna nell\'app per registrare i tuoi XP!`,
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
+          tag: `detox-complete-${sessionId}`,
+          requireInteraction: true,
+          data: { url: '/neuro-lab', type: 'detox-complete', sessionId },
+          actions: [
+            { action: 'open', title: 'Apri App' },
+            { action: 'dismiss', title: 'Chiudi' }
+          ],
+          vibrate: [200, 100, 200, 100, 200]
+        });
+        scheduledTimers.delete(sessionId);
+      }, delay);
+      
+      scheduledTimers.set(sessionId, timerId);
+    }
+  }
+  
+  if (type === 'CANCEL_DETOX_NOTIFICATION') {
+    const { sessionId } = data;
+    if (scheduledTimers.has(sessionId)) {
+      clearTimeout(scheduledTimers.get(sessionId));
+      scheduledTimers.delete(sessionId);
+      console.log('[SW] Cancelled detox notification for session:', sessionId);
+    }
+  }
+});
+
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked:', event.notification.tag);
+  
+  const action = event.action;
+  
+  if (action === 'dismiss' || action === 'later') {
+    event.notification.close();
+    return;
+  }
   
   event.notification.close();
   
@@ -68,35 +127,6 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(data.title, options)
   );
 });
-
-// Handle notification actions
-self.addEventListener('notificationclick', (event) => {
-  const action = event.action;
-  
-  if (action === 'later') {
-    event.notification.close();
-    return;
-  }
-  
-  // Default action or 'start' action - open the app
-  const urlToOpen = event.notification.data?.url || '/app/daily-session';
-  
-  event.notification.close();
-  
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          client.navigate(urlToOpen);
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
-}, false);
 
 // Periodic background sync for scheduled reminders
 self.addEventListener('periodicsync', (event) => {
