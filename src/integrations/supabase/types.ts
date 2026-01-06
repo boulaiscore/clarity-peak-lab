@@ -101,6 +101,45 @@ export type Database = {
         }
         Relationships: []
       }
+      detox_sessions: {
+        Row: {
+          blocked_apps: string[]
+          created_at: string
+          duration_minutes: number
+          end_time: string
+          id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          xp_earned: number | null
+        }
+        Insert: {
+          blocked_apps?: string[]
+          created_at?: string
+          duration_minutes: number
+          end_time: string
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          xp_earned?: number | null
+        }
+        Update: {
+          blocked_apps?: string[]
+          created_at?: string
+          duration_minutes?: number
+          end_time?: string
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          xp_earned?: number | null
+        }
+        Relationships: []
+      }
       exercise_completions: {
         Row: {
           completed_at: string
