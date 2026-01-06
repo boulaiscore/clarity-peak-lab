@@ -401,7 +401,7 @@ export function DetoxChallengeTab() {
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium">
                 <Sparkles className="w-4 h-4" />
-                +{Math.floor(lastSessionSeconds / 60) * DETOX_XP_PER_MINUTE} XP
+                +{(Math.floor(lastSessionSeconds / 60) * DETOX_XP_PER_MINUTE).toFixed(1)} XP
               </div>
               <Button 
                 onClick={handleNewSession}
@@ -431,7 +431,7 @@ export function DetoxChallengeTab() {
                     <Ban className="w-6 h-6 text-primary absolute inset-0" />
                   </div>
                   <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
-                  <span className="text-xs text-primary font-medium">+{currentSessionXP} XP</span>
+                  <span className="text-xs text-primary font-medium">+{currentSessionXP.toFixed(1)} XP</span>
                 </div>
               </div>
               
