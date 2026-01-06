@@ -26,10 +26,15 @@ const trainingPillars = [
   {
     icon: Gamepad2,
     title: "Cognitive Games",
-    description: "Science-backed drills targeting focus, reasoning, memory, and creativity. Each session adapts to your performance level.",
+    description: "Science-backed drills across 3 strategic domains. Each session adapts to your performance level.",
     color: "text-blue-400",
     bgColor: "bg-blue-400/10",
     stats: "5-8 exercises per session",
+    domains: [
+      { name: "Focus Arena", desc: "Sustained attention, cognitive control" },
+      { name: "Critical Reasoning", desc: "Logic, bias resistance, analysis" },
+      { name: "Creativity Hub", desc: "Divergent thinking, insight" },
+    ],
   },
   {
     icon: BookOpen,
@@ -49,23 +54,6 @@ const trainingPillars = [
   },
 ];
 
-const areas = [
-  {
-    icon: Target,
-    title: "Focus Arena",
-    description: "Sustained attention, cognitive control",
-  },
-  {
-    icon: Target,
-    title: "Critical Reasoning",
-    description: "Logic, bias resistance, strategic analysis",
-  },
-  {
-    icon: Target,
-    title: "Creativity Hub",
-    description: "Divergent thinking, insight, innovation",
-  },
-];
 
 export function HowItWorks() {
   return (
@@ -138,7 +126,20 @@ export function HowItWorks() {
                 </div>
                 
                 <h4 className="text-lg font-semibold mb-2">{pillar.title}</h4>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">{pillar.description}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-3">{pillar.description}</p>
+                
+                {/* Show domains for Cognitive Games */}
+                {'domains' in pillar && pillar.domains && (
+                  <div className="space-y-1.5 mb-4">
+                    {pillar.domains.map((domain) => (
+                      <div key={domain.name} className="flex items-center gap-2 text-xs">
+                        <Target className="w-3 h-3 text-primary" />
+                        <span className="font-medium">{domain.name}</span>
+                        <span className="text-muted-foreground">· {domain.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 
                 <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${pillar.bgColor} ${pillar.color}`}>
                   <Star className="w-3 h-3" />
@@ -163,26 +164,6 @@ export function HowItWorks() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Three Gym Areas */}
-        <div className="text-center mb-8">
-          <h3 className="text-xl font-semibold text-muted-foreground">
-            3 Strategic Training Domains
-          </h3>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-          {areas.map((area, index) => (
-            <div
-              key={area.title}
-              className="p-5 rounded-lg bg-card/50 border border-border/50 text-center animate-fade-in-up"
-              style={{ animationDelay: `${0.3 + index * 0.1}s` }}
-            >
-              <h4 className="font-semibold mb-1">{area.title}</h4>
-              <p className="text-muted-foreground text-xs">{area.description}</p>
-            </div>
-          ))}
         </div>
       </div>
     </section>
