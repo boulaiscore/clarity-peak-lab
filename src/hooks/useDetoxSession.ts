@@ -231,7 +231,7 @@ export function useDetoxSession() {
       
       // XP is based on actual elapsed time since last violation (or start)
       const actualMinutes = Math.min(elapsedMinutes, duration);
-      const xpEarned = Math.round(actualMinutes * DETOX_XP_PER_MINUTE * 100) / 100;
+      const xpEarned = Math.round(actualMinutes * DETOX_XP_PER_MINUTE);
 
       // Cancel any pending notification for this session
       cancelDetoxEndNotification(id);
@@ -270,7 +270,7 @@ export function useDetoxSession() {
       toast({
         title: "Detox completato! 🎉",
         description: actualMinutes >= 30 
-          ? `Hai guadagnato ${xpEarned.toFixed(1)} XP (${actualMinutes} min effettivi)`
+          ? `Hai guadagnato ${xpEarned} XP (${actualMinutes} min effettivi)`
           : `Sessione troppo breve per XP (${actualMinutes} min, min 30)`,
       });
 
