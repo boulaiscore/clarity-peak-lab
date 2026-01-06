@@ -283,9 +283,12 @@ export type Database = {
           age: number | null
           birth_date: string | null
           created_at: string
+          daily_detox_goal_minutes: number | null
           daily_sessions_count: number | null
           daily_time_commitment: string | null
           degree_discipline: string | null
+          detox_reminder_enabled: boolean | null
+          detox_reminder_time: string | null
           education_level: string | null
           gender: string | null
           id: string
@@ -306,9 +309,12 @@ export type Database = {
           age?: number | null
           birth_date?: string | null
           created_at?: string
+          daily_detox_goal_minutes?: number | null
           daily_sessions_count?: number | null
           daily_time_commitment?: string | null
           degree_discipline?: string | null
+          detox_reminder_enabled?: boolean | null
+          detox_reminder_time?: string | null
           education_level?: string | null
           gender?: string | null
           id?: string
@@ -329,9 +335,12 @@ export type Database = {
           age?: number | null
           birth_date?: string | null
           created_at?: string
+          daily_detox_goal_minutes?: number | null
           daily_sessions_count?: number | null
           daily_time_commitment?: string | null
           degree_discipline?: string | null
+          detox_reminder_enabled?: boolean | null
+          detox_reminder_time?: string | null
           education_level?: string | null
           gender?: string | null
           id?: string

@@ -23,10 +23,34 @@ export interface DetoxGoal {
   weeklySessionsTarget: number;
 }
 
+export interface DailyDetoxSettings {
+  dailyGoalMinutes: number;
+  reminderEnabled: boolean;
+  reminderTime: string;
+}
+
+// Available detox slot durations (minimum 30 minutes)
+export const DETOX_SLOT_OPTIONS = [
+  { value: 30, label: "30 min" },
+  { value: 45, label: "45 min" },
+  { value: 60, label: "1 ora" },
+  { value: 90, label: "1h 30m" },
+  { value: 120, label: "2 ore" },
+];
+
+// XP per minute of detox
+export const DETOX_XP_PER_MINUTE = 2;
+
 // Default goals
 const DEFAULT_DETOX_GOAL: DetoxGoal = {
   weeklyMinutesTarget: 120, // 2 hours per week
   weeklySessionsTarget: 5,
+};
+
+const DEFAULT_DAILY_SETTINGS: DailyDetoxSettings = {
+  dailyGoalMinutes: 60,
+  reminderEnabled: true,
+  reminderTime: "20:00",
 };
 
 export function useWeeklyDetoxXP() {
@@ -78,6 +102,90 @@ export function useTodayDetoxMinutes() {
     },
     enabled: !!user?.id,
   });
+}
+
+// Fetch daily detox settings from profile
+export function useDailyDetoxSettings() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["daily-detox-settings", user?.id],
+    queryFn: async (): Promise<DailyDetoxSettings> => {
+      if (!user?.id) return DEFAULT_DAILY_SETTINGS;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("daily_detox_goal_minutes, detox_reminder_enabled, detox_reminder_time")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error || !data) return DEFAULT_DAILY_SETTINGS;
+
+      return {
+        dailyGoalMinutes: data.daily_detox_goal_minutes ?? 60,
+        reminderEnabled: data.detox_reminder_enabled ?? true,
+        reminderTime: data.detox_reminder_time ?? "20:00",
+      };
+    },
+    enabled: !!user?.id,
+  });
+}
+
+// Update daily detox settings
+export function useUpdateDailyDetoxSettings() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (settings: Partial<DailyDetoxSettings>) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const updateData: Record<string, unknown> = {};
+      if (settings.dailyGoalMinutes !== undefined) {
+        updateData.daily_detox_goal_minutes = settings.dailyGoalMinutes;
+      }
+      if (settings.reminderEnabled !== undefined) {
+        updateData.detox_reminder_enabled = settings.reminderEnabled;
+      }
+      if (settings.reminderTime !== undefined) {
+        updateData.detox_reminder_time = settings.reminderTime;
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      return settings;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-detox-settings"] });
+    },
+  });
+}
+
+// Calculate daily progress
+export function useDailyDetoxProgress() {
+  const { data: todayMinutes = 0 } = useTodayDetoxMinutes();
+  const { data: settings } = useDailyDetoxSettings();
+
+  const dailyGoal = settings?.dailyGoalMinutes ?? 60;
+  const progress = Math.min(100, (todayMinutes / dailyGoal) * 100);
+  const remaining = Math.max(0, dailyGoal - todayMinutes);
+  const isComplete = todayMinutes >= dailyGoal;
+  const xpEarned = todayMinutes * DETOX_XP_PER_MINUTE;
+  const potentialXP = dailyGoal * DETOX_XP_PER_MINUTE;
+
+  return {
+    todayMinutes,
+    dailyGoal,
+    progress,
+    remaining,
+    isComplete,
+    xpEarned,
+    potentialXP,
+  };
 }
 
 // Historical data for trend chart (last 14 days)

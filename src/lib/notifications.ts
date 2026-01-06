@@ -3,6 +3,8 @@
 const VAPID_PUBLIC_KEY = ""; // Will be set when push notifications are configured
 const LAST_SESSION_KEY = "neuroloop_last_session_date";
 const MISSED_REMINDER_SHOWN_KEY = "neuroloop_missed_reminder_shown";
+const DETOX_REMINDER_SCHEDULED_KEY = "neuroloop_detox_reminder_scheduled";
+const DETOX_REMINDER_TIMEOUT_KEY = "neuroloop_detox_reminder_timeout";
 
 export interface NotificationPermissionState {
   permission: NotificationPermission;
@@ -70,6 +72,83 @@ export function showLocalNotification(title: string, options?: NotificationOptio
       ...options,
     });
   }
+}
+
+// ============================================
+// Detox Daily Goal Reminder System
+// ============================================
+
+export function showDetoxReminderNotification(remainingMinutes: number, dailyGoal: number): void {
+  const completedMinutes = dailyGoal - remainingMinutes;
+  const progressPercent = Math.round((completedMinutes / dailyGoal) * 100);
+  
+  showLocalNotification("📵 Obiettivo Detox incompleto", {
+    body: `Hai completato ${completedMinutes}/${dailyGoal} minuti oggi (${progressPercent}%). Mancano ${remainingMinutes} minuti per raggiungere il tuo obiettivo!`,
+    data: { url: "/app/home" },
+    tag: "neuroloop-detox-reminder",
+    requireInteraction: true,
+  });
+}
+
+// Schedule detox reminder notification
+export function scheduleDetoxReminder(
+  reminderTime: string,
+  checkProgress: () => { remaining: number; dailyGoal: number; isComplete: boolean }
+): void {
+  cancelDetoxReminder();
+  
+  const [hours, minutes] = reminderTime.split(':').map(Number);
+  
+  if (isNaN(hours) || isNaN(minutes)) {
+    console.warn("Invalid detox reminder time format:", reminderTime);
+    return;
+  }
+  
+  const now = new Date();
+  const next = new Date();
+  next.setHours(hours, minutes, 0, 0);
+  
+  // If time already passed today, schedule for tomorrow
+  if (next <= now) {
+    next.setDate(next.getDate() + 1);
+  }
+  
+  const msUntilReminder = next.getTime() - now.getTime();
+  
+  console.log(`Scheduling detox reminder for ${next.toLocaleString()} (in ${Math.round(msUntilReminder / 1000 / 60)} minutes)`);
+  
+  const timeoutId = window.setTimeout(() => {
+    const { remaining, dailyGoal, isComplete } = checkProgress();
+    
+    if (!isComplete && remaining > 0) {
+      showDetoxReminderNotification(remaining, dailyGoal);
+    }
+    
+    // Re-schedule for next day
+    scheduleDetoxReminder(reminderTime, checkProgress);
+  }, msUntilReminder);
+  
+  localStorage.setItem(DETOX_REMINDER_TIMEOUT_KEY, String(timeoutId));
+  localStorage.setItem(DETOX_REMINDER_SCHEDULED_KEY, next.toISOString());
+}
+
+// Cancel detox reminder
+export function cancelDetoxReminder(): void {
+  const timeoutId = localStorage.getItem(DETOX_REMINDER_TIMEOUT_KEY);
+  if (timeoutId) {
+    window.clearTimeout(Number(timeoutId));
+    localStorage.removeItem(DETOX_REMINDER_TIMEOUT_KEY);
+    localStorage.removeItem(DETOX_REMINDER_SCHEDULED_KEY);
+    console.log("Detox reminder cancelled");
+  }
+}
+
+// Get scheduled detox reminder info
+export function getScheduledDetoxReminderInfo(): { scheduledAt: Date | null } {
+  const scheduledAt = localStorage.getItem(DETOX_REMINDER_SCHEDULED_KEY);
+  return {
+    scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+  };
 }
 
 // Check if user missed their scheduled reminder (app was closed at scheduled time)
