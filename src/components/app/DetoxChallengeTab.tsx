@@ -1,16 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Smartphone, Clock, Trophy, 
-  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info
+  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
   useWeeklyDetoxXP, 
   useTodayDetoxMinutes, 
-  useRecordDetoxCompletion,
 } from "@/hooks/useDetoxProgress";
+import { useDetoxSession } from "@/hooks/useDetoxSession";
 import { useAppBlocker } from "@/hooks/useAppBlocker";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -28,12 +28,23 @@ import { TRAINING_PLANS, type TrainingPlanId } from "@/lib/trainingPlans";
 
 export function DetoxChallengeTab() {
   const { user } = useAuth();
-  const [isRunning, setIsRunning] = useState(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [completed, setCompleted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedAppsToBlock, setSelectedAppsToBlock] = useState<string[]>([]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [displaySeconds, setDisplaySeconds] = useState(0);
+  const [justCompleted, setJustCompleted] = useState(false);
+  const [lastSessionSeconds, setLastSessionSeconds] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cloud-persisted session hook
+  const { 
+    activeSession, 
+    isLoading: sessionLoading, 
+    remainingMinutes,
+    isActive, 
+    startSession, 
+    completeSession, 
+    cancelSession 
+  } = useDetoxSession();
 
   // Get user's training plan
   const { data: profile } = useQuery({
@@ -57,8 +68,7 @@ export function DetoxChallengeTab() {
   // Real data from database
   const { data: weeklyData } = useWeeklyDetoxXP();
   const { data: todayMinutes } = useTodayDetoxMinutes();
-  const recordCompletion = useRecordDetoxCompletion();
-  const { startBlocking, stopBlocking, isNative } = useAppBlocker();
+  const { isNative } = useAppBlocker();
 
   const todayDetoxMinutes = todayMinutes || 0;
   const weeklyDetoxMinutes = weeklyData?.totalMinutes || 0;
@@ -67,90 +77,83 @@ export function DetoxChallengeTab() {
   const goalProgress = Math.min(100, (weeklyDetoxMinutes / weeklyTarget) * 100);
   const goalReached = weeklyDetoxMinutes >= weeklyTarget;
 
-  // Calculate XP for current session
-  const currentSessionXP = Math.floor(elapsedSeconds / 60) * detoxRequirement.xpPerMinute;
+  // Calculate elapsed seconds from active session
+  const elapsedSeconds = activeSession 
+    ? Math.floor((Date.now() - new Date(activeSession.started_at).getTime()) / 1000)
+    : 0;
 
-  // Cleanup interval on unmount
+  // Current session XP
+  const currentSessionXP = Math.floor(displaySeconds / 60) * detoxRequirement.xpPerMinute;
+
+  // Sync display timer with active session
+  useEffect(() => {
+    if (isActive && activeSession) {
+      // Calculate initial elapsed time
+      const startTime = new Date(activeSession.started_at).getTime();
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      setDisplaySeconds(elapsed);
+
+      // Start local timer for smooth display
+      timerRef.current = setInterval(() => {
+        setDisplaySeconds(prev => prev + 1);
+      }, 1000);
+
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
+    } else {
+      setDisplaySeconds(0);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, [isActive, activeSession]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
 
   const handleStart = async () => {
-    setIsRunning(true);
-    setElapsedSeconds(0);
-    setCompleted(false);
-    
-    // Start app blocking if configured
-    if (isNative && selectedAppsToBlock.length > 0) {
-      await startBlocking(
-        selectedAppsToBlock, 
-        120, // Block for 2 hours max
-        "Detox in corso. Rimani concentrato!"
-      );
+    setJustCompleted(false);
+    const success = await startSession(120, selectedAppsToBlock); // 120 min max session
+    if (!success) {
+      toast({
+        title: "Errore",
+        description: "Impossibile avviare la sessione",
+        variant: "destructive",
+      });
     }
-    
-    intervalRef.current = setInterval(() => {
-      setElapsedSeconds(prev => prev + 1);
-    }, 1000);
   };
 
-  const handleStop = async () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+  const handleComplete = async () => {
+    const sessionMinutes = Math.floor(displaySeconds / 60);
     
-    const minutes = Math.floor(elapsedSeconds / 60);
-    
-    // Check if session meets minimum requirement
-    if (minutes < detoxRequirement.minSessionMinutes) {
+    // Check minimum requirement
+    if (sessionMinutes < detoxRequirement.minSessionMinutes) {
       toast({
         title: "Sessione troppo breve",
         description: `Minimo ${detoxRequirement.minSessionMinutes} minuti per registrare la sessione`,
         variant: "destructive",
       });
-      setIsRunning(false);
-      setElapsedSeconds(0);
       return;
     }
 
-    // Calculate XP
-    const baseXP = minutes * detoxRequirement.xpPerMinute;
-    const newTotal = weeklyDetoxMinutes + minutes;
-    const justReachedGoal = weeklyDetoxMinutes < weeklyTarget && newTotal >= weeklyTarget;
-    const totalXP = baseXP + (justReachedGoal ? detoxRequirement.bonusXP : 0);
-
-    setIsRunning(false);
-    setCompleted(true);
-    
-    // Stop app blocking
-    if (isNative) {
-      await stopBlocking();
+    setLastSessionSeconds(displaySeconds);
+    const success = await completeSession();
+    if (success) {
+      setJustCompleted(true);
     }
-
-    // Record completion to database
-    recordCompletion.mutate({
-      durationMinutes: minutes,
-      xpEarned: totalXP,
-    }, {
-      onSuccess: () => {
-        toast({
-          title: "Detox completato!",
-          description: justReachedGoal 
-            ? `+${totalXP} XP (incluso bonus obiettivo settimanale!)` 
-            : `+${totalXP} XP guadagnati`,
-        });
-      },
-    });
   };
 
   const handleCancel = async () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setIsRunning(false);
-    setElapsedSeconds(0);
-    
-    if (isNative) {
-      await stopBlocking();
-    }
+    await cancelSession();
+    setDisplaySeconds(0);
+  };
+
+  const handleNewSession = () => {
+    setJustCompleted(false);
+    setLastSessionSeconds(0);
   };
 
   const formatTime = (seconds: number) => {
@@ -170,6 +173,15 @@ export function DetoxChallengeTab() {
     if (mins === 0) return `${hrs}h`;
     return `${hrs}h ${mins}m`;
   };
+
+  // Loading state
+  if (sessionLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-teal-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -264,36 +276,33 @@ export function DetoxChallengeTab() {
         </div>
       </div>
 
-      {/* Active Session or Start */}
-      {isRunning || completed ? (
+      {/* Active Session, Completed, or Start */}
+      {isActive || justCompleted ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className={cn(
             "p-6 rounded-2xl border text-center",
-            completed 
+            justCompleted 
               ? "bg-emerald-500/10 border-emerald-500/30" 
               : "bg-card border-border"
           )}
         >
-          {completed ? (
+          {justCompleted ? (
             <>
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <Check className="w-8 h-8 text-emerald-400" />
               </div>
               <h3 className="text-lg font-semibold text-emerald-400 mb-1">Detox Completato!</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Hai trascorso {formatTime(elapsedSeconds)} senza social media
+                Hai trascorso {formatTime(lastSessionSeconds)} senza social media
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium">
                 <Sparkles className="w-4 h-4" />
-                +{Math.floor(elapsedSeconds / 60) * detoxRequirement.xpPerMinute} XP
+                +{Math.floor(lastSessionSeconds / 60) * detoxRequirement.xpPerMinute} XP
               </div>
               <Button 
-                onClick={() => {
-                  setCompleted(false);
-                  setElapsedSeconds(0);
-                }}
+                onClick={handleNewSession}
                 variant="ghost"
                 className="w-full mt-4"
               >
@@ -319,7 +328,7 @@ export function DetoxChallengeTab() {
                     <Smartphone className="w-6 h-6 text-teal-400" />
                     <Ban className="w-6 h-6 text-teal-400 absolute inset-0" />
                   </div>
-                  <span className="text-2xl font-mono font-bold">{formatTime(elapsedSeconds)}</span>
+                  <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
                   <span className="text-xs text-teal-400 font-medium">+{currentSessionXP} XP</span>
                 </div>
               </div>
@@ -339,9 +348,9 @@ export function DetoxChallengeTab() {
                   Annulla
                 </Button>
                 <Button 
-                  onClick={handleStop}
+                  onClick={handleComplete}
                   className="flex-1 gap-2 bg-teal-600 hover:bg-teal-700"
-                  disabled={elapsedSeconds < detoxRequirement.minSessionMinutes * 60}
+                  disabled={displaySeconds < detoxRequirement.minSessionMinutes * 60}
                 >
                   <Check className="w-4 h-4" />
                   Completa
