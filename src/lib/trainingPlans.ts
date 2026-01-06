@@ -97,13 +97,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "low",
     color: "emerald",
     icon: "leaf",
-    // 3 sessions × ~5 exercises × 5 avg XP = 75 + 1 content (15-20) + detox = ~90-95
-    weeklyXPTarget: 100,
+    // 3 sessions × ~5 exercises × 5 avg XP = 75 + 1 content (15-20) + detox (24) = ~115
+    weeklyXPTarget: 120,
     detox: {
-      weeklyMinutes: 60,       // 1 hour per week
-      minSessionMinutes: 10,   // Min 10 min to count
-      xpPerMinute: 0.05,       // 60 min × 0.05 = 3 XP base
-      bonusXP: 2,              // Total ~5 XP from detox
+      weeklyMinutes: 480,      // 8 hours per week
+      minSessionMinutes: 30,   // Min 30 min to count
+      xpPerMinute: 0.05,       // 480 min × 0.05 = 24 XP base
+      bonusXP: 5,              // Total ~29 XP from detox
     },
     sessions: [
       {
@@ -163,13 +163,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "medium",
     color: "blue",
     icon: "target",
-    // 3 sessions × ~6 exercises × 5 avg XP = 90 + 2 content (35) + detox = ~125
-    weeklyXPTarget: 150,
+    // 3 sessions × ~6 exercises × 5 avg XP = 90 + 2 content (35) + detox (42) = ~167
+    weeklyXPTarget: 200,
     detox: {
-      weeklyMinutes: 90,       // 1.5 hours per week
-      minSessionMinutes: 15,   // Min 15 min to count
-      xpPerMinute: 0.05,       // 90 min × 0.05 = 4.5 XP base
-      bonusXP: 3,              // Total ~7.5 XP from detox
+      weeklyMinutes: 840,      // 14 hours per week
+      minSessionMinutes: 30,   // Min 30 min to count
+      xpPerMinute: 0.05,       // 840 min × 0.05 = 42 XP base
+      bonusXP: 8,              // Total ~50 XP from detox
     },
     sessions: [
       {
@@ -229,13 +229,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "high",
     color: "red",
     icon: "flame",
-    // 3 sessions × ~8 exercises × 6 avg XP = 144 + 3 content (65) + detox = ~210
-    weeklyXPTarget: 250,
+    // 3 sessions × ~8 exercises × 6 avg XP = 144 + 3 content (65) + detox (84) = ~293
+    weeklyXPTarget: 300,
     detox: {
-      weeklyMinutes: 180,      // 3 hours per week
-      minSessionMinutes: 20,   // Min 20 min to count
-      xpPerMinute: 0.05,       // 180 min × 0.05 = 9 XP base
-      bonusXP: 5,              // Total ~14 XP from detox
+      weeklyMinutes: 1680,     // 28 hours per week
+      minSessionMinutes: 30,   // Min 30 min to count
+      xpPerMinute: 0.05,       // 1680 min × 0.05 = 84 XP base
+      bonusXP: 15,             // Total ~99 XP from detox
     },
     sessions: [
       {
