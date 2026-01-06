@@ -433,39 +433,41 @@ const Account = () => {
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="h-12" />
           </div>
 
-          {/* Training Goals */}
+          {/* Training Goals - Compact inline selection */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">Training Goals</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold flex items-center gap-2 text-sm">
+                <Brain className="w-4 h-4 text-primary" />
+                Training Focus
+              </h3>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Seleziona su quale sistema cognitivo vuoi concentrarti maggiormente.
+            </p>
+            <div className="flex gap-2">
               <button
                 onClick={() => toggleGoal("fast_thinking")}
                 className={cn(
-                  "p-4 rounded-xl border text-left transition-all",
+                  "flex-1 px-3 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
                   trainingGoals.includes("fast_thinking")
-                    ? "border-warning bg-warning/10"
-                    : "border-border hover:border-warning/30",
+                    ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
+                    : "border-border hover:border-amber-500/30 text-muted-foreground"
                 )}
               >
-                <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center mb-2">
-                  <Zap className="w-5 h-5 text-warning" />
-                </div>
-                <span className="font-medium text-sm block">Fast Thinking</span>
-                <span className="text-xs text-muted-foreground">Intuition</span>
+                <Zap className="w-3.5 h-3.5" />
+                S1 Fast
               </button>
               <button
                 onClick={() => toggleGoal("slow_thinking")}
                 className={cn(
-                  "p-4 rounded-xl border text-left transition-all",
+                  "flex-1 px-3 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
                   trainingGoals.includes("slow_thinking")
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:border-primary/30",
+                    ? "border-primary/50 bg-primary/10 text-primary"
+                    : "border-border hover:border-primary/30 text-muted-foreground"
                 )}
               >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                  <Brain className="w-5 h-5 text-primary" />
-                </div>
-                <span className="font-medium text-sm block">Slow Thinking</span>
-                <span className="text-xs text-muted-foreground">Structured</span>
+                <Brain className="w-3.5 h-3.5" />
+                S2 Slow
               </button>
             </div>
           </div>
