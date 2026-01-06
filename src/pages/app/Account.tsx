@@ -751,6 +751,34 @@ const Account = () => {
                       </div>
                     </div>
                     
+                    {/* Score Interpretation Guide */}
+                    <div className="p-3 rounded-lg bg-gradient-to-r from-amber-500/10 to-cyan-500/10 border border-border/50">
+                      <p className="font-semibold text-foreground text-xs mb-3">Score Interpretation Guide:</p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                          <span><strong>85-100</strong> Elite</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-primary" />
+                          <span><strong>70-84</strong> High</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-amber-400" />
+                          <span><strong>50-69</strong> Moderate</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-orange-500" />
+                          <span><strong>&lt;50</strong> Developing</span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-2">
+                        Optimal performance requires both systems working in balance. 
+                        A difference greater than 15 points between Fast and Slow suggests 
+                        focusing training on the weaker system.
+                      </p>
+                    </div>
+                    
                     <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs">
                       <p><strong>Delta Calculation:</strong> Delta = Current Score - Baseline Score (from initial assessment). Positive delta indicates improvement.</p>
                     </div>
