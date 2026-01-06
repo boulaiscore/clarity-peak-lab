@@ -17,9 +17,9 @@
     --popover: 0 0% 6%;
     --popover-foreground: 0 0% 98%;
 
-    /* Teal/Cyan accent like WHOOP */
-    --primary: 165 82% 51%;
-    --primary-foreground: 0 0% 0%;
+    /* Premium emerald accent - sophisticated, less saturated */
+    --primary: 160 45% 40%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 98%;
@@ -27,51 +27,51 @@
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 55%;
 
-    --accent: 165 70% 45%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 160 40% 35%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --success: 165 82% 51%;
-    --success-foreground: 0 0% 0%;
+    --success: 160 45% 40%;
+    --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
 
     --border: 0 0% 12%;
     --input: 0 0% 10%;
-    --ring: 165 82% 51%;
+    --ring: 160 45% 40%;
 
     --radius: 1rem;
 
-    /* Brand tokens - WHOOP style */
+    /* Brand tokens - Premium style */
     --bg-primary: 0 0% 0%;
     --bg-surface: 0 0% 6%;
-    --accent-primary: 165 82% 51%;
-    --accent-secondary: 165 70% 40%;
+    --accent-primary: 160 45% 40%;
+    --accent-secondary: 160 40% 32%;
     --text-primary: 0 0% 98%;
     --text-secondary: 0 0% 55%;
     
-    /* Gradients - Teal glow */
-    --gradient-primary: linear-gradient(135deg, hsl(165, 82%, 51%) 0%, hsl(165, 70%, 40%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(165, 82%, 51%, 0.15) 0%, transparent 70%);
+    /* Gradients - Sophisticated emerald */
+    --gradient-primary: linear-gradient(135deg, hsl(160, 45%, 40%) 0%, hsl(160, 40%, 32%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(160, 45%, 40%, 0.12) 0%, transparent 70%);
     --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 8%) 0%, hsl(0, 0%, 0%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(165, 82%, 51%, 0.03) 0%, transparent 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(160, 45%, 40%, 0.03) 0%, transparent 100%);
     
     /* Shadows - Subtle, premium */
-    --shadow-glow: 0 0 120px -40px hsl(165, 82%, 51%, 0.35);
+    --shadow-glow: 0 0 100px -40px hsl(160, 45%, 40%, 0.3);
     --shadow-card: 0 2px 24px -4px hsl(0, 0%, 0%, 0.8);
-    --shadow-button: 0 0 32px -4px hsl(165, 82%, 51%, 0.25);
+    --shadow-button: 0 0 24px -4px hsl(160, 45%, 40%, 0.2);
 
     --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 165 82% 51%;
-    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-primary: 160 45% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 10%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 10%;
-    --sidebar-ring: 165 82% 51%;
+    --sidebar-ring: 160 45% 40%;
   }
 
   .light {
@@ -260,13 +260,13 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(ellipse at 50% 0%, hsl(165, 82%, 51%, 0.08) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 50% 0%, hsl(160, 45%, 40%, 0.06) 0%, transparent 60%);
     pointer-events: none;
   }
 
   /* Particle glow for sphere */
   .sphere-glow {
-    background: radial-gradient(ellipse at center, hsl(165, 82%, 51%, 0.2) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, hsl(160, 45%, 40%, 0.15) 0%, transparent 70%);
   }
 
   .animate-pulse-slow {
