@@ -610,8 +610,20 @@ const Account = () => {
                       </p>
                     </div>
                     
-                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs">
-                      <p><strong>Example:</strong> If your baseline scores average 50 and current scores average 65, your cognitive age would be 1.5 years younger than baseline.</p>
+                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs space-y-2">
+                      <p className="font-semibold text-foreground">Example:</p>
+                      <ul className="space-y-1 text-muted-foreground">
+                        <li>• Chronological age: <strong>35 years</strong></li>
+                        <li>• Baseline Cognitive Age (from initial assessment): <strong>38 years</strong></li>
+                        <li>• Baseline scores average: <strong>50</strong> (across 5 domains)</li>
+                        <li>• Current scores average: <strong>65</strong> (after training)</li>
+                      </ul>
+                      <div className="p-2 rounded bg-muted/30 border border-border/50 font-mono">
+                        <p>Performance Improvement = 65 - 50 = <strong>15 points</strong></p>
+                        <p>Age Improvement = 15 / 10 = <strong>1.5 years</strong></p>
+                        <p>New Cognitive Age = 38 - 1.5 = <strong>36.5 years</strong></p>
+                      </div>
+                      <p className="text-emerald-400">Result: Your cognitive age improved from 38 → 36.5 years (1.5 years younger).</p>
                     </div>
                   </div>
                 </AccordionContent>
