@@ -60,10 +60,11 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
         const isSelected = selectedPlan === planId;
         const isExpanded = expandedPlan === planId;
 
-        // Calculate XP targets for games and tasks
+        // Calculate XP targets for games, tasks and detox
         const split = PLAN_XP_SPLIT[planId];
         const gamesXPTarget = Math.round(plan.weeklyXPTarget * split.gamesPercent);
         const tasksXPTarget = Math.round(plan.weeklyXPTarget * split.tasksPercent);
+        const detoxXPTarget = plan.detox ? Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute) : 0;
 
         return (
           <motion.div
@@ -165,23 +166,32 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                           <span className="text-[12px] font-semibold">{plan.weeklyXPTarget} XP total</span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center shrink-0">
                             <Gamepad2 className="w-3 h-3 text-blue-400" />
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="text-[11px] font-semibold text-blue-400">{gamesXPTarget} XP</p>
                             <p className="text-[9px] text-muted-foreground">Games</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center shrink-0">
                             <BookOpen className="w-3 h-3 text-purple-400" />
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="text-[11px] font-semibold text-purple-400">{tasksXPTarget} XP</p>
                             <p className="text-[9px] text-muted-foreground">Tasks</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded bg-green-500/15 flex items-center justify-center shrink-0">
+                            <Smartphone className="w-3 h-3 text-green-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-semibold text-green-400">{detoxXPTarget} XP</p>
+                            <p className="text-[9px] text-muted-foreground">Detox</p>
                           </div>
                         </div>
                       </div>
