@@ -1,4 +1,4 @@
-import { Zap, Brain, Target, ExternalLink, Gamepad2, BookOpen, Smartphone, Star } from "lucide-react";
+import { Zap, Brain, Target, ExternalLink, Gamepad2, BookOpen, Smartphone, Star, Headphones, FileText, BookMarked } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const systems = [
@@ -30,19 +30,20 @@ const trainingPillars = [
     color: "text-blue-400",
     bgColor: "bg-blue-400/10",
     stats: "5-8 exercises per session",
-    domains: [
-      { name: "Focus Arena", desc: "Sustained attention, cognitive control" },
-      { name: "Critical Reasoning", desc: "Logic, bias resistance, analysis" },
-      { name: "Creativity Hub", desc: "Divergent thinking, insight" },
-    ],
+    domains: ["Focus Arena", "Critical Reasoning", "Creativity Hub"],
   },
   {
     icon: BookOpen,
     title: "Deep Content",
-    description: "Curated podcasts, readings, and book excerpts that prime your mind for deep thinking. Content that challenges, not entertains.",
+    description: "Curated content that primes your mind for deep thinking. Challenge yourself, don't just consume.",
     color: "text-purple-400",
     bgColor: "bg-purple-400/10",
     stats: "MIT, HBR, academic sources",
+    tasks: [
+      { icon: Headphones, name: "Podcasts" },
+      { icon: FileText, name: "Articles" },
+      { icon: BookMarked, name: "Book Excerpts" },
+    ],
   },
   {
     icon: Smartphone,
@@ -130,13 +131,24 @@ export function HowItWorks() {
                 
                 {/* Show domains for Cognitive Games */}
                 {'domains' in pillar && pillar.domains && (
-                  <div className="space-y-1.5 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {pillar.domains.map((domain) => (
-                      <div key={domain.name} className="flex items-center gap-2 text-xs">
+                      <span key={domain} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted/50 text-foreground">
                         <Target className="w-3 h-3 text-primary" />
-                        <span className="font-medium">{domain.name}</span>
-                        <span className="text-muted-foreground">· {domain.desc}</span>
-                      </div>
+                        {domain}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Show tasks for Deep Content */}
+                {'tasks' in pillar && pillar.tasks && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {pillar.tasks.map((task) => (
+                      <span key={task.name} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted/50 text-foreground">
+                        <task.icon className="w-3 h-3 text-purple-400" />
+                        {task.name}
+                      </span>
                     ))}
                   </div>
                 )}
