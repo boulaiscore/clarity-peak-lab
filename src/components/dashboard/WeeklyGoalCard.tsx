@@ -4,18 +4,6 @@ import { Star, Gamepad2, BookMarked, Target, CheckCircle2, Smartphone, Ban, Gift
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 import { XPCelebration } from "@/components/app/XPCelebration";
-import { XP_VALUES, TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-
-// Calculate tasks XP target based on plan's contentPerWeek
-function calculateTasksXPTarget(planId: TrainingPlanId): number {
-  const plan = TRAINING_PLANS[planId];
-  if (!plan) return 0;
-  
-  // Average XP per content piece: (podcast 8 + reading 10 + book 12) / 3 ≈ 10
-  // But we use actual values based on typical content mix
-  const avgXPPerContent = (XP_VALUES.podcastComplete + XP_VALUES.readingComplete + XP_VALUES.bookChapterComplete) / 3;
-  return Math.round(plan.contentPerWeek * avgXPPerContent);
-}
 
 function safeProgress(value: number, target: number) {
   if (target <= 0) return 0;
@@ -48,8 +36,8 @@ export function WeeklyGoalCard() {
   // Derive an explicit detox target from the plan (base XP only, bonus is extra when goal is hit).
   const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
   
-  // Calculate tasks XP target based on plan's actual contentPerWeek
-  const tasksXPTarget = calculateTasksXPTarget(plan.id as TrainingPlanId);
+  // Use plan's explicit contentXPTarget for tasks
+  const tasksXPTarget = plan.contentXPTarget;
   
   // Games XP target = total target - detox target - tasks target
   const gamesXPTarget = Math.max(0, totalXPTarget - detoxXPTarget - tasksXPTarget);

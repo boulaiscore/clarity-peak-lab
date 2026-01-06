@@ -46,6 +46,7 @@ export interface TrainingPlan {
   color: string;
   icon: "leaf" | "target" | "flame";
   weeklyXPTarget: number; // Target XP to earn per week
+  contentXPTarget: number; // Target XP from content/tasks per week
   detox: DetoxRequirement; // Required detox configuration
   sessions: SessionConfig[];
 }
@@ -97,8 +98,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "low",
     color: "emerald",
     icon: "leaf",
-    // 3 sessions × ~5 exercises × 5 avg XP = 75 + 1 content (15-20) + detox (24) = ~115
+    // 3 sessions × ~5 exercises × 5 avg XP = 72 + tasks (24) + detox (24) = 120
     weeklyXPTarget: 120,
+    contentXPTarget: 24, // 1 content × ~24 XP target
     detox: {
       weeklyMinutes: 480,      // 8 hours per week
       minSessionMinutes: 30,   // Min 30 min to count
@@ -163,8 +165,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "medium",
     color: "blue",
     icon: "target",
-    // 3 sessions × ~6 exercises × 5 avg XP = 90 + 2 content (35) + detox (42) = ~167
+    // 3 sessions × ~6 exercises × 5 avg XP = 123 + tasks (35) + detox (42) = 200
     weeklyXPTarget: 200,
+    contentXPTarget: 35, // 2 content × ~17.5 XP avg target
     detox: {
       weeklyMinutes: 840,      // 14 hours per week
       minSessionMinutes: 30,   // Min 30 min to count
@@ -229,8 +232,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "high",
     color: "red",
     icon: "flame",
-    // 3 sessions × ~8 exercises × 6 avg XP = 144 + 3 content (65) + detox (84) = ~293
+    // 3 sessions × ~8 exercises × 6 avg XP = 131 + tasks (85) + detox (84) = 300
     weeklyXPTarget: 300,
+    contentXPTarget: 85, // 3 content × ~28 XP avg target
     detox: {
       weeklyMinutes: 1680,     // 28 hours per week
       minSessionMinutes: 30,   // Min 30 min to count

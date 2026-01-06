@@ -305,7 +305,7 @@ export function TrainingTasks() {
   });
   
   const userPlan = (profile?.training_plan as TrainingPlanId) || "light";
-  const planXPTarget = TRAINING_PLANS[userPlan]?.weeklyXPTarget || 100;
+  const plan = TRAINING_PLANS[userPlan];
   
   // Extract completed content IDs for this week
   const completedThisWeek = weeklyCompletions.map(c => c.contentId);
@@ -368,8 +368,8 @@ export function TrainingTasks() {
   const activeTasks = planTasks.filter(t => !completedThisWeek.includes(t.id));
   const completedTasks = planTasks.filter(t => completedThisWeek.includes(t.id));
   
-  // Calculate XP target for tasks only (based on plan's content requirements)
-  const planTasksXPTarget = planTasks.reduce((sum, t) => sum + calculateXP(t.type), 0);
+  // Use plan's explicit contentXPTarget for tasks progress
+  const planTasksXPTarget = plan?.contentXPTarget || 24;
   const earnedXP = weeklyTasksXPEarned;
   const completionPercent = planTasksXPTarget > 0 ? Math.min(100, Math.round((earnedXP / planTasksXPTarget) * 100)) : 0;
   if (isLoading) {
