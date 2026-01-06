@@ -83,12 +83,12 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     id: "light",
     name: "Light Training",
     tagline: "Maintain & Sharpen",
-    description: "Allenamento leggero ma intelligente. I contenuti aiutano, non pesano.",
-    philosophy: "Per chi vuole restare lucido senza affaticarsi. Entry point ideale.",
+    description: "Smart and light training. Content helps, not burdens.",
+    philosophy: "For those who want to stay sharp without overexerting. Ideal entry point.",
     targetAudience: [
-      "Professionisti con poco tempo",
-      "Chi vuole mantenimento cognitivo",
-      "Nuovi utenti"
+      "Busy professionals",
+      "Cognitive maintenance seekers",
+      "New users"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "15-18 min",
@@ -109,7 +109,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       {
         id: "fast-focus",
         name: "Fast Focus",
-        description: "Attenzione e reattività",
+        description: "Attention and reactivity",
         duration: "15-18 min",
         thinkingSystems: ["S1"],
         content: null,
@@ -118,28 +118,28 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       {
         id: "mixed",
         name: "Mixed",
-        description: "S1 + leggero S2",
+        description: "S1 + light S2",
         duration: "15-18 min",
         thinkingSystems: ["S1", "S2"],
         content: {
           type: "podcast",
           required: false,
           duration: "5-10 min",
-          description: "Podcast breve o reading non tecnico (opzionale)"
+          description: "Short podcast or non-technical reading (optional)"
         },
         games: { focus: "S1+S2", intensity: "light" }
       },
       {
         id: "consolidation",
         name: "Consolidation",
-        description: "Consolidamento leggero",
+        description: "Light consolidation",
         duration: "15-18 min",
         thinkingSystems: ["S2"],
         content: {
           type: "reading",
           required: false,
           duration: "10 min",
-          description: "Articolo riflessivo"
+          description: "Reflective article"
         },
         games: { focus: "S2", intensity: "light" }
       }
@@ -149,12 +149,12 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     id: "expert",
     name: "Expert Training",
     tagline: "Build Depth & Control",
-    description: "Bilanciare rapidità e profondità. Pensare meglio sotto pressione.",
-    philosophy: "Per decision-maker che vogliono controllo, non solo velocità.",
+    description: "Balance speed and depth. Think better under pressure.",
+    philosophy: "For decision-makers who want control, not just speed.",
     targetAudience: [
-      "Utenti già ingaggiati",
-      "Decision-maker",
-      "Chi cerca profondità"
+      "Engaged users",
+      "Decision-makers",
+      "Depth seekers"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "22-25 min",
@@ -175,7 +175,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       {
         id: "fast-control",
         name: "Fast Control",
-        description: "System 1 intensivo",
+        description: "Intensive System 1",
         duration: "22-25 min",
         thinkingSystems: ["S1"],
         content: null,
@@ -184,28 +184,28 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       {
         id: "slow-reasoning",
         name: "Slow Reasoning",
-        description: "System 2 con priming",
+        description: "System 2 with priming",
         duration: "22-25 min",
         thinkingSystems: ["S2"],
         content: {
           type: "podcast",
           required: true,
           duration: "10-15 min",
-          description: "Podcast denso o reading strutturato (prescritto)"
+          description: "Dense podcast or structured reading (prescribed)"
         },
         games: { focus: "S2", intensity: "medium" }
       },
       {
         id: "dual-process",
         name: "Dual Process",
-        description: "S1 + S2 integrati",
+        description: "S1 + S2 integrated",
         duration: "22-25 min",
         thinkingSystems: ["S1", "S2"],
         content: {
           type: "book-extract",
           required: true,
           duration: "10-15 min",
-          description: "Estratto libro o articolo MIT/HBR"
+          description: "Book excerpt or MIT/HBR article"
         },
         games: { focus: "S1+S2", intensity: "medium" }
       }
@@ -215,12 +215,12 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     id: "superhuman",
     name: "Superhuman Training",
     tagline: "Elite Cognitive Conditioning",
-    description: "Il contenuto non accompagna il training. È parte del carico.",
-    philosophy: "Per high performers con tolleranza allo sforzo cognitivo.",
+    description: "Content doesn't accompany training. It's part of the load.",
+    philosophy: "For high performers with tolerance for cognitive effort.",
     targetAudience: [
-      "Utenti avanzati",
+      "Advanced users",
       "High performers",
-      "Chi cerca l'elite"
+      "Elite seekers"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "30-35 min",
@@ -241,42 +241,42 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       {
         id: "heavy-slow",
         name: "Heavy Slow Thinking",
-        description: "Priming obbligatorio + S2 intensivo",
+        description: "Mandatory priming + intensive S2",
         duration: "30-35 min",
         thinkingSystems: ["S2"],
         content: {
           type: "podcast",
           required: true,
           duration: "10-15 min",
-          description: "Podcast o reading denso (obbligatorio)"
+          description: "Dense podcast or reading (mandatory)"
         },
         games: { focus: "S2", intensity: "heavy" }
       },
       {
         id: "dual-stress",
         name: "Dual-Process Stress",
-        description: "Dual-task con interferenza",
+        description: "Dual-task with interference",
         duration: "30-35 min",
         thinkingSystems: ["S1", "S2"],
         content: {
           type: "reading",
           required: true,
           duration: "10 min",
-          description: "Reading dilemma o saggio breve"
+          description: "Dilemma reading or short essay"
         },
         games: { focus: "S1+S2", intensity: "heavy" }
       },
       {
         id: "reflection",
         name: "Consolidation & Reflection",
-        description: "Libro + riflessione obbligatoria",
+        description: "Book + mandatory reflection",
         duration: "30-35 min",
         thinkingSystems: ["S2"],
         content: {
           type: "book-extract",
           required: true,
           duration: "15-20 min",
-          description: "Estratto libro + prompt riflessivo obbligatorio"
+          description: "Book excerpt + mandatory reflection prompt"
         },
         games: { focus: "S2", intensity: "medium" }
       }
@@ -299,9 +299,9 @@ export function getPlanColor(id: TrainingPlanId): string {
 
 export function getPlanIntensityLabel(intensity: "low" | "medium" | "high"): string {
   const labels: Record<string, string> = {
-    low: "Basso",
-    medium: "Medio",
-    high: "Alto"
+    low: "Low",
+    medium: "Medium",
+    high: "High"
   };
   return labels[intensity];
 }
