@@ -442,7 +442,7 @@ const Account = () => {
               </h3>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              Seleziona su quale sistema cognitivo vuoi concentrarti maggiormente.
+              Select which cognitive system to focus on.
             </p>
             <div className="flex gap-2">
               <button
