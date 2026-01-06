@@ -208,7 +208,7 @@ export function DetoxChallengeTab() {
 
   return (
     <div className="space-y-5">
-      {/* Daily Goal Progress Card */}
+      {/* Weekly Goal Progress Card */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export function DetoxChallengeTab() {
               <Smartphone className="w-4 h-4 text-primary" />
               <Ban className="w-4 h-4 text-primary absolute inset-0" />
             </div>
-            <span className="text-xs font-medium text-primary">Obiettivo Giornaliero</span>
+            <span className="text-xs font-medium text-primary">Weekly Goal</span>
           </div>
           
           {/* Goal Settings Button */}
@@ -234,35 +234,12 @@ export function DetoxChallengeTab() {
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-2">
-                {/* Daily Goal */}
-                <div className="space-y-2">
-                  <Label className="text-sm">Obiettivo Giornaliero</Label>
-                  <Select
-                    value={String(dailySettings?.dailyGoalMinutes || 60)}
-                    onValueChange={(val) => updateSettings.mutate({ dailyGoalMinutes: Number(val) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 minuti</SelectItem>
-                      <SelectItem value="60">1 ora</SelectItem>
-                      <SelectItem value="90">1 ora 30 min</SelectItem>
-                      <SelectItem value="120">2 ore</SelectItem>
-                      <SelectItem value="180">3 ore</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground">
-                    Guadagni 0.05 XP per ogni minuto di detox
-                  </p>
-                </div>
-
                 {/* Reminder Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-sm">Promemoria</Label>
                     <p className="text-[10px] text-muted-foreground">
-                      Ricevi una notifica se non hai raggiunto l'obiettivo
+                      Ricevi una notifica per ricordarti del detox
                     </p>
                   </div>
                   <Switch
@@ -333,55 +310,35 @@ export function DetoxChallengeTab() {
           </Dialog>
         </div>
 
-        {/* Daily Progress */}
+        {/* Weekly Progress */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-muted-foreground">Progresso Oggi</span>
-            <span className={cn(
-              "text-[10px] font-semibold",
-              dailyProgress.isComplete ? "text-emerald-400" : "text-primary"
-            )}>
-              {formatMinutesToHours(dailyProgress.todayMinutes)} / {formatMinutesToHours(dailyProgress.dailyGoal)}
-              {dailyProgress.isComplete && <Check className="w-3 h-3 inline ml-1" />}
+            <span className="text-[10px] text-muted-foreground">Progresso Settimanale</span>
+            <span className="text-[10px] font-semibold text-primary">
+              {formatMinutesToHours(weeklyDetoxMinutes)} • +{weeklyDetoxXP.toFixed(1)} XP
             </span>
           </div>
           <div className="h-2 bg-primary/10 rounded-full overflow-hidden">
             <motion.div 
-              className={cn(
-                "h-full rounded-full",
-                dailyProgress.isComplete 
-                  ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
-                  : "bg-gradient-to-r from-primary to-primary/80"
-              )}
+              className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80"
               initial={{ width: 0 }}
-              animate={{ width: `${dailyProgress.progress}%` }}
+              animate={{ width: `${Math.min((weeklyDetoxMinutes / 420) * 100, 100)}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
-          {dailyProgress.isComplete ? (
-            <p className="text-[10px] text-emerald-400 mt-1.5 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              Obiettivo giornaliero raggiunto! +{dailyProgress.xpEarned} XP
-            </p>
-          ) : dailyProgress.remaining > 0 && (
-            <p className="text-[10px] text-muted-foreground mt-1.5">
-              Mancano {formatMinutesToHours(dailyProgress.remaining)} per completare l'obiettivo
-            </p>
-          )}
+          <p className="text-[10px] text-muted-foreground mt-1.5">
+            7h settimanali raccomandate per benefici cognitivi
+          </p>
         </div>
         
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="text-center">
-            <div className="text-lg font-bold text-foreground">{dailyProgress.todayMinutes}</div>
-            <div className="text-[10px] text-muted-foreground">min oggi</div>
-          </div>
-          <div className="text-center border-x border-border/30">
             <div className="text-lg font-bold text-foreground">{weeklyDetoxMinutes}</div>
-            <div className="text-[10px] text-muted-foreground">min settimana</div>
+            <div className="text-[10px] text-muted-foreground">minuti questa settimana</div>
           </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-primary">+{weeklyDetoxXP}</div>
-            <div className="text-[10px] text-muted-foreground">XP</div>
+          <div className="text-center border-l border-border/30">
+            <div className="text-lg font-bold text-primary">+{weeklyDetoxXP.toFixed(1)}</div>
+            <div className="text-[10px] text-muted-foreground">XP guadagnati</div>
           </div>
         </div>
       </div>
