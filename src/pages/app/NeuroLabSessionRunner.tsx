@@ -83,6 +83,8 @@ export default function NeuroLabSessionRunner() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const hasCompletedRef = useRef(false);
+  // Track which exercises have already been recorded to prevent duplicates
+  const recordedExercisesRef = useRef<Set<string>>(new Set());
 
   // Check session limit and generate exercises
   useEffect(() => {
@@ -144,6 +146,17 @@ export default function NeuroLabSessionRunner() {
 
   const handleExerciseComplete = useCallback(async (result: { score: number; correct: number }) => {
     if (!currentExercise) return;
+    
+    // Prevent duplicate recordings for the same exercise
+    if (recordedExercisesRef.current.has(currentExercise.id)) {
+      console.log(`[NeuroLab] Exercise ${currentExercise.id} already recorded, skipping`);
+      // Still advance to next
+      setTimeout(() => handleNext(), 500);
+      return;
+    }
+    
+    // Mark as recorded immediately to prevent race conditions
+    recordedExercisesRef.current.add(currentExercise.id);
     
     // Update both state and ref (ref is used for immediate access in handleNext)
     const updated = new Map(responsesRef.current);
