@@ -162,28 +162,72 @@ const Home = () => {
     }
   };
 
+  // Get qualitative interpretation of readiness
+  const getReadinessInterpretation = () => {
+    if (readinessScore >= 75) {
+      return "Mental clarity is high. Complex decisions will feel easier today.";
+    }
+    if (readinessScore >= 55) {
+      return "Cognitive resources are stable. Good conditions for focused work.";
+    }
+    return "Your brain is consolidating. Light training protects tomorrow's clarity.";
+  };
 
-  // Get insight based on readiness
+  // Get qualitative interpretation of performance
+  const getPerformanceInterpretation = () => {
+    if (cognitivePerformance >= 70) {
+      return "Processing speed and accuracy above baseline.";
+    }
+    if (cognitivePerformance >= 50) {
+      return "Cognitive output is steady. Consistency builds compound gains.";
+    }
+    return "Room to strengthen neural pathways. Every session counts.";
+  };
+
+  // Get weekly load interpretation
+  const getWeeklyLoadInterpretation = () => {
+    const percentage = (totalWeeklyXP / weeklyXPTarget) * 100;
+    if (percentage >= 80) {
+      return "Weekly training load nearly complete. Mental resilience is building.";
+    }
+    if (percentage >= 40) {
+      return "On track. Skipping today risks losing 48h of cognitive momentum.";
+    }
+    if (percentage > 0) {
+      return "Mental sharpness decays faster than it builds. Stay consistent.";
+    }
+    return "First session of the week sets the baseline for cognitive gains.";
+  };
+
+  // Get insight based on readiness - with cause-effect messaging
   const getInsight = () => {
+    const planName = TRAINING_PLANS[currentPlan].name.replace(" Training", "");
+    
     if (readinessScore >= 75) {
       return {
-        title: "Peak condition",
-        body: "Your cognitive system is operating at maximum capacity. This is the ideal time for high-load sessions. Push your limits today to consolidate your progress."
+        title: "Optimal window",
+        body: `Your ${planName} protocol detected peak readiness. High-intensity training today will have 2x impact on memory consolidation tonight.`,
+        action: "Push intensity"
       };
     }
     if (readinessScore >= 55) {
       return {
-        title: "Solid foundation",
-        body: "You have room to work with controlled intensity. Focus on execution quality. Today's consistency builds tomorrow's performance."
+        title: "Stable foundation",
+        body: `Conditions support your ${planName} load. Training now maintains the cognitive edge you've built—skipping starts a 48h decline curve.`,
+        action: "Maintain momentum"
       };
     }
     return {
-      title: "Recovery phase",
-      body: "Your system requires consolidation. A lighter session today will prepare optimal conditions for superior performance in the coming days."
+      title: "Strategic recovery",
+      body: `Your ${planName} protocol recommends lighter load today. This isn't passive rest—it's active protection of tomorrow's peak performance.`,
+      action: "Protect tomorrow"
     };
   };
 
   const insight = getInsight();
+  const readinessInterpretation = getReadinessInterpretation();
+  const performanceInterpretation = getPerformanceInterpretation();
+  const weeklyLoadInterpretation = getWeeklyLoadInterpretation();
 
   // No protocol configured
   if (!hasProtocol) {
@@ -215,40 +259,52 @@ const Home = () => {
     <AppShell>
       <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-5 py-4 max-w-md mx-auto">
 
-        {/* Three Rings - WHOOP style */}
+        {/* Three Rings with Cognitive Interpretations */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex justify-center gap-6 mb-8"
+          className="mb-6"
         >
-          <ProgressRing
-            value={readinessLoading ? 0 : readinessScore}
-            max={100}
-            size={90}
-            strokeWidth={6}
-            color="hsl(210, 70%, 55%)"
-            label="Readiness"
-            displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
-          />
-          <ProgressRing
-            value={cognitivePerformance}
-            max={100}
-            size={90}
-            strokeWidth={6}
-            color="hsl(var(--primary))"
-            label="Performance"
-            displayValue={`${cognitivePerformance}%`}
-          />
-          <ProgressRing
-            value={totalWeeklyXP}
-            max={weeklyXPTarget}
-            size={90}
-            strokeWidth={6}
-            color="hsl(38, 92%, 50%)"
-            label="Weekly XP"
-            displayValue={`${Math.round((totalWeeklyXP / weeklyXPTarget) * 100)}%`}
-          />
+          <div className="flex justify-center gap-6 mb-4">
+            <ProgressRing
+              value={readinessLoading ? 0 : readinessScore}
+              max={100}
+              size={90}
+              strokeWidth={6}
+              color="hsl(210, 70%, 55%)"
+              label="Readiness"
+              displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
+            />
+            <ProgressRing
+              value={cognitivePerformance}
+              max={100}
+              size={90}
+              strokeWidth={6}
+              color="hsl(var(--primary))"
+              label="Performance"
+              displayValue={`${cognitivePerformance}%`}
+            />
+            <ProgressRing
+              value={totalWeeklyXP}
+              max={weeklyXPTarget}
+              size={90}
+              strokeWidth={6}
+              color="hsl(38, 92%, 50%)"
+              label="Weekly Load"
+              displayValue={`${Math.round((totalWeeklyXP / weeklyXPTarget) * 100)}%`}
+            />
+          </div>
+          
+          {/* Qualitative interpretation - changes based on lowest metric */}
+          <p className="text-center text-xs text-muted-foreground leading-relaxed px-4">
+            {readinessScore < cognitivePerformance && readinessScore < (totalWeeklyXP / weeklyXPTarget) * 100
+              ? readinessInterpretation
+              : (totalWeeklyXP / weeklyXPTarget) * 100 < cognitivePerformance
+                ? weeklyLoadInterpretation
+                : performanceInterpretation
+            }
+          </p>
         </motion.section>
 
         {/* Distraction Load Card - Collapsible */}
@@ -261,72 +317,87 @@ const Home = () => {
           <DistractionLoadCard />
         </motion.section>
 
-        {/* Insight Card - Coaching message */}
+        {/* Insight Card - Protocol-driven coaching with cause-effect */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12 }}
-          className="mb-8"
+          className="mb-6"
         >
           <div className="p-5 rounded-2xl bg-card border border-border/40">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
               <div className="flex-1">
-                <h3 className="text-sm font-semibold mb-2">{insight.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    readinessScore >= 75 ? "bg-emerald-400" : readinessScore >= 55 ? "bg-amber-400" : "bg-blue-400"
+                  )} />
+                  <h3 className="text-sm font-semibold">{insight.title}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                   {insight.body}
                 </p>
-              </div>
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 shrink-0">
-                <Check className="w-4 h-4 text-muted-foreground" />
+                <p className="text-[10px] uppercase tracking-[0.12em] text-primary font-medium">
+                  → {insight.action}
+                </p>
               </div>
             </div>
           </div>
         </motion.section>
 
-        {/* Quick Status Cards */}
+        {/* Quick Status Cards - Protocol as cause */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="grid grid-cols-2 gap-3 mb-8"
+          className="grid grid-cols-2 gap-3 mb-6"
         >
           <button 
             onClick={handleOpenProtocolSheet}
             className="p-4 rounded-xl bg-card border border-border/40 text-left hover:bg-muted/30 transition-colors active:scale-[0.98]"
           >
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              Active Protocol
+              Your Protocol
             </p>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span className="text-xs font-medium text-primary uppercase tracking-wide">
                   {TRAINING_PLANS[currentPlan].name.replace(" Training", "")}
                 </span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
+            <p className="text-[10px] text-muted-foreground/70 leading-snug">
+              Driving today's load
+            </p>
           </button>
           <div className="p-4 rounded-xl bg-card border border-border/40">
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              Weekly XP
+              Weekly Cognitive Load
             </p>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 mb-1">
               <Star className="w-3.5 h-3.5 text-amber-400" />
               <p className="text-sm font-semibold tabular-nums text-amber-400">
                 {totalWeeklyXP} <span className="text-muted-foreground font-normal">/ {weeklyXPTarget}</span>
               </p>
             </div>
-            <div className="h-1 bg-amber-500/10 rounded-full overflow-hidden mt-2">
+            <div className="h-1 bg-amber-500/10 rounded-full overflow-hidden mb-2">
               <div 
                 className="h-full bg-amber-400 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, (totalWeeklyXP / weeklyXPTarget) * 100)}%` }}
               />
             </div>
+            <p className="text-[10px] text-muted-foreground/70 leading-snug">
+              {totalWeeklyXP >= weeklyXPTarget 
+                ? "Target reached. Neural adaptations consolidating."
+                : `${weeklyXPTarget - totalWeeklyXP} XP to secure this week's gains`
+              }
+            </p>
           </div>
         </motion.section>
 
-        {/* Primary CTA */}
+        {/* Primary CTA with consequence framing */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -345,6 +416,14 @@ const Home = () => {
           >
             {sessionsCompleted > 0 ? "Continue Training" : "Start Training"}
           </button>
+          <p className="text-center text-[10px] text-muted-foreground/60 mt-3">
+            {readinessScore >= 75 
+              ? "Peak window open. Higher impact per minute invested."
+              : readinessScore >= 55
+                ? "Consistency today protects clarity tomorrow."
+                : "Light session now → stronger recovery curve."
+            }
+          </p>
         </motion.div>
       </main>
 
