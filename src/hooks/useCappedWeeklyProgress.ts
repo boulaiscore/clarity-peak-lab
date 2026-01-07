@@ -3,7 +3,7 @@
  * XP beyond category targets does NOT count towards the total.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 
@@ -64,15 +64,15 @@ export function useCappedWeeklyProgress(): CappedProgressData {
   // Use 0 only when we have no cached data at all
   const weeklyDetoxXP = detoxData?.totalXP ?? 0;
 
-  if (import.meta.env.DEV) {
-    console.debug("[useCappedWeeklyProgress]", {
+  useEffect(() => {
+    console.log("[useCappedWeeklyProgress]", {
       weeklyGamesXP,
       weeklyContentXP,
       weeklyDetoxXP,
       weeklyXPTarget,
-      isLoading: progressLoading || detoxLoading,
+      loading: progressLoading || detoxLoading,
     });
-  }
+  }, [weeklyGamesXP, weeklyContentXP, weeklyDetoxXP, weeklyXPTarget, progressLoading, detoxLoading]);
 
   return useMemo(() => {
     // Calculate individual targets
