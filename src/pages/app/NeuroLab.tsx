@@ -138,41 +138,18 @@ export default function NeuroLab() {
     <AppShell>
       <div className="px-5 py-5 max-w-md mx-auto">
 
-        {/* Current Session Banner - Shows what to do based on plan */}
+        {/* Today's Session Banner */}
         {!isWeekComplete && nextSession ? (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-primary/15 via-primary/10 to-transparent border border-primary/30"
           >
-            <div className="flex items-center gap-1.5 mb-2">
+            <div className="flex items-center gap-1.5 mb-3">
               <Star className="w-3 h-3 text-primary" />
               <span className="text-[10px] text-primary font-medium uppercase tracking-wide">
                 Today's Session
               </span>
-            </div>
-            
-            <h2 className="text-[15px] font-semibold text-foreground mb-1">
-              {nextSession.name}
-            </h2>
-            <p className="text-[11px] text-muted-foreground mb-3">
-              {nextSession.description} • {nextSession.duration}
-            </p>
-            
-            {/* Recommended Areas */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] text-muted-foreground">Train:</span>
-              {recommendedAreas.slice(0, 2).map((areaId) => {
-                const area = NEURO_LAB_AREAS.find(a => a.id === areaId);
-                return (
-                  <span 
-                    key={areaId}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
-                  >
-                    {area?.title || areaId}
-                  </span>
-                );
-              })}
             </div>
 
             <button
@@ -180,7 +157,7 @@ export default function NeuroLab() {
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-medium hover:bg-primary/90 active:scale-[0.98] transition-all"
             >
               <Play className="w-4 h-4 fill-current" />
-              Start Session
+              {sessionsCompleted > 0 ? "Continue Session" : "Start Session"}
             </button>
           </motion.div>
         ) : isWeekComplete ? (

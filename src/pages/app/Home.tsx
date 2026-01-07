@@ -309,35 +309,11 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* Today's Session */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-4"
-        >
-          <button
-            onClick={handleStartSession}
-            className="w-full p-4 rounded-xl bg-card border border-border/40 flex items-center justify-between hover:bg-muted/30 transition-colors active:scale-[0.99]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-primary" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium">Today's session</p>
-                <p className="text-xs text-muted-foreground">Heavy Slow Thinking · 30 min</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </motion.section>
-
         {/* Primary CTA */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.2 }}
           className="pt-2"
         >
           <button
@@ -350,11 +326,8 @@ const Home = () => {
               "active:scale-[0.98] transition-transform"
             )}
           >
-            Start Training
+            {sessionsCompleted > 0 ? "Continue Training" : "Start Training"}
           </button>
-          <p className="text-[10px] text-muted-foreground/50 text-center mt-3 uppercase tracking-[0.1em]">
-            Focus: clarity under cognitive load
-          </p>
         </motion.div>
       </main>
 
