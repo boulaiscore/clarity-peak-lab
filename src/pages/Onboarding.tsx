@@ -497,42 +497,71 @@ const Onboarding = () => {
           {step === 6 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Brain className="w-5 h-5 text-primary" />
+                </div>
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Cognitive focus
+                  Which brain area do you want to train?
                 </h1>
                 <p className="text-muted-foreground text-[13px]">
-                  Select one or both systems
+                  Choose one or both cognitive systems
                 </p>
               </div>
               
               <div className="space-y-3 mb-6">
-                {goalOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => toggleGoal(option.value)}
-                    className={cn(
-                      "w-full py-4 px-4 rounded-xl border text-left transition-all flex items-center gap-3.5",
-                      trainingGoals.includes(option.value)
-                        ? "border-primary bg-primary/10"
-                        : "border-border/60 bg-card/50 hover:border-primary/40"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
-                      option.value === "fast_thinking" ? "bg-amber-500/15" : "bg-teal-500/15"
-                    )}>
-                      <option.icon className={cn(
-                        "w-5 h-5",
-                        option.value === "fast_thinking" ? "text-amber-400" : "text-teal-400"
-                      )} />
-                    </div>
-                    <div>
-                      <span className="font-semibold text-[14px] block mb-0.5">{option.title}</span>
-                      <span className="text-[12px] text-muted-foreground leading-snug">{option.description}</span>
-                    </div>
-                  </button>
-                ))}
+                {goalOptions.map((option) => {
+                  const isSelected = trainingGoals.includes(option.value);
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => toggleGoal(option.value)}
+                      className={cn(
+                        "w-full py-4 px-4 rounded-xl border text-left transition-all flex items-center gap-3.5 relative",
+                        isSelected
+                          ? "border-primary bg-primary/10"
+                          : "border-border/60 bg-card/50 hover:border-primary/40"
+                      )}
+                    >
+                      {/* Selection indicator */}
+                      <div className={cn(
+                        "absolute top-3 right-3 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
+                        isSelected 
+                          ? "border-primary bg-primary" 
+                          : "border-muted-foreground/30 bg-transparent"
+                      )}>
+                        {isSelected && (
+                          <svg className="w-3 h-3 text-primary-foreground" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                      
+                      <div className={cn(
+                        "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
+                        option.value === "fast_thinking" ? "bg-amber-500/15" : "bg-teal-500/15"
+                      )}>
+                        <option.icon className={cn(
+                          "w-5 h-5",
+                          option.value === "fast_thinking" ? "text-amber-400" : "text-teal-400"
+                        )} />
+                      </div>
+                      <div className="pr-6">
+                        <span className="font-semibold text-[14px] block mb-0.5">{option.title}</span>
+                        <span className="text-[12px] text-muted-foreground leading-snug">{option.description}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* Helper text */}
+              <p className="text-center text-[12px] text-muted-foreground/70 mb-4">
+                {trainingGoals.length === 0 
+                  ? "Tap to select at least one system" 
+                  : trainingGoals.length === 2 
+                    ? "Both systems selected — complete training" 
+                    : "You can add the other system too"}
+              </p>
 
               <Button
                 onClick={handleNext}
