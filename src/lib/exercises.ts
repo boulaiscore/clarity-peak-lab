@@ -268,6 +268,13 @@ export function calculateSessionScore(
   return { score, correctAnswers, totalQuestions };
 }
 
+// Difficulty multipliers for more nuanced scoring
+const DIFFICULTY_MULTIPLIERS: Record<ExerciseDifficulty, number> = {
+  easy: 0.8,
+  medium: 1.0,
+  hard: 1.3,
+};
+
 // Get metric updates based on exercise performance
 // Supports both old format (selectedIndex/text) and new format (score/correct)
 export function getMetricUpdates(
@@ -279,26 +286,63 @@ export function getMetricUpdates(
   exercises.forEach((exercise) => {
     const response = responses.get(exercise.id);
     const weight = exercise.weight || 1;
+    const difficultyMultiplier = DIFFICULTY_MULTIPLIERS[exercise.difficulty] || 1.0;
     
     let earnedPoints = 0;
     
     // New format: visual tasks with score/correct
     if (response?.score !== undefined) {
-      // Normalize score (0-100) to points
-      earnedPoints = (response.score / 100) * 2 * weight;
+      // Normalize score (0-100) to points with difficulty multiplier
+      // Score 80+ = positive impact, 50-80 = neutral/slight positive, <50 = slight negative
+      const normalizedScore = response.score / 100;
+      if (normalizedScore >= 0.5) {
+        earnedPoints = (normalizedScore * 2) * weight * difficultyMultiplier;
+      } else {
+        // Below 50%: slight penalty
+        earnedPoints = -0.2 * weight * (1 - normalizedScore);
+      }
     }
     // Old format: multiple choice with selectedIndex
     else if (hasCorrectAnswer(exercise.type) && exercise.correct_option_index !== undefined) {
       if (response?.selectedIndex === exercise.correct_option_index) {
-        earnedPoints = 2 * weight; // Correct answer
-      } else {
-        earnedPoints = 0.5 * weight; // Attempted but wrong
+        earnedPoints = 2 * weight * difficultyMultiplier; // Correct answer
+      } else if (response?.selectedIndex !== undefined) {
+        earnedPoints = -0.2 * weight; // Wrong answer: slight penalty
       }
+      // Unanswered: 0 points
     }
     
     exercise.metrics_affected.forEach((metric) => {
       updates[metric] = (updates[metric] || 0) + earnedPoints;
     });
+  });
+  
+  return updates;
+}
+
+// Calculate metric updates for a single exercise - used for real-time updates
+export function getSingleExerciseMetricUpdate(
+  exercise: CognitiveExercise,
+  score: number, // 0-100
+  correct: boolean
+): Record<string, number> {
+  const updates: Record<string, number> = {};
+  const weight = exercise.weight || 1;
+  const difficultyMultiplier = DIFFICULTY_MULTIPLIERS[exercise.difficulty] || 1.0;
+  
+  let earnedPoints = 0;
+  const normalizedScore = score / 100;
+  
+  if (correct || normalizedScore >= 0.5) {
+    // Positive performance: proportional points
+    earnedPoints = (normalizedScore * 2) * weight * difficultyMultiplier;
+  } else {
+    // Poor performance: slight penalty
+    earnedPoints = -0.15 * weight;
+  }
+  
+  exercise.metrics_affected.forEach((metric) => {
+    updates[metric] = earnedPoints;
   });
   
   return updates;

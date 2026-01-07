@@ -24,6 +24,23 @@ import { CognitiveExercise, getMetricUpdates } from "@/lib/exercises";
 import { toast } from "sonner";
 import { DrillRenderer } from "@/components/drills/DrillRenderer";
 
+// Helper to format metric names for display
+function formatMetricName(metric: string): string {
+  const names: Record<string, string> = {
+    reasoning: "Reasoning",
+    focus: "Focus",
+    memory: "Memory",
+    creativity: "Creativity",
+    fast_thinking: "Fast Thinking",
+    slow_thinking: "Slow Thinking",
+    reasoning_accuracy: "Reasoning",
+    focus_stability: "Focus",
+    decision_quality: "Decision",
+    bias_resistance: "Bias Resistance",
+  };
+  return names[metric] || metric.replace(/_/g, " ");
+}
+
 export default function NeuroLabSessionRunner() {
   const [searchParams] = useSearchParams();
   const { area: pathArea } = useParams<{ area: NeuroLabArea }>();
@@ -121,7 +138,7 @@ export default function NeuroLabSessionRunner() {
     responsesRef.current = updated;
     setResponses(updated);
     
-    // Record individual exercise completion with XP
+    // Record individual exercise completion with XP AND update metrics in real-time
     if (user?.id && currentExercise.gym_area) {
       try {
         const xpEarned = getExerciseXP((currentExercise.difficulty as "easy" | "medium" | "hard") || "medium");
@@ -131,9 +148,19 @@ export default function NeuroLabSessionRunner() {
           thinkingMode: currentExercise.thinking_mode || null,
           difficulty: (currentExercise.difficulty as "easy" | "medium" | "hard") || "medium",
           score: result.score,
+          // Pass the full exercise for real-time metric updates
+          exercise: {
+            metrics_affected: currentExercise.metrics_affected || [],
+            weight: currentExercise.weight,
+            difficulty: currentExercise.difficulty,
+          },
         });
-        // Show XP earned toast immediately
-        toast.success(`+${xpEarned} XP earned!`, { 
+        
+        // Show XP earned toast with metric hint
+        const metricHint = currentExercise.metrics_affected?.[0] 
+          ? ` • ${formatMetricName(currentExercise.metrics_affected[0])} ${result.score >= 50 ? "↑" : "→"}`
+          : "";
+        toast.success(`+${xpEarned} XP${metricHint}`, { 
           id: `xp-${currentExercise.id}`,
           duration: 2000,
           icon: "⭐"
