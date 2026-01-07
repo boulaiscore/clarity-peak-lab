@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRef } from "react";
 import { startOfWeek, format, subDays, parseISO, eachDayOfInterval } from "date-fns";
 
 function getCurrentWeekStart(): string {
@@ -54,31 +55,36 @@ const DEFAULT_DAILY_SETTINGS: DailyDetoxSettings = {
 };
 
 export function useWeeklyDetoxXP() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const weekStart = getCurrentWeekStart();
 
+  // Keep a stable userId across route changes (profile loads async after session)
+  const lastUserIdRef = useRef<string | undefined>(undefined);
+  const computedUserId = user?.id ?? session?.user?.id;
+  if (computedUserId) lastUserIdRef.current = computedUserId;
+  const userId = computedUserId ?? lastUserIdRef.current;
+
   return useQuery({
-    queryKey: ["weekly-detox-xp", user?.id, weekStart],
+    queryKey: ["weekly-detox-xp", userId, weekStart],
     queryFn: async () => {
-      if (!user?.id) return { totalXP: 0, totalMinutes: 0, completions: [] };
+      if (!userId) return { totalXP: 0, totalMinutes: 0, completions: [] };
 
       const { data, error } = await supabase
         .from("detox_completions")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("week_start", weekStart);
 
       if (error) throw error;
 
-      const completions = data as DetoxCompletion[];
+      const completions = (data || []) as DetoxCompletion[];
       const totalXP = completions.reduce((sum, c) => sum + c.xp_earned, 0);
       const totalMinutes = completions.reduce((sum, c) => sum + c.duration_minutes, 0);
 
       return { totalXP, totalMinutes, completions };
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
     staleTime: 60_000,
-    placeholderData: (prev) => prev ?? { totalXP: 0, totalMinutes: 0, completions: [] },
   });
 }
 
