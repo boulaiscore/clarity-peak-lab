@@ -414,7 +414,7 @@ const Home = () => {
               "active:scale-[0.98] transition-transform"
             )}
           >
-            {sessionsCompleted > 0 ? "Continue Training" : "Start Training"}
+            Go To Lab
           </button>
           <p className="text-center text-[10px] text-muted-foreground/60 mt-3">
             {readinessScore >= 75 
