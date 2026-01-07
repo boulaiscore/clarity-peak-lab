@@ -267,17 +267,17 @@ export default function DetoxSessionRunner() {
         </motion.div>
       </div>
 
-      {/* Bottom buttons - optimized for mobile */}
+      {/* Bottom buttons - symmetric layout */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="px-4 pb-6 pt-2 flex gap-3 safe-area-bottom"
+        className="px-4 pb-6 pt-2 flex gap-3"
       >
         <Button
           onClick={handleExitClick}
-          variant="outline"
-          className="flex-1 min-h-[56px] py-4 rounded-2xl bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white text-base font-semibold active:scale-[0.98] transition-transform"
+          variant="ghost"
+          className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white text-sm font-semibold"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           Cancel

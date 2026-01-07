@@ -83,9 +83,9 @@ export function HoldToCompleteButton({
   return (
     <motion.button
       ref={buttonRef}
-      className={`relative flex-1 min-h-[56px] py-4 rounded-2xl font-semibold text-base overflow-hidden select-none touch-none ${
+      className={`relative flex-1 h-14 rounded-2xl font-semibold text-sm overflow-hidden select-none touch-none ${
         disabled 
-          ? "bg-white/5 text-white/30 cursor-not-allowed" 
+          ? "bg-white/5 text-white/30 cursor-not-allowed border border-white/10" 
           : "bg-gradient-to-r from-teal-500 to-cyan-500 text-white active:scale-[0.98]"
       } ${className}`}
       onMouseDown={startHold}
@@ -117,14 +117,14 @@ export function HoldToCompleteButton({
       )}
       
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-center gap-3">
+      <div className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
         <motion.div
           animate={isHolding ? { scale: [1, 1.2, 1] } : { scale: 1 }}
           transition={{ duration: 0.3, repeat: isHolding ? Infinity : 0 }}
         >
-          <Check className="w-5 h-5" />
+          <Check className="w-4 h-4" />
         </motion.div>
-        <span className="text-base">{isHolding ? "Keep holding..." : "Hold to Complete"}</span>
+        <span>{isHolding ? "Hold..." : "Complete"}</span>
       </div>
 
       {/* Circular progress indicator - larger for mobile */}
