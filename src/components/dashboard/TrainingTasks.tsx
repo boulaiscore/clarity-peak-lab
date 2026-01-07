@@ -95,6 +95,7 @@ function getTasksForPlan(planId: TrainingPlanId): CognitiveInput[] {
 }
 
 // Hook to get completed content for THIS WEEK only
+// Uses user_listened_podcasts as source of truth, then fetches XP from exercise_completions
 function useWeeklyCompletedContent(userId: string | undefined) {
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   
@@ -103,20 +104,36 @@ function useWeeklyCompletedContent(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) return [];
       
-      // Get exercise completions for content this week
-      const { data, error } = await supabase
+      // First get all logged content IDs from user_listened_podcasts (source of truth)
+      const { data: loggedData, error: loggedError } = await supabase
+        .from("user_listened_podcasts")
+        .select("podcast_id");
+      
+      if (loggedError) throw loggedError;
+      
+      const loggedIds = new Set((loggedData || []).map(row => row.podcast_id));
+      
+      // Then get XP for this week's content completions
+      const { data: xpData, error: xpError } = await supabase
         .from("exercise_completions")
         .select("exercise_id, xp_earned")
         .eq("user_id", userId)
         .eq("week_start", weekStart)
         .like("exercise_id", "content-%");
       
-      if (error) throw error;
+      if (xpError) throw xpError;
       
-      // Extract content IDs (remove "content-" prefix and type)
-      return (data || []).map(row => ({
-        contentId: row.exercise_id.replace(/^content-(podcast|book|article)-/, ""),
-        xpEarned: row.xp_earned
+      // Build a map of contentId -> xpEarned
+      const xpMap = new Map<string, number>();
+      (xpData || []).forEach(row => {
+        const contentId = row.exercise_id.replace(/^content-(podcast|book|article)-/, "");
+        xpMap.set(contentId, row.xp_earned);
+      });
+      
+      // Return all logged content with their XP (0 if no XP record for this week)
+      return Array.from(loggedIds).map(contentId => ({
+        contentId,
+        xpEarned: xpMap.get(contentId) || 0
       }));
     },
     enabled: !!userId,
@@ -319,26 +336,48 @@ export function TrainingTasks() {
       const weekStart = getCurrentWeekStart();
       const xpEarned = calculateXP(taskType);
       
-      // Record completion in user_listened_podcasts (legacy tracking - for library)
-      const { error: legacyError } = await supabase
+      // Check if already in user_listened_podcasts (to prevent duplicates)
+      const { data: existing } = await supabase
         .from("user_listened_podcasts")
-        .insert({ user_id: user.id, podcast_id: taskId });
-      if (legacyError) throw legacyError;
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("podcast_id", taskId)
+        .maybeSingle();
       
-      // Also record in exercise_completions to count toward weekly XP
-      const { error: xpError } = await supabase
+      // Only insert to user_listened_podcasts if not already there
+      if (!existing) {
+        const { error: legacyError } = await supabase
+          .from("user_listened_podcasts")
+          .insert({ user_id: user.id, podcast_id: taskId });
+        if (legacyError) throw legacyError;
+      }
+      
+      // Check if XP already recorded for this week
+      const exerciseId = `content-${taskType}-${taskId}`;
+      const { data: existingXP } = await supabase
         .from("exercise_completions")
-        .insert({
-          user_id: user.id,
-          exercise_id: `content-${taskType}-${taskId}`,
-          gym_area: "content",
-          thinking_mode: "slow",
-          difficulty: taskType === "book" ? "hard" : taskType === "article" ? "medium" : "easy",
-          xp_earned: xpEarned,
-          score: 100,
-          week_start: weekStart,
-        });
-      if (xpError) throw xpError;
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("exercise_id", exerciseId)
+        .eq("week_start", weekStart)
+        .maybeSingle();
+      
+      // Only record XP if not already recorded this week
+      if (!existingXP) {
+        const { error: xpError } = await supabase
+          .from("exercise_completions")
+          .insert({
+            user_id: user.id,
+            exercise_id: exerciseId,
+            gym_area: "content",
+            thinking_mode: "slow",
+            difficulty: taskType === "book" ? "hard" : taskType === "article" ? "medium" : "easy",
+            xp_earned: xpEarned,
+            score: 100,
+            week_start: weekStart,
+          });
+        if (xpError) throw xpError;
+      }
     },
     onMutate: async ({ taskId }) => {
       setTogglingId(taskId);

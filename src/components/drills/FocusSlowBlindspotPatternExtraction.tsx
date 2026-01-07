@@ -60,9 +60,9 @@ const ShapeIcon: React.FC<{ type: ShapeType; size?: number; filled?: boolean }> 
   return icons[type];
 };
 
-const DURATION = 15000; // 15 seconds
-const ITEM_DISPLAY_TIME = 1200; // Show each item for 1.2s
-const TOTAL_ITEMS = 12;
+const DURATION = 12000; // 12 seconds
+const ITEM_DISPLAY_TIME = 1500; // Show each item for 1.5s
+const TOTAL_ITEMS = 8; // Reduced from 12 for assessment
 
 export const FocusSlowBlindspotPatternExtraction: React.FC<FocusSlowBlindspotPatternExtractionProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<Phase>('intro');
