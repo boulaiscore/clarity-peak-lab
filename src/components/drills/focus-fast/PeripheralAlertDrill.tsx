@@ -24,9 +24,9 @@ interface Alert {
 
 const DURATION = 45000;
 const DIFFICULTY_CONFIG = {
-  easy: { spawnRate: 1800, lifetime: 2000 },
-  medium: { spawnRate: 1400, lifetime: 1500 },
-  hard: { spawnRate: 1000, lifetime: 1000 },
+  easy: { spawnRate: 2200, lifetime: 3500 },
+  medium: { spawnRate: 1800, lifetime: 2500 },
+  hard: { spawnRate: 1400, lifetime: 1800 },
 };
 
 export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({ 
@@ -37,6 +37,7 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [feedback, setFeedback] = useState<{ x: number; y: number; correct: boolean } | null>(null);
+  const [liveStats, setLiveStats] = useState({ hits: 0, misses: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, reactionTimes: [] as number[], spawnTimes: new Map<string, number>() });
   const startTimeRef = useRef(0);
@@ -77,7 +78,10 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
       setTimeout(() => {
         setAlerts(prev => {
           const alert = prev.find(a => a.id === newAlert.id);
-          if (alert) statsRef.current.misses++;
+          if (alert) {
+            statsRef.current.misses++;
+            setLiveStats(ls => ({ ...ls, misses: ls.misses + 1 }));
+          }
           return prev.filter(a => a.id !== newAlert.id);
         });
       }, config.lifetime);
@@ -96,6 +100,7 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
       statsRef.current.reactionTimes.push(rt);
     }
     statsRef.current.hits++;
+    setLiveStats(ls => ({ ...ls, hits: ls.hits + 1 }));
     
     setFeedback({ x: e.clientX, y: e.clientY, correct: true });
     setAlerts(prev => prev.filter(a => a.id !== alert.id));
@@ -163,6 +168,11 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
         </div>
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div className="h-full bg-primary" style={{ width: `${progress * 100}%` }} />
+        </div>
+        {/* Live Stats */}
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <span className="text-green-400">✓ {liveStats.hits}</span>
+          <span className="text-amber-400">○ {liveStats.misses}</span>
         </div>
       </div>
 

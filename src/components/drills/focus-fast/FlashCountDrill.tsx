@@ -15,9 +15,9 @@ interface FlashCountDrillProps {
 }
 
 const DIFFICULTY_CONFIG = {
-  easy: { flashDuration: 400, minFlashes: 2, maxFlashes: 5, rounds: 6 },
-  medium: { flashDuration: 300, minFlashes: 3, maxFlashes: 7, rounds: 8 },
-  hard: { flashDuration: 200, minFlashes: 4, maxFlashes: 9, rounds: 10 },
+  easy: { flashDuration: 600, minFlashes: 2, maxFlashes: 4, rounds: 6 },
+  medium: { flashDuration: 450, minFlashes: 3, maxFlashes: 6, rounds: 8 },
+  hard: { flashDuration: 300, minFlashes: 4, maxFlashes: 8, rounds: 10 },
 };
 
 export const FlashCountDrill: React.FC<FlashCountDrillProps> = ({ 
@@ -50,10 +50,13 @@ export const FlashCountDrill: React.FC<FlashCountDrillProps> = ({
         currentFlash++;
       } else {
         clearInterval(flashInterval);
-        statsRef.current.startTime = Date.now();
-        setPhase('answer');
+        // Short pause before showing answer choices
+        setTimeout(() => {
+          statsRef.current.startTime = Date.now();
+          setPhase('answer');
+        }, 500);
       }
-    }, config.flashDuration + 400);
+    }, config.flashDuration + 600);
     
     return () => clearInterval(flashInterval);
   }, [config]);
