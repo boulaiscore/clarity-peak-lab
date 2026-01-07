@@ -92,6 +92,7 @@ export function useWeeklyProgress() {
     data: weeklyXPData,
     isLoading: weeklyXPLoading,
     isFetching: weeklyXPFetching,
+    isFetched: weeklyXPFetched,
   } = useQuery({
     queryKey: ["weekly-exercise-xp", userId, weekStart],
     queryFn: async () => {
@@ -220,6 +221,8 @@ export function useWeeklyProgress() {
     isLoading: progressLoading || weeklyXPLoading,
     // "Syncing" includes background refetches (route changes, focus, invalidations)
     isSyncing: weeklyXPFetching,
+    // isFetched = query has successfully fetched at least once
+    isFetched: weeklyXPFetched,
     recordSession,
     sessionsCompleted,
     sessionsRequired,

@@ -3,7 +3,7 @@
  * XP beyond category targets does NOT count towards the total.
  */
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 
@@ -42,6 +42,9 @@ export interface CappedProgressData {
   // Loading state
   isLoading: boolean;
   
+  // Whether queries have fetched at least once (used for snapshot validation)
+  isFetched: boolean;
+  
   // Plan reference
   plan: ReturnType<typeof useWeeklyProgress>["plan"];
 }
@@ -59,25 +62,17 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     plan,
     isLoading: progressLoading,
     isSyncing: progressSyncing,
+    isFetched: progressFetched,
   } = useWeeklyProgress();
 
   const {
     data: detoxData,
     isLoading: detoxLoading,
     isFetching: detoxFetching,
+    isFetched: detoxFetched,
   } = useWeeklyDetoxXP();
   // Use 0 only when we have no cached data at all
   const weeklyDetoxXP = detoxData?.totalXP ?? 0;
-
-  useEffect(() => {
-    console.log("[useCappedWeeklyProgress]", {
-      weeklyGamesXP,
-      weeklyContentXP,
-      weeklyDetoxXP,
-      weeklyXPTarget,
-      loading: progressLoading || detoxLoading,
-    });
-  }, [weeklyGamesXP, weeklyContentXP, weeklyDetoxXP, weeklyXPTarget, progressLoading, detoxLoading]);
 
   return useMemo(() => {
     // Calculate individual targets
@@ -113,6 +108,9 @@ export function useCappedWeeklyProgress(): CappedProgressData {
 
     // isLoading must include syncing/fetching states so WeeklyGoalCard doesn't update snapshot mid-refetch
     const isLoading = progressLoading || detoxLoading || progressSyncing || detoxFetching;
+    
+    // isFetched = both queries have successfully fetched at least once
+    const isFetched = progressFetched && detoxFetched;
 
     return {
       rawGamesXP,
@@ -135,8 +133,9 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       detoxProgress,
       totalProgress,
       isLoading,
+      isFetched,
       plan,
     };
-    // IMPORTANT: include ALL flags (progressSyncing, detoxFetching) to keep isLoading accurate
-  }, [weeklyGamesXP, weeklyContentXP, weeklyDetoxXP, weeklyXPTarget, plan, progressLoading, detoxLoading, progressSyncing, detoxFetching]);
+    // IMPORTANT: include ALL flags to keep isLoading/isFetched accurate
+  }, [weeklyGamesXP, weeklyContentXP, weeklyDetoxXP, weeklyXPTarget, plan, progressLoading, detoxLoading, progressSyncing, detoxFetching, progressFetched, detoxFetched]);
 }
