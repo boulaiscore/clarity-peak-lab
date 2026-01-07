@@ -44,17 +44,88 @@ export function WeeklyGoalCard() {
     isLoading,
   } = useCappedWeeklyProgress();
 
+  // Avoid "flash to zero" on navigation: keep last stable snapshot while refetching.
+  const lastStable = useRef<{
+    rawGamesXP: number;
+    rawTasksXP: number;
+    rawDetoxXP: number;
+    totalXPTarget: number;
+    gamesXPTarget: number;
+    tasksXPTarget: number;
+    detoxXPTarget: number;
+    gamesComplete: boolean;
+    tasksComplete: boolean;
+    detoxComplete: boolean;
+    gamesProgress: number;
+    tasksProgress: number;
+    detoxProgress: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isLoading) {
+      lastStable.current = {
+        rawGamesXP,
+        rawTasksXP,
+        rawDetoxXP,
+        totalXPTarget,
+        gamesXPTarget,
+        tasksXPTarget,
+        detoxXPTarget,
+        gamesComplete,
+        tasksComplete,
+        detoxComplete,
+        gamesProgress,
+        tasksProgress,
+        detoxProgress,
+      };
+    }
+  }, [
+    isLoading,
+    rawGamesXP,
+    rawTasksXP,
+    rawDetoxXP,
+    totalXPTarget,
+    gamesXPTarget,
+    tasksXPTarget,
+    detoxXPTarget,
+    gamesComplete,
+    tasksComplete,
+    detoxComplete,
+    gamesProgress,
+    tasksProgress,
+    detoxProgress,
+  ]);
+
+  const snapshot = isLoading && lastStable.current ? lastStable.current : {
+    rawGamesXP,
+    rawTasksXP,
+    rawDetoxXP,
+    totalXPTarget,
+    gamesXPTarget,
+    tasksXPTarget,
+    detoxXPTarget,
+    gamesComplete,
+    tasksComplete,
+    detoxComplete,
+    gamesProgress,
+    tasksProgress,
+    detoxProgress,
+  };
+
   // Display should be consistent across Home/Lab/Dashboard:
   // show RAW earned XP, while progress remains capped to the weekly target.
-  const rawTotalXP = rawGamesXP + rawTasksXP + rawDetoxXP;
-  const cappedTotalForProgress = Math.min(rawTotalXP, totalXPTarget);
-  const totalProgressDisplay = totalXPTarget > 0 ? Math.min(100, (cappedTotalForProgress / totalXPTarget) * 100) : 0;
+  const rawTotalXP = snapshot.rawGamesXP + snapshot.rawTasksXP + snapshot.rawDetoxXP;
+  const cappedTotalForProgress = Math.min(rawTotalXP, snapshot.totalXPTarget);
+  const totalProgressDisplay =
+    snapshot.totalXPTarget > 0
+      ? Math.min(100, (cappedTotalForProgress / snapshot.totalXPTarget) * 100)
+      : 0;
+
+  const xpRemaining = Math.max(0, snapshot.totalXPTarget - cappedTotalForProgress);
+  const goalReached = cappedTotalForProgress >= snapshot.totalXPTarget && snapshot.totalXPTarget > 0;
 
   const [showCelebration, setShowCelebration] = useState(false);
   const prevGoalReached = useRef(false);
-
-  const xpRemaining = Math.max(0, totalXPTarget - cappedTotalForProgress);
-  const goalReached = cappedTotalForProgress >= totalXPTarget && totalXPTarget > 0;
 
   // Trigger celebration when goal is reached for the first time
   useEffect(() => {
