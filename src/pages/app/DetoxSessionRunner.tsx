@@ -272,12 +272,12 @@ export default function DetoxSessionRunner() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="px-4 pb-6 pt-2 flex gap-3"
+        className="px-4 pb-6 pt-2 grid grid-cols-2 gap-3"
       >
         <Button
           onClick={handleExitClick}
           variant="ghost"
-          className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white text-sm font-semibold"
+          className="h-14 rounded-2xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white text-sm font-semibold"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           Cancel
