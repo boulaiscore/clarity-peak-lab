@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,16 +24,21 @@ export function useWeeklyProgress() {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
 
-  // Use session user id as a stable fallback to prevent "flash-to-zero" during profile reloads
-  const userId = user?.id ?? session?.user?.id;
-
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+  // Keep a stable userId across route changes to prevent "reset to zero" UI.
+  const lastUserIdRef = useRef<string | undefined>(undefined);
+  const computedUserId = user?.id ?? session?.user?.id;
+  if (computedUserId) lastUserIdRef.current = computedUserId;
+  const userId = computedUserId ?? lastUserIdRef.current;
+
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
 
-  if (import.meta.env.DEV) {
-    console.debug("[useWeeklyProgress]", { userId, weekStart, planId });
-  }
+  // Lightweight instrumentation (preview runs as production, so keep it minimal)
+  useEffect(() => {
+    console.log("[useWeeklyProgress]", { userId, weekStart, planId });
+  }, [userId, weekStart, planId]);
 
   // Fetch weekly progress record
   const { data: progress, isLoading: progressLoading } = useQuery({
@@ -104,17 +110,6 @@ export function useWeeklyProgress() {
         .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
       const gamesXP = totalXP - contentXP;
 
-      if (import.meta.env.DEV) {
-        console.debug("[useWeeklyProgress.weeklyXPData]", {
-          userId,
-          weekStart,
-          completions: completions.length,
-          totalXP,
-          contentXP,
-          gamesXP,
-        });
-      }
-
       return { totalXP, gamesXP, contentXP, completions };
     },
     enabled: !!userId,
@@ -125,7 +120,7 @@ export function useWeeklyProgress() {
 
   const recordSession = useMutation({
     mutationFn: async ({ sessionType, gamesCount }: { sessionType: SessionType; gamesCount: number }) => {
-      if (!user?.id) throw new Error("Not authenticated");
+      if (!userId) throw new Error("Not authenticated");
 
       const newSession: SessionCompleted = {
         session_type: sessionType,
@@ -140,7 +135,7 @@ export function useWeeklyProgress() {
       const { data: existing } = await supabase
         .from("weekly_training_progress")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("week_start", weekStart)
         .maybeSingle();
 
