@@ -44,11 +44,17 @@ export function WeeklyGoalCard() {
     isLoading,
   } = useCappedWeeklyProgress();
 
+  // Display should be consistent across Home/Lab/Dashboard:
+  // show RAW earned XP, while progress remains capped to the weekly target.
+  const rawTotalXP = rawGamesXP + rawTasksXP + rawDetoxXP;
+  const cappedTotalForProgress = Math.min(rawTotalXP, totalXPTarget);
+  const totalProgressDisplay = totalXPTarget > 0 ? Math.min(100, (cappedTotalForProgress / totalXPTarget) * 100) : 0;
+
   const [showCelebration, setShowCelebration] = useState(false);
   const prevGoalReached = useRef(false);
 
-  const xpRemaining = Math.max(0, totalXPTarget - cappedTotalXP);
-  const goalReached = cappedTotalXP >= totalXPTarget && totalXPTarget > 0;
+  const xpRemaining = Math.max(0, totalXPTarget - cappedTotalForProgress);
+  const goalReached = cappedTotalForProgress >= totalXPTarget && totalXPTarget > 0;
 
   // Trigger celebration when goal is reached for the first time
   useEffect(() => {
@@ -65,41 +71,41 @@ export function WeeklyGoalCard() {
         onComplete={() => setShowCelebration(false)}
       />
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        aria-busy={isLoading}
-        className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-primary" />
-            <div>
-              <span className="text-[12px] font-semibold">{WEEKLY_GOAL_MESSAGES.headline}</span>
-              <p className="text-[9px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.subtitle}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          aria-busy={isLoading}
+          className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <div>
+                <span className="text-[12px] font-semibold">{WEEKLY_GOAL_MESSAGES.headline}</span>
+                <p className="text-[9px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.subtitle}</p>
+              </div>
             </div>
-          </div>
 
-          <div className="text-right">
-            <div className="text-[11px] font-medium text-muted-foreground">
-              {Math.round(totalProgress)}% complete
-            </div>
-            <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-              {Math.round(cappedTotalXP)}/{Math.round(totalXPTarget)} XP
+            <div className="text-right">
+              <div className="text-[11px] font-medium text-muted-foreground">
+                {Math.round(totalProgressDisplay)}% complete
+              </div>
+              <div className="text-[9px] text-muted-foreground/80 tabular-nums">
+                {Math.round(rawTotalXP)}/{Math.round(totalXPTarget)} XP
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Total XP Progress Bar - multi-color gradient */}
-        <div className="h-2 bg-muted/50 rounded-full overflow-hidden mb-4">
-          <motion.div
-            className="h-full bg-gradient-to-r from-blue-400 via-violet-400 to-teal-400 rounded-full"
-            initial={false}
-            animate={{ width: `${totalProgress}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
+          <div className="h-2 bg-muted/50 rounded-full overflow-hidden mb-4">
+            <motion.div
+              className="h-full bg-gradient-to-r from-blue-400 via-violet-400 to-teal-400 rounded-full"
+              initial={false}
+              animate={{ width: `${totalProgressDisplay}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
 
         {/* Weekly Load Breakdown */}
         <div className="p-2.5 rounded-lg bg-muted/30 border border-border/30 mb-3">
