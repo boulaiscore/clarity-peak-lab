@@ -11,8 +11,8 @@ export function DetoxWaveform({ className = "", barCount = 40 }: DetoxWaveformPr
     return Array.from({ length: barCount }, (_, i) => ({
       id: i,
       baseHeight: 20 + Math.random() * 60,
-      delay: i * 0.03,
-      duration: 0.8 + Math.random() * 0.6,
+      delay: i * 0.06, // Slower stagger
+      duration: 2 + Math.random() * 1.5, // Slower: 2-3.5 seconds
     }));
   }, [barCount]);
 
