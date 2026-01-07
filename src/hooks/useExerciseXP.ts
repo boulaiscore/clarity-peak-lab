@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getExerciseXP } from "@/lib/trainingPlans";
+import { getSingleExerciseMetricUpdate } from "@/lib/exercises";
 import { startOfWeek, format } from "date-fns";
 
 export interface ExerciseCompletion {
@@ -51,7 +52,7 @@ export function useWeeklyExerciseXP() {
   });
 }
 
-// Record a completed exercise
+// Record a completed exercise AND update cognitive metrics in real-time
 export function useRecordExerciseCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -63,18 +64,25 @@ export function useRecordExerciseCompletion() {
       thinkingMode,
       difficulty,
       score,
+      exercise, // Pass the full exercise for metric calculation
     }: {
       exerciseId: string;
       gymArea: string;
       thinkingMode: string | null;
       difficulty: "easy" | "medium" | "hard";
       score: number;
+      exercise?: {
+        metrics_affected: string[];
+        weight?: number;
+        difficulty: string;
+      };
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
       const xpEarned = getExerciseXP(difficulty);
       const weekStart = getCurrentWeekStart();
 
+      // 1. Record the exercise completion
       const { data, error } = await supabase
         .from("exercise_completions")
         .insert({
@@ -91,12 +99,73 @@ export function useRecordExerciseCompletion() {
         .single();
 
       if (error) throw error;
-      return data as ExerciseCompletion;
+
+      // 2. Update cognitive metrics in real-time if exercise data provided
+      if (exercise && exercise.metrics_affected.length > 0) {
+        const isCorrect = score >= 50;
+        const metricUpdates = getSingleExerciseMetricUpdate(
+          {
+            id: exerciseId,
+            metrics_affected: exercise.metrics_affected,
+            weight: exercise.weight || 1,
+            difficulty: exercise.difficulty as "easy" | "medium" | "hard",
+          } as any,
+          score,
+          isCorrect
+        );
+
+        // Get current metrics
+        const { data: currentMetrics } = await supabase
+          .from("user_cognitive_metrics")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (currentMetrics) {
+          const updates: Record<string, number> = {};
+          
+          // Map metric names and apply gradual improvement
+          const metricMapping: Record<string, string> = {
+            reasoning: "reasoning_accuracy",
+            focus: "focus_stability",
+            memory: "visual_processing",
+            creativity: "creativity",
+            fast_thinking: "fast_thinking",
+            slow_thinking: "slow_thinking",
+            reasoning_accuracy: "reasoning_accuracy",
+            focus_stability: "focus_stability",
+            decision_quality: "decision_quality",
+            bias_resistance: "bias_resistance",
+            critical_thinking: "critical_thinking_score",
+          };
+
+          Object.entries(metricUpdates).forEach(([metric, points]) => {
+            const dbKey = metricMapping[metric] || metric.replace(/-/g, "_");
+            const currentValue = (currentMetrics as any)[dbKey] || 50;
+            
+            // Apply the gradual improvement formula: newValue = min(100, max(0, current + points × 0.5))
+            // This ensures scores update immediately but don't inflate too quickly
+            const newValue = Math.min(100, Math.max(0, currentValue + points * 0.5));
+            updates[dbKey] = Math.round(newValue * 10) / 10;
+          });
+
+          if (Object.keys(updates).length > 0) {
+            await supabase
+              .from("user_cognitive_metrics")
+              .update(updates)
+              .eq("user_id", user.id);
+          }
+        }
+      }
+
+      return { ...data, xpEarned } as ExerciseCompletion & { xpEarned: number };
     },
     onSuccess: () => {
-      // Invalidate to refresh XP counts
+      // Invalidate all relevant queries for real-time UI updates
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
     },
   });
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
@@ -7,6 +7,7 @@ import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked, S
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
+import { useUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 
@@ -93,7 +94,8 @@ const Home = () => {
   const { data: detoxData } = useWeeklyDetoxXP();
   const weeklyDetoxXP = detoxData?.totalXP || 0;
   const totalWeeklyXP = weeklyXPEarned + weeklyDetoxXP;
-  const { cognitiveReadinessScore, isLoading: readinessLoading } = useCognitiveReadiness();
+  const { cognitiveReadinessScore, isLoading: readinessLoading, cognitiveMetrics } = useCognitiveReadiness();
+  const { data: userMetrics } = useUserMetrics(user?.id);
   
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
@@ -104,8 +106,23 @@ const Home = () => {
   const hasProtocol = !!user?.trainingPlan;
   const readinessScore = cognitiveReadinessScore ?? 50;
   
-  // Calculate cognitive performance (simulated based on weekly progress)
-  const cognitivePerformance = Math.min(Math.round(65 + (sessionsCompleted * 8)), 100);
+  // Calculate cognitive performance from ACTUAL metrics (not simplified formula)
+  const cognitivePerformance = useMemo(() => {
+    const metrics = userMetrics || cognitiveMetrics;
+    if (!metrics) return 50; // Default starting point
+    
+    // Average of key cognitive metrics for a holistic performance score
+    const scores = [
+      metrics.reasoning_accuracy ?? 50,
+      metrics.focus_stability ?? 50,
+      metrics.fast_thinking ?? 50,
+      metrics.slow_thinking ?? 50,
+      metrics.creativity ?? 50,
+    ];
+    
+    const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+    return Math.round(avg);
+  }, [userMetrics, cognitiveMetrics]);
   
   // Weekly target progress
   const weeklyTarget = 3;
