@@ -13,7 +13,7 @@ import { InitialAssessment } from "@/components/onboarding/InitialAssessment";
 import { useSaveBaseline } from "@/hooks/useBadges";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const Onboarding = () => {
   
   // Check if coming from reset assessment
   const isResetAssessment = searchParams.get("step") === "assessment";
-  const [step, setStep] = useState<Step>(isResetAssessment ? 9 : 1);
+  const [step, setStep] = useState<Step>(isResetAssessment ? 8 : 1);
   
   // Personal data
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
@@ -33,7 +33,8 @@ const Onboarding = () => {
   const [educationLevel, setEducationLevel] = useState<EducationLevel | undefined>(undefined);
   const [degreeDiscipline, setDegreeDiscipline] = useState<DegreeDiscipline | undefined>(undefined);
   
-  const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>([]);
+  // Default training goals: both systems (since we removed the selection step)
+  const trainingGoals: TrainingGoal[] = ["fast_thinking", "slow_thinking"];
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlanId>("light");
   const [reminderTime, setReminderTime] = useState<string>("08:00");
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -44,7 +45,7 @@ const Onboarding = () => {
     : (isResetAssessment && user?.age ? user.age : undefined);
 
   const handleNext = () => {
-    if (step < 9) {
+    if (step < 8) {
       setStep((s) => (s + 1) as Step);
     }
   };
@@ -146,16 +147,9 @@ const Onboarding = () => {
 
   const handleComplete = async () => {
     // Move to reminder time step
-    setStep(8);
+    setStep(7);
   };
 
-  const toggleGoal = (goal: TrainingGoal) => {
-    setTrainingGoals(prev => 
-      prev.includes(goal) 
-        ? prev.filter(g => g !== goal)
-        : [...prev, goal]
-    );
-  };
 
   const genderOptions: { value: Gender; label: string }[] = [
     { value: "male", label: "Male" },
@@ -192,20 +186,6 @@ const Onboarding = () => {
     { value: "other", label: "Other" },
   ];
 
-  const goalOptions: { value: TrainingGoal; icon: React.ElementType; title: string; description: string }[] = [
-    { 
-      value: "fast_thinking", 
-      icon: Zap, 
-      title: "System 1: Intuitive", 
-      description: "Rapid pattern recognition and strategic intuition" 
-    },
-    { 
-      value: "slow_thinking", 
-      icon: Brain, 
-      title: "System 2: Deliberate", 
-      description: "Deep analysis and critical reasoning" 
-    },
-  ];
 
   const planOptions = [
     { 
@@ -233,7 +213,7 @@ const Onboarding = () => {
       {/* Progress indicator */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex gap-1.5 max-w-[280px] mx-auto">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((s) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
             <div
               key={s}
               className={cn(
@@ -497,90 +477,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 6: Training Goals */}
+          {/* Step 6: Training Plan Selection */}
           {step === 6 && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-6">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Brain className="w-5 h-5 text-primary" />
-                </div>
-                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Which brain area do you want to train?
-                </h1>
-                <p className="text-muted-foreground text-[13px]">
-                  Choose one or both cognitive systems
-                </p>
-              </div>
-              
-              <div className="space-y-3 mb-6">
-                {goalOptions.map((option) => {
-                  const isSelected = trainingGoals.includes(option.value);
-                  return (
-                    <button
-                      key={option.value}
-                      onClick={() => toggleGoal(option.value)}
-                      className={cn(
-                        "w-full py-4 px-4 rounded-xl border text-left transition-all flex items-center gap-3.5 relative",
-                        isSelected
-                          ? "border-primary bg-primary/10"
-                          : "border-border/60 bg-card/50 hover:border-primary/40"
-                      )}
-                    >
-                      {/* Selection indicator */}
-                      <div className={cn(
-                        "absolute top-3 right-3 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
-                        isSelected 
-                          ? "border-primary bg-primary" 
-                          : "border-muted-foreground/30 bg-transparent"
-                      )}>
-                        {isSelected && (
-                          <svg className="w-3 h-3 text-primary-foreground" viewBox="0 0 12 12" fill="none">
-                            <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        )}
-                      </div>
-                      
-                      <div className={cn(
-                        "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
-                        option.value === "fast_thinking" ? "bg-amber-500/15" : "bg-teal-500/15"
-                      )}>
-                        <option.icon className={cn(
-                          "w-5 h-5",
-                          option.value === "fast_thinking" ? "text-amber-400" : "text-teal-400"
-                        )} />
-                      </div>
-                      <div className="pr-6">
-                        <span className="font-semibold text-[14px] block mb-0.5">{option.title}</span>
-                        <span className="text-[12px] text-muted-foreground leading-snug">{option.description}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Helper text */}
-              <p className="text-center text-[12px] text-muted-foreground/70 mb-4">
-                {trainingGoals.length === 0 
-                  ? "Tap to select at least one system" 
-                  : trainingGoals.length === 2 
-                    ? "Both systems selected — complete training" 
-                    : "You can add the other system too"}
-              </p>
-
-              <Button
-                onClick={handleNext}
-                variant="hero"
-                className="w-full h-[52px] text-[15px] font-medium"
-                disabled={trainingGoals.length === 0}
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 7: Training Plan Selection */}
-          {step === 7 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
@@ -677,8 +575,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 8: Daily Training Time */}
-          {step === 8 && (
+          {/* Step 7: Daily Training Time */}
+          {step === 7 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -706,7 +604,7 @@ const Onboarding = () => {
               </p>
 
               <Button
-                onClick={() => setStep(9)}
+                onClick={() => setStep(8)}
                 variant="hero"
                 className="w-full h-[52px] text-[15px] font-medium"
                 disabled={!reminderTime}
@@ -717,8 +615,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 9: Initial Cognitive Assessment */}
-          {step === 9 && calculatedAge && (
+          {/* Step 8: Initial Cognitive Assessment */}
+          {step === 8 && calculatedAge && (
             <InitialAssessment 
               userAge={calculatedAge} 
               onComplete={handleAssessmentComplete}
@@ -729,7 +627,7 @@ const Onboarding = () => {
       </div>
 
       {/* Tagline */}
-      {step !== 9 && (
+      {step !== 8 && (
         <div className="py-4 text-center">
           <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
             Strategic Cognitive Performance System
