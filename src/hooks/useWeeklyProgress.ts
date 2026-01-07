@@ -30,6 +30,10 @@ export function useWeeklyProgress() {
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
 
+  if (import.meta.env.DEV) {
+    console.debug("[useWeeklyProgress]", { userId, weekStart, planId });
+  }
+
   // Fetch weekly progress record
   const { data: progress, isLoading: progressLoading } = useQuery({
     queryKey: ["weekly-progress", userId, weekStart],
@@ -99,6 +103,17 @@ export function useWeeklyProgress() {
         .filter((c) => c.exercise_id.startsWith("content-"))
         .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
       const gamesXP = totalXP - contentXP;
+
+      if (import.meta.env.DEV) {
+        console.debug("[useWeeklyProgress.weeklyXPData]", {
+          userId,
+          weekStart,
+          completions: completions.length,
+          totalXP,
+          contentXP,
+          gamesXP,
+        });
+      }
 
       return { totalXP, gamesXP, contentXP, completions };
     },
