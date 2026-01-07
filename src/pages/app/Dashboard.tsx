@@ -6,7 +6,7 @@ import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 
-import { DailyTrainingHistory } from "@/components/dashboard/DailyTrainingHistory";
+
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
@@ -280,14 +280,6 @@ const Dashboard = () => {
               <PerformanceChart />
             </motion.div>
 
-            {/* Daily Training History with fade-in */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <DailyTrainingHistory />
-            </motion.div>
 
             {/* CTA */}
             <motion.div
