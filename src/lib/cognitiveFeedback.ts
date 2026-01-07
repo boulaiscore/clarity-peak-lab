@@ -128,15 +128,15 @@ export const WEEKLY_GOAL_MESSAGES = {
   subtitle: "Building cognitive resilience",
   categories: {
     games: {
-      label: "Active Training",
+      label: "Games",
       benefit: "Sharpens response clarity",
     },
     tasks: {
-      label: "Deep Input",
+      label: "Tasks",
       benefit: "Builds reasoning depth",
     },
     detox: {
-      label: "Mental Recovery",
+      label: "Detox",
       benefit: "Restores decision capacity",
     },
   },
@@ -146,6 +146,13 @@ export const WEEKLY_GOAL_MESSAGES = {
     if (percentage >= 70) return `${remaining} more to consolidate this week's gains`;
     if (percentage >= 40) return `${remaining} more to build weekly resilience`;
     return `${remaining} more to establish this week's foundation`;
+  },
+  // Messages for target exceeded warning
+  targetExceededWarning: {
+    title: "Target Reached",
+    description: "You've already reached this week's target for this category. Additional activity won't contribute to your Weekly Training Load.",
+    confirmLabel: "Continue anyway",
+    cancelLabel: "Go back",
   },
 } as const;
 

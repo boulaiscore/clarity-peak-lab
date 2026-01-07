@@ -10,6 +10,8 @@ import { useState } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { CognitiveExercise } from "@/lib/exercises";
 import { GAME_COGNITIVE_BENEFITS } from "@/lib/cognitiveFeedback";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { TargetExceededDialog } from "./TargetExceededDialog";
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
@@ -46,11 +48,35 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
   const [pickerMode, setPickerMode] = useState<"fast" | "slow">("fast");
+  
+  // Track pending game when target exceeded dialog is shown
+  const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: "fast" | "slow" } | null>(null);
+  const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
+  
+  const { gamesComplete } = useCappedWeeklyProgress();
 
   const handleGameTypeClick = (areaId: NeuroLabArea, mode: "fast" | "slow") => {
+    // Check if games target is already reached
+    if (gamesComplete) {
+      setPendingGame({ areaId, mode });
+      setShowTargetExceededDialog(true);
+      return;
+    }
+    
+    // Otherwise proceed normally
     setPickerArea(areaId);
     setPickerMode(mode);
     setPickerOpen(true);
+  };
+
+  const handleConfirmExcessGame = () => {
+    if (pendingGame) {
+      setPickerArea(pendingGame.areaId);
+      setPickerMode(pendingGame.mode);
+      setPickerOpen(true);
+      setPendingGame(null);
+    }
+    setShowTargetExceededDialog(false);
   };
 
   const handleStartExercise = (exercise: CognitiveExercise) => {
@@ -159,6 +185,14 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         area={pickerArea}
         thinkingMode={pickerMode}
         onStartExercise={handleStartExercise}
+      />
+
+      {/* Target Exceeded Warning Dialog */}
+      <TargetExceededDialog
+        open={showTargetExceededDialog}
+        onOpenChange={setShowTargetExceededDialog}
+        onConfirm={handleConfirmExcessGame}
+        categoryName="Games"
       />
     </div>
   );

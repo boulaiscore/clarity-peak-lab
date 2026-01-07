@@ -1,58 +1,54 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { Gamepad2, BookMarked, CheckCircle2, Zap, Brain, Shield } from "lucide-react";
-import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
+import { motion, AnimatePresence } from "framer-motion";
+import { Gamepad2, BookMarked, CheckCircle2, Zap, Brain, Shield, Trophy } from "lucide-react";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { XPCelebration } from "@/components/app/XPCelebration";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 
-function safeProgress(value: number, target: number) {
-  if (target <= 0) return 0;
-  return Math.min(100, (value / target) * 100);
+// Mini celebration badge that appears when a category is completed
+function CategoryCompleteBadge({ show }: { show: boolean }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.span
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium"
+        >
+          <Trophy className="w-2.5 h-2.5" />
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
 }
 
 export function WeeklyGoalCard() {
   const {
-    weeklyXPEarned,
-    weeklyXPTarget,
-    weeklyGamesXP,
-    weeklyContentXP,
-    plan,
+    rawGamesXP,
+    rawTasksXP,
+    rawDetoxXP,
+    cappedTotalXP,
+    totalXPTarget,
+    gamesXPTarget,
+    tasksXPTarget,
+    detoxXPTarget,
+    gamesComplete,
+    tasksComplete,
+    detoxComplete,
+    gamesProgress,
+    tasksProgress,
+    detoxProgress,
+    totalProgress,
     isLoading,
-  } = useWeeklyProgress();
-
-  // Detox XP is tracked in a separate table, but it contributes to the weekly goal.
-  const { data: detoxData } = useWeeklyDetoxXP();
-  const weeklyDetoxXP = detoxData?.totalXP || 0;
-
-  const totalXPEarned = weeklyXPEarned + weeklyDetoxXP;
-  const totalXPTarget = weeklyXPTarget;
+  } = useCappedWeeklyProgress();
 
   const [showCelebration, setShowCelebration] = useState(false);
   const prevGoalReached = useRef(false);
 
-  const xpProgress = safeProgress(totalXPEarned, totalXPTarget);
-  const xpRemaining = Math.max(0, totalXPTarget - totalXPEarned);
-  const goalReached = totalXPEarned >= totalXPTarget && totalXPTarget > 0;
-
-  // Derive an explicit detox target from the plan (base XP only, bonus is extra when goal is hit).
-  const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
-  
-  // Use plan's explicit contentXPTarget for tasks
-  const tasksXPTarget = plan.contentXPTarget;
-  
-  // Games XP target = total target - detox target - tasks target
-  const gamesXPTarget = Math.max(0, totalXPTarget - detoxXPTarget - tasksXPTarget);
-
-  // Progress percentages
-  const gamesProgress = safeProgress(weeklyGamesXP, gamesXPTarget);
-  const tasksProgress = safeProgress(weeklyContentXP, tasksXPTarget);
-  const detoxProgress = safeProgress(weeklyDetoxXP, detoxXPTarget);
-
-  // Check if each category is complete
-  const gamesComplete = weeklyGamesXP >= gamesXPTarget && gamesXPTarget > 0;
-  const tasksComplete = weeklyContentXP >= tasksXPTarget && tasksXPTarget > 0;
-  const detoxComplete = weeklyDetoxXP >= detoxXPTarget && detoxXPTarget > 0;
+  const xpRemaining = Math.max(0, totalXPTarget - cappedTotalXP);
+  const goalReached = cappedTotalXP >= totalXPTarget && totalXPTarget > 0;
 
   // Trigger celebration when goal is reached for the first time
   useEffect(() => {
@@ -87,10 +83,10 @@ export function WeeklyGoalCard() {
 
           <div className="text-right">
             <div className="text-[11px] font-medium text-muted-foreground">
-              {Math.round(xpProgress)}% complete
+              {Math.round(totalProgress)}% complete
             </div>
             <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-              {Math.round(totalXPEarned)}/{Math.round(totalXPTarget)} XP
+              {Math.round(cappedTotalXP)}/{Math.round(totalXPTarget)} XP
             </div>
           </div>
         </div>
@@ -100,7 +96,7 @@ export function WeeklyGoalCard() {
           <motion.div
             className="h-full bg-gradient-to-r from-blue-400 via-violet-400 to-teal-400 rounded-full"
             initial={false}
-            animate={{ width: `${xpProgress}%` }}
+            animate={{ width: `${totalProgress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
@@ -114,7 +110,7 @@ export function WeeklyGoalCard() {
             </span>
           </div>
 
-          {/* Games - Active Training */}
+          {/* Games */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
@@ -125,16 +121,12 @@ export function WeeklyGoalCard() {
                   <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.games.label}</span>
                   <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.games.benefit}</p>
                 </div>
-                {gamesComplete && (
-                  <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
-                    <CheckCircle2 className="w-2.5 h-2.5" />
-                  </span>
-                )}
+                <CategoryCompleteBadge show={gamesComplete} />
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-muted-foreground">{Math.round(gamesProgress)}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(weeklyGamesXP)}/{Math.round(gamesXPTarget)} XP
+                  {Math.round(rawGamesXP)}/{Math.round(gamesXPTarget)} XP
                 </div>
               </div>
             </div>
@@ -148,7 +140,7 @@ export function WeeklyGoalCard() {
             </div>
           </div>
 
-          {/* Tasks - Deep Input */}
+          {/* Tasks */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
@@ -159,16 +151,12 @@ export function WeeklyGoalCard() {
                   <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.tasks.label}</span>
                   <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.tasks.benefit}</p>
                 </div>
-                {tasksComplete && (
-                  <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
-                    <CheckCircle2 className="w-2.5 h-2.5" />
-                  </span>
-                )}
+                <CategoryCompleteBadge show={tasksComplete} />
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-muted-foreground">{Math.round(tasksProgress)}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(weeklyContentXP)}/{Math.round(tasksXPTarget)} XP
+                  {Math.round(rawTasksXP)}/{Math.round(tasksXPTarget)} XP
                 </div>
               </div>
             </div>
@@ -182,7 +170,7 @@ export function WeeklyGoalCard() {
             </div>
           </div>
 
-          {/* Detox - Mental Recovery */}
+          {/* Detox */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
@@ -193,16 +181,12 @@ export function WeeklyGoalCard() {
                   <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.detox.label}</span>
                   <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.detox.benefit}</p>
                 </div>
-                {detoxComplete && (
-                  <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
-                    <CheckCircle2 className="w-2.5 h-2.5" />
-                  </span>
-                )}
+                <CategoryCompleteBadge show={detoxComplete} />
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-muted-foreground">{Math.round(detoxProgress)}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(weeklyDetoxXP)}/{Math.round(detoxXPTarget)} XP
+                  {Math.round(rawDetoxXP)}/{Math.round(detoxXPTarget)} XP
                 </div>
               </div>
             </div>
