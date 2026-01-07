@@ -590,9 +590,9 @@ const Onboarding = () => {
               <div className="space-y-3 mb-6">
                 {planOptions.map((option) => {
                   // Scale of 5 dots - effort stays low, results scale up nicely
-                  // Scale of 5 dots - effort stays low, results scale up to show "small nudge, big result"
+                  // Scale of 5 dots - effort stays low, results use half dots
                   const intensityDots = option.plan.intensity === "low" ? 1 : option.plan.intensity === "medium" ? 2 : 3;
-                  const resultsDots = option.plan.intensity === "low" ? 3 : option.plan.intensity === "medium" ? 4 : 5;
+                  const resultsDots = option.plan.intensity === "low" ? 2.5 : option.plan.intensity === "medium" ? 3.5 : 5;
                   
                   return (
                     <button
@@ -634,17 +634,24 @@ const Onboarding = () => {
                             <div className="flex items-center gap-1.5">
                               <span className="text-muted-foreground/60">Results</span>
                               <div className="flex gap-0.5">
-                                {[1, 2, 3, 4, 5].map((dot) => (
-                                  <div 
-                                    key={dot}
-                                    className={cn(
-                                      "w-2 h-2 rounded-full transition-all",
-                                      dot <= resultsDots 
-                                        ? "bg-primary" 
-                                        : "bg-muted-foreground/20"
-                                    )}
-                                  />
-                                ))}
+                                {[1, 2, 3, 4, 5].map((dot) => {
+                                  const isFullFilled = dot <= Math.floor(resultsDots);
+                                  const isHalfFilled = dot === Math.ceil(resultsDots) && resultsDots % 1 !== 0;
+                                  
+                                  return (
+                                    <div 
+                                      key={dot}
+                                      className={cn(
+                                        "w-2 h-2 rounded-full transition-all overflow-hidden relative",
+                                        isFullFilled ? "bg-primary" : "bg-muted-foreground/20"
+                                      )}
+                                    >
+                                      {isHalfFilled && (
+                                        <div className="absolute inset-0 bg-primary" style={{ clipPath: 'inset(0 50% 0 0)' }} />
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           </div>
