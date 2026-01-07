@@ -60,9 +60,19 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     isLoading: progressLoading,
   } = useWeeklyProgress();
 
-  const { data: detoxData, isLoading: detoxLoading, isFetching: detoxFetching } = useWeeklyDetoxXP();
+  const { data: detoxData, isLoading: detoxLoading } = useWeeklyDetoxXP();
   // Use 0 only when we have no cached data at all
   const weeklyDetoxXP = detoxData?.totalXP ?? 0;
+
+  if (import.meta.env.DEV) {
+    console.debug("[useCappedWeeklyProgress]", {
+      weeklyGamesXP,
+      weeklyContentXP,
+      weeklyDetoxXP,
+      weeklyXPTarget,
+      isLoading: progressLoading || detoxLoading,
+    });
+  }
 
   return useMemo(() => {
     // Calculate individual targets
