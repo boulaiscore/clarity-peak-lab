@@ -95,6 +95,10 @@ export function WeeklyGoalCard() {
   // Read from persistent cache when loading or data not ready
   const cachedSnapshot = getSnapshot();
 
+  // These hooks MUST be called before any early returns
+  const [showCelebration, setShowCelebration] = useState(false);
+  const prevGoalReached = useRef(false);
+
   // Build display snapshot: prefer fresh data, fallback to cache
   const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = 
     (!isLoading && isFetched)
@@ -142,9 +146,6 @@ export function WeeklyGoalCard() {
 
   const xpRemaining = Math.max(0, snapshot.totalXPTarget - cappedTotalForProgress);
   const goalReached = cappedTotalForProgress >= snapshot.totalXPTarget && snapshot.totalXPTarget > 0;
-
-  const [showCelebration, setShowCelebration] = useState(false);
-  const prevGoalReached = useRef(false);
 
   // Trigger celebration when goal is reached for the first time
   useEffect(() => {
