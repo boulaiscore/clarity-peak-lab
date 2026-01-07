@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked, Smartphone } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
@@ -90,10 +90,10 @@ const PLAN_ICONS: Record<TrainingPlanId, React.ElementType> = {
 const Home = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
-  const { sessionsCompleted, weeklyXPEarned, weeklyXPTarget, plan } = useWeeklyProgress();
-  const { data: detoxData } = useWeeklyDetoxXP();
-  const weeklyDetoxXP = detoxData?.totalXP ?? 0;
-  const totalWeeklyXP = weeklyXPEarned + weeklyDetoxXP;
+  const { sessionsCompleted, weeklyXPTarget, plan } = useWeeklyProgress();
+  // Use capped progress for the Weekly Load total (excess beyond category targets doesn't count)
+  const { cappedTotalXP, totalXPTarget } = useCappedWeeklyProgress();
+  const totalWeeklyXP = cappedTotalXP;
   const { cognitiveReadinessScore, isLoading: readinessLoading, cognitiveMetrics } = useCognitiveReadiness();
   const { data: userMetrics } = useUserMetrics(user?.id);
   

@@ -15,7 +15,7 @@ import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { DailyTrainingConfirmDialog } from "@/components/app/DailyTrainingConfirmDialog";
 import { useDailyTraining } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
@@ -48,10 +48,10 @@ export default function NeuroLab() {
   const { user } = useAuth();
   const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
   const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
-  const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPEarned, weeklyGamesXP, weeklyContentXP, weeklyXPTarget } = useWeeklyProgress();
-  const { data: detoxData } = useWeeklyDetoxXP();
-  const weeklyDetoxXP = detoxData?.totalXP ?? 0;
-  const weeklyLoadXP = weeklyXPEarned + weeklyDetoxXP;
+  const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPTarget } = useWeeklyProgress();
+  // Use capped progress for the Weekly Load total (excess beyond category targets doesn't count)
+  const { cappedTotalXP } = useCappedWeeklyProgress();
+  const weeklyLoadXP = cappedTotalXP;
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");

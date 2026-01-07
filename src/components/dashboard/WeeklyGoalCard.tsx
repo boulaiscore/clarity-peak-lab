@@ -126,17 +126,20 @@ export function WeeklyGoalCard() {
         ? cachedSnapshot
         : freshSnapshot;
 
-  // Display should be consistent across Home/Lab/Dashboard:
-  // show RAW earned XP, while progress remains capped to the weekly target.
-  const rawTotalXP = snapshot.rawGamesXP + snapshot.rawTasksXP + snapshot.rawDetoxXP;
-  const cappedTotalForProgress = Math.min(rawTotalXP, snapshot.totalXPTarget);
+  // IMPORTANT: Total XP must use CAPPED values per category (excess doesn't count)
+  // Each category can contribute at most its target to the total.
+  const cappedGames = Math.min(snapshot.rawGamesXP, snapshot.gamesXPTarget);
+  const cappedTasks = Math.min(snapshot.rawTasksXP, snapshot.tasksXPTarget);
+  const cappedDetox = Math.min(snapshot.rawDetoxXP, snapshot.detoxXPTarget);
+  const cappedTotalXP = cappedGames + cappedTasks + cappedDetox;
+
   const totalProgressDisplay =
     snapshot.totalXPTarget > 0
-      ? Math.min(100, (cappedTotalForProgress / snapshot.totalXPTarget) * 100)
+      ? Math.min(100, (cappedTotalXP / snapshot.totalXPTarget) * 100)
       : 0;
 
-  const xpRemaining = Math.max(0, snapshot.totalXPTarget - cappedTotalForProgress);
-  const goalReached = cappedTotalForProgress >= snapshot.totalXPTarget && snapshot.totalXPTarget > 0;
+  const xpRemaining = Math.max(0, snapshot.totalXPTarget - cappedTotalXP);
+  const goalReached = cappedTotalXP >= snapshot.totalXPTarget && snapshot.totalXPTarget > 0;
 
   // Trigger celebration when goal is reached for the first time
   useEffect(() => {
@@ -188,7 +191,7 @@ export function WeeklyGoalCard() {
                 {Math.round(totalProgressDisplay)}% complete
               </div>
               <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                {Math.round(rawTotalXP)}/{Math.round(snapshot.totalXPTarget)} XP
+                {Math.round(cappedTotalXP)}/{Math.round(snapshot.totalXPTarget)} XP
               </div>
             </div>
           </div>
