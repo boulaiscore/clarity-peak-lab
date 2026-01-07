@@ -63,19 +63,8 @@ const Onboarding = () => {
   ) => {
     try {
       if (user?.id && !skipped) {
-        // For initial assessment, we save the baseline FIRST, then set current values equal to baseline
-        // This ensures current = baseline at day 0 (no phantom deltas)
-        await saveBaseline.mutateAsync({
-          userId: user.id,
-          fastThinking: results.fastScore,
-          slowThinking: results.slowScore,
-          focus: results.focusScore,
-          reasoning: results.reasoningScore,
-          creativity: results.creativityScore,
-          cognitiveAge: results.cognitiveAge,
-        });
-        
-        // Now set current values EQUAL to baseline (not using training formula)
+        // FIRST: Create/update metrics record with current values = assessment values
+        // This creates the record if it doesn't exist, using isBaseline to save values directly
         await updateMetrics.mutateAsync({
           userId: user.id,
           metricUpdates: {
@@ -86,6 +75,17 @@ const Onboarding = () => {
             creativity: results.creativityScore,
           },
           isBaseline: true, // Flag to save values directly without training formula
+        });
+        
+        // THEN: Save baseline columns (record now exists, so UPDATE will work)
+        await saveBaseline.mutateAsync({
+          userId: user.id,
+          fastThinking: results.fastScore,
+          slowThinking: results.slowScore,
+          focus: results.focusScore,
+          reasoning: results.reasoningScore,
+          creativity: results.creativityScore,
+          cognitiveAge: results.cognitiveAge,
         });
       }
   
