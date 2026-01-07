@@ -2,6 +2,7 @@
 // Respond if stimulus matches the previous one
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { DrillCompletionScreen } from './DrillCompletionScreen';
 
 interface DrillResult {
   score: number;
@@ -27,7 +28,7 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
   onComplete, 
   difficulty = 'medium' 
 }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'active' | 'complete' | 'results'>('intro');
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [currentShape, setCurrentShape] = useState<string | null>(null);
   const [previousShape, setPreviousShape] = useState<string | null>(null);
@@ -35,6 +36,7 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
   const [responded, setResponded] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [liveStats, setLiveStats] = useState({ hits: 0, misses: 0, falseAlarms: 0 });
+  const [finalResults, setFinalResults] = useState({ score: 0, avgRT: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, correctRejects: 0, reactionTimes: [] as number[], stimulusTime: 0 });
   const startTimeRef = useRef(0);
@@ -66,7 +68,7 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
       
       if (remaining <= 0) {
         clearInterval(timer);
-        setPhase('complete');
+        setPhase('results');
       }
     }, 100);
     
@@ -108,7 +110,7 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
   }, [isMatch, responded]);
 
   useEffect(() => {
-    if (phase === 'complete') {
+    if (phase === 'results') {
       const { hits, misses, falseAlarms, reactionTimes } = statsRef.current;
       const totalMatches = hits + misses;
       const accuracy = totalMatches > 0 ? hits / totalMatches : 0;
@@ -119,9 +121,33 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
       const score = Math.round(Math.max(0, Math.min(100, 
         accuracy * 70 + Math.max(0, 30 - avgRT / 50) - falseAlarms * 3
       )));
-      onComplete({ score, correct: hits, avgReactionTime: Math.round(avgRT) });
+      setFinalResults({ score, avgRT: Math.round(avgRT) });
     }
-  }, [phase, onComplete]);
+  }, [phase]);
+
+  const handleContinue = () => {
+    const { hits, reactionTimes } = statsRef.current;
+    const avgRT = reactionTimes.length > 0 
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+    onComplete({ score: finalResults.score, correct: hits, avgReactionTime: avgRT });
+  };
+
+  if (phase === 'results') {
+    return (
+      <DrillCompletionScreen
+        title="One-Back Focus"
+        score={finalResults.score}
+        stats={{
+          hits: liveStats.hits,
+          misses: liveStats.misses,
+          falseAlarms: liveStats.falseAlarms,
+          avgReactionTime: finalResults.avgRT,
+        }}
+        onContinue={handleContinue}
+      />
+    );
+  }
 
   if (phase === 'intro') {
     return (

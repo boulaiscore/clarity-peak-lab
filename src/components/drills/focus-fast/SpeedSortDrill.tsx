@@ -2,6 +2,7 @@
 // Rapidly classify stimuli into two categories via drag/swipe
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { DrillCompletionScreen } from './DrillCompletionScreen';
 
 interface DrillResult {
   score: number;
@@ -36,11 +37,12 @@ export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({
   onComplete, 
   difficulty = 'medium' 
 }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'active' | 'complete' | 'results'>('intro');
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [currentItem, setCurrentItem] = useState<SortItem | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [liveStats, setLiveStats] = useState({ correct: 0, wrong: 0 });
+  const [finalResults, setFinalResults] = useState({ score: 0, avgRT: 0 });
   
   const statsRef = useRef({ correct: 0, wrong: 0, reactionTimes: [] as number[], itemStartTime: 0 });
   const startTimeRef = useRef(0);
@@ -83,7 +85,7 @@ export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({
       
       if (remaining <= 0) {
         clearInterval(timer);
-        setPhase('complete');
+        setPhase('results');
       }
     }, 100);
     
@@ -128,7 +130,7 @@ export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({
   }, [x, handleSort]);
 
   useEffect(() => {
-    if (phase === 'complete') {
+    if (phase === 'results') {
       const { correct, wrong, reactionTimes } = statsRef.current;
       const total = correct + wrong;
       const accuracy = total > 0 ? correct / total : 0;
@@ -137,9 +139,32 @@ export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({
         : 0;
       
       const score = Math.round(accuracy * 100);
-      onComplete({ score, correct, avgReactionTime: Math.round(avgRT) });
+      setFinalResults({ score, avgRT: Math.round(avgRT) });
     }
-  }, [phase, onComplete]);
+  }, [phase]);
+
+  const handleContinue = () => {
+    const { correct, reactionTimes } = statsRef.current;
+    const avgRT = reactionTimes.length > 0 
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+    onComplete({ score: finalResults.score, correct, avgReactionTime: avgRT });
+  };
+
+  if (phase === 'results') {
+    return (
+      <DrillCompletionScreen
+        title="Speed Sort"
+        score={finalResults.score}
+        stats={{
+          hits: liveStats.correct,
+          misses: liveStats.wrong,
+          avgReactionTime: finalResults.avgRT,
+        }}
+        onContinue={handleContinue}
+      />
+    );
+  }
 
   if (phase === 'intro') {
     return (
