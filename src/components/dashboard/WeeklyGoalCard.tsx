@@ -61,8 +61,13 @@ export function WeeklyGoalCard() {
     detoxProgress: number;
   } | null>(null);
 
+  // Only update the stable snapshot when:
+  // 1. Not loading/syncing AND
+  // 2. We have valid targets (totalXPTarget > 0) to avoid clobbering with transient zeros
   useEffect(() => {
-    if (!isLoading) {
+    const rawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
+    const hasValidData = totalXPTarget > 0 || rawTotal > 0;
+    if (!isLoading && hasValidData) {
       lastStable.current = {
         rawGamesXP,
         rawTasksXP,

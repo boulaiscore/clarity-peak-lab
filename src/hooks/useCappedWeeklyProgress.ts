@@ -111,6 +111,9 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     const detoxProgress = safeProgress(cappedDetoxXP, detoxXPTarget);
     const totalProgress = safeProgress(cappedTotalXP, totalXPTarget);
 
+    // isLoading must include syncing/fetching states so WeeklyGoalCard doesn't update snapshot mid-refetch
+    const isLoading = progressLoading || detoxLoading || progressSyncing || detoxFetching;
+
     return {
       rawGamesXP,
       rawTasksXP,
@@ -131,8 +134,9 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       tasksProgress,
       detoxProgress,
       totalProgress,
-      isLoading: progressLoading || detoxLoading || progressSyncing || detoxFetching,
+      isLoading,
       plan,
     };
-  }, [weeklyGamesXP, weeklyContentXP, weeklyDetoxXP, weeklyXPTarget, plan, progressLoading, detoxLoading]);
+    // IMPORTANT: include ALL flags (progressSyncing, detoxFetching) to keep isLoading accurate
+  }, [weeklyGamesXP, weeklyContentXP, weeklyDetoxXP, weeklyXPTarget, plan, progressLoading, detoxLoading, progressSyncing, detoxFetching]);
 }
