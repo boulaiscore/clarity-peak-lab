@@ -2,7 +2,7 @@ import { useState } from "react";
 import { 
   Headphones, Clock, Target, ExternalLink, 
   BookOpen, FileText, ChevronDown, ChevronUp, Brain, Info, 
-  Zap, CheckCircle2, Timer, StopCircle, Calendar, Library
+  Zap, CheckCircle2, Timer, StopCircle, Calendar, Library, Trophy
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { useRecordContentCompletion, useRemoveContentCompletion } from "@/hooks/useExerciseXP";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -843,6 +845,13 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string>(ACTIVE_PRESCRIPTIONS[type]);
   
+  // Target exceeded dialog state
+  const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
+  const [pendingInputId, setPendingInputId] = useState<string | null>(null);
+  
+  // Weekly target check
+  const { tasksComplete } = useCappedWeeklyProgress();
+  
   // XP tracking hooks
   const recordContentCompletion = useRecordContentCompletion();
   const removeContentCompletion = useRemoveContentCompletion();
@@ -902,9 +911,31 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   const handleToggle = (inputId: string) => {
     if (!user?.id) return;
     const isCurrentlyLogged = loggedIds.includes(inputId);
+    
+    // If trying to mark as complete (not unmark) and target is reached, show warning
+    if (!isCurrentlyLogged && tasksComplete) {
+      setPendingInputId(inputId);
+      setShowTargetExceededDialog(true);
+      return;
+    }
+    
+    proceedWithToggle(inputId);
+  };
+  
+  const proceedWithToggle = (inputId: string) => {
+    setShowTargetExceededDialog(false);
+    setPendingInputId(null);
+    
+    const isCurrentlyLogged = loggedIds.includes(inputId);
     const input = COGNITIVE_INPUTS.find(i => i.id === inputId);
     const xpEarned = input ? calculateItemRawPoints(input) : 8;
     toggleMutation.mutate({ inputId, isCurrentlyLogged, xpEarned });
+  };
+  
+  const handleConfirmExcessTask = () => {
+    if (pendingInputId) {
+      proceedWithToggle(pendingInputId);
+    }
   };
 
   // Filter out completed items - they only appear in Library
@@ -1006,6 +1037,36 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
           </div>
         </div>
       )}
+      
+      {/* Target Exceeded Warning Dialog */}
+      <AlertDialog open={showTargetExceededDialog} onOpenChange={setShowTargetExceededDialog}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-emerald-400" />
+              </div>
+              <AlertDialogTitle className="text-base">
+                Tasks {WEEKLY_GOAL_MESSAGES.targetExceededWarning.title}
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
+              {WEEKLY_GOAL_MESSAGES.targetExceededWarning.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel className="text-sm">
+              {WEEKLY_GOAL_MESSAGES.targetExceededWarning.cancelLabel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmExcessTask}
+              className="text-sm bg-muted hover:bg-muted/80 text-foreground"
+            >
+              {WEEKLY_GOAL_MESSAGES.targetExceededWarning.confirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
