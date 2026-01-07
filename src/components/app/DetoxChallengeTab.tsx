@@ -37,6 +37,8 @@ import { DetoxBlockerSettings } from "./DetoxBlockerSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { scheduleDetoxReminder, cancelDetoxReminder, getNotificationState, requestNotificationPermission } from "@/lib/notifications";
 import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { TargetExceededDialog } from "./TargetExceededDialog";
 
 export function DetoxChallengeTab() {
   const { user } = useAuth();
@@ -47,6 +49,7 @@ export function DetoxChallengeTab() {
   const [displaySeconds, setDisplaySeconds] = useState(0);
   const [justCompleted, setJustCompleted] = useState(false);
   const [lastSessionSeconds, setLastSessionSeconds] = useState(0);
+  const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cloud-persisted session hook
@@ -70,6 +73,9 @@ export function DetoxChallengeTab() {
   // Weekly data
   const { data: weeklyData } = useWeeklyDetoxXP();
   const { isNative } = useAppBlocker();
+
+  // Weekly target check
+  const { detoxComplete } = useCappedWeeklyProgress();
 
   const weeklyDetoxMinutes = weeklyData?.totalMinutes || 0;
   const weeklyDetoxXP = weeklyData?.totalXP || 0;
@@ -125,6 +131,17 @@ export function DetoxChallengeTab() {
   }, []);
 
   const handleStart = async () => {
+    // Check if detox target is already reached
+    if (detoxComplete) {
+      setShowTargetExceededDialog(true);
+      return;
+    }
+    
+    proceedWithStart();
+  };
+
+  const proceedWithStart = async () => {
+    setShowTargetExceededDialog(false);
     setJustCompleted(false);
     const success = await startSession(selectedDuration, selectedAppsToBlock);
     if (!success) {
@@ -514,6 +531,14 @@ export function DetoxChallengeTab() {
           </div>
         </>
       )}
+
+      {/* Target Exceeded Warning Dialog */}
+      <TargetExceededDialog
+        open={showTargetExceededDialog}
+        onOpenChange={setShowTargetExceededDialog}
+        onConfirm={proceedWithStart}
+        categoryName="Detox"
+      />
     </div>
   );
 }
