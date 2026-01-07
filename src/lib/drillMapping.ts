@@ -25,7 +25,28 @@ export type DrillType =
   | "rapid_association"  // Quick emotional/visual associations
   | "open_reflection"    // Open-ended reflection exercises
   | "critical_reasoning_slow" // Socratic/philosophical reasoning drills
-  | "focus_slow"; // Socratic attention/focus drills
+  | "focus_slow" // Socratic attention/focus drills
+  // NEW Fast Focus drills
+  | "target_lock"
+  | "flash_count"
+  | "peripheral_alert"
+  | "color_word_snap"
+  | "signal_filter"
+  | "one_back_focus"
+  | "speed_sort"
+  | "dual_target"
+  | "false_alarm"
+  | "focus_window"
+  | "distractor_burst"
+  | "odd_precision"
+  | "rapid_tracking"
+  | "hidden_rule"
+  | "temporal_gate"
+  | "multi_feature_lock"
+  | "cognitive_interference"
+  | "acceleration"
+  | "error_recovery"
+  | "chaos_focus";
 
 // Default configurations for each drill type
 export const DRILL_CONFIGS: Record<DrillType, {
@@ -56,32 +77,94 @@ export const DRILL_CONFIGS: Record<DrillType, {
   open_reflection: { timeLimit: 180, difficulty: 'medium' },
   critical_reasoning_slow: { timeLimit: 60, difficulty: 'hard' },
   focus_slow: { timeLimit: 60, difficulty: 'hard' },
+  // Fast Focus Level 1 (Easy)
+  target_lock: { timeLimit: 45, difficulty: 'easy' },
+  flash_count: { timeLimit: 45, difficulty: 'easy' },
+  peripheral_alert: { timeLimit: 45, difficulty: 'easy' },
+  color_word_snap: { timeLimit: 45, difficulty: 'easy' },
+  signal_filter: { timeLimit: 45, difficulty: 'easy' },
+  one_back_focus: { timeLimit: 45, difficulty: 'easy' },
+  speed_sort: { timeLimit: 45, difficulty: 'easy' },
+  // Fast Focus Level 2 (Medium)
+  dual_target: { timeLimit: 45, difficulty: 'medium' },
+  false_alarm: { timeLimit: 45, difficulty: 'medium' },
+  focus_window: { timeLimit: 45, difficulty: 'medium' },
+  distractor_burst: { timeLimit: 45, difficulty: 'medium' },
+  odd_precision: { timeLimit: 45, difficulty: 'medium' },
+  rapid_tracking: { timeLimit: 45, difficulty: 'medium' },
+  // Fast Focus Level 3 (Hard)
+  hidden_rule: { timeLimit: 45, difficulty: 'hard' },
+  temporal_gate: { timeLimit: 45, difficulty: 'hard' },
+  multi_feature_lock: { timeLimit: 45, difficulty: 'hard' },
+  cognitive_interference: { timeLimit: 45, difficulty: 'hard' },
+  acceleration: { timeLimit: 45, difficulty: 'hard' },
+  error_recovery: { timeLimit: 45, difficulty: 'hard' },
+  chaos_focus: { timeLimit: 45, difficulty: 'hard' },
 };
 
 // Map exercise IDs to drill types
-// FA_FAST = Focus Arena Fast, MC = Memory Core, etc.
 export function getDrillTypeForExercise(exerciseId: string): DrillType {
   const id = exerciseId.toUpperCase();
   
-  // Focus Arena Fast Thinking exercises (FA_FAST_001 - FA_FAST_050)
-  if (id.startsWith("FA_FAST_")) {
+  // NEW Fast Focus exercises (FF_L1_001 - FF_L3_007)
+  if (id.startsWith("FF_L1_")) {
     const num = parseInt(id.split("_")[2], 10);
-    
-    // Distribute exercises across different drill types for variety
-    if (num <= 5) return "dot_target";           // 001-005: Dot/target tapping
-    if (num <= 10) return "odd_one_out";         // 006-010: Find different item
-    if (num <= 15) return "shape_match";         // 011-015: Shape matching
-    if (num <= 20) return "visual_search";       // 016-020: Visual search
-    if (num <= 25) return "go_no_go";            // 021-025: Go/No-Go
-    if (num <= 30) return "stroop";              // 026-030: Stroop effect
-    if (num <= 35) return "location_match";      // 031-035: Location memory
-    if (num <= 40) return "category_switch";     // 036-040: Category switching
-    if (num <= 45) return "pattern_sequence";    // 041-045: Pattern sequences
-    return "rule_switch";                         // 046-050: Rule switching
+    switch (num) {
+      case 1: return "target_lock";
+      case 2: return "flash_count";
+      case 3: return "peripheral_alert";
+      case 4: return "color_word_snap";
+      case 5: return "signal_filter";
+      case 6: return "one_back_focus";
+      case 7: return "speed_sort";
+      default: return "target_lock";
+    }
   }
   
-  // Focus Arena Slow Thinking exercises (FA_S2_001 - FA_S2_050)
-  // These use Socratic attention/focus drills
+  if (id.startsWith("FF_L2_")) {
+    const num = parseInt(id.split("_")[2], 10);
+    switch (num) {
+      case 1: return "dual_target";
+      case 2: return "false_alarm";
+      case 3: return "rule_switch";
+      case 4: return "focus_window";
+      case 5: return "distractor_burst";
+      case 6: return "odd_precision";
+      case 7: return "rapid_tracking";
+      default: return "dual_target";
+    }
+  }
+  
+  if (id.startsWith("FF_L3_")) {
+    const num = parseInt(id.split("_")[2], 10);
+    switch (num) {
+      case 1: return "hidden_rule";
+      case 2: return "temporal_gate";
+      case 3: return "multi_feature_lock";
+      case 4: return "cognitive_interference";
+      case 5: return "acceleration";
+      case 6: return "error_recovery";
+      case 7: return "chaos_focus";
+      default: return "hidden_rule";
+    }
+  }
+  
+  // Focus Arena Fast Thinking exercises (FA_FAST_001 - FA_FAST_050) - legacy
+  if (id.startsWith("FA_FAST_")) {
+    const num = parseInt(id.split("_")[2], 10);
+    if (num <= 5) return "dot_target";
+    if (num <= 10) return "odd_one_out";
+    if (num <= 15) return "shape_match";
+    if (num <= 20) return "visual_search";
+    if (num <= 25) return "go_no_go";
+    if (num <= 30) return "stroop";
+    if (num <= 35) return "location_match";
+    if (num <= 40) return "category_switch";
+    if (num <= 45) return "pattern_sequence";
+    return "rule_switch";
+  }
+  
+  // Focus Arena Slow Thinking exercises
   if (id.startsWith("FA_S2_") || id.startsWith("FA_SLOW_")) {
     return "focus_slow";
   }
@@ -103,20 +186,17 @@ export function getDrillTypeForExercise(exerciseId: string): DrillType {
     return "rule_switch";
   }
   
-  // Critical Reasoning Fast Thinking exercises (CR_FAST_001 - CR_FAST_050)
+  // Critical Reasoning Fast Thinking exercises
   if (id.startsWith("CR_FAST_")) {
     const num = parseInt(id.split("_")[2], 10);
-    
-    // Fast critical reasoning - rapid pattern/logic recognition
-    if (num <= 10) return "sequence_logic";       // 001-010: Quick logical sequences
-    if (num <= 20) return "analogy_match";        // 011-020: Fast analogy recognition
-    if (num <= 30) return "pattern_sequence";     // 021-030: Pattern completion
-    if (num <= 40) return "odd_one_out";          // 031-040: Logical odd one out
-    return "category_switch";                      // 041-050: Quick category logic
+    if (num <= 10) return "sequence_logic";
+    if (num <= 20) return "analogy_match";
+    if (num <= 30) return "pattern_sequence";
+    if (num <= 40) return "odd_one_out";
+    return "category_switch";
   }
   
-  // Critical Reasoning Slow Thinking exercises (CR_SLOW_001 - CR_SLOW_050)
-  // These use Socratic/philosophical reasoning drills
+  // Critical Reasoning Slow Thinking exercises
   if (id.startsWith("CR_SLOW_")) {
     return "critical_reasoning_slow";
   }
@@ -129,17 +209,14 @@ export function getDrillTypeForExercise(exerciseId: string): DrillType {
     return "pattern_sequence";
   }
   
-  // Creativity Hub Fast Thinking exercises (CH_FAST_001 - CH_FAST_050)
-  // Uses intuitive, fast creativity drills - NOT logical reasoning
+  // Creativity Hub Fast Thinking exercises
   if (id.startsWith("CH_FAST_")) {
     const num = parseInt(id.split("_")[2], 10);
-    
-    // Intuitive creativity exercises - vibe matching, color sense, rapid association
-    if (num <= 10) return "visual_vibe";           // 001-010: Match the vibe/mood
-    if (num <= 20) return "rapid_association";     // 011-020: Quick emotional links
-    if (num <= 30) return "color_harmony";         // 021-030: Aesthetic color matching
-    if (num <= 40) return "gestalt_completion";    // 031-040: Complete partial shapes
-    return "visual_vibe";                           // 041-050: More vibe matching
+    if (num <= 10) return "visual_vibe";
+    if (num <= 20) return "rapid_association";
+    if (num <= 30) return "color_harmony";
+    if (num <= 40) return "gestalt_completion";
+    return "visual_vibe";
   }
   
   // Creativity Hub legacy exercises
