@@ -60,15 +60,19 @@ export function ExercisePickerSheet({
   const [selectedDifficulty, setSelectedDifficulty] = useState<"all" | "easy" | "medium" | "hard">("all");
   const completedExerciseIds = useCompletedExerciseIds();
 
-  // Filter exercises by area and thinking mode
-  const filteredExercises = exercises.filter(
-    (e) => e.gym_area === area && e.thinking_mode === thinkingMode
-  );
+  // Filter exercises by area
+  const areaExercises = exercises.filter((e) => e.gym_area === area);
+
+  // Filter by thinking mode when available; if the dataset has no thinking_mode
+  // tagged exercises for this area, fall back to area-only so games don't “disappear”.
+  const modeExercises = areaExercises.filter((e) => e.thinking_mode === thinkingMode);
+  const filteredExercises = modeExercises.length > 0 ? modeExercises : areaExercises;
 
   // Further filter by difficulty
-  const displayedExercises = selectedDifficulty === "all" 
-    ? filteredExercises 
-    : filteredExercises.filter(e => e.difficulty === selectedDifficulty);
+  const displayedExercises =
+    selectedDifficulty === "all"
+      ? filteredExercises
+      : filteredExercises.filter((e) => e.difficulty === selectedDifficulty);
 
   const modeConfig = MODE_LABELS[thinkingMode];
   const AreaIcon = AREA_ICONS[area] || Brain;
