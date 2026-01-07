@@ -142,29 +142,8 @@ export default function NeuroLab() {
     <AppShell>
       <div className="px-5 py-5 max-w-md mx-auto">
 
-        {/* Today's Session Banner */}
-        {!isWeekComplete && nextSession ? (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-primary/15 via-primary/10 to-transparent border border-primary/30"
-          >
-            <div className="flex items-center gap-1.5 mb-3">
-              <Star className="w-3 h-3 text-primary" />
-              <span className="text-[10px] text-primary font-medium uppercase tracking-wide">
-                Today's Session
-              </span>
-            </div>
-
-            <button
-              onClick={handleStartRecommended}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-medium hover:bg-primary/90 active:scale-[0.98] transition-all"
-            >
-              <Play className="w-4 h-4 fill-current" />
-              {sessionsCompleted > 0 ? "Continue Session" : "Start Session"}
-            </button>
-          </motion.div>
-        ) : isWeekComplete ? (
+        {/* Week Complete Banner - only show when week is complete */}
+        {isWeekComplete && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -182,7 +161,7 @@ export default function NeuroLab() {
               </div>
             </div>
           </motion.div>
-        ) : null}
+        )}
 
         {/* Neuro Activation */}
         <button
