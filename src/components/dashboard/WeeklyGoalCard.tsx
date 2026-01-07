@@ -55,14 +55,17 @@ export function WeeklyGoalCard() {
 
   // Update the persistent snapshot ONLY when:
   // - not loading AND
-  // - queries have fetched at least once AND
-  // - we have MEANINGFUL (non-zero) data, OR there is no previous snapshot yet.
-  // This prevents a transient "0" during route/tab transitions from overwriting a good snapshot.
+  // - queries have fetched at least once
+  //
+  // We used to avoid overwriting with zero to prevent transient "flash to zero".
+  // However, after data corrections (e.g., removing duplicates), the *true* value
+  // can legitimately become 0; in that case we MUST overwrite the cached snapshot
+  // or the UI will be stuck showing stale progress.
+  //
+  // Note: isLoading includes background refetching (see useCappedWeeklyProgress),
+  // so we still won't overwrite mid-refetch.
   useEffect(() => {
-    const rawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
-    const hasMeaningfulData = rawTotal > 0;
-
-    if (!isLoading && isFetched && (hasMeaningfulData || !cachedSnapshot)) {
+    if (!isLoading && isFetched) {
       setSnapshot({
         rawGamesXP,
         rawTasksXP,
@@ -96,12 +99,11 @@ export function WeeklyGoalCard() {
     tasksProgress,
     detoxProgress,
     setSnapshot,
-    cachedSnapshot?.savedAt,
   ]);
 
   // Build display snapshot:
-  // - Prefer fresh data only if it's meaningful (rawTotal > 0)
-  // - Otherwise, prefer cached snapshot (so we never "flash" to 0)
+  // - Prefer fresh data once queries have fetched and are not loading
+  // - Otherwise, fall back to cached snapshot (so we don't flash during refetch)
   const freshSnapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = {
     rawGamesXP,
     rawTasksXP,
@@ -118,9 +120,8 @@ export function WeeklyGoalCard() {
     detoxProgress,
   };
 
-  const freshRawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
   const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> =
-    !isLoading && isFetched && freshRawTotal > 0
+    !isLoading && isFetched
       ? freshSnapshot
       : cachedSnapshot
         ? cachedSnapshot
