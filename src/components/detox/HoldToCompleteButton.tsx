@@ -83,7 +83,7 @@ export function HoldToCompleteButton({
   return (
     <motion.button
       ref={buttonRef}
-      className={`relative flex-1 h-14 rounded-2xl font-semibold text-sm overflow-hidden select-none touch-none ${
+      className={`relative w-full h-14 rounded-2xl font-semibold text-sm overflow-hidden select-none touch-none ${
         disabled 
           ? "bg-white/5 text-white/30 cursor-not-allowed border border-white/10" 
           : "bg-gradient-to-r from-teal-500 to-cyan-500 text-white active:scale-[0.98]"
