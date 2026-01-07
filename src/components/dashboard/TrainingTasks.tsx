@@ -85,6 +85,24 @@ const ALL_TASKS: CognitiveInput[] = [
   },
 ];
 
+// Full content library for lookup (matches CognitiveInputs.tsx)
+const CONTENT_LIBRARY: Record<string, CognitiveInput> = {
+  "in-our-time": { id: "in-our-time", type: "podcast", title: "In Our Time", author: "BBC Radio 4", duration: "35–55 min", difficulty: 3, thinkingSystem: "S2", primaryUrl: "" },
+  "partially-examined-life": { id: "partially-examined-life", type: "podcast", title: "The Partially Examined Life", author: "Mark Linsenmayer et al.", duration: "60–120 min", difficulty: 5, thinkingSystem: "S2", primaryUrl: "" },
+  "very-bad-wizards": { id: "very-bad-wizards", type: "podcast", title: "Very Bad Wizards", author: "Tamler Sommers & David Pizarro", duration: "45–90 min", difficulty: 3, thinkingSystem: "S1+S2", primaryUrl: "" },
+  "mindscape": { id: "mindscape", type: "podcast", title: "Sean Carroll's Mindscape", author: "Sean Carroll", duration: "60–120 min", difficulty: 4, thinkingSystem: "S2", primaryUrl: "" },
+  "philosophy-bites": { id: "philosophy-bites", type: "podcast", title: "Philosophy Bites", author: "David Edmonds & Nigel Warburton", duration: "15–25 min", difficulty: 2, thinkingSystem: "S2", primaryUrl: "" },
+  "econtalk": { id: "econtalk", type: "podcast", title: "EconTalk", author: "Russ Roberts", duration: "50–90 min", difficulty: 4, thinkingSystem: "S2", primaryUrl: "" },
+  "conversations-with-tyler": { id: "conversations-with-tyler", type: "podcast", title: "Conversations with Tyler", author: "Tyler Cowen", duration: "45–90 min", difficulty: 4, thinkingSystem: "S2", primaryUrl: "" },
+  "hbr-critical-thinking": { id: "hbr-critical-thinking", type: "article", title: "Critical Thinking Is About Asking Better Questions", author: "Harvard Business Review", duration: "10–15 min", difficulty: 2, thinkingSystem: "S2", primaryUrl: "" },
+  "hbr-rush-decisions": { id: "hbr-rush-decisions", type: "article", title: "If You Rush Your Decisions, Ask Yourself Why", author: "Harvard Business Review", duration: "5–10 min", difficulty: 1, thinkingSystem: "S2", primaryUrl: "" },
+  "mit-intelligent-choices": { id: "mit-intelligent-choices", type: "article", title: "Intelligent Choices Reshape Decision-Making", author: "MIT Sloan Management Review", duration: "15–20 min", difficulty: 3, thinkingSystem: "S2", primaryUrl: "" },
+  "apology-plato": { id: "apology-plato", type: "book", title: "Apology", author: "Plato", duration: "1–2 hrs", difficulty: 3, thinkingSystem: "S2", primaryUrl: "" },
+  "omelas-le-guin": { id: "omelas-le-guin", type: "book", title: "The Ones Who Walk Away from Omelas", author: "Ursula K. Le Guin", duration: "30–45 min", difficulty: 3, thinkingSystem: "S1+S2", primaryUrl: "" },
+  "myth-sisyphus-camus": { id: "myth-sisyphus-camus", type: "book", title: "The Myth of Sisyphus", author: "Albert Camus", duration: "2–3 hrs", difficulty: 4, thinkingSystem: "S2", primaryUrl: "" },
+  "meditations-aurelius": { id: "meditations-aurelius", type: "book", title: "Meditations", author: "Marcus Aurelius", duration: "10–15 min/session", difficulty: 2, thinkingSystem: "S2", primaryUrl: "" },
+};
+
 // Get tasks for specific plan based on contentPerWeek
 function getTasksForPlan(planId: TrainingPlanId): CognitiveInput[] {
   const plan = TRAINING_PLANS[planId];
@@ -92,6 +110,11 @@ function getTasksForPlan(planId: TrainingPlanId): CognitiveInput[] {
   
   // Return tasks based on plan's contentPerWeek requirement
   return ALL_TASKS.slice(0, plan.contentPerWeek);
+}
+
+// Helper to get content info from library or create a fallback
+function getContentInfo(contentId: string): CognitiveInput | null {
+  return CONTENT_LIBRARY[contentId] || null;
 }
 
 // Hook to get completed content for THIS WEEK only
@@ -404,9 +427,20 @@ export function TrainingTasks() {
   // Get tasks for the user's plan only
   const planTasks = getTasksForPlan(userPlan);
   
-  // Filter active tasks (not completed THIS WEEK) - only from plan tasks
+  // Filter active tasks (not completed) - only from plan tasks
   const activeTasks = planTasks.filter(t => !completedThisWeek.includes(t.id));
-  const completedTasks = planTasks.filter(t => completedThisWeek.includes(t.id));
+  
+  // Get ALL completed content (from plan + from CognitiveInputs library)
+  // This ensures any content completed shows up in the completed list
+  const completedTasks: CognitiveInput[] = completedThisWeek
+    .map(contentId => {
+      // First check if it's in planTasks
+      const planTask = planTasks.find(t => t.id === contentId);
+      if (planTask) return planTask;
+      // Otherwise look it up in the full content library
+      return getContentInfo(contentId);
+    })
+    .filter((t): t is CognitiveInput => t !== null);
   
   // Use plan's explicit contentXPTarget for tasks progress
   const planTasksXPTarget = plan?.contentXPTarget || 24;
