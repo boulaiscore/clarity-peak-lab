@@ -604,12 +604,9 @@ const Onboarding = () => {
                         <option.icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-semibold text-[14px]">{option.plan.name}</span>
-                          <span className="text-[10px] text-muted-foreground">{option.plan.sessionDuration}</span>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground mb-1.5">{option.plan.tagline}</p>
-                        <p className="text-[10px] text-muted-foreground/70">
+                        <span className="font-semibold text-[14px] block mb-1">{option.plan.name}</span>
+                        <p className="text-[12px] text-muted-foreground mb-1.5">{option.plan.tagline}</p>
+                        <p className="text-[11px] text-muted-foreground/70">
                           {option.plan.sessionsPerWeek} sessions/week • {option.plan.contentPerWeek} content/week
                         </p>
                       </div>
