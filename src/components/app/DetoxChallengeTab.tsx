@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
-  Smartphone, Clock, Trophy, 
-  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info, Loader2, Bell, BellOff
+  Smartphone, Clock, 
+  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info, Loader2, Bell, BellOff, Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import { Label } from "@/components/ui/label";
 import { DetoxBlockerSettings } from "./DetoxBlockerSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { scheduleDetoxReminder, cancelDetoxReminder, getNotificationState, requestNotificationPermission } from "@/lib/notifications";
+import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 
 export function DetoxChallengeTab() {
   const { user } = useAuth();
@@ -208,16 +209,16 @@ export function DetoxChallengeTab() {
 
   return (
     <div className="space-y-5">
-      {/* Weekly Goal Progress Card */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+      {/* Weekly Mental Recovery Card */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-teal-500/10 via-cyan-500/5 to-transparent border border-teal-500/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Smartphone className="w-4 h-4 text-primary" />
-              <Ban className="w-4 h-4 text-primary absolute inset-0" />
+              <Brain className="w-4 h-4 text-teal-400" />
             </div>
-            <span className="text-xs font-medium text-primary">Weekly Goal</span>
+            <span className="text-xs font-medium text-teal-400">{DETOX_COGNITIVE_MESSAGES.weekly.goalLabel}</span>
           </div>
+          
           
           {/* Goal Settings Button */}
           <Dialog open={showGoalSettings} onOpenChange={setShowGoalSettings}>
@@ -310,35 +311,35 @@ export function DetoxChallengeTab() {
           </Dialog>
         </div>
 
-        {/* Weekly Progress */}
+        {/* Weekly Recovery Progress */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-muted-foreground">Weekly Progress</span>
-            <span className="text-[10px] font-semibold text-primary">
-              {formatMinutesToHours(weeklyDetoxMinutes)} • +{weeklyDetoxXP.toFixed(1)} XP
+            <span className="text-[10px] text-muted-foreground">Recovery Progress</span>
+            <span className="text-[10px] font-medium text-teal-400">
+              {formatMinutesToHours(weeklyDetoxMinutes)} recovered
             </span>
           </div>
-          <div className="h-2 bg-primary/10 rounded-full overflow-hidden">
+          <div className="h-2 bg-teal-500/10 rounded-full overflow-hidden">
             <motion.div 
-              className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80"
+              className="h-full rounded-full bg-gradient-to-r from-teal-400 to-cyan-400"
               initial={{ width: 0 }}
               animate={{ width: `${Math.min((weeklyDetoxMinutes / 420) * 100, 100)}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
           <p className="text-[10px] text-muted-foreground mt-1.5">
-            7h weekly recommended for cognitive benefits
+            {DETOX_COGNITIVE_MESSAGES.weekly.getProgress(weeklyDetoxMinutes, 420)}
           </p>
         </div>
         
         <div className="grid grid-cols-2 gap-3">
           <div className="text-center">
-            <div className="text-lg font-bold text-foreground">{weeklyDetoxMinutes}</div>
-            <div className="text-[10px] text-muted-foreground">minutes this week</div>
+            <div className="text-lg font-bold text-foreground">{formatMinutesToHours(weeklyDetoxMinutes)}</div>
+            <div className="text-[10px] text-muted-foreground">clarity restored</div>
           </div>
           <div className="text-center border-l border-border/30">
-            <div className="text-lg font-bold text-primary">+{weeklyDetoxXP.toFixed(1)}</div>
-            <div className="text-[10px] text-muted-foreground">XP earned</div>
+            <div className="text-lg font-bold text-teal-400">{DETOX_COGNITIVE_MESSAGES.completion.getBenefit(weeklyDetoxMinutes).split(' ')[0]}</div>
+            <div className="text-[10px] text-muted-foreground">fatigue reduced</div>
           </div>
         </div>
       </div>
@@ -360,13 +361,16 @@ export function DetoxChallengeTab() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <Check className="w-8 h-8 text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold text-emerald-400 mb-1">Detox Complete!</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                You spent {formatTime(lastSessionSeconds)} distraction-free
+              <h3 className="text-lg font-semibold text-emerald-400 mb-1">{DETOX_COGNITIVE_MESSAGES.completion.headline}</h3>
+              <p className="text-sm text-muted-foreground mb-2">
+                {DETOX_COGNITIVE_MESSAGES.completion.getDescription(Math.floor(lastSessionSeconds / 60))}
+              </p>
+              <p className="text-xs text-muted-foreground/70 mb-3">
+                {DETOX_COGNITIVE_MESSAGES.completion.getBenefit(Math.floor(lastSessionSeconds / 60))}
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium">
                 <Sparkles className="w-4 h-4" />
-                +{(Math.floor(lastSessionSeconds / 60) * DETOX_XP_PER_MINUTE).toFixed(1)} XP
+                Cognitive capacity restored
               </div>
               <Button 
                 onClick={handleNewSession}
@@ -392,11 +396,10 @@ export function DetoxChallengeTab() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="relative mb-2">
-                    <Smartphone className="w-6 h-6 text-primary" />
-                    <Ban className="w-6 h-6 text-primary absolute inset-0" />
+                    <Brain className="w-6 h-6 text-teal-400" />
                   </div>
                   <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
-                  <span className="text-xs text-primary font-medium">+{currentSessionXP.toFixed(1)} XP</span>
+                  <span className="text-xs text-teal-400 font-medium">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
                   {violationCount > 0 && (
                     <span className="text-[10px] text-amber-400 mt-1">
                       ⚠️ {violationCount} violation{violationCount === 1 ? '' : 's'}
@@ -405,9 +408,9 @@ export function DetoxChallengeTab() {
                 </div>
               </div>
               
-              <h3 className="text-sm font-medium text-foreground mb-1">Detox in progress...</h3>
+              <h3 className="text-sm font-medium text-foreground mb-1">Recovering clarity...</h3>
               <p className="text-xs text-muted-foreground mb-4">
-                Minimum 30 min to record
+                Minimum 30 min to complete recovery
               </p>
               
               <div className="flex gap-2">
@@ -435,18 +438,20 @@ export function DetoxChallengeTab() {
         <>
           {/* Start Session Card */}
           <div className="p-6 rounded-2xl bg-card border border-border text-center">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-teal-500/10 flex items-center justify-center">
               <div className="relative">
-                <Smartphone className="w-8 h-8 text-primary" />
-                <Ban className="w-8 h-8 text-primary absolute inset-0" />
+                <Brain className="w-8 h-8 text-teal-400" />
               </div>
             </div>
             
             <h3 className="text-base font-semibold text-foreground mb-2">
-              Start a Detox Session
+              {DETOX_COGNITIVE_MESSAGES.preSession.headline}
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Disconnect and earn <span className="text-primary font-medium">{DETOX_XP_PER_MINUTE} XP/min</span>
+            <p className="text-sm text-muted-foreground mb-1">
+              {DETOX_COGNITIVE_MESSAGES.preSession.subtitle}
+            </p>
+            <p className="text-xs text-teal-400 mb-4">
+              {DETOX_COGNITIVE_MESSAGES.preSession.benefit}
             </p>
 
             {/* Duration Selector */}
@@ -484,20 +489,20 @@ export function DetoxChallengeTab() {
           <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
             <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5" />
-              How it works
+              How mental recovery works
             </h4>
             <ul className="space-y-1.5 text-[11px] text-muted-foreground">
               <li className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-primary" />
-                <span>Minimum session: <strong>30 min</strong></span>
+                <Clock className="w-3 h-3 text-teal-400" />
+                <span>Minimum session: <strong>30 min</strong> for measurable impact</span>
               </li>
               <li className="flex items-center gap-2">
-                <Trophy className="w-3 h-3 text-primary" />
-                <span>Earn <strong>{DETOX_XP_PER_MINUTE} XP</strong> per minute</span>
+                <Brain className="w-3 h-3 text-teal-400" />
+                <span>Reduces decision fatigue and restores clarity</span>
               </li>
               <li className="flex items-center gap-2">
                 {dailySettings?.reminderEnabled ? (
-                  <Bell className="w-3 h-3 text-primary" />
+                  <Bell className="w-3 h-3 text-teal-400" />
                 ) : (
                   <BellOff className="w-3 h-3 text-muted-foreground" />
                 )}

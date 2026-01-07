@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Star, Gamepad2, BookMarked, Target, CheckCircle2, Smartphone, Ban, Gift } from "lucide-react";
+import { Gamepad2, BookMarked, Target, CheckCircle2, Smartphone, Ban, Zap, Brain, Shield } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 import { XPCelebration } from "@/components/app/XPCelebration";
+import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 
 function safeProgress(value: number, target: number) {
   if (target <= 0) return 0;
@@ -73,13 +74,16 @@ export function WeeklyGoalCard() {
         transition={{ duration: 0.3 }}
         className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
       >
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-foreground" />
-            <span className="text-[12px] font-semibold">Weekly Goal</span>
+            <Shield className="w-4 h-4 text-primary" />
+            <div>
+              <span className="text-[12px] font-semibold">{WEEKLY_GOAL_MESSAGES.headline}</span>
+              <p className="text-[9px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.subtitle}</p>
+            </div>
           </div>
-          <span className="text-[12px] font-bold text-foreground">
-            {totalXPEarned} / {totalXPTarget} XP
+          <span className="text-[11px] font-medium text-muted-foreground">
+            {Math.round(xpProgress)}% complete
           </span>
         </div>
 
@@ -93,32 +97,34 @@ export function WeeklyGoalCard() {
           />
         </div>
 
-        {/* XP Breakdown by Source */}
+        {/* Training Load Breakdown */}
         <div className="p-2.5 rounded-lg bg-muted/30 border border-border/30 mb-3">
           <div className="flex items-center gap-1.5 mb-3">
-            <Star className="w-3 h-3 text-muted-foreground" />
+            <Zap className="w-3 h-3 text-muted-foreground" />
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
-              {plan.name} Breakdown
+              Training Breakdown
             </span>
           </div>
 
-          {/* Games XP */}
+          {/* Games - Active Training */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center">
                   <Gamepad2 className="w-3 h-3 text-blue-400" />
                 </div>
-                <span className="text-[11px] font-medium text-foreground">Games</span>
+                <div>
+                  <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.games.label}</span>
+                  <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.games.benefit}</p>
+                </div>
                 {gamesComplete && (
                   <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
                     <CheckCircle2 className="w-2.5 h-2.5" />
-                    Complete
                   </span>
                 )}
               </div>
-              <span className="text-[11px] font-semibold text-blue-400">
-                {weeklyGamesXP} / {gamesXPTarget} XP
+              <span className="text-[10px] text-muted-foreground">
+                {Math.round(gamesProgress)}%
               </span>
             </div>
             <div className="h-1.5 bg-blue-500/10 rounded-full overflow-hidden">
@@ -131,23 +137,25 @@ export function WeeklyGoalCard() {
             </div>
           </div>
 
-          {/* Tasks XP */}
+          {/* Tasks - Deep Input */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded bg-violet-500/15 flex items-center justify-center">
                   <BookMarked className="w-3 h-3 text-violet-400" />
                 </div>
-                <span className="text-[11px] font-medium text-foreground">Tasks</span>
+                <div>
+                  <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.tasks.label}</span>
+                  <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.tasks.benefit}</p>
+                </div>
                 {tasksComplete && (
                   <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
                     <CheckCircle2 className="w-2.5 h-2.5" />
-                    Complete
                   </span>
                 )}
               </div>
-              <span className="text-[11px] font-semibold text-violet-400">
-                {weeklyContentXP} / {tasksXPTarget} XP
+              <span className="text-[10px] text-muted-foreground">
+                {Math.round(tasksProgress)}%
               </span>
             </div>
             <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
@@ -160,24 +168,25 @@ export function WeeklyGoalCard() {
             </div>
           </div>
 
-          {/* Detox XP (counts toward weekly goal) */}
+          {/* Detox - Mental Recovery */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded bg-teal-500/15 flex items-center justify-center relative">
-                  <Smartphone className="w-3 h-3 text-teal-400" />
-                  <Ban className="w-2 h-2 text-teal-400 absolute -bottom-0.5 -right-0.5" />
+                  <Brain className="w-3 h-3 text-teal-400" />
                 </div>
-                <span className="text-[11px] font-medium text-foreground">Detox</span>
+                <div>
+                  <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.detox.label}</span>
+                  <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.detox.benefit}</p>
+                </div>
                 {detoxComplete && (
                   <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium">
                     <CheckCircle2 className="w-2.5 h-2.5" />
-                    Complete
                   </span>
                 )}
               </div>
-              <span className="text-[11px] font-semibold text-teal-400">
-                {weeklyDetoxXP} / {detoxXPTarget} XP
+              <span className="text-[10px] text-muted-foreground">
+                {Math.round(detoxProgress)}%
               </span>
             </div>
             <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
@@ -188,21 +197,12 @@ export function WeeklyGoalCard() {
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
               />
             </div>
-            <p className="text-[9px] text-muted-foreground mt-1.5">
-              Detox counts toward weekly target (like Games and Tasks)
-            </p>
           </div>
         </div>
 
-        {xpRemaining > 0 ? (
-          <p className="text-[10px] text-muted-foreground">
-            <span className="text-foreground font-medium">{xpRemaining} XP</span> remaining to reach weekly target
-          </p>
-        ) : (
-          <p className="text-[10px] text-emerald-400 font-medium">
-            Weekly goal achieved! Keep training to level up faster.
-          </p>
-        )}
+        <p className="text-[10px] text-muted-foreground">
+          {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, totalXPTarget)}
+        </p>
       </motion.div>
     </>
   );

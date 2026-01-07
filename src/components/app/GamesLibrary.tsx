@@ -2,13 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Zap, Timer,
-  ChevronRight, Star
+  ChevronRight, Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { CognitiveExercise } from "@/lib/exercises";
+import { GAME_COGNITIVE_BENEFITS } from "@/lib/cognitiveFeedback";
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
@@ -26,18 +27,18 @@ const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> 
   creativity: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20" },
 };
 
-// System 1 (Fast) games
+// System 1 (Fast) games - with cognitive benefits
 const SYSTEM_1_GAMES = [
-  { id: "focus-fast", areaId: "focus" as NeuroLabArea, name: "Fast Attention", description: "Visual search & reaction speed", xpRange: "3-8" },
-  { id: "reasoning-fast", areaId: "reasoning" as NeuroLabArea, name: "Quick Logic", description: "Rapid pattern recognition", xpRange: "3-8" },
-  { id: "creativity-fast", areaId: "creativity" as NeuroLabArea, name: "Flash Association", description: "Rapid divergent thinking", xpRange: "3-8" },
+  { id: "focus-fast" as const, areaId: "focus" as NeuroLabArea, name: "Fast Attention" },
+  { id: "reasoning-fast" as const, areaId: "reasoning" as NeuroLabArea, name: "Quick Logic" },
+  { id: "creativity-fast" as const, areaId: "creativity" as NeuroLabArea, name: "Flash Association" },
 ];
 
-// System 2 (Slow) games
+// System 2 (Slow) games - with cognitive benefits
 const SYSTEM_2_GAMES = [
-  { id: "focus-slow", areaId: "focus" as NeuroLabArea, name: "Deep Focus", description: "Sustained attention & pattern extraction", xpRange: "3-8" },
-  { id: "reasoning-slow", areaId: "reasoning" as NeuroLabArea, name: "Critical Analysis", description: "Deep reasoning & bias detection", xpRange: "3-8" },
-  { id: "creativity-slow", areaId: "creativity" as NeuroLabArea, name: "Concept Forge", description: "Novel concept generation", xpRange: "3-8" },
+  { id: "focus-slow" as const, areaId: "focus" as NeuroLabArea, name: "Deep Focus" },
+  { id: "reasoning-slow" as const, areaId: "reasoning" as NeuroLabArea, name: "Critical Analysis" },
+  { id: "creativity-slow" as const, areaId: "creativity" as NeuroLabArea, name: "Concept Forge" },
 ];
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
@@ -57,9 +58,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
-  const renderGameCard = (game: typeof SYSTEM_1_GAMES[0], mode: "fast" | "slow", index: number) => {
+  const renderGameCard = (game: { id: string; areaId: NeuroLabArea; name: string }, mode: "fast" | "slow", index: number) => {
     const Icon = AREA_ICONS[game.areaId] || Brain;
     const colors = AREA_COLORS[game.areaId];
+    const benefitKey = game.id as keyof typeof GAME_COGNITIVE_BENEFITS;
+    const benefit = GAME_COGNITIVE_BENEFITS[benefitKey];
     
     return (
       <motion.button
@@ -93,16 +96,17 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 {game.areaId.charAt(0).toUpperCase() + game.areaId.slice(1)}
               </span>
             </div>
+            {/* Cognitive benefit instead of generic description */}
             <p className="text-[10px] text-muted-foreground line-clamp-1">
-              {game.description}
+              {benefit?.shortBenefit || "Cognitive training"}
             </p>
           </div>
 
-          {/* XP & Action */}
+          {/* Cognitive protection indicator */}
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
-              <Star className="w-3 h-3 text-amber-400" />
-              <span className="text-[10px] font-semibold text-amber-400">+{game.xpRange} XP</span>
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 border border-primary/20">
+              <Shield className="w-3 h-3 text-primary" />
+              <span className="text-[9px] font-medium text-primary">Train</span>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
           </div>
@@ -122,7 +126,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
           </div>
           <div>
             <h3 className="text-[14px] font-semibold">System 1 · Fast</h3>
-            <p className="text-[10px] text-muted-foreground">Intuitive, automatic, rapid responses</p>
+            <p className="text-[10px] text-muted-foreground">Reduces hesitation under pressure</p>
           </div>
         </div>
         
@@ -134,12 +138,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       {/* System 2 - Slow Thinking */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
-            <Timer className="w-4 h-4 text-blue-400" />
+          <div className="w-8 h-8 rounded-lg bg-cyan-500/15 flex items-center justify-center">
+            <Timer className="w-4 h-4 text-cyan-400" />
           </div>
           <div>
             <h3 className="text-[14px] font-semibold">System 2 · Slow</h3>
-            <p className="text-[10px] text-muted-foreground">Deliberate, analytical, deep processing</p>
+            <p className="text-[10px] text-muted-foreground">Prevents impulsive errors in analysis</p>
           </div>
         </div>
         
