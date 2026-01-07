@@ -2,6 +2,7 @@
 // React to stimuli at screen edges
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DrillCompletionScreen } from './DrillCompletionScreen';
 
 interface DrillResult {
   score: number;
@@ -33,11 +34,12 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
   onComplete, 
   difficulty = 'medium' 
 }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'active' | 'complete' | 'results'>('intro');
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [feedback, setFeedback] = useState<{ x: number; y: number; correct: boolean } | null>(null);
   const [liveStats, setLiveStats] = useState({ hits: 0, misses: 0 });
+  const [finalResults, setFinalResults] = useState({ score: 0, avgRT: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, reactionTimes: [] as number[], spawnTimes: new Map<string, number>() });
   const startTimeRef = useRef(0);
@@ -67,7 +69,7 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
       
       if (remaining <= 0) {
         clearInterval(timer);
-        setPhase('complete');
+        setPhase('results');
       }
     }, 100);
     
@@ -108,7 +110,7 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
   }, []);
 
   useEffect(() => {
-    if (phase === 'complete') {
+    if (phase === 'results') {
       const { hits, misses, reactionTimes } = statsRef.current;
       const total = hits + misses;
       const accuracy = total > 0 ? hits / total : 0;
@@ -117,9 +119,32 @@ export const PeripheralAlertDrill: React.FC<PeripheralAlertDrillProps> = ({
         : 0;
       
       const score = Math.round(Math.max(0, Math.min(100, accuracy * 80 + Math.max(0, 20 - avgRT / 100))));
-      onComplete({ score, correct: hits, avgReactionTime: Math.round(avgRT) });
+      setFinalResults({ score, avgRT: Math.round(avgRT) });
     }
-  }, [phase, onComplete]);
+  }, [phase]);
+
+  const handleContinue = () => {
+    const { hits, reactionTimes } = statsRef.current;
+    const avgRT = reactionTimes.length > 0 
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+    onComplete({ score: finalResults.score, correct: hits, avgReactionTime: avgRT });
+  };
+
+  if (phase === 'results') {
+    return (
+      <DrillCompletionScreen
+        title="Peripheral Alert"
+        score={finalResults.score}
+        stats={{
+          hits: liveStats.hits,
+          misses: liveStats.misses,
+          avgReactionTime: finalResults.avgRT,
+        }}
+        onContinue={handleContinue}
+      />
+    );
+  }
 
   if (phase === 'intro') {
     return (

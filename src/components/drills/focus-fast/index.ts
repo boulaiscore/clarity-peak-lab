@@ -6,6 +6,7 @@ export { ColorWordSnapDrill } from './ColorWordSnapDrill';
 export { SignalFilterDrill } from './SignalFilterDrill';
 export { OneBackFocusDrill } from './OneBackFocusDrill';
 export { SpeedSortDrill } from './SpeedSortDrill';
+export { DrillCompletionScreen } from './DrillCompletionScreen';
 
 // Drill type for mapping
 export type FastFocusDrillType = 

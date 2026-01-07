@@ -2,6 +2,7 @@
 // Identify micro-patterns in noisy stream
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DrillCompletionScreen } from './DrillCompletionScreen';
 
 interface DrillResult {
   score: number;
@@ -25,13 +26,14 @@ export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({
   onComplete, 
   difficulty = 'medium' 
 }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'active' | 'complete' | 'results'>('intro');
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [stream, setStream] = useState<{ id: number; value: string; isSignal: boolean }[]>([]);
   const [targetPattern, setTargetPattern] = useState<string[]>([]);
   const [currentMatch, setCurrentMatch] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [liveStats, setLiveStats] = useState({ hits: 0, falseAlarms: 0 });
+  const [finalResults, setFinalResults] = useState({ score: 0, avgRT: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, reactionTimes: [] as number[], patternStartTime: 0 });
   const startTimeRef = useRef(0);
@@ -62,7 +64,7 @@ export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({
       
       if (remaining <= 0) {
         clearInterval(timer);
-        setPhase('complete');
+        setPhase('results');
       }
     }, 100);
     
@@ -128,7 +130,7 @@ export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({
   }, [stream, config.patternLength]);
 
   useEffect(() => {
-    if (phase === 'complete') {
+    if (phase === 'results') {
       const { hits, falseAlarms, reactionTimes } = statsRef.current;
       const avgRT = reactionTimes.length > 0 
         ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length 
@@ -137,9 +139,33 @@ export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({
       const score = Math.round(Math.max(0, Math.min(100, 
         hits * 15 - falseAlarms * 10 + Math.max(0, 20 - avgRT / 100)
       )));
-      onComplete({ score, correct: hits, avgReactionTime: Math.round(avgRT) });
+      setFinalResults({ score, avgRT: Math.round(avgRT) });
     }
-  }, [phase, onComplete]);
+  }, [phase]);
+
+  const handleContinue = () => {
+    const { hits, reactionTimes } = statsRef.current;
+    const avgRT = reactionTimes.length > 0 
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+    onComplete({ score: finalResults.score, correct: hits, avgReactionTime: avgRT });
+  };
+
+  if (phase === 'results') {
+    return (
+      <DrillCompletionScreen
+        title="Signal Filter"
+        score={finalResults.score}
+        stats={{
+          hits: liveStats.hits,
+          misses: 0, // This drill doesn't track misses
+          falseAlarms: liveStats.falseAlarms,
+          avgReactionTime: finalResults.avgRT,
+        }}
+        onContinue={handleContinue}
+      />
+    );
+  }
 
   if (phase === 'intro') {
     return (

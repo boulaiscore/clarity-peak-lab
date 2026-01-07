@@ -2,6 +2,7 @@
 // Tap only the target symbol among dynamic distractors
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DrillCompletionScreen } from './DrillCompletionScreen';
 
 interface DrillResult {
   score: number;
@@ -62,12 +63,13 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
   onComplete, 
   difficulty = 'medium' 
 }) => {
-  const [phase, setPhase] = useState<'intro' | 'active' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'active' | 'complete' | 'results'>('intro');
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [target, setTarget] = useState<SymbolType>('circle');
   const [stimuli, setStimuli] = useState<Stimulus[]>([]);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [liveStats, setLiveStats] = useState({ hits: 0, misses: 0, falseAlarms: 0 });
+  const [finalResults, setFinalResults] = useState({ score: 0, avgRT: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, reactionTimes: [] as number[], lastTargetTime: 0 });
   const startTimeRef = useRef(0);
@@ -102,7 +104,7 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
       
       if (remaining <= 0) {
         clearInterval(timer);
-        setPhase('complete');
+        setPhase('results');
       }
     }, 100);
     
@@ -158,7 +160,7 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
   }, []);
 
   useEffect(() => {
-    if (phase === 'complete') {
+    if (phase === 'results') {
       const { hits, misses, falseAlarms, reactionTimes } = statsRef.current;
       const total = hits + misses;
       const accuracy = total > 0 ? hits / total : 0;
@@ -170,9 +172,33 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
         accuracy * 70 + Math.max(0, 30 - avgRT / 50) - falseAlarms * 2
       )));
       
-      onComplete({ score, correct: hits, avgReactionTime: Math.round(avgRT) });
+      setFinalResults({ score, avgRT: Math.round(avgRT) });
     }
-  }, [phase, onComplete]);
+  }, [phase]);
+
+  const handleContinue = () => {
+    const { hits, reactionTimes } = statsRef.current;
+    const avgRT = reactionTimes.length > 0 
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+    onComplete({ score: finalResults.score, correct: hits, avgReactionTime: avgRT });
+  };
+
+  if (phase === 'results') {
+    return (
+      <DrillCompletionScreen
+        title="Target Lock"
+        score={finalResults.score}
+        stats={{
+          hits: liveStats.hits,
+          misses: liveStats.misses,
+          falseAlarms: liveStats.falseAlarms,
+          avgReactionTime: finalResults.avgRT,
+        }}
+        onContinue={handleContinue}
+      />
+    );
+  }
 
   if (phase === 'intro') {
     return (

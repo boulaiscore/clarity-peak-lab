@@ -2,6 +2,7 @@
 // Count mental appearances of a rapid target, tap final count
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { DrillCompletionScreen } from './DrillCompletionScreen';
 
 interface DrillResult {
   score: number;
@@ -24,13 +25,14 @@ export const FlashCountDrill: React.FC<FlashCountDrillProps> = ({
   onComplete, 
   difficulty = 'medium' 
 }) => {
-  const [phase, setPhase] = useState<'intro' | 'flashing' | 'answer' | 'feedback' | 'complete'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'flashing' | 'answer' | 'feedback' | 'complete' | 'results'>('intro');
   const [round, setRound] = useState(0);
   const [flashCount, setFlashCount] = useState(0);
   const [actualCount, setActualCount] = useState(0);
   const [showFlash, setShowFlash] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [finalResults, setFinalResults] = useState({ score: 0, avgRT: 0 });
   
   const statsRef = useRef({ correct: 0, total: 0, startTime: 0, reactionTimes: [] as number[] });
   const config = DIFFICULTY_CONFIG[difficulty];
@@ -82,7 +84,7 @@ export const FlashCountDrill: React.FC<FlashCountDrillProps> = ({
     
     setTimeout(() => {
       if (round + 1 >= config.rounds) {
-        setPhase('complete');
+        setPhase('results');
       } else {
         setRound(r => r + 1);
         setSelectedAnswer(null);
@@ -92,7 +94,7 @@ export const FlashCountDrill: React.FC<FlashCountDrillProps> = ({
   };
 
   useEffect(() => {
-    if (phase === 'complete') {
+    if (phase === 'results') {
       const { correct, total, reactionTimes } = statsRef.current;
       const accuracy = total > 0 ? correct / total : 0;
       const avgRT = reactionTimes.length > 0 
@@ -100,9 +102,32 @@ export const FlashCountDrill: React.FC<FlashCountDrillProps> = ({
         : 0;
       
       const score = Math.round(accuracy * 100);
-      onComplete({ score, correct, avgReactionTime: Math.round(avgRT) });
+      setFinalResults({ score, avgRT: Math.round(avgRT) });
     }
-  }, [phase, onComplete]);
+  }, [phase]);
+
+  const handleContinue = () => {
+    const { correct, reactionTimes } = statsRef.current;
+    const avgRT = reactionTimes.length > 0 
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+    onComplete({ score: finalResults.score, correct, avgReactionTime: avgRT });
+  };
+
+  if (phase === 'results') {
+    return (
+      <DrillCompletionScreen
+        title="Flash Count"
+        score={finalResults.score}
+        stats={{
+          hits: statsRef.current.correct,
+          misses: statsRef.current.total - statsRef.current.correct,
+          avgReactionTime: finalResults.avgRT,
+        }}
+        onContinue={handleContinue}
+      />
+    );
+  }
 
   if (phase === 'intro') {
     return (
