@@ -28,20 +28,20 @@ export function useWeeklyProgress() {
   const plan = TRAINING_PLANS[planId];
 
   // Fetch weekly progress record
-  const { data: progress, isLoading } = useQuery({
+  const { data: progress, isLoading: progressLoading } = useQuery({
     queryKey: ["weekly-progress", user?.id, weekStart],
     queryFn: async () => {
       if (!user?.id) return null;
-      
+
       const { data, error } = await supabase
         .from("weekly_training_progress")
         .select("*")
         .eq("user_id", user.id)
         .eq("week_start", weekStart)
         .maybeSingle();
-      
+
       if (error) throw error;
-      
+
       // If no record exists, return default
       if (!data) {
         return {
@@ -52,17 +52,30 @@ export function useWeeklyProgress() {
           sessions_completed: [] as SessionCompleted[],
         };
       }
-      
+
       return {
         ...data,
         sessions_completed: (data.sessions_completed as unknown as SessionCompleted[]) || [],
       } as WeeklyProgress;
     },
     enabled: !!user?.id,
+    // Prevent "flash to zero" when navigating away/back: keep cache "fresh" briefly.
+    staleTime: 60_000,
+    placeholderData: (prev) =>
+      prev ??
+      (user?.id
+        ? {
+            id: "",
+            user_id: user.id,
+            week_start: weekStart,
+            plan_id: planId,
+            sessions_completed: [] as SessionCompleted[],
+          }
+        : null),
   });
 
   // Fetch weekly XP from exercise_completions table (real XP)
-  const { data: weeklyXPData } = useQuery({
+  const { data: weeklyXPData, isLoading: weeklyXPLoading } = useQuery({
     queryKey: ["weekly-exercise-xp", user?.id, weekStart],
     queryFn: async () => {
       if (!user?.id) return { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] };
@@ -77,16 +90,19 @@ export function useWeeklyProgress() {
 
       const completions = data || [];
       const totalXP = completions.reduce((sum, c) => sum + (c.xp_earned || 0), 0);
-      
+
       // Separate XP by source (content starts with "content-" prefix)
       const contentXP = completions
-        .filter(c => c.exercise_id.startsWith("content-"))
+        .filter((c) => c.exercise_id.startsWith("content-"))
         .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
       const gamesXP = totalXP - contentXP;
 
       return { totalXP, gamesXP, contentXP, completions };
     },
     enabled: !!user?.id,
+    staleTime: 60_000,
+    placeholderData: (prev) =>
+      prev ?? { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] },
   });
 
   const recordSession = useMutation({
@@ -183,7 +199,7 @@ export function useWeeklyProgress() {
 
   return {
     progress,
-    isLoading,
+    isLoading: progressLoading || weeklyXPLoading,
     recordSession,
     sessionsCompleted,
     sessionsRequired,
