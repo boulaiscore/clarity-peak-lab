@@ -2,8 +2,16 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNeuroLabSessions } from "@/hooks/useNeuroLab";
-import { Gamepad2, Target, TrendingUp, Trophy } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Gamepad2, Zap, Brain, CheckCircle2, XCircle } from "lucide-react";
+
+// Map areas to their fast/slow contribution
+const AREA_THINKING_MODE: Record<string, "fast" | "slow" | "mixed"> = {
+  focus: "fast",      // 70% fast
+  memory: "fast",     // primarily fast recall
+  control: "slow",    // executive control is slow
+  reasoning: "slow",  // 80% slow
+  creativity: "mixed", // 50/50
+};
 
 export function GamesStats() {
   const { user } = useAuth();
@@ -20,18 +28,39 @@ export function GamesStats() {
 
     if (recentSessions.length === 0) return null;
 
-    const avgScore = Math.round(
-      recentSessions.reduce((sum, s) => sum + (s.score || 0), 0) / recentSessions.length
-    );
+    let fastCorrect = 0;
+    let fastWrong = 0;
+    let slowCorrect = 0;
+    let slowWrong = 0;
 
-    const totalCorrect = recentSessions.reduce((sum, s) => sum + (s.correct_answers || 0), 0);
-    const totalQuestions = recentSessions.reduce((sum, s) => sum + (s.total_questions || 0), 0);
-    const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+    recentSessions.forEach(session => {
+      const area = session.area as string;
+      const mode = AREA_THINKING_MODE[area] || "mixed";
+      const correct = session.correct_answers || 0;
+      const total = session.total_questions || 0;
+      const wrong = total - correct;
+
+      if (mode === "fast") {
+        fastCorrect += correct;
+        fastWrong += wrong;
+      } else if (mode === "slow") {
+        slowCorrect += correct;
+        slowWrong += wrong;
+      } else {
+        // Mixed: split 50/50
+        fastCorrect += Math.round(correct / 2);
+        fastWrong += Math.round(wrong / 2);
+        slowCorrect += Math.round(correct / 2);
+        slowWrong += Math.round(wrong / 2);
+      }
+    });
 
     return {
       totalSessions: recentSessions.length,
-      avgScore,
-      accuracy,
+      fastCorrect,
+      fastWrong,
+      slowCorrect,
+      slowWrong,
     };
   }, [sessions]);
 
@@ -60,51 +89,83 @@ export function GamesStats() {
     );
   }
 
+  const fastTotal = stats.fastCorrect + stats.fastWrong;
+  const slowTotal = stats.slowCorrect + stats.slowWrong;
+  const fastAccuracy = fastTotal > 0 ? Math.round((stats.fastCorrect / fastTotal) * 100) : 0;
+  const slowAccuracy = slowTotal > 0 ? Math.round((stats.slowCorrect / slowTotal) * 100) : 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-5 rounded-xl bg-card/50 border border-border/30"
+      className="space-y-3"
     >
       {/* Header */}
-      <div className="flex items-center gap-2 mb-5">
-        <Gamepad2 className="h-5 w-5 text-primary" />
-        <h3 className="text-sm font-semibold">This Week</h3>
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Gamepad2 className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">This Week</h3>
+        </div>
+        <span className="text-xs text-muted-foreground">{stats.totalSessions} games</span>
       </div>
 
-      {/* Stats - Simple horizontal layout */}
-      <div className="flex items-center justify-around">
-        {/* Sessions */}
-        <div className="text-center">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-            <Trophy className="h-5 w-5 text-primary" />
+      {/* Fast Thinking Stats */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-card/50 to-transparent border border-amber-500/20">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+            <Zap className="h-4 w-4 text-amber-400" />
           </div>
-          <p className="text-xl font-bold">{stats.totalSessions}</p>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Games</p>
+          <div>
+            <p className="text-sm font-medium text-foreground">Fast Thinking</p>
+            <p className="text-[10px] text-muted-foreground">System 1 • Intuitive</p>
+          </div>
+          <div className="ml-auto text-right">
+            <p className="text-lg font-bold text-amber-400">{fastAccuracy}%</p>
+            <p className="text-[9px] text-muted-foreground uppercase">Accuracy</p>
+          </div>
         </div>
-
-        {/* Divider */}
-        <div className="h-12 w-px bg-border/50" />
-
-        {/* Score */}
-        <div className="text-center">
-          <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-2">
-            <TrendingUp className="h-5 w-5 text-blue-400" />
+        
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-400" />
+            <span className="text-sm font-semibold text-green-400">{stats.fastCorrect}</span>
+            <span className="text-xs text-muted-foreground">correct</span>
           </div>
-          <p className="text-xl font-bold">{stats.avgScore}%</p>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Avg Score</p>
+          <div className="flex items-center gap-2">
+            <XCircle className="h-4 w-4 text-red-400/70" />
+            <span className="text-sm font-semibold text-red-400/70">{stats.fastWrong}</span>
+            <span className="text-xs text-muted-foreground">wrong</span>
+          </div>
         </div>
+      </div>
 
-        {/* Divider */}
-        <div className="h-12 w-px bg-border/50" />
-
-        {/* Accuracy */}
-        <div className="text-center">
-          <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-2">
-            <Target className="h-5 w-5 text-green-400" />
+      {/* Slow Thinking Stats */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-card/50 to-transparent border border-cyan-500/20">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+            <Brain className="h-4 w-4 text-cyan-400" />
           </div>
-          <p className="text-xl font-bold">{stats.accuracy}%</p>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Accuracy</p>
+          <div>
+            <p className="text-sm font-medium text-foreground">Slow Thinking</p>
+            <p className="text-[10px] text-muted-foreground">System 2 • Deliberate</p>
+          </div>
+          <div className="ml-auto text-right">
+            <p className="text-lg font-bold text-cyan-400">{slowAccuracy}%</p>
+            <p className="text-[9px] text-muted-foreground uppercase">Accuracy</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-400" />
+            <span className="text-sm font-semibold text-green-400">{stats.slowCorrect}</span>
+            <span className="text-xs text-muted-foreground">correct</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <XCircle className="h-4 w-4 text-red-400/70" />
+            <span className="text-sm font-semibold text-red-400/70">{stats.slowWrong}</span>
+            <span className="text-xs text-muted-foreground">wrong</span>
+          </div>
         </div>
       </div>
     </motion.div>
