@@ -92,7 +92,7 @@ const Home = () => {
   const { user, updateUser } = useAuth();
   const { sessionsCompleted, weeklyXPEarned, weeklyXPTarget, plan } = useWeeklyProgress();
   const { data: detoxData } = useWeeklyDetoxXP();
-  const weeklyDetoxXP = detoxData?.totalXP || 0;
+  const weeklyDetoxXP = detoxData?.totalXP ?? 0;
   const totalWeeklyXP = weeklyXPEarned + weeklyDetoxXP;
   const { cognitiveReadinessScore, isLoading: readinessLoading, cognitiveMetrics } = useCognitiveReadiness();
   const { data: userMetrics } = useUserMetrics(user?.id);
