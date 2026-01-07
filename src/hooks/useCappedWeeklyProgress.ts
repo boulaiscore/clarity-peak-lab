@@ -60,8 +60,9 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     isLoading: progressLoading,
   } = useWeeklyProgress();
 
-  const { data: detoxData, isLoading: detoxLoading } = useWeeklyDetoxXP();
-  const weeklyDetoxXP = detoxData?.totalXP || 0;
+  const { data: detoxData, isLoading: detoxLoading, isFetching: detoxFetching } = useWeeklyDetoxXP();
+  // Use 0 only when we have no cached data at all
+  const weeklyDetoxXP = detoxData?.totalXP ?? 0;
 
   return useMemo(() => {
     // Calculate individual targets
