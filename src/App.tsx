@@ -27,6 +27,7 @@ import NeuroLab from "./pages/app/NeuroLab";
 import NeuroLabArea from "./pages/app/NeuroLabArea";
 import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
 import NeuroActivationRunner from "./pages/app/NeuroActivationRunner";
+import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -235,6 +236,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DailySession />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/detox-session"
+        element={
+          <ProtectedRoute>
+            <DetoxSessionRunner />
           </ProtectedRoute>
         }
       />
