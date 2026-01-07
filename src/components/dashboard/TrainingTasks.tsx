@@ -107,7 +107,8 @@ function useWeeklyCompletedContent(userId: string | undefined) {
       // First get all logged content IDs from user_listened_podcasts (source of truth)
       const { data: loggedData, error: loggedError } = await supabase
         .from("user_listened_podcasts")
-        .select("podcast_id");
+        .select("podcast_id")
+        .eq("user_id", userId);
       
       if (loggedError) throw loggedError;
       
