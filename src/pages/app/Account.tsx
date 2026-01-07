@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useAuth, TrainingGoal, SessionDuration } from "@/contexts/AuthContext";
+import { useAuth, SessionDuration } from "@/contexts/AuthContext";
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
@@ -41,7 +41,7 @@ const Account = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
-  const [trainingGoals, setTrainingGoals] = useState<TrainingGoal[]>(user?.trainingGoals || []);
+  
   const [sessionDuration, setSessionDuration] = useState<SessionDuration | undefined>(user?.sessionDuration);
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlanId>(user?.trainingPlan || "light");
   const [isSaving, setIsSaving] = useState(false);
@@ -138,15 +138,10 @@ const Account = () => {
   useEffect(() => {
     if (user) {
       setName(user.name || "");
-      setTrainingGoals(user.trainingGoals || []);
       setSessionDuration(user.sessionDuration);
       setTrainingPlan(user.trainingPlan || "light");
     }
   }, [user]);
-
-  const toggleGoal = (goal: TrainingGoal) => {
-    setTrainingGoals((prev) => (prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]));
-  };
 
   const handleReminderToggle = async (enabled: boolean) => {
     if (enabled && permission !== "granted") {
@@ -210,7 +205,6 @@ const Account = () => {
     await new Promise((r) => setTimeout(r, 500));
     updateUser({
       name,
-      trainingGoals,
       sessionDuration,
       trainingPlan,
     });
@@ -437,45 +431,6 @@ const Account = () => {
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
             <label className="text-sm font-medium mb-3 block">Name</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="h-12" />
-          </div>
-
-          {/* Training Goals - Compact inline selection */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold flex items-center gap-2 text-sm">
-                <Brain className="w-4 h-4 text-primary" />
-                Training Focus
-              </h3>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Select which cognitive system to focus on.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => toggleGoal("fast_thinking")}
-                className={cn(
-                  "flex-1 px-3 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
-                  trainingGoals.includes("fast_thinking")
-                    ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
-                    : "border-border hover:border-amber-500/30 text-muted-foreground"
-                )}
-              >
-                <Zap className="w-3.5 h-3.5" />
-                S1 Fast
-              </button>
-              <button
-                onClick={() => toggleGoal("slow_thinking")}
-                className={cn(
-                  "flex-1 px-3 py-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-center gap-1.5",
-                  trainingGoals.includes("slow_thinking")
-                    ? "border-primary/50 bg-primary/10 text-primary"
-                    : "border-border hover:border-primary/30 text-muted-foreground"
-                )}
-              >
-                <Brain className="w-3.5 h-3.5" />
-                S2 Slow
-              </button>
-            </div>
           </div>
 
           {/* Training Plan */}
