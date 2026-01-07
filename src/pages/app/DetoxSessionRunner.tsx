@@ -54,16 +54,24 @@ export default function DetoxSessionRunner() {
     initSession();
   }, [isActive, sessionStarted, duration, blockedApps, startSession, navigate]);
 
-  // Timer sync with session
+  // Timer sync with session - COUNTDOWN mode
   useEffect(() => {
     if (isActive && activeSession) {
       const effectiveStart = timerResetAt
         ? timerResetAt.getTime()
         : new Date(activeSession.started_at).getTime();
 
+      const totalDurationSeconds = duration * 60;
+
       const updateTimer = () => {
         const elapsed = Math.floor((Date.now() - effectiveStart) / 1000);
-        setDisplaySeconds(elapsed);
+        const remaining = Math.max(totalDurationSeconds - elapsed, 0);
+        setDisplaySeconds(remaining);
+        
+        // Auto-complete when countdown reaches 0
+        if (remaining === 0 && !showSuccess) {
+          handleComplete();
+        }
       };
 
       updateTimer();
@@ -72,8 +80,11 @@ export default function DetoxSessionRunner() {
       return () => {
         if (timerRef.current) clearInterval(timerRef.current);
       };
+    } else {
+      // Initialize with full duration before session starts
+      setDisplaySeconds(duration * 60);
     }
-  }, [isActive, activeSession, timerResetAt]);
+  }, [isActive, activeSession, timerResetAt, duration, showSuccess]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -104,7 +115,9 @@ export default function DetoxSessionRunner() {
   };
 
   const handleComplete = async () => {
-    const sessionMinutes = Math.floor(displaySeconds / 60);
+    // Calculate elapsed time (duration minus remaining)
+    const elapsedSeconds = duration * 60 - displaySeconds;
+    const sessionMinutes = Math.floor(elapsedSeconds / 60);
     if (sessionMinutes < 30) {
       return; // Button should be disabled anyway
     }
@@ -112,13 +125,18 @@ export default function DetoxSessionRunner() {
     const success = await completeSession();
     if (success) {
       setShowSuccess(true);
+      const completedMinutes = Math.floor((duration * 60 - displaySeconds) / 60);
       setTimeout(() => {
         navigate("/neuro-lab");
       }, 2500);
     }
   };
 
-  const canComplete = displaySeconds >= 30 * 60; // 30 minutes minimum
+  // Calculate elapsed seconds for completion check
+  const elapsedSeconds = duration * 60 - displaySeconds;
+  const canComplete = elapsedSeconds >= 30 * 60; // 30 minutes minimum
+  // Success message uses elapsed time
+  const completedMinutes = Math.floor(elapsedSeconds / 60);
 
   return (
     <div className="min-h-screen bg-[#06070A] text-white flex flex-col">
@@ -161,7 +179,7 @@ export default function DetoxSessionRunner() {
               transition={{ delay: 0.3 }}
               className="text-white/60 text-center px-8"
             >
-              {DETOX_COGNITIVE_MESSAGES.completion.getDescription(Math.floor(displaySeconds / 60))}
+              {DETOX_COGNITIVE_MESSAGES.completion.getDescription(completedMinutes)}
             </motion.p>
           </motion.div>
         )}
