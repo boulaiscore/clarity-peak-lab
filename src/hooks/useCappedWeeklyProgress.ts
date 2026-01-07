@@ -58,9 +58,14 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     weeklyXPTarget,
     plan,
     isLoading: progressLoading,
+    isSyncing: progressSyncing,
   } = useWeeklyProgress();
 
-  const { data: detoxData, isLoading: detoxLoading } = useWeeklyDetoxXP();
+  const {
+    data: detoxData,
+    isLoading: detoxLoading,
+    isFetching: detoxFetching,
+  } = useWeeklyDetoxXP();
   // Use 0 only when we have no cached data at all
   const weeklyDetoxXP = detoxData?.totalXP ?? 0;
 
@@ -126,7 +131,7 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       tasksProgress,
       detoxProgress,
       totalProgress,
-      isLoading: progressLoading || detoxLoading,
+      isLoading: progressLoading || detoxLoading || progressSyncing || detoxFetching,
       plan,
     };
   }, [weeklyGamesXP, weeklyContentXP, weeklyDetoxXP, weeklyXPTarget, plan, progressLoading, detoxLoading]);

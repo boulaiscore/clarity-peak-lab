@@ -88,7 +88,11 @@ export function useWeeklyProgress() {
   });
 
   // Fetch weekly XP from exercise_completions table (real XP)
-  const { data: weeklyXPData, isLoading: weeklyXPLoading } = useQuery({
+  const {
+    data: weeklyXPData,
+    isLoading: weeklyXPLoading,
+    isFetching: weeklyXPFetching,
+  } = useQuery({
     queryKey: ["weekly-exercise-xp", userId, weekStart],
     queryFn: async () => {
       if (!userId) return { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] };
@@ -106,7 +110,7 @@ export function useWeeklyProgress() {
 
       // Separate XP by source (content starts with "content-" prefix)
       const contentXP = completions
-        .filter((c) => c.exercise_id.startsWith("content-"))
+        .filter((c) => c.exercise_id?.startsWith("content-"))
         .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
       const gamesXP = totalXP - contentXP;
 
@@ -114,8 +118,6 @@ export function useWeeklyProgress() {
     },
     enabled: !!userId,
     staleTime: 60_000,
-    placeholderData: (prev) =>
-      prev ?? { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] },
   });
 
   const recordSession = useMutation({
@@ -147,36 +149,36 @@ export function useWeeklyProgress() {
             plan_id: planId,
             sessions_completed: updatedSessions as unknown as Json,
           })
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .eq("week_start", weekStart)
           .select()
           .single();
 
         if (error) throw error;
         return data;
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from("weekly_training_progress")
-          .insert([{
-            user_id: user.id,
-            week_start: weekStart,
-            plan_id: planId,
-            sessions_completed: updatedSessions as unknown as Json,
-          }]);
-
-        if (error) throw error;
-        
-        // Fetch the inserted record
-        const { data: inserted } = await supabase
-          .from("weekly_training_progress")
-          .select()
-          .eq("user_id", user.id)
-          .eq("week_start", weekStart)
-          .single();
-          
-        return inserted;
       }
+
+      // Insert new record
+      const { error } = await supabase.from("weekly_training_progress").insert([
+        {
+          user_id: userId,
+          week_start: weekStart,
+          plan_id: planId,
+          sessions_completed: updatedSessions as unknown as Json,
+        },
+      ]);
+
+      if (error) throw error;
+
+      // Fetch the inserted record
+      const { data: inserted } = await supabase
+        .from("weekly_training_progress")
+        .select()
+        .eq("user_id", userId)
+        .eq("week_start", weekStart)
+        .single();
+
+      return inserted;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
@@ -213,6 +215,8 @@ export function useWeeklyProgress() {
   return {
     progress,
     isLoading: progressLoading || weeklyXPLoading,
+    // "Syncing" includes background refetches (route changes, focus, invalidations)
+    isSyncing: weeklyXPFetching,
     recordSession,
     sessionsCompleted,
     sessionsRequired,
