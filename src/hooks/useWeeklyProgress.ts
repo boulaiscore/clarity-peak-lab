@@ -20,23 +20,26 @@ interface WeeklyProgress {
 }
 
 export function useWeeklyProgress() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const queryClient = useQueryClient();
-  
+
+  // Use session user id as a stable fallback to prevent "flash-to-zero" during profile reloads
+  const userId = user?.id ?? session?.user?.id;
+
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
 
   // Fetch weekly progress record
   const { data: progress, isLoading: progressLoading } = useQuery({
-    queryKey: ["weekly-progress", user?.id, weekStart],
+    queryKey: ["weekly-progress", userId, weekStart],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!userId) return null;
 
       const { data, error } = await supabase
         .from("weekly_training_progress")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("week_start", weekStart)
         .maybeSingle();
 
@@ -46,7 +49,7 @@ export function useWeeklyProgress() {
       if (!data) {
         return {
           id: "",
-          user_id: user.id,
+          user_id: userId,
           week_start: weekStart,
           plan_id: planId,
           sessions_completed: [] as SessionCompleted[],
@@ -58,15 +61,15 @@ export function useWeeklyProgress() {
         sessions_completed: (data.sessions_completed as unknown as SessionCompleted[]) || [],
       } as WeeklyProgress;
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
     // Prevent "flash to zero" when navigating away/back: keep cache "fresh" briefly.
     staleTime: 60_000,
     placeholderData: (prev) =>
       prev ??
-      (user?.id
+      (userId
         ? {
             id: "",
-            user_id: user.id,
+            user_id: userId,
             week_start: weekStart,
             plan_id: planId,
             sessions_completed: [] as SessionCompleted[],
@@ -76,14 +79,14 @@ export function useWeeklyProgress() {
 
   // Fetch weekly XP from exercise_completions table (real XP)
   const { data: weeklyXPData, isLoading: weeklyXPLoading } = useQuery({
-    queryKey: ["weekly-exercise-xp", user?.id, weekStart],
+    queryKey: ["weekly-exercise-xp", userId, weekStart],
     queryFn: async () => {
-      if (!user?.id) return { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] };
+      if (!userId) return { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] };
 
       const { data, error } = await supabase
         .from("exercise_completions")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("week_start", weekStart);
 
       if (error) throw error;
@@ -99,7 +102,7 @@ export function useWeeklyProgress() {
 
       return { totalXP, gamesXP, contentXP, completions };
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
     staleTime: 60_000,
     placeholderData: (prev) =>
       prev ?? { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] },

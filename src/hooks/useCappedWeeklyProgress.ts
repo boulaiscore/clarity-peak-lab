@@ -1,5 +1,5 @@
 /**
- * Hook that provides capped XP values for the Weekly Training Load.
+ * Hook that provides capped XP values for the Weekly Cognitive Load.
  * XP beyond category targets does NOT count towards the total.
  */
 
