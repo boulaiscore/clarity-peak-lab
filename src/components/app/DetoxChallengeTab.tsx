@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Smartphone, Clock, 
@@ -41,6 +42,7 @@ import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
 
 export function DetoxChallengeTab() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [showGoalSettings, setShowGoalSettings] = useState(false);
@@ -140,17 +142,15 @@ export function DetoxChallengeTab() {
     proceedWithStart();
   };
 
-  const proceedWithStart = async () => {
+  const proceedWithStart = () => {
     setShowTargetExceededDialog(false);
-    setJustCompleted(false);
-    const success = await startSession(selectedDuration, selectedAppsToBlock);
-    if (!success) {
-      toast({
-        title: "Error",
-        description: "Unable to start session",
-        variant: "destructive",
-      });
-    }
+    // Navigate to full-screen detox session page
+    navigate("/detox-session", { 
+      state: { 
+        duration: selectedDuration, 
+        blockedApps: selectedAppsToBlock 
+      } 
+    });
   };
 
   const handleComplete = async () => {
