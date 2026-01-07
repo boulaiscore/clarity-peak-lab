@@ -77,6 +77,8 @@ export function useWeeklyDetoxXP() {
       return { totalXP, totalMinutes, completions };
     },
     enabled: !!user?.id,
+    staleTime: 60_000,
+    placeholderData: (prev) => prev ?? { totalXP: 0, totalMinutes: 0, completions: [] },
   });
 }
 
