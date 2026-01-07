@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gamepad2, BookMarked, CheckCircle2, Zap, Brain, Shield, Trophy } from "lucide-react";
+import { Gamepad2, BookMarked, Zap, Brain, Shield, Trophy } from "lucide-react";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
-import { XPCelebration } from "@/components/app/XPCelebration";
+import { useWeeklyLoadSnapshot, WeeklyLoadSnapshot } from "@/hooks/useWeeklyLoadSnapshot";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 
 // Mini celebration badge that appears when a category is completed
@@ -29,7 +29,6 @@ export function WeeklyGoalCard() {
     rawGamesXP,
     rawTasksXP,
     rawDetoxXP,
-    cappedTotalXP,
     totalXPTarget,
     gamesXPTarget,
     tasksXPTarget,
@@ -40,35 +39,25 @@ export function WeeklyGoalCard() {
     gamesProgress,
     tasksProgress,
     detoxProgress,
-    totalProgress,
     isLoading,
+    isFetched,
   } = useCappedWeeklyProgress();
 
-  // Avoid "flash to zero" on navigation: keep last stable snapshot while refetching.
-  const lastStable = useRef<{
-    rawGamesXP: number;
-    rawTasksXP: number;
-    rawDetoxXP: number;
-    totalXPTarget: number;
-    gamesXPTarget: number;
-    tasksXPTarget: number;
-    detoxXPTarget: number;
-    gamesComplete: boolean;
-    tasksComplete: boolean;
-    detoxComplete: boolean;
-    gamesProgress: number;
-    tasksProgress: number;
-    detoxProgress: number;
-  } | null>(null);
+  // Persistent snapshot that survives route changes (stored in React Query cache)
+  const { getSnapshot, setSnapshot } = useWeeklyLoadSnapshot();
 
-  // Only update the stable snapshot when:
-  // 1. Not loading/syncing AND
-  // 2. We have valid targets (totalXPTarget > 0) to avoid clobbering with transient zeros
+  // Update the persistent snapshot ONLY when:
+  // 1. Not loading AND
+  // 2. Queries have fetched at least once (isFetched) AND
+  // 3. Data looks valid (totalXPTarget > 0 or we have real XP)
   useEffect(() => {
     const rawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
-    const hasValidData = totalXPTarget > 0 || rawTotal > 0;
-    if (!isLoading && hasValidData) {
-      lastStable.current = {
+    const hasValidData = totalXPTarget > 0 && isFetched;
+    // Only save if we have real data (not transient zeros during mount)
+    const hasMeaningfulData = rawTotal > 0 || isFetched;
+
+    if (!isLoading && hasValidData && hasMeaningfulData) {
+      setSnapshot({
         rawGamesXP,
         rawTasksXP,
         rawDetoxXP,
@@ -82,10 +71,11 @@ export function WeeklyGoalCard() {
         gamesProgress,
         tasksProgress,
         detoxProgress,
-      };
+      });
     }
   }, [
     isLoading,
+    isFetched,
     rawGamesXP,
     rawTasksXP,
     rawDetoxXP,
@@ -99,23 +89,47 @@ export function WeeklyGoalCard() {
     gamesProgress,
     tasksProgress,
     detoxProgress,
+    setSnapshot,
   ]);
 
-  const snapshot = isLoading && lastStable.current ? lastStable.current : {
-    rawGamesXP,
-    rawTasksXP,
-    rawDetoxXP,
-    totalXPTarget,
-    gamesXPTarget,
-    tasksXPTarget,
-    detoxXPTarget,
-    gamesComplete,
-    tasksComplete,
-    detoxComplete,
-    gamesProgress,
-    tasksProgress,
-    detoxProgress,
-  };
+  // Read from persistent cache when loading or data not ready
+  const cachedSnapshot = getSnapshot();
+
+  // Build display snapshot: prefer fresh data, fallback to cache
+  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = 
+    (!isLoading && isFetched)
+      ? {
+          rawGamesXP,
+          rawTasksXP,
+          rawDetoxXP,
+          totalXPTarget,
+          gamesXPTarget,
+          tasksXPTarget,
+          detoxXPTarget,
+          gamesComplete,
+          tasksComplete,
+          detoxComplete,
+          gamesProgress,
+          tasksProgress,
+          detoxProgress,
+        }
+      : cachedSnapshot
+        ? cachedSnapshot
+        : {
+            rawGamesXP,
+            rawTasksXP,
+            rawDetoxXP,
+            totalXPTarget,
+            gamesXPTarget,
+            tasksXPTarget,
+            detoxXPTarget,
+            gamesComplete,
+            tasksComplete,
+            detoxComplete,
+            gamesProgress,
+            tasksProgress,
+            detoxProgress,
+          };
 
   // Display should be consistent across Home/Lab/Dashboard:
   // show RAW earned XP, while progress remains capped to the weekly target.
@@ -140,7 +154,8 @@ export function WeeklyGoalCard() {
     prevGoalReached.current = goalReached;
   }, [goalReached]);
 
-  if (isLoading && !lastStable.current) {
+  // Show skeleton only if loading AND no cached snapshot available
+  if (isLoading && !cachedSnapshot) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
