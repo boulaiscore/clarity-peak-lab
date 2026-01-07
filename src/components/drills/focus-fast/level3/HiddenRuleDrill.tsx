@@ -200,11 +200,11 @@ export const HiddenRuleDrill: React.FC<HiddenRuleDrillProps> = ({ difficulty, on
       <DrillCompletionScreen
         title="Hidden Rule"
         score={score}
-        stats={[
-          { label: 'Correct', value: liveStats.hits },
-          { label: 'Wrong', value: liveStats.misses },
-          { label: 'Avg RT', value: `${avgRT}ms` },
-        ]}
+        stats={{
+          hits: liveStats.hits,
+          misses: liveStats.misses,
+          avgReactionTime: avgRT,
+        }}
         onContinue={() => onComplete({ score, accuracy: score, avgReactionTime: avgRT })}
       />
     );

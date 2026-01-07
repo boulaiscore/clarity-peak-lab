@@ -209,11 +209,12 @@ export const MultiFeatureLockDrill: React.FC<MultiFeatureLockDrillProps> = ({ di
       <DrillCompletionScreen
         title="Multi-Feature Lock"
         score={score}
-        stats={[
-          { label: 'Correct', value: liveStats.hits },
-          { label: 'Wrong', value: liveStats.falseAlarms },
-          { label: 'Avg RT', value: `${avgRT}ms` },
-        ]}
+        stats={{
+          hits: liveStats.hits,
+          misses: liveStats.misses,
+          falseAlarms: liveStats.falseAlarms,
+          avgReactionTime: avgRT,
+        }}
         onContinue={() => onComplete({ score, accuracy: score, avgReactionTime: avgRT })}
       />
     );
