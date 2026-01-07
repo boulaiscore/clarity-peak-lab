@@ -46,17 +46,23 @@ export function WeeklyGoalCard() {
   // Persistent snapshot that survives route changes (stored in React Query cache)
   const { getSnapshot, setSnapshot } = useWeeklyLoadSnapshot();
 
+  // Read from persistent cache early (used by multiple hooks below)
+  const cachedSnapshot = getSnapshot();
+
+  // These hooks MUST be called before any early returns
+  const [showCelebration, setShowCelebration] = useState(false);
+  const prevGoalReached = useRef(false);
+
   // Update the persistent snapshot ONLY when:
-  // 1. Not loading AND
-  // 2. Queries have fetched at least once (isFetched) AND
-  // 3. Data looks valid (totalXPTarget > 0 or we have real XP)
+  // - not loading AND
+  // - queries have fetched at least once AND
+  // - we have MEANINGFUL (non-zero) data, OR there is no previous snapshot yet.
+  // This prevents a transient "0" during route/tab transitions from overwriting a good snapshot.
   useEffect(() => {
     const rawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
-    const hasValidData = totalXPTarget > 0 && isFetched;
-    // Only save if we have real data (not transient zeros during mount)
-    const hasMeaningfulData = rawTotal > 0 || isFetched;
+    const hasMeaningfulData = rawTotal > 0;
 
-    if (!isLoading && hasValidData && hasMeaningfulData) {
+    if (!isLoading && isFetched && (hasMeaningfulData || !cachedSnapshot)) {
       setSnapshot({
         rawGamesXP,
         rawTasksXP,
@@ -90,50 +96,35 @@ export function WeeklyGoalCard() {
     tasksProgress,
     detoxProgress,
     setSnapshot,
+    cachedSnapshot?.savedAt,
   ]);
 
-  // Read from persistent cache when loading or data not ready
-  const cachedSnapshot = getSnapshot();
+  // Build display snapshot:
+  // - Prefer fresh data only if it's meaningful (rawTotal > 0)
+  // - Otherwise, prefer cached snapshot (so we never "flash" to 0)
+  const freshSnapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = {
+    rawGamesXP,
+    rawTasksXP,
+    rawDetoxXP,
+    totalXPTarget,
+    gamesXPTarget,
+    tasksXPTarget,
+    detoxXPTarget,
+    gamesComplete,
+    tasksComplete,
+    detoxComplete,
+    gamesProgress,
+    tasksProgress,
+    detoxProgress,
+  };
 
-  // These hooks MUST be called before any early returns
-  const [showCelebration, setShowCelebration] = useState(false);
-  const prevGoalReached = useRef(false);
-
-  // Build display snapshot: prefer fresh data, fallback to cache
-  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = 
-    (!isLoading && isFetched)
-      ? {
-          rawGamesXP,
-          rawTasksXP,
-          rawDetoxXP,
-          totalXPTarget,
-          gamesXPTarget,
-          tasksXPTarget,
-          detoxXPTarget,
-          gamesComplete,
-          tasksComplete,
-          detoxComplete,
-          gamesProgress,
-          tasksProgress,
-          detoxProgress,
-        }
+  const freshRawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
+  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> =
+    !isLoading && isFetched && freshRawTotal > 0
+      ? freshSnapshot
       : cachedSnapshot
         ? cachedSnapshot
-        : {
-            rawGamesXP,
-            rawTasksXP,
-            rawDetoxXP,
-            totalXPTarget,
-            gamesXPTarget,
-            tasksXPTarget,
-            detoxXPTarget,
-            gamesComplete,
-            tasksComplete,
-            detoxComplete,
-            gamesProgress,
-            tasksProgress,
-            detoxProgress,
-          };
+        : freshSnapshot;
 
   // Display should be consistent across Home/Lab/Dashboard:
   // show RAW earned XP, while progress remains capped to the weekly target.
