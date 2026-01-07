@@ -183,11 +183,11 @@ export const CognitiveInterferenceDrill: React.FC<CognitiveInterferenceDrillProp
       <DrillCompletionScreen
         title="Cognitive Interference"
         score={overallScore}
-        stats={[
-          { label: 'Targets', value: `${liveStats.targetHits}/${targetTotal}` },
-          { label: 'Math', value: `${liveStats.mathCorrect}/${mathTotal}` },
-          { label: 'Avg RT', value: `${avgRT}ms` },
-        ]}
+        stats={{
+          hits: liveStats.targetHits + liveStats.mathCorrect,
+          misses: liveStats.targetMisses + liveStats.mathWrong,
+          avgReactionTime: avgRT,
+        }}
         onContinue={() => onComplete({ score: overallScore, accuracy: overallScore, avgReactionTime: avgRT })}
       />
     );

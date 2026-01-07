@@ -147,12 +147,12 @@ export const ErrorRecoveryDrill: React.FC<ErrorRecoveryDrillProps> = ({ difficul
       <DrillCompletionScreen
         title="Error Recovery"
         score={score}
-        stats={[
-          { label: 'Hits', value: liveStats.hits },
-          { label: 'Errors', value: liveStats.errors },
-          { label: 'Recoveries', value: liveStats.recoveries },
-          { label: 'Avg RT', value: `${avgRT}ms` },
-        ]}
+        stats={{
+          hits: liveStats.hits,
+          misses: liveStats.misses,
+          falseAlarms: liveStats.errors,
+          avgReactionTime: avgRT,
+        }}
         onContinue={() => onComplete({ score, accuracy: score, avgReactionTime: avgRT })}
       />
     );

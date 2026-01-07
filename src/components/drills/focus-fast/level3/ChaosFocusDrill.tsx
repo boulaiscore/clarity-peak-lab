@@ -213,12 +213,12 @@ export const ChaosFocusDrill: React.FC<ChaosFocusDrillProps> = ({ difficulty, on
       <DrillCompletionScreen
         title="Chaos Focus"
         score={score}
-        stats={[
-          { label: 'Found', value: liveStats.hits },
-          { label: 'Missed', value: liveStats.misses },
-          { label: 'False', value: liveStats.falseAlarms },
-          { label: 'Avg RT', value: `${avgRT}ms` },
-        ]}
+        stats={{
+          hits: liveStats.hits,
+          misses: liveStats.misses,
+          falseAlarms: liveStats.falseAlarms,
+          avgReactionTime: avgRT,
+        }}
         onContinue={() => onComplete({ score, accuracy: score, avgReactionTime: avgRT })}
       />
     );
