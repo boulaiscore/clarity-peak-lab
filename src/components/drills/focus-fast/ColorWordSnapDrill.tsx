@@ -23,9 +23,9 @@ const COLORS = [
 
 const DURATION = 45000;
 const DIFFICULTY_CONFIG = {
-  easy: { displayTime: 2500, matchRate: 0.5 },
-  medium: { displayTime: 1800, matchRate: 0.35 },
-  hard: { displayTime: 1200, matchRate: 0.25 },
+  easy: { displayTime: 3500, matchRate: 0.5 },
+  medium: { displayTime: 2500, matchRate: 0.4 },
+  hard: { displayTime: 1800, matchRate: 0.3 },
 };
 
 export const ColorWordSnapDrill: React.FC<ColorWordSnapDrillProps> = ({ 
@@ -37,6 +37,7 @@ export const ColorWordSnapDrill: React.FC<ColorWordSnapDrillProps> = ({
   const [currentWord, setCurrentWord] = useState<{ text: string; color: string; isMatch: boolean } | null>(null);
   const [showFeedback, setShowFeedback] = useState<'correct' | 'wrong' | 'miss' | null>(null);
   const [canTap, setCanTap] = useState(true);
+  const [liveStats, setLiveStats] = useState({ hits: 0, misses: 0, falseAlarms: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, reactionTimes: [] as number[], wordStartTime: 0 });
   const startTimeRef = useRef(0);
@@ -64,6 +65,7 @@ export const ColorWordSnapDrill: React.FC<ColorWordSnapDrillProps> = ({
         if (curr === word) {
           if (word.isMatch && canTap) {
             statsRef.current.misses++;
+            setLiveStats(ls => ({ ...ls, misses: ls.misses + 1 }));
             setShowFeedback('miss');
             setTimeout(() => setShowFeedback(null), 300);
           }
@@ -110,9 +112,11 @@ export const ColorWordSnapDrill: React.FC<ColorWordSnapDrillProps> = ({
     
     if (currentWord.isMatch) {
       statsRef.current.hits++;
+      setLiveStats(ls => ({ ...ls, hits: ls.hits + 1 }));
       setShowFeedback('correct');
     } else {
       statsRef.current.falseAlarms++;
+      setLiveStats(ls => ({ ...ls, falseAlarms: ls.falseAlarms + 1 }));
       setShowFeedback('wrong');
     }
     
@@ -179,6 +183,12 @@ export const ColorWordSnapDrill: React.FC<ColorWordSnapDrillProps> = ({
         </div>
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div className="h-full bg-primary" style={{ width: `${progress * 100}%` }} />
+        </div>
+        {/* Live Stats */}
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <span className="text-green-400">✓ {liveStats.hits}</span>
+          <span className="text-amber-400">○ {liveStats.misses}</span>
+          <span className="text-red-400">✗ {liveStats.falseAlarms}</span>
         </div>
       </div>
 

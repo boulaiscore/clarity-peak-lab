@@ -16,9 +16,9 @@ interface SignalFilterDrillProps {
 
 const DURATION = 45000;
 const DIFFICULTY_CONFIG = {
-  easy: { noiseLevel: 3, patternLength: 3, speed: 800 },
-  medium: { noiseLevel: 5, patternLength: 4, speed: 600 },
-  hard: { noiseLevel: 7, patternLength: 5, speed: 450 },
+  easy: { noiseLevel: 3, patternLength: 3, speed: 1200 },
+  medium: { noiseLevel: 5, patternLength: 3, speed: 900 },
+  hard: { noiseLevel: 7, patternLength: 4, speed: 650 },
 };
 
 export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({ 
@@ -31,6 +31,7 @@ export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({
   const [targetPattern, setTargetPattern] = useState<string[]>([]);
   const [currentMatch, setCurrentMatch] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [liveStats, setLiveStats] = useState({ hits: 0, falseAlarms: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, reactionTimes: [] as number[], patternStartTime: 0 });
   const startTimeRef = useRef(0);
@@ -114,10 +115,12 @@ export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({
       const rt = Date.now() - statsRef.current.patternStartTime;
       statsRef.current.reactionTimes.push(rt);
       statsRef.current.hits++;
+      setLiveStats(ls => ({ ...ls, hits: ls.hits + 1 }));
       setFeedback('correct');
       setCurrentMatch(m => m + 1);
     } else {
       statsRef.current.falseAlarms++;
+      setLiveStats(ls => ({ ...ls, falseAlarms: ls.falseAlarms + 1 }));
       setFeedback('wrong');
     }
     
@@ -185,6 +188,11 @@ export const SignalFilterDrill: React.FC<SignalFilterDrillProps> = ({
         </div>
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div className="h-full bg-primary" style={{ width: `${progress * 100}%` }} />
+        </div>
+        {/* Live Stats */}
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <span className="text-green-400">✓ {liveStats.hits}</span>
+          <span className="text-red-400">✗ {liveStats.falseAlarms}</span>
         </div>
       </div>
 

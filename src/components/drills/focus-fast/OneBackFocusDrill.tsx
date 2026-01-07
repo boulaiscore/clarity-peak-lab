@@ -18,9 +18,9 @@ const SHAPES = ['●', '■', '▲', '◆', '★'];
 const DURATION = 45000;
 
 const DIFFICULTY_CONFIG = {
-  easy: { displayTime: 2000, matchRate: 0.35 },
-  medium: { displayTime: 1500, matchRate: 0.30 },
-  hard: { displayTime: 1000, matchRate: 0.25 },
+  easy: { displayTime: 3000, matchRate: 0.35 },
+  medium: { displayTime: 2200, matchRate: 0.30 },
+  hard: { displayTime: 1500, matchRate: 0.25 },
 };
 
 export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({ 
@@ -34,6 +34,7 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
   const [isMatch, setIsMatch] = useState(false);
   const [responded, setResponded] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [liveStats, setLiveStats] = useState({ hits: 0, misses: 0, falseAlarms: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, correctRejects: 0, reactionTimes: [] as number[], stimulusTime: 0 });
   const startTimeRef = useRef(0);
@@ -73,6 +74,7 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
       // Check for miss
       if (isMatch && !responded) {
         statsRef.current.misses++;
+        setLiveStats(ls => ({ ...ls, misses: ls.misses + 1 }));
       } else if (!isMatch && !responded) {
         statsRef.current.correctRejects++;
       }
@@ -94,9 +96,11 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
     
     if (isMatch) {
       statsRef.current.hits++;
+      setLiveStats(ls => ({ ...ls, hits: ls.hits + 1 }));
       setFeedback('correct');
     } else {
       statsRef.current.falseAlarms++;
+      setLiveStats(ls => ({ ...ls, falseAlarms: ls.falseAlarms + 1 }));
       setFeedback('wrong');
     }
     
@@ -160,6 +164,12 @@ export const OneBackFocusDrill: React.FC<OneBackFocusDrillProps> = ({
         </div>
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div className="h-full bg-primary" style={{ width: `${progress * 100}%` }} />
+        </div>
+        {/* Live Stats */}
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <span className="text-green-400">✓ {liveStats.hits}</span>
+          <span className="text-amber-400">○ {liveStats.misses}</span>
+          <span className="text-red-400">✗ {liveStats.falseAlarms}</span>
         </div>
       </div>
 

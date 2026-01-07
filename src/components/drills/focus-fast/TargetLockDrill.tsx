@@ -28,9 +28,9 @@ const SYMBOLS: SymbolType[] = ['circle', 'square', 'triangle', 'diamond', 'star'
 const DURATION = 45000;
 
 const DIFFICULTY_CONFIG = {
-  easy: { spawnRate: 1200, maxItems: 4, distractorCount: 2 },
-  medium: { spawnRate: 900, maxItems: 6, distractorCount: 4 },
-  hard: { spawnRate: 600, maxItems: 8, distractorCount: 6 },
+  easy: { spawnRate: 2000, maxItems: 3, lifetime: 4000 },
+  medium: { spawnRate: 1500, maxItems: 5, lifetime: 3000 },
+  hard: { spawnRate: 1000, maxItems: 7, lifetime: 2500 },
 };
 
 const SymbolShape: React.FC<{ type: SymbolType; size?: number; isTarget?: boolean }> = ({ 
@@ -67,9 +67,11 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
   const [target, setTarget] = useState<SymbolType>('circle');
   const [stimuli, setStimuli] = useState<Stimulus[]>([]);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [liveStats, setLiveStats] = useState({ hits: 0, misses: 0, falseAlarms: 0 });
   
   const statsRef = useRef({ hits: 0, misses: 0, falseAlarms: 0, reactionTimes: [] as number[], lastTargetTime: 0 });
   const startTimeRef = useRef(0);
+  const stimuliTimestamps = useRef<Map<string, number>>(new Map());
   const idRef = useRef(0);
   const config = DIFFICULTY_CONFIG[difficulty];
 
@@ -91,6 +93,7 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
     
     startTimeRef.current = Date.now();
     setTarget(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+    stimuliTimestamps.current.clear();
     
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
@@ -105,6 +108,7 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
     
     const spawner = setInterval(() => {
       const newStim = generateStimulus();
+      stimuliTimestamps.current.set(newStim.id, Date.now());
       if (newStim.isTarget) statsRef.current.lastTargetTime = Date.now();
       
       setStimuli(prev => {
@@ -114,10 +118,16 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
     }, config.spawnRate);
     
     const cleaner = setInterval(() => {
+      const now = Date.now();
       setStimuli(prev => prev.filter(s => {
-        const age = Date.now() - parseInt(s.id.split('-')[1]) * 10;
-        if (age > 3000 && s.isTarget) statsRef.current.misses++;
-        return age < 3000;
+        const timestamp = stimuliTimestamps.current.get(s.id) || now;
+        const age = now - timestamp;
+        if (age > config.lifetime && s.isTarget) {
+          statsRef.current.misses++;
+          setLiveStats(ls => ({ ...ls, misses: ls.misses + 1 }));
+          stimuliTimestamps.current.delete(s.id);
+        }
+        return age < config.lifetime;
       }));
     }, 500);
     
@@ -129,18 +139,22 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
   }, [phase, generateStimulus, config]);
 
   const handleTap = useCallback((stim: Stimulus) => {
+    stimuliTimestamps.current.delete(stim.id);
+    
     if (stim.isTarget) {
       const rt = Date.now() - statsRef.current.lastTargetTime;
-      if (rt < 2000) statsRef.current.reactionTimes.push(rt);
+      if (rt < 3000) statsRef.current.reactionTimes.push(rt);
       statsRef.current.hits++;
+      setLiveStats(ls => ({ ...ls, hits: ls.hits + 1 }));
       setFeedback('correct');
     } else {
       statsRef.current.falseAlarms++;
+      setLiveStats(ls => ({ ...ls, falseAlarms: ls.falseAlarms + 1 }));
       setFeedback('wrong');
     }
     
     setStimuli(prev => prev.filter(s => s.id !== stim.id));
-    setTimeout(() => setFeedback(null), 200);
+    setTimeout(() => setFeedback(null), 300);
   }, []);
 
   useEffect(() => {
@@ -204,6 +218,12 @@ export const TargetLockDrill: React.FC<TargetLockDrillProps> = ({
         </div>
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div className="h-full bg-primary" style={{ width: `${progress * 100}%` }} />
+        </div>
+        {/* Live Stats */}
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <span className="text-green-400">✓ {liveStats.hits}</span>
+          <span className="text-amber-400">○ {liveStats.misses}</span>
+          <span className="text-red-400">✗ {liveStats.falseAlarms}</span>
         </div>
       </div>
 

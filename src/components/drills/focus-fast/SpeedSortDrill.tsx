@@ -27,9 +27,9 @@ const OBJECTS = ['Chair', 'Phone', 'Book', 'Cup', 'Lamp', 'Key', 'Clock', 'Shoe'
 
 const DURATION = 45000;
 const DIFFICULTY_CONFIG = {
-  easy: { itemTime: 3500 },
-  medium: { itemTime: 2500 },
-  hard: { itemTime: 1800 },
+  easy: { itemTime: 5000 },
+  medium: { itemTime: 3500 },
+  hard: { itemTime: 2500 },
 };
 
 export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({ 
@@ -40,6 +40,7 @@ export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [currentItem, setCurrentItem] = useState<SortItem | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [liveStats, setLiveStats] = useState({ correct: 0, wrong: 0 });
   
   const statsRef = useRef({ correct: 0, wrong: 0, reactionTimes: [] as number[], itemStartTime: 0 });
   const startTimeRef = useRef(0);
@@ -101,9 +102,11 @@ export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({
     
     if (isCorrect) {
       statsRef.current.correct++;
+      setLiveStats(ls => ({ ...ls, correct: ls.correct + 1 }));
       setFeedback('correct');
     } else {
       statsRef.current.wrong++;
+      setLiveStats(ls => ({ ...ls, wrong: ls.wrong + 1 }));
       setFeedback('wrong');
     }
     
@@ -182,6 +185,11 @@ export const SpeedSortDrill: React.FC<SpeedSortDrillProps> = ({
         </div>
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div className="h-full bg-primary" style={{ width: `${progress * 100}%` }} />
+        </div>
+        {/* Live Stats */}
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <span className="text-green-400">✓ {liveStats.correct}</span>
+          <span className="text-red-400">✗ {liveStats.wrong}</span>
         </div>
       </div>
 
