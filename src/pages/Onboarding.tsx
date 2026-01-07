@@ -588,31 +588,69 @@ const Onboarding = () => {
               </div>
               
               <div className="space-y-3 mb-6">
-                {planOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => setTrainingPlan(option.id)}
-                    className={cn(
-                      "w-full py-4 px-4 rounded-xl border text-left transition-all",
-                      trainingPlan === option.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border/60 bg-card/50 hover:border-primary/40"
-                    )}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", option.color)}>
-                        <option.icon className="w-5 h-5" />
+                {planOptions.map((option) => {
+                  const intensityDots = option.plan.intensity === "low" ? 1 : option.plan.intensity === "medium" ? 2 : 3;
+                  const resultsDots = option.plan.intensity === "low" ? 1 : option.plan.intensity === "medium" ? 2 : 3;
+                  
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => setTrainingPlan(option.id)}
+                      className={cn(
+                        "w-full py-4 px-4 rounded-xl border text-left transition-all",
+                        trainingPlan === option.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border/60 bg-card/50 hover:border-primary/40"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", option.color)}>
+                          <option.icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold text-[14px] block mb-1">{option.plan.name}</span>
+                          <p className="text-[12px] text-muted-foreground mb-2">{option.plan.tagline}</p>
+                          
+                          {/* Visual indicators */}
+                          <div className="flex items-center gap-4 text-[11px]">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-muted-foreground/60">Effort</span>
+                              <div className="flex gap-0.5">
+                                {[1, 2, 3].map((dot) => (
+                                  <div 
+                                    key={dot}
+                                    className={cn(
+                                      "w-2 h-2 rounded-full transition-all",
+                                      dot <= intensityDots 
+                                        ? option.id === "light" ? "bg-emerald-400" : option.id === "expert" ? "bg-blue-400" : "bg-red-400"
+                                        : "bg-muted-foreground/20"
+                                    )}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-muted-foreground/60">Results</span>
+                              <div className="flex gap-0.5">
+                                {[1, 2, 3].map((dot) => (
+                                  <div 
+                                    key={dot}
+                                    className={cn(
+                                      "w-2 h-2 rounded-full transition-all",
+                                      dot <= resultsDots 
+                                        ? "bg-primary" 
+                                        : "bg-muted-foreground/20"
+                                    )}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-[14px] block mb-1">{option.plan.name}</span>
-                        <p className="text-[12px] text-muted-foreground mb-1.5">{option.plan.tagline}</p>
-                        <p className="text-[11px] text-muted-foreground/70">
-                          {option.plan.sessionsPerWeek} sessions/week • {option.plan.contentPerWeek} content/week
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
 
               <Button
