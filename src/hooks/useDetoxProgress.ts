@@ -85,6 +85,9 @@ export function useWeeklyDetoxXP() {
     },
     enabled: !!userId,
     staleTime: 60_000,
+    gcTime: 10 * 60 * 1000, // 10 min – reduce aggressive eviction
+    // Keep previous data during refetch/mount to prevent flash to zero
+    placeholderData: (prev) => prev ?? { totalXP: 0, totalMinutes: 0, completions: [] },
   });
 }
 
