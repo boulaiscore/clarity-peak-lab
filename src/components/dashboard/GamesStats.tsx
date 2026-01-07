@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { startOfWeek, format } from "date-fns";
 import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, XCircle } from "lucide-react";
 
 interface AreaStats {
@@ -27,9 +28,11 @@ interface GamesStatsData {
 
 export function GamesStats() {
   const { user } = useAuth();
+  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   
-  const { data: completions = [], isLoading } = useQuery({
-    queryKey: ["exercise-completions-stats", user?.id],
+  // Use neuro_gym_sessions for accurate game/session counts
+  const { data: sessions = [], isLoading } = useQuery({
+    queryKey: ["neuro-gym-sessions-stats", user?.id, weekStart],
     queryFn: async () => {
       if (!user?.id) return [];
       
@@ -37,10 +40,9 @@ export function GamesStats() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
       const { data, error } = await supabase
-        .from("exercise_completions")
+        .from("neuro_gym_sessions")
         .select("*")
         .eq("user_id", user.id)
-        .neq("gym_area", "content") // Exclude content/tasks
         .gte("completed_at", sevenDaysAgo.toISOString())
         .order("completed_at", { ascending: false });
       
@@ -51,10 +53,10 @@ export function GamesStats() {
   });
 
   const stats = useMemo((): GamesStatsData | null => {
-    if (!completions.length) return null;
+    if (!sessions.length) return null;
 
     const result: GamesStatsData = {
-      totalGames: completions.length,
+      totalGames: sessions.length,
       system1: { total: 0, correct: 0, wrong: 0, accuracy: 0 },
       system2: { total: 0, correct: 0, wrong: 0, accuracy: 0 },
       focus: { total: 0, correct: 0, wrong: 0, accuracy: 0 },
@@ -63,68 +65,68 @@ export function GamesStats() {
       overallAccuracy: 0,
     };
 
-    let totalCorrect = 0;
-    let totalWrong = 0;
+    let totalCorrectAnswers = 0;
+    let totalQuestions = 0;
 
-    completions.forEach(completion => {
-      const mode = completion.thinking_mode as string;
-      const area = (completion.gym_area as string) || "focus";
-      const score = completion.score || 0;
-      const isCorrect = score >= 50;
+    sessions.forEach(session => {
+      const area = (session.area as string) || "focus";
+      const correctAnswers = session.correct_answers || 0;
+      const questions = session.total_questions || 1;
+      const sessionAccuracy = questions > 0 ? (correctAnswers / questions) * 100 : 0;
+      const isGoodSession = sessionAccuracy >= 50;
 
-      // Count overall
-      if (isCorrect) totalCorrect++;
-      else totalWrong++;
+      totalCorrectAnswers += correctAnswers;
+      totalQuestions += questions;
 
-      // By System
-      const isSystem1 = mode === "fast" || ["focus", "memory"].includes(area);
+      // By System - focus/memory/visual are System 1, reasoning/creativity/control are System 2
+      const isSystem1 = ["focus", "memory", "visual"].includes(area);
       if (isSystem1) {
         result.system1.total++;
-        if (isCorrect) result.system1.correct++;
-        else result.system1.wrong++;
+        result.system1.correct += correctAnswers;
+        result.system1.wrong += (questions - correctAnswers);
       } else {
         result.system2.total++;
-        if (isCorrect) result.system2.correct++;
-        else result.system2.wrong++;
+        result.system2.correct += correctAnswers;
+        result.system2.wrong += (questions - correctAnswers);
       }
 
       // By Area
-      if (area === "focus" || area === "memory") {
+      if (area === "focus" || area === "memory" || area === "visual") {
         result.focus.total++;
-        if (isCorrect) result.focus.correct++;
-        else result.focus.wrong++;
+        result.focus.correct += correctAnswers;
+        result.focus.wrong += (questions - correctAnswers);
       } else if (area === "reasoning" || area === "control") {
         result.reasoning.total++;
-        if (isCorrect) result.reasoning.correct++;
-        else result.reasoning.wrong++;
+        result.reasoning.correct += correctAnswers;
+        result.reasoning.wrong += (questions - correctAnswers);
       } else if (area === "creativity") {
         result.creativity.total++;
-        if (isCorrect) result.creativity.correct++;
-        else result.creativity.wrong++;
+        result.creativity.correct += correctAnswers;
+        result.creativity.wrong += (questions - correctAnswers);
       } else {
         // Default to focus for unknown areas
         result.focus.total++;
-        if (isCorrect) result.focus.correct++;
-        else result.focus.wrong++;
+        result.focus.correct += correctAnswers;
+        result.focus.wrong += (questions - correctAnswers);
       }
     });
 
-    // Calculate accuracies
-    result.system1.accuracy = result.system1.total > 0 
-      ? Math.round((result.system1.correct / result.system1.total) * 100) : 0;
-    result.system2.accuracy = result.system2.total > 0 
-      ? Math.round((result.system2.correct / result.system2.total) * 100) : 0;
-    result.focus.accuracy = result.focus.total > 0 
-      ? Math.round((result.focus.correct / result.focus.total) * 100) : 0;
-    result.reasoning.accuracy = result.reasoning.total > 0 
-      ? Math.round((result.reasoning.correct / result.reasoning.total) * 100) : 0;
-    result.creativity.accuracy = result.creativity.total > 0 
-      ? Math.round((result.creativity.correct / result.creativity.total) * 100) : 0;
-    result.overallAccuracy = result.totalGames > 0 
-      ? Math.round((totalCorrect / result.totalGames) * 100) : 0;
+    // Calculate accuracies based on total correct/wrong answers
+    const s1Total = result.system1.correct + result.system1.wrong;
+    const s2Total = result.system2.correct + result.system2.wrong;
+    const focusTotal = result.focus.correct + result.focus.wrong;
+    const reasoningTotal = result.reasoning.correct + result.reasoning.wrong;
+    const creativityTotal = result.creativity.correct + result.creativity.wrong;
+
+    result.system1.accuracy = s1Total > 0 ? Math.round((result.system1.correct / s1Total) * 100) : 0;
+    result.system2.accuracy = s2Total > 0 ? Math.round((result.system2.correct / s2Total) * 100) : 0;
+    result.focus.accuracy = focusTotal > 0 ? Math.round((result.focus.correct / focusTotal) * 100) : 0;
+    result.reasoning.accuracy = reasoningTotal > 0 ? Math.round((result.reasoning.correct / reasoningTotal) * 100) : 0;
+    result.creativity.accuracy = creativityTotal > 0 ? Math.round((result.creativity.correct / creativityTotal) * 100) : 0;
+    result.overallAccuracy = totalQuestions > 0 ? Math.round((totalCorrectAnswers / totalQuestions) * 100) : 0;
 
     return result;
-  }, [completions]);
+  }, [sessions]);
 
   if (isLoading) {
     return (

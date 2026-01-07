@@ -229,9 +229,9 @@ export function WeeklyGoalCard() {
                 <CategoryCompleteBadge show={snapshot.gamesComplete} />
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground">{Math.round(snapshot.gamesProgress)}%</div>
+              <div className="text-[10px] text-muted-foreground">{Math.min(100, Math.round(snapshot.gamesProgress))}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(snapshot.rawGamesXP)}/{Math.round(snapshot.gamesXPTarget)} XP
+                  {Math.min(Math.round(snapshot.rawGamesXP), Math.round(snapshot.gamesXPTarget))}/{Math.round(snapshot.gamesXPTarget)} XP
                 </div>
               </div>
             </div>
@@ -259,9 +259,9 @@ export function WeeklyGoalCard() {
                 <CategoryCompleteBadge show={snapshot.tasksComplete} />
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground">{Math.round(snapshot.tasksProgress)}%</div>
+              <div className="text-[10px] text-muted-foreground">{Math.min(100, Math.round(snapshot.tasksProgress))}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(snapshot.rawTasksXP)}/{Math.round(snapshot.tasksXPTarget)} XP
+                  {Math.min(Math.round(snapshot.rawTasksXP), Math.round(snapshot.tasksXPTarget))}/{Math.round(snapshot.tasksXPTarget)} XP
                 </div>
               </div>
             </div>
@@ -289,9 +289,9 @@ export function WeeklyGoalCard() {
                 <CategoryCompleteBadge show={snapshot.detoxComplete} />
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground">{Math.round(snapshot.detoxProgress)}%</div>
+              <div className="text-[10px] text-muted-foreground">{Math.min(100, Math.round(snapshot.detoxProgress))}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(snapshot.rawDetoxXP)}/{Math.round(snapshot.detoxXPTarget)} XP
+                  {Math.min(Math.round(snapshot.rawDetoxXP), Math.round(snapshot.detoxXPTarget))}/{Math.round(snapshot.detoxXPTarget)} XP
                 </div>
               </div>
             </div>
