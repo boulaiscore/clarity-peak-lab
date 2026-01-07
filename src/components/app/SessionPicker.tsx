@@ -167,12 +167,12 @@ export function SessionPicker({
 
         {/* Content */}
         <div className="p-4 space-y-4">
-          {/* Weekly XP Progress */}
+          {/* Weekly Load Progress */}
           <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Star className="w-4 h-4 text-amber-400" />
-                <span className="text-[12px] font-semibold">Weekly Progress</span>
+                <span className="text-[12px] font-semibold">Weekly Cognitive Load</span>
               </div>
               <span className="text-[12px] font-bold text-amber-400">
                 {weeklyXPEarned} / {weeklyXPTarget} XP
@@ -187,7 +187,7 @@ export function SessionPicker({
               />
             </div>
             <p className="text-[10px] text-muted-foreground mt-2">
-              Complete this session to earn <span className="text-amber-400 font-semibold">+{totalSessionXP} XP</span>
+              Complete this session to secure <span className="text-amber-400 font-semibold">+{totalSessionXP} XP</span> of cognitive load.
             </p>
           </div>
 
@@ -293,7 +293,7 @@ export function SessionPicker({
           {/* Tip */}
           <div className="p-3 rounded-xl bg-primary/5 border border-primary/20">
             <p className="text-[10px] text-muted-foreground">
-              <span className="font-medium text-primary">💡 Why these activities?</span> Your plan requires {weeklyXPTarget} XP/week. Games train cognitive skills, content reinforces deep learning.
+              <span className="font-medium text-primary">Why this protocol:</span> Your plan sets {weeklyXPTarget} XP/week. Games train execution. Content builds depth. Detox restores decision capacity.
             </p>
           </div>
         </div>

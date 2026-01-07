@@ -124,12 +124,12 @@ export const TASK_COGNITIVE_PURPOSES = {
 
 // Weekly goal cognitive framing
 export const WEEKLY_GOAL_MESSAGES = {
-  headline: "Weekly Training Load",
-  subtitle: "Building cognitive resilience",
+  headline: "Weekly Cognitive Load",
+  subtitle: "Compounding cognitive resilience",
   categories: {
     games: {
       label: "Games",
-      benefit: "Sharpens response clarity",
+      benefit: "Sharpens execution under pressure",
     },
     tasks: {
       label: "Tasks",
@@ -137,20 +137,20 @@ export const WEEKLY_GOAL_MESSAGES = {
     },
     detox: {
       label: "Detox",
-      benefit: "Restores decision capacity",
+      benefit: "Recovers decision capacity",
     },
   },
   getProgressMessage: (remaining: number, total: number) => {
     const percentage = ((total - remaining) / total) * 100;
-    if (percentage >= 100) return "Weekly target reached. Cognitive capacity sustained.";
-    if (percentage >= 70) return `${remaining} more to consolidate this week's gains`;
-    if (percentage >= 40) return `${remaining} more to build weekly resilience`;
-    return `${remaining} more to establish this week's foundation`;
+    if (percentage >= 100) return "Weekly target secured. Cognitive capacity sustained.";
+    if (percentage >= 70) return `${remaining} more to lock in this week's gains`;
+    if (percentage >= 40) return `${remaining} more to maintain momentum`;
+    return `${remaining} more to establish this week's baseline`;
   },
   // Messages for target exceeded warning
   targetExceededWarning: {
     title: "Target Reached",
-    description: "You've already reached this week's target for this category. Additional activity won't contribute to your Weekly Training Load.",
+    description: "You've already reached this week's target for this category. Additional activity won't contribute to your Weekly Cognitive Load.",
     confirmLabel: "Continue anyway",
     cancelLabel: "Go back",
   },
