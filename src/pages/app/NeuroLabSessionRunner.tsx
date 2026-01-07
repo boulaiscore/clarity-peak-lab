@@ -54,6 +54,7 @@ export default function NeuroLabSessionRunner() {
   const area = (pathArea || searchParams.get("area")) as NeuroLabArea;
   const duration = searchParams.get("duration") as NeuroLabDuration;
   const thinkingMode = searchParams.get("mode") as "fast" | "slow" | null;
+  const exerciseId = searchParams.get("exerciseId"); // Single exercise mode
   const isDailyTraining = searchParams.get("daily") === "true" && !isDailyCompleted;
   const sessionTypeParam = searchParams.get("sessionType") as SessionType | null;
   
@@ -91,21 +92,33 @@ export default function NeuroLabSessionRunner() {
     }
     
     if (allExercises && allExercises.length > 0 && area && !sessionStarted && !completedLoading) {
-      const exercises = generateNeuroLabSession(
-        area, 
-        duration || "2min", 
-        allExercises,
-        user?.trainingGoals,
-        thinkingMode || undefined,
-        completedExerciseIds
-      );
+      let exercises: CognitiveExercise[] = [];
+      
+      // Single exercise mode - when exerciseId is provided
+      if (exerciseId) {
+        const singleExercise = allExercises.find(e => e.id === exerciseId);
+        if (singleExercise) {
+          exercises = [singleExercise];
+        }
+      } else {
+        // Normal session mode - generate multiple exercises
+        exercises = generateNeuroLabSession(
+          area, 
+          duration || "2min", 
+          allExercises,
+          user?.trainingGoals,
+          thinkingMode || undefined,
+          completedExerciseIds
+        );
+      }
+      
       setSessionExercises(exercises);
       setSessionStarted(true);
       
       // Increment session counter for free users
       incrementSession.mutate();
     }
-  }, [allExercises, area, duration, user?.trainingGoals, thinkingMode, canStartSession, sessionStarted, completedExerciseIds, completedLoading]);
+  }, [allExercises, area, duration, user?.trainingGoals, thinkingMode, canStartSession, sessionStarted, completedExerciseIds, completedLoading, exerciseId]);
 
   const areaConfig = useMemo(() => {
     if (area === "neuro-activation") {
