@@ -186,10 +186,12 @@ export function useUpdateUserMetrics() {
   return useMutation({
     mutationFn: async ({ 
       userId, 
-      metricUpdates 
+      metricUpdates,
+      isBaseline = false, // When true, save values directly (for initial assessment)
     }: { 
       userId: string; 
       metricUpdates: Record<string, number>;
+      isBaseline?: boolean;
     }) => {
       // First, get current metrics
       const { data: existing, error: fetchError } = await supabase
@@ -221,27 +223,37 @@ export function useUpdateUserMetrics() {
         
         Object.entries(metricUpdates).forEach(([key, value]) => {
           const dbKey = mapMetricName(key) as keyof UserCognitiveMetrics;
-          const currentValue = (existing[dbKey] as number) || 50;
           
-          /**
-           * GRADUAL IMPROVEMENT FORMULA
-           * ===========================
-           * Formula: newValue = min(100, currentValue + earnedPoints × 0.5)
-           * 
-           * The 0.5 dampening factor ensures:
-           * 1. Scores don't inflate too quickly from single sessions
-           * 2. Consistent training over time is required for meaningful improvement
-           * 3. Maximum possible score is capped at 100
-           * 
-           * Example: If you score 80% on a medium exercise affecting reasoning_accuracy (currently 55):
-           * earnedPoints = 0.8 × 2 × 1 = 1.6
-           * newValue = 55 + 1.6 × 0.5 = 55.8
-           */
-          const newValue = Math.min(100, currentValue + value * 0.5);
-          updates[mapMetricName(key)] = Math.round(newValue * 10) / 10;
+          if (isBaseline) {
+            // For initial assessment: save value directly (current = baseline)
+            updates[mapMetricName(key)] = Math.round(value * 10) / 10;
+          } else {
+            // For training sessions: use gradual improvement formula
+            const currentValue = (existing[dbKey] as number) || 50;
+            
+            /**
+             * GRADUAL IMPROVEMENT FORMULA
+             * ===========================
+             * Formula: newValue = min(100, currentValue + earnedPoints × 0.5)
+             * 
+             * The 0.5 dampening factor ensures:
+             * 1. Scores don't inflate too quickly from single sessions
+             * 2. Consistent training over time is required for meaningful improvement
+             * 3. Maximum possible score is capped at 100
+             * 
+             * Example: If you score 80% on a medium exercise affecting reasoning_accuracy (currently 55):
+             * earnedPoints = 0.8 × 2 × 1 = 1.6
+             * newValue = 55 + 1.6 × 0.5 = 55.8
+             */
+            const newValue = Math.min(100, currentValue + value * 0.5);
+            updates[mapMetricName(key)] = Math.round(newValue * 10) / 10;
+          }
         });
         
-        updates.total_sessions = (existing.total_sessions || 0) + 1;
+        // Only increment session count for training, not baseline
+        if (!isBaseline) {
+          updates.total_sessions = (existing.total_sessions || 0) + 1;
+        }
         
         // Calculate and update Cognitive Readiness Score
         const cognitiveInput: CognitiveInput = {
@@ -271,14 +283,15 @@ export function useUpdateUserMetrics() {
         return data;
       } else {
         // Create new metrics record with proper typing
-        const newMetrics = {
+        const newMetrics: Record<string, number | string> = {
           user_id: userId,
-          total_sessions: 1,
+          total_sessions: isBaseline ? 0 : 1, // 0 sessions for baseline, as training hasn't started
           reasoning_accuracy: 50,
           clarity_score: 50,
           decision_quality: 50,
           fast_thinking: 50,
           slow_thinking: 50,
+          focus_stability: 50,
           bias_resistance: 50,
           critical_thinking_score: 50,
           creativity: 50,
@@ -286,33 +299,53 @@ export function useUpdateUserMetrics() {
         };
         
         Object.entries(metricUpdates).forEach(([key, value]) => {
-          const dbKey = mapMetricName(key) as keyof typeof newMetrics;
+          const dbKey = mapMetricName(key);
           if (dbKey in newMetrics && dbKey !== 'user_id') {
-            (newMetrics as Record<string, number | string>)[dbKey] = Math.min(100, 50 + value * 0.5);
+            if (isBaseline) {
+              // For initial assessment: save value directly
+              newMetrics[dbKey] = Math.round(value * 10) / 10;
+            } else {
+              // For training: use formula (but this shouldn't happen for new records)
+              newMetrics[dbKey] = Math.min(100, 50 + value * 0.5);
+            }
           }
         });
         
         // Calculate initial Cognitive Readiness Score for new users
         const cognitiveInput: CognitiveInput = {
-          reasoningAccuracy: newMetrics.reasoning_accuracy,
-          focusIndex: 50, // focus_stability default
+          reasoningAccuracy: Number(newMetrics.reasoning_accuracy) || 50,
+          focusIndex: Number(newMetrics.focus_stability) || 50,
           workingMemoryScore: 50, // visual_processing default
-          fastThinkingScore: newMetrics.fast_thinking,
-          slowThinkingScore: newMetrics.slow_thinking,
+          fastThinkingScore: Number(newMetrics.fast_thinking) || 50,
+          slowThinkingScore: Number(newMetrics.slow_thinking) || 50,
         };
         
         const cognitivePerformanceScore = computeCognitiveComponent(cognitiveInput);
         const cognitiveReadinessScore = computeCognitiveReadiness(null, cognitivePerformanceScore);
         const readinessClassification = classifyReadiness(cognitiveReadinessScore);
         
+        // Build insert object with proper types
+        const insertData = {
+          user_id: userId,
+          total_sessions: isBaseline ? 0 : 1,
+          reasoning_accuracy: Number(newMetrics.reasoning_accuracy) || 50,
+          clarity_score: Number(newMetrics.clarity_score) || 50,
+          decision_quality: Number(newMetrics.decision_quality) || 50,
+          fast_thinking: Number(newMetrics.fast_thinking) || 50,
+          slow_thinking: Number(newMetrics.slow_thinking) || 50,
+          focus_stability: Number(newMetrics.focus_stability) || 50,
+          bias_resistance: Number(newMetrics.bias_resistance) || 50,
+          critical_thinking_score: Number(newMetrics.critical_thinking_score) || 50,
+          creativity: Number(newMetrics.creativity) || 50,
+          philosophical_reasoning: Number(newMetrics.philosophical_reasoning) || 50,
+          cognitive_performance_score: Math.round(cognitivePerformanceScore * 10) / 10,
+          cognitive_readiness_score: Math.round(cognitiveReadinessScore * 10) / 10,
+          readiness_classification: readinessClassification,
+        };
+        
         const { data, error } = await supabase
           .from("user_cognitive_metrics")
-          .insert({
-            ...newMetrics,
-            cognitive_performance_score: Math.round(cognitivePerformanceScore * 10) / 10,
-            cognitive_readiness_score: Math.round(cognitiveReadinessScore * 10) / 10,
-            readiness_classification: readinessClassification,
-          })
+          .insert(insertData)
           .select()
           .single();
         
