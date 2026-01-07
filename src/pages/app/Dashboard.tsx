@@ -79,9 +79,13 @@ const Dashboard = () => {
     const baselineFast = metrics?.baseline_fast_thinking || 50;
     const baselineSlow = metrics?.baseline_slow_thinking || 50;
     
-    // Calculate improvement from baseline
-    const fastDelta = Math.round(currentFast - baselineFast);
-    const slowDelta = Math.round(currentSlow - baselineSlow);
+    // Only show delta if user has completed at least 1 training session
+    // (total_sessions > 0 means they've trained after baseline)
+    const hasTrainedAfterBaseline = (metrics?.total_sessions || 0) > 0;
+    
+    // Calculate improvement from baseline only if training has occurred
+    const fastDelta = hasTrainedAfterBaseline ? Math.round(currentFast - baselineFast) : 0;
+    const slowDelta = hasTrainedAfterBaseline ? Math.round(currentSlow - baselineSlow) : 0;
     
     return {
       fastScore: currentFast,
@@ -267,6 +271,7 @@ const Dashboard = () => {
                   currentFocus={metrics?.focus_stability || metrics?.baseline_focus || 50}
                   currentReasoning={metrics?.reasoning_accuracy || metrics?.baseline_reasoning || 50}
                   currentCreativity={metrics?.creativity || metrics?.baseline_creativity || 50}
+                  hasTrainedAfterBaseline={(metrics?.total_sessions || 0) > 0}
                 />
               </>
             ) : trainingSubTab === "tasks" ? (

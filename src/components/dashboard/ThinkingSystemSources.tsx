@@ -14,6 +14,7 @@ interface ThinkingSystemSourcesProps {
   currentFocus: number;
   currentReasoning: number;
   currentCreativity: number;
+  hasTrainedAfterBaseline?: boolean; // If false, don't show deltas
 }
 
 const DeltaIndicator = ({ delta }: { delta: number }) => {
@@ -29,6 +30,7 @@ export function ThinkingSystemSources({
   currentFocus,
   currentReasoning,
   currentCreativity,
+  hasTrainedAfterBaseline = false,
 }: ThinkingSystemSourcesProps) {
   // Map area names to their scores
   const areaScores: Record<string, { baseline: number; current: number }> = {
@@ -52,7 +54,8 @@ export function ThinkingSystemSources({
           const scores = areaScores[area.area];
           const baseline = Math.round(scores?.baseline || 50);
           const current = Math.round(scores?.current || 50);
-          const delta = current - baseline;
+          // Only show delta if user has completed training after baseline
+          const delta = hasTrainedAfterBaseline ? (current - baseline) : 0;
           
           return (
             <div 
