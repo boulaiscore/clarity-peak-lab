@@ -135,12 +135,25 @@ export function WeeklyGoalCard() {
     prevGoalReached.current = goalReached;
   }, [goalReached]);
 
+  if (isLoading && !lastStable.current) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4 animate-pulse"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="h-4 w-40 bg-muted/60 rounded" />
+          <div className="h-4 w-20 bg-muted/60 rounded" />
+        </div>
+        <div className="h-2 bg-muted/60 rounded-full" />
+      </motion.div>
+    );
+  }
+
   return (
     <>
-      <XPCelebration
-        show={showCelebration}
-        onComplete={() => setShowCelebration(false)}
-      />
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -163,7 +176,7 @@ export function WeeklyGoalCard() {
                 {Math.round(totalProgressDisplay)}% complete
               </div>
               <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                {Math.round(rawTotalXP)}/{Math.round(totalXPTarget)} XP
+                {Math.round(rawTotalXP)}/{Math.round(snapshot.totalXPTarget)} XP
               </div>
             </div>
           </div>
@@ -198,20 +211,20 @@ export function WeeklyGoalCard() {
                   <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.games.label}</span>
                   <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.games.benefit}</p>
                 </div>
-                <CategoryCompleteBadge show={gamesComplete} />
+                <CategoryCompleteBadge show={snapshot.gamesComplete} />
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground">{Math.round(gamesProgress)}%</div>
+                <div className="text-[10px] text-muted-foreground">{Math.round(snapshot.gamesProgress)}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(rawGamesXP)}/{Math.round(gamesXPTarget)} XP
+                  {Math.round(snapshot.rawGamesXP)}/{Math.round(snapshot.gamesXPTarget)} XP
                 </div>
               </div>
             </div>
             <div className="h-1.5 bg-blue-500/10 rounded-full overflow-hidden">
               <motion.div
-                className={`h-full rounded-full ${gamesComplete ? "bg-emerald-400" : "bg-blue-400"}`}
+                className={`h-full rounded-full ${snapshot.gamesComplete ? "bg-emerald-400" : "bg-blue-400"}`}
                 initial={false}
-                animate={{ width: `${gamesProgress}%` }}
+                animate={{ width: `${snapshot.gamesProgress}%` }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
               />
             </div>
@@ -228,20 +241,20 @@ export function WeeklyGoalCard() {
                   <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.tasks.label}</span>
                   <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.tasks.benefit}</p>
                 </div>
-                <CategoryCompleteBadge show={tasksComplete} />
+                <CategoryCompleteBadge show={snapshot.tasksComplete} />
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground">{Math.round(tasksProgress)}%</div>
+                <div className="text-[10px] text-muted-foreground">{Math.round(snapshot.tasksProgress)}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(rawTasksXP)}/{Math.round(tasksXPTarget)} XP
+                  {Math.round(snapshot.rawTasksXP)}/{Math.round(snapshot.tasksXPTarget)} XP
                 </div>
               </div>
             </div>
             <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
               <motion.div
-                className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
+                className={`h-full rounded-full ${snapshot.tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
                 initial={false}
-                animate={{ width: `${tasksProgress}%` }}
+                animate={{ width: `${snapshot.tasksProgress}%` }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
               />
             </div>
@@ -258,20 +271,20 @@ export function WeeklyGoalCard() {
                   <span className="text-[11px] font-medium text-foreground">{WEEKLY_GOAL_MESSAGES.categories.detox.label}</span>
                   <p className="text-[8px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.categories.detox.benefit}</p>
                 </div>
-                <CategoryCompleteBadge show={detoxComplete} />
+                <CategoryCompleteBadge show={snapshot.detoxComplete} />
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground">{Math.round(detoxProgress)}%</div>
+                <div className="text-[10px] text-muted-foreground">{Math.round(snapshot.detoxProgress)}%</div>
                 <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-                  {Math.round(rawDetoxXP)}/{Math.round(detoxXPTarget)} XP
+                  {Math.round(snapshot.rawDetoxXP)}/{Math.round(snapshot.detoxXPTarget)} XP
                 </div>
               </div>
             </div>
             <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
               <motion.div
-                className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-gradient-to-r from-teal-400 to-cyan-400"}`}
+                className={`h-full rounded-full ${snapshot.detoxComplete ? "bg-emerald-400" : "bg-gradient-to-r from-teal-400 to-cyan-400"}`}
                 initial={false}
-                animate={{ width: `${detoxProgress}%` }}
+                animate={{ width: `${snapshot.detoxProgress}%` }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
               />
             </div>
@@ -279,7 +292,7 @@ export function WeeklyGoalCard() {
         </div>
 
         <p className="text-[10px] text-muted-foreground">
-          {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, totalXPTarget)}
+          {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, snapshot.totalXPTarget)}
         </p>
       </motion.div>
     </>
