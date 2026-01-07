@@ -589,8 +589,9 @@ const Onboarding = () => {
               
               <div className="space-y-3 mb-6">
                 {planOptions.map((option) => {
+                  // Effort scales linearly, but results are higher to show "small nudge, big result"
                   const intensityDots = option.plan.intensity === "low" ? 1 : option.plan.intensity === "medium" ? 2 : 3;
-                  const resultsDots = option.plan.intensity === "low" ? 1 : option.plan.intensity === "medium" ? 2 : 3;
+                  const resultsDots = option.plan.intensity === "low" ? 2 : option.plan.intensity === "medium" ? 3 : 3;
                   
                   return (
                     <button
