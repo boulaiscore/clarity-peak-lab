@@ -1,68 +1,79 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNeuroLabSessions } from "@/hooks/useNeuroLab";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Gamepad2, Zap, Brain, CheckCircle2, XCircle } from "lucide-react";
-
-// Map areas to their fast/slow contribution
-const AREA_THINKING_MODE: Record<string, "fast" | "slow" | "mixed"> = {
-  focus: "fast",      // 70% fast
-  memory: "fast",     // primarily fast recall
-  control: "slow",    // executive control is slow
-  reasoning: "slow",  // 80% slow
-  creativity: "mixed", // 50/50
-};
 
 export function GamesStats() {
   const { user } = useAuth();
-  const { data: sessions = [], isLoading } = useNeuroLabSessions(user?.id);
+  
+  const { data: completions = [], isLoading } = useQuery({
+    queryKey: ["exercise-completions-stats", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .select("*")
+        .eq("user_id", user.id)
+        .neq("gym_area", "content") // Exclude content/tasks
+        .gte("completed_at", sevenDaysAgo.toISOString())
+        .order("completed_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   const stats = useMemo(() => {
-    if (!sessions.length) return null;
-
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentSessions = sessions.filter(
-      s => new Date(s.completed_at) >= sevenDaysAgo
-    );
-
-    if (recentSessions.length === 0) return null;
+    if (!completions.length) return null;
 
     let fastCorrect = 0;
     let fastWrong = 0;
     let slowCorrect = 0;
     let slowWrong = 0;
+    let totalGames = completions.length;
 
-    recentSessions.forEach(session => {
-      const area = session.area as string;
-      const mode = AREA_THINKING_MODE[area] || "mixed";
-      const correct = session.correct_answers || 0;
-      const total = session.total_questions || 0;
-      const wrong = total - correct;
-
+    completions.forEach(completion => {
+      const mode = completion.thinking_mode as string;
+      const score = completion.score || 0;
+      
+      // Score > 50 counts as correct, otherwise wrong
+      const isCorrect = score >= 50;
+      
       if (mode === "fast") {
-        fastCorrect += correct;
-        fastWrong += wrong;
+        if (isCorrect) fastCorrect++;
+        else fastWrong++;
       } else if (mode === "slow") {
-        slowCorrect += correct;
-        slowWrong += wrong;
+        if (isCorrect) slowCorrect++;
+        else slowWrong++;
       } else {
-        // Mixed: split 50/50
-        fastCorrect += Math.round(correct / 2);
-        fastWrong += Math.round(wrong / 2);
-        slowCorrect += Math.round(correct / 2);
-        slowWrong += Math.round(wrong / 2);
+        // Unknown or null - split based on gym_area
+        const area = completion.gym_area as string;
+        const isFastArea = ["focus", "memory"].includes(area);
+        if (isFastArea) {
+          if (isCorrect) fastCorrect++;
+          else fastWrong++;
+        } else {
+          if (isCorrect) slowCorrect++;
+          else slowWrong++;
+        }
       }
     });
 
     return {
-      totalSessions: recentSessions.length,
+      totalGames,
       fastCorrect,
       fastWrong,
       slowCorrect,
       slowWrong,
     };
-  }, [sessions]);
+  }, [completions]);
 
   if (isLoading) {
     return (
@@ -106,7 +117,7 @@ export function GamesStats() {
           <Gamepad2 className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold">This Week</h3>
         </div>
-        <span className="text-xs text-muted-foreground">{stats.totalSessions} games</span>
+        <span className="text-xs text-muted-foreground">{stats.totalGames} exercises</span>
       </div>
 
       {/* Fast Thinking Stats */}
