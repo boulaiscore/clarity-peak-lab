@@ -167,8 +167,8 @@ const CONCEPT_DATA: { concept: string; symbol: JSX.Element; description: string 
   },
 ];
 
-const DURATION = 30000; // 30 seconds total
-const TIME_PER_TRIAL = 7000; // 7 seconds per question
+const DURATION = 24000; // 24 seconds total (reduced for assessment)
+const TIME_PER_TRIAL = 6000; // 6 seconds per question
 
 const SymbolDisplay: React.FC<{ index: number; size?: number }> = ({ index, size = 40 }) => (
   <div style={{ width: size, height: size }}>

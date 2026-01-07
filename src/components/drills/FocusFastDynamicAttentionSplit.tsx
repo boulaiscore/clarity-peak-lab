@@ -32,8 +32,8 @@ interface Rule {
 
 const SHAPES: Shape[] = ['triangle', 'circle', 'square', 'diamond'];
 const COLORS: Color[] = ['blue', 'red', 'green', 'yellow'];
-const DURATION = 20000; // 20 seconds for assessment
-const RULE_CHANGE_INTERVAL = 10000; // 10 seconds
+const DURATION = 15000; // 15 seconds for assessment (reduced)
+const RULE_CHANGE_INTERVAL = 8000; // 8 seconds
 
 const COLOR_MAP: Record<Color, string> = {
   blue: 'hsl(210, 100%, 60%)',
