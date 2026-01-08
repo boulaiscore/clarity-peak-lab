@@ -40,13 +40,34 @@ export function useWeeklyProgress() {
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
 
   // Keep a stable userId across route changes to prevent "reset to zero" UI.
+  // Note: this hook can be mounted while AuthContext is temporarily null during route/tab transitions.
+  // We persist the last known userId so the query keys stay stable across remounts.
   const lastUserIdRef = useRef<string | undefined>(undefined);
   const computedUserId = user?.id ?? session?.user?.id;
   if (computedUserId) lastUserIdRef.current = computedUserId;
-  const userId = computedUserId ?? lastUserIdRef.current;
+
+  const persistedUserId = (() => {
+    try {
+      return localStorage.getItem("nl:lastUserId") || undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
+  const userId = computedUserId ?? lastUserIdRef.current ?? persistedUserId;
 
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
+
+  // Persist last known userId for stability across remounts (tab switches)
+  useEffect(() => {
+    if (!computedUserId) return;
+    try {
+      localStorage.setItem("nl:lastUserId", computedUserId);
+    } catch {
+      // ignore
+    }
+  }, [computedUserId]);
 
   // Lightweight instrumentation (preview runs as production, so keep it minimal)
   useEffect(() => {
