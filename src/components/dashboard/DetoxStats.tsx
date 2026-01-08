@@ -55,10 +55,10 @@ export function DetoxStats() {
   // Average session duration
   const avgDuration = sessionsCount > 0 ? Math.round(totalMinutes / sessionsCount) : 0;
 
-  // Format chart data
+  // Format chart data - use XP for consistency with other charts
   const chartData = historyData?.map(d => ({
     ...d,
-    dateShort: d.dateLabel.split(" ")[0],
+    dateShort: d.dateLabel,
   })) || [];
 
   return (
@@ -105,16 +105,17 @@ export function DetoxStats() {
         </p>
       </div>
 
-      {/* Trend Chart */}
-      {chartData.length > 0 && (
+      {/* Trend Chart - XP per day */}
+      {chartData.length > 0 && chartData.some(d => d.xp > 0) && (
         <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
             <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
+            <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="detoxGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
@@ -126,13 +127,16 @@ export function DetoxStats() {
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  interval="preserveStartEnd"
+                  interval={2}
                 />
                 <YAxis 
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  width={30}
+                  width={35}
+                  tickCount={4}
+                  domain={[0, 'auto']}
+                  tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -142,11 +146,11 @@ export function DetoxStats() {
                     fontSize: '11px'
                   }}
                   labelFormatter={(label) => `Day ${label}`}
-                  formatter={(value: number) => [`${value} min`, 'Detox']}
+                  formatter={(value: number) => [`${value} XP`, 'Detox']}
                 />
                 <Area
                   type="monotone"
-                  dataKey="minutes"
+                  dataKey="xp"
                   stroke="hsl(var(--chart-1))"
                   strokeWidth={2}
                   fill="url(#detoxGradient)"
