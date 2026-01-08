@@ -43,30 +43,32 @@ function useGamesHistory(days: number = 14) {
 
       const startDate = subDays(new Date(), days);
 
+      // Games are stored in neuro_gym_sessions (with score), not exercise_completions
+      // We calculate XP based on score: simplified formula
       const { data, error } = await supabase
-        .from("exercise_completions")
-        .select("xp_earned, completed_at")
+        .from("neuro_gym_sessions")
+        .select("score, completed_at")
         .eq("user_id", stableUserId)
-        .gte("completed_at", startDate.toISOString())
-        .not("exercise_id", "like", "content-%"); // Exclude content tasks
+        .gte("completed_at", startDate.toISOString());
 
       if (error) throw error;
 
-      // Group by date
+      // Group by date - calculate XP from score (score is already XP-like)
       const byDate: Record<string, number> = {};
       (data || []).forEach((row) => {
         const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
-        byDate[date] = (byDate[date] || 0) + (row.xp_earned || 0);
+        // Score is the XP earned per session
+        byDate[date] = (byDate[date] || 0) + (row.score || 0);
       });
 
-      // Build 14-day array
+      // Build 14-day array with consistent date format (just day number)
       const result = [];
       for (let i = days - 1; i >= 0; i--) {
         const date = subDays(new Date(), i);
         const dateStr = format(date, "yyyy-MM-dd");
         result.push({
           date: dateStr,
-          dateLabel: format(date, "dd/MM"),
+          dateLabel: format(date, "d"), // Just day number for consistency
           xp: byDate[dateStr] || 0,
         });
       }
@@ -243,7 +245,7 @@ export function GamesStats() {
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={historyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <AreaChart data={historyData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gamesGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -255,13 +257,16 @@ export function GamesStats() {
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  interval="preserveStartEnd"
+                  interval={2}
                 />
                 <YAxis 
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  width={30}
+                  width={35}
+                  tickCount={4}
+                  domain={[0, 'auto']}
+                  tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -270,7 +275,7 @@ export function GamesStats() {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
-                  labelFormatter={(label) => `${label}`}
+                  labelFormatter={(label) => `Day ${label}`}
                   formatter={(value: number) => [`${value} XP`, 'Games']}
                 />
                 <Area

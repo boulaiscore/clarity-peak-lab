@@ -222,14 +222,14 @@ function useTasksHistory(days: number = 14) {
         byDate[date] = (byDate[date] || 0) + (row.xp_earned || 0);
       });
 
-      // Build 14-day array
+      // Build 14-day array with consistent date format (just day number)
       const result = [];
       for (let i = days - 1; i >= 0; i--) {
         const date = subDays(new Date(), i);
         const dateStr = format(date, "yyyy-MM-dd");
         result.push({
           date: dateStr,
-          dateLabel: format(date, "dd/MM"),
+          dateLabel: format(date, "d"), // Just day number for consistency
           xp: byDate[dateStr] || 0,
         });
       }
@@ -600,7 +600,7 @@ export function TrainingTasks() {
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={tasksHistoryData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <AreaChart data={tasksHistoryData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
@@ -612,13 +612,16 @@ export function TrainingTasks() {
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  interval="preserveStartEnd"
+                  interval={2}
                 />
                 <YAxis 
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  width={30}
+                  width={35}
+                  tickCount={4}
+                  domain={[0, 'auto']}
+                  tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -627,7 +630,7 @@ export function TrainingTasks() {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
-                  labelFormatter={(label) => `${label}`}
+                  labelFormatter={(label) => `Day ${label}`}
                   formatter={(value: number) => [`${value} XP`, 'Tasks']}
                 />
                 <Area
