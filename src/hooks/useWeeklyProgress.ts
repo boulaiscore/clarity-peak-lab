@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { startOfWeek, format } from "date-fns";
-import { TrainingPlanId, TRAINING_PLANS, SessionType } from "@/lib/trainingPlans";
+import { startOfWeek, addDays, format } from "date-fns";
+import { TrainingPlanId, TRAINING_PLANS, SessionType, XP_VALUES } from "@/lib/trainingPlans";
 import type { Json } from "@/integrations/supabase/types";
 
 interface SessionCompleted {
@@ -115,22 +115,56 @@ export function useWeeklyProgress() {
       console.log("[useWeeklyProgress][weekly-exercise-xp][start]", { userId, weekStart });
 
       try {
-        const { data, error } = await supabase
-          .from("exercise_completions")
-          .select("exercise_id, xp_earned, week_start")
-          .eq("user_id", userId)
-          .eq("week_start", weekStart);
+        const weekStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+        const weekEndDate = addDays(weekStartDate, 7);
 
-        if (error) throw error;
+        const [exerciseRes, contentRes] = await Promise.all([
+          supabase
+            .from("exercise_completions")
+            .select("exercise_id, xp_earned, week_start")
+            .eq("user_id", userId)
+            .eq("week_start", weekStart),
 
-        const completions = (data || []) as WeeklyXPRow[];
+          // Backfill/fallback for tasks: completed content in the week should count even
+          // if older builds didn't create exercise_completions rows.
+          supabase
+            .from("monthly_content_assignments")
+            .select("content_type, content_id, completed_at, status")
+            .eq("user_id", userId)
+            .eq("status", "completed")
+            .gte("completed_at", weekStartDate.toISOString())
+            .lt("completed_at", weekEndDate.toISOString()),
+        ]);
+
+        if (exerciseRes.error) throw exerciseRes.error;
+        if (contentRes.error) throw contentRes.error;
+
+        const completions = ((exerciseRes.data || []) as WeeklyXPRow[]).filter(Boolean);
         const totalXP = completions.reduce((sum, c) => sum + (c.xp_earned || 0), 0);
 
-        // Separate XP by source (content starts with "content-" prefix)
-        const contentXP = completions
+        // Content XP from exercise_completions (newer path)
+        const contentXPFromCompletions = completions
           .filter((c) => c.exercise_id?.startsWith("content-"))
           .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
-        const gamesXP = totalXP - contentXP;
+
+        // Content XP from monthly_content_assignments (fallback/backfill)
+        const contentXPFromAssignments = (contentRes.data || []).reduce((sum, row) => {
+          const t = (row as any).content_type as string | null;
+          const normalized: "podcast" | "book" | "article" =
+            t === "reading" ? "article" : t === "book" ? "book" : "podcast";
+
+          const xp =
+            normalized === "podcast"
+              ? XP_VALUES.podcastComplete
+              : normalized === "book"
+                ? XP_VALUES.bookChapterComplete
+                : XP_VALUES.readingComplete;
+
+          return sum + xp;
+        }, 0);
+
+        const contentXP = contentXPFromCompletions > 0 ? contentXPFromCompletions : contentXPFromAssignments;
+        const gamesXP = totalXP - contentXPFromCompletions;
 
         console.log("[useWeeklyProgress][weekly-exercise-xp][ok]", {
           userId,
@@ -139,8 +173,12 @@ export function useWeeklyProgress() {
           totalXP,
           gamesXP,
           contentXP,
+          contentXPFromCompletions,
+          contentXPFromAssignments,
         });
 
+        // Note: totalXP here remains "exercise completions" total.
+        // Weekly load uses gamesXP + contentXP separately, so this is ok.
         return { totalXP, gamesXP, contentXP, completions };
       } catch (err) {
         console.error("[useWeeklyProgress][weekly-exercise-xp][error]", { userId, weekStart, err });
