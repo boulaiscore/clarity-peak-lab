@@ -111,11 +111,11 @@ export function useWeeklyProgress() {
       } as WeeklyProgress;
     },
     enabled: !!userId,
-    // Prevent "flash to zero" when navigating away/back: keep cache "fresh" briefly.
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchOnMount: false,
+    // Re-entering tabs/routes must refresh if server data changed
+    refetchOnMount: "always",
     placeholderData: (prev) =>
       prev ??
       (userId
@@ -154,8 +154,6 @@ export function useWeeklyProgress() {
             .eq("user_id", userId)
             .eq("week_start", weekStart),
 
-          // Backfill/fallback for tasks: completed content in the week should count even
-          // if older builds didn't create exercise_completions rows.
           supabase
             .from("monthly_content_assignments")
             .select("content_type, content_id, completed_at, status")
@@ -241,8 +239,8 @@ export function useWeeklyProgress() {
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchOnMount: false,
-    // Keep previous data during refetch/mount to prevent flash to zero
+    // Re-entering tabs/routes must refresh if server data changed
+    refetchOnMount: "always",
     placeholderData: (prev) => prev ?? { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] },
   });
 
