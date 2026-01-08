@@ -20,6 +20,19 @@ interface WeeklyProgress {
   sessions_completed: SessionCompleted[];
 }
 
+type WeeklyXPRow = {
+  exercise_id: string;
+  xp_earned: number;
+  week_start: string;
+};
+
+type WeeklyXPResult = {
+  totalXP: number;
+  gamesXP: number;
+  contentXP: number;
+  completions: WeeklyXPRow[];
+};
+
 export function useWeeklyProgress() {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
@@ -93,38 +106,46 @@ export function useWeeklyProgress() {
     isLoading: weeklyXPLoading,
     isFetching: weeklyXPFetching,
     isFetched: weeklyXPFetched,
-  } = useQuery({
+    error: weeklyXPError,
+  } = useQuery<WeeklyXPResult>({
     queryKey: ["weekly-exercise-xp", userId, weekStart],
-    queryFn: async () => {
+    queryFn: async (): Promise<WeeklyXPResult> => {
       if (!userId) return { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] };
 
-      const { data, error } = await supabase
-        .from("exercise_completions")
-        .select("exercise_id, xp_earned, week_start")
-        .eq("user_id", userId)
-        .eq("week_start", weekStart);
+      console.log("[useWeeklyProgress][weekly-exercise-xp][start]", { userId, weekStart });
 
-      if (error) throw error;
+      try {
+        const { data, error } = await supabase
+          .from("exercise_completions")
+          .select("exercise_id, xp_earned, week_start")
+          .eq("user_id", userId)
+          .eq("week_start", weekStart);
 
-      const completions = data || [];
-      const totalXP = completions.reduce((sum, c) => sum + ((c as any).xp_earned || 0), 0);
+        if (error) throw error;
 
-      // Separate XP by source (content starts with "content-" prefix)
-      const contentXP = completions
-        .filter((c: any) => c.exercise_id?.startsWith("content-"))
-        .reduce((sum, c: any) => sum + (c.xp_earned || 0), 0);
-      const gamesXP = totalXP - contentXP;
+        const completions = (data || []) as WeeklyXPRow[];
+        const totalXP = completions.reduce((sum, c) => sum + (c.xp_earned || 0), 0);
 
-      console.log("[useWeeklyProgress][weekly-exercise-xp]", {
-        userId,
-        weekStart,
-        n: completions.length,
-        totalXP,
-        gamesXP,
-        contentXP,
-      });
+        // Separate XP by source (content starts with "content-" prefix)
+        const contentXP = completions
+          .filter((c) => c.exercise_id?.startsWith("content-"))
+          .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
+        const gamesXP = totalXP - contentXP;
 
-      return { totalXP, gamesXP, contentXP, completions };
+        console.log("[useWeeklyProgress][weekly-exercise-xp][ok]", {
+          userId,
+          weekStart,
+          n: completions.length,
+          totalXP,
+          gamesXP,
+          contentXP,
+        });
+
+        return { totalXP, gamesXP, contentXP, completions };
+      } catch (err) {
+        console.error("[useWeeklyProgress][weekly-exercise-xp][error]", { userId, weekStart, err });
+        throw err;
+      }
     },
     enabled: !!userId,
     staleTime: 60_000,
@@ -205,15 +226,34 @@ export function useWeeklyProgress() {
   const weeklyProgress = Math.min(100, (sessionsCompleted / sessionsRequired) * 100);
 
   // Get games completed this week
-  const gamesCompletedThisWeek = progress?.sessions_completed?.reduce(
-    (sum, s) => sum + s.games_count, 0
-  ) || 0;
+  const gamesCompletedThisWeek =
+    progress?.sessions_completed?.reduce((sum, s) => sum + s.games_count, 0) || 0;
 
   // Weekly XP from real exercise completions
   const weeklyXPEarned = weeklyXPData?.totalXP || 0;
   const weeklyGamesXP = weeklyXPData?.gamesXP || 0;
   const weeklyContentXP = weeklyXPData?.contentXP || 0;
   const weeklyXPTarget = plan.weeklyXPTarget;
+
+  useEffect(() => {
+    console.log("[useWeeklyProgress][derived]", {
+      userId,
+      weekStart,
+      weeklyXPEarned,
+      weeklyGamesXP,
+      weeklyContentXP,
+      hasData: !!weeklyXPData,
+      hasError: !!weeklyXPError,
+    });
+  }, [
+    userId,
+    weekStart,
+    weeklyXPEarned,
+    weeklyGamesXP,
+    weeklyContentXP,
+    weeklyXPData,
+    weeklyXPError,
+  ]);
 
   // Get which session types have been completed
   const completedSessionTypes = progress?.sessions_completed?.map(s => s.session_type) || [];
