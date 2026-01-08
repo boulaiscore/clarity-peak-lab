@@ -48,7 +48,7 @@ export default function CognitiveReport() {
   const { user } = useAuth();
   const userId = user?.id as string;
 
-  const { loading, error, metrics, profile, badges, wearable, aggregates } = useReportData(userId);
+  const { loading, error, metrics, profile, sessions, badges, wearable, aggregates } = useReportData(userId);
   const { 
     canViewReport, 
     canDownloadPDF, 
@@ -469,7 +469,7 @@ export default function CognitiveReport() {
         <ReportDualProcess profile={profile} metrics={metrics} />
         <ReportDomains metrics={metrics} aggregates={aggregates} />
         <ReportMetaCognitive metrics={metrics} />
-        <ReportTrainingAnalytics profile={profile} metrics={metrics} aggregates={aggregates} />
+        <ReportTrainingAnalytics profile={profile} metrics={metrics} aggregates={aggregates} sessions={sessions} />
         <ReportAchievements badges={badges} />
         <ReportPhysio metrics={metrics} wearable={wearable} />
         <ReportActionable profile={profile} metrics={metrics} aggregates={aggregates} />
