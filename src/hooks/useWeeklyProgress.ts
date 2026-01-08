@@ -172,12 +172,31 @@ export function useWeeklyProgress() {
         const totalXP = completions.reduce((sum, c) => sum + (c.xp_earned || 0), 0);
 
         // Content XP from exercise_completions (newer path)
-        const contentXPFromCompletions = completions
-          .filter((c) => c.exercise_id?.startsWith("content-"))
-          .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
+        const contentRows = completions.filter((c) => c.exercise_id?.startsWith("content-"));
+
+        const contentXPFromCompletions = contentRows.reduce(
+          (sum, c) => sum + (c.xp_earned || 0),
+          0
+        );
+
+        // Track which content IDs are already represented in exercise_completions
+        const contentIdsFromCompletions = new Set<string>();
+        for (const c of contentRows) {
+          const exerciseId = String(c.exercise_id || "");
+          // Expected: content-{type}-{contentId}
+          const parts = exerciseId.split("-");
+          const contentId = parts.slice(2).join("-");
+          if (contentId) contentIdsFromCompletions.add(contentId);
+        }
 
         // Content XP from monthly_content_assignments (fallback/backfill)
-        const contentXPFromAssignments = (contentRes.data || []).reduce((sum, row) => {
+        // IMPORTANT: only add assignments that are NOT already present in exercise_completions,
+        // otherwise we under/over-count when both systems are active.
+        const contentXPFromAssignmentsMissing = (contentRes.data || []).reduce((sum, row) => {
+          const contentId = String((row as any).content_id || "");
+          if (!contentId) return sum;
+          if (contentIdsFromCompletions.has(contentId)) return sum;
+
           const t = (row as any).content_type as string | null;
           const normalized: "podcast" | "book" | "article" =
             t === "reading" ? "article" : t === "book" ? "book" : "podcast";
@@ -192,25 +211,26 @@ export function useWeeklyProgress() {
           return sum + xp;
         }, 0);
 
-        const contentXP =
-          contentXPFromCompletions > 0 ? contentXPFromCompletions : contentXPFromAssignments;
+        const contentXP = contentXPFromCompletions + contentXPFromAssignmentsMissing;
 
-        // Games XP = total XP minus the part attributable to content.
-        // IMPORTANT: subtract "contentXP" (includes the backfill path), otherwise games/tasks can flicker.
-        const gamesXP = Math.max(0, totalXP - contentXP);
+        // Games XP is derived ONLY from exercise_completions (assignments are separate backfill)
+        const gamesXP = Math.max(0, totalXP - contentXPFromCompletions);
+
+        // Total XP should include backfilled assignment XP so the weekly load is consistent
+        const totalXPAdjusted = totalXP + contentXPFromAssignmentsMissing;
 
         console.log("[useWeeklyProgress][weekly-exercise-xp][ok]", {
           userId,
           weekStart,
           n: completions.length,
-          totalXP,
+          totalXP: totalXPAdjusted,
           gamesXP,
           contentXP,
           contentXPFromCompletions,
-          contentXPFromAssignments,
+          contentXPFromAssignments: contentXPFromAssignmentsMissing,
         });
 
-        return { totalXP, gamesXP, contentXP, completions };
+        return { totalXP: totalXPAdjusted, gamesXP, contentXP, completions };
       } catch (err) {
         console.error("[useWeeklyProgress][weekly-exercise-xp][error]", { userId, weekStart, err });
         throw err;
