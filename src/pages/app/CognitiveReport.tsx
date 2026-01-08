@@ -1,11 +1,23 @@
 // src/pages/app/CognitiveReport.tsx
-import React, { useMemo, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Brain, Play } from "lucide-react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
+import { useReportAccess } from "@/hooks/useReportAccess";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import html2pdf from "html2pdf.js";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 import "@/styles/report-print.css";
 
@@ -22,16 +34,72 @@ import { ReportMethodology } from "@/components/report/ReportMethodology";
 
 export default function CognitiveReport() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const userId = user?.id as string;
 
   const { loading, error, metrics, profile, badges, wearable, aggregates } = useReportData(userId);
+  const { canViewReport, canDownloadPDF, isPremium, refetchPurchase } = useReportAccess();
 
   const printRef = useRef<HTMLDivElement>(null);
   const generatedAt = useMemo(() => new Date(), []);
   const [downloading, setDownloading] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+
+  // Handle payment return
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    if (payment === 'success') {
+      toast.success("Payment successful!", {
+        description: "Your PDF is ready to download.",
+      });
+      refetchPurchase();
+      // Clear the URL params
+      setSearchParams({});
+    } else if (payment === 'canceled') {
+      toast.info("Payment canceled", {
+        description: "You can try again anytime.",
+      });
+      setSearchParams({});
+    }
+  }, [searchParams, refetchPurchase, setSearchParams]);
+
+  const handleStripeCheckout = async () => {
+    if (!user?.id || !user?.email) {
+      toast.error("Please log in to purchase");
+      return;
+    }
+    
+    setProcessingPayment(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-report-checkout', {
+        body: {
+          userId: user.id,
+          userEmail: user.email,
+          successUrl: `${window.location.origin}/#/app/report?payment=success`,
+          cancelUrl: `${window.location.origin}/#/app/report?payment=canceled`,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error('Error creating checkout:', err);
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
 
   const handleDownloadPDF = async () => {
+    if (!canDownloadPDF) {
+      setShowPurchaseModal(true);
+      return;
+    }
+    
     if (!printRef.current) return;
     setDownloading(true);
     
@@ -56,10 +124,40 @@ export default function CognitiveReport() {
 
     try {
       await html2pdf().set(opt).from(printRef.current).save();
+      toast.success("PDF downloaded successfully!");
     } finally {
       setDownloading(false);
     }
   };
+
+  // Redirect free users to dashboard
+  if (!isPremium) {
+    return (
+      <div className="p-4 max-w-md mx-auto min-h-[60vh] flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
+          <Crown className="w-8 h-8 text-amber-400" />
+        </div>
+        <h1 className="text-lg font-semibold mb-2">Premium Feature</h1>
+        <p className="text-sm text-muted-foreground mb-6 max-w-xs">
+          The Cognitive Intelligence Report is available exclusively for Premium members.
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Link to="/app/premium">
+            <Button variant="premium" className="w-full gap-2">
+              <Crown className="w-4 h-4" />
+              Upgrade to Premium
+            </Button>
+          </Link>
+          <button 
+            onClick={() => navigate(-1)} 
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return <div className="p-6">Generating report data…</div>;
   
@@ -112,13 +210,24 @@ export default function CognitiveReport() {
             </div>
           </div>
         </div>
-        <button 
-          className="nl-btn" 
+        <Button 
+          variant={canDownloadPDF ? "default" : "outline"}
+          className="gap-2"
           onClick={handleDownloadPDF}
           disabled={downloading}
         >
-          {downloading ? "Generating..." : "Download PDF"}
-        </button>
+          {canDownloadPDF ? (
+            <>
+              <Download className="w-4 h-4" />
+              {downloading ? "Generating..." : "Download PDF"}
+            </>
+          ) : (
+            <>
+              <Lock className="w-4 h-4" />
+              Download PDF - €4.99
+            </>
+          )}
+        </Button>
       </div>
 
       <div ref={printRef} className="report-root">
@@ -133,6 +242,48 @@ export default function CognitiveReport() {
         <ReportActionable profile={profile} metrics={metrics} aggregates={aggregates} />
         <ReportMethodology />
       </div>
+
+      {/* Purchase Modal */}
+      <AlertDialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader className="text-center">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
+              <FileText className="w-7 h-7 text-primary" />
+            </div>
+            <AlertDialogTitle className="text-xl">Download PDF Report</AlertDialogTitle>
+            <div className="text-3xl font-bold text-primary mt-2">€4.99</div>
+            <AlertDialogDescription className="text-sm mt-1">
+              One-time purchase for this report
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-2 py-4">
+            {[
+              "Professional A4 PDF format",
+              "All cognitive metrics & insights",
+              "Shareable with coaches & professionals",
+              "Download valid for 7 days",
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+          
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button 
+              variant="premium" 
+              className="w-full gap-2"
+              onClick={handleStripeCheckout}
+              disabled={processingPayment}
+            >
+              {processingPayment ? "Processing..." : "Purchase & Download"}
+            </Button>
+            <AlertDialogCancel className="w-full mt-0">Maybe Later</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
