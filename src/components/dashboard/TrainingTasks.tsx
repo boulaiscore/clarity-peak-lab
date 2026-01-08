@@ -648,7 +648,8 @@ export function TrainingTasks() {
                     backgroundColor: 'hsl(var(--card))', 
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
-                    fontSize: '11px'
+                    fontSize: '11px',
+                    color: 'hsl(var(--foreground))'
                   }}
                   labelFormatter={(label) => label}
                   formatter={(value: number) => [`${value} XP`, 'Tasks']}
