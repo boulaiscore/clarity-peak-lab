@@ -53,6 +53,34 @@ export function WeeklyGoalCard() {
   const [showCelebration, setShowCelebration] = useState(false);
   const prevGoalReached = useRef(false);
 
+  // Debug: log weekly load inputs/outputs (helps diagnose cache/weekStart/user mismatches)
+  useEffect(() => {
+    // keep logs compact
+    console.log("[WeeklyGoalCard]", {
+      isLoading,
+      isFetched,
+      rawGamesXP,
+      rawTasksXP,
+      rawDetoxXP,
+      totalXPTarget,
+      gamesXPTarget,
+      tasksXPTarget,
+      detoxXPTarget,
+      cachedAt: cachedSnapshot?.savedAt,
+    });
+  }, [
+    isLoading,
+    isFetched,
+    rawGamesXP,
+    rawTasksXP,
+    rawDetoxXP,
+    totalXPTarget,
+    gamesXPTarget,
+    tasksXPTarget,
+    detoxXPTarget,
+    cachedSnapshot?.savedAt,
+  ]);
+
   // Update the persistent snapshot ONLY when:
   // - not loading AND
   // - queries have fetched at least once

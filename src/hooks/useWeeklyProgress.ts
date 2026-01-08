@@ -100,20 +100,29 @@ export function useWeeklyProgress() {
 
       const { data, error } = await supabase
         .from("exercise_completions")
-        .select("*")
+        .select("exercise_id, xp_earned, week_start")
         .eq("user_id", userId)
         .eq("week_start", weekStart);
 
       if (error) throw error;
 
       const completions = data || [];
-      const totalXP = completions.reduce((sum, c) => sum + (c.xp_earned || 0), 0);
+      const totalXP = completions.reduce((sum, c) => sum + ((c as any).xp_earned || 0), 0);
 
       // Separate XP by source (content starts with "content-" prefix)
       const contentXP = completions
-        .filter((c) => c.exercise_id?.startsWith("content-"))
-        .reduce((sum, c) => sum + (c.xp_earned || 0), 0);
+        .filter((c: any) => c.exercise_id?.startsWith("content-"))
+        .reduce((sum, c: any) => sum + (c.xp_earned || 0), 0);
       const gamesXP = totalXP - contentXP;
+
+      console.log("[useWeeklyProgress][weekly-exercise-xp]", {
+        userId,
+        weekStart,
+        n: completions.length,
+        totalXP,
+        gamesXP,
+        contentXP,
+      });
 
       return { totalXP, gamesXP, contentXP, completions };
     },
