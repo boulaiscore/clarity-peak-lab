@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
+import { OverviewCarousel } from "@/components/dashboard/OverviewCarousel";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
@@ -157,100 +158,14 @@ const Dashboard = () => {
 
         {/* Tab Content */}
         {activeTab === "overview" ? (
-          <div className="space-y-4">
-            {/* Cognitive Age */}
-            <CognitiveAgeSphere 
-              cognitiveAge={cognitiveAgeData.cognitiveAge} 
-              delta={cognitiveAgeData.delta}
-              chronologicalAge={cognitiveAgeData.chronologicalAge}
-            />
+          <OverviewCarousel 
+            cognitiveAgeData={cognitiveAgeData}
+            sci={sci}
+            sciStatusText={sciStatusText}
+            thinkingScores={thinkingScores}
+            isPremium={isPremium}
+          />
 
-            {/* Neural Growth Animation - powered by SCI */}
-            <NeuralGrowthAnimation
-              cognitiveAgeDelta={-cognitiveAgeData.delta}
-              overallCognitiveScore={sci?.total ?? 50}
-              sciBreakdown={sci}
-              statusText={sciStatusText}
-            />
-
-            {/* Thinking Systems Overview */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[13px] font-semibold text-foreground">Dual-Process Integration</h2>
-                <Link to="/brain-science" className="flex items-center gap-1 text-[10px] text-primary hover:underline">
-                  <BookOpen className="w-3 h-3" />
-                  Learn more
-                </Link>
-              </div>
-              
-              <FastSlowBrainMap
-                fastScore={thinkingScores.fastScore}
-                fastBaseline={thinkingScores.baselineFast}
-                fastDelta={thinkingScores.fastDelta}
-                slowScore={thinkingScores.slowScore}
-                slowBaseline={thinkingScores.baselineSlow}
-                slowDelta={thinkingScores.slowDelta}
-              />
-            </div>
-
-
-            {/* Generate Report CTA - Premium Feature */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-              className="pt-3"
-            >
-              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-primary/8 to-primary/12 border border-primary/20 relative overflow-hidden">
-                {/* Background decoration */}
-                <div className="absolute inset-0 opacity-30">
-                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl" />
-                  <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-primary/15 rounded-full blur-xl" />
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-primary/15">
-                      <FileText className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-[13px] font-semibold text-foreground">Cognitive Intelligence Report</h3>
-                        {!isPremium && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                            Premium
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                        Professional analysis of your cognitive performance, training progress, and personalized recommendations
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Always navigate to report page - it handles premium/free states */}
-                  <Link to="/app/report">
-                    <Button 
-                      variant={isPremium ? "premium" : "outline"} 
-                      className={`w-full h-10 text-[12px] gap-2 ${!isPremium ? "border-primary/30 hover:bg-primary/10" : ""}`}
-                    >
-                      {isPremium ? (
-                        <>
-                          <Sparkles className="w-3.5 h-3.5" />
-                          View Report
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="w-3.5 h-3.5" />
-                          Preview Report
-                        </>
-                      )}
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </div>
         ) : (
           <div className="space-y-5">
             {/* Progress Header with Animation */}
