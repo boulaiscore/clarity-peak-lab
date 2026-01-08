@@ -1,7 +1,7 @@
 // src/pages/app/CognitiveReport.tsx
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles } from "lucide-react";
+import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +18,8 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { ReportPreviewMockup } from "@/components/report/ReportPreviewMockup";
+import { ReportPreviewReal } from "@/components/report/ReportPreviewReal";
+import { Progress } from "@/components/ui/progress";
 
 import "@/styles/report-print.css";
 
@@ -46,7 +47,18 @@ export default function CognitiveReport() {
   const userId = user?.id as string;
 
   const { loading, error, metrics, profile, badges, wearable, aggregates } = useReportData(userId);
-  const { canViewReport, canDownloadPDF, reportCredits, isPremium, refetchPurchase, useCredit } = useReportAccess();
+  const { 
+    canViewReport, 
+    canDownloadPDF, 
+    reportCredits, 
+    isPremium, 
+    refetchPurchase, 
+    useCredit,
+    weeklyPlanCompleted,
+    weeklyProgress,
+    xpRemaining,
+    hasCreditsOrPurchase,
+  } = useReportAccess();
 
   const printRef = useRef<HTMLDivElement>(null);
   const generatedAt = useMemo(() => new Date(), []);
@@ -168,8 +180,18 @@ export default function CognitiveReport() {
           </div>
         </div>
 
-        {/* Report Preview Mockup */}
-        <ReportPreviewMockup />
+        {/* Report Preview with Real Data */}
+        <ReportPreviewReal 
+          sciScore={metrics?.cognitive_performance_score ?? 0}
+          system1Score={metrics?.fast_thinking ?? 0}
+          system2Score={metrics?.slow_thinking ?? 0}
+          domains={{
+            focus: metrics?.focus_stability ?? 0,
+            reasoning: metrics?.reasoning_accuracy ?? 0,
+            creativity: metrics?.creativity ?? 0,
+            memory: metrics?.clarity_score ?? 0,
+          }}
+        />
 
         {/* What's included */}
         <div className="space-y-3">
@@ -370,12 +392,17 @@ export default function CognitiveReport() {
             variant={canDownloadPDF ? "default" : "outline"}
             className="gap-2"
             onClick={handleDownloadPDF}
-            disabled={downloading}
+            disabled={downloading || !weeklyPlanCompleted}
           >
             {canDownloadPDF ? (
               <>
                 <Download className="w-4 h-4" />
                 {downloading ? "Generating..." : "Download PDF"}
+              </>
+            ) : !weeklyPlanCompleted ? (
+              <>
+                <Target className="w-4 h-4" />
+                Complete Plan
               </>
             ) : (
               <>
@@ -386,6 +413,41 @@ export default function CognitiveReport() {
           </Button>
         </div>
       </div>
+
+      {/* Weekly Plan Required Banner */}
+      {!weeklyPlanCompleted && (
+        <div className="mb-4 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 print:hidden">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+              <Target className="w-5 h-5 text-amber-500" />
+            </div>
+            <div className="flex-1 space-y-3">
+              <div>
+                <h3 className="text-sm font-semibold text-amber-500">Complete Your Weekly Plan</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Finish your weekly training to unlock PDF download
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Progress</span>
+                  <span className="font-medium">{Math.round(weeklyProgress)}%</span>
+                </div>
+                <Progress value={weeklyProgress} className="h-2" />
+                <p className="text-[10px] text-muted-foreground">
+                  {xpRemaining > 0 ? `${xpRemaining} XP remaining` : 'Almost there!'}
+                </p>
+              </div>
+              <Link to="/app/home">
+                <Button size="sm" variant="outline" className="gap-2">
+                  <Play className="w-3.5 h-3.5" />
+                  Continue Training
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div ref={printRef} className="report-root">
         <ReportCover profile={profile} metrics={metrics} generatedAt={generatedAt} />

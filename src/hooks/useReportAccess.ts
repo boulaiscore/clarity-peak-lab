@@ -1,11 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 
 export function useReportAccess() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isPremium = user?.subscriptionStatus === "premium";
+
+  // Get weekly progress to check if plan is complete
+  const { 
+    allCategoriesComplete, 
+    totalProgress, 
+    cappedTotalXP, 
+    totalXPTarget,
+    isLoading: progressLoading 
+  } = useCappedWeeklyProgress();
 
   // Get user's report credits from profile
   const { data: reportCredits, refetch: refetchCredits, isLoading: creditsLoading } = useQuery({
@@ -74,14 +84,25 @@ export function useReportAccess() {
     },
   });
 
-  const canDownload = (reportCredits || 0) > 0 || hasPurchasedPDF;
+  const hasCreditsOrPurchase = (reportCredits || 0) > 0 || hasPurchasedPDF;
+  const weeklyPlanCompleted = allCategoriesComplete;
+  
+  // Can download only if: has credits/purchase AND weekly plan is completed
+  const canDownload = hasCreditsOrPurchase && weeklyPlanCompleted;
+  
+  // XP remaining to complete weekly plan
+  const xpRemaining = Math.max(0, totalXPTarget - cappedTotalXP);
 
   return {
     canViewReport: isPremium,
     canDownloadPDF: canDownload,
     reportCredits: reportCredits || 0,
     isPremium,
-    isLoading: creditsLoading || purchaseLoading,
+    isLoading: creditsLoading || purchaseLoading || progressLoading,
+    weeklyPlanCompleted,
+    weeklyProgress: totalProgress,
+    xpRemaining,
+    hasCreditsOrPurchase,
     refetchPurchase: () => {
       refetchCredits();
       refetchPurchase();
