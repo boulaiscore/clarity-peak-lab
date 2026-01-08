@@ -164,14 +164,8 @@ export default function CognitiveReport() {
           </button>
           <div>
             <h1 className="text-lg font-semibold">Cognitive Intelligence Report</h1>
-            <p className="text-xs text-muted-foreground">Preview • Premium Feature</p>
+            <p className="text-xs text-muted-foreground">Preview</p>
           </div>
-        </div>
-
-        {/* Premium badge */}
-        <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-amber-500/10 border border-amber-500/20 w-fit mx-auto">
-          <Crown className="w-4 h-4 text-amber-400" />
-          <span className="text-xs font-medium text-amber-400">Premium Only</span>
         </div>
 
         {/* Report Preview Mockup */}
@@ -199,18 +193,117 @@ export default function CognitiveReport() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="space-y-3 pt-2">
-          <Link to="/app/premium">
-            <Button variant="premium" className="w-full gap-2">
-              <Crown className="w-4 h-4" />
-              Upgrade to Premium
-            </Button>
-          </Link>
-          <p className="text-[10px] text-center text-muted-foreground">
-            Get unlimited report access + all premium features
-          </p>
+        {/* Purchase Options */}
+        <div className="space-y-4 pt-2">
+          {/* Option 1: Premium */}
+          <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-400" />
+              <div>
+                <h4 className="text-sm font-semibold">Premium Subscription</h4>
+                <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
+              </div>
+            </div>
+            <Link to="/app/premium">
+              <Button variant="premium" className="w-full gap-2">
+                <Crown className="w-4 h-4" />
+                Upgrade to Premium
+              </Button>
+            </Link>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">or</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          {/* Option 2: Credit Packages */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-primary" />
+              <h4 className="text-sm font-semibold">Buy Report Credits</h4>
+            </div>
+            
+            <div className="space-y-2">
+              {CREDIT_PACKAGES.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  onClick={() => {
+                    setSelectedPackage(pkg.id);
+                    setShowPurchaseModal(true);
+                  }}
+                  className="w-full p-3 rounded-xl border border-border hover:border-primary/50 transition-all text-left relative bg-card/50"
+                >
+                  {pkg.popular && (
+                    <span className="absolute -top-2 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-primary text-primary-foreground">
+                      Best Value
+                    </span>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{pkg.credits} Report{pkg.credits > 1 ? 's' : ''}</span>
+                        {pkg.savings && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-green-500/15 text-green-500">
+                            -{pkg.savings}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground">{pkg.pricePerReport}/report</span>
+                    </div>
+                    <span className="text-lg font-bold">{pkg.price}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* Purchase Modal */}
+        <AlertDialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
+          <AlertDialogContent className="max-w-sm">
+            <AlertDialogHeader className="text-center">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
+                <FileText className="w-7 h-7 text-primary" />
+              </div>
+              <AlertDialogTitle className="text-xl">
+                {CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.credits} Report Credit{(CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.credits || 0) > 1 ? 's' : ''}
+              </AlertDialogTitle>
+              <div className="text-3xl font-bold text-primary mt-2">
+                {CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.price}
+              </div>
+            </AlertDialogHeader>
+            
+            <div className="space-y-2 py-4">
+              {[
+                "Professional A4 PDF format",
+                "All cognitive metrics & insights",
+                "Shareable with coaches",
+                "Credits never expire",
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+              <Button 
+                variant="premium" 
+                className="w-full gap-2"
+                onClick={handleStripeCheckout}
+                disabled={processingPayment}
+              >
+                <Sparkles className="w-4 h-4" />
+                {processingPayment ? "Processing..." : "Purchase Now"}
+              </Button>
+              <AlertDialogCancel className="w-full mt-0">Cancel</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
