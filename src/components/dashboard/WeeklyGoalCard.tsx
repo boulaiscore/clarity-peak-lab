@@ -144,19 +144,31 @@ export function WeeklyGoalCard() {
           <CategoryCompleteBadge show={gamesComplete} />
         </div>
         
-        {/* Grid header: area icons */}
-        <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
-          <div />
-          <div className="flex justify-center">
-            <Target className="w-2.5 h-2.5 text-muted-foreground/40" />
-          </div>
-          <div className="flex justify-center">
-            <Brain className="w-2.5 h-2.5 text-muted-foreground/40" />
-          </div>
-          <div className="flex justify-center">
-            <Lightbulb className="w-2.5 h-2.5 text-muted-foreground/40" />
-          </div>
-        </div>
+        {/* Grid header: area icons + totals */}
+        {(() => {
+          // Calculate totals per area (S1 + S2)
+          const focusTotal = (s1Areas.find(a => a.area === "focus")?.cappedXP || 0) + (s2Areas.find(a => a.area === "focus")?.cappedXP || 0);
+          const reasoningTotal = (s1Areas.find(a => a.area === "reasoning")?.cappedXP || 0) + (s2Areas.find(a => a.area === "reasoning")?.cappedXP || 0);
+          const creativityTotal = (s1Areas.find(a => a.area === "creativity")?.cappedXP || 0) + (s2Areas.find(a => a.area === "creativity")?.cappedXP || 0);
+          
+          return (
+            <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
+              <div />
+              <div className="flex flex-col items-center gap-0.5">
+                <Target className="w-2.5 h-2.5 text-muted-foreground/40" />
+                <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(focusTotal)}</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <Brain className="w-2.5 h-2.5 text-muted-foreground/40" />
+                <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(reasoningTotal)}</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <Lightbulb className="w-2.5 h-2.5 text-muted-foreground/40" />
+                <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(creativityTotal)}</span>
+              </div>
+            </div>
+          );
+        })()}
         
         {/* S1 row */}
         <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
