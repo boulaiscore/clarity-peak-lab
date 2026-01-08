@@ -339,40 +339,43 @@ export function WeeklyGoalCard() {
         </div>
       </div>
 
-      {/* Tasks and Detox - compact row */}
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        {/* Tasks */}
-        <div className="flex items-center gap-2 p-1.5 rounded bg-violet-500/10">
+      {/* Tasks */}
+      <div className="mb-2">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <BookMarked className="w-3 h-3 text-violet-400" />
-          <div className="flex-1 h-1 bg-violet-500/20 rounded-full overflow-hidden">
-            <motion.div
-              className={`h-full rounded-full ${snapshot.tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
-              initial={false}
-              animate={{ width: `${Math.min(100, snapshot.tasksProgress)}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            />
-          </div>
-          <span className="text-[8px] text-muted-foreground tabular-nums">
+          <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
+          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
             {Math.round(Math.min(snapshot.rawTasksXP, snapshot.tasksXPTarget))}/{Math.round(snapshot.tasksXPTarget)}
           </span>
-          {snapshot.tasksComplete && <Trophy className="w-2.5 h-2.5 text-emerald-400" />}
+          <CategoryCompleteBadge show={snapshot.tasksComplete} />
         </div>
+        <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${snapshot.tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
+            initial={false}
+            animate={{ width: `${Math.min(100, snapshot.tasksProgress)}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          />
+        </div>
+      </div>
 
-        {/* Detox */}
-        <div className="flex items-center gap-2 p-1.5 rounded bg-teal-500/10">
+      {/* Detox */}
+      <div className="mb-3">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <Brain className="w-3 h-3 text-teal-400" />
-          <div className="flex-1 h-1 bg-teal-500/20 rounded-full overflow-hidden">
-            <motion.div
-              className={`h-full rounded-full ${snapshot.detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
-              initial={false}
-              animate={{ width: `${Math.min(100, snapshot.detoxProgress)}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            />
-          </div>
-          <span className="text-[8px] text-muted-foreground tabular-nums">
+          <span className="text-[10px] text-muted-foreground font-medium">Detox</span>
+          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
             {Math.round(Math.min(snapshot.rawDetoxXP, snapshot.detoxXPTarget))}/{Math.round(snapshot.detoxXPTarget)}
           </span>
-          {snapshot.detoxComplete && <Trophy className="w-2.5 h-2.5 text-emerald-400" />}
+          <CategoryCompleteBadge show={snapshot.detoxComplete} />
+        </div>
+        <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${snapshot.detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+            initial={false}
+            animate={{ width: `${Math.min(100, snapshot.detoxProgress)}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          />
         </div>
       </div>
 
