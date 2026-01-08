@@ -47,18 +47,19 @@ function useGamesHistory(days: number = 14) {
   })();
 
   return useQuery({
-    queryKey: ["games-history-14d-breakdown", stableUserId, days],
+    queryKey: ["games-history-14d-breakdown-v2", stableUserId, days],
     queryFn: async () => {
       if (!stableUserId) return [];
 
       const startDate = subDays(new Date(), days);
 
-      // Games are stored in neuro_gym_sessions (with score and area)
+      // Games are stored in exercise_completions with gym_area != 'content'
       const { data, error } = await supabase
-        .from("neuro_gym_sessions")
-        .select("score, completed_at, area")
+        .from("exercise_completions")
+        .select("xp_earned, completed_at, gym_area, thinking_mode")
         .eq("user_id", stableUserId)
-        .gte("completed_at", startDate.toISOString());
+        .gte("completed_at", startDate.toISOString())
+        .neq("gym_area", "content");
 
       if (error) throw error;
 
@@ -66,11 +67,11 @@ function useGamesHistory(days: number = 14) {
       const byDateAndArea: Record<string, Record<string, number>> = {};
       (data || []).forEach((row) => {
         const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
-        const area = (row.area as string) || "focus";
+        const area = (row.gym_area as string) || "focus";
         if (!byDateAndArea[date]) {
           byDateAndArea[date] = { focus: 0, memory: 0, visual: 0, reasoning: 0, control: 0, creativity: 0 };
         }
-        byDateAndArea[date][area] = (byDateAndArea[date][area] || 0) + (row.score || 0);
+        byDateAndArea[date][area] = (byDateAndArea[date][area] || 0) + (row.xp_earned || 0);
       });
 
       // Build 14-day array with dd/MM format
@@ -94,38 +95,42 @@ function useGamesHistory(days: number = 14) {
   });
 }
 
-export function GamesStats() {
+// Hook to get weekly game completions from exercise_completions
+function useWeeklyGameCompletions() {
   const { user } = useAuth();
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-
+  
   // Stable userId
   const stableUserId = user?.id ?? (() => {
     try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
   })();
-  
-  // Use neuro_gym_sessions for accurate game/session counts
-  const { data: sessions = [], isLoading } = useQuery({
-    queryKey: ["neuro-gym-sessions-stats", stableUserId, weekStart],
+
+  return useQuery({
+    queryKey: ["weekly-game-completions-v2", stableUserId, weekStart],
     queryFn: async () => {
       if (!stableUserId) return [];
       
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
+      // Get game completions from exercise_completions where gym_area is not 'content'
       const { data, error } = await supabase
-        .from("neuro_gym_sessions")
+        .from("exercise_completions")
         .select("*")
         .eq("user_id", stableUserId)
-        .gte("completed_at", sevenDaysAgo.toISOString())
+        .eq("week_start", weekStart)
+        .neq("gym_area", "content")
         .order("completed_at", { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!stableUserId,
     staleTime: 60_000,
   });
+}
 
+export function GamesStats() {
+  // Use the new hook for game completions
+  const { data: sessions = [], isLoading } = useWeeklyGameCompletions();
+  
   // 14-day trend data
   const { data: historyData } = useGamesHistory(14);
 
@@ -142,65 +147,56 @@ export function GamesStats() {
       overallAccuracy: 0,
     };
 
-    let totalCorrectAnswers = 0;
-    let totalQuestions = 0;
+    let totalXP = 0;
+    let totalGamesCount = 0;
 
     sessions.forEach(session => {
-      const area = (session.area as string) || "focus";
-      const correctAnswers = session.correct_answers || 0;
-      const questions = session.total_questions || 1;
-      const sessionAccuracy = questions > 0 ? (correctAnswers / questions) * 100 : 0;
-      const isGoodSession = sessionAccuracy >= 50;
+      const area = (session.gym_area as string) || "focus";
+      const xpEarned = session.xp_earned || 0;
+      const thinkingMode = session.thinking_mode || "fast";
+      const scorePercent = session.score || 0;
 
-      totalCorrectAnswers += correctAnswers;
-      totalQuestions += questions;
+      totalXP += xpEarned;
+      totalGamesCount++;
 
-      // By System - focus/memory/visual are System 1, reasoning/creativity/control are System 2
-      const isSystem1 = ["focus", "memory", "visual"].includes(area);
+      // By System - fast = S1, slow = S2
+      const isSystem1 = thinkingMode === "fast";
       if (isSystem1) {
         result.system1.total++;
-        result.system1.correct += correctAnswers;
-        result.system1.wrong += (questions - correctAnswers);
+        result.system1.correct += xpEarned; // Use XP as "correct" proxy
       } else {
         result.system2.total++;
-        result.system2.correct += correctAnswers;
-        result.system2.wrong += (questions - correctAnswers);
+        result.system2.correct += xpEarned;
       }
 
-      // By Area
+      // By Area - map to our 3 display areas
       if (area === "focus" || area === "memory" || area === "visual") {
         result.focus.total++;
-        result.focus.correct += correctAnswers;
-        result.focus.wrong += (questions - correctAnswers);
+        result.focus.correct += xpEarned;
       } else if (area === "reasoning" || area === "control") {
         result.reasoning.total++;
-        result.reasoning.correct += correctAnswers;
-        result.reasoning.wrong += (questions - correctAnswers);
+        result.reasoning.correct += xpEarned;
       } else if (area === "creativity") {
         result.creativity.total++;
-        result.creativity.correct += correctAnswers;
-        result.creativity.wrong += (questions - correctAnswers);
+        result.creativity.correct += xpEarned;
       } else {
         // Default to focus for unknown areas
         result.focus.total++;
-        result.focus.correct += correctAnswers;
-        result.focus.wrong += (questions - correctAnswers);
+        result.focus.correct += xpEarned;
       }
     });
 
-    // Calculate accuracies based on total correct/wrong answers
-    const s1Total = result.system1.correct + result.system1.wrong;
-    const s2Total = result.system2.correct + result.system2.wrong;
-    const focusTotal = result.focus.correct + result.focus.wrong;
-    const reasoningTotal = result.reasoning.correct + result.reasoning.wrong;
-    const creativityTotal = result.creativity.correct + result.creativity.wrong;
+    // For accuracy, use average score (if available) or default to 100%
+    const avgScore = sessions.length > 0 
+      ? Math.round(sessions.reduce((sum, s) => sum + (s.score || 0), 0) / sessions.length)
+      : 0;
 
-    result.system1.accuracy = s1Total > 0 ? Math.round((result.system1.correct / s1Total) * 100) : 0;
-    result.system2.accuracy = s2Total > 0 ? Math.round((result.system2.correct / s2Total) * 100) : 0;
-    result.focus.accuracy = focusTotal > 0 ? Math.round((result.focus.correct / focusTotal) * 100) : 0;
-    result.reasoning.accuracy = reasoningTotal > 0 ? Math.round((result.reasoning.correct / reasoningTotal) * 100) : 0;
-    result.creativity.accuracy = creativityTotal > 0 ? Math.round((result.creativity.correct / creativityTotal) * 100) : 0;
-    result.overallAccuracy = totalQuestions > 0 ? Math.round((totalCorrectAnswers / totalQuestions) * 100) : 0;
+    result.system1.accuracy = result.system1.total > 0 ? avgScore : 0;
+    result.system2.accuracy = result.system2.total > 0 ? avgScore : 0;
+    result.focus.accuracy = result.focus.total > 0 ? avgScore : 0;
+    result.reasoning.accuracy = result.reasoning.total > 0 ? avgScore : 0;
+    result.creativity.accuracy = result.creativity.total > 0 ? avgScore : 0;
+    result.overallAccuracy = avgScore;
 
     return result;
   }, [sessions]);
@@ -216,8 +212,8 @@ export function GamesStats() {
     );
   }
 
-  // Calculate weekly XP from games (sum of scores)
-  const weeklyGamesXP = sessions.reduce((sum, s) => sum + (s.score || 0), 0);
+  // Calculate weekly XP from games (sum of xp_earned)
+  const weeklyGamesXP = sessions.reduce((sum, s) => sum + (s.xp_earned || 0), 0);
   const weeklyGamesTarget = 200; // Default target, could be from plan
   const gamesProgress = Math.min(100, (weeklyGamesXP / weeklyGamesTarget) * 100);
 
