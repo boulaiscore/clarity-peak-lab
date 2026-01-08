@@ -293,13 +293,12 @@ export function GamesStats() {
                   dataKey="xp" 
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
-                  fill="#34d399"
                 >
                   {historyData?.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={entry.xp > 0 ? '#34d399' : '#6b7280'}
-                      opacity={entry.xp > 0 ? 1 : 0.2}
+                      fill={entry.xp > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
+                      opacity={entry.xp > 0 ? 1 : 0.18}
                     />
                   ))}
                 </Bar>
