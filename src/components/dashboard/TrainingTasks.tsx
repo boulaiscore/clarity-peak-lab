@@ -598,9 +598,9 @@ export function TrainingTasks() {
             <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
             <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
           </div>
-          <div className="h-32">
+          <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={tasksHistoryData} margin={{ top: 5, right: 5, left: 0, bottom: 20 }}>
+              <AreaChart data={tasksHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
                 <defs>
                   <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
@@ -621,10 +621,10 @@ export function TrainingTasks() {
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  width={30}
-                  tickCount={4}
-                  domain={[0, (dataMax: number) => Math.max(10, Math.ceil(dataMax * 1.1))]}
-                  tickFormatter={(value) => `${value}`}
+                  width={35}
+                  allowDecimals={false}
+                  domain={[0, 'dataMax']}
+                  tickFormatter={(value) => `${Math.round(value)}`}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -642,8 +642,12 @@ export function TrainingTasks() {
                   stroke="hsl(var(--chart-2))"
                   strokeWidth={2}
                   fill="url(#tasksGradient)"
-                  dot={{ r: 3, fill: 'hsl(var(--chart-2))', strokeWidth: 0 }}
-                  activeDot={{ r: 5, fill: 'hsl(var(--chart-2))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
+                  dot={(props: any) => {
+                    const { cx, cy, payload } = props;
+                    if (payload.xp === 0) return null;
+                    return <circle cx={cx} cy={cy} r={4} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />;
+                  }}
+                  activeDot={{ r: 6, fill: 'hsl(var(--chart-2))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
