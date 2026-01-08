@@ -34,7 +34,18 @@ export function useWeeklyLoadSnapshot() {
   const lastUserIdRef = useRef<string | undefined>(undefined);
   const computedUserId = user?.id ?? session?.user?.id;
   if (computedUserId) lastUserIdRef.current = computedUserId;
-  const userId = computedUserId ?? lastUserIdRef.current;
+
+  // Critical: when navigating between tabs/routes, the auth context can be temporarily null.
+  // We persist the last known userId locally so the snapshot key stays stable across remounts.
+  const persistedUserId = (() => {
+    try {
+      return localStorage.getItem("nl:lastUserId") || undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
+  const userId = computedUserId ?? lastUserIdRef.current ?? persistedUserId;
 
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const queryKey = [SNAPSHOT_KEY_PREFIX, userId, weekStart];
@@ -47,6 +58,13 @@ export function useWeeklyLoadSnapshot() {
   const setSnapshot = useCallback(
     (snapshot: Omit<WeeklyLoadSnapshot, "savedAt">) => {
       if (!userId) return;
+
+      try {
+        localStorage.setItem("nl:lastUserId", userId);
+      } catch {
+        // ignore
+      }
+
       queryClient.setQueryData<WeeklyLoadSnapshot>(queryKey, {
         ...snapshot,
         savedAt: Date.now(),
