@@ -500,8 +500,8 @@ export function TrainingTasks() {
         </div>
       </div>
 
-      {/* Active Tasks */}
-      {activeTasks.length > 0 && (
+      {/* Active Tasks intentionally hidden in Training Details (show only completed). */}
+      {false && activeTasks.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1">
             Active
