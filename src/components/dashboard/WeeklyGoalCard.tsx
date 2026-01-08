@@ -153,12 +153,19 @@ export function WeeklyGoalCard() {
     detoxProgress,
   };
 
-  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> =
-    !isLoading && isFetched
-      ? freshSnapshot
-      : cachedSnapshot
-        ? cachedSnapshot
-        : freshSnapshot;
+  const freshTotal = freshSnapshot.rawGamesXP + freshSnapshot.rawTasksXP + freshSnapshot.rawDetoxXP;
+  const cachedTotal =
+    (cachedSnapshot?.rawGamesXP ?? 0) + (cachedSnapshot?.rawTasksXP ?? 0) + (cachedSnapshot?.rawDetoxXP ?? 0);
+
+  // If we have a non-zero cached snapshot, don't switch the UI back to 0 during remount/refetch
+  // even if queries report "fetched" (some hooks can resolve quickly with 0s).
+  const shouldUseFresh = !isLoading && isFetched && (freshTotal > 0 || !cachedSnapshot || cachedTotal === 0);
+
+  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = shouldUseFresh
+    ? freshSnapshot
+    : cachedSnapshot
+      ? cachedSnapshot
+      : freshSnapshot;
 
   // IMPORTANT: Total XP must use CAPPED values per category (excess doesn't count)
   // Each category can contribute at most its target to the total.
