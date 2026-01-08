@@ -43,18 +43,24 @@ export function useWeeklyProgress() {
   // Note: this hook can be mounted while AuthContext is temporarily null during route/tab transitions.
   // We persist the last known userId so the query keys stay stable across remounts.
   const lastUserIdRef = useRef<string | undefined>(undefined);
-  const computedUserId = user?.id ?? session?.user?.id;
-  if (computedUserId) lastUserIdRef.current = computedUserId;
-
-  const persistedUserId = (() => {
+  
+  // Initialize from localStorage on first mount
+  if (lastUserIdRef.current === undefined) {
     try {
-      return localStorage.getItem("nl:lastUserId") || undefined;
+      lastUserIdRef.current = localStorage.getItem("nl:lastUserId") || undefined;
     } catch {
-      return undefined;
+      // ignore
     }
-  })();
+  }
+  
+  const computedUserId = user?.id ?? session?.user?.id;
+  
+  // Update ref when we have a fresh userId
+  if (computedUserId && lastUserIdRef.current !== computedUserId) {
+    lastUserIdRef.current = computedUserId;
+  }
 
-  const userId = computedUserId ?? lastUserIdRef.current ?? persistedUserId;
+  const userId = computedUserId ?? lastUserIdRef.current;
 
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
