@@ -222,11 +222,15 @@ function useTasksHistory(days: number = 14) {
         if (!byDate[date]) byDate[date] = { podcast: 0, book: 0, article: 0 };
         
         const xp = row.xp_earned || 0;
-        const contentId = row.exercise_id?.replace("content-", "") || "";
-        const contentInfo = CONTENT_LIBRARY[contentId];
-        const contentType = contentInfo?.type || "article";
+        // exercise_id format: "content-{type}-{id}" e.g. "content-podcast-in-our-time"
+        const parts = row.exercise_id?.split("-") || [];
+        const contentType = parts[1] as "podcast" | "book" | "article" || "article";
         
-        byDate[date][contentType] += xp;
+        if (contentType === "podcast" || contentType === "book" || contentType === "article") {
+          byDate[date][contentType] += xp;
+        } else {
+          byDate[date].article += xp; // fallback
+        }
       });
 
       // Build 14-day array with dd/MM format and type breakdown
