@@ -16,7 +16,7 @@ export default function ReportPreview() {
             <Button 
               variant="ghost" 
               size="icon"
-              onClick={() => navigate("/app/report")}
+              onClick={() => navigate(-1)}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -34,7 +34,7 @@ export default function ReportPreview() {
           </div>
 
           <Button 
-            onClick={() => navigate("/app/report")}
+            onClick={() => navigate("/app/report", { replace: true })}
             className="gap-2"
           >
             <Lock className="h-4 w-4" />
@@ -63,7 +63,7 @@ export default function ReportPreview() {
             </div>
             <Button 
               size="lg"
-              onClick={() => navigate("/app/report")}
+              onClick={() => navigate("/app/report", { replace: true })}
               className="gap-2 shrink-0"
             >
               <Lock className="h-4 w-4" />
