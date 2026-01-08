@@ -658,12 +658,13 @@ export function TrainingTasks() {
                   dataKey="xp" 
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
+                  fill="#a78bfa"
                 >
                   {tasksHistoryData?.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={entry.xp > 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--muted-foreground))'}
-                      opacity={entry.xp > 0 ? 1 : 0.15}
+                      fill={entry.xp > 0 ? '#a78bfa' : '#6b7280'}
+                      opacity={entry.xp > 0 ? 1 : 0.2}
                     />
                   ))}
                 </Bar>

@@ -150,12 +150,13 @@ export function DetoxStats() {
                   dataKey="xp" 
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
+                  fill="#2dd4bf"
                 >
                   {chartData?.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={entry.xp > 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--muted))'}
-                      opacity={entry.xp > 0 ? 1 : 0.3}
+                      fill={entry.xp > 0 ? '#2dd4bf' : '#6b7280'}
+                      opacity={entry.xp > 0 ? 1 : 0.2}
                     />
                   ))}
                 </Bar>
