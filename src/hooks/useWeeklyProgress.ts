@@ -112,7 +112,10 @@ export function useWeeklyProgress() {
     },
     enabled: !!userId,
     // Prevent "flash to zero" when navigating away/back: keep cache "fresh" briefly.
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
     placeholderData: (prev) =>
       prev ??
       (userId
@@ -189,8 +192,12 @@ export function useWeeklyProgress() {
           return sum + xp;
         }, 0);
 
-        const contentXP = contentXPFromCompletions > 0 ? contentXPFromCompletions : contentXPFromAssignments;
-        const gamesXP = totalXP - contentXPFromCompletions;
+        const contentXP =
+          contentXPFromCompletions > 0 ? contentXPFromCompletions : contentXPFromAssignments;
+
+        // Games XP = total XP minus the part attributable to content.
+        // IMPORTANT: subtract "contentXP" (includes the backfill path), otherwise games/tasks can flicker.
+        const gamesXP = Math.max(0, totalXP - contentXP);
 
         console.log("[useWeeklyProgress][weekly-exercise-xp][ok]", {
           userId,
@@ -203,8 +210,6 @@ export function useWeeklyProgress() {
           contentXPFromAssignments,
         });
 
-        // Note: totalXP here remains "exercise completions" total.
-        // Weekly load uses gamesXP + contentXP separately, so this is ok.
         return { totalXP, gamesXP, contentXP, completions };
       } catch (err) {
         console.error("[useWeeklyProgress][weekly-exercise-xp][error]", { userId, weekStart, err });
@@ -212,8 +217,11 @@ export function useWeeklyProgress() {
       }
     },
     enabled: !!userId,
-    staleTime: 60_000,
-    gcTime: 10 * 60 * 1000, // 10 min – reduce aggressive eviction
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
     // Keep previous data during refetch/mount to prevent flash to zero
     placeholderData: (prev) => prev ?? { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] },
   });
