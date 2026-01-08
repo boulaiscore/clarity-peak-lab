@@ -297,6 +297,7 @@ export type Database = {
           onboarding_completed: boolean | null
           reminder_enabled: boolean | null
           reminder_time: string | null
+          report_credits: number
           session_duration: string | null
           subscription_status: string | null
           training_goals: string[] | null
@@ -323,6 +324,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
+          report_credits?: number
           session_duration?: string | null
           subscription_status?: string | null
           training_goals?: string[] | null
@@ -349,6 +351,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
+          report_credits?: number
           session_duration?: string | null
           subscription_status?: string | null
           training_goals?: string[] | null
@@ -356,6 +359,42 @@ export type Database = {
           updated_at?: string
           user_id?: string
           work_type?: string | null
+        }
+        Relationships: []
+      }
+      report_credit_purchases: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          credits_amount: number
+          currency: string
+          id: string
+          purchased_at: string
+          status: string
+          stripe_payment_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          credits_amount: number
+          currency?: string
+          id?: string
+          purchased_at?: string
+          status?: string
+          stripe_payment_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          credits_amount?: number
+          currency?: string
+          id?: string
+          purchased_at?: string
+          status?: string
+          stripe_payment_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
