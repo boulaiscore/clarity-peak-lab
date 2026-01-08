@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format, subDays, parseISO } from "date-fns";
 import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 
 interface AreaStats {
   total: number;
@@ -258,13 +258,7 @@ export function GamesStats() {
         {historyData && historyData.some(d => d.xp > 0) ? (
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={historyData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
-                <defs>
-                  <linearGradient id="gamesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+              <BarChart data={historyData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
                 <XAxis 
                   dataKey="dateLabel" 
                   tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
@@ -281,7 +275,7 @@ export function GamesStats() {
                   tickLine={false}
                   width={35}
                   allowDecimals={false}
-                  domain={[0, 'dataMax']}
+                  domain={[0, (dataMax: number) => Math.max(dataMax, 10)]}
                   tickFormatter={(value) => `${Math.round(value)}`}
                 />
                 <Tooltip 
@@ -293,21 +287,22 @@ export function GamesStats() {
                   }}
                   labelFormatter={(label) => label}
                   formatter={(value: number) => [`${value} XP`, 'Games']}
+                  cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="xp"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  fill="url(#gamesGradient)"
-                  dot={(props: any) => {
-                    const { cx, cy, payload } = props;
-                    if (payload.xp === 0) return null;
-                    return <circle cx={cx} cy={cy} r={4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />;
-                  }}
-                  activeDot={{ r: 6, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-                />
-              </AreaChart>
+                <Bar 
+                  dataKey="xp" 
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={20}
+                >
+                  {historyData?.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.xp > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'}
+                      opacity={entry.xp > 0 ? 1 : 0.3}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         ) : (

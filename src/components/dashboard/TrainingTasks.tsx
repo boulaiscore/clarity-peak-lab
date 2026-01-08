@@ -23,7 +23,7 @@ import { XP_VALUES } from "@/lib/trainingPlans";
 import { startOfWeek, addDays, format, subDays, parseISO } from "date-fns";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -600,13 +600,7 @@ export function TrainingTasks() {
           </div>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={tasksHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
-                <defs>
-                  <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+              <BarChart data={tasksHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
                 <XAxis 
                   dataKey="dateLabel" 
                   tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
@@ -623,7 +617,7 @@ export function TrainingTasks() {
                   tickLine={false}
                   width={35}
                   allowDecimals={false}
-                  domain={[0, 'dataMax']}
+                  domain={[0, (dataMax: number) => Math.max(dataMax, 10)]}
                   tickFormatter={(value) => `${Math.round(value)}`}
                 />
                 <Tooltip 
@@ -635,21 +629,22 @@ export function TrainingTasks() {
                   }}
                   labelFormatter={(label) => label}
                   formatter={(value: number) => [`${value} XP`, 'Tasks']}
+                  cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="xp"
-                  stroke="hsl(var(--chart-2))"
-                  strokeWidth={2}
-                  fill="url(#tasksGradient)"
-                  dot={(props: any) => {
-                    const { cx, cy, payload } = props;
-                    if (payload.xp === 0) return null;
-                    return <circle cx={cx} cy={cy} r={4} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />;
-                  }}
-                  activeDot={{ r: 6, fill: 'hsl(var(--chart-2))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-                />
-              </AreaChart>
+                <Bar 
+                  dataKey="xp" 
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={20}
+                >
+                  {tasksHistoryData?.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.xp > 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--muted))'}
+                      opacity={entry.xp > 0 ? 1 : 0.3}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
