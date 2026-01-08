@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { XP_VALUES } from "@/lib/trainingPlans";
-import { startOfWeek, format } from "date-fns";
+import { startOfWeek, addDays, format } from "date-fns";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
@@ -118,47 +118,36 @@ function getContentInfo(contentId: string): CognitiveInput | null {
 }
 
 // Hook to get completed content for THIS WEEK only
-// Uses user_listened_podcasts as source of truth, then fetches XP from exercise_completions
+// Uses monthly_content_assignments as source of truth (matches the Library).
 function useWeeklyCompletedContent(userId: string | undefined) {
-  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-  
+  const weekStartStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
   return useQuery({
-    queryKey: ["weekly-content-completions", userId, weekStart],
+    queryKey: ["weekly-content-completions", userId, weekStartStr],
     queryFn: async () => {
-      if (!userId) return [];
-      
-      // First get all logged content IDs from user_listened_podcasts (source of truth)
-      const { data: loggedData, error: loggedError } = await supabase
-        .from("user_listened_podcasts")
-        .select("podcast_id")
-        .eq("user_id", userId);
-      
-      if (loggedError) throw loggedError;
-      
-      const loggedIds = new Set((loggedData || []).map(row => row.podcast_id));
-      
-      // Then get XP for this week's content completions
-      const { data: xpData, error: xpError } = await supabase
-        .from("exercise_completions")
-        .select("exercise_id, xp_earned")
+      if (!userId) return [] as { contentId: string; xpEarned: number }[];
+
+      const weekStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const weekEndDate = addDays(weekStartDate, 7);
+
+      const { data, error } = await supabase
+        .from("monthly_content_assignments")
+        .select("content_id, content_type, completed_at, status")
         .eq("user_id", userId)
-        .eq("week_start", weekStart)
-        .like("exercise_id", "content-%");
-      
-      if (xpError) throw xpError;
-      
-      // Build a map of contentId -> xpEarned
-      const xpMap = new Map<string, number>();
-      (xpData || []).forEach(row => {
-        const contentId = row.exercise_id.replace(/^content-(podcast|book|article)-/, "");
-        xpMap.set(contentId, row.xp_earned);
+        .eq("status", "completed")
+        .gte("completed_at", weekStartDate.toISOString())
+        .lt("completed_at", weekEndDate.toISOString());
+
+      if (error) throw error;
+
+      return (data || []).map((row: any) => {
+        const t = (row.content_type as string | null) ?? "reading";
+        const normalized: InputType = t === "reading" ? "article" : t === "book" ? "book" : "podcast";
+        return {
+          contentId: row.content_id as string,
+          xpEarned: calculateXP(normalized),
+        };
       });
-      
-      // Return all logged content with their XP (0 if no XP record for this week)
-      return Array.from(loggedIds).map(contentId => ({
-        contentId,
-        xpEarned: xpMap.get(contentId) || 0
-      }));
     },
     enabled: !!userId,
   });
