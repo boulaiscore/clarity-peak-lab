@@ -24,6 +24,8 @@ import { Progress } from "@/components/ui/progress";
 import "@/styles/report-print.css";
 
 import { ReportCover } from "@/components/report/ReportCover";
+import { ReportOverview } from "@/components/report/ReportOverview";
+import { ReportWellbeing } from "@/components/report/ReportWellbeing";
 import { ReportSCI } from "@/components/report/ReportSCI";
 import { ReportDualProcess } from "@/components/report/ReportDualProcess";
 import { ReportDomains } from "@/components/report/ReportDomains";
@@ -461,6 +463,8 @@ export default function CognitiveReport() {
 
       <div ref={printRef} className="report-root">
         <ReportCover profile={profile} metrics={metrics} generatedAt={generatedAt} />
+        <ReportOverview profile={profile} generatedAt={generatedAt} />
+        <ReportWellbeing metrics={metrics} wearable={wearable} aggregates={aggregates} />
         <ReportSCI metrics={metrics} />
         <ReportDualProcess profile={profile} metrics={metrics} />
         <ReportDomains metrics={metrics} aggregates={aggregates} />
