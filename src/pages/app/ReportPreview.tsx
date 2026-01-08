@@ -43,9 +43,11 @@ export default function ReportPreview() {
         </div>
       </div>
 
-      {/* Report Content */}
+      {/* Report Content - White background for print-style */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <ReportMockupFull />
+        <div className="bg-white text-gray-900 rounded-xl shadow-lg overflow-hidden">
+          <ReportMockupFull />
+        </div>
 
         {/* Bottom CTA */}
         <div className="mt-12 mb-8 p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20">
