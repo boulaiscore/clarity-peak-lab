@@ -222,14 +222,14 @@ function useTasksHistory(days: number = 14) {
         byDate[date] = (byDate[date] || 0) + (row.xp_earned || 0);
       });
 
-      // Build 14-day array with consistent date format (just day number)
+      // Build 14-day array with dd/MM format
       const result = [];
       for (let i = days - 1; i >= 0; i--) {
         const date = subDays(new Date(), i);
         const dateStr = format(date, "yyyy-MM-dd");
         result.push({
           date: dateStr,
-          dateLabel: format(date, "d"), // Just day number for consistency
+          dateLabel: format(date, "d/M"), // dd/MM format
           xp: byDate[dateStr] || 0,
         });
       }
@@ -600,7 +600,7 @@ export function TrainingTasks() {
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={tasksHistoryData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+              <AreaChart data={tasksHistoryData} margin={{ top: 5, right: 5, left: 0, bottom: 20 }}>
                 <defs>
                   <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
@@ -609,18 +609,21 @@ export function TrainingTasks() {
                 </defs>
                 <XAxis 
                   dataKey="dateLabel" 
-                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  interval={2}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={40}
                 />
                 <YAxis 
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  width={35}
+                  width={30}
                   tickCount={4}
-                  domain={[0, 'auto']}
+                  domain={[0, (dataMax: number) => Math.max(10, Math.ceil(dataMax * 1.1))]}
                   tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip 
@@ -630,7 +633,7 @@ export function TrainingTasks() {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
-                  labelFormatter={(label) => `Day ${label}`}
+                  labelFormatter={(label) => label}
                   formatter={(value: number) => [`${value} XP`, 'Tasks']}
                 />
                 <Area
@@ -639,6 +642,8 @@ export function TrainingTasks() {
                   stroke="hsl(var(--chart-2))"
                   strokeWidth={2}
                   fill="url(#tasksGradient)"
+                  dot={{ r: 3, fill: 'hsl(var(--chart-2))', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: 'hsl(var(--chart-2))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>

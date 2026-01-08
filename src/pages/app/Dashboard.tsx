@@ -7,7 +7,6 @@ import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimat
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 
 
-import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
@@ -267,19 +266,6 @@ const Dashboard = () => {
             ) : (
               <DetoxStats />
             )}
-
-            {/* Performance Trends */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-semibold text-foreground">Performance Trend</h3>
-              </div>
-              <PerformanceChart />
-            </motion.div>
-
 
             {/* CTA */}
             <motion.div

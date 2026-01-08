@@ -61,14 +61,14 @@ function useGamesHistory(days: number = 14) {
         byDate[date] = (byDate[date] || 0) + (row.score || 0);
       });
 
-      // Build 14-day array with consistent date format (just day number)
+      // Build 14-day array with dd/MM format
       const result = [];
       for (let i = days - 1; i >= 0; i--) {
         const date = subDays(new Date(), i);
         const dateStr = format(date, "yyyy-MM-dd");
         result.push({
           date: dateStr,
-          dateLabel: format(date, "d"), // Just day number for consistency
+          dateLabel: format(date, "d/M"), // dd/MM format
           xp: byDate[dateStr] || 0,
         });
       }
@@ -254,18 +254,21 @@ export function GamesStats() {
                 </defs>
                 <XAxis 
                   dataKey="dateLabel" 
-                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  interval={2}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={40}
                 />
                 <YAxis 
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  width={35}
+                  width={30}
                   tickCount={4}
-                  domain={[0, 'auto']}
+                  domain={[0, (dataMax: number) => Math.max(10, Math.ceil(dataMax * 1.1))]}
                   tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip 
@@ -275,7 +278,7 @@ export function GamesStats() {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
-                  labelFormatter={(label) => `Day ${label}`}
+                  labelFormatter={(label) => label}
                   formatter={(value: number) => [`${value} XP`, 'Games']}
                 />
                 <Area
@@ -284,6 +287,8 @@ export function GamesStats() {
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}
                   fill="url(#gamesGradient)"
+                  dot={{ r: 3, fill: 'hsl(var(--primary))', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>

@@ -115,7 +115,7 @@ export function DetoxStats() {
           </div>
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 20 }}>
                 <defs>
                   <linearGradient id="detoxGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
@@ -124,18 +124,21 @@ export function DetoxStats() {
                 </defs>
                 <XAxis 
                   dataKey="dateShort" 
-                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  interval={2}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={40}
                 />
                 <YAxis 
                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
-                  width={35}
+                  width={30}
                   tickCount={4}
-                  domain={[0, 'auto']}
+                  domain={[0, (dataMax: number) => Math.max(10, Math.ceil(dataMax * 1.1))]}
                   tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip 
@@ -145,7 +148,7 @@ export function DetoxStats() {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
-                  labelFormatter={(label) => `Day ${label}`}
+                  labelFormatter={(label) => label}
                   formatter={(value: number) => [`${value} XP`, 'Detox']}
                 />
                 <Area
@@ -154,6 +157,8 @@ export function DetoxStats() {
                   stroke="hsl(var(--chart-1))"
                   strokeWidth={2}
                   fill="url(#detoxGradient)"
+                  dot={{ r: 3, fill: 'hsl(var(--chart-1))', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: 'hsl(var(--chart-1))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
