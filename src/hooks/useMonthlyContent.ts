@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { startOfMonth, format } from "date-fns";
-import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { startOfMonth, startOfWeek, format } from "date-fns";
+import { TrainingPlanId, TRAINING_PLANS, XP_VALUES } from "@/lib/trainingPlans";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -29,8 +29,10 @@ export function useMonthlyContent() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const hasAttemptedAssignment = useRef(false);
-  
+
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
 
@@ -140,12 +142,12 @@ export function useMonthlyContent() {
   });
 
   const updateContentStatus = useMutation({
-    mutationFn: async ({ 
-      contentId, 
-      status, 
-      timeSpent 
-    }: { 
-      contentId: string; 
+    mutationFn: async ({
+      contentId,
+      status,
+      timeSpent
+    }: {
+      contentId: string;
       status?: ContentStatus;
       timeSpent?: number;
     }) => {
@@ -171,10 +173,55 @@ export function useMonthlyContent() {
         .single();
 
       if (error) throw error;
+
+      // Ensure weekly cognitive load counts completed tasks:
+      // when a content item is marked completed, record its XP in exercise_completions.
+      if (status === "completed") {
+        const contentType = (data.content_type as ContentType) || "reading";
+        const normalizedType: "podcast" | "book" | "article" =
+          contentType === "reading" ? "article" : contentType;
+
+        const xpEarned =
+          normalizedType === "podcast"
+            ? XP_VALUES.podcastComplete
+            : normalizedType === "book"
+              ? XP_VALUES.bookChapterComplete
+              : XP_VALUES.readingComplete;
+
+        const exerciseId = `content-${normalizedType}-${data.content_id}`;
+
+        const { data: existingXP, error: existingError } = await supabase
+          .from("exercise_completions")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("exercise_id", exerciseId)
+          .eq("week_start", weekStart)
+          .maybeSingle();
+
+        if (existingError) throw existingError;
+
+        if (!existingXP) {
+          const { error: xpError } = await supabase.from("exercise_completions").insert({
+            user_id: user.id,
+            exercise_id: exerciseId,
+            gym_area: "content",
+            thinking_mode: null,
+            difficulty: normalizedType === "book" ? "hard" : normalizedType === "article" ? "medium" : "easy",
+            xp_earned: xpEarned,
+            score: 100,
+            week_start: weekStart,
+          });
+
+          if (xpError) throw xpError;
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["monthly-content"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
     },
   });
 
