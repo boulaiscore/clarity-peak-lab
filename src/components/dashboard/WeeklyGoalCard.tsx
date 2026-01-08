@@ -1,8 +1,7 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gamepad2, BookMarked, Brain, Shield, Trophy, Target, Lightbulb } from "lucide-react";
-import { useCappedWeeklyProgress, AreaModeSubTarget } from "@/hooks/useCappedWeeklyProgress";
-import { useWeeklyLoadSnapshot, WeeklyLoadSnapshot } from "@/hooks/useWeeklyLoadSnapshot";
+import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 
 // Mini celebration badge
@@ -31,31 +30,9 @@ const AREA_ICONS = {
   creativity: Lightbulb,
 } as const;
 
-// Compact 6-bar grid cell
-function SubTargetCell({ subTarget, isS1 }: { subTarget: AreaModeSubTarget; isS1: boolean }) {
-  const Icon = AREA_ICONS[subTarget.area];
-  const barColor = subTarget.complete 
-    ? "bg-emerald-400" 
-    : isS1 ? "bg-amber-400" : "bg-violet-400";
-  const bgColor = isS1 ? "bg-amber-500/10" : "bg-violet-500/10";
-  
-  return (
-    <div className={`flex items-center gap-1.5 p-1 rounded ${bgColor}`}>
-      <Icon className="w-2.5 h-2.5 text-muted-foreground/60 flex-shrink-0" />
-      <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${barColor}`}
-          initial={false}
-          animate={{ width: `${Math.min(100, subTarget.progress)}%` }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        />
-      </div>
-      {subTarget.complete && <CategoryCompleteBadge show />}
-    </div>
-  );
-}
-
 export function WeeklyGoalCard() {
+  const data = useStableCognitiveLoad();
+  
   const {
     rawGamesXP,
     rawTasksXP,
@@ -71,115 +48,25 @@ export function WeeklyGoalCard() {
     tasksProgress,
     detoxProgress,
     gamesSubTargets,
+    cappedTotalXP,
+    totalProgress,
+    xpRemaining,
+    goalReached,
     isLoading,
-    isFetched,
-  } = useCappedWeeklyProgress();
-
-  const { getSnapshot, setSnapshot } = useWeeklyLoadSnapshot();
-  const cachedSnapshot = getSnapshot();
+    isSyncing,
+  } = data;
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [expandedCell, setExpandedCell] = useState<string | null>(null);
   const prevGoalReached = useRef(false);
 
-  const freshSnapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = useMemo(
-    () => ({
-      rawGamesXP,
-      rawTasksXP,
-      rawDetoxXP,
-      totalXPTarget,
-      gamesXPTarget,
-      tasksXPTarget,
-      detoxXPTarget,
-      gamesComplete,
-      tasksComplete,
-      detoxComplete,
-      gamesProgress,
-      tasksProgress,
-      detoxProgress,
-      gamesSubTargets,
-    }),
-    [
-      rawGamesXP,
-      rawTasksXP,
-      rawDetoxXP,
-      totalXPTarget,
-      gamesXPTarget,
-      tasksXPTarget,
-      detoxXPTarget,
-      gamesComplete,
-      tasksComplete,
-      detoxComplete,
-      gamesProgress,
-      tasksProgress,
-      detoxProgress,
-      gamesSubTargets,
-    ]
-  );
-
-  const freshTotal = freshSnapshot.rawGamesXP + freshSnapshot.rawTasksXP + freshSnapshot.rawDetoxXP;
-
-  // Fresh data is only "safe" to display when ALL queries have fetched at least once
-  // and we are not currently fetching/syncing.
-  const hasFreshReady = !isLoading && isFetched;
-
-  // Persist snapshot only when fresh data is ready AND meaningful.
-  // Never persist zeros: a 0 snapshot becomes sticky and causes apparent "resets".
-  useEffect(() => {
-    if (!hasFreshReady) return;
-    if (freshTotal <= 0) return;
-
-    setSnapshot(freshSnapshot);
-  }, [hasFreshReady, freshTotal, setSnapshot, freshSnapshot]);
-
-  const cachedTotal =
-    (cachedSnapshot?.rawGamesXP ?? 0) + (cachedSnapshot?.rawTasksXP ?? 0) + (cachedSnapshot?.rawDetoxXP ?? 0);
-
-  // Prefer fresh only when it has meaningful totals; otherwise keep a non-zero cached snapshot.
-  const shouldUseFreshForDisplay = hasFreshReady && (freshTotal > 0 || !cachedSnapshot || cachedTotal === 0);
-
-  const resolvedSnapshot: Omit<WeeklyLoadSnapshot, "savedAt"> | null = shouldUseFreshForDisplay
-    ? freshSnapshot
-    : cachedSnapshot
-      ? cachedSnapshot
-      : null;
-
-  // If BOTH cached and fresh are zero, show skeleton instead of a misleading 0 state.
-  const snapshot = resolvedSnapshot && (cachedTotal > 0 || freshTotal > 0) ? resolvedSnapshot : null;
-
-  if (!snapshot) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4 animate-pulse"
-      >
-        <div className="flex items-center justify-between mb-3">
-          <div className="h-4 w-40 bg-muted/60 rounded" />
-          <div className="h-4 w-20 bg-muted/60 rounded" />
-        </div>
-        <div className="h-2 bg-muted/60 rounded-full" />
-      </motion.div>
-    );
-  }
-
-  const displaySubTargets = snapshot.gamesSubTargets ?? gamesSubTargets;
-
   // Get S1 and S2 areas
-  const s1Areas = displaySubTargets.find((s) => s.system === "S1")?.areas ?? [];
-  const s2Areas = displaySubTargets.find((s) => s.system === "S2")?.areas ?? [];
+  const s1Areas = gamesSubTargets.find((s) => s.system === "S1")?.areas ?? [];
+  const s2Areas = gamesSubTargets.find((s) => s.system === "S2")?.areas ?? [];
 
-  const cappedGames = Math.min(snapshot.rawGamesXP, snapshot.gamesXPTarget);
-  const cappedTasks = Math.min(snapshot.rawTasksXP, snapshot.tasksXPTarget);
-  const cappedDetox = Math.min(snapshot.rawDetoxXP, snapshot.detoxXPTarget);
-  const cappedTotalXP = cappedGames + cappedTasks + cappedDetox;
-
-  const totalProgressDisplay =
-    snapshot.totalXPTarget > 0 ? Math.min(100, (cappedTotalXP / snapshot.totalXPTarget) * 100) : 0;
-
-  const xpRemaining = Math.max(0, snapshot.totalXPTarget - cappedTotalXP);
-  const goalReached = cappedTotalXP >= snapshot.totalXPTarget && snapshot.totalXPTarget > 0;
+  const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
+  const cappedTasks = Math.min(rawTasksXP, tasksXPTarget);
+  const cappedDetox = Math.min(rawDetoxXP, detoxXPTarget);
 
   useEffect(() => {
     if (goalReached && !prevGoalReached.current) {
@@ -188,7 +75,10 @@ export function WeeklyGoalCard() {
     prevGoalReached.current = goalReached;
   }, [goalReached]);
 
-  if (isLoading && !cachedSnapshot) {
+  // Show skeleton only on very first load (no data at all)
+  const hasNoData = cappedTotalXP === 0 && totalXPTarget === 0;
+  
+  if (isLoading && hasNoData) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -210,7 +100,7 @@ export function WeeklyGoalCard() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      aria-busy={isLoading}
+      aria-busy={isSyncing}
       className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
     >
       {/* Header */}
@@ -224,10 +114,11 @@ export function WeeklyGoalCard() {
         </div>
         <div className="text-right">
           <div className="text-[11px] font-medium text-muted-foreground">
-            {Math.round(totalProgressDisplay)}%
+            {Math.round(totalProgress)}%
+            {isSyncing && <span className="ml-1 text-[8px] text-muted-foreground/50">•</span>}
           </div>
           <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-            {Math.round(cappedTotalXP)}/{Math.round(snapshot.totalXPTarget)} XP
+            {Math.round(cappedTotalXP)}/{Math.round(totalXPTarget)} XP
           </div>
         </div>
       </div>
@@ -237,7 +128,7 @@ export function WeeklyGoalCard() {
         <motion.div
           className="h-full bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400 rounded-full"
           initial={false}
-          animate={{ width: `${totalProgressDisplay}%` }}
+          animate={{ width: `${totalProgress}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
@@ -248,9 +139,9 @@ export function WeeklyGoalCard() {
           <Gamepad2 className="w-3 h-3 text-muted-foreground" />
           <span className="text-[10px] text-muted-foreground font-medium">Games</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(cappedGames)}/{Math.round(snapshot.gamesXPTarget)}
+            {Math.round(cappedGames)}/{Math.round(gamesXPTarget)}
           </span>
-          <CategoryCompleteBadge show={snapshot.gamesComplete} />
+          <CategoryCompleteBadge show={gamesComplete} />
         </div>
         
         {/* Grid header: area icons */}
@@ -352,15 +243,15 @@ export function WeeklyGoalCard() {
           <BookMarked className="w-3 h-3 text-violet-400" />
           <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(Math.min(snapshot.rawTasksXP, snapshot.tasksXPTarget))}/{Math.round(snapshot.tasksXPTarget)}
+            {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
           </span>
-          <CategoryCompleteBadge show={snapshot.tasksComplete} />
+          <CategoryCompleteBadge show={tasksComplete} />
         </div>
         <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
           <motion.div
-            className={`h-full rounded-full ${snapshot.tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
+            className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
             initial={false}
-            animate={{ width: `${Math.min(100, snapshot.tasksProgress)}%` }}
+            animate={{ width: `${Math.min(100, tasksProgress)}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
@@ -372,22 +263,22 @@ export function WeeklyGoalCard() {
           <Brain className="w-3 h-3 text-teal-400" />
           <span className="text-[10px] text-muted-foreground font-medium">Detox</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(Math.min(snapshot.rawDetoxXP, snapshot.detoxXPTarget))}/{Math.round(snapshot.detoxXPTarget)}
+            {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
           </span>
-          <CategoryCompleteBadge show={snapshot.detoxComplete} />
+          <CategoryCompleteBadge show={detoxComplete} />
         </div>
         <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
           <motion.div
-            className={`h-full rounded-full ${snapshot.detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+            className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
             initial={false}
-            animate={{ width: `${Math.min(100, snapshot.detoxProgress)}%` }}
+            animate={{ width: `${Math.min(100, detoxProgress)}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
       </div>
 
       <p className="text-[10px] text-muted-foreground">
-        {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, snapshot.totalXPTarget)}
+        {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, totalXPTarget)}
       </p>
     </motion.div>
   );
