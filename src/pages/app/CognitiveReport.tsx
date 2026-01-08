@@ -1,7 +1,7 @@
 // src/pages/app/CognitiveReport.tsx
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target } from "lucide-react";
+import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target, Eye } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useAuth } from "@/contexts/AuthContext";
@@ -183,22 +183,44 @@ export default function CognitiveReport() {
           </button>
           <div>
             <h1 className="text-lg font-semibold">Cognitive Intelligence Report</h1>
-            <p className="text-xs text-muted-foreground">Preview</p>
+            <p className="text-xs text-muted-foreground">Your comprehensive cognitive analysis</p>
           </div>
         </div>
 
-        {/* Report Preview with Real Data */}
-        <ReportPreviewReal 
-          sciScore={metrics?.cognitive_performance_score ?? 0}
-          system1Score={metrics?.fast_thinking ?? 0}
-          system2Score={metrics?.slow_thinking ?? 0}
-          domains={{
-            focus: metrics?.focus_stability ?? 0,
-            reasoning: metrics?.reasoning_accuracy ?? 0,
-            creativity: metrics?.creativity ?? 0,
-            memory: metrics?.clarity_score ?? 0,
-          }}
-        />
+        {/* Hero Section with Two Clear CTAs */}
+        <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 space-y-5">
+          <div className="text-center space-y-2">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center">
+              <Brain className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold">Unlock Your Cognitive Profile</h2>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+              Get a professional-grade analysis of your cognitive performance based on your training data.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              variant="premium" 
+              className="flex-1 gap-2"
+              onClick={() => setShowPurchaseModal(true)}
+            >
+              <Lock className="w-4 h-4" />
+              <span>Get Your Report</span>
+              <span className="text-[10px] opacity-70 ml-1">Premium</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="flex-1 gap-2"
+              onClick={() => navigate("/app/report-preview")}
+            >
+              <Eye className="w-4 h-4" />
+              <span>View Sample</span>
+              <span className="text-[10px] opacity-70 ml-1">Free</span>
+            </Button>
+          </div>
+        </div>
 
         {/* What's included */}
         <div className="space-y-3">

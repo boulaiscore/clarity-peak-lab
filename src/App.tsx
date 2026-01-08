@@ -1,4 +1,5 @@
 import CognitiveReport from "@/pages/app/CognitiveReport";
+import ReportPreview from "@/pages/app/ReportPreview";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -116,6 +117,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <CognitiveReport />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/report-preview"
+        element={
+          <ProtectedRoute>
+            <ReportPreview />
           </ProtectedRoute>
         }
       />
