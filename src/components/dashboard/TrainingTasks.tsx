@@ -357,7 +357,9 @@ export function TrainingTasks() {
 
   const toggleMutation = useMutation({
     mutationFn: async ({ taskId, taskType }: { taskId: string; taskType: InputType }) => {
-      if (!user?.id) throw new Error("Not authenticated");
+      // Use stableUserId (never undefined during tab switches)
+      const uid = stableUserId;
+      if (!uid) throw new Error("Not authenticated");
       
       const weekStart = getCurrentWeekStart();
       const xpEarned = calculateXP(taskType);
@@ -366,7 +368,7 @@ export function TrainingTasks() {
       const { data: existing } = await supabase
         .from("user_listened_podcasts")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", uid)
         .eq("podcast_id", taskId)
         .maybeSingle();
       
@@ -374,7 +376,7 @@ export function TrainingTasks() {
       if (!existing) {
         const { error: legacyError } = await supabase
           .from("user_listened_podcasts")
-          .insert({ user_id: user.id, podcast_id: taskId });
+          .insert({ user_id: uid, podcast_id: taskId });
         if (legacyError) throw legacyError;
       }
       
@@ -383,7 +385,7 @@ export function TrainingTasks() {
       const { data: existingXP } = await supabase
         .from("exercise_completions")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", uid)
         .eq("exercise_id", exerciseId)
         .eq("week_start", weekStart)
         .maybeSingle();
@@ -393,7 +395,7 @@ export function TrainingTasks() {
         const { error: xpError } = await supabase
           .from("exercise_completions")
           .insert({
-            user_id: user.id,
+            user_id: uid,
             exercise_id: exerciseId,
             gym_area: "content",
             thinking_mode: "slow",
@@ -407,7 +409,7 @@ export function TrainingTasks() {
     },
     onMutate: async ({ taskId }) => {
       setTogglingId(taskId);
-      await queryClient.cancelQueries({ queryKey: ["weekly-content-completions", user?.id] });
+      await queryClient.cancelQueries({ queryKey: ["weekly-content-completions", stableUserId] });
     },
     onError: () => {
       // Error handled by toast
@@ -422,7 +424,7 @@ export function TrainingTasks() {
   });
 
   const handleComplete = (taskId: string, taskType: InputType) => {
-    if (!user?.id) return;
+    if (!stableUserId) return;
     toggleMutation.mutate({ taskId, taskType });
   };
 

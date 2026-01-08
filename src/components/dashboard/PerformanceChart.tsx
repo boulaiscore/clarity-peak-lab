@@ -21,24 +21,35 @@ const chartConfig = {
 export function PerformanceChart() {
   const { user } = useAuth();
 
+  // Stable userId to prevent query disabling during tab switches
+  const stableUserId = user?.id ?? (() => {
+    try {
+      return localStorage.getItem("nl:lastUserId") || undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
   const { data: sessions, isLoading } = useQuery({
-    queryKey: ["performance-chart", user?.id],
+    queryKey: ["performance-chart", stableUserId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!stableUserId) return [];
 
       const fourteenDaysAgo = subDays(new Date(), 14);
 
       const { data, error } = await supabase
         .from("neuro_gym_sessions")
         .select("completed_at, score, area")
-        .eq("user_id", user.id)
+        .eq("user_id", stableUserId)
         .gte("completed_at", fourteenDaysAgo.toISOString())
         .order("completed_at", { ascending: true });
 
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!stableUserId,
+    staleTime: 60_000,
+    placeholderData: (prev) => prev ?? [],
   });
 
   const chartData = useMemo(() => {
