@@ -79,6 +79,7 @@ export function WeeklyGoalCard() {
   const cachedSnapshot = getSnapshot();
 
   const [showCelebration, setShowCelebration] = useState(false);
+  const [expandedCell, setExpandedCell] = useState<string | null>(null);
   const prevGoalReached = useRef(false);
 
   useEffect(() => {
@@ -265,17 +266,36 @@ export function WeeklyGoalCard() {
             <span className="text-[8px] text-amber-400 font-medium">S1</span>
           </div>
           {s1Areas.map((area) => (
-            <div key={area.area} className="h-4 bg-amber-500/10 rounded flex items-center px-1">
-              <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                <motion.div
-                  className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
-                  initial={false}
-                  animate={{ width: `${Math.min(100, area.progress)}%` }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                />
+            <button
+              key={area.area}
+              onClick={() => setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`)}
+              className="h-auto bg-amber-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+            >
+              <div className="flex items-center">
+                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
+                    initial={false}
+                    animate={{ width: `${Math.min(100, area.progress)}%` }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  />
+                </div>
+                {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
               </div>
-              {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
-            </div>
+              <AnimatePresence>
+                {expandedCell === `s1-${area.area}` && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-[7px] text-amber-300 tabular-nums text-center mt-0.5"
+                  >
+                    {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
           ))}
         </div>
         
@@ -285,17 +305,36 @@ export function WeeklyGoalCard() {
             <span className="text-[8px] text-violet-400 font-medium">S2</span>
           </div>
           {s2Areas.map((area) => (
-            <div key={area.area} className="h-4 bg-violet-500/10 rounded flex items-center px-1">
-              <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                <motion.div
-                  className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
-                  initial={false}
-                  animate={{ width: `${Math.min(100, area.progress)}%` }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                />
+            <button
+              key={area.area}
+              onClick={() => setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`)}
+              className="h-auto bg-violet-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+            >
+              <div className="flex items-center">
+                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
+                    initial={false}
+                    animate={{ width: `${Math.min(100, area.progress)}%` }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  />
+                </div>
+                {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
               </div>
-              {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
-            </div>
+              <AnimatePresence>
+                {expandedCell === `s2-${area.area}` && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-[7px] text-violet-300 tabular-nums text-center mt-0.5"
+                  >
+                    {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
           ))}
         </div>
       </div>
