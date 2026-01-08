@@ -51,7 +51,9 @@ export default function CognitiveReport() {
     canViewReport, 
     canDownloadPDF, 
     reportCredits, 
-    isPremium, 
+    monthlyCredits,
+    isPremium,
+    isPro,
     refetchPurchase, 
     useCredit,
     weeklyPlanCompleted,
@@ -59,6 +61,9 @@ export default function CognitiveReport() {
     xpRemaining,
     hasCreditsOrPurchase,
   } = useReportAccess();
+  
+  // Total credits available for display
+  const totalCredits = isPro ? Infinity : monthlyCredits + reportCredits;
 
   const printRef = useRef<HTMLDivElement>(null);
   const generatedAt = useMemo(() => new Date(), []);
@@ -382,12 +387,17 @@ export default function CognitiveReport() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {reportCredits > 0 && (
+          {isPro ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-xs">
+              <Crown className="w-3.5 h-3.5 text-primary" />
+              <span className="font-medium">Unlimited</span>
+            </div>
+          ) : totalCredits > 0 ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-xs">
               <Package className="w-3.5 h-3.5 text-primary" />
-              <span className="font-medium">{reportCredits} credits</span>
+              <span className="font-medium">{totalCredits} credit{totalCredits > 1 ? 's' : ''}</span>
             </div>
-          )}
+          ) : null}
           <Button 
             variant={canDownloadPDF ? "default" : "outline"}
             className="gap-2"

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, Crown, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Pricing() {
@@ -17,7 +17,7 @@ export function Pricing() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {/* Free Tier */}
           <div className="p-8 rounded-xl bg-card border border-border animate-fade-in-up shadow-card">
             <div className="mb-8">
@@ -50,15 +50,13 @@ export function Pricing() {
           </div>
 
           {/* Premium Tier */}
-          <div className="p-8 rounded-xl bg-card border border-primary/25 shadow-glow animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <div className="flex items-start justify-between mb-8">
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Premium</h3>
-                <p className="text-muted-foreground text-sm">Complete cognitive training system</p>
+          <div className="p-8 rounded-xl bg-card border border-border shadow-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="w-5 h-5 text-primary" />
+                <h3 className="text-xl font-semibold">Premium</h3>
               </div>
-              <span className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
-                Recommended
-              </span>
+              <p className="text-muted-foreground text-sm">Complete training system</p>
             </div>
             
             <div className="mb-8">
@@ -73,11 +71,51 @@ export function Pricing() {
                 "Neuro Activation™ warm-up",
                 "Unlimited daily sessions",
                 "Full dashboard with trends",
-                "Complete badge system",
+                "1 Cognitive Report/month",
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
                   <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Button asChild variant="outline" className="w-full min-h-[52px] rounded-xl">
+              <Link to="/auth">Start Free Trial</Link>
+            </Button>
+          </div>
+
+          {/* Pro Tier */}
+          <div className="p-8 rounded-xl bg-card border border-primary/25 shadow-glow animate-fade-in-up relative" style={{ animationDelay: "0.2s" }}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                BEST VALUE
+              </span>
+            </div>
+            
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Crown className="w-5 h-5 text-primary" />
+                <h3 className="text-xl font-semibold">Pro</h3>
+              </div>
+              <p className="text-muted-foreground text-sm">Unlimited everything</p>
+            </div>
+            
+            <div className="mb-8">
+              <span className="text-4xl font-semibold">$16.99</span>
+              <span className="text-muted-foreground">/month</span>
+            </div>
+
+            <ul className="space-y-4 mb-8">
+              {[
+                "All Premium features",
+                "Unlimited Cognitive Reports",
+                "Priority support",
+                "Early access to new features",
+              ].map((feature, i) => (
+                <li key={feature} className="flex items-start gap-3 text-sm">
+                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span className={i === 1 ? "font-medium" : ""}>{feature}</span>
                 </li>
               ))}
             </ul>

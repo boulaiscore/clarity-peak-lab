@@ -6,6 +6,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Tier configuration
+const TIERS = {
+  premium: {
+    name: 'NeuroLoop Pro Premium',
+    description: 'Full cognitive training with 1 report/month included.',
+    amount: 1200, // $12.00
+  },
+  pro: {
+    name: 'NeuroLoop Pro',
+    description: 'Complete cognitive training with unlimited reports.',
+    amount: 1699, // $16.99
+  },
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -23,9 +37,16 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const { userId, userEmail, successUrl, cancelUrl } = await req.json();
+    const { userId, userEmail, successUrl, cancelUrl, tier = 'premium' } = await req.json();
 
-    console.log('Creating checkout session for user:', userId, 'email:', userEmail);
+    // Validate tier
+    if (!['premium', 'pro'].includes(tier)) {
+      throw new Error('Invalid tier. Must be "premium" or "pro".');
+    }
+
+    const tierConfig = TIERS[tier as keyof typeof TIERS];
+
+    console.log('Creating checkout session for user:', userId, 'email:', userEmail, 'tier:', tier);
 
     // Check if customer already exists
     let customerId: string | undefined;
@@ -41,40 +62,36 @@ serve(async (req) => {
       }
     }
 
-    // Create or get the premium price
-    // First, try to find existing product
-    const products = await stripe.products.list({
-      limit: 100,
-    });
+    // Find or create the product for this tier
+    const products = await stripe.products.list({ limit: 100 });
+    let product = products.data.find((p: Stripe.Product) => p.name === tierConfig.name);
     
-    let premiumProduct = products.data.find((p: Stripe.Product) => p.name === 'NeuroLoop Pro Premium');
-    
-    if (!premiumProduct) {
-      console.log('Creating new Premium product');
-      premiumProduct = await stripe.products.create({
-        name: 'NeuroLoop Pro Premium',
-        description: 'Full access to all cognitive training features, unlimited sessions, and advanced analytics.',
+    if (!product) {
+      console.log('Creating new product:', tierConfig.name);
+      product = await stripe.products.create({
+        name: tierConfig.name,
+        description: tierConfig.description,
       });
     }
 
     // Find or create the price
     const prices = await stripe.prices.list({
-      product: premiumProduct.id,
+      product: product.id,
       active: true,
       limit: 100,
     });
     
-    let premiumPrice = prices.data.find((p: Stripe.Price) => 
-      p.unit_amount === 1200 && 
+    let price = prices.data.find((p: Stripe.Price) => 
+      p.unit_amount === tierConfig.amount && 
       p.currency === 'usd' && 
       p.recurring?.interval === 'month'
     );
     
-    if (!premiumPrice) {
-      console.log('Creating new Premium price');
-      premiumPrice = await stripe.prices.create({
-        product: premiumProduct.id,
-        unit_amount: 1200, // $12.00
+    if (!price) {
+      console.log('Creating new price for', tierConfig.name);
+      price = await stripe.prices.create({
+        product: product.id,
+        unit_amount: tierConfig.amount,
         currency: 'usd',
         recurring: {
           interval: 'month',
@@ -88,7 +105,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : userEmail,
       line_items: [
         {
-          price: premiumPrice.id,
+          price: price.id,
           quantity: 1,
         },
       ],
@@ -99,14 +116,16 @@ serve(async (req) => {
         trial_period_days: 7,
         metadata: {
           user_id: userId,
+          tier: tier,
         },
       },
       metadata: {
         user_id: userId,
+        tier: tier,
       },
     });
 
-    console.log('Checkout session created:', session.id);
+    console.log('Checkout session created:', session.id, 'for tier:', tier);
 
     return new Response(
       JSON.stringify({ url: session.url, sessionId: session.id }),

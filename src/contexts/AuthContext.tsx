@@ -26,7 +26,7 @@ export interface UserProfile {
   session_duration: SessionDuration;
   daily_time_commitment: DailyTimeCommitment;
   training_plan: TrainingPlanId;
-  subscription_status: "free" | "premium";
+  subscription_status: "free" | "premium" | "pro";
   onboarding_completed: boolean;
   reminder_enabled: boolean | null;
   reminder_time: string | null;
@@ -38,7 +38,7 @@ export interface User {
   id: string;
   email: string;
   name: string | null;
-  subscriptionStatus: "free" | "premium";
+  subscriptionStatus: "free" | "premium" | "pro";
   createdAt: Date;
   
   // Personal data
@@ -81,7 +81,7 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     id: supabaseUser.id,
     email: supabaseUser.email || "",
     name: profile?.name || supabaseUser.email?.split("@")[0] || null,
-    subscriptionStatus: (profile?.subscription_status as "free" | "premium") || "free",
+    subscriptionStatus: (profile?.subscription_status as "free" | "premium" | "pro") || "free",
     createdAt: new Date(supabaseUser.created_at),
     age: profile?.age || undefined,
     birthDate: profile?.birth_date || undefined,

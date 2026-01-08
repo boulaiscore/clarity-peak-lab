@@ -6,7 +6,9 @@ import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 export function useReportAccess() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const isPremium = user?.subscriptionStatus === "premium";
+  const subscriptionStatus = user?.subscriptionStatus || "free";
+  const isPremium = subscriptionStatus === "premium" || subscriptionStatus === "pro";
+  const isPro = subscriptionStatus === "pro";
 
   // Get weekly progress to check if plan is complete
   const { 
@@ -17,24 +19,27 @@ export function useReportAccess() {
     isLoading: progressLoading 
   } = useCappedWeeklyProgress();
 
-  // Get user's report credits from profile
-  const { data: reportCredits, refetch: refetchCredits, isLoading: creditsLoading } = useQuery({
+  // Get user's report credits and monthly credits from profile
+  const { data: profileData, refetch: refetchCredits, isLoading: creditsLoading } = useQuery({
     queryKey: ["report-credits", user?.id],
     queryFn: async () => {
-      if (!user?.id) return 0;
+      if (!user?.id) return { reportCredits: 0, monthlyCredits: 0 };
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("report_credits")
+        .select("report_credits, monthly_report_credits")
         .eq("user_id", user.id)
         .single();
       
       if (error) {
         console.error("Error fetching report credits:", error);
-        return 0;
+        return { reportCredits: 0, monthlyCredits: 0 };
       }
       
-      return (data as { report_credits?: number })?.report_credits ?? 0;
+      return {
+        reportCredits: (data as { report_credits?: number })?.report_credits ?? 0,
+        monthlyCredits: (data as { monthly_report_credits?: number })?.monthly_report_credits ?? 0,
+      };
     },
     enabled: !!user?.id,
   });
@@ -66,29 +71,58 @@ export function useReportAccess() {
     enabled: !!user?.id,
   });
 
-  // Mutation to use a credit
+  const reportCredits = profileData?.reportCredits || 0;
+  const monthlyCredits = profileData?.monthlyCredits || 0;
+
+  // Mutation to use a credit (monthly for Premium, purchased for all)
   const useCredit = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("Not authenticated");
-      if ((reportCredits || 0) < 1) throw new Error("No credits available");
-
-      const { error } = await supabase
-        .from("profiles")
-        .update({ report_credits: (reportCredits || 0) - 1 })
-        .eq("user_id", user.id);
-
-      if (error) throw error;
+      
+      // Pro users don't need credits
+      if (isPro) return;
+      
+      // Premium users use monthly credits first, then purchased credits
+      if (subscriptionStatus === "premium" && monthlyCredits > 0) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ monthly_report_credits: monthlyCredits - 1 })
+          .eq("user_id", user.id);
+        if (error) throw error;
+      } else if (reportCredits > 0) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ report_credits: reportCredits - 1 })
+          .eq("user_id", user.id);
+        if (error) throw error;
+      } else {
+        throw new Error("No credits available");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["report-credits", user?.id] });
     },
   });
 
-  const hasCreditsOrPurchase = (reportCredits || 0) > 0 || hasPurchasedPDF;
   const weeklyPlanCompleted = allCategoriesComplete;
   
-  // Can download only if: has credits/purchase AND weekly plan is completed
-  const canDownload = hasCreditsOrPurchase && weeklyPlanCompleted;
+  // Determine if user can download based on tier
+  let canDownload = false;
+  let hasCreditsOrPurchase = false;
+
+  if (isPro) {
+    // Pro: unlimited reports, only need weekly plan completed
+    canDownload = weeklyPlanCompleted;
+    hasCreditsOrPurchase = true; // Always "has access" for Pro
+  } else if (subscriptionStatus === "premium") {
+    // Premium: needs monthly credit or purchased credits + weekly plan
+    hasCreditsOrPurchase = monthlyCredits > 0 || reportCredits > 0 || hasPurchasedPDF;
+    canDownload = hasCreditsOrPurchase && weeklyPlanCompleted;
+  } else {
+    // Free: needs purchased credits + weekly plan
+    hasCreditsOrPurchase = reportCredits > 0 || hasPurchasedPDF;
+    canDownload = hasCreditsOrPurchase && weeklyPlanCompleted;
+  }
   
   // XP remaining to complete weekly plan
   const xpRemaining = Math.max(0, totalXPTarget - cappedTotalXP);
@@ -96,8 +130,11 @@ export function useReportAccess() {
   return {
     canViewReport: isPremium,
     canDownloadPDF: canDownload,
-    reportCredits: reportCredits || 0,
+    reportCredits,
+    monthlyCredits,
     isPremium,
+    isPro,
+    subscriptionStatus,
     isLoading: creditsLoading || purchaseLoading || progressLoading,
     weeklyPlanCompleted,
     weeklyProgress: totalProgress,
