@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format, subDays, parseISO } from "date-fns";
 import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 interface AreaStats {
   total: number;
@@ -27,7 +27,17 @@ interface GamesStatsData {
   overallAccuracy: number;
 }
 
-// Hook to get 14-day games history for trend chart
+// Area colors matching the Lab
+const AREA_COLORS: Record<string, string> = {
+  focus: "#3b82f6",     // blue
+  memory: "#22c55e",    // green
+  visual: "#f97316",    // orange
+  reasoning: "#a855f7", // purple
+  control: "#06b6d4",   // cyan
+  creativity: "#f59e0b", // amber
+};
+
+// Hook to get 14-day games history for trend chart with area breakdown
 function useGamesHistory(days: number = 14) {
   const { user } = useAuth();
   
@@ -37,28 +47,30 @@ function useGamesHistory(days: number = 14) {
   })();
 
   return useQuery({
-    queryKey: ["games-history-14d", stableUserId, days],
+    queryKey: ["games-history-14d-breakdown", stableUserId, days],
     queryFn: async () => {
       if (!stableUserId) return [];
 
       const startDate = subDays(new Date(), days);
 
-      // Games are stored in neuro_gym_sessions (with score), not exercise_completions
-      // We calculate XP based on score: simplified formula
+      // Games are stored in neuro_gym_sessions (with score and area)
       const { data, error } = await supabase
         .from("neuro_gym_sessions")
-        .select("score, completed_at")
+        .select("score, completed_at, area")
         .eq("user_id", stableUserId)
         .gte("completed_at", startDate.toISOString());
 
       if (error) throw error;
 
-      // Group by date - calculate XP from score (score is already XP-like)
-      const byDate: Record<string, number> = {};
+      // Group by date and area
+      const byDateAndArea: Record<string, Record<string, number>> = {};
       (data || []).forEach((row) => {
         const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
-        // Score is the XP earned per session
-        byDate[date] = (byDate[date] || 0) + (row.score || 0);
+        const area = (row.area as string) || "focus";
+        if (!byDateAndArea[date]) {
+          byDateAndArea[date] = { focus: 0, memory: 0, visual: 0, reasoning: 0, control: 0, creativity: 0 };
+        }
+        byDateAndArea[date][area] = (byDateAndArea[date][area] || 0) + (row.score || 0);
       });
 
       // Build 14-day array with dd/MM format
@@ -66,10 +78,13 @@ function useGamesHistory(days: number = 14) {
       for (let i = days - 1; i >= 0; i--) {
         const date = subDays(new Date(), i);
         const dateStr = format(date, "yyyy-MM-dd");
+        const dayData = byDateAndArea[dateStr] || { focus: 0, memory: 0, visual: 0, reasoning: 0, control: 0, creativity: 0 };
+        const totalXp = Object.values(dayData).reduce((sum, v) => sum + v, 0);
         result.push({
           date: dateStr,
-          dateLabel: format(date, "d/M"), // dd/MM format
-          xp: byDate[dateStr] || 0,
+          dateLabel: format(date, "d/M"),
+          xp: totalXp,
+          ...dayData,
         });
       }
       return result;
@@ -286,22 +301,67 @@ export function GamesStats() {
                     fontSize: '11px'
                   }}
                   labelFormatter={(label) => label}
-                  formatter={(value: number) => [`${value} XP`, 'Games']}
+                  formatter={(value: number, name: string) => {
+                    const labels: Record<string, string> = {
+                      focus: 'Focus',
+                      memory: 'Memory',
+                      visual: 'Visual',
+                      reasoning: 'Reasoning',
+                      control: 'Control',
+                      creativity: 'Creativity',
+                    };
+                    return [`${value} XP`, labels[name] || name];
+                  }}
                   cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                 />
                 <Bar 
-                  dataKey="xp" 
+                  dataKey="focus" 
+                  stackId="games"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill={AREA_COLORS.focus}
+                  name="focus"
+                />
+                <Bar 
+                  dataKey="memory" 
+                  stackId="games"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill={AREA_COLORS.memory}
+                  name="memory"
+                />
+                <Bar 
+                  dataKey="visual" 
+                  stackId="games"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill={AREA_COLORS.visual}
+                  name="visual"
+                />
+                <Bar 
+                  dataKey="reasoning" 
+                  stackId="games"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill={AREA_COLORS.reasoning}
+                  name="reasoning"
+                />
+                <Bar 
+                  dataKey="control" 
+                  stackId="games"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill={AREA_COLORS.control}
+                  name="control"
+                />
+                <Bar 
+                  dataKey="creativity" 
+                  stackId="games"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
-                >
-                  {historyData?.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.xp > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
-                      opacity={entry.xp > 0 ? 1 : 0.18}
-                    />
-                  ))}
-                </Bar>
+                  fill={AREA_COLORS.creativity}
+                  name="creativity"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
