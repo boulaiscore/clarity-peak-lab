@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,24 +43,24 @@ export function useWeeklyProgress() {
   // Note: this hook can be mounted while AuthContext is temporarily null during route/tab transitions.
   // We persist the last known userId so the query keys stay stable across remounts.
   const lastUserIdRef = useRef<string | undefined>(undefined);
-  
-  // Initialize from localStorage on first mount
-  if (lastUserIdRef.current === undefined) {
+
+  // Read persisted userId once per mount (safe hook initializer).
+  const [persistedUserId] = useState<string | undefined>(() => {
     try {
-      lastUserIdRef.current = localStorage.getItem("nl:lastUserId") || undefined;
+      return localStorage.getItem("nl:lastUserId") || undefined;
     } catch {
-      // ignore
+      return undefined;
     }
-  }
-  
+  });
+
   const computedUserId = user?.id ?? session?.user?.id;
-  
+
   // Update ref when we have a fresh userId
   if (computedUserId && lastUserIdRef.current !== computedUserId) {
     lastUserIdRef.current = computedUserId;
   }
 
-  const userId = computedUserId ?? lastUserIdRef.current;
+  const userId = computedUserId ?? lastUserIdRef.current ?? persistedUserId;
 
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
