@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Gamepad2, BookMarked, Brain, Shield, Trophy, Target, Lightbulb } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
+import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
 
 // Mini celebration badge
 function CategoryCompleteBadge({ show }: { show: boolean }) {
@@ -29,6 +30,32 @@ const AREA_ICONS = {
   reasoning: Brain,
   creativity: Lightbulb,
 } as const;
+
+// Storage key for tracking if user has seen the celebration this week
+const CELEBRATION_SEEN_KEY = "weekly-celebration-seen";
+
+function getCelebrationSeenKey(): string {
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
+  return `${CELEBRATION_SEEN_KEY}:${weekStart.toISOString().split('T')[0]}`;
+}
+
+function hasCelebrationBeenSeen(): boolean {
+  try {
+    return localStorage.getItem(getCelebrationSeenKey()) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function markCelebrationSeen(): void {
+  try {
+    localStorage.setItem(getCelebrationSeenKey(), "true");
+  } catch {
+    // ignore
+  }
+}
 
 export function WeeklyGoalCard() {
   const data = useStableCognitiveLoad();
@@ -59,6 +86,7 @@ export function WeeklyGoalCard() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [expandedCell, setExpandedCell] = useState<string | null>(null);
   const prevGoalReached = useRef(false);
+  const celebrationTriggered = useRef(false);
 
   // Get S1 and S2 areas
   const s1Areas = gamesSubTargets.find((s) => s.system === "S1")?.areas ?? [];
@@ -69,11 +97,20 @@ export function WeeklyGoalCard() {
   const cappedDetox = Math.min(rawDetoxXP, detoxXPTarget);
 
   useEffect(() => {
-    if (goalReached && !prevGoalReached.current) {
-      setShowCelebration(true);
+    // Only trigger celebration once per week, when goal transitions from not-reached to reached
+    if (goalReached && !prevGoalReached.current && !celebrationTriggered.current) {
+      if (!hasCelebrationBeenSeen()) {
+        setShowCelebration(true);
+        celebrationTriggered.current = true;
+      }
     }
     prevGoalReached.current = goalReached;
   }, [goalReached]);
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    markCelebrationSeen();
+  };
 
   // Show skeleton only on very first load (no data at all)
   const hasNoData = cappedTotalXP === 0 && totalXPTarget === 0;
@@ -292,6 +329,12 @@ export function WeeklyGoalCard() {
       <p className="text-[10px] text-muted-foreground">
         {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, totalXPTarget)}
       </p>
+
+      {/* Weekly completion celebration with report popup */}
+      <WeeklyCompleteCelebration 
+        show={showCelebration} 
+        onComplete={handleCelebrationComplete} 
+      />
     </motion.div>
   );
 }
