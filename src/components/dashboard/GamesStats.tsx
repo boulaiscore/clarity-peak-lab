@@ -297,14 +297,85 @@ export function GamesStats() {
   const { data: sessions = [], isLoading } = useWeeklyGameCompletions();
   const { data: historyData } = useGamesHistory(14);
 
-  // Calculate stats
+  // Calculate detailed stats per system and area
   const stats = useMemo(() => {
-    const s1XP = sessions.filter(s => s.thinking_mode === "fast").reduce((sum, s) => sum + (s.xp_earned || 0), 0);
-    const s2XP = sessions.filter(s => s.thinking_mode === "slow" || s.thinking_mode !== "fast").reduce((sum, s) => sum + (s.xp_earned || 0), 0);
-    const s1Count = sessions.filter(s => s.thinking_mode === "fast").length;
-    const s2Count = sessions.length - s1Count;
+    type AreaKey = "focus" | "reasoning" | "creativity";
     
-    return { s1XP, s2XP, s1Count, s2Count };
+    interface AreaStats {
+      count: number;
+      xp: number;
+      totalScore: number;
+      avgScore: number;
+    }
+    
+    interface SystemStats {
+      xp: number;
+      count: number;
+      totalScore: number;
+      avgScore: number;
+      areas: Record<AreaKey, AreaStats>;
+    }
+    
+    const initAreaStats = (): AreaStats => ({ count: 0, xp: 0, totalScore: 0, avgScore: 0 });
+    const initSystemStats = (): SystemStats => ({
+      xp: 0,
+      count: 0,
+      totalScore: 0,
+      avgScore: 0,
+      areas: {
+        focus: initAreaStats(),
+        reasoning: initAreaStats(),
+        creativity: initAreaStats(),
+      },
+    });
+    
+    const s1: SystemStats = initSystemStats();
+    const s2: SystemStats = initSystemStats();
+    
+    sessions.forEach((session) => {
+      const isS1 = session.thinking_mode === "fast";
+      const system = isS1 ? s1 : s2;
+      const rawArea = (session.gym_area as string) || "focus";
+      
+      // Map to 3 main areas
+      let area: AreaKey;
+      if (rawArea === "focus" || rawArea === "memory" || rawArea === "visual") {
+        area = "focus";
+      } else if (rawArea === "reasoning" || rawArea === "control") {
+        area = "reasoning";
+      } else {
+        area = "creativity";
+      }
+      
+      const xp = session.xp_earned || 0;
+      const score = session.score ?? 0;
+      
+      system.xp += xp;
+      system.count++;
+      system.totalScore += score;
+      
+      system.areas[area].count++;
+      system.areas[area].xp += xp;
+      system.areas[area].totalScore += score;
+    });
+    
+    // Calculate averages
+    s1.avgScore = s1.count > 0 ? Math.round(s1.totalScore / s1.count) : 0;
+    s2.avgScore = s2.count > 0 ? Math.round(s2.totalScore / s2.count) : 0;
+    
+    (["focus", "reasoning", "creativity"] as AreaKey[]).forEach((area) => {
+      s1.areas[area].avgScore = s1.areas[area].count > 0 ? Math.round(s1.areas[area].totalScore / s1.areas[area].count) : 0;
+      s2.areas[area].avgScore = s2.areas[area].count > 0 ? Math.round(s2.areas[area].totalScore / s2.areas[area].count) : 0;
+    });
+    
+    return { 
+      s1, 
+      s2,
+      s1XP: s1.xp,
+      s2XP: s2.xp,
+      s1Count: s1.count,
+      s2Count: s2.count,
+    };
   }, [sessions]);
 
   if (isLoading) {
@@ -435,10 +506,10 @@ export function GamesStats() {
         </div>
       </div>
 
-      {/* System Breakdown Cards */}
+      {/* System Breakdown Cards with Area Details */}
       {sessions.length > 0 && (
         <>
-          {/* System 1 */}
+          {/* System 1 - Fast */}
           <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-card/50 to-transparent border border-amber-500/20">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
@@ -450,12 +521,54 @@ export function GamesStats() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-amber-400">{stats.s1XP} XP</p>
-                <p className="text-[9px] text-muted-foreground">{stats.s1Count} games</p>
+                <p className="text-[9px] text-muted-foreground">{stats.s1Count} games · {stats.s1.avgScore}% avg</p>
               </div>
             </div>
+            
+            {/* S1 Area breakdown */}
+            {stats.s1Count > 0 && (
+              <div className="space-y-2 pt-3 border-t border-amber-500/10">
+                {(["focus", "reasoning", "creativity"] as const).map((area) => {
+                  const areaStats = stats.s1.areas[area];
+                  if (areaStats.count === 0) return null;
+                  
+                  const areaLabels = { focus: "Focus", reasoning: "Reasoning", creativity: "Creativity" };
+                  const areaColors = { focus: "blue", reasoning: "purple", creativity: "amber" };
+                  const metricsImpact = {
+                    focus: ["Focus Stability", "Reaction Speed"],
+                    reasoning: ["Reasoning Accuracy", "Decision Quality"],
+                    creativity: ["Creative Thinking", "Pattern Recognition"],
+                  };
+                  
+                  return (
+                    <div key={area} className="p-2 rounded-lg bg-muted/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <AreaIcon area={area} />
+                        <span className="text-[10px] font-medium">{areaLabels[area]}</span>
+                        <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} games</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-[9px]">
+                        <span className="text-amber-400 font-medium">+{areaStats.xp} XP</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className={areaStats.avgScore >= 70 ? "text-green-400" : areaStats.avgScore >= 50 ? "text-amber-400" : "text-red-400"}>
+                          {areaStats.avgScore}% accuracy
+                        </span>
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {metricsImpact[area].map((metric) => (
+                          <span key={metric} className="text-[7px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400/80">
+                            ↑ {metric}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* System 2 */}
+          {/* System 2 - Slow */}
           <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 via-card/50 to-transparent border border-violet-500/20">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
@@ -467,9 +580,87 @@ export function GamesStats() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-violet-400">{stats.s2XP} XP</p>
-                <p className="text-[9px] text-muted-foreground">{stats.s2Count} games</p>
+                <p className="text-[9px] text-muted-foreground">{stats.s2Count} games · {stats.s2.avgScore}% avg</p>
               </div>
             </div>
+            
+            {/* S2 Area breakdown */}
+            {stats.s2Count > 0 && (
+              <div className="space-y-2 pt-3 border-t border-violet-500/10">
+                {(["focus", "reasoning", "creativity"] as const).map((area) => {
+                  const areaStats = stats.s2.areas[area];
+                  if (areaStats.count === 0) return null;
+                  
+                  const areaLabels = { focus: "Focus", reasoning: "Reasoning", creativity: "Creativity" };
+                  const metricsImpact = {
+                    focus: ["Clarity Score", "Attention Control"],
+                    reasoning: ["Critical Thinking", "Logical Analysis"],
+                    creativity: ["Conceptual Depth", "Divergent Thinking"],
+                  };
+                  
+                  return (
+                    <div key={area} className="p-2 rounded-lg bg-muted/20">
+                      <div className="flex items-center gap-2 mb-1">
+                        <AreaIcon area={area} />
+                        <span className="text-[10px] font-medium">{areaLabels[area]}</span>
+                        <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} games</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-[9px]">
+                        <span className="text-violet-400 font-medium">+{areaStats.xp} XP</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className={areaStats.avgScore >= 70 ? "text-green-400" : areaStats.avgScore >= 50 ? "text-amber-400" : "text-red-400"}>
+                          {areaStats.avgScore}% accuracy
+                        </span>
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {metricsImpact[area].map((metric) => (
+                          <span key={metric} className="text-[7px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400/80">
+                            ↑ {metric}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          
+          {/* Cognitive Metrics Impact Summary */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-emerald-500/5 border border-primary/20">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
+            
+            <div className="grid grid-cols-3 gap-2">
+              <div className="p-2 rounded-lg bg-muted/20 text-center">
+                <p className="text-[8px] text-muted-foreground mb-1">Cognitive Age</p>
+                <p className="text-sm font-bold text-emerald-400">
+                  {sessions.length > 0 ? `−${Math.min(0.5, sessions.length * 0.05).toFixed(1)}` : "—"}
+                </p>
+                <p className="text-[7px] text-muted-foreground">years effect</p>
+              </div>
+              <div className="p-2 rounded-lg bg-muted/20 text-center">
+                <p className="text-[8px] text-muted-foreground mb-1">Network Score</p>
+                <p className="text-sm font-bold text-blue-400">
+                  +{Math.round((stats.s1XP + stats.s2XP) * 0.15)}
+                </p>
+                <p className="text-[7px] text-muted-foreground">pts this week</p>
+              </div>
+              <div className="p-2 rounded-lg bg-muted/20 text-center">
+                <p className="text-[8px] text-muted-foreground mb-1">Dual Process</p>
+                <p className="text-sm font-bold text-violet-400">
+                  {stats.s1XP > 0 && stats.s2XP > 0 
+                    ? `${Math.round(Math.min(stats.s1XP, stats.s2XP) / Math.max(stats.s1XP, stats.s2XP) * 100)}%`
+                    : stats.s1XP > 0 || stats.s2XP > 0 
+                      ? "Unbalanced" 
+                      : "—"}
+                </p>
+                <p className="text-[7px] text-muted-foreground">integration</p>
+              </div>
+            </div>
+            
+            <p className="text-[8px] text-muted-foreground/70 mt-2 text-center">
+              Balance S1 and S2 training for optimal Dual Process Integration
+            </p>
           </div>
         </>
       )}
