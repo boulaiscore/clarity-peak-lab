@@ -744,6 +744,58 @@ export function TrainingTasks() {
         </div>
       )}
 
+      {/* Metrics Impact */}
+      {earnedXP > 0 && (
+        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-violet-500/5 border border-primary/20">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
+          
+          {(() => {
+            // Tasks Engagement = min(100, weeklyTasksXP / tasksTarget × 100)
+            // This contributes to Behavioral Engagement (30% of SCI) with weight 30%
+            // So Tasks → SCI contribution = 0.30 × 0.30 × TasksEngagement = 0.09 × TasksEngagement
+            const tasksEngagement = planTasksXPTarget > 0 ? Math.min(100, (earnedXP / planTasksXPTarget) * 100) : 0;
+            const sciContribution = Math.round(0.09 * tasksEngagement);
+            
+            // Count S1 vs S2 content
+            const s1Content = completedTasks.filter(t => t.thinkingSystem === "S1").length;
+            const s2Content = completedTasks.filter(t => t.thinkingSystem === "S2" || t.thinkingSystem === "S1+S2").length;
+            
+            return (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg bg-muted/20">
+                    <p className="text-[8px] text-muted-foreground mb-1">Tasks Engagement</p>
+                    <p className="text-sm font-bold text-violet-400">{Math.round(tasksEngagement)}%</p>
+                    <p className="text-[7px] text-muted-foreground">of weekly target</p>
+                  </div>
+                  <div className="p-2 rounded-lg bg-muted/20">
+                    <p className="text-[8px] text-muted-foreground mb-1">SCI Contribution</p>
+                    <p className="text-sm font-bold text-emerald-400">+{sciContribution}</p>
+                    <p className="text-[7px] text-muted-foreground">pts to Network Score</p>
+                  </div>
+                </div>
+                
+                <div className="p-2 rounded-lg bg-muted/20">
+                  <div className="flex items-center justify-between text-[9px]">
+                    <span className="text-muted-foreground">Content Type Balance</span>
+                    <span className="text-foreground">{s1Content} S1 · {s2Content} S2</span>
+                  </div>
+                </div>
+                
+                <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                  <p className="text-[8px] text-muted-foreground mb-1">How Tasks Improve Cognition</p>
+                  <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
+                    Quality content builds cognitive reserve (Stern 2002). Podcasts, readings, 
+                    and books prime System 2 thinking, improving Reasoning Accuracy, 
+                    Critical Thinking, and Conceptual Depth.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Goal reached state */}
       {earnedXP >= planTasksXPTarget && planTasksXPTarget > 0 && (
         <div className="text-center py-4">

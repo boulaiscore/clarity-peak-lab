@@ -97,7 +97,7 @@ export function DetoxStats() {
           {goalReached ? (
             <>
               <Check className="w-3 h-3 text-emerald-400" />
-              <span className="text-emerald-400">Obiettivo raggiunto! +{detoxRequirement.bonusXP} XP bonus</span>
+              <span className="text-emerald-400">Obiettivo raggiunto!</span>
             </>
           ) : (
             `${Math.max(0, weeklyMinutesTarget - totalMinutes)} minuti rimanenti`
@@ -219,6 +219,44 @@ export function DetoxStats() {
         </div>
       </div>
 
+      {/* Metrics Impact */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-teal-500/5 border border-primary/20">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
+        
+        {(() => {
+          // Recovery Factor = min(100, weeklyDetoxMinutes / detoxTarget × 100)
+          // This contributes 20% to SCI
+          const recoveryProgress = weeklyMinutesTarget > 0 ? Math.min(100, (totalMinutes / weeklyMinutesTarget) * 100) : 0;
+          const sciContribution = Math.round(0.20 * recoveryProgress);
+          
+          return (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2 rounded-lg bg-muted/20">
+                  <p className="text-[8px] text-muted-foreground mb-1">Recovery Factor</p>
+                  <p className="text-sm font-bold text-teal-400">{Math.round(recoveryProgress)}%</p>
+                  <p className="text-[7px] text-muted-foreground">of weekly target</p>
+                </div>
+                <div className="p-2 rounded-lg bg-muted/20">
+                  <p className="text-[8px] text-muted-foreground mb-1">SCI Contribution</p>
+                  <p className="text-sm font-bold text-emerald-400">+{sciContribution}</p>
+                  <p className="text-[7px] text-muted-foreground">pts to Network Score</p>
+                </div>
+              </div>
+              
+              <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                <p className="text-[8px] text-muted-foreground mb-1">How Detox Improves Cognition</p>
+                <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
+                  Digital detox restores attention capacity and reduces cognitive fatigue. 
+                  Based on Attention Restoration Theory (Kaplan 1995), regular breaks from 
+                  screens improve Focus Stability and Decision Quality.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
       {/* XP Earned */}
       <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
         <div className="flex items-center justify-between">
@@ -227,8 +265,8 @@ export function DetoxStats() {
               <Trophy className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <span className="text-[11px] font-medium text-foreground">Bonus XP Earned</span>
-              <p className="text-[9px] text-muted-foreground">from detox challenges</p>
+              <span className="text-[11px] font-medium text-foreground">XP Earned</span>
+              <p className="text-[9px] text-muted-foreground">from detox this week</p>
             </div>
           </div>
           <span className="text-lg font-bold text-amber-400">+{totalXP}</span>
