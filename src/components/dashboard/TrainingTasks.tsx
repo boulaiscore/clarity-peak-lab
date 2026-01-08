@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Headphones, BookOpen, FileText, CheckCircle2, 
@@ -418,6 +418,28 @@ export function TrainingTasks() {
   const { data: tasksHistoryData } = useTasksHistory(14);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  const tasksTrendMax = useMemo(() => {
+    const max = Math.max(0, ...(tasksHistoryData ?? []).map((d) => Number(d.xp) || 0));
+    return Number.isFinite(max) ? max : 0;
+  }, [tasksHistoryData]);
+
+  const tasksTrendTicks = useMemo(() => {
+    if (tasksTrendMax <= 0) return [0];
+
+    // “Nice” integer steps so the axis reads cleanly (no 0,3,6,10 weirdness).
+    const step =
+      tasksTrendMax <= 10 ? 1 :
+      tasksTrendMax <= 25 ? 5 :
+      tasksTrendMax <= 50 ? 10 :
+      tasksTrendMax <= 100 ? 20 :
+      50;
+
+    const ticks: number[] = [];
+    for (let t = 0; t < tasksTrendMax; t += step) ticks.push(t);
+    if (ticks[ticks.length - 1] !== tasksTrendMax) ticks.push(tasksTrendMax);
+    return ticks;
+  }, [tasksTrendMax]);
+
   // Get user's training plan for XP target
   const { data: profile } = useQuery({
     queryKey: ["profile", stableUserId],
@@ -617,7 +639,8 @@ export function TrainingTasks() {
                   tickLine={false}
                   width={35}
                   allowDecimals={false}
-                  domain={[0, (dataMax: number) => Math.max(dataMax, 10)]}
+                  domain={[0, tasksTrendMax]}
+                  ticks={tasksTrendTicks}
                   tickFormatter={(value) => `${Math.round(value)}`}
                 />
                 <Tooltip 
@@ -629,7 +652,7 @@ export function TrainingTasks() {
                   }}
                   labelFormatter={(label) => label}
                   formatter={(value: number) => [`${value} XP`, 'Tasks']}
-                  cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
+                  cursor={false}
                 />
                 <Bar 
                   dataKey="xp" 
@@ -639,8 +662,8 @@ export function TrainingTasks() {
                   {tasksHistoryData?.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={entry.xp > 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--muted))'}
-                      opacity={entry.xp > 0 ? 1 : 0.3}
+                      fill={entry.xp > 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--muted-foreground))'}
+                      opacity={entry.xp > 0 ? 1 : 0.15}
                     />
                   ))}
                 </Bar>

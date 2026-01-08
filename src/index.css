@@ -45,6 +45,13 @@
 
     --radius: 1rem;
 
+    /* Chart palette (used by Recharts) */
+    --chart-1: 174 62% 45%; /* teal */
+    --chart-2: 270 75% 62%; /* violet */
+    --chart-3: 38 92% 50%;  /* amber */
+    --chart-4: 195 85% 55%; /* cyan */
+    --chart-5: 0 72% 51%;   /* red */
+
     /* Brand tokens - Premium style */
     --bg-primary: 0 0% 0%;
     --bg-surface: 0 0% 6%;
@@ -111,6 +118,13 @@
     --border: 210 18% 80%;
     --input: 210 15% 88%;
     --ring: 160 40% 32%;
+
+    /* Chart palette (used by Recharts) */
+    --chart-1: 174 55% 38%; /* teal */
+    --chart-2: 270 60% 50%; /* violet */
+    --chart-3: 38 90% 45%;  /* amber */
+    --chart-4: 195 70% 42%; /* cyan */
+    --chart-5: 0 70% 45%;   /* red */
 
     /* Brand tokens - Light */
     --bg-primary: 210 20% 97%;
