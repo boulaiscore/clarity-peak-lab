@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked, Smartphone } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
@@ -91,8 +91,9 @@ const Home = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { sessionsCompleted, weeklyXPTarget, plan } = useWeeklyProgress();
-  // Use capped progress for the Weekly Load total (excess beyond category targets doesn't count)
-  const { cappedTotalXP, totalXPTarget } = useCappedWeeklyProgress();
+
+  // Stable (no-flicker) weekly load totals
+  const { cappedTotalXP } = useStableCognitiveLoad();
   const totalWeeklyXP = cappedTotalXP;
   const { cognitiveReadinessScore, isLoading: readinessLoading, cognitiveMetrics } = useCognitiveReadiness();
   const { data: userMetrics } = useUserMetrics(user?.id);
