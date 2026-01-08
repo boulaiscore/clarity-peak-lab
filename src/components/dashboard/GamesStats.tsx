@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, format } from "date-fns";
-import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, XCircle } from "lucide-react";
+import { startOfWeek, format, subDays, parseISO } from "date-fns";
+import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 interface AreaStats {
   total: number;
@@ -26,15 +27,70 @@ interface GamesStatsData {
   overallAccuracy: number;
 }
 
+// Hook to get 14-day games history for trend chart
+function useGamesHistory(days: number = 14) {
+  const { user } = useAuth();
+  
+  // Stable userId
+  const stableUserId = user?.id ?? (() => {
+    try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
+  })();
+
+  return useQuery({
+    queryKey: ["games-history-14d", stableUserId, days],
+    queryFn: async () => {
+      if (!stableUserId) return [];
+
+      const startDate = subDays(new Date(), days);
+
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .select("xp_earned, completed_at")
+        .eq("user_id", stableUserId)
+        .gte("completed_at", startDate.toISOString())
+        .not("exercise_id", "like", "content-%"); // Exclude content tasks
+
+      if (error) throw error;
+
+      // Group by date
+      const byDate: Record<string, number> = {};
+      (data || []).forEach((row) => {
+        const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
+        byDate[date] = (byDate[date] || 0) + (row.xp_earned || 0);
+      });
+
+      // Build 14-day array
+      const result = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const dateStr = format(date, "yyyy-MM-dd");
+        result.push({
+          date: dateStr,
+          dateLabel: format(date, "dd/MM"),
+          xp: byDate[dateStr] || 0,
+        });
+      }
+      return result;
+    },
+    enabled: !!stableUserId,
+    staleTime: 60_000,
+  });
+}
+
 export function GamesStats() {
   const { user } = useAuth();
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+  // Stable userId
+  const stableUserId = user?.id ?? (() => {
+    try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
+  })();
   
   // Use neuro_gym_sessions for accurate game/session counts
   const { data: sessions = [], isLoading } = useQuery({
-    queryKey: ["neuro-gym-sessions-stats", user?.id, weekStart],
+    queryKey: ["neuro-gym-sessions-stats", stableUserId, weekStart],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!stableUserId) return [];
       
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -42,15 +98,19 @@ export function GamesStats() {
       const { data, error } = await supabase
         .from("neuro_gym_sessions")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", stableUserId)
         .gte("completed_at", sevenDaysAgo.toISOString())
         .order("completed_at", { ascending: false });
       
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!stableUserId,
+    staleTime: 60_000,
   });
+
+  // 14-day trend data
+  const { data: historyData } = useGamesHistory(14);
 
   const stats = useMemo((): GamesStatsData | null => {
     if (!sessions.length) return null;
@@ -172,6 +232,59 @@ export function GamesStats() {
           </div>
         </div>
       </div>
+
+      {/* 14-Day Trend Chart */}
+      {historyData && historyData.some(d => d.xp > 0) && (
+        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
+            <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
+          </div>
+          <div className="h-32">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={historyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gamesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="dateLabel" 
+                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval="preserveStartEnd"
+                />
+                <YAxis 
+                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={30}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                  }}
+                  labelFormatter={(label) => `${label}`}
+                  formatter={(value: number) => [`${value} XP`, 'Games']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="xp"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  fill="url(#gamesGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* System 1 (Fast) Stats */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-card/50 to-transparent border border-amber-500/20">
