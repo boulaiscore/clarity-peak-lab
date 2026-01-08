@@ -293,6 +293,8 @@ export type Database = {
           gender: string | null
           id: string
           last_session_date: string | null
+          monthly_report_credits: number
+          monthly_report_reset_at: string | null
           name: string | null
           onboarding_completed: boolean | null
           reminder_enabled: boolean | null
@@ -320,6 +322,8 @@ export type Database = {
           gender?: string | null
           id?: string
           last_session_date?: string | null
+          monthly_report_credits?: number
+          monthly_report_reset_at?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
           reminder_enabled?: boolean | null
@@ -347,6 +351,8 @@ export type Database = {
           gender?: string | null
           id?: string
           last_session_date?: string | null
+          monthly_report_credits?: number
+          monthly_report_reset_at?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
           reminder_enabled?: boolean | null

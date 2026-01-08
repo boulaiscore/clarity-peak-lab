@@ -3,26 +3,41 @@ import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { Check, Crown, Sparkles, Loader2, Rocket, Users } from "lucide-react";
+import { Check, Crown, Sparkles, Loader2, Rocket, Users, Zap, FileText, Infinity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendPremiumUpgradeEmail } from "@/lib/emailService";
 
-const features = [
+const BETA_LIMIT = 100;
+
+const baseFeatures = [
   "All 3 Neuro Lab training areas",
   "Extended session durations (5min, 7min)",
   "Neuro Activation™ cognitive warm-up",
   "Unlimited daily training sessions",
   "Full cognitive dashboard with trends",
   "Complete badge & achievement system",
-  "Priority access to new features",
 ];
 
-const BETA_LIMIT = 100;
+const premiumFeatures = [
+  ...baseFeatures,
+  "1 Cognitive Report per month",
+];
+
+const proFeatures = [
+  ...baseFeatures,
+  "Unlimited Cognitive Reports",
+  "Priority support",
+];
 
 const Premium = () => {
-  const { user, upgradeToPremium } = useAuth();
-  const isPremium = user?.subscriptionStatus === "premium";
+  const { user, session, upgradeToPremium } = useAuth();
+  const subscriptionStatus = user?.subscriptionStatus || "free";
+  const isPremium = subscriptionStatus === "premium";
+  const isPro = subscriptionStatus === "pro";
+  const isSubscribed = isPremium || isPro;
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<'premium' | 'pro' | null>(null);
   const [betaCount, setBetaCount] = useState<number | null>(null);
 
   // Fetch beta user count
@@ -31,7 +46,7 @@ const Premium = () => {
       const { count, error } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
-        .eq('subscription_status', 'premium');
+        .or('subscription_status.eq.premium,subscription_status.eq.pro');
       
       if (!error && count !== null) {
         setBetaCount(count);
@@ -53,7 +68,6 @@ const Premium = () => {
     setIsLoading(true);
     
     try {
-      // Call server-side Edge Function for secure beta upgrade
       const { data, error } = await supabase.functions.invoke('claim-beta-access');
 
       if (error) {
@@ -62,7 +76,6 @@ const Premium = () => {
       }
 
       if (data?.error) {
-        // Handle specific error cases from the Edge Function
         if (data.error === 'Beta full') {
           toast({
             title: "Beta spots filled",
@@ -77,10 +90,8 @@ const Premium = () => {
         throw new Error(data.message || 'Failed to claim beta access');
       }
 
-      // Update local state
       await upgradeToPremium();
       
-      // Send premium upgrade confirmation email
       if (user.email) {
         sendPremiumUpgradeEmail(user.email, user.name || undefined).catch((err) => {
           console.error("Failed to send premium upgrade email:", err);
@@ -89,10 +100,9 @@ const Premium = () => {
       
       toast({
         title: "Welcome to the Beta! 🎉",
-        description: data?.message || "You now have full access to all premium features. Check your email for confirmation.",
+        description: data?.message || "You now have full access to all premium features.",
       });
 
-      // Refresh beta count from server response
       if (data?.betaCount !== undefined) {
         setBetaCount(data.betaCount);
       } else {
@@ -111,25 +121,74 @@ const Premium = () => {
     }
   };
 
-  const spotsRemaining = betaCount !== null ? Math.max(0, BETA_LIMIT - betaCount) : null;
+  const handleStripeCheckout = async (tier: 'premium' | 'pro') => {
+    if (!user?.id || !session) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to subscribe.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  if (isPremium) {
+    setIsLoading(true);
+    setSelectedTier(tier);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          userId: user.id,
+          userEmail: user.email,
+          tier: tier,
+          successUrl: `${window.location.origin}/app/premium?success=true`,
+          cancelUrl: `${window.location.origin}/app/premium?canceled=true`,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start checkout. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setSelectedTier(null);
+    }
+  };
+
+  const spotsRemaining = betaCount !== null ? Math.max(0, BETA_LIMIT - betaCount) : null;
+  const isBetaOpen = spotsRemaining !== null && spotsRemaining > 0;
+
+  // Already subscribed view
+  if (isSubscribed) {
+    const features = isPro ? proFeatures : premiumFeatures;
+    const tierName = isPro ? "Pro" : "Premium";
+    
     return (
       <AppShell>
         <div className="container px-6 py-10 sm:py-16">
           <div className="max-w-lg mx-auto text-center">
             <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-              <Rocket className="w-10 h-10 text-primary" />
+              {isPro ? <Crown className="w-10 h-10 text-primary" /> : <Rocket className="w-10 h-10 text-primary" />}
             </div>
             <h1 className="text-3xl font-semibold mb-3 tracking-tight">
-              You're a <span className="text-gradient">Beta Tester</span>
+              You're on <span className="text-gradient">{tierName}</span>
             </h1>
             <p className="text-muted-foreground mb-8">
-              Thank you for being an early adopter. You have full access to all features.
+              {isPro 
+                ? "You have unlimited access to all features including reports."
+                : "Thank you for subscribing. You have full access to all training features."
+              }
             </p>
 
             <div className="p-6 rounded-xl bg-card border border-border text-left shadow-card">
-              <h3 className="font-semibold mb-4">Your Beta Benefits</h3>
+              <h3 className="font-semibold mb-4">Your {tierName} Benefits</h3>
               <ul className="space-y-3">
                 {features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm">
@@ -139,91 +198,166 @@ const Premium = () => {
                 ))}
               </ul>
             </div>
+
+            {/* Upgrade to Pro CTA for Premium users */}
+            {isPremium && (
+              <div className="mt-8 p-6 rounded-xl bg-gradient-surface border border-primary/20">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Crown className="w-5 h-5 text-primary" />
+                  <span className="font-semibold">Upgrade to Pro</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Get unlimited Cognitive Reports for just $4.99 more per month.
+                </p>
+                <Button 
+                  onClick={() => handleStripeCheckout('pro')} 
+                  variant="hero" 
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading && selectedTier === 'pro' ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : null}
+                  Upgrade to Pro — $16.99/mo
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </AppShell>
     );
   }
 
+  // Free user view with tier options
   return (
     <AppShell>
       <div className="container px-6 py-10 sm:py-16">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/15 mb-6">
-              <Rocket className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary/90">BETA ACCESS</span>
-            </div>
             <h1 className="text-3xl font-semibold mb-3 tracking-tight">
-              Join the <span className="text-gradient">Beta</span>
+              Upgrade to <span className="text-gradient">Premium</span>
             </h1>
             <p className="text-muted-foreground">
-              Free Premium access for the first {BETA_LIMIT.toLocaleString()} beta testers.
+              Unlock your full cognitive potential with advanced training and insights.
             </p>
           </div>
 
-          <div className="p-8 rounded-xl bg-card border border-primary/20 shadow-glow mb-8">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-xl text-muted-foreground line-through">$12/month</span>
-                <span className="text-4xl font-semibold text-primary">FREE</span>
+          {/* Beta banner */}
+          {isBetaOpen && (
+            <div className="mb-8 p-6 rounded-xl bg-primary/5 border border-primary/20 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/15 mb-4">
+                <Rocket className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary/90">BETA ACCESS</span>
               </div>
-              <p className="text-sm text-muted-foreground">During beta period</p>
+              <h3 className="font-semibold mb-2">Free Premium Access</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {spotsRemaining} spots remaining for free beta testers
+              </p>
+              <div className="h-2 bg-muted rounded-full overflow-hidden max-w-xs mx-auto mb-4">
+                <div 
+                  className="h-full bg-primary rounded-full transition-all duration-500"
+                  style={{ width: `${((BETA_LIMIT - spotsRemaining) / BETA_LIMIT) * 100}%` }}
+                />
+              </div>
+              <Button 
+                onClick={handleBetaUpgrade} 
+                variant="hero"
+                disabled={isLoading}
+              >
+                {isLoading && !selectedTier ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : null}
+                Claim Free Beta Access
+              </Button>
+            </div>
+          )}
+
+          {/* Pricing tiers */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Premium Tier */}
+            <div className="p-8 rounded-xl bg-card border border-border shadow-card">
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-5 h-5 text-primary" />
+                  <h3 className="text-xl font-semibold">Premium</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">Complete training system</p>
+              </div>
+              
+              <div className="mb-6">
+                <span className="text-4xl font-semibold">$12</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                {premiumFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3 text-sm">
+                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button 
+                onClick={() => handleStripeCheckout('premium')} 
+                variant="outline" 
+                className="w-full min-h-[48px] rounded-xl"
+                disabled={isLoading}
+              >
+                {isLoading && selectedTier === 'premium' ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : null}
+                Start 7-Day Free Trial
+              </Button>
             </div>
 
-            {/* Beta spots counter */}
-            {spotsRemaining !== null && (
-              <div className="mb-6 p-4 rounded-lg bg-muted/50 border border-border">
-                <div className="flex items-center gap-2 text-sm mb-2">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span>Beta spots filling up...</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary rounded-full transition-all duration-500"
-                    style={{ width: `${((BETA_LIMIT - spotsRemaining) / BETA_LIMIT) * 100}%` }}
-                  />
-                </div>
+            {/* Pro Tier */}
+            <div className="p-8 rounded-xl bg-card border border-primary/25 shadow-glow relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                  BEST VALUE
+                </span>
               </div>
-            )}
 
-            <ul className="space-y-4 mb-8">
-              {features.map((feature) => (
-                <li key={feature} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="w-5 h-5 text-primary" />
+                  <h3 className="text-xl font-semibold">Pro</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">Unlimited everything</p>
+              </div>
+              
+              <div className="mb-6">
+                <span className="text-4xl font-semibold">$16.99</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
 
-            <Button 
-              onClick={handleBetaUpgrade} 
-              variant="hero" 
-              className="w-full min-h-[52px] rounded-xl"
-              disabled={isLoading || (spotsRemaining !== null && spotsRemaining <= 0)}
-            >
-              {isLoading ? (
-                <>
+              <ul className="space-y-3 mb-8">
+                {proFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3 text-sm">
+                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <span className={feature.includes("Unlimited") ? "font-medium" : ""}>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button 
+                onClick={() => handleStripeCheckout('pro')} 
+                variant="hero" 
+                className="w-full min-h-[48px] rounded-xl"
+                disabled={isLoading}
+              >
+                {isLoading && selectedTier === 'pro' ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Claiming access...
-                </>
-              ) : spotsRemaining !== null && spotsRemaining <= 0 ? (
-                "Beta spots filled"
-              ) : (
-                "Claim Beta Access"
-              )}
-            </Button>
-            
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              No credit card required • Limited spots available
-            </p>
+                ) : null}
+                Start 7-Day Free Trial
+              </Button>
+            </div>
           </div>
 
-          <div className="text-center p-6 rounded-xl bg-gradient-surface border border-border">
-            <p className="text-sm text-muted-foreground">
-              "Your thinking is your competitive edge."
-            </p>
-          </div>
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            7-day free trial • Cancel anytime • All plans include full training access
+          </p>
         </div>
       </div>
     </AppShell>

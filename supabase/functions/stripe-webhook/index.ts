@@ -47,8 +47,9 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.user_id;
         const productType = session.metadata?.product_type;
+        const tier = session.metadata?.tier; // 'premium' or 'pro'
         
-        console.log('Checkout completed for user:', userId, 'product_type:', productType);
+        console.log('Checkout completed for user:', userId, 'product_type:', productType, 'tier:', tier);
 
         if (userId) {
           if (productType === 'report_credits') {
@@ -108,15 +109,63 @@ serve(async (req) => {
               console.error('Error recording report purchase:', error);
             }
           } else {
+            // Subscription checkout - set tier based on metadata
+            const subscriptionStatus = tier === 'pro' ? 'pro' : 'premium';
+            const today = new Date().toISOString().split('T')[0];
+            
+            const updateData: Record<string, unknown> = {
+              subscription_status: subscriptionStatus,
+            };
+
+            // For Premium tier, grant 1 monthly report credit
+            if (subscriptionStatus === 'premium') {
+              updateData.monthly_report_credits = 1;
+              updateData.monthly_report_reset_at = today;
+            }
+            // Pro tier doesn't need credits (unlimited)
+
             const { error } = await supabase
               .from('profiles')
-              .update({ subscription_status: 'premium' })
+              .update(updateData)
               .eq('user_id', userId);
 
             if (error) {
               console.error('Error updating subscription status:', error);
             } else {
-              console.log('Successfully updated user to premium:', userId);
+              console.log('Successfully updated user to', subscriptionStatus, ':', userId);
+            }
+          }
+        }
+        break;
+      }
+
+      case 'invoice.paid': {
+        // Monthly subscription renewal - reset monthly credits for Premium
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = invoice.subscription as string;
+        
+        if (subscriptionId && invoice.billing_reason === 'subscription_cycle') {
+          // Get subscription to find user
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const userId = subscription.metadata?.user_id;
+          const tier = subscription.metadata?.tier;
+          
+          console.log('Invoice paid for subscription renewal, user:', userId, 'tier:', tier);
+          
+          if (userId && tier === 'premium') {
+            const today = new Date().toISOString().split('T')[0];
+            const { error } = await supabase
+              .from('profiles')
+              .update({
+                monthly_report_credits: 1,
+                monthly_report_reset_at: today,
+              })
+              .eq('user_id', userId);
+
+            if (error) {
+              console.error('Error resetting monthly credits:', error);
+            } else {
+              console.log('Successfully reset monthly credits for user:', userId);
             }
           }
         }
@@ -126,14 +175,21 @@ serve(async (req) => {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
         const userId = subscription.metadata?.user_id;
+        const tier = subscription.metadata?.tier;
         
-        console.log('Subscription updated for user:', userId, 'Status:', subscription.status);
+        console.log('Subscription updated for user:', userId, 'Status:', subscription.status, 'tier:', tier);
 
         if (userId) {
-          const isPremium = ['active', 'trialing'].includes(subscription.status);
+          const isActive = ['active', 'trialing'].includes(subscription.status);
+          let subscriptionStatus = 'free';
+          
+          if (isActive) {
+            subscriptionStatus = tier === 'pro' ? 'pro' : 'premium';
+          }
+          
           const { error } = await supabase
             .from('profiles')
-            .update({ subscription_status: isPremium ? 'premium' : 'free' })
+            .update({ subscription_status: subscriptionStatus })
             .eq('user_id', userId);
 
           if (error) {
@@ -152,7 +208,10 @@ serve(async (req) => {
         if (userId) {
           const { error } = await supabase
             .from('profiles')
-            .update({ subscription_status: 'free' })
+            .update({ 
+              subscription_status: 'free',
+              monthly_report_credits: 0,
+            })
             .eq('user_id', userId);
 
           if (error) {
