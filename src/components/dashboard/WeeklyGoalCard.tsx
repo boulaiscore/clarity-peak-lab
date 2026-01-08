@@ -83,17 +83,21 @@ export function WeeklyGoalCard() {
 
   // Update the persistent snapshot ONLY when:
   // - not loading AND
-  // - queries have fetched at least once
+  // - queries have fetched at least once AND
+  // - either the new data is > 0, OR there is no existing snapshot yet
   //
-  // We used to avoid overwriting with zero to prevent transient "flash to zero".
-  // However, after data corrections (e.g., removing duplicates), the *true* value
-  // can legitimately become 0; in that case we MUST overwrite the cached snapshot
-  // or the UI will be stuck showing stale progress.
-  //
-  // Note: isLoading includes background refetching (see useCappedWeeklyProgress),
-  // so we still won't overwrite mid-refetch.
+  // This prevents the "flash to zero" when switching tabs and back:
+  // on remount, React Query returns placeholder (0) immediately while
+  // refetching from cache; we must NOT overwrite a good snapshot with 0.
   useEffect(() => {
-    if (!isLoading && isFetched) {
+    const newRawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
+    const hasMeaningfulData = newRawTotal > 0;
+    const hasExistingSnapshot = cachedSnapshot && cachedSnapshot.savedAt > 0;
+
+    // Only update snapshot if:
+    // 1. Not loading AND fetched (query completed), AND
+    // 2. Either new data is > 0, OR we don't have any snapshot yet
+    if (!isLoading && isFetched && (hasMeaningfulData || !hasExistingSnapshot)) {
       setSnapshot({
         rawGamesXP,
         rawTasksXP,
@@ -127,6 +131,7 @@ export function WeeklyGoalCard() {
     tasksProgress,
     detoxProgress,
     setSnapshot,
+    cachedSnapshot?.savedAt,
   ]);
 
   // Build display snapshot:
