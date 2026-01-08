@@ -270,8 +270,10 @@ export function useWeeklyProgress() {
     isLoading: progressLoading || weeklyXPLoading,
     // "Syncing" includes background refetches (route changes, focus, invalidations)
     isSyncing: weeklyXPFetching,
-    // isFetched = query has successfully fetched at least once
-    isFetched: weeklyXPFetched,
+    // isFetched = data is available (not placeholder-only) and no error
+    isFetched: weeklyXPFetched && !weeklyXPError,
+    isError: !!weeklyXPError,
+    weeklyXPError,
     recordSession,
     sessionsCompleted,
     sessionsRequired,
