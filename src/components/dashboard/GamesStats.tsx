@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format, subDays, parseISO } from "date-fns";
 import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, TrendingUp, Clock } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
 // System colors matching WeeklyGoalCard
@@ -624,90 +624,6 @@ export function GamesStats() {
                 })}
               </div>
             )}
-          </div>
-          
-          {/* Radar Chart - 6 Areas Balance */}
-          <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Area Balance vs Target</p>
-            
-            {(() => {
-              // Build radar data from stats
-              const perSubTarget = gamesXPTarget / 6;
-              const radarData = [
-                { 
-                  area: "Focus S1", 
-                  fullMark: 100,
-                  progress: perSubTarget > 0 ? Math.min(100, (stats.s1.areas.focus.xp / perSubTarget) * 100) : 0,
-                },
-                { 
-                  area: "Reasoning S1", 
-                  fullMark: 100,
-                  progress: perSubTarget > 0 ? Math.min(100, (stats.s1.areas.reasoning.xp / perSubTarget) * 100) : 0,
-                },
-                { 
-                  area: "Creativity S1", 
-                  fullMark: 100,
-                  progress: perSubTarget > 0 ? Math.min(100, (stats.s1.areas.creativity.xp / perSubTarget) * 100) : 0,
-                },
-                { 
-                  area: "Focus S2", 
-                  fullMark: 100,
-                  progress: perSubTarget > 0 ? Math.min(100, (stats.s2.areas.focus.xp / perSubTarget) * 100) : 0,
-                },
-                { 
-                  area: "Reasoning S2", 
-                  fullMark: 100,
-                  progress: perSubTarget > 0 ? Math.min(100, (stats.s2.areas.reasoning.xp / perSubTarget) * 100) : 0,
-                },
-                { 
-                  area: "Creativity S2", 
-                  fullMark: 100,
-                  progress: perSubTarget > 0 ? Math.min(100, (stats.s2.areas.creativity.xp / perSubTarget) * 100) : 0,
-                },
-              ];
-              
-              const hasData = radarData.some(d => d.progress > 0);
-              
-              if (!hasData) {
-                return (
-                  <div className="h-32 flex items-center justify-center text-[10px] text-muted-foreground">
-                    Complete games to see your balance
-                  </div>
-                );
-              }
-              
-              return (
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                      <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.3} />
-                      <PolarAngleAxis 
-                        dataKey="area" 
-                        tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <PolarRadiusAxis 
-                        angle={30} 
-                        domain={[0, 100]} 
-                        tick={{ fontSize: 7, fill: 'hsl(var(--muted-foreground))' }}
-                        tickCount={4}
-                      />
-                      <Radar
-                        name="Progress"
-                        dataKey="progress"
-                        stroke="hsl(var(--primary))"
-                        fill="hsl(var(--primary))"
-                        fillOpacity={0.3}
-                        strokeWidth={2}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-              );
-            })()}
-            
-            <p className="text-[8px] text-muted-foreground/70 text-center mt-1">
-              Target: {Math.round(gamesXPTarget / 6)} XP per area
-            </p>
           </div>
           
           {/* Cognitive Metrics Impact Summary - ACCURATE FORMULAS */}
