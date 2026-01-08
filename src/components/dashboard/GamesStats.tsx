@@ -4,8 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format, subDays, parseISO } from "date-fns";
-import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
+import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, XCircle, TrendingUp, Eye, Cpu } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
 interface AreaStats {
   total: number;
@@ -128,6 +129,34 @@ function useWeeklyGameCompletions() {
 }
 
 export function GamesStats() {
+  const { user } = useAuth();
+  
+  // Get user's training plan for XP target
+  const stableUserId = user?.id ?? (() => {
+    try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
+  })();
+  
+  const { data: profile } = useQuery({
+    queryKey: ["profile-games", stableUserId],
+    queryFn: async () => {
+      if (!stableUserId) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("training_plan")
+        .eq("user_id", stableUserId)
+        .single();
+      return data;
+    },
+    enabled: !!stableUserId,
+  });
+  
+  const userPlan = (profile?.training_plan as TrainingPlanId) || "light";
+  const plan = TRAINING_PLANS[userPlan];
+  
+  // Calculate games XP target: weeklyXPTarget - contentXPTarget - estimated detox XP
+  const estimatedDetoxXP = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute + plan.detox.bonusXP);
+  const gamesXPTarget = Math.max(20, plan.weeklyXPTarget - plan.contentXPTarget - estimatedDetoxXP);
+  
   // Use the new hook for game completions
   const { data: sessions = [], isLoading } = useWeeklyGameCompletions();
   
@@ -214,8 +243,7 @@ export function GamesStats() {
 
   // Calculate weekly XP from games (sum of xp_earned)
   const weeklyGamesXP = sessions.reduce((sum, s) => sum + (s.xp_earned || 0), 0);
-  const weeklyGamesTarget = 200; // Default target, could be from plan
-  const gamesProgress = Math.min(100, (weeklyGamesXP / weeklyGamesTarget) * 100);
+  const gamesProgress = Math.min(100, (weeklyGamesXP / gamesXPTarget) * 100);
 
   return (
     <motion.div
@@ -232,7 +260,7 @@ export function GamesStats() {
           </div>
           <div className="text-right">
             <span className="text-lg font-bold text-primary">{weeklyGamesXP}</span>
-            <span className="text-[10px] text-muted-foreground">/{weeklyGamesTarget} XP</span>
+            <span className="text-[10px] text-muted-foreground">/{gamesXPTarget} XP</span>
           </div>
         </div>
         
