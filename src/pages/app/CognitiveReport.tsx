@@ -173,7 +173,7 @@ export default function CognitiveReport() {
   if (!isPremium) {
     return (
       <div className="p-4 max-w-md mx-auto space-y-6">
-        {/* Header */}
+        {/* Header with Back Button */}
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate(-1)} 
@@ -187,44 +187,97 @@ export default function CognitiveReport() {
           </div>
         </div>
 
-        {/* Hero Section with Two Clear CTAs */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 space-y-5">
+        {/* Hero Section */}
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 space-y-4">
           <div className="text-center space-y-2">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center">
-              <Brain className="w-7 h-7 text-primary" />
+            <div className="mx-auto w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center">
+              <Brain className="w-6 h-6 text-primary" />
             </div>
-            <h2 className="text-xl font-bold">Unlock Your Cognitive Profile</h2>
-            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-              Get a professional-grade analysis of your cognitive performance based on your training data.
+            <h2 className="text-lg font-bold">Get Your Cognitive Report</h2>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+              Professional-grade analysis based on your training data
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button 
-              variant="premium" 
-              className="flex-1 gap-2"
-              onClick={() => setShowPurchaseModal(true)}
-            >
-              <Lock className="w-4 h-4" />
-              <span>Get Your Report</span>
-              <span className="text-[10px] opacity-70 ml-1">Premium</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="flex-1 gap-2"
-              onClick={() => navigate("/app/report-preview")}
-            >
-              <Eye className="w-4 h-4" />
-              <span>View Sample</span>
-              <span className="text-[10px] opacity-70 ml-1">Free</span>
-            </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="w-full gap-2"
+            onClick={() => navigate("/app/report-preview")}
+          >
+            <Eye className="w-4 h-4" />
+            View Sample Report
+          </Button>
+        </div>
+
+        {/* Buy Report Credits - Primary Option */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold">Buy Report Credits</h3>
+          </div>
+          
+          <div className="space-y-2">
+            {CREDIT_PACKAGES.map((pkg) => (
+              <button
+                key={pkg.id}
+                onClick={() => {
+                  setSelectedPackage(pkg.id);
+                  setShowPurchaseModal(true);
+                }}
+                className="w-full p-3 rounded-xl border border-border hover:border-primary/50 transition-all text-left relative bg-card/50"
+              >
+                {pkg.popular && (
+                  <span className="absolute -top-2 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-primary text-primary-foreground">
+                    Best Value
+                  </span>
+                )}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{pkg.credits} Report{pkg.credits > 1 ? 's' : ''}</span>
+                      {pkg.savings && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-green-500/15 text-green-500">
+                          -{pkg.savings}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">{pkg.pricePerReport}/report</span>
+                  </div>
+                  <span className="text-lg font-bold">{pkg.price}</span>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
+        {/* Divider */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">or</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        {/* Premium Option */}
+        <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Crown className="w-5 h-5 text-amber-400" />
+            <div>
+              <h4 className="text-sm font-semibold">Upgrade to Premium</h4>
+              <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
+            </div>
+          </div>
+          <Link to="/app/premium">
+            <Button variant="outline" className="w-full gap-2 border-primary/30 hover:bg-primary/10">
+              <Crown className="w-4 h-4 text-amber-400" />
+              View Premium Plans
+            </Button>
+          </Link>
+        </div>
+
         {/* What's included */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold">What's Included</h3>
+        <div className="space-y-3 pt-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">What's Included</h3>
           <div className="grid grid-cols-2 gap-2">
             {[
               "Cognitive Age Analysis",
@@ -241,74 +294,6 @@ export default function CognitiveReport() {
                 <span>{item}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Purchase Options */}
-        <div className="space-y-4 pt-2">
-          {/* Option 1: Premium */}
-          <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
-            <div className="flex items-center gap-2">
-              <Crown className="w-5 h-5 text-amber-400" />
-              <div>
-                <h4 className="text-sm font-semibold">Premium Subscription</h4>
-                <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
-              </div>
-            </div>
-            <Link to="/app/premium">
-              <Button variant="premium" className="w-full gap-2">
-                <Crown className="w-4 h-4" />
-                Upgrade to Premium
-              </Button>
-            </Link>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">or</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
-
-          {/* Option 2: Credit Packages */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-primary" />
-              <h4 className="text-sm font-semibold">Buy Report Credits</h4>
-            </div>
-            
-            <div className="space-y-2">
-              {CREDIT_PACKAGES.map((pkg) => (
-                <button
-                  key={pkg.id}
-                  onClick={() => {
-                    setSelectedPackage(pkg.id);
-                    setShowPurchaseModal(true);
-                  }}
-                  className="w-full p-3 rounded-xl border border-border hover:border-primary/50 transition-all text-left relative bg-card/50"
-                >
-                  {pkg.popular && (
-                    <span className="absolute -top-2 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-primary text-primary-foreground">
-                      Best Value
-                    </span>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{pkg.credits} Report{pkg.credits > 1 ? 's' : ''}</span>
-                        {pkg.savings && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-green-500/15 text-green-500">
-                            -{pkg.savings}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-muted-foreground">{pkg.pricePerReport}/report</span>
-                    </div>
-                    <span className="text-lg font-bold">{pkg.price}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
