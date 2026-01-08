@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gamepad2, BookMarked, Brain, Shield, Trophy, Target, Lightbulb } from "lucide-react";
 import { useCappedWeeklyProgress, AreaModeSubTarget } from "@/hooks/useCappedWeeklyProgress";
@@ -82,84 +82,89 @@ export function WeeklyGoalCard() {
   const [expandedCell, setExpandedCell] = useState<string | null>(null);
   const prevGoalReached = useRef(false);
 
-  useEffect(() => {
-    const newRawTotal = rawGamesXP + rawTasksXP + rawDetoxXP;
-    const hasMeaningfulData = newRawTotal > 0;
-    const hasExistingSnapshot = cachedSnapshot && cachedSnapshot.savedAt > 0;
-
-    if (!isLoading && isFetched && (hasMeaningfulData || !hasExistingSnapshot)) {
-      setSnapshot({
-        rawGamesXP,
-        rawTasksXP,
-        rawDetoxXP,
-        totalXPTarget,
-        gamesXPTarget,
-        tasksXPTarget,
-        detoxXPTarget,
-        gamesComplete,
-        tasksComplete,
-        detoxComplete,
-        gamesProgress,
-        tasksProgress,
-        detoxProgress,
-        gamesSubTargets,
-      });
-    }
-  }, [
-    isLoading,
-    isFetched,
-    rawGamesXP,
-    rawTasksXP,
-    rawDetoxXP,
-    totalXPTarget,
-    gamesXPTarget,
-    tasksXPTarget,
-    detoxXPTarget,
-    gamesComplete,
-    tasksComplete,
-    detoxComplete,
-    gamesProgress,
-    tasksProgress,
-    detoxProgress,
-    gamesSubTargets,
-    setSnapshot,
-    cachedSnapshot?.savedAt,
-  ]);
-
-  const freshSnapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = {
-    rawGamesXP,
-    rawTasksXP,
-    rawDetoxXP,
-    totalXPTarget,
-    gamesXPTarget,
-    tasksXPTarget,
-    detoxXPTarget,
-    gamesComplete,
-    tasksComplete,
-    detoxComplete,
-    gamesProgress,
-    tasksProgress,
-    detoxProgress,
-    gamesSubTargets,
-  };
+  const freshSnapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = useMemo(
+    () => ({
+      rawGamesXP,
+      rawTasksXP,
+      rawDetoxXP,
+      totalXPTarget,
+      gamesXPTarget,
+      tasksXPTarget,
+      detoxXPTarget,
+      gamesComplete,
+      tasksComplete,
+      detoxComplete,
+      gamesProgress,
+      tasksProgress,
+      detoxProgress,
+      gamesSubTargets,
+    }),
+    [
+      rawGamesXP,
+      rawTasksXP,
+      rawDetoxXP,
+      totalXPTarget,
+      gamesXPTarget,
+      tasksXPTarget,
+      detoxXPTarget,
+      gamesComplete,
+      tasksComplete,
+      detoxComplete,
+      gamesProgress,
+      tasksProgress,
+      detoxProgress,
+      gamesSubTargets,
+    ]
+  );
 
   const freshTotal = freshSnapshot.rawGamesXP + freshSnapshot.rawTasksXP + freshSnapshot.rawDetoxXP;
-  const cachedTotal =
-    (cachedSnapshot?.rawGamesXP ?? 0) + (cachedSnapshot?.rawTasksXP ?? 0) + (cachedSnapshot?.rawDetoxXP ?? 0);
 
-  const shouldUseFresh = !isLoading && isFetched && (freshTotal > 0 || !cachedSnapshot || cachedTotal === 0);
+  // Fresh data is only "safe" to display when ALL queries have fetched at least once
+  // and we are not currently fetching/syncing.
+  const hasFreshReady = !isLoading && isFetched;
 
-  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> = shouldUseFresh
+  // Persist snapshot only when fresh data is ready.
+  useEffect(() => {
+    if (!hasFreshReady) return;
+
+    const hasMeaningfulData = freshTotal > 0;
+    const hasExistingSnapshot = !!(cachedSnapshot && cachedSnapshot.savedAt > 0);
+
+    // Persist the first good snapshot, and keep it updated once we have non-zero data.
+    // This avoids accidental "0 resets" during initial mount / transient states.
+    if (hasMeaningfulData || !hasExistingSnapshot) {
+      setSnapshot(freshSnapshot);
+    }
+  }, [hasFreshReady, freshTotal, cachedSnapshot?.savedAt, setSnapshot, freshSnapshot]);
+
+  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> | null = hasFreshReady
     ? freshSnapshot
     : cachedSnapshot
       ? cachedSnapshot
-      : freshSnapshot;
+      : null;
+
+  if (!snapshot) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4 animate-pulse"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="h-4 w-40 bg-muted/60 rounded" />
+          <div className="h-4 w-20 bg-muted/60 rounded" />
+        </div>
+        <div className="h-2 bg-muted/60 rounded-full" />
+      </motion.div>
+    );
+  }
 
   const displaySubTargets = snapshot.gamesSubTargets ?? gamesSubTargets;
 
   // Get S1 and S2 areas
-  const s1Areas = displaySubTargets.find(s => s.system === "S1")?.areas ?? [];
-  const s2Areas = displaySubTargets.find(s => s.system === "S2")?.areas ?? [];
+  const s1Areas = displaySubTargets.find((s) => s.system === "S1")?.areas ?? [];
+  const s2Areas = displaySubTargets.find((s) => s.system === "S2")?.areas ?? [];
 
   const cappedGames = Math.min(snapshot.rawGamesXP, snapshot.gamesXPTarget);
   const cappedTasks = Math.min(snapshot.rawTasksXP, snapshot.tasksXPTarget);
@@ -167,9 +172,7 @@ export function WeeklyGoalCard() {
   const cappedTotalXP = cappedGames + cappedTasks + cappedDetox;
 
   const totalProgressDisplay =
-    snapshot.totalXPTarget > 0
-      ? Math.min(100, (cappedTotalXP / snapshot.totalXPTarget) * 100)
-      : 0;
+    snapshot.totalXPTarget > 0 ? Math.min(100, (cappedTotalXP / snapshot.totalXPTarget) * 100) : 0;
 
   const xpRemaining = Math.max(0, snapshot.totalXPTarget - cappedTotalXP);
   const goalReached = cappedTotalXP >= snapshot.totalXPTarget && snapshot.totalXPTarget > 0;
