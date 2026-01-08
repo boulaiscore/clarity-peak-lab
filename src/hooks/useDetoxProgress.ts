@@ -236,7 +236,7 @@ export function useDetoxHistory(days: number = 14) {
 
         return {
           date: dayStr,
-          dateLabel: format(day, "d"), // Just day number for consistency
+          dateLabel: format(day, "d/M"), // dd/MM format for consistency
           minutes,
           xp,
           sessions,
