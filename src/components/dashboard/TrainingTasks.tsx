@@ -118,7 +118,10 @@ function getContentInfo(contentId: string): CognitiveInput | null {
 }
 
 // Hook to get completed content for THIS WEEK only
-// Uses monthly_content_assignments as source of truth (matches the Library).
+// Source of truth can be either:
+// - monthly_content_assignments (Library-driven)
+// - exercise_completions (legacy/other flows that award XP directly)
+// We merge both so Training Details never shows 0 when XP exists.
 function useWeeklyCompletedContent(userId: string | undefined) {
   const weekStartStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
 
@@ -130,17 +133,27 @@ function useWeeklyCompletedContent(userId: string | undefined) {
       const weekStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
       const weekEndDate = addDays(weekStartDate, 7);
 
-      const { data, error } = await supabase
-        .from("monthly_content_assignments")
-        .select("content_id, content_type, completed_at, status")
-        .eq("user_id", userId)
-        .eq("status", "completed")
-        .gte("completed_at", weekStartDate.toISOString())
-        .lt("completed_at", weekEndDate.toISOString());
+      const [assignmentsRes, completionsRes] = await Promise.all([
+        supabase
+          .from("monthly_content_assignments")
+          .select("content_id, content_type, completed_at, status")
+          .eq("user_id", userId)
+          .eq("status", "completed")
+          .gte("completed_at", weekStartDate.toISOString())
+          .lt("completed_at", weekEndDate.toISOString()),
 
-      if (error) throw error;
+        supabase
+          .from("exercise_completions")
+          .select("exercise_id, xp_earned, week_start")
+          .eq("user_id", userId)
+          .eq("week_start", weekStartStr)
+          .like("exercise_id", "content-%"),
+      ]);
 
-      return (data || []).map((row: any) => {
+      if (assignmentsRes.error) throw assignmentsRes.error;
+      if (completionsRes.error) throw completionsRes.error;
+
+      const fromAssignments = (assignmentsRes.data || []).map((row: any) => {
         const t = (row.content_type as string | null) ?? "reading";
         const normalized: InputType = t === "reading" ? "article" : t === "book" ? "book" : "podcast";
         return {
@@ -148,6 +161,28 @@ function useWeeklyCompletedContent(userId: string | undefined) {
           xpEarned: calculateXP(normalized),
         };
       });
+
+      const fromCompletions = (completionsRes.data || [])
+        .map((row: any) => {
+          const exerciseId = String(row.exercise_id || "");
+          // Expected: content-{type}-{contentId}
+          const parts = exerciseId.split("-");
+          const typePart = parts[1] as InputType | undefined;
+          const contentId = parts.slice(2).join("-");
+          if (!contentId) return null;
+          return {
+            contentId,
+            xpEarned: Number(row.xp_earned || 0) || (typePart ? calculateXP(typePart) : 0),
+          };
+        })
+        .filter(Boolean) as { contentId: string; xpEarned: number }[];
+
+      // Merge + dedupe by contentId (prefer exercise_completions XP if present)
+      const byId = new Map<string, { contentId: string; xpEarned: number }>();
+      for (const row of fromAssignments) byId.set(row.contentId, row);
+      for (const row of fromCompletions) byId.set(row.contentId, row);
+
+      return Array.from(byId.values());
     },
     enabled: !!userId,
     staleTime: 60_000,
