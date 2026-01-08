@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format, subDays, parseISO } from "date-fns";
 import { Gamepad2, Zap, Brain, Target, Lightbulb, CheckCircle2, TrendingUp, Clock } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
 // System colors matching WeeklyGoalCard
@@ -626,41 +626,169 @@ export function GamesStats() {
             )}
           </div>
           
-          {/* Cognitive Metrics Impact Summary */}
+          {/* Radar Chart - 6 Areas Balance */}
+          <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Area Balance vs Target</p>
+            
+            {(() => {
+              // Build radar data from stats
+              const perSubTarget = gamesXPTarget / 6;
+              const radarData = [
+                { 
+                  area: "Focus S1", 
+                  fullMark: 100,
+                  progress: perSubTarget > 0 ? Math.min(100, (stats.s1.areas.focus.xp / perSubTarget) * 100) : 0,
+                },
+                { 
+                  area: "Reasoning S1", 
+                  fullMark: 100,
+                  progress: perSubTarget > 0 ? Math.min(100, (stats.s1.areas.reasoning.xp / perSubTarget) * 100) : 0,
+                },
+                { 
+                  area: "Creativity S1", 
+                  fullMark: 100,
+                  progress: perSubTarget > 0 ? Math.min(100, (stats.s1.areas.creativity.xp / perSubTarget) * 100) : 0,
+                },
+                { 
+                  area: "Focus S2", 
+                  fullMark: 100,
+                  progress: perSubTarget > 0 ? Math.min(100, (stats.s2.areas.focus.xp / perSubTarget) * 100) : 0,
+                },
+                { 
+                  area: "Reasoning S2", 
+                  fullMark: 100,
+                  progress: perSubTarget > 0 ? Math.min(100, (stats.s2.areas.reasoning.xp / perSubTarget) * 100) : 0,
+                },
+                { 
+                  area: "Creativity S2", 
+                  fullMark: 100,
+                  progress: perSubTarget > 0 ? Math.min(100, (stats.s2.areas.creativity.xp / perSubTarget) * 100) : 0,
+                },
+              ];
+              
+              const hasData = radarData.some(d => d.progress > 0);
+              
+              if (!hasData) {
+                return (
+                  <div className="h-32 flex items-center justify-center text-[10px] text-muted-foreground">
+                    Complete games to see your balance
+                  </div>
+                );
+              }
+              
+              return (
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                      <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.3} />
+                      <PolarAngleAxis 
+                        dataKey="area" 
+                        tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <PolarRadiusAxis 
+                        angle={30} 
+                        domain={[0, 100]} 
+                        tick={{ fontSize: 7, fill: 'hsl(var(--muted-foreground))' }}
+                        tickCount={4}
+                      />
+                      <Radar
+                        name="Progress"
+                        dataKey="progress"
+                        stroke="hsl(var(--primary))"
+                        fill="hsl(var(--primary))"
+                        fillOpacity={0.3}
+                        strokeWidth={2}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
+            
+            <p className="text-[8px] text-muted-foreground/70 text-center mt-1">
+              Target: {Math.round(gamesXPTarget / 6)} XP per area
+            </p>
+          </div>
+          
+          {/* Cognitive Metrics Impact Summary - ACCURATE FORMULAS */}
           <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-emerald-500/5 border border-primary/20">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
             
-            <div className="grid grid-cols-3 gap-2">
-              <div className="p-2 rounded-lg bg-muted/20 text-center">
-                <p className="text-[8px] text-muted-foreground mb-1">Cognitive Age</p>
-                <p className="text-sm font-bold text-emerald-400">
-                  {sessions.length > 0 ? `−${Math.min(0.5, sessions.length * 0.05).toFixed(1)}` : "—"}
-                </p>
-                <p className="text-[7px] text-muted-foreground">years effect</p>
-              </div>
-              <div className="p-2 rounded-lg bg-muted/20 text-center">
-                <p className="text-[8px] text-muted-foreground mb-1">Network Score</p>
-                <p className="text-sm font-bold text-blue-400">
-                  +{Math.round((stats.s1XP + stats.s2XP) * 0.15)}
-                </p>
-                <p className="text-[7px] text-muted-foreground">pts this week</p>
-              </div>
-              <div className="p-2 rounded-lg bg-muted/20 text-center">
-                <p className="text-[8px] text-muted-foreground mb-1">Dual Process</p>
-                <p className="text-sm font-bold text-violet-400">
-                  {stats.s1XP > 0 && stats.s2XP > 0 
-                    ? `${Math.round(Math.min(stats.s1XP, stats.s2XP) / Math.max(stats.s1XP, stats.s2XP) * 100)}%`
-                    : stats.s1XP > 0 || stats.s2XP > 0 
-                      ? "Unbalanced" 
-                      : "—"}
-                </p>
-                <p className="text-[7px] text-muted-foreground">integration</p>
-              </div>
-            </div>
-            
-            <p className="text-[8px] text-muted-foreground/70 mt-2 text-center">
-              Balance S1 and S2 training for optimal Dual Process Integration
-            </p>
+            {(() => {
+              const totalGamesXP = stats.s1XP + stats.s2XP;
+              
+              // Games Engagement = min(100, weeklyGamesXP / gamesTarget × 100)
+              // This contributes to Behavioral Engagement (30% of SCI) with weight 50%
+              // So Games → SCI contribution = 0.30 × 0.50 × GamesEngagement = 0.15 × GamesEngagement
+              const gamesEngagement = gamesXPTarget > 0 ? Math.min(100, (totalGamesXP / gamesXPTarget) * 100) : 0;
+              const sciContribution = Math.round(0.15 * gamesEngagement);
+              
+              // Dual Process Balance = 100 - |S1% - S2%| where S1%,S2% are portion of total
+              // Perfect balance when S1 ≈ S2
+              let dualProcessBalance = 0;
+              if (totalGamesXP > 0) {
+                const s1Percent = (stats.s1XP / totalGamesXP) * 100;
+                const s2Percent = (stats.s2XP / totalGamesXP) * 100;
+                dualProcessBalance = Math.round(100 - Math.abs(s1Percent - s2Percent));
+              }
+              
+              // Cognitive Age is NOT directly calculated from games XP
+              // It's calculated from CPS (Cognitive Performance Score) which uses raw cognitive metrics
+              // Games XP contributes indirectly by improving those metrics over time
+              // We show this as "training effect" rather than direct calculation
+              
+              return (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 rounded-lg bg-muted/20">
+                      <p className="text-[8px] text-muted-foreground mb-1">Games Engagement</p>
+                      <p className="text-sm font-bold text-blue-400">{Math.round(gamesEngagement)}%</p>
+                      <p className="text-[7px] text-muted-foreground">of weekly target</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-muted/20">
+                      <p className="text-[8px] text-muted-foreground mb-1">SCI Contribution</p>
+                      <p className="text-sm font-bold text-emerald-400">+{sciContribution}</p>
+                      <p className="text-[7px] text-muted-foreground">pts to Network Score</p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-2 rounded-lg bg-muted/20">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[8px] text-muted-foreground">Dual Process Balance</p>
+                      <p className={`text-[10px] font-medium ${dualProcessBalance >= 80 ? 'text-emerald-400' : dualProcessBalance >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {dualProcessBalance}%
+                      </p>
+                    </div>
+                    <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${dualProcessBalance}%` }}
+                        transition={{ duration: 0.6 }}
+                        className={`h-full rounded-full ${dualProcessBalance >= 80 ? 'bg-emerald-400' : dualProcessBalance >= 50 ? 'bg-amber-400' : 'bg-red-400'}`}
+                      />
+                    </div>
+                    <p className="text-[7px] text-muted-foreground/70 mt-1">
+                      {dualProcessBalance >= 80 
+                        ? "Excellent S1/S2 integration" 
+                        : dualProcessBalance >= 50 
+                          ? "Good balance, keep diversifying" 
+                          : stats.s1XP > stats.s2XP 
+                            ? "Add more S2 (Slow) games" 
+                            : "Add more S1 (Fast) games"}
+                    </p>
+                  </div>
+                  
+                  <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                    <p className="text-[8px] text-muted-foreground mb-1">How Games Improve Cognitive Age</p>
+                    <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
+                      Games train Focus Stability, Reasoning Accuracy, and Creativity metrics. 
+                      These feed into your Cognitive Performance Score (CPS), which determines Cognitive Age. 
+                      Consistent training over weeks shows measurable improvements.
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </>
       )}
