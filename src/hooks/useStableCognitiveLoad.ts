@@ -8,7 +8,7 @@
  * Until then, we display the last valid snapshot.
  */
 
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect } from "react";
 import { useCappedWeeklyProgress, SystemSubTarget } from "@/hooks/useCappedWeeklyProgress";
 import { startOfWeek, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,7 +96,6 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
     detoxProgress,
     gamesSubTargets,
     isLoading,
-    isFetched,
   } = useCappedWeeklyProgress();
 
   // Build fresh data object
@@ -140,7 +139,11 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
   ]);
 
   const freshTotal = freshData.rawGamesXP + freshData.rawTasksXP + freshData.rawDetoxXP;
-  const hasMeaningfulFresh = !isLoading && isFetched && freshTotal > 0;
+
+  // IMPORTANT: don't gate on "isFetched" here.
+  // In some routes (e.g. NeuroLab) auxiliary queries can lag, but Tasks XP is already known.
+  // If freshTotal is meaningful, we treat it as display+snapshot source to avoid getting stuck at 0.
+  const hasMeaningfulFresh = freshTotal > 0;
 
   // Get cached snapshot (module-level + localStorage)
   const getCachedSnapshot = (): StableCognitiveLoadData | null => {
