@@ -7,6 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { startOfWeek, format } from "date-fns";
 import { useRef, useCallback } from "react";
 
+import { SystemSubTarget } from "@/hooks/useCappedWeeklyProgress";
+
 export interface WeeklyLoadSnapshot {
   rawGamesXP: number;
   rawTasksXP: number;
@@ -21,6 +23,8 @@ export interface WeeklyLoadSnapshot {
   gamesProgress: number;
   tasksProgress: number;
   detoxProgress: number;
+  // Games sub-targets (S1 and S2 blocks)
+  gamesSubTargets?: SystemSubTarget[];
   savedAt: number; // timestamp to know when it was captured
 }
 
