@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -28,12 +27,9 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.text();
-    const signature = req.headers.get('stripe-signature');
 
     let event: Stripe.Event;
 
-    // For webhook verification, you'd normally use stripe.webhooks.constructEvent
-    // For now, we'll parse the event directly (you should add webhook secret in production)
     try {
       event = JSON.parse(body) as Stripe.Event;
     } catch (err) {
@@ -55,9 +51,48 @@ serve(async (req) => {
         console.log('Checkout completed for user:', userId, 'product_type:', productType);
 
         if (userId) {
-          // Check if this is a report PDF purchase
-          if (productType === 'cognitive_report_pdf') {
-            console.log('Processing report PDF purchase for user:', userId);
+          if (productType === 'report_credits') {
+            const creditsAmount = parseInt(session.metadata?.credits_amount || '1', 10);
+            console.log('Processing report credits purchase for user:', userId, 'credits:', creditsAmount);
+            
+            const { error: purchaseError } = await supabase
+              .from('report_credit_purchases')
+              .insert({
+                user_id: userId,
+                stripe_payment_id: session.payment_intent as string,
+                credits_amount: creditsAmount,
+                amount_cents: session.amount_total || 499,
+                currency: session.currency || 'eur',
+                status: 'completed',
+              });
+
+            if (purchaseError) {
+              console.error('Error recording credit purchase:', purchaseError);
+            }
+
+            const { data: profile, error: fetchError } = await supabase
+              .from('profiles')
+              .select('report_credits')
+              .eq('user_id', userId)
+              .single();
+
+            if (fetchError) {
+              console.error('Error fetching profile:', fetchError);
+            } else {
+              const currentCredits = profile?.report_credits || 0;
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ report_credits: currentCredits + creditsAmount })
+                .eq('user_id', userId);
+
+              if (updateError) {
+                console.error('Error updating credits:', updateError);
+              } else {
+                console.log('Successfully added', creditsAmount, 'credits for user:', userId);
+              }
+            }
+          } else if (productType === 'cognitive_report_pdf') {
+            console.log('Processing single report purchase for user:', userId);
             
             const { error } = await supabase
               .from('report_purchases')
@@ -71,11 +106,8 @@ serve(async (req) => {
 
             if (error) {
               console.error('Error recording report purchase:', error);
-            } else {
-              console.log('Successfully recorded report purchase for user:', userId);
             }
           } else {
-            // Standard subscription checkout - update to premium
             const { error } = await supabase
               .from('profiles')
               .update({ subscription_status: 'premium' })
