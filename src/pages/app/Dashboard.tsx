@@ -157,195 +157,100 @@ const Dashboard = () => {
 
         {/* Tab Content */}
         {activeTab === "overview" ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-4"
-          >
-            {/* Hero Card - Cognitive Age + SCI side by side */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Cognitive Age Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-border/50 p-4"
-              >
-                <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                <div className="relative">
-                  <p className="text-[9px] text-muted-foreground/70 uppercase tracking-widest mb-1">Brain Age</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-foreground">{cognitiveAgeData.cognitiveAge}</span>
-                    <span className="text-sm text-muted-foreground">yrs</span>
-                  </div>
-                  {cognitiveAgeData.delta !== 0 && (
-                    <div className={cn(
-                      "mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium",
-                      cognitiveAgeData.delta < 0 
-                        ? "bg-emerald-500/15 text-emerald-400" 
-                        : "bg-amber-500/15 text-amber-400"
-                    )}>
-                      {cognitiveAgeData.delta < 0 ? "↓" : "↑"} {Math.abs(cognitiveAgeData.delta)}y
-                    </div>
-                  )}
-                  {cognitiveAgeData.chronologicalAge && (
-                    <p className="text-[9px] text-muted-foreground/50 mt-2">
-                      Actual: {cognitiveAgeData.chronologicalAge}
-                    </p>
-                  )}
-                </div>
-              </motion.div>
+          <div className="space-y-4">
+            {/* Cognitive Age */}
+            <CognitiveAgeSphere 
+              cognitiveAge={cognitiveAgeData.cognitiveAge} 
+              delta={cognitiveAgeData.delta}
+              chronologicalAge={cognitiveAgeData.chronologicalAge}
+            />
 
-              {/* SCI Score Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.15 }}
-                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-border/50 p-4"
-              >
-                <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                <div className="relative">
-                  <p className="text-[9px] text-muted-foreground/70 uppercase tracking-widest mb-1">SCI Score</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-primary">{sci?.total ?? 50}</span>
-                    <span className="text-sm text-muted-foreground">/100</span>
-                  </div>
-                  <p className="text-[10px] text-primary/80 font-medium mt-1 line-clamp-1">
-                    {sciStatusText || "Calculating..."}
-                  </p>
-                </div>
-              </motion.div>
-            </div>
+            {/* Neural Growth Animation - powered by SCI */}
+            <NeuralGrowthAnimation
+              cognitiveAgeDelta={-cognitiveAgeData.delta}
+              overallCognitiveScore={sci?.total ?? 50}
+              sciBreakdown={sci}
+              statusText={sciStatusText}
+            />
 
-            {/* Neural Network Visualization - Full Width Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <NeuralGrowthAnimation
-                cognitiveAgeDelta={-cognitiveAgeData.delta}
-                overallCognitiveScore={sci?.total ?? 50}
-                sciBreakdown={sci}
-                statusText={sciStatusText}
-              />
-            </motion.div>
-
-            {/* Dual Process - Two Cards Side by Side */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.25 }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Thinking Systems</h2>
-                <Link to="/brain-science" className="flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary transition-colors">
+            {/* Thinking Systems Overview */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[13px] font-semibold text-foreground">Dual-Process Integration</h2>
+                <Link to="/brain-science" className="flex items-center gap-1 text-[10px] text-primary hover:underline">
                   <BookOpen className="w-3 h-3" />
-                  Learn
+                  Learn more
                 </Link>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
-                {/* System 1 - Fast */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 p-4">
-                  <div className="absolute -top-6 -right-6 w-16 h-16 bg-amber-500/20 rounded-full blur-xl" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-amber-400" />
-                      <p className="text-[10px] text-amber-400/80 font-medium uppercase tracking-wide">System 1</p>
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-foreground">{thinkingScores.fastScore}</span>
-                    </div>
-                    <p className="text-[9px] text-muted-foreground/60 mt-1">Fast • Intuitive</p>
-                    {thinkingScores.fastDelta !== 0 && (
-                      <div className={cn(
-                        "mt-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium",
-                        thinkingScores.fastDelta > 0 
-                          ? "bg-emerald-500/15 text-emerald-400" 
-                          : "bg-red-500/15 text-red-400"
-                      )}>
-                        {thinkingScores.fastDelta > 0 ? "+" : ""}{thinkingScores.fastDelta} from baseline
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <FastSlowBrainMap
+                fastScore={thinkingScores.fastScore}
+                fastBaseline={thinkingScores.baselineFast}
+                fastDelta={thinkingScores.fastDelta}
+                slowScore={thinkingScores.slowScore}
+                slowBaseline={thinkingScores.baselineSlow}
+                slowDelta={thinkingScores.slowDelta}
+              />
+            </div>
 
-                {/* System 2 - Slow */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-500/20 p-4">
-                  <div className="absolute -top-6 -right-6 w-16 h-16 bg-blue-500/20 rounded-full blur-xl" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-400" />
-                      <p className="text-[10px] text-blue-400/80 font-medium uppercase tracking-wide">System 2</p>
+
+            {/* Generate Report CTA - Premium Feature */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="pt-3"
+            >
+              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-primary/8 to-primary/12 border border-primary/20 relative overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl" />
+                  <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-primary/15 rounded-full blur-xl" />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-primary/15">
+                      <FileText className="w-5 h-5 text-primary" />
                     </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-foreground">{thinkingScores.slowScore}</span>
-                    </div>
-                    <p className="text-[9px] text-muted-foreground/60 mt-1">Slow • Analytical</p>
-                    {thinkingScores.slowDelta !== 0 && (
-                      <div className={cn(
-                        "mt-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium",
-                        thinkingScores.slowDelta > 0 
-                          ? "bg-emerald-500/15 text-emerald-400" 
-                          : "bg-red-500/15 text-red-400"
-                      )}>
-                        {thinkingScores.slowDelta > 0 ? "+" : ""}{thinkingScores.slowDelta} from baseline
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-[13px] font-semibold text-foreground">Cognitive Intelligence Report</h3>
+                        {!isPremium && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            Premium
+                          </span>
+                        )}
                       </div>
-                    )}
+                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                        Professional analysis of your cognitive performance, training progress, and personalized recommendations
+                      </p>
+                    </div>
                   </div>
+                  
+                  {/* Always navigate to report page - it handles premium/free states */}
+                  <Link to="/app/report">
+                    <Button 
+                      variant={isPremium ? "premium" : "outline"} 
+                      className={`w-full h-10 text-[12px] gap-2 ${!isPremium ? "border-primary/30 hover:bg-primary/10" : ""}`}
+                    >
+                      {isPremium ? (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          View Report
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-3.5 h-3.5" />
+                          Preview Report
+                        </>
+                      )}
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </motion.div>
-
-            {/* Report CTA - Compact Premium Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <Link to="/app/report">
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 p-4 group hover:border-primary/40 transition-all cursor-pointer">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-[13px] font-semibold text-foreground">Intelligence Report</h3>
-                          {!isPremium && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-amber-500/20 text-amber-400">
-                              Premium
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground">Full cognitive analysis</p>
-                      </div>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-
-            {/* Info Footer */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.35 }}
-              className="text-center pt-2"
-            >
-              <Link to="/cognitive-age" className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">
-                <Info className="w-3 h-3" />
-                How we calculate your metrics
-              </Link>
-            </motion.div>
-          </motion.div>
+          </div>
         ) : (
           <div className="space-y-5">
             {/* Progress Header with Animation */}
