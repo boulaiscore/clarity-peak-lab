@@ -23,7 +23,7 @@ import { XP_VALUES } from "@/lib/trainingPlans";
 import { startOfWeek, addDays, format, subDays, parseISO } from "date-fns";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -208,29 +208,40 @@ function useTasksHistory(days: number = 14) {
 
       const { data, error } = await supabase
         .from("exercise_completions")
-        .select("xp_earned, completed_at")
+        .select("xp_earned, completed_at, exercise_id")
         .eq("user_id", stableUserId)
         .gte("completed_at", startDate.toISOString())
         .like("exercise_id", "content-%"); // Only content tasks
 
       if (error) throw error;
 
-      // Group by date
-      const byDate: Record<string, number> = {};
+      // Group by date with breakdown by type
+      const byDate: Record<string, { podcast: number; book: number; article: number }> = {};
       (data || []).forEach((row) => {
         const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
-        byDate[date] = (byDate[date] || 0) + (row.xp_earned || 0);
+        if (!byDate[date]) byDate[date] = { podcast: 0, book: 0, article: 0 };
+        
+        const xp = row.xp_earned || 0;
+        const contentId = row.exercise_id?.replace("content-", "") || "";
+        const contentInfo = CONTENT_LIBRARY[contentId];
+        const contentType = contentInfo?.type || "article";
+        
+        byDate[date][contentType] += xp;
       });
 
-      // Build 14-day array with dd/MM format
+      // Build 14-day array with dd/MM format and type breakdown
       const result = [];
       for (let i = days - 1; i >= 0; i--) {
         const date = subDays(new Date(), i);
         const dateStr = format(date, "yyyy-MM-dd");
+        const dayData = byDate[dateStr] || { podcast: 0, book: 0, article: 0 };
         result.push({
           date: dateStr,
-          dateLabel: format(date, "d/M"), // dd/MM format
-          xp: byDate[dateStr] || 0,
+          dateLabel: format(date, "d/M"),
+          xp: dayData.podcast + dayData.book + dayData.article,
+          podcast: dayData.podcast,
+          book: dayData.book,
+          article: dayData.article,
         });
       }
       return result;
@@ -653,22 +664,40 @@ export function TrainingTasks() {
                   labelStyle={{ color: 'hsl(var(--foreground))' }}
                   itemStyle={{ color: 'hsl(var(--foreground))' }}
                   labelFormatter={(label) => label}
-                  formatter={(value: number) => [`${value} XP`, 'Tasks']}
+                  formatter={(value: number, name: string) => {
+                    const labels: Record<string, string> = {
+                      podcast: '🎧 Podcast',
+                      book: '📖 Book',
+                      article: '📄 Reading'
+                    };
+                    return [`${value} XP`, labels[name] || name];
+                  }}
                   cursor={false}
                 />
                 <Bar 
-                  dataKey="xp" 
+                  dataKey="podcast" 
+                  stackId="tasks"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill="#8b5cf6"
+                  name="podcast"
+                />
+                <Bar 
+                  dataKey="book" 
+                  stackId="tasks"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill="#f59e0b"
+                  name="book"
+                />
+                <Bar 
+                  dataKey="article" 
+                  stackId="tasks"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
-                >
-                  {tasksHistoryData?.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.xp > 0 ? 'hsl(var(--chart-2))' : 'hsl(var(--muted-foreground))'}
-                      opacity={entry.xp > 0 ? 1 : 0.18}
-                    />
-                  ))}
-                </Bar>
+                  fill="#3b82f6"
+                  name="article"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
