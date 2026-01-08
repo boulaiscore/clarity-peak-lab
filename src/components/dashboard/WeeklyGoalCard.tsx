@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gamepad2, BookMarked, Brain, Shield, Trophy, Target, Lightbulb, Sparkles } from "lucide-react";
+import { Gamepad2, BookMarked, Brain, Shield, Trophy, Target, Lightbulb } from "lucide-react";
 import { useCappedWeeklyProgress, AreaModeSubTarget } from "@/hooks/useCappedWeeklyProgress";
 import { useWeeklyLoadSnapshot, WeeklyLoadSnapshot } from "@/hooks/useWeeklyLoadSnapshot";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
@@ -24,11 +24,11 @@ function CategoryCompleteBadge({ show }: { show: boolean }) {
   );
 }
 
-// Icon mapping for areas
+// Icon mapping for areas - matches GamesLibrary.tsx
 const AREA_ICONS = {
   focus: Target,
-  reasoning: Lightbulb,
-  creativity: Sparkles,
+  reasoning: Brain,
+  creativity: Lightbulb,
 } as const;
 
 // Compact 6-bar grid cell
@@ -252,10 +252,10 @@ export function WeeklyGoalCard() {
             <Target className="w-2.5 h-2.5 text-muted-foreground/40" />
           </div>
           <div className="flex justify-center">
-            <Lightbulb className="w-2.5 h-2.5 text-muted-foreground/40" />
+            <Brain className="w-2.5 h-2.5 text-muted-foreground/40" />
           </div>
           <div className="flex justify-center">
-            <Sparkles className="w-2.5 h-2.5 text-muted-foreground/40" />
+            <Lightbulb className="w-2.5 h-2.5 text-muted-foreground/40" />
           </div>
         </div>
         
