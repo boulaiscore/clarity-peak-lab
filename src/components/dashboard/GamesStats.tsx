@@ -201,19 +201,10 @@ export function GamesStats() {
     );
   }
 
-  if (!stats) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-6 rounded-xl bg-card/40 border border-border/30 text-center"
-      >
-        <Gamepad2 className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground">No games this week</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">Play games in the Lab to see stats</p>
-      </motion.div>
-    );
-  }
+  // Calculate weekly XP from games (sum of scores)
+  const weeklyGamesXP = sessions.reduce((sum, s) => sum + (s.score || 0), 0);
+  const weeklyGamesTarget = 200; // Default target, could be from plan
+  const gamesProgress = Math.min(100, (weeklyGamesXP / weeklyGamesTarget) * 100);
 
   return (
     <motion.div
@@ -221,31 +212,53 @@ export function GamesStats() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-4"
     >
-      {/* Header with total games and overall accuracy */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <Gamepad2 className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold">This Week</h3>
+      {/* Games Progress - similar to Tasks */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Gamepad2 className="h-4 w-4 text-primary" />
+            <h3 className="text-[13px] font-semibold">Games Progress</h3>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-primary">{weeklyGamesXP}</span>
+            <span className="text-[10px] text-muted-foreground">/{weeklyGamesTarget} XP</span>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">{stats.totalGames} games</span>
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
-            <span className="text-xs font-medium text-primary">{stats.overallAccuracy}% accuracy</span>
+        
+        {/* Progress bar */}
+        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${gamesProgress}%` }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="h-full bg-gradient-to-r from-primary to-amber-500 rounded-full"
+          />
+        </div>
+        
+        {/* Stats summary */}
+        <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/20">
+          <div className="flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-[10px] text-muted-foreground">S1 · Fast</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Brain className="h-3.5 w-3.5 text-cyan-400" />
+            <span className="text-[10px] text-muted-foreground">S2 · Slow</span>
           </div>
         </div>
       </div>
 
-      {/* 14-Day Trend Chart */}
-      {historyData && historyData.some(d => d.xp > 0) && (
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-3.5 h-3.5 text-primary" />
-            <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
-            <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
-          </div>
-          <div className="h-32">
+      {/* 14-Day Trend Chart - always shown */}
+      <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className="w-3.5 h-3.5 text-primary" />
+          <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
+          <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
+        </div>
+        {historyData && historyData.some(d => d.xp > 0) ? (
+          <div className="h-36">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={historyData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+              <AreaChart data={historyData} margin={{ top: 5, right: 5, left: 0, bottom: 20 }}>
                 <defs>
                   <linearGradient id="gamesGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -293,8 +306,18 @@ export function GamesStats() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="h-24 flex flex-col items-center justify-center text-center">
+            <Gamepad2 className="h-6 w-6 text-muted-foreground/30 mb-2" />
+            <p className="text-[10px] text-muted-foreground">No games in the last 14 days</p>
+            <p className="text-[9px] text-muted-foreground/60">Play games in the Lab to see your trend</p>
+          </div>
+        )}
+      </div>
+
+      {/* System stats - only show if there are games */}
+      {stats && (
+        <>
 
       {/* System 1 (Fast) Stats */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-card/50 to-transparent border border-amber-500/20">
@@ -439,6 +462,8 @@ export function GamesStats() {
           )}
         </div>
       </div>
+        </>
+      )}
     </motion.div>
   );
 }
