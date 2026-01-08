@@ -123,31 +123,29 @@ export function WeeklyGoalCard() {
   // and we are not currently fetching/syncing.
   const hasFreshReady = !isLoading && isFetched;
 
-  // Persist snapshot only when fresh data is ready.
+  // Persist snapshot only when fresh data is ready AND meaningful.
+  // Never persist zeros: a 0 snapshot becomes sticky and causes apparent "resets".
   useEffect(() => {
     if (!hasFreshReady) return;
+    if (freshTotal <= 0) return;
 
-    const hasMeaningfulData = freshTotal > 0;
-    const hasExistingSnapshot = !!(cachedSnapshot && cachedSnapshot.savedAt > 0);
-
-    // Persist the first good snapshot, and keep it updated once we have non-zero data.
-    // This avoids accidental "0 resets" during initial mount / transient states.
-    if (hasMeaningfulData || !hasExistingSnapshot) {
-      setSnapshot(freshSnapshot);
-    }
-  }, [hasFreshReady, freshTotal, cachedSnapshot?.savedAt, setSnapshot, freshSnapshot]);
+    setSnapshot(freshSnapshot);
+  }, [hasFreshReady, freshTotal, setSnapshot, freshSnapshot]);
 
   const cachedTotal =
     (cachedSnapshot?.rawGamesXP ?? 0) + (cachedSnapshot?.rawTasksXP ?? 0) + (cachedSnapshot?.rawDetoxXP ?? 0);
 
-  // Prefer fresh only when it has meaningful (non-zero) totals, otherwise keep cached to avoid UI "zero flicker".
+  // Prefer fresh only when it has meaningful totals; otherwise keep a non-zero cached snapshot.
   const shouldUseFreshForDisplay = hasFreshReady && (freshTotal > 0 || !cachedSnapshot || cachedTotal === 0);
 
-  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> | null = shouldUseFreshForDisplay
+  const resolvedSnapshot: Omit<WeeklyLoadSnapshot, "savedAt"> | null = shouldUseFreshForDisplay
     ? freshSnapshot
     : cachedSnapshot
       ? cachedSnapshot
       : null;
+
+  // If BOTH cached and fresh are zero, show skeleton instead of a misleading 0 state.
+  const snapshot = resolvedSnapshot && (cachedTotal > 0 || freshTotal > 0) ? resolvedSnapshot : null;
 
   if (!snapshot) {
     return (
