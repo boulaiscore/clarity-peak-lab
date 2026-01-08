@@ -223,14 +223,10 @@ function useTasksHistory(days: number = 14) {
         
         const xp = row.xp_earned || 0;
         // exercise_id format: "content-{type}-{id}" e.g. "content-podcast-in-our-time"
-        const parts = row.exercise_id?.split("-") || [];
-        const contentType = parts[1] as "podcast" | "book" | "article" || "article";
-        
-        if (contentType === "podcast" || contentType === "book" || contentType === "article") {
-          byDate[date][contentType] += xp;
-        } else {
-          byDate[date].article += xp; // fallback
-        }
+        const match = (row.exercise_id || "").match(/^content-(podcast|book|article)-/);
+        const contentType = (match?.[1] as "podcast" | "book" | "article" | undefined) ?? "article";
+
+        byDate[date][contentType] += xp;
       });
 
       // Build 14-day array with dd/MM format and type breakdown
@@ -683,7 +679,7 @@ export function TrainingTasks() {
                   stackId="tasks"
                   radius={[0, 0, 0, 0]}
                   maxBarSize={20}
-                  fill="#8b5cf6"
+                  fill={'hsl(var(--chart-1))'}
                   name="podcast"
                 />
                 <Bar 
@@ -691,7 +687,7 @@ export function TrainingTasks() {
                   stackId="tasks"
                   radius={[0, 0, 0, 0]}
                   maxBarSize={20}
-                  fill="#f59e0b"
+                  fill={'hsl(var(--chart-4))'}
                   name="book"
                 />
                 <Bar 
@@ -699,7 +695,7 @@ export function TrainingTasks() {
                   stackId="tasks"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
-                  fill="#3b82f6"
+                  fill={'hsl(var(--chart-2))'}
                   name="article"
                 />
               </BarChart>
