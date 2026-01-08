@@ -31,13 +31,6 @@ const PLAN_COLORS: Record<TrainingPlanId, { bg: string; border: string; text: st
   },
 };
 
-// XP split based on plan structure (same as WeeklyGoalCard)
-const PLAN_XP_SPLIT: Record<TrainingPlanId, { gamesPercent: number; tasksPercent: number }> = {
-  light: { gamesPercent: 0.75, tasksPercent: 0.25 },
-  expert: { gamesPercent: 0.60, tasksPercent: 0.40 },
-  superhuman: { gamesPercent: 0.58, tasksPercent: 0.42 },
-};
-
 interface TrainingPlanSelectorProps {
   selectedPlan: TrainingPlanId;
   onSelectPlan: (plan: TrainingPlanId) => void;
@@ -60,13 +53,10 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
         const isSelected = selectedPlan === planId;
         const isExpanded = expandedPlan === planId;
 
-        // Calculate XP targets matching WeeklyGoalCard logic
-        // Detox XP is INCLUDED in weeklyXPTarget, so we calculate it first, then split the remainder
+        // Calculate XP targets matching useCappedWeeklyProgress logic
         const detoxXPTarget = plan.detox ? Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute) : 0;
-        const nonDetoxTarget = Math.max(0, plan.weeklyXPTarget - detoxXPTarget);
-        const split = PLAN_XP_SPLIT[planId];
-        const gamesXPTarget = Math.round(nonDetoxTarget * split.gamesPercent);
-        const tasksXPTarget = Math.max(0, nonDetoxTarget - gamesXPTarget);
+        const tasksXPTarget = plan.contentXPTarget;
+        const gamesXPTarget = Math.max(0, plan.weeklyXPTarget - tasksXPTarget - detoxXPTarget);
 
         return (
           <motion.div

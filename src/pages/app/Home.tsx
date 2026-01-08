@@ -11,12 +11,6 @@ import { useUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 
-// XP split based on plan structure
-const PLAN_XP_SPLIT: Record<TrainingPlanId, { gamesPercent: number; tasksPercent: number }> = {
-  light: { gamesPercent: 0.75, tasksPercent: 0.25 },
-  expert: { gamesPercent: 0.60, tasksPercent: 0.40 },
-  superhuman: { gamesPercent: 0.58, tasksPercent: 0.42 },
-};
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
@@ -442,12 +436,10 @@ const Home = () => {
               const isSelected = selectedPlan === planId;
               const isCurrent = currentPlan === planId;
               
-              // Calculate XP breakdown properly (subtract detox from total first)
+              // Calculate XP breakdown using plan values (matches useCappedWeeklyProgress)
               const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
-              const nonDetoxTarget = Math.max(0, plan.weeklyXPTarget - detoxXPTarget);
-              const split = PLAN_XP_SPLIT[planId];
-              const gamesXPTarget = Math.round(nonDetoxTarget * split.gamesPercent);
-              const tasksXPTarget = Math.max(0, nonDetoxTarget - gamesXPTarget);
+              const tasksXPTarget = plan.contentXPTarget;
+              const gamesXPTarget = Math.max(0, plan.weeklyXPTarget - tasksXPTarget - detoxXPTarget);
               
               return (
                 <button

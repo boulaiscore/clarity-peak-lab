@@ -290,8 +290,9 @@ export function GamesStats() {
   const userPlan = (profile?.training_plan as TrainingPlanId) || "light";
   const plan = TRAINING_PLANS[userPlan];
   
-  const estimatedDetoxXP = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute + plan.detox.bonusXP);
-  const gamesXPTarget = Math.max(20, plan.weeklyXPTarget - plan.contentXPTarget - estimatedDetoxXP);
+  // Match useCappedWeeklyProgress formula: detoxXPTarget = weeklyMinutes * xpPerMinute (no bonusXP)
+  const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
+  const gamesXPTarget = Math.max(0, plan.weeklyXPTarget - plan.contentXPTarget - detoxXPTarget);
   
   const { data: sessions = [], isLoading } = useWeeklyGameCompletions();
   const { data: historyData } = useGamesHistory(14);
