@@ -50,20 +50,42 @@ serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.user_id;
+        const productType = session.metadata?.product_type;
         
-        console.log('Checkout completed for user:', userId);
+        console.log('Checkout completed for user:', userId, 'product_type:', productType);
 
         if (userId) {
-          // Update user's subscription status to premium
-          const { error } = await supabase
-            .from('profiles')
-            .update({ subscription_status: 'premium' })
-            .eq('user_id', userId);
+          // Check if this is a report PDF purchase
+          if (productType === 'cognitive_report_pdf') {
+            console.log('Processing report PDF purchase for user:', userId);
+            
+            const { error } = await supabase
+              .from('report_purchases')
+              .insert({
+                user_id: userId,
+                stripe_payment_id: session.payment_intent as string,
+                amount_cents: session.amount_total || 499,
+                currency: session.currency || 'eur',
+                status: 'completed',
+              });
 
-          if (error) {
-            console.error('Error updating subscription status:', error);
+            if (error) {
+              console.error('Error recording report purchase:', error);
+            } else {
+              console.log('Successfully recorded report purchase for user:', userId);
+            }
           } else {
-            console.log('Successfully updated user to premium:', userId);
+            // Standard subscription checkout - update to premium
+            const { error } = await supabase
+              .from('profiles')
+              .update({ subscription_status: 'premium' })
+              .eq('user_id', userId);
+
+            if (error) {
+              console.error('Error updating subscription status:', error);
+            } else {
+              console.log('Successfully updated user to premium:', userId);
+            }
           }
         }
         break;
@@ -111,7 +133,6 @@ serve(async (req) => {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         console.log('Payment failed for invoice:', invoice.id);
-        // You could send an email notification here
         break;
       }
 

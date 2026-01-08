@@ -1,27 +1,30 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
-
-
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Gamepad2, BookMarked, Smartphone, Ban } from "lucide-react";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
+import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Gamepad2, BookMarked, Smartphone, Ban, Crown, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"overview" | "training">("overview");
   const [trainingSubTab, setTrainingSubTab] = useState<"games" | "tasks" | "detox">("games");
+  const [showPremiumPaywall, setShowPremiumPaywall] = useState(false);
+  
+  const isPremium = user?.subscriptionStatus === "premium";
   
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
@@ -194,20 +197,68 @@ const Dashboard = () => {
             </div>
 
 
-            {/* Generate Report CTA */}
+            {/* Generate Report CTA - Premium Feature */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.4 }}
-              className="pt-2"
+              className="pt-3"
             >
-              <Link to="/app/report">
-                <Button variant="outline" className="w-full h-11 text-[13px] gap-2 border-primary/30 hover:bg-primary/5">
-                  <FileText className="w-4 h-4" />
-                  Generate Cognitive Report
-                </Button>
-              </Link>
+              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-primary/8 to-primary/12 border border-primary/20 relative overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl" />
+                  <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-primary/15 rounded-full blur-xl" />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-primary/15">
+                      <FileText className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-[13px] font-semibold text-foreground">Cognitive Intelligence Report</h3>
+                        {!isPremium && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            Premium
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                        Professional analysis of your cognitive performance, training progress, and personalized recommendations
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {isPremium ? (
+                    <Link to="/app/report">
+                      <Button variant="premium" className="w-full h-10 text-[12px] gap-2">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        View Report
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-10 text-[12px] gap-2 border-primary/30 hover:bg-primary/10"
+                      onClick={() => setShowPremiumPaywall(true)}
+                    >
+                      <Crown className="w-3.5 h-3.5 text-amber-400" />
+                      Unlock with Premium
+                    </Button>
+                  )}
+                </div>
+              </div>
             </motion.div>
+            
+            {/* Premium Paywall */}
+            <PremiumPaywall
+              open={showPremiumPaywall}
+              onOpenChange={setShowPremiumPaywall}
+              feature="report"
+              featureName="Cognitive Intelligence Report"
+            />
           </div>
         ) : (
           <div className="space-y-5">

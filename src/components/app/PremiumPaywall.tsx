@@ -8,13 +8,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Lock, Zap, Clock, Brain } from "lucide-react";
+import { Crown, Check, Lock, Zap, Clock, Brain, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PremiumPaywallProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  feature?: "area" | "duration" | "neuro-activation" | "session-limit";
+  feature?: "area" | "duration" | "neuro-activation" | "session-limit" | "report";
   featureName?: string;
 }
 
@@ -23,6 +23,7 @@ const FEATURES = [
   { icon: Clock, text: "Extended sessions (5min, 7min)" },
   { icon: Zap, text: "Neuro Activation warm-up" },
   { icon: Check, text: "Unlimited daily sessions" },
+  { icon: FileText, text: "Cognitive Intelligence Report" },
 ];
 
 const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {
@@ -41,6 +42,10 @@ const FEATURE_MESSAGES: Record<string, { title: string; description: string }> =
   "session-limit": {
     title: "Daily Limit Reached",
     description: "You've completed your 3 free sessions today. Upgrade for unlimited training.",
+  },
+  "report": {
+    title: "Cognitive Intelligence Report",
+    description: "Get a comprehensive analysis of your cognitive performance with personalized insights.",
   },
 };
 
