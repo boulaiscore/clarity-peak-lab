@@ -40,7 +40,7 @@ interface CognitiveInput {
 }
 
 const INPUT_TYPE_CONFIG: Record<InputType, { label: string; icon: typeof Headphones; color: string; bgColor: string }> = {
-  podcast: { label: "Podcast", icon: Headphones, color: "text-primary", bgColor: "bg-primary/15" },
+  podcast: { label: "Podcast", icon: Headphones, color: "text-violet-500", bgColor: "bg-violet-500/15" },
   book: { label: "Book", icon: BookOpen, color: "text-amber-500", bgColor: "bg-amber-500/15" },
   article: { label: "Reading", icon: FileText, color: "text-blue-500", bgColor: "bg-blue-500/15" },
 };
