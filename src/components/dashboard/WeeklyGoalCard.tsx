@@ -137,7 +137,13 @@ export function WeeklyGoalCard() {
     }
   }, [hasFreshReady, freshTotal, cachedSnapshot?.savedAt, setSnapshot, freshSnapshot]);
 
-  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> | null = hasFreshReady
+  const cachedTotal =
+    (cachedSnapshot?.rawGamesXP ?? 0) + (cachedSnapshot?.rawTasksXP ?? 0) + (cachedSnapshot?.rawDetoxXP ?? 0);
+
+  // Prefer fresh only when it has meaningful (non-zero) totals, otherwise keep cached to avoid UI "zero flicker".
+  const shouldUseFreshForDisplay = hasFreshReady && (freshTotal > 0 || !cachedSnapshot || cachedTotal === 0);
+
+  const snapshot: Omit<WeeklyLoadSnapshot, "savedAt"> | null = shouldUseFreshForDisplay
     ? freshSnapshot
     : cachedSnapshot
       ? cachedSnapshot
