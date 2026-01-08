@@ -150,6 +150,8 @@ function useWeeklyCompletedContent(userId: string | undefined) {
       });
     },
     enabled: !!userId,
+    staleTime: 60_000,
+    placeholderData: (prev) => prev ?? [],
   });
 }
 
@@ -315,23 +317,34 @@ function TaskCard({ task, isCompleted, onComplete, isToggling }: TaskCardProps) 
 export function TrainingTasks() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Auth context can be transiently null during tab/route transitions.
+  // Keep a stable userId to prevent queries from disabling and flashing to 0.
+  const stableUserId = user?.id ?? (() => {
+    try {
+      return localStorage.getItem("nl:lastUserId") || undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
   const { weeklyContentXP } = useWeeklyProgress();
-  const { data: weeklyCompletions = [], isLoading } = useWeeklyCompletedContent(user?.id);
+  const { data: weeklyCompletions = [], isLoading } = useWeeklyCompletedContent(stableUserId);
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  
+
   // Get user's training plan for XP target
   const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: ["profile", stableUserId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!stableUserId) return null;
       const { data } = await supabase
         .from("profiles")
         .select("training_plan")
-        .eq("user_id", user.id)
+        .eq("user_id", stableUserId)
         .single();
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!stableUserId,
   });
   
   const userPlan = (profile?.training_plan as TrainingPlanId) || "light";
