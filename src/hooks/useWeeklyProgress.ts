@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +33,15 @@ type WeeklyXPResult = {
   completions: WeeklyXPRow[];
 };
 
+// Helper to read persisted userId (safe, runs outside render)
+function getPersistedUserId(): string | undefined {
+  try {
+    return localStorage.getItem("nl:lastUserId") || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function useWeeklyProgress() {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
@@ -40,18 +49,8 @@ export function useWeeklyProgress() {
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
 
   // Keep a stable userId across route changes to prevent "reset to zero" UI.
-  // Note: this hook can be mounted while AuthContext is temporarily null during route/tab transitions.
-  // We persist the last known userId so the query keys stay stable across remounts.
-  const lastUserIdRef = useRef<string | undefined>(undefined);
-
-  // Read persisted userId once per mount (safe hook initializer).
-  const [persistedUserId] = useState<string | undefined>(() => {
-    try {
-      return localStorage.getItem("nl:lastUserId") || undefined;
-    } catch {
-      return undefined;
-    }
-  });
+  // We use a module-level variable as ultimate fallback to survive React Fast Refresh.
+  const lastUserIdRef = useRef<string | undefined>(getPersistedUserId());
 
   const computedUserId = user?.id ?? session?.user?.id;
 
@@ -60,7 +59,7 @@ export function useWeeklyProgress() {
     lastUserIdRef.current = computedUserId;
   }
 
-  const userId = computedUserId ?? lastUserIdRef.current ?? persistedUserId;
+  const userId = computedUserId ?? lastUserIdRef.current;
 
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
   const plan = TRAINING_PLANS[planId];
