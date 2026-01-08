@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Headphones, BookOpen, FileText, CheckCircle2, 
-  Zap, Timer, ExternalLink
+  Zap, Timer, ExternalLink, TrendingUp
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,9 +20,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { XP_VALUES } from "@/lib/trainingPlans";
-import { startOfWeek, addDays, format } from "date-fns";
+import { startOfWeek, addDays, format, subDays, parseISO } from "date-fns";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -187,6 +188,55 @@ function useWeeklyCompletedContent(userId: string | undefined) {
     enabled: !!userId,
     staleTime: 60_000,
     placeholderData: (prev) => prev ?? [],
+  });
+}
+
+// Hook to get 14-day tasks history for trend chart
+function useTasksHistory(days: number = 14) {
+  const { user } = useAuth();
+  
+  const stableUserId = user?.id ?? (() => {
+    try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
+  })();
+
+  return useQuery({
+    queryKey: ["tasks-history-14d", stableUserId, days],
+    queryFn: async () => {
+      if (!stableUserId) return [];
+
+      const startDate = subDays(new Date(), days);
+
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .select("xp_earned, completed_at")
+        .eq("user_id", stableUserId)
+        .gte("completed_at", startDate.toISOString())
+        .like("exercise_id", "content-%"); // Only content tasks
+
+      if (error) throw error;
+
+      // Group by date
+      const byDate: Record<string, number> = {};
+      (data || []).forEach((row) => {
+        const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
+        byDate[date] = (byDate[date] || 0) + (row.xp_earned || 0);
+      });
+
+      // Build 14-day array
+      const result = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const dateStr = format(date, "yyyy-MM-dd");
+        result.push({
+          date: dateStr,
+          dateLabel: format(date, "dd/MM"),
+          xp: byDate[dateStr] || 0,
+        });
+      }
+      return result;
+    },
+    enabled: !!stableUserId,
+    staleTime: 60_000,
   });
 }
 
@@ -365,6 +415,7 @@ export function TrainingTasks() {
 
   const { weeklyContentXP } = useWeeklyProgress();
   const { data: weeklyCompletions = [], isLoading } = useWeeklyCompletedContent(stableUserId);
+  const { data: tasksHistoryData } = useTasksHistory(14);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   // Get user's training plan for XP target
@@ -539,7 +590,58 @@ export function TrainingTasks() {
         </div>
       </div>
 
-      {/* Active Tasks intentionally hidden in Training Details (show only completed). */}
+      {/* 14-Day Trend Chart */}
+      {tasksHistoryData && tasksHistoryData.some(d => d.xp > 0) && (
+        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
+            <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
+            <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
+          </div>
+          <div className="h-32">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={tasksHistoryData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="dateLabel" 
+                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval="preserveStartEnd"
+                />
+                <YAxis 
+                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={30}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                  }}
+                  labelFormatter={(label) => `${label}`}
+                  formatter={(value: number) => [`${value} XP`, 'Tasks']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="xp"
+                  stroke="hsl(var(--chart-2))"
+                  strokeWidth={2}
+                  fill="url(#tasksGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
       {false && activeTasks.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1">
