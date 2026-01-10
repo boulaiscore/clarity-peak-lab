@@ -6,153 +6,153 @@
 
 @layer base {
   :root {
-    /* WHOOP-inspired pure dark palette */
-    --background: 0 0% 0%;
-    --background-surface: 0 0% 6%;
-    --foreground: 0 0% 98%;
+    /* Muted dark palette - sophisticated and easy on the eyes */
+    --background: 220 15% 6%;
+    --background-surface: 220 12% 10%;
+    --foreground: 220 10% 92%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
+    --card: 220 12% 11%;
+    --card-foreground: 220 10% 92%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 220 12% 10%;
+    --popover-foreground: 220 10% 92%;
 
-    /* Premium emerald accent - sophisticated, less saturated */
-    --primary: 160 45% 40%;
+    /* Muted teal accent - calm and sophisticated */
+    --primary: 168 28% 38%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 10% 14%;
+    --secondary-foreground: 220 10% 90%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 220 10% 16%;
+    --muted-foreground: 220 8% 50%;
 
-    --accent: 160 40% 35%;
+    --accent: 168 24% 32%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 55% 48%;
     --destructive-foreground: 0 0% 98%;
 
-    --success: 160 45% 40%;
+    --success: 160 30% 38%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 42 65% 48%;
     --warning-foreground: 0 0% 0%;
 
-    --border: 0 0% 12%;
-    --input: 0 0% 10%;
-    --ring: 160 45% 40%;
+    --border: 220 10% 18%;
+    --input: 220 10% 14%;
+    --ring: 168 28% 38%;
 
     --radius: 1rem;
 
-    /* Chart palette (used by Recharts) */
-    --chart-1: 174 62% 45%; /* teal */
-    --chart-2: 270 75% 62%; /* violet */
-    --chart-3: 38 92% 50%;  /* amber */
-    --chart-4: 195 85% 55%; /* cyan */
-    --chart-5: 0 72% 51%;   /* red */
+    /* Chart palette - muted tones */
+    --chart-1: 168 35% 42%;
+    --chart-2: 260 35% 55%;
+    --chart-3: 42 55% 50%;
+    --chart-4: 195 45% 48%;
+    --chart-5: 0 45% 50%;
 
-    /* Brand tokens - Premium style */
-    --bg-primary: 0 0% 0%;
-    --bg-surface: 0 0% 6%;
-    --accent-primary: 160 45% 40%;
-    --accent-secondary: 160 40% 32%;
-    --text-primary: 0 0% 98%;
-    --text-secondary: 0 0% 55%;
+    /* Brand tokens - Muted style */
+    --bg-primary: 220 15% 6%;
+    --bg-surface: 220 12% 10%;
+    --accent-primary: 168 28% 38%;
+    --accent-secondary: 168 24% 32%;
+    --text-primary: 220 10% 92%;
+    --text-secondary: 220 8% 50%;
     
-    /* Gradients - Sophisticated emerald */
-    --gradient-primary: linear-gradient(135deg, hsl(160, 45%, 40%) 0%, hsl(160, 40%, 32%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(160, 45%, 40%, 0.12) 0%, transparent 70%);
-    --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 8%) 0%, hsl(0, 0%, 0%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(160, 45%, 40%, 0.03) 0%, transparent 100%);
+    /* Gradients - Subtle, muted */
+    --gradient-primary: linear-gradient(135deg, hsl(168, 28%, 38%) 0%, hsl(168, 24%, 32%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(168, 28%, 38%, 0.08) 0%, transparent 70%);
+    --gradient-surface: linear-gradient(180deg, hsl(220, 12%, 11%) 0%, hsl(220, 15%, 6%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(168, 28%, 38%, 0.02) 0%, transparent 100%);
     
-    /* Shadows - Subtle, premium */
-    --shadow-glow: 0 0 100px -40px hsl(160, 45%, 40%, 0.3);
-    --shadow-card: 0 2px 24px -4px hsl(0, 0%, 0%, 0.8);
-    --shadow-button: 0 0 24px -4px hsl(160, 45%, 40%, 0.2);
+    /* Shadows - Very subtle */
+    --shadow-glow: 0 0 80px -40px hsl(168, 28%, 38%, 0.2);
+    --shadow-card: 0 2px 20px -4px hsl(220, 20%, 0%, 0.6);
+    --shadow-button: 0 0 20px -4px hsl(168, 28%, 38%, 0.15);
 
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 160 45% 40%;
+    --sidebar-background: 220 15% 5%;
+    --sidebar-foreground: 220 10% 92%;
+    --sidebar-primary: 168 28% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 10%;
-    --sidebar-ring: 160 45% 40%;
+    --sidebar-accent: 220 10% 14%;
+    --sidebar-accent-foreground: 220 10% 90%;
+    --sidebar-border: 220 10% 14%;
+    --sidebar-ring: 168 28% 38%;
   }
 
   .light {
-    /* Softer light theme - warm gray tones with high contrast */
-    --background: 210 20% 97%;
-    --background-surface: 210 15% 94%;
-    --foreground: 210 30% 10%;
+    /* Muted light theme - soft, warm tones */
+    --background: 220 15% 96%;
+    --background-surface: 220 12% 93%;
+    --foreground: 220 20% 18%;
 
-    --card: 210 18% 96%;
-    --card-foreground: 210 30% 10%;
+    --card: 220 14% 95%;
+    --card-foreground: 220 20% 18%;
 
-    --popover: 210 18% 96%;
-    --popover-foreground: 210 30% 10%;
+    --popover: 220 14% 95%;
+    --popover-foreground: 220 20% 18%;
 
-    /* Premium emerald accent - darker for better contrast */
-    --primary: 160 40% 32%;
+    /* Muted teal accent - softer for light mode */
+    --primary: 168 25% 35%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 18% 90%;
-    --secondary-foreground: 210 30% 10%;
+    --secondary: 220 12% 88%;
+    --secondary-foreground: 220 20% 18%;
 
-    --muted: 210 15% 86%;
-    --muted-foreground: 210 15% 35%;
+    --muted: 220 10% 84%;
+    --muted-foreground: 220 10% 42%;
 
-    --accent: 160 35% 28%;
+    --accent: 168 22% 30%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 45%;
+    --destructive: 0 50% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 40% 32%;
+    --success: 160 28% 35%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 95% 45%;
+    --warning: 42 55% 48%;
     --warning-foreground: 0 0% 0%;
 
-    --border: 210 18% 80%;
-    --input: 210 15% 88%;
-    --ring: 160 40% 32%;
+    --border: 220 12% 82%;
+    --input: 220 10% 86%;
+    --ring: 168 25% 35%;
 
-    /* Chart palette (used by Recharts) */
-    --chart-1: 174 55% 38%; /* teal */
-    --chart-2: 270 60% 50%; /* violet */
-    --chart-3: 38 90% 45%;  /* amber */
-    --chart-4: 195 70% 42%; /* cyan */
-    --chart-5: 0 70% 45%;   /* red */
+    /* Chart palette - muted light tones */
+    --chart-1: 168 32% 40%;
+    --chart-2: 260 32% 52%;
+    --chart-3: 42 50% 48%;
+    --chart-4: 195 40% 45%;
+    --chart-5: 0 42% 48%;
 
-    /* Brand tokens - Light */
-    --bg-primary: 210 20% 97%;
-    --bg-surface: 210 15% 94%;
-    --accent-primary: 160 40% 32%;
-    --accent-secondary: 160 35% 28%;
-    --text-primary: 210 30% 10%;
-    --text-secondary: 210 15% 35%;
+    /* Brand tokens - Muted Light */
+    --bg-primary: 220 15% 96%;
+    --bg-surface: 220 12% 93%;
+    --accent-primary: 168 25% 35%;
+    --accent-secondary: 168 22% 30%;
+    --text-primary: 220 20% 18%;
+    --text-secondary: 220 10% 42%;
     
-    /* Gradients - Light mode */
-    --gradient-primary: linear-gradient(135deg, hsl(160, 40%, 32%) 0%, hsl(160, 35%, 28%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(160, 40%, 32%, 0.1) 0%, transparent 70%);
-    --gradient-surface: linear-gradient(180deg, hsl(210, 20%, 97%) 0%, hsl(210, 15%, 94%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(160, 40%, 32%, 0.04) 0%, transparent 100%);
+    /* Gradients - Muted light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(168, 25%, 35%) 0%, hsl(168, 22%, 30%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(168, 25%, 35%, 0.06) 0%, transparent 70%);
+    --gradient-surface: linear-gradient(180deg, hsl(220, 15%, 96%) 0%, hsl(220, 12%, 93%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(168, 25%, 35%, 0.03) 0%, transparent 100%);
     
-    /* Shadows - More defined shadows */
-    --shadow-glow: 0 0 80px -30px hsl(160, 40%, 32%, 0.2);
-    --shadow-card: 0 4px 20px -4px hsl(210, 25%, 0%, 0.1);
-    --shadow-button: 0 4px 20px -4px hsl(160, 40%, 32%, 0.15);
+    /* Shadows - Soft */
+    --shadow-glow: 0 0 60px -30px hsl(168, 25%, 35%, 0.15);
+    --shadow-card: 0 4px 16px -4px hsl(220, 20%, 0%, 0.08);
+    --shadow-button: 0 4px 16px -4px hsl(168, 25%, 35%, 0.12);
 
-    --sidebar-background: 210 15% 94%;
-    --sidebar-foreground: 210 30% 10%;
-    --sidebar-primary: 160 40% 32%;
+    --sidebar-background: 220 12% 93%;
+    --sidebar-foreground: 220 20% 18%;
+    --sidebar-primary: 168 25% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 15% 88%;
-    --sidebar-accent-foreground: 210 30% 10%;
-    --sidebar-border: 210 18% 80%;
-    --sidebar-ring: 160 40% 32%;
+    --sidebar-accent: 220 10% 86%;
+    --sidebar-accent-foreground: 220 20% 18%;
+    --sidebar-border: 220 12% 82%;
+    --sidebar-ring: 168 25% 35%;
   }
 }
 
@@ -274,13 +274,13 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(ellipse at 50% 0%, hsl(160, 45%, 40%, 0.06) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 50% 0%, hsl(168, 28%, 38%, 0.04) 0%, transparent 60%);
     pointer-events: none;
   }
 
   /* Particle glow for sphere */
   .sphere-glow {
-    background: radial-gradient(ellipse at center, hsl(160, 45%, 40%, 0.15) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, hsl(168, 28%, 38%, 0.1) 0%, transparent 70%);
   }
 
   .animate-pulse-slow {
