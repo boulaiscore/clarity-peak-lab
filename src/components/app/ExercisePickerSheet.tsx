@@ -33,14 +33,14 @@ const AREA_LABELS: Record<string, string> = {
 };
 
 const MODE_LABELS = {
-  fast: { label: "S1 - Fast", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-  slow: { label: "S2 - Deep", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+  fast: { label: "S1 - Fast", color: "text-[hsl(var(--area-fast))]", bg: "bg-[hsl(var(--area-fast))]/10", border: "border-[hsl(var(--area-fast))]/20" },
+  slow: { label: "S2 - Deep", color: "text-[hsl(var(--area-slow))]", bg: "bg-[hsl(var(--area-slow))]/10", border: "border-[hsl(var(--area-slow))]/20" },
 };
 
 const DIFFICULTY_CONFIG = {
-  easy: { label: "Easy", color: "text-emerald-400", bg: "bg-emerald-500/10" },
-  medium: { label: "Medium", color: "text-amber-400", bg: "bg-amber-500/10" },
-  hard: { label: "Hard", color: "text-rose-400", bg: "bg-rose-500/10" },
+  easy: { label: "Easy", color: "text-success", bg: "bg-success/10" },
+  medium: { label: "Medium", color: "text-[hsl(var(--area-fast))]", bg: "bg-[hsl(var(--area-fast))]/10" },
+  hard: { label: "Hard", color: "text-destructive/80", bg: "bg-destructive/10" },
 };
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -106,9 +106,9 @@ export function ExercisePickerSheet({
               </div>
             </div>
             <div className="flex flex-col items-end gap-1">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <Star className="w-3 h-3 text-amber-400" />
-                <span className="text-[11px] font-semibold text-amber-400">{totalAvailableXP} XP</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20">
+                <Star className="w-3 h-3 text-primary" />
+                <span className="text-[11px] font-semibold text-primary">{totalAvailableXP} XP</span>
               </div>
               <span className="text-[9px] text-muted-foreground">total available</span>
             </div>
@@ -134,7 +134,7 @@ export function ExercisePickerSheet({
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all shrink-0",
                 selectedDifficulty === "easy"
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  ? "bg-success/20 text-success border border-success/30"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
@@ -145,7 +145,7 @@ export function ExercisePickerSheet({
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all shrink-0",
                 selectedDifficulty === "medium"
-                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  ? "bg-[hsl(var(--area-fast))]/20 text-[hsl(var(--area-fast))] border border-[hsl(var(--area-fast))]/30"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
@@ -156,7 +156,7 @@ export function ExercisePickerSheet({
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all shrink-0",
                 selectedDifficulty === "hard"
-                  ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                  ? "bg-destructive/20 text-destructive/80 border border-destructive/30"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
@@ -203,7 +203,7 @@ export function ExercisePickerSheet({
                     {/* Completed marker (subtle, not hijacking the card) */}
                     {isCompleted && (
                       <div className="absolute top-3 right-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-success/70" />
                       </div>
                     )}
 
@@ -238,7 +238,7 @@ export function ExercisePickerSheet({
                             {diffConfig.label}
                           </span>
                           {isCompleted && (
-                            <span className="text-[8px] px-1.5 py-0.5 rounded font-medium uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="text-[8px] px-1.5 py-0.5 rounded font-medium uppercase bg-success/10 text-success border border-success/20">
                               Completed
                             </span>
                           )}
@@ -250,9 +250,9 @@ export function ExercisePickerSheet({
 
                       {/* XP & Action */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
-                          <Star className="w-3 h-3 text-amber-400" />
-                          <span className="text-[10px] font-bold text-amber-400">
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 border border-primary/20">
+                          <Star className="w-3 h-3 text-primary" />
+                          <span className="text-[10px] font-bold text-primary">
                             +{exerciseXP}
                           </span>
                         </div>

@@ -81,6 +81,12 @@ export default {
         "accent-secondary": "hsl(var(--accent-secondary))",
         "text-primary": "hsl(var(--text-primary))",
         "text-secondary": "hsl(var(--text-secondary))",
+        // Area semantic colors
+        "area-focus": "hsl(var(--area-focus))",
+        "area-reasoning": "hsl(var(--area-reasoning))",
+        "area-creativity": "hsl(var(--area-creativity))",
+        "area-fast": "hsl(var(--area-fast))",
+        "area-slow": "hsl(var(--area-slow))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -120,8 +126,8 @@ export default {
           "50%": { opacity: "0.8" },
         },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 60px -20px hsl(165, 82%, 51%, 0.3)" },
-          "50%": { boxShadow: "0 0 80px -15px hsl(165, 82%, 51%, 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 50px -20px hsl(168, 28%, 38%, 0.2)" },
+          "50%": { boxShadow: "0 0 70px -15px hsl(168, 28%, 38%, 0.35)" },
         },
       },
       animation: {
