@@ -24,9 +24,9 @@ const AREA_ICONS: Record<string, React.ElementType> = {
 };
 
 const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  focus: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
-  reasoning: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20" },
-  creativity: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20" },
+  focus: { bg: "bg-[hsl(var(--area-focus))]/10", text: "text-[hsl(var(--area-focus))]", border: "border-[hsl(var(--area-focus))]/20" },
+  reasoning: { bg: "bg-[hsl(var(--area-reasoning))]/10", text: "text-[hsl(var(--area-reasoning))]", border: "border-[hsl(var(--area-reasoning))]/20" },
+  creativity: { bg: "bg-[hsl(var(--area-creativity))]/10", text: "text-[hsl(var(--area-creativity))]", border: "border-[hsl(var(--area-creativity))]/20" },
 };
 
 // System 1 (Fast) games - with cognitive benefits
@@ -147,8 +147,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       {/* System 1 - Fast Thinking */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-amber-400" />
+          <div className="w-8 h-8 rounded-lg bg-[hsl(var(--area-fast))]/12 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-[hsl(var(--area-fast))]" />
           </div>
           <div>
             <h3 className="text-[14px] font-semibold">System 1 · Fast</h3>
@@ -164,8 +164,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       {/* System 2 - Slow Thinking */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/15 flex items-center justify-center">
-            <Timer className="w-4 h-4 text-cyan-400" />
+          <div className="w-8 h-8 rounded-lg bg-[hsl(var(--area-slow))]/12 flex items-center justify-center">
+            <Timer className="w-4 h-4 text-[hsl(var(--area-slow))]" />
           </div>
           <div>
             <h3 className="text-[14px] font-semibold">System 2 · Slow</h3>

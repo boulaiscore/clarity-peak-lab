@@ -46,11 +46,18 @@
     --radius: 1rem;
 
     /* Chart palette - muted tones */
-    --chart-1: 168 35% 42%;
-    --chart-2: 260 35% 55%;
-    --chart-3: 42 55% 50%;
-    --chart-4: 195 45% 48%;
-    --chart-5: 0 45% 50%;
+    --chart-1: 168 30% 42%;
+    --chart-2: 260 28% 52%;
+    --chart-3: 42 45% 48%;
+    --chart-4: 195 35% 45%;
+    --chart-5: 0 38% 48%;
+
+    /* Area colors - muted */
+    --area-focus: 210 35% 50%;
+    --area-reasoning: 260 28% 52%;
+    --area-creativity: 42 40% 50%;
+    --area-fast: 42 40% 50%;
+    --area-slow: 195 30% 48%;
 
     /* Brand tokens - Muted style */
     --bg-primary: 220 15% 6%;
@@ -120,11 +127,18 @@
     --ring: 168 25% 35%;
 
     /* Chart palette - muted light tones */
-    --chart-1: 168 32% 40%;
-    --chart-2: 260 32% 52%;
-    --chart-3: 42 50% 48%;
-    --chart-4: 195 40% 45%;
-    --chart-5: 0 42% 48%;
+    --chart-1: 168 28% 38%;
+    --chart-2: 260 25% 48%;
+    --chart-3: 42 42% 45%;
+    --chart-4: 195 32% 42%;
+    --chart-5: 0 35% 45%;
+
+    /* Area colors - muted light */
+    --area-focus: 210 30% 45%;
+    --area-reasoning: 260 25% 48%;
+    --area-creativity: 42 35% 48%;
+    --area-fast: 42 35% 48%;
+    --area-slow: 195 28% 45%;
 
     /* Brand tokens - Muted Light */
     --bg-primary: 220 15% 96%;

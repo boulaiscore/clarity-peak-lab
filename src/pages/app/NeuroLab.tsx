@@ -147,14 +147,14 @@ export default function NeuroLab() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30"
+            className="mb-5 p-4 rounded-2xl bg-success/10 border border-success/30"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <div className="w-10 h-10 rounded-xl bg-success/20 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-success" />
               </div>
               <div>
-                <h3 className="text-[14px] font-semibold text-emerald-400">Week Complete!</h3>
+                <h3 className="text-[14px] font-semibold text-success">Week Complete!</h3>
                 <p className="text-[11px] text-muted-foreground">
                   All {sessionsRequired} sessions done. Free training unlocked.
                 </p>
