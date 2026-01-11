@@ -836,9 +836,10 @@ function SwipeableAlternativeCard({
 interface PrescriptionSectionProps {
   type: InputType;
   title: string;
+  compact?: boolean;
 }
 
-export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps) {
+export function CognitiveTasksSection({ type, title, compact = false }: PrescriptionSectionProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: loggedIds = [], isLoading } = useLoggedExposures(user?.id);
@@ -945,11 +946,157 @@ export function CognitiveTasksSection({ type, title }: PrescriptionSectionProps)
   const config = INPUT_TYPE_CONFIG[type];
   const Icon = config.icon;
   const completedCount = COGNITIVE_INPUTS.filter(i => i.type === type && loggedIds.includes(i.id)).length;
+  const totalCount = COGNITIVE_INPUTS.filter(i => i.type === type).length;
 
   const handleSelectAlternative = (newActiveId: string) => {
     setActiveId(newActiveId);
   };
 
+  // Compact mode for horizontal grid layout
+  if (compact) {
+    // If all items are completed, show compact empty state
+    if (allInputs.length === 0) {
+      return (
+        <div className="flex flex-col">
+          {/* Compact Header */}
+          <div className="flex flex-col items-center gap-1.5 mb-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+              type === "podcast" ? "bg-violet-500/10" : 
+              type === "book" ? "bg-amber-500/10" : 
+              "bg-blue-500/10"
+            }`}>
+              <Icon className={`h-4 w-4 ${config.color}`} />
+            </div>
+            <h4 className="text-xs font-medium text-center">{title}</h4>
+            <p className="text-[9px] text-violet-500">All done ✓</p>
+          </div>
+          <div className="flex-1 flex items-center justify-center p-3 rounded-xl border border-border/20 bg-muted/10">
+            <CheckCircle2 className="h-5 w-5 text-violet-500/40" />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col">
+        {/* Compact Header */}
+        <div className="flex flex-col items-center gap-1 mb-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+            type === "podcast" ? "bg-violet-500/10" : 
+            type === "book" ? "bg-amber-500/10" : 
+            "bg-blue-500/10"
+          }`}>
+            <Icon className={`h-4 w-4 ${config.color}`} />
+          </div>
+          <h4 className="text-xs font-medium text-center">{title}</h4>
+          <p className="text-[9px] text-muted-foreground">
+            {completedCount}/{totalCount}
+          </p>
+        </div>
+
+        {/* Vertical stack of items in this column */}
+        <div className="flex flex-col gap-2">
+          {allInputs.slice(0, 3).map((input) => {
+            const isLogged = loggedIds.includes(input.id);
+            const thinkingConfig = THINKING_SYSTEM_CONFIG[input.thinkingSystem];
+            
+            return (
+              <button
+                key={input.id}
+                onClick={() => handleSelectAlternative(input.id)}
+                className={`p-2.5 border border-border/20 bg-card/30 rounded-xl 
+                  transition-all hover:bg-card/50 hover:border-primary/30 active:scale-[0.98] text-left
+                  ${input.id === activeInput?.id ? 'ring-1 ring-primary/40 bg-primary/5' : ''}`}
+              >
+                {/* Title + complete button */}
+                <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                  <p className="text-[10px] font-medium line-clamp-2 leading-tight text-foreground/90">
+                    {input.title}
+                  </p>
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggle(input.id);
+                    }}
+                    className={`shrink-0 ${(!user || togglingId === input.id) ? 'opacity-50' : 'cursor-pointer'}`}
+                    role="button"
+                    aria-label="Mark as completed"
+                  >
+                    {togglingId === input.id ? (
+                      <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
+                    ) : isLogged ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-violet-500/60" />
+                    ) : (
+                      <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full hover:border-primary/50 transition-colors" />
+                    )}
+                  </div>
+                </div>
+                
+                {/* Author */}
+                {input.author && (
+                  <p className="text-[8px] text-muted-foreground/60 truncate mb-1.5">
+                    {input.author}
+                  </p>
+                )}
+                
+                {/* Meta row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div title={thinkingConfig.description}>
+                      <ThinkingSystemIcon system={input.thinkingSystem} />
+                    </div>
+                    <DifficultyIndicator level={input.difficulty} />
+                  </div>
+                  <span className="text-[8px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium">
+                    +{calculateItemRawPoints(input)}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+          
+          {/* Show more indicator */}
+          {allInputs.length > 3 && (
+            <p className="text-[8px] text-muted-foreground/50 text-center">
+              +{allInputs.length - 3} more
+            </p>
+          )}
+        </div>
+        
+        {/* Target Exceeded Warning Dialog */}
+        <AlertDialog open={showTargetExceededDialog} onOpenChange={setShowTargetExceededDialog}>
+          <AlertDialogContent className="max-w-sm">
+            <AlertDialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-emerald-400" />
+                </div>
+                <AlertDialogTitle className="text-base">
+                  Tasks {WEEKLY_GOAL_MESSAGES.targetExceededWarning.title}
+                </AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className="text-sm text-muted-foreground">
+                {WEEKLY_GOAL_MESSAGES.targetExceededWarning.description}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:gap-0">
+              <AlertDialogCancel className="text-sm">
+                {WEEKLY_GOAL_MESSAGES.targetExceededWarning.cancelLabel}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmExcessTask}
+                className="text-sm bg-muted hover:bg-muted/80 text-foreground"
+              >
+                {WEEKLY_GOAL_MESSAGES.targetExceededWarning.confirmLabel}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
+
+  // Original full-width layout (non-compact)
   // If all items are completed, show empty state
   if (allInputs.length === 0) {
     return (

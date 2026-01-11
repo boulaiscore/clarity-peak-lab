@@ -255,34 +255,33 @@ export default function NeuroLab() {
             </div>
 
             {tasksSubTab === "active" ? (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Intro + Legend */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="p-3 rounded-xl bg-muted/30 border border-border/30 flex-1">
-                    <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">Passive training:</span> Curated content for deep cognitive development.
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11px] text-muted-foreground">
+                    <span className="font-medium text-foreground">Passive training:</span> Curated content for cognitive development.
+                  </p>
                   <CognitiveTasksLegend />
                 </div>
 
-                {/* Podcasts Section */}
-                <CognitiveTasksSection 
-                  type="podcast" 
-                  title="Podcast"
-                />
-
-                {/* Books Section */}
-                <CognitiveTasksSection 
-                  type="book" 
-                  title="Book"
-                />
-
-                {/* Articles Section */}
-                <CognitiveTasksSection 
-                  type="article" 
-                  title="Reading"
-                />
+                {/* Horizontal 3-column grid for content types */}
+                <div className="grid grid-cols-3 gap-3">
+                  <CognitiveTasksSection 
+                    type="podcast" 
+                    title="Podcast"
+                    compact
+                  />
+                  <CognitiveTasksSection 
+                    type="book" 
+                    title="Book"
+                    compact
+                  />
+                  <CognitiveTasksSection 
+                    type="article" 
+                    title="Reading"
+                    compact
+                  />
+                </div>
               </div>
             ) : (
               <CognitiveLibrary />
