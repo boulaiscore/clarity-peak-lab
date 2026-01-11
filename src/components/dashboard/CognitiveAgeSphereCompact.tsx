@@ -109,11 +109,56 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
         {/* Glow - theme aware */}
         <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/20 via-primary/5 to-transparent blur-xl scale-150 dark:from-primary/15 dark:via-primary/5" />
 
-        {/* Canvas */}
+        {/* Animated rotating ring */}
+        <svg 
+          className="absolute inset-0 w-[130px] h-[130px] animate-spin-slow"
+          viewBox="0 0 130 130"
+        >
+          <circle
+            cx="65"
+            cy="65"
+            r="62"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1"
+            strokeDasharray="8 12"
+            className="text-primary/40 dark:text-primary/30"
+          />
+        </svg>
+
+        {/* Second rotating ring - opposite direction */}
+        <svg 
+          className="absolute inset-0 w-[130px] h-[130px] animate-spin-slow-reverse"
+          viewBox="0 0 130 130"
+        >
+          <circle
+            cx="65"
+            cy="65"
+            r="58"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="0.5"
+            strokeDasharray="4 20"
+            className="text-primary/25 dark:text-primary/20"
+          />
+        </svg>
+
+        {/* Orbiting dots */}
+        <div className="absolute inset-0 w-[130px] h-[130px] animate-spin-slower">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary/60 dark:bg-primary/50 shadow-[0_0_6px_hsl(var(--primary))]" />
+        </div>
+        <div className="absolute inset-0 w-[130px] h-[130px] animate-spin-slower" style={{ animationDelay: '-5s' }}>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/40 dark:bg-primary/30" />
+        </div>
+        <div className="absolute inset-0 w-[130px] h-[130px] animate-spin-slower" style={{ animationDelay: '-10s' }}>
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1 h-1 rounded-full bg-primary/50 dark:bg-primary/40" />
+        </div>
+
+        {/* Canvas for inner particles */}
         <canvas ref={canvasRef} width={130} height={130} className="absolute inset-0" />
 
-        {/* Circle */}
-        <div className="relative w-[130px] h-[130px] rounded-full border border-primary/40 dark:border-primary/30 flex flex-col items-center justify-center bg-background/30 dark:bg-transparent">
+        {/* Inner circle with content */}
+        <div className="relative w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center bg-background/30 dark:bg-transparent">
           <span className="text-[9px] uppercase tracking-wider text-muted-foreground mb-0.5">
             Cognitive Age
           </span>
