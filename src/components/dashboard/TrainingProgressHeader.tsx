@@ -1,13 +1,29 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Flame, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Flame, TrendingUp, TrendingDown, Minus, Gamepad2, BookMarked, Smartphone, Ban, Zap, Calendar, Target } from "lucide-react";
 import { useDailyTrainingStreak, useDailyTrainingHistory } from "@/hooks/useDailyTraining";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const TrainingProgressHeader = () => {
   const { user } = useAuth();
   const { data: streakData } = useDailyTrainingStreak(user?.id);
   const { data: history = [] } = useDailyTrainingHistory(user?.id);
+  
+  // Get capped weekly progress for macro stats
+  const {
+    cappedTotalXP,
+    totalXPTarget,
+    cappedGamesXP,
+    cappedTasksXP,
+    cappedDetoxXP,
+    gamesXPTarget,
+    tasksXPTarget,
+    detoxXPTarget,
+    gamesBreakdown,
+    totalProgress,
+    isLoading: progressLoading,
+  } = useCappedWeeklyProgress();
 
   const streak = typeof streakData === 'object' ? streakData.streak : (streakData ?? 0);
 
@@ -59,7 +75,10 @@ export const TrainingProgressHeader = () => {
   }, [streak, weeklyStats]);
 
   const circumference = 2 * Math.PI * 40;
-  const strokeDashoffset = circumference - (weeklyStats.percentage / 100) * circumference;
+  const strokeDashoffset = circumference - (totalProgress / 100) * circumference;
+  
+  // Total games sessions this week
+  const gamesSessionsCount = gamesBreakdown?.completionsCount ?? 0;
 
   return (
     <motion.div
@@ -68,9 +87,10 @@ export const TrainingProgressHeader = () => {
       transition={{ duration: 0.4 }}
       className="p-4 rounded-2xl bg-gradient-to-br from-card/80 to-card/40 border border-border/30"
     >
+      {/* Top section: Ring + Quick stats */}
       <div className="flex items-center gap-4">
         {/* Animated Progress Ring */}
-        <div className="relative w-24 h-24 flex-shrink-0">
+        <div className="relative w-20 h-20 flex-shrink-0">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
             {/* Background circle */}
             <circle
@@ -87,7 +107,7 @@ export const TrainingProgressHeader = () => {
               cy="50"
               r="40"
               fill="none"
-              stroke="url(#progressGradient)"
+              stroke="url(#progressGradientHeader)"
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -96,7 +116,7 @@ export const TrainingProgressHeader = () => {
               transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
             />
             <defs>
-              <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id="progressGradientHeader" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="hsl(var(--primary))" />
                 <stop offset="100%" stopColor="hsl(var(--primary)/0.6)" />
               </linearGradient>
@@ -109,11 +129,11 @@ export const TrainingProgressHeader = () => {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.5 }}
-              className="text-2xl font-bold text-foreground"
+              className="text-lg font-bold text-foreground"
             >
-              {weeklyStats.completedDays}
+              {Math.round(totalProgress)}%
             </motion.span>
-            <span className="text-[9px] text-muted-foreground uppercase tracking-wider">/7 days</span>
+            <span className="text-[8px] text-muted-foreground uppercase tracking-wider">weekly</span>
           </div>
           
           {/* Pulse glow when streak active */}
@@ -139,25 +159,31 @@ export const TrainingProgressHeader = () => {
             Your Progress
           </h3>
           
-          {/* Streak and Trend */}
+          {/* XP Total + Streak */}
           <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-1">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-[11px] font-semibold text-foreground">{cappedTotalXP}</span>
+              <span className="text-[9px] text-muted-foreground">/{totalXPTarget} XP</span>
+            </div>
+            
             {streak > 0 && (
               <div className="flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5 text-orange-400" />
                 <span className="text-[11px] font-medium text-foreground">{streak}</span>
-                <span className="text-[10px] text-muted-foreground">streak</span>
+                <span className="text-[9px] text-muted-foreground">day</span>
               </div>
             )}
             
             <div className="flex items-center gap-1">
               {weeklyStats.trend === "up" ? (
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <TrendingUp className="w-3 h-3 text-emerald-400" />
               ) : weeklyStats.trend === "down" ? (
-                <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                <TrendingDown className="w-3 h-3 text-red-400" />
               ) : (
-                <Minus className="w-3.5 h-3.5 text-muted-foreground" />
+                <Minus className="w-3 h-3 text-muted-foreground" />
               )}
-              <span className={`text-[11px] font-medium ${
+              <span className={`text-[10px] font-medium ${
                 weeklyStats.trend === "up" ? "text-emerald-400" : 
                 weeklyStats.trend === "down" ? "text-red-400" : 
                 "text-muted-foreground"
@@ -174,10 +200,61 @@ export const TrainingProgressHeader = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-[11px] text-muted-foreground leading-relaxed"
+            className="text-[10px] text-muted-foreground leading-relaxed"
           >
             {motivationalMessage}
           </motion.p>
+        </div>
+      </div>
+      
+      {/* Activity Summary - Macro stats */}
+      <div className="mt-3 pt-3 border-t border-border/20">
+        <div className="grid grid-cols-3 gap-2">
+          {/* Games */}
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="w-6 h-6 rounded-md bg-primary/15 flex items-center justify-center">
+              <Gamepad2 className="w-3 h-3 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold text-foreground truncate">{cappedGamesXP}</p>
+              <p className="text-[7px] text-muted-foreground">/{gamesXPTarget} XP</p>
+            </div>
+          </div>
+          
+          {/* Tasks */}
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
+            <div className="w-6 h-6 rounded-md bg-violet-500/15 flex items-center justify-center">
+              <BookMarked className="w-3 h-3 text-violet-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold text-foreground truncate">{cappedTasksXP}</p>
+              <p className="text-[7px] text-muted-foreground">/{tasksXPTarget} XP</p>
+            </div>
+          </div>
+          
+          {/* Detox */}
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-teal-500/5 border border-teal-500/10">
+            <div className="w-6 h-6 rounded-md bg-teal-500/15 flex items-center justify-center relative">
+              <Smartphone className="w-3 h-3 text-teal-400" />
+              <Ban className="w-1.5 h-1.5 text-teal-400 absolute -bottom-0.5 -right-0.5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold text-foreground truncate">{cappedDetoxXP}</p>
+              <p className="text-[7px] text-muted-foreground">/{detoxXPTarget} XP</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Quick stats row */}
+        <div className="flex items-center justify-between mt-2 px-1">
+          <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+            <Calendar className="w-3 h-3" />
+            <span>{weeklyStats.completedDays}/7 days</span>
+          </div>
+          <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+            <Target className="w-3 h-3" />
+            <span>{gamesSessionsCount} games</span>
+          </div>
         </div>
       </div>
     </motion.div>
