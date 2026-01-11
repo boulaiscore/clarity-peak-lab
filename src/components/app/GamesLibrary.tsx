@@ -36,18 +36,26 @@ const GAME_AREAS: { areaId: NeuroLabArea; name: string }[] = [
   { areaId: "creativity", name: "Creativity" },
 ];
 
+type ThinkingSystem = "fast" | "slow";
+
+const SYSTEM_TABS: { id: ThinkingSystem; label: string; sublabel: string; icon: typeof Zap; color: string; bgColor: string }[] = [
+  { id: "fast", label: "System 1", sublabel: "Intuition", icon: Zap, color: "text-[hsl(var(--area-fast))]", bgColor: "bg-[hsl(var(--area-fast))]/15" },
+  { id: "slow", label: "System 2", sublabel: "Reasoning", icon: Timer, color: "text-[hsl(var(--area-slow))]", bgColor: "bg-[hsl(var(--area-slow))]/15" },
+];
+
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
-  const [pickerMode, setPickerMode] = useState<"fast" | "slow">("fast");
+  const [pickerMode, setPickerMode] = useState<ThinkingSystem>("fast");
+  const [activeSystem, setActiveSystem] = useState<ThinkingSystem>("fast");
   
-  const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: "fast" | "slow" } | null>(null);
+  const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: ThinkingSystem } | null>(null);
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   
   const { gamesComplete } = useCappedWeeklyProgress();
 
-  const handleGameTypeClick = (areaId: NeuroLabArea, mode: "fast" | "slow") => {
+  const handleGameTypeClick = (areaId: NeuroLabArea, mode: ThinkingSystem) => {
     if (gamesComplete) {
       setPendingGame({ areaId, mode });
       setShowTargetExceededDialog(true);
@@ -74,11 +82,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
-  const getBenefitKey = (areaId: NeuroLabArea, mode: "fast" | "slow") => {
+  const getBenefitKey = (areaId: NeuroLabArea, mode: ThinkingSystem) => {
     return `${areaId}-${mode}` as keyof typeof GAME_COGNITIVE_BENEFITS;
   };
 
-  const renderGameCard = (areaId: NeuroLabArea, mode: "fast" | "slow", index: number) => {
+  const renderGameCard = (areaId: NeuroLabArea, mode: ThinkingSystem, index: number) => {
     const Icon = AREA_ICONS[areaId] || Brain;
     const colors = AREA_COLORS[areaId];
     const benefitKey = getBenefitKey(areaId, mode);
@@ -90,10 +98,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         key={`${areaId}-${mode}`}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.04 }}
+        transition={{ delay: index * 0.05 }}
         onClick={() => handleGameTypeClick(areaId, mode)}
         className={cn(
-          "w-full p-3 rounded-xl border transition-all duration-200 text-left",
+          "w-full p-3.5 rounded-xl border transition-all duration-200 text-left",
           "bg-card/60 hover:bg-card/90",
           colors.border,
           "hover:border-opacity-60",
@@ -101,13 +109,13 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         )}
       >
         <div className="flex items-center gap-3">
-          <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", colors.bg)}>
-            <Icon className={cn("w-4 h-4", colors.text)} />
+          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0", colors.bg)}>
+            <Icon className={cn("w-5 h-5", colors.text)} />
           </div>
 
           <div className="flex-1 min-w-0">
-            <h4 className="text-[13px] font-medium leading-tight">{areaName}</h4>
-            <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+            <h4 className="text-sm font-medium leading-tight">{areaName}</h4>
+            <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
               {benefit?.shortBenefit || "Cognitive training"}
             </p>
           </div>
@@ -120,42 +128,47 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Two-column layout: System 1 | System 2 */}
-      <div className="grid grid-cols-2 gap-4">
-        
-        {/* System 1 - Fast Column */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <div className="w-6 h-6 rounded-md bg-[hsl(var(--area-fast))]/12 flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-[hsl(var(--area-fast))]" />
-            </div>
-            <div>
-              <h3 className="text-[13px] font-semibold leading-tight">System 1</h3>
-              <p className="text-[9px] text-muted-foreground">Intuition</p>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            {GAME_AREAS.map((area, index) => renderGameCard(area.areaId, "fast", index))}
-          </div>
-        </div>
+      {/* System Tab Icons */}
+      <div className="flex items-center justify-center gap-3">
+        {SYSTEM_TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeSystem === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveSystem(tab.id)}
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all",
+                isActive 
+                  ? `${tab.bgColor} ring-1 ring-current ${tab.color}` 
+                  : "bg-card/50 hover:bg-card text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <div className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center",
+                isActive ? tab.bgColor : "bg-muted/30"
+              )}>
+                <Icon className={cn("w-5 h-5", isActive ? tab.color : "text-muted-foreground")} />
+              </div>
+              <div className="text-center">
+                <span className={cn(
+                  "text-[11px] font-medium block",
+                  isActive ? tab.color : "text-muted-foreground"
+                )}>
+                  {tab.label}
+                </span>
+                <span className="text-[9px] text-muted-foreground/70">
+                  {tab.sublabel}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-        {/* System 2 - Slow Column */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <div className="w-6 h-6 rounded-md bg-[hsl(var(--area-slow))]/12 flex items-center justify-center">
-              <Timer className="w-3.5 h-3.5 text-[hsl(var(--area-slow))]" />
-            </div>
-            <div>
-              <h3 className="text-[13px] font-semibold leading-tight">System 2</h3>
-              <p className="text-[9px] text-muted-foreground">Reasoning</p>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            {GAME_AREAS.map((area, index) => renderGameCard(area.areaId, "slow", index + 3))}
-          </div>
-        </div>
+      {/* Game Cards for Selected System */}
+      <div className="space-y-2">
+        {GAME_AREAS.map((area, index) => renderGameCard(area.areaId, activeSystem, index))}
       </div>
 
       {/* Exercise Picker Sheet */}
