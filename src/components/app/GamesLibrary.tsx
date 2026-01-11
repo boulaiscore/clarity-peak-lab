@@ -79,15 +79,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   };
 
   const renderGameCard = (areaId: NeuroLabArea, mode: "fast" | "slow", index: number) => {
+    const Icon = AREA_ICONS[areaId] || Brain;
     const colors = AREA_COLORS[areaId];
     const benefitKey = getBenefitKey(areaId, mode);
     const benefit = GAME_COGNITIVE_BENEFITS[benefitKey];
     const areaName = areaId.charAt(0).toUpperCase() + areaId.slice(1);
-    
-    // Use system icon instead of area icon
-    const SystemIcon = mode === "fast" ? Zap : Timer;
-    const systemColor = mode === "fast" ? "text-[hsl(var(--area-fast))]" : "text-[hsl(var(--area-slow))]";
-    const systemBg = mode === "fast" ? "bg-[hsl(var(--area-fast))]/12" : "bg-[hsl(var(--area-slow))]/12";
     
     return (
       <motion.button
@@ -105,8 +101,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         )}
       >
         <div className="flex items-center gap-3">
-          <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", systemBg)}>
-            <SystemIcon className={cn("w-4 h-4", systemColor)} />
+          <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", colors.bg)}>
+            <Icon className={cn("w-4 h-4", colors.text)} />
           </div>
 
           <div className="flex-1 min-w-0">
