@@ -119,7 +119,7 @@ export function DistractionLoadCard() {
           </div>
           <div className="text-left">
             <h3 className="text-sm font-medium">Distraction Load</h3>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-col">
               {isEnabled ? (
                 <span className={cn("text-[11px] font-medium", distractionLevel.color)}>
                   {distractionLevel.level}
@@ -127,6 +127,9 @@ export function DistractionLoadCard() {
               ) : (
                 <span className="text-[11px] text-muted-foreground">Not enabled</span>
               )}
+              <span className="text-[9px] text-muted-foreground/60 leading-tight">
+                Measures external noise affecting System 1 clarity.
+              </span>
             </div>
           </div>
         </div>

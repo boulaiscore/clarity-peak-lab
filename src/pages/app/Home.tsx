@@ -24,9 +24,10 @@ interface RingProps {
   color: string;
   label: string;
   displayValue: string;
+  microcopy?: string;
 }
 
-const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue }: RingProps) => {
+const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, microcopy }: RingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(value / max, 1);
@@ -68,9 +69,14 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
           </span>
         </div>
       </div>
-      <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+      <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
         {label}
       </p>
+      {microcopy && (
+        <p className="mt-0.5 text-[8px] text-muted-foreground/60 text-center max-w-[80px] leading-tight">
+          {microcopy}
+        </p>
+      )}
     </div>
   );
 };
@@ -157,42 +163,7 @@ const Home = () => {
     }
   };
 
-  // Get qualitative interpretation of readiness
-  const getReadinessInterpretation = () => {
-    if (readinessScore >= 75) {
-      return "Mental clarity is high. Complex decisions will feel easier today.";
-    }
-    if (readinessScore >= 55) {
-      return "Cognitive resources are stable. Good conditions for focused work.";
-    }
-    return "Your brain is consolidating. Light training protects tomorrow's clarity.";
-  };
 
-  // Get qualitative interpretation of performance
-  const getPerformanceInterpretation = () => {
-    if (cognitivePerformance >= 70) {
-      return "Processing speed and accuracy above baseline.";
-    }
-    if (cognitivePerformance >= 50) {
-      return "Cognitive output is steady. Consistency builds compound gains.";
-    }
-    return "Room to strengthen neural pathways. Every session counts.";
-  };
-
-  // Get weekly load interpretation
-  const getWeeklyLoadInterpretation = () => {
-    const percentage = (totalWeeklyXP / weeklyXPTarget) * 100;
-    if (percentage >= 80) {
-      return "Weekly training load nearly complete. Mental resilience is building.";
-    }
-    if (percentage >= 40) {
-      return "On track. Skipping today risks losing 48h of cognitive momentum.";
-    }
-    if (percentage > 0) {
-      return "Mental sharpness decays faster than it builds. Stay consistent.";
-    }
-    return "First session of the week sets the baseline for cognitive gains.";
-  };
 
   // Get insight based on readiness - with cause-effect messaging
   const getInsight = () => {
@@ -214,15 +185,12 @@ const Home = () => {
     }
     return {
       title: "Strategic recovery",
-      body: `Your ${planName} protocol recommends lighter load today. This isn't passive rest—it's active protection of tomorrow's peak performance.`,
+      body: `Your ${planName} protocol recommends lighter load today. This protects System 1 speed while preserving System 2 depth for tomorrow's peak performance.`,
       action: "Protect tomorrow"
     };
   };
 
   const insight = getInsight();
-  const readinessInterpretation = getReadinessInterpretation();
-  const performanceInterpretation = getPerformanceInterpretation();
-  const weeklyLoadInterpretation = getWeeklyLoadInterpretation();
 
   // No protocol configured
   if (!hasProtocol) {
@@ -268,8 +236,9 @@ const Home = () => {
               size={90}
               strokeWidth={6}
               color="hsl(210, 70%, 55%)"
-              label="Readiness"
+              label="System 1 Readiness"
               displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
+              microcopy="Intuition and reaction capacity"
             />
             <ProgressRing
               value={cognitivePerformance}
@@ -277,8 +246,9 @@ const Home = () => {
               size={90}
               strokeWidth={6}
               color="hsl(var(--primary))"
-              label="Performance"
+              label="System 2 Performance"
               displayValue={`${cognitivePerformance}%`}
+              microcopy="Reasoning depth and cognitive control"
             />
             <ProgressRing
               value={totalWeeklyXP}
@@ -286,19 +256,15 @@ const Home = () => {
               size={90}
               strokeWidth={6}
               color="hsl(38, 92%, 50%)"
-              label="Weekly Load"
+              label="Cognitive Load"
               displayValue={`${Math.round((totalWeeklyXP / weeklyXPTarget) * 100)}%`}
+              microcopy="Adaptive mental strain"
             />
           </div>
           
-          {/* Qualitative interpretation - changes based on lowest metric */}
+          {/* Explanatory line below rings */}
           <p className="text-center text-xs text-muted-foreground leading-relaxed px-4">
-            {readinessScore < cognitivePerformance && readinessScore < (totalWeeklyXP / weeklyXPTarget) * 100
-              ? readinessInterpretation
-              : (totalWeeklyXP / weeklyXPTarget) * 100 < cognitivePerformance
-                ? weeklyLoadInterpretation
-                : performanceInterpretation
-            }
+            The first session of the week calibrates your intuition–reasoning balance.
           </p>
         </motion.section>
 
@@ -364,7 +330,7 @@ const Home = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
             <p className="text-[10px] text-muted-foreground/70 leading-snug">
-              Driving today's load
+              Balancing intuition speed and reasoning depth.
             </p>
           </button>
           <div className="p-4 rounded-xl bg-card border border-border/40">
@@ -385,8 +351,8 @@ const Home = () => {
             </div>
             <p className="text-[10px] text-muted-foreground/70 leading-snug">
               {totalWeeklyXP >= weeklyXPTarget 
-                ? "Target reached. Neural adaptations consolidating."
-                : `${weeklyXPTarget - totalWeeklyXP} XP to secure this week's gains`
+                ? "Target reached. Cognitive adaptations consolidating."
+                : `${weeklyXPTarget - totalWeeklyXP} XP to consolidate cognitive adaptations.`
               }
             </p>
           </div>
@@ -412,12 +378,7 @@ const Home = () => {
             Go To Lab
           </button>
           <p className="text-center text-[10px] text-muted-foreground/60 mt-3">
-            {readinessScore >= 75 
-              ? "Peak window open. Higher impact per minute invested."
-              : readinessScore >= 55
-                ? "Consistency today protects clarity tomorrow."
-                : "Light session now → stronger recovery curve."
-            }
+            Train intuition and critical reasoning.
           </p>
         </motion.div>
       </main>
