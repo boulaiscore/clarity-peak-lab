@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/hooks/useTheme";
 
 interface CognitiveAgeSphereProps {
   cognitiveAge: number;
@@ -9,6 +10,7 @@ interface CognitiveAgeSphereProps {
 export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: CognitiveAgeSphereProps) {
   const [animatedAge, setAnimatedAge] = useState(cognitiveAge);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const duration = 1500;
@@ -24,13 +26,20 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     requestAnimationFrame(animate);
   }, [cognitiveAge]);
 
-  // Particle animation
+  // Particle animation with theme-aware colors
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Theme-aware particle colors
+    const isDark = theme === "dark";
+    
+    const particleColor = isDark 
+      ? { h: 165, s: 82, l: 51 }  // Vibrant teal for dark mode
+      : { h: 165, s: 65, l: 35 }; // Deeper, more saturated teal for light mode
 
     const particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[] = [];
     const particleCount = 60;
@@ -48,7 +57,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         vx: (Math.random() - 0.5) * 0.3,
         vy: (Math.random() - 0.5) * 0.3,
         size: Math.random() * 2 + 1,
-        alpha: Math.random() * 0.5 + 0.3,
+        alpha: isDark ? (Math.random() * 0.5 + 0.3) : (Math.random() * 0.7 + 0.4),
       });
     }
 
@@ -79,13 +88,13 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         // Draw particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(165, 82%, 51%, ${p.alpha})`;
+        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha})`;
         ctx.fill();
 
-        // Subtle glow
+        // Subtle glow (stronger in light mode)
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(165, 82%, 51%, ${p.alpha * 0.2})`;
+        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * (isDark ? 0.2 : 0.15)})`;
         ctx.fill();
       });
 
@@ -95,7 +104,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     draw();
 
     return () => cancelAnimationFrame(animationId);
-  }, []);
+  }, [theme]);
 
   // Determine if cognitive age is better (lower) than chronological
   const isImproved = delta < 0;
@@ -111,8 +120,8 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     <div className="relative flex flex-col items-center justify-center py-6">
       {/* Main sphere container */}
       <div className="relative">
-        {/* Outer glow */}
-        <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/20 via-primary/5 to-transparent blur-2xl scale-150 animate-glow" />
+        {/* Outer glow - theme aware */}
+        <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/25 via-primary/10 to-transparent blur-2xl scale-150 dark:from-primary/20 dark:via-primary/5" />
 
         {/* Canvas for particles */}
         <canvas
@@ -123,9 +132,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         />
 
         {/* Main circle */}
-        <div className="relative w-[200px] h-[200px] rounded-full border border-primary/30 flex flex-col items-center justify-center animate-glow-pulse">
+        <div className="relative w-[200px] h-[200px] rounded-full border border-primary/40 dark:border-primary/30 flex flex-col items-center justify-center bg-background/30 dark:bg-transparent">
           {/* Inner border ring */}
-          <div className="absolute inset-2 rounded-full border border-primary/10" />
+          <div className="absolute inset-2 rounded-full border border-primary/20 dark:border-primary/10" />
           
           <span className="label-uppercase mb-1">Cognitive Age</span>
           <div className="flex items-baseline gap-1">
