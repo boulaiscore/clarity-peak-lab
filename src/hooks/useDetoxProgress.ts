@@ -314,6 +314,9 @@ export function useRecordDetoxCompletion() {
       queryClient.invalidateQueries({ queryKey: ["weekly-detox-xp"] });
       queryClient.invalidateQueries({ queryKey: ["today-detox-minutes"] });
       queryClient.invalidateQueries({ queryKey: ["detox-history"] });
+      // Dashboard Training Details and weekly progress queries
+      queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
     },
   });
 }

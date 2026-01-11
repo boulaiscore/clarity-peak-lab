@@ -539,6 +539,7 @@ export function TrainingTasks() {
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
       queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
     },
   });
 

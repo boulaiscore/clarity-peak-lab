@@ -166,6 +166,9 @@ export function useRecordExerciseCompletion() {
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
       queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
+      // Dashboard Training Details queries
+      queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
+      queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
     },
   });
 }
@@ -210,6 +213,9 @@ export function useRecordContentCompletion() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+      // Dashboard Training Details queries
+      queryClient.invalidateQueries({ queryKey: ["weekly-content-completions"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
     },
   });
 }
@@ -244,6 +250,9 @@ export function useRemoveContentCompletion() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+      // Dashboard Training Details queries
+      queryClient.invalidateQueries({ queryKey: ["weekly-content-completions"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
     },
   });
 }
