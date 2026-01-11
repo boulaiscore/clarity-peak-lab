@@ -63,6 +63,11 @@ export function useSaveNeuroLabSession() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["neuro-lab-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+      // Dashboard Training Details queries
+      queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
+      queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
     },
   });
 }

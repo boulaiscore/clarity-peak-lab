@@ -222,6 +222,9 @@ export function useMonthlyContent() {
       queryClient.invalidateQueries({ queryKey: ["monthly-content"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+      // Dashboard Training Details queries
+      queryClient.invalidateQueries({ queryKey: ["weekly-content-completions"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
     },
   });
 
