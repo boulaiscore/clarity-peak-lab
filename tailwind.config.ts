@@ -139,6 +139,9 @@ export default {
         shimmer: "shimmer 3s linear infinite",
         glow: "glow 3s ease-in-out infinite",
         "glow-pulse": "glow-pulse 4s ease-in-out infinite",
+        "spin-slow": "spin 20s linear infinite",
+        "spin-slow-reverse": "spin 25s linear infinite reverse",
+        "spin-slower": "spin 15s linear infinite",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
