@@ -6,7 +6,8 @@ import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { 
   Zap, ChevronRight, Crown, 
-  Gamepad2, BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban
+  Gamepad2, BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban,
+  Headphones, BookOpen, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +39,101 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
   "reflection": ["reasoning", "creativity"],
 };
 
+type TaskCategory = "podcast" | "book" | "article";
+
+const TASK_CATEGORIES: { id: TaskCategory; label: string; icon: typeof Headphones; color: string; bgColor: string }[] = [
+  { id: "podcast", label: "Podcast", icon: Headphones, color: "text-violet-500", bgColor: "bg-violet-500/15" },
+  { id: "book", label: "Book", icon: BookOpen, color: "text-amber-500", bgColor: "bg-amber-500/15" },
+  { id: "article", label: "Reading", icon: FileText, color: "text-blue-500", bgColor: "bg-blue-500/15" },
+];
+
+function TasksTabContent() {
+  const [activeCategory, setActiveCategory] = useState<TaskCategory>("podcast");
+  const [viewMode, setViewMode] = useState<"active" | "library">("active");
+
+  return (
+    <div className="space-y-4">
+      {/* View Mode Toggle */}
+      <div className="flex items-center gap-1 p-1 bg-card border border-border/50 rounded-lg">
+        <button
+          onClick={() => setViewMode("active")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+            viewMode === "active" 
+              ? "bg-primary text-primary-foreground shadow-sm" 
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          )}
+        >
+          <BookMarked className="w-3.5 h-3.5" />
+          Active
+        </button>
+        <button
+          onClick={() => setViewMode("library")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+            viewMode === "library" 
+              ? "bg-primary text-primary-foreground shadow-sm" 
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          )}
+        >
+          <Library className="w-3.5 h-3.5" />
+          Library
+        </button>
+      </div>
+
+      {viewMode === "active" ? (
+        <>
+          {/* Category Icon Tabs */}
+          <div className="flex items-center justify-center gap-2">
+            {TASK_CATEGORIES.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all",
+                    isActive 
+                      ? `${cat.bgColor} ring-1 ring-current ${cat.color}` 
+                      : "bg-card/50 hover:bg-card text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center",
+                    isActive ? cat.bgColor : "bg-muted/30"
+                  )}>
+                    <Icon className={cn("w-5 h-5", isActive ? cat.color : "text-muted-foreground")} />
+                  </div>
+                  <span className={cn(
+                    "text-[10px] font-medium",
+                    isActive ? cat.color : "text-muted-foreground"
+                  )}>
+                    {cat.label}
+                  </span>
+                </button>
+              );
+            })}
+            
+            {/* Legend */}
+            <div className="ml-2">
+              <CognitiveTasksLegend />
+            </div>
+          </div>
+
+          {/* Selected Category Content */}
+          <CognitiveTasksSection 
+            type={activeCategory} 
+            title={TASK_CATEGORIES.find(c => c.id === activeCategory)?.label || "Content"}
+          />
+        </>
+      ) : (
+        <CognitiveLibrary />
+      )}
+    </div>
+  );
+}
+
 export default function NeuroLab() {
   // Scroll to top on mount
   useEffect(() => {
@@ -59,7 +155,6 @@ export default function NeuroLab() {
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   const [activeTab, setActiveTab] = useState("games");
-  const [tasksSubTab, setTasksSubTab] = useState<"active" | "library">("active");
   
   // Auto-open session picker if continuing session
   const continueSession = searchParams.get("continueSession") === "true";
@@ -226,66 +321,7 @@ export default function NeuroLab() {
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-0">
-            {/* Sub-navigation for Tasks */}
-            <div className="flex items-center gap-1 p-1.5 bg-card border border-border/50 rounded-xl mb-4">
-              <button
-                onClick={() => setTasksSubTab("active")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-medium transition-all",
-                  tasksSubTab === "active" 
-                    ? "bg-primary text-primary-foreground shadow-md" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <BookMarked className="w-3.5 h-3.5" />
-                Active
-              </button>
-              <button
-                onClick={() => setTasksSubTab("library")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-medium transition-all",
-                  tasksSubTab === "library" 
-                    ? "bg-primary text-primary-foreground shadow-md" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <Library className="w-3.5 h-3.5" />
-                Library
-              </button>
-            </div>
-
-            {tasksSubTab === "active" ? (
-              <div className="space-y-4">
-                {/* Intro + Legend */}
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[11px] text-muted-foreground">
-                    <span className="font-medium text-foreground">Passive training:</span> Curated content for cognitive development.
-                  </p>
-                  <CognitiveTasksLegend />
-                </div>
-
-                {/* Horizontal 3-column grid for content types */}
-                <div className="grid grid-cols-3 gap-3">
-                  <CognitiveTasksSection 
-                    type="podcast" 
-                    title="Podcast"
-                    compact
-                  />
-                  <CognitiveTasksSection 
-                    type="book" 
-                    title="Book"
-                    compact
-                  />
-                  <CognitiveTasksSection 
-                    type="article" 
-                    title="Reading"
-                    compact
-                  />
-                </div>
-              </div>
-            ) : (
-              <CognitiveLibrary />
-            )}
+            <TasksTabContent />
           </TabsContent>
 
           {/* Detox Tab */}
