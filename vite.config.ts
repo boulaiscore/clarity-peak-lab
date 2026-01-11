@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  base: "./",
+  base: "/",
   plugins: [
     react(),
     mode === "development" && componentTagger(),
@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => ({
         description: "Cognitive fitness system for higher-order thinking and elite decision-making",
         start_url: "/",
         display: "standalone",
-        background_color: "#06070A",
-        theme_color: "#14B8A6",
+        background_color: "#0a0b0f",
+        theme_color: "#0a0b0f",
         orientation: "portrait-primary",
         icons: [
           {
