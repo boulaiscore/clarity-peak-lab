@@ -2,10 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Zap, Timer,
-  ChevronRight, Shield
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
+import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { CognitiveExercise } from "@/lib/exercises";
@@ -24,23 +24,16 @@ const AREA_ICONS: Record<string, React.ElementType> = {
 };
 
 const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  focus: { bg: "bg-[hsl(var(--area-focus))]/10", text: "text-[hsl(var(--area-focus))]", border: "border-[hsl(var(--area-focus))]/20" },
-  reasoning: { bg: "bg-[hsl(var(--area-reasoning))]/10", text: "text-[hsl(var(--area-reasoning))]", border: "border-[hsl(var(--area-reasoning))]/20" },
-  creativity: { bg: "bg-[hsl(var(--area-creativity))]/10", text: "text-[hsl(var(--area-creativity))]", border: "border-[hsl(var(--area-creativity))]/20" },
+  focus: { bg: "bg-[hsl(var(--area-focus))]/10", text: "text-[hsl(var(--area-focus))]", border: "border-[hsl(var(--area-focus))]/30" },
+  reasoning: { bg: "bg-[hsl(var(--area-reasoning))]/10", text: "text-[hsl(var(--area-reasoning))]", border: "border-[hsl(var(--area-reasoning))]/30" },
+  creativity: { bg: "bg-[hsl(var(--area-creativity))]/10", text: "text-[hsl(var(--area-creativity))]", border: "border-[hsl(var(--area-creativity))]/30" },
 };
 
-// System 1 (Fast) games - with cognitive benefits
-const SYSTEM_1_GAMES = [
-  { id: "focus-fast" as const, areaId: "focus" as NeuroLabArea, name: "Fast Attention" },
-  { id: "reasoning-fast" as const, areaId: "reasoning" as NeuroLabArea, name: "Quick Logic" },
-  { id: "creativity-fast" as const, areaId: "creativity" as NeuroLabArea, name: "Flash Association" },
-];
-
-// System 2 (Slow) games - with cognitive benefits
-const SYSTEM_2_GAMES = [
-  { id: "focus-slow" as const, areaId: "focus" as NeuroLabArea, name: "Deep Focus" },
-  { id: "reasoning-slow" as const, areaId: "reasoning" as NeuroLabArea, name: "Critical Analysis" },
-  { id: "creativity-slow" as const, areaId: "creativity" as NeuroLabArea, name: "Concept Forge" },
+// Unified game structure by area
+const GAME_AREAS: { areaId: NeuroLabArea; name: string }[] = [
+  { areaId: "focus", name: "Focus" },
+  { areaId: "reasoning", name: "Reasoning" },
+  { areaId: "creativity", name: "Creativity" },
 ];
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
@@ -49,21 +42,18 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
   const [pickerMode, setPickerMode] = useState<"fast" | "slow">("fast");
   
-  // Track pending game when target exceeded dialog is shown
   const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: "fast" | "slow" } | null>(null);
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   
   const { gamesComplete } = useCappedWeeklyProgress();
 
   const handleGameTypeClick = (areaId: NeuroLabArea, mode: "fast" | "slow") => {
-    // Check if games target is already reached
     if (gamesComplete) {
       setPendingGame({ areaId, mode });
       setShowTargetExceededDialog(true);
       return;
     }
     
-    // Otherwise proceed normally
     setPickerArea(areaId);
     setPickerMode(mode);
     setPickerOpen(true);
@@ -84,97 +74,87 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
-  const renderGameCard = (game: { id: string; areaId: NeuroLabArea; name: string }, mode: "fast" | "slow", index: number) => {
-    const Icon = AREA_ICONS[game.areaId] || Brain;
-    const colors = AREA_COLORS[game.areaId];
-    const benefitKey = game.id as keyof typeof GAME_COGNITIVE_BENEFITS;
+  const getBenefitKey = (areaId: NeuroLabArea, mode: "fast" | "slow") => {
+    return `${areaId}-${mode}` as keyof typeof GAME_COGNITIVE_BENEFITS;
+  };
+
+  const renderGameCard = (areaId: NeuroLabArea, mode: "fast" | "slow", index: number) => {
+    const Icon = AREA_ICONS[areaId] || Brain;
+    const colors = AREA_COLORS[areaId];
+    const benefitKey = getBenefitKey(areaId, mode);
     const benefit = GAME_COGNITIVE_BENEFITS[benefitKey];
+    const areaName = areaId.charAt(0).toUpperCase() + areaId.slice(1);
     
     return (
       <motion.button
-        key={game.id}
-        initial={{ opacity: 0, y: 10 }}
+        key={`${areaId}-${mode}`}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05 }}
-        onClick={() => handleGameTypeClick(game.areaId, mode)}
+        transition={{ delay: index * 0.04 }}
+        onClick={() => handleGameTypeClick(areaId, mode)}
         className={cn(
           "w-full p-3 rounded-xl border transition-all duration-200 text-left",
-          "bg-card/50 hover:bg-card/80",
+          "bg-card/60 hover:bg-card/90",
           colors.border,
           "hover:border-opacity-60",
           "active:scale-[0.98]"
         )}
       >
         <div className="flex items-center gap-3">
-          {/* Area icon */}
-          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colors.bg)}>
-            <Icon className={cn("w-5 h-5", colors.text)} />
+          <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", colors.bg)}>
+            <Icon className={cn("w-4 h-4", colors.text)} />
           </div>
 
-          {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h4 className="text-[13px] font-medium">{game.name}</h4>
-              <span className={cn(
-                "text-[9px] px-1.5 py-0.5 rounded font-medium",
-                colors.bg, colors.text
-              )}>
-                {game.areaId.charAt(0).toUpperCase() + game.areaId.slice(1)}
-              </span>
-            </div>
-            {/* Cognitive benefit instead of generic description */}
-            <p className="text-[10px] text-muted-foreground line-clamp-1">
+            <h4 className="text-[13px] font-medium leading-tight">{areaName}</h4>
+            <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
               {benefit?.shortBenefit || "Cognitive training"}
             </p>
           </div>
 
-          {/* Cognitive protection indicator */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 border border-primary/20">
-              <Shield className="w-3 h-3 text-primary" />
-              <span className="text-[9px] font-medium text-primary">Train</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
-          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0" />
         </div>
       </motion.button>
     );
   };
 
   return (
-    <div className="space-y-6">
-      
-      {/* System 1 - Fast Thinking */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[hsl(var(--area-fast))]/12 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-[hsl(var(--area-fast))]" />
-          </div>
-          <div>
-            <h3 className="text-[14px] font-semibold">System 1 · Fast</h3>
-            <p className="text-[10px] text-muted-foreground">Reduces hesitation under pressure</p>
-          </div>
-        </div>
+    <div className="space-y-4">
+      {/* Two-column layout: System 1 | System 2 */}
+      <div className="grid grid-cols-2 gap-4">
         
-        <div className="grid gap-2">
-          {SYSTEM_1_GAMES.map((game, index) => renderGameCard(game, "fast", index))}
+        {/* System 1 - Fast Column */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-6 h-6 rounded-md bg-[hsl(var(--area-fast))]/12 flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-[hsl(var(--area-fast))]" />
+            </div>
+            <div>
+              <h3 className="text-[13px] font-semibold leading-tight">System 1</h3>
+              <p className="text-[9px] text-muted-foreground">Intuition</p>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            {GAME_AREAS.map((area, index) => renderGameCard(area.areaId, "fast", index))}
+          </div>
         </div>
-      </div>
 
-      {/* System 2 - Slow Thinking */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[hsl(var(--area-slow))]/12 flex items-center justify-center">
-            <Timer className="w-4 h-4 text-[hsl(var(--area-slow))]" />
+        {/* System 2 - Slow Column */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-6 h-6 rounded-md bg-[hsl(var(--area-slow))]/12 flex items-center justify-center">
+              <Timer className="w-3.5 h-3.5 text-[hsl(var(--area-slow))]" />
+            </div>
+            <div>
+              <h3 className="text-[13px] font-semibold leading-tight">System 2</h3>
+              <p className="text-[9px] text-muted-foreground">Reasoning</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-[14px] font-semibold">System 2 · Slow</h3>
-            <p className="text-[10px] text-muted-foreground">Prevents impulsive errors in analysis</p>
+          
+          <div className="space-y-2">
+            {GAME_AREAS.map((area, index) => renderGameCard(area.areaId, "slow", index + 3))}
           </div>
-        </div>
-        
-        <div className="grid gap-2">
-          {SYSTEM_2_GAMES.map((game, index) => renderGameCard(game, "slow", index))}
         </div>
       </div>
 
