@@ -1,14 +1,16 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Flame, TrendingUp, TrendingDown, Minus, Gamepad2, BookMarked, Smartphone, Ban, Zap, Calendar, Target } from "lucide-react";
+import { Flame, TrendingUp, TrendingDown, Minus, Gamepad2, BookMarked, Smartphone, Ban, Zap, Calendar, Target, Clock } from "lucide-react";
 import { useDailyTrainingStreak, useDailyTrainingHistory } from "@/hooks/useDailyTraining";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { useWeeklyTrainingTime } from "@/hooks/useWeeklyTrainingTime";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const TrainingProgressHeader = () => {
   const { user } = useAuth();
   const { data: streakData } = useDailyTrainingStreak(user?.id);
   const { data: history = [] } = useDailyTrainingHistory(user?.id);
+  const { totalMinutes: weeklyTrainingMinutes } = useWeeklyTrainingTime();
   
   // Get capped weekly progress for macro stats
   const {
@@ -247,6 +249,10 @@ export const TrainingProgressHeader = () => {
         
         {/* Quick stats row */}
         <div className="flex items-center justify-between mt-2 px-1">
+          <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+            <Clock className="w-3 h-3" />
+            <span>{weeklyTrainingMinutes >= 60 ? `${Math.floor(weeklyTrainingMinutes / 60)}h ${Math.round(weeklyTrainingMinutes % 60)}m` : `${Math.round(weeklyTrainingMinutes)}m`} active</span>
+          </div>
           <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
             <Calendar className="w-3 h-3" />
             <span>{weeklyStats.completedDays}/7 days</span>
