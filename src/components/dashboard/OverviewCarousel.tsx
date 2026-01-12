@@ -5,8 +5,15 @@ import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
 import { Button } from "@/components/ui/button";
-import { BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface SCIBreakdown {
   total: number;
@@ -115,7 +122,7 @@ export function OverviewCarousel({
 
   return (
     <div className="space-y-4">
-      {/* Card indicators */}
+      {/* Card indicators with info button */}
       <div className="flex items-center justify-center gap-2">
         {CARDS.map((card, index) => (
           <button
@@ -130,6 +137,57 @@ export function OverviewCarousel({
             aria-label={`Go to ${cardTitles[card]}`}
           />
         ))}
+        
+        {/* Info button */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <button className="ml-2 p-1 rounded-full hover:bg-muted/50 transition-colors">
+              <Info className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-base flex items-center gap-2">
+                <Brain className="w-4 h-4 text-primary" />
+                Cognitive Metrics Explained
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 text-sm">
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Brain className="w-4 h-4 text-primary" />
+                  <span className="font-medium text-foreground">Cognitive Age</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Your brain's functional age based on cognitive performance. Lower than chronological age indicates sharper cognitive abilities.
+                </p>
+              </div>
+              
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Network className="w-4 h-4 text-cyan-400" />
+                  <span className="font-medium text-foreground">Cognitive Network (SCI)</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Synthesized Cognitive Index measuring overall brain connectivity and performance across cognitive, behavioral, and recovery dimensions.
+                </p>
+              </div>
+              
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex items-center gap-1">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <Clock className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <span className="font-medium text-foreground">Dual-Process</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Balance between System 1 (fast, intuitive) and System 2 (slow, analytical) thinking. Optimal performance requires both systems working in harmony.
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       
       {/* Carousel container */}
