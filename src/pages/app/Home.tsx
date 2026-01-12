@@ -248,7 +248,7 @@ const Home = () => {
               size={90}
               strokeWidth={6}
               color="hsl(210, 70%, 55%)"
-              label="Intuition Capacity"
+              label="Intuition Strength"
               displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
               microcopy="Intuition and reaction capacity"
             />
@@ -258,7 +258,7 @@ const Home = () => {
               size={90}
               strokeWidth={6}
               color="hsl(var(--primary))"
-              label="Reasoning Capacity"
+              label="Reasoning Strength"
               displayValue={`${cognitivePerformance}%`}
               microcopy="Reasoning depth and cognitive control"
             />
