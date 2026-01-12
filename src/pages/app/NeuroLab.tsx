@@ -23,6 +23,7 @@ import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { TrainHeader } from "@/components/app/TrainHeader";
+import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 
 // Map session types to recommended game areas
@@ -302,6 +303,8 @@ export default function NeuroLab() {
           </div>
         </button>
 
+        {/* Weekly Goal - shared across Games/Tasks */}
+        <WeeklyGoalCard compact />
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
