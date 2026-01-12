@@ -68,7 +68,7 @@ export function DetoxStats() {
       transition={{ duration: 0.3 }}
       className="space-y-4"
     >
-      {/* Weekly Goal Progress */}
+      {/* Detox Progress */}
       <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export function DetoxStats() {
               <Smartphone className="w-3 h-3 text-teal-400" />
               <Ban className="w-1.5 h-1.5 text-teal-400 absolute -bottom-0.5 -right-0.5" />
             </div>
-            <span className="text-[11px] font-medium text-foreground">Obiettivo Settimanale</span>
+            <span className="text-[11px] font-medium text-foreground">Detox Progress</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">
               {plan.name}
             </span>
@@ -97,10 +97,10 @@ export function DetoxStats() {
           {goalReached ? (
             <>
               <Check className="w-3 h-3 text-emerald-400" />
-              <span className="text-emerald-400">Obiettivo raggiunto!</span>
+              <span className="text-emerald-400">Goal reached!</span>
             </>
           ) : (
-            `${Math.max(0, weeklyMinutesTarget - totalMinutes)} minuti rimanenti`
+            `${Math.max(0, weeklyMinutesTarget - totalMinutes)} minutes remaining`
           )}
         </p>
       </div>
