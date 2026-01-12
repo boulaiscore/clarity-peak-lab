@@ -257,22 +257,6 @@ export function DetoxStats() {
         })()}
       </div>
 
-      {/* XP Earned */}
-      <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-              <Trophy className="w-4 h-4 text-amber-400" />
-            </div>
-            <div>
-              <span className="text-[11px] font-medium text-foreground">XP Earned</span>
-              <p className="text-[9px] text-muted-foreground">from detox this week</p>
-            </div>
-          </div>
-          <span className="text-lg font-bold text-amber-400">+{totalXP}</span>
-        </div>
-      </div>
-
       {/* Today's Progress */}
       {(todayMinutes || 0) > 0 && (
         <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
@@ -314,21 +298,6 @@ export function DetoxStats() {
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {completions.length === 0 && !isLoading && (
-        <div className="p-6 rounded-xl bg-muted/20 border border-border/20 text-center">
-          <div className="w-12 h-12 rounded-full bg-teal-500/10 flex items-center justify-center mx-auto mb-3">
-            <Smartphone className="w-5 h-5 text-teal-400" />
-          </div>
-          <p className="text-[12px] text-muted-foreground">
-            No detox sessions this week yet.
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Start a detox challenge in NeuroLab to earn bonus XP!
-          </p>
         </div>
       )}
     </motion.div>
