@@ -68,7 +68,7 @@ export function DetoxStats() {
       transition={{ duration: 0.3 }}
       className="space-y-4"
     >
-      {/* Detox Progress */}
+      {/* Recovery Progress */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export function DetoxStats() {
               <Smartphone className="w-3 h-3 text-teal-400" />
               <Ban className="w-1.5 h-1.5 text-teal-400 absolute -bottom-0.5 -right-0.5" />
             </div>
-            <span className="text-[11px] font-medium text-foreground">Detox Progress</span>
+            <span className="text-[11px] font-medium text-foreground">Recovery Progress</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">
               {plan.name}
             </span>
@@ -143,7 +143,7 @@ export function DetoxStats() {
                     fontSize: '11px'
                   }}
                   labelFormatter={(label) => label}
-                  formatter={(value: number) => [`${value} min`, 'Detox']}
+                  formatter={(value: number) => [`${value} min`, 'Recovery']}
                   cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                 />
                 <Bar 
@@ -192,7 +192,7 @@ export function DetoxStats() {
               </div>
               
               <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
-                <p className="text-[8px] text-muted-foreground mb-1">How Detox Improves Cognition</p>
+                <p className="text-[8px] text-muted-foreground mb-1">How Recovery Improves Cognition</p>
                 <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
                   Digital detox restores attention capacity and reduces cognitive fatigue. 
                   Based on Attention Restoration Theory (Kaplan 1995), regular breaks from 
@@ -233,7 +233,7 @@ export function DetoxStats() {
                     <Smartphone className="w-3 h-3 text-teal-400" />
                   </div>
                   <span className="text-[11px] text-foreground">
-                    {completion.duration_minutes} min detox
+                    {completion.duration_minutes} min recovery
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

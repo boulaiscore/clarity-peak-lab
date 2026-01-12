@@ -15,7 +15,7 @@ interface TargetExceededDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  categoryName: "Games" | "Tasks" | "Detox";
+  categoryName: "Challenges" | "Tasks" | "Recovery";
 }
 
 export function TargetExceededDialog({
