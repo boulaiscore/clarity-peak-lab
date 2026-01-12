@@ -291,7 +291,7 @@ export default function NeuroLab() {
         </button>
 
         {/* Weekly Goal - shared across Games/Tasks */}
-        <WeeklyGoalCard />
+        <WeeklyGoalCard compact />
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
