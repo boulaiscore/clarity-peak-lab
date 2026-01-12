@@ -132,14 +132,14 @@ const Home = () => {
   const weeklyTarget = 3;
   const sessionsProgress = Math.min(sessionsCompleted / weeklyTarget, 1) * 100;
   
-  // Dynamic color for Cognitive Load based on progress
-  const cognitiveLoadProgress = weeklyXPTarget > 0 ? totalWeeklyXP / weeklyXPTarget : 0;
+  // Dynamic color for Cognitive Capacity based on progress
+  const cognitiveCapacityProgress = weeklyXPTarget > 0 ? totalWeeklyXP / weeklyXPTarget : 0;
   const cognitiveLoadColor = useMemo(() => {
-    if (cognitiveLoadProgress >= 0.9) return "hsl(142, 71%, 45%)"; // Green when near/at target
-    if (cognitiveLoadProgress >= 0.6) return "hsl(80, 60%, 45%)";  // Yellow-green
-    if (cognitiveLoadProgress >= 0.3) return "hsl(45, 85%, 50%)";  // Yellow-orange
+    if (cognitiveCapacityProgress >= 0.9) return "hsl(142, 71%, 45%)"; // Green when near/at target
+    if (cognitiveCapacityProgress >= 0.6) return "hsl(80, 60%, 45%)";  // Yellow-green
+    if (cognitiveCapacityProgress >= 0.3) return "hsl(45, 85%, 50%)";  // Yellow-orange
     return "hsl(25, 90%, 50%)"; // Orange when low
-  }, [cognitiveLoadProgress]);
+  }, [cognitiveCapacityProgress]);
 
   const handleStartSession = () => {
     navigate("/neuro-lab");
@@ -268,9 +268,9 @@ const Home = () => {
               size={90}
               strokeWidth={6}
               color={cognitiveLoadColor}
-              label="Cognitive Load"
+              label="Cognitive Capacity"
               displayValue={`${totalWeeklyXP}`}
-              microcopy="Weekly training volume"
+              microcopy="Available mental bandwidth"
             />
           </div>
           
@@ -408,7 +408,7 @@ const Home = () => {
           </button>
           <div className="p-4 rounded-xl bg-card border border-border/40">
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              Weekly Cognitive Load
+              Weekly Capacity
             </p>
             <div className="flex items-center gap-1.5 mb-1">
               <Star className="w-3.5 h-3.5 text-amber-400" />
@@ -424,8 +424,8 @@ const Home = () => {
             </div>
             <p className="text-[10px] text-muted-foreground/70 leading-snug">
               {totalWeeklyXP >= weeklyXPTarget 
-                ? "XP build long-term cognitive adaptations."
-                : "XP build long-term cognitive adaptations."
+                ? "Capacity sustains intuition & reasoning."
+                : "Build capacity for sharper cognition."
               }
             </p>
           </div>
@@ -519,11 +519,11 @@ const Home = () => {
                     )}
                   </div>
                   
-                  {/* XP Breakdown */}
+                  {/* Capacity Breakdown */}
                   <div className="ml-13 pl-13 border-t border-border/20 pt-2 mt-2">
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <Star className="w-3 h-3 text-amber-400" />
-                      <span className="text-[11px] font-medium text-amber-400">{plan.weeklyXPTarget} XP/week</span>
+                      <span className="text-[11px] font-medium text-amber-400">{plan.weeklyXPTarget} CC/week</span>
                     </div>
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-1.5">
@@ -542,7 +542,7 @@ const Home = () => {
                         <div className="flex items-center gap-1.5">
                           <Smartphone className="w-3 h-3 text-teal-400" />
                           <span className="text-[10px] text-muted-foreground">
-                            Detox: <span className="text-teal-400 font-medium">{detoxXPTarget} XP</span>
+                            Detox: <span className="text-teal-400 font-medium">{detoxXPTarget}</span>
                             <span className="text-muted-foreground/60"> ({Math.round(plan.detox.weeklyMinutes / 60)}h)</span>
                           </span>
                         </div>
