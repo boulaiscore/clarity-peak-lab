@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, BookMarked, Brain, Shield, Trophy, Target, Lightbulb, ChevronDown } from "lucide-react";
+import { Swords, BookMarked, Brain, Shield, Trophy, Target, Lightbulb, ChevronDown } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
@@ -189,7 +189,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               {/* Games: 6-bar grid (2 rows × 3 cols) */}
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Zap className="w-3 h-3 text-muted-foreground" />
+                  <Swords className="w-3 h-3 text-muted-foreground" />
                   <span className="text-[10px] text-muted-foreground font-medium">Challenges</span>
                   <span className="text-[8px] text-muted-foreground/60 tabular-nums">
                     {Math.round(cappedGames)}/{Math.round(gamesXPTarget)}
@@ -402,7 +402,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       {/* Games: 6-bar grid (2 rows × 3 cols) */}
       <div className="mb-3">
         <div className="flex items-center gap-1.5 mb-2">
-          <Zap className="w-3 h-3 text-muted-foreground" />
+          <Swords className="w-3 h-3 text-muted-foreground" />
           <span className="text-[10px] text-muted-foreground font-medium">Challenges</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
             {Math.round(cappedGames)}/{Math.round(gamesXPTarget)}
