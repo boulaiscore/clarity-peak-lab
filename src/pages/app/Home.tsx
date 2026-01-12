@@ -93,7 +93,8 @@ const Home = () => {
   const { sessionsCompleted, weeklyXPTarget, plan } = useWeeklyProgress();
 
   // Stable (no-flicker) weekly load totals
-  const { cappedTotalXP } = useStableCognitiveLoad();
+  const stableCognitiveLoad = useStableCognitiveLoad();
+  const { cappedTotalXP, rawDetoxXP, detoxXPTarget, detoxProgress, detoxComplete } = stableCognitiveLoad;
   const totalWeeklyXP = cappedTotalXP;
   const { cognitiveReadinessScore, isLoading: readinessLoading, cognitiveMetrics } = useCognitiveReadiness();
   const { data: userMetrics } = useUserMetrics(user?.id);
@@ -269,13 +270,9 @@ const Home = () => {
         </motion.section>
 
         {/* Detox Engagement Card - Whoop-style motivation */}
-        {(() => {
-          const { rawDetoxXP, detoxXPTarget, detoxProgress, detoxComplete } = useStableCognitiveLoad();
+        {!detoxComplete && (() => {
           const detoxRemaining = Math.max(0, detoxXPTarget - rawDetoxXP);
           const minutesRemaining = Math.round(detoxRemaining / 2); // ~2 XP per minute
-          
-          // Don't show if detox is complete
-          if (detoxComplete) return null;
           
           // Different messages based on progress
           const getDetoxMessage = () => {
