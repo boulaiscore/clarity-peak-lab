@@ -165,59 +165,6 @@ export function DetoxStats() {
         </div>
       )}
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Total Time */}
-        <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-teal-500/15 flex items-center justify-center">
-              <Clock className="w-3.5 h-3.5 text-teal-400" />
-            </div>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Time</span>
-          </div>
-          <div className="text-xl font-bold text-foreground">
-            {totalHours > 0 ? `${totalHours}h ${remainingMinutes}m` : `${totalMinutes}m`}
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-0.5">this week</p>
-        </div>
-
-        {/* Sessions */}
-        <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-teal-500/15 flex items-center justify-center relative">
-              <Smartphone className="w-3.5 h-3.5 text-teal-400" />
-              <Ban className="w-2 h-2 text-teal-400 absolute -bottom-0.5 -right-0.5" />
-            </div>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Sessions</span>
-          </div>
-          <div className="text-xl font-bold text-foreground">{sessionsCount}</div>
-          <p className="text-[10px] text-muted-foreground mt-0.5">completed</p>
-        </div>
-
-        {/* Days Active */}
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center">
-              <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Days Active</span>
-          </div>
-          <div className="text-xl font-bold text-foreground">{daysWithDetox}</div>
-          <p className="text-[10px] text-muted-foreground mt-0.5">out of 7</p>
-        </div>
-
-        {/* Avg Duration */}
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center">
-              <Flame className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Avg Session</span>
-          </div>
-          <div className="text-xl font-bold text-foreground">{avgDuration}m</div>
-          <p className="text-[10px] text-muted-foreground mt-0.5">per session</p>
-        </div>
-      </div>
 
       {/* Metrics Impact */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-teal-500/5 border border-primary/20">
