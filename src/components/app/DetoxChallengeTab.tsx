@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Smartphone, Clock, 
-  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info, Loader2, Bell, BellOff, Brain
+  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info, Loader2, Bell, BellOff, Sunrise
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -278,7 +278,7 @@ export function DetoxChallengeTab() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="relative mb-2">
-                    <Brain className="w-6 h-6 text-teal-400" />
+                    <Sunrise className="w-6 h-6 text-teal-400" />
                   </div>
                   <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
                   <span className="text-xs text-teal-400 font-medium">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
@@ -322,7 +322,7 @@ export function DetoxChallengeTab() {
           <div className="p-6 rounded-2xl bg-card border border-border text-center">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-teal-500/10 flex items-center justify-center">
               <div className="relative">
-                <Brain className="w-8 h-8 text-teal-400" />
+                <Sunrise className="w-8 h-8 text-teal-400" />
               </div>
             </div>
             
@@ -379,7 +379,7 @@ export function DetoxChallengeTab() {
                 <span>Minimum session: <strong>30 min</strong> for measurable impact</span>
               </li>
               <li className="flex items-center gap-2">
-                <Brain className="w-3 h-3 text-teal-400" />
+                <Sunrise className="w-3 h-3 text-teal-400" />
                 <span>Reduces decision fatigue and restores clarity</span>
               </li>
               <li className="flex items-center gap-2">
