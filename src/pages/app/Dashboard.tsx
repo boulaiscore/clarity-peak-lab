@@ -113,20 +113,6 @@ const Dashboard = () => {
   return (
     <AppShell>
       <div className="px-5 py-5 max-w-md mx-auto space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">Dashboard</h1>
-            <p className="text-[9px] text-muted-foreground/60 uppercase tracking-widest mt-0.5">
-              Cognitive Performance
-            </p>
-          </div>
-          <Link to="/cognitive-age">
-            <Button variant="ghost" size="icon" className="w-8 h-8">
-              <Info className="w-3.5 h-3.5 text-muted-foreground" />
-            </Button>
-          </Link>
-        </div>
 
         {/* Tab Switcher */}
         <div className="flex p-1 bg-card/40 rounded-xl border border-border/20">
