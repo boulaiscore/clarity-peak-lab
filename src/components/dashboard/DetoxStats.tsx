@@ -105,13 +105,13 @@ export function DetoxStats() {
         </p>
       </div>
 
-      {/* Trend Chart - XP per day */}
-      {chartData.length > 0 && chartData.some(d => d.xp > 0) && (
+      {/* Trend Chart - Minutes per day */}
+      {chartData.length > 0 && chartData.some(d => d.minutes > 0) && (
         <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
             <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
-            <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
+            <span className="text-[9px] text-muted-foreground ml-auto">min / day</span>
           </div>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
@@ -132,7 +132,7 @@ export function DetoxStats() {
                   tickLine={false}
                   width={35}
                   allowDecimals={false}
-                  domain={[0, (dataMax: number) => Math.max(dataMax, 10)]}
+                  domain={[0, (dataMax: number) => Math.max(dataMax, 30)]}
                   tickFormatter={(value) => `${Math.round(value)}`}
                 />
                 <Tooltip 
@@ -143,19 +143,19 @@ export function DetoxStats() {
                     fontSize: '11px'
                   }}
                   labelFormatter={(label) => label}
-                  formatter={(value: number) => [`${value} XP`, 'Detox']}
+                  formatter={(value: number) => [`${value} min`, 'Detox']}
                   cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                 />
                 <Bar 
-                  dataKey="xp" 
+                  dataKey="minutes" 
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
                 >
                   {chartData?.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={entry.xp > 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--muted-foreground))'}
-                      opacity={entry.xp > 0 ? 1 : 0.18}
+                      fill={entry.minutes > 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--muted-foreground))'}
+                      opacity={entry.minutes > 0 ? 1 : 0.18}
                     />
                   ))}
                 </Bar>
