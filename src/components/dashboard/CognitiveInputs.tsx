@@ -1476,6 +1476,11 @@ export function CognitiveLibrary() {
 
   return (
     <div className="space-y-6">
+      {/* Library Description */}
+      <p className="text-xs text-muted-foreground text-center">
+        Your completed cognitive inputs: podcasts listened, books and articles read.
+      </p>
+
       {/* Content Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="p-3 rounded-xl bg-violet-500/5 border border-violet-500/20 text-center">
