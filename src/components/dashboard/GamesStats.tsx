@@ -398,12 +398,12 @@ export function GamesStats() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-4"
     >
-      {/* Games Progress */}
+      {/* Challenges Progress */}
       <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Gamepad2 className="h-4 w-4 text-primary" />
-            <h3 className="text-[13px] font-semibold">Games Progress</h3>
+            <h3 className="text-[13px] font-semibold">Challenges Progress</h3>
           </div>
           <div className="text-right">
             <span className="text-lg font-bold text-primary">{weeklyGamesXP}</span>
@@ -488,8 +488,8 @@ export function GamesStats() {
         ) : (
           <div className="h-24 flex flex-col items-center justify-center text-center">
             <Gamepad2 className="h-6 w-6 text-muted-foreground/30 mb-2" />
-            <p className="text-[10px] text-muted-foreground">No games in the last 14 days</p>
-            <p className="text-[9px] text-muted-foreground/60">Play games in the Lab to see your trend</p>
+            <p className="text-[10px] text-muted-foreground">No challenges in the last 14 days</p>
+            <p className="text-[9px] text-muted-foreground/60">Play challenges in the Lab to see your trend</p>
           </div>
         )}
         

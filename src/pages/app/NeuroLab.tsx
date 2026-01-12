@@ -311,7 +311,7 @@ export default function NeuroLab() {
           <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
               <Gamepad2 className="w-3.5 h-3.5" />
-              Games
+              Challenges
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
               <BookMarked className="w-3.5 h-3.5" />
@@ -322,7 +322,7 @@ export default function NeuroLab() {
                 <Smartphone className="w-3.5 h-3.5" />
                 <Ban className="w-3.5 h-3.5 absolute inset-0" />
               </div>
-              Detox
+              Recovery
             </TabsTrigger>
           </TabsList>
 
