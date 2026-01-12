@@ -423,12 +423,12 @@ export function GamesStats() {
         {/* System legend */}
         <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border/20">
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: SYSTEM_COLORS.s1 }} />
+            <Zap className="w-3 h-3 text-amber-400" />
             <span className="text-[10px] text-muted-foreground">S1 · Fast</span>
             <span className="text-[10px] font-medium text-amber-400">{stats.s1XP} XP</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: SYSTEM_COLORS.s2 }} />
+            <Clock className="w-3 h-3 text-violet-400" />
             <span className="text-[10px] text-muted-foreground">S2 · Slow</span>
             <span className="text-[10px] font-medium text-violet-400">{stats.s2XP} XP</span>
           </div>
@@ -496,11 +496,11 @@ export function GamesStats() {
         {/* Chart legend */}
         <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-border/20">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: SYSTEM_COLORS.s1 }} />
+            <Zap className="w-2.5 h-2.5 text-amber-400" />
             <span className="text-[8px] text-muted-foreground">S1 · Fast</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: SYSTEM_COLORS.s2 }} />
+            <Clock className="w-2.5 h-2.5 text-violet-400" />
             <span className="text-[8px] text-muted-foreground">S2 · Slow</span>
           </div>
         </div>
