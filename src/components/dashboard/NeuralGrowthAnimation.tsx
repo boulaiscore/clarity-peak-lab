@@ -19,6 +19,17 @@ interface Node {
   active: boolean;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  hue: number;
+}
+
 export function NeuralGrowthAnimation({ 
   cognitiveAgeDelta, 
   overallCognitiveScore, 
@@ -39,6 +50,7 @@ export function NeuralGrowthAnimation({
   const glowRadius = 3 + (overallCognitiveScore / 100) * 3; // 3 to 6 multiplier
   const nodePulseAmplitude = 0.2 + (overallCognitiveScore / 100) * 0.5; // 0.2 to 0.7
   const connectionPulseAmplitude = 0.2 + (overallCognitiveScore / 100) * 0.5;
+  const showParticles = overallCognitiveScore >= 75;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -90,12 +102,83 @@ export function NeuralGrowthAnimation({
       });
     });
 
+    // Initialize particles array (only used when score >= 75)
+    const particles: Particle[] = [];
+    const maxParticles = 20;
+    let particleSpawnTimer = 0;
+
     let animationId: number;
     let time = 0;
+
+    const spawnParticle = () => {
+      if (particles.length >= maxParticles) return;
+      
+      // Spawn from a random active node
+      const activeNodes = nodes.filter(n => n.active);
+      if (activeNodes.length === 0) return;
+      
+      const sourceNode = activeNodes[Math.floor(Math.random() * activeNodes.length)];
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.5 + Math.random() * 1;
+      
+      particles.push({
+        x: sourceNode.x,
+        y: sourceNode.y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 0.5, // Slight upward bias
+        life: 1,
+        maxLife: 60 + Math.random() * 40,
+        size: 1 + Math.random() * 2,
+        hue: 155 + Math.random() * 30, // Teal to cyan range
+      });
+    };
 
     const draw = () => {
       time += 0.02 * pulseSpeed; // Speed scales with score
       ctx.clearRect(0, 0, width, height);
+
+      // Spawn particles when score >= 75
+      if (showParticles) {
+        particleSpawnTimer++;
+        if (particleSpawnTimer > 8) { // Spawn every ~8 frames
+          spawnParticle();
+          particleSpawnTimer = 0;
+        }
+      }
+
+      // Update and draw particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy -= 0.01; // Slight upward drift
+        p.life--;
+        
+        if (p.life <= 0 || p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+          particles.splice(i, 1);
+          continue;
+        }
+        
+        const lifeRatio = p.life / p.maxLife;
+        const alpha = lifeRatio * 0.8;
+        const currentSize = p.size * (0.5 + lifeRatio * 0.5);
+        
+        // Draw particle glow
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, currentSize * 3);
+        gradient.addColorStop(0, `hsla(${p.hue}, 82%, 65%, ${alpha * 0.6})`);
+        gradient.addColorStop(0.5, `hsla(${p.hue}, 82%, 55%, ${alpha * 0.3})`);
+        gradient.addColorStop(1, "transparent");
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, currentSize * 3, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw particle core
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 82%, 70%, ${alpha})`;
+        ctx.fill();
+      }
 
       // Draw connections
       nodes.forEach((node, i) => {
@@ -160,7 +243,7 @@ export function NeuralGrowthAnimation({
     draw();
 
     return () => cancelAnimationFrame(animationId);
-  }, [nodeCount, connectionDensity, glowIntensity, intensity, pulseSpeed, glowRadius, nodePulseAmplitude, connectionPulseAmplitude]);
+  }, [nodeCount, connectionDensity, glowIntensity, intensity, pulseSpeed, glowRadius, nodePulseAmplitude, connectionPulseAmplitude, showParticles]);
 
   const statusText = customStatusText ||
     (overallCognitiveScore >= 75
