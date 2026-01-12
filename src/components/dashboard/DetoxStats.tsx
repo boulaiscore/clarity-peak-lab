@@ -106,7 +106,7 @@ export function DetoxStats() {
       </div>
 
       {/* Trend Chart - Minutes per day */}
-      {chartData.length > 0 && chartData.some(d => d.minutes > 0) && (
+      {chartData.length > 0 && (
         <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
