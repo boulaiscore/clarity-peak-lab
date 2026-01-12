@@ -168,7 +168,7 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
     ? cachedSnapshot.rawGamesXP + cachedSnapshot.rawTasksXP + cachedSnapshot.rawDetoxXP
     : 0;
 
-  // Update cache only when fresh data is meaningful
+  // Update cache only when fresh data is meaningful AND better than cached
   useEffect(() => {
     if (!storageKey) return;
     if (!hasMeaningfulFresh) return;
@@ -181,7 +181,17 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
   }, [storageKey, hasMeaningfulFresh, freshData, freshTotal, cachedTotal]);
 
   // STABLE OUTPUT: Use cached if fresh is not ready/meaningful
+  // KEY FIX: Also use cached if fresh data has LESS total XP (indicates refetch in progress)
   const stableData = useMemo((): StableCognitiveLoadData => {
+    // If we have a cached snapshot with MORE data than fresh, use cached (prevents refetch flicker)
+    if (cachedSnapshot && cachedTotal > 0 && cachedTotal > freshTotal) {
+      return {
+        ...cachedSnapshot,
+        isLoading,
+        isSyncing: isLoading,
+      };
+    }
+    
     // If we have meaningful fresh data, use it
     if (hasMeaningfulFresh) {
       return freshData;
@@ -198,7 +208,7 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
     
     // Fallback to fresh (even if zeros) – first load scenario
     return freshData;
-  }, [hasMeaningfulFresh, freshData, cachedSnapshot, cachedTotal, isLoading]);
+  }, [hasMeaningfulFresh, freshData, cachedSnapshot, cachedTotal, freshTotal, isLoading]);
 
   return stableData;
 }
