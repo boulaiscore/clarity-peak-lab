@@ -253,155 +253,17 @@ const Home = () => {
               displayValue={`${cognitivePerformance}%`}
               microcopy="Reasoning depth and cognitive control"
             />
-            {/* Cognitive Load - Synapse Network */}
-            <div className="flex flex-col items-center">
-              <div className="relative w-[90px] h-[90px]">
-                {/* Neural connection lines */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 90 90">
-                  {/* Connection paths between nodes */}
-                  {[
-                    { from: [45, 45], to: [45, 12] },   // Center to top
-                    { from: [45, 45], to: [72, 25] },   // Center to top-right
-                    { from: [45, 45], to: [78, 55] },   // Center to right
-                    { from: [45, 45], to: [65, 78] },   // Center to bottom-right
-                    { from: [45, 45], to: [25, 78] },   // Center to bottom-left
-                    { from: [45, 45], to: [12, 55] },   // Center to left
-                    { from: [45, 45], to: [18, 25] },   // Center to top-left
-                  ].map((line, i) => {
-                    const nodeThreshold = (i + 1) * (weeklyXPTarget / 7);
-                    const isActive = totalWeeklyXP >= nodeThreshold;
-                    const progress = Math.min(totalWeeklyXP / nodeThreshold, 1);
-                    
-                    return (
-                      <motion.line
-                        key={i}
-                        x1={line.from[0]}
-                        y1={line.from[1]}
-                        x2={line.to[0]}
-                        y2={line.to[1]}
-                        stroke={isActive ? "hsl(142, 71%, 50%)" : `hsl(210, 70%, ${40 + progress * 20}%)`}
-                        strokeWidth={isActive ? 2 : 1}
-                        strokeOpacity={0.3 + progress * 0.5}
-                        initial={false}
-                        animate={{
-                          strokeOpacity: isActive ? [0.6, 1, 0.6] : 0.3 + progress * 0.4,
-                        }}
-                        transition={isActive ? { duration: 2, repeat: Infinity } : { duration: 0.5 }}
-                      />
-                    );
-                  })}
-                </svg>
-                
-                {/* Outer synapse nodes - 7 nodes in a circle */}
-                {[
-                  { x: 45, y: 8, angle: 0 },      // Top
-                  { x: 75, y: 22, angle: 51 },    // Top-right
-                  { x: 82, y: 55, angle: 103 },   // Right
-                  { x: 68, y: 82, angle: 154 },   // Bottom-right
-                  { x: 22, y: 82, angle: 206 },   // Bottom-left
-                  { x: 8, y: 55, angle: 257 },    // Left
-                  { x: 15, y: 22, angle: 309 },   // Top-left
-                ].map((node, i) => {
-                  const nodeThreshold = (i + 1) * (weeklyXPTarget / 7);
-                  const prevThreshold = i * (weeklyXPTarget / 7);
-                  const isActive = totalWeeklyXP >= prevThreshold;
-                  const isFull = totalWeeklyXP >= nodeThreshold;
-                  const progress = Math.min(Math.max((totalWeeklyXP - prevThreshold) / (nodeThreshold - prevThreshold), 0), 1);
-                  
-                  return (
-                    <motion.div
-                      key={i}
-                      className="absolute w-3 h-3 rounded-full"
-                      style={{
-                        left: node.x - 6,
-                        top: node.y - 6,
-                        background: isFull 
-                          ? 'radial-gradient(circle at 30% 30%, hsl(142, 80%, 60%), hsl(142, 71%, 45%))'
-                          : isActive 
-                            ? `radial-gradient(circle at 30% 30%, hsl(210, 80%, ${55 + progress * 15}%), hsl(210, 70%, ${40 + progress * 15}%))`
-                            : 'hsl(var(--muted)/0.4)',
-                        boxShadow: isFull 
-                          ? '0 0 8px hsl(142, 71%, 50%, 0.7)'
-                          : isActive 
-                            ? `0 0 ${4 + progress * 4}px hsl(210, 70%, 50%, ${0.3 + progress * 0.3})`
-                            : 'none',
-                      }}
-                      initial={false}
-                      animate={isFull ? {
-                        scale: [1, 1.2, 1],
-                        boxShadow: [
-                          '0 0 8px hsl(142, 71%, 50%, 0.5)',
-                          '0 0 14px hsl(142, 71%, 50%, 0.8)',
-                          '0 0 8px hsl(142, 71%, 50%, 0.5)',
-                        ],
-                      } : isActive ? {
-                        scale: [1, 1.05, 1],
-                      } : {}}
-                      transition={{ 
-                        duration: isFull ? 2 : 1.5, 
-                        repeat: Infinity,
-                        delay: i * 0.15,
-                      }}
-                    />
-                  );
-                })}
-                
-                {/* Central core node - represents accumulated cognitive power */}
-                <motion.div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center"
-                  style={{
-                    background: totalWeeklyXP >= weeklyXPTarget 
-                      ? 'radial-gradient(circle at 30% 30%, hsl(142, 80%, 65%), hsl(142, 71%, 40%))'
-                      : `radial-gradient(circle at 30% 30%, hsl(210, 80%, ${55 + (totalWeeklyXP / weeklyXPTarget) * 20}%), hsl(210, 70%, ${35 + (totalWeeklyXP / weeklyXPTarget) * 20}%))`,
-                    boxShadow: totalWeeklyXP >= weeklyXPTarget 
-                      ? '0 0 16px hsl(142, 71%, 50%, 0.8)'
-                      : `0 0 ${8 + (totalWeeklyXP / weeklyXPTarget) * 10}px hsl(210, 70%, 50%, ${0.4 + (totalWeeklyXP / weeklyXPTarget) * 0.4})`,
-                  }}
-                  animate={totalWeeklyXP >= weeklyXPTarget ? {
-                    scale: [1, 1.15, 1],
-                    boxShadow: [
-                      '0 0 16px hsl(142, 71%, 50%, 0.6)',
-                      '0 0 24px hsl(142, 71%, 50%, 1)',
-                      '0 0 16px hsl(142, 71%, 50%, 0.6)',
-                    ],
-                  } : {
-                    scale: [1, 1.05, 1],
-                  }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
-                >
-                  <Zap className="w-3 h-3 text-white" />
-                </motion.div>
-                
-                {/* Charging pulse effect radiating from center */}
-                {totalWeeklyXP < weeklyXPTarget && (
-                  <motion.div
-                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-blue-400/30"
-                    animate={{
-                      scale: [1, 3, 1],
-                      opacity: [0.5, 0, 0.5],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeOut",
-                    }}
-                  />
-                )}
-              </div>
-              
-              {/* XP display */}
-              <div className="mt-2 flex items-baseline gap-0.5 justify-center">
-                <span className="text-sm font-bold text-foreground tabular-nums">{totalWeeklyXP}</span>
-                <span className="text-[8px] text-muted-foreground">/{weeklyXPTarget} XP</span>
-              </div>
-              
-              <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
-                Neural Network
-              </p>
-              <p className="mt-0.5 text-[8px] text-muted-foreground/60 text-center max-w-[90px] leading-tight">
-                Synapses strengthening
-              </p>
-            </div>
+            <ProgressRing
+              value={totalWeeklyXP}
+              max={weeklyXPTarget}
+              size={90}
+              strokeWidth={6}
+              color="hsl(38, 92%, 50%)"
+              label="Cognitive Load"
+              displayValue={`${totalWeeklyXP}`}
+              microcopy="Weekly training volume"
+              icon={<Zap className="w-3.5 h-3.5 text-amber-400" />}
+            />
           </div>
           
           {/* Explanatory line below rings */}
