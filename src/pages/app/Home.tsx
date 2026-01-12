@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked, Smartphone, Zap, Ban } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Gamepad2, BookMarked, Smartphone, Zap, Ban, Layers } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
@@ -25,9 +25,10 @@ interface RingProps {
   label: string;
   displayValue: string;
   microcopy?: string;
+  icon?: React.ReactNode;
 }
 
-const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, microcopy }: RingProps) => {
+const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, microcopy, icon }: RingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(value / max, 1);
@@ -63,7 +64,8 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
           />
         </svg>
         {/* Center value */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+          {icon}
           <span className="text-xl font-semibold tracking-tight text-foreground">
             {displayValue}
           </span>
@@ -258,8 +260,9 @@ const Home = () => {
               strokeWidth={6}
               color="hsl(38, 92%, 50%)"
               label="Cognitive Load"
-              displayValue={`${Math.round((totalWeeklyXP / weeklyXPTarget) * 100)}%`}
-              microcopy="Adaptive mental strain"
+              displayValue={`${totalWeeklyXP}`}
+              microcopy="Adaptive cognitive strain"
+              icon={<Layers className="w-3.5 h-3.5 text-amber-400 mb-0.5" />}
             />
           </div>
           
@@ -440,8 +443,8 @@ const Home = () => {
             </div>
             <p className="text-[10px] text-muted-foreground/70 leading-snug">
               {totalWeeklyXP >= weeklyXPTarget 
-                ? "Target reached. Cognitive adaptations consolidating."
-                : `${weeklyXPTarget - totalWeeklyXP} XP to consolidate cognitive adaptations.`
+                ? "XP build long-term cognitive adaptations."
+                : "XP build long-term cognitive adaptations."
               }
             </p>
           </div>
