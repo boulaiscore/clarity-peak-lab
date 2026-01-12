@@ -1476,55 +1476,6 @@ export function CognitiveLibrary() {
 
   return (
     <div className="space-y-6">
-      {/* XP Score Header */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 via-transparent to-amber-500/10 border border-violet-500/20">
-        {/* Total XP */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-violet-500" />
-            <span className="text-sm font-medium">Total XP</span>
-          </div>
-          <div className="text-right">
-            <span className="text-2xl font-bold text-violet-500">{stats.rawTotal}</span>
-            <span className="text-xs text-muted-foreground ml-1">XP</span>
-          </div>
-        </div>
-        
-        {/* Progress info */}
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-3 px-1">
-          <span>{stats.completedCount} of {stats.totalItems} items</span>
-          <span>{stats.progressPercent}% complete</span>
-        </div>
-        
-        {/* Progress bar */}
-        <div className="h-2 bg-muted/30 rounded-full mb-4 overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-violet-500 to-violet-500/70 rounded-full transition-all duration-500"
-            style={{ width: `${stats.progressPercent}%` }}
-          />
-        </div>
-
-        {/* S1 vs S2 XP breakdown */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              <span className="text-[10px] font-medium text-amber-400">System 1</span>
-            </div>
-            <p className="text-lg font-semibold">{stats.rawS1} <span className="text-xs font-normal text-muted-foreground">XP</span></p>
-            <p className="text-[9px] text-muted-foreground">{stats.s1Items} items{stats.dualItems > 0 && ` + ${stats.dualItems} dual`}</p>
-          </div>
-          <div className="p-2.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Brain className="h-3.5 w-3.5 text-teal-400" />
-              <span className="text-[10px] font-medium text-teal-400">System 2</span>
-            </div>
-            <p className="text-lg font-semibold">{stats.rawS2} <span className="text-xs font-normal text-muted-foreground">XP</span></p>
-            <p className="text-[9px] text-muted-foreground">{stats.s2Items} items{stats.dualItems > 0 && ` + ${stats.dualItems} dual`}</p>
-          </div>
-        </div>
-      </div>
-
       {/* Content Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="p-3 rounded-xl bg-violet-500/5 border border-violet-500/20 text-center">
