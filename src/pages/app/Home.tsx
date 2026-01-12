@@ -253,95 +253,126 @@ const Home = () => {
               displayValue={`${cognitivePerformance}%`}
               microcopy="Reasoning depth and cognitive control"
             />
-            {/* Cognitive Load - Energy Core */}
+            {/* Cognitive Load - Power-Up Bars */}
             <div className="flex flex-col items-center">
-              <div className="relative w-[90px] h-[90px] flex items-center justify-center">
-                {/* Outer glow ring - intensity based on progress */}
-                <motion.div 
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: `radial-gradient(circle, transparent 40%, hsl(38, 92%, 50%, ${0.05 + (totalWeeklyXP / weeklyXPTarget) * 0.15}) 70%, transparent 100%)`,
-                  }}
-                  animate={{
-                    scale: [1, 1.05, 1],
-                    opacity: [0.6, 1, 0.6],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-                
-                {/* Middle pulse ring */}
-                <motion.div 
-                  className="absolute w-16 h-16 rounded-full border border-amber-400/20"
-                  animate={{
-                    scale: [1, 1.15, 1],
-                    opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.3,
-                  }}
-                />
-                
-                {/* Core energy orb */}
-                <motion.div 
-                  className="relative w-12 h-12 rounded-full flex items-center justify-center overflow-hidden"
-                  style={{
-                    background: `radial-gradient(circle at 30% 30%, 
-                      hsl(38, 92%, 65%) 0%, 
-                      hsl(38, 92%, 50%) 40%, 
-                      hsl(38, 80%, 35%) 100%)`,
-                    boxShadow: `
-                      0 0 ${10 + (totalWeeklyXP / weeklyXPTarget) * 20}px hsl(38, 92%, 50%, ${0.3 + (totalWeeklyXP / weeklyXPTarget) * 0.4}),
-                      inset 0 -4px 8px hsl(38, 80%, 30%, 0.4),
-                      inset 0 4px 8px hsl(38, 100%, 80%, 0.3)
-                    `,
-                  }}
-                  animate={{
-                    boxShadow: [
-                      `0 0 ${10 + (totalWeeklyXP / weeklyXPTarget) * 20}px hsl(38, 92%, 50%, ${0.3 + (totalWeeklyXP / weeklyXPTarget) * 0.4}), inset 0 -4px 8px hsl(38, 80%, 30%, 0.4), inset 0 4px 8px hsl(38, 100%, 80%, 0.3)`,
-                      `0 0 ${15 + (totalWeeklyXP / weeklyXPTarget) * 25}px hsl(38, 92%, 50%, ${0.4 + (totalWeeklyXP / weeklyXPTarget) * 0.5}), inset 0 -4px 8px hsl(38, 80%, 30%, 0.4), inset 0 4px 8px hsl(38, 100%, 80%, 0.3)`,
-                      `0 0 ${10 + (totalWeeklyXP / weeklyXPTarget) * 20}px hsl(38, 92%, 50%, ${0.3 + (totalWeeklyXP / weeklyXPTarget) * 0.4}), inset 0 -4px 8px hsl(38, 80%, 30%, 0.4), inset 0 4px 8px hsl(38, 100%, 80%, 0.3)`,
-                    ],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {/* Inner highlight */}
-                  <div className="absolute top-1.5 left-2 w-3 h-2 rounded-full bg-white/30 blur-sm" />
+              <div className="relative w-[90px] h-[90px] flex items-end justify-center gap-1.5 pb-2">
+                {/* 5 vertical bars representing cognitive capacity building */}
+                {[0, 1, 2, 3, 4].map((index) => {
+                  const barThreshold = (index + 1) * (weeklyXPTarget / 5);
+                  const prevThreshold = index * (weeklyXPTarget / 5);
+                  const barProgress = Math.min(Math.max((totalWeeklyXP - prevThreshold) / (barThreshold - prevThreshold), 0), 1);
+                  const isActive = totalWeeklyXP >= prevThreshold;
+                  const isFull = totalWeeklyXP >= barThreshold;
+                  const barHeight = 30 + index * 8; // Progressive height: 30, 38, 46, 54, 62
                   
-                  {/* Charging particles effect when not full */}
-                  {totalWeeklyXP < weeklyXPTarget && (
-                    <motion.div
-                      className="absolute inset-0"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  return (
+                    <div 
+                      key={index} 
+                      className="relative flex flex-col items-center justify-end"
+                      style={{ height: `${barHeight}px` }}
                     >
-                      <div className="absolute top-1 left-1/2 w-1 h-1 rounded-full bg-amber-200/60" />
-                      <div className="absolute bottom-2 right-1 w-0.5 h-0.5 rounded-full bg-amber-100/40" />
-                    </motion.div>
-                  )}
+                      {/* Bar container */}
+                      <div 
+                        className="relative w-3 rounded-full overflow-hidden"
+                        style={{ 
+                          height: `${barHeight}px`,
+                          background: 'hsl(var(--muted)/0.3)',
+                        }}
+                      >
+                        {/* Fill level */}
+                        <motion.div
+                          className="absolute bottom-0 left-0 right-0 rounded-full"
+                          style={{
+                            background: isFull 
+                              ? 'linear-gradient(to top, hsl(142, 71%, 45%), hsl(142, 76%, 55%))'
+                              : isActive 
+                                ? 'linear-gradient(to top, hsl(210, 70%, 50%), hsl(210, 80%, 60%))'
+                                : 'transparent',
+                          }}
+                          initial={false}
+                          animate={{ 
+                            height: isActive ? `${Math.max(barProgress * 100, 10)}%` : '0%',
+                          }}
+                          transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.1 }}
+                        />
+                        
+                        {/* Charging animation when bar is filling */}
+                        {isActive && !isFull && (
+                          <motion.div
+                            className="absolute bottom-0 left-0 right-0 h-2 rounded-full"
+                            style={{
+                              background: 'linear-gradient(to top, transparent, hsl(210, 90%, 70%, 0.6))',
+                            }}
+                            animate={{
+                              y: [-8, -barHeight * barProgress, -8],
+                              opacity: [0, 0.8, 0],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                              delay: index * 0.2,
+                            }}
+                          />
+                        )}
+                        
+                        {/* Glow effect when full */}
+                        {isFull && (
+                          <motion.div
+                            className="absolute inset-0 rounded-full"
+                            style={{
+                              boxShadow: '0 0 12px hsl(142, 71%, 45%, 0.6)',
+                            }}
+                            animate={{
+                              opacity: [0.5, 1, 0.5],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Central brain/neural icon overlay */}
+                <motion.div
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{
+                    background: totalWeeklyXP >= weeklyXPTarget 
+                      ? 'linear-gradient(135deg, hsl(142, 71%, 45%), hsl(142, 76%, 36%))'
+                      : 'linear-gradient(135deg, hsl(210, 70%, 50%), hsl(210, 60%, 40%))',
+                    boxShadow: totalWeeklyXP >= weeklyXPTarget 
+                      ? '0 0 10px hsl(142, 71%, 45%, 0.5)'
+                      : '0 0 8px hsl(210, 70%, 50%, 0.4)',
+                  }}
+                  animate={totalWeeklyXP >= weeklyXPTarget ? {
+                    scale: [1, 1.1, 1],
+                    boxShadow: [
+                      '0 0 10px hsl(142, 71%, 45%, 0.5)',
+                      '0 0 20px hsl(142, 71%, 45%, 0.7)',
+                      '0 0 10px hsl(142, 71%, 45%, 0.5)',
+                    ],
+                  } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Zap className="w-2.5 h-2.5 text-white" />
                 </motion.div>
                 
-                {/* XP value below orb */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-baseline gap-0.5">
-                  <span className="text-base font-bold text-amber-400 tabular-nums">{totalWeeklyXP}</span>
-                  <span className="text-[9px] text-amber-400/60">XP</span>
+                {/* XP indicator */}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 flex items-baseline gap-0.5">
+                  <span className="text-sm font-bold text-foreground tabular-nums">{totalWeeklyXP}</span>
+                  <span className="text-[8px] text-muted-foreground">/{weeklyXPTarget}</span>
                 </div>
               </div>
-              <p className="mt-4 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
-                Cognitive Load
+              <p className="mt-6 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
+                Cognitive Charge
               </p>
-              <p className="mt-0.5 text-[8px] text-muted-foreground/60 text-center max-w-[80px] leading-tight">
-                Adaptive cognitive strain
+              <p className="mt-0.5 text-[8px] text-muted-foreground/60 text-center max-w-[90px] leading-tight">
+                Building reasoning power
               </p>
             </div>
           </div>
