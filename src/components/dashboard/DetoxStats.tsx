@@ -69,7 +69,7 @@ export function DetoxStats() {
       className="space-y-4"
     >
       {/* Detox Progress */}
-      <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20">
+      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-teal-500/15 flex items-center justify-center relative">
