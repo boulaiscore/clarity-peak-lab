@@ -154,7 +154,20 @@ export default function NeuroLab() {
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
-  const [activeTab, setActiveTab] = useState("games");
+  
+  // Read tab from URL query param, default to "games"
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (tabFromUrl === "tasks" || tabFromUrl === "detox") return tabFromUrl;
+    return "games";
+  });
+  
+  // Sync activeTab when URL changes
+  useEffect(() => {
+    if (tabFromUrl === "tasks" || tabFromUrl === "detox" || tabFromUrl === "games") {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
   
   // Auto-open session picker if continuing session
   const continueSession = searchParams.get("continueSession") === "true";
