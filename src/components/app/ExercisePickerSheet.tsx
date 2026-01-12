@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { XP_VALUES, getExerciseXP } from "@/lib/trainingPlans";
 import { CognitiveExercise } from "@/lib/exercises";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useExercises } from "@/hooks/useExercises";
 import { useCompletedExerciseIds } from "@/hooks/useExerciseXP";
 
@@ -88,18 +88,18 @@ export function ExercisePickerSheet({
   const hardCount = filteredExercises.filter(e => e.difficulty === "hard").length;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl px-0">
-        <SheetHeader className="px-5 pb-3 border-b border-border/30">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="h-[85vh] rounded-t-3xl px-0">
+        <DrawerHeader className="px-5 pb-3 border-b border-border/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", modeConfig.bg)}>
                 <AreaIcon className={cn("w-5 h-5", modeConfig.color)} />
               </div>
               <div>
-                <SheetTitle className="text-left text-[15px]">
+                <DrawerTitle className="text-left text-[15px]">
                   {thinkingMode === "fast" ? "Fast" : "Deep"} {AREA_LABELS[area]?.split(" ")[0]}
-                </SheetTitle>
+                </DrawerTitle>
                 <p className="text-[11px] text-muted-foreground">
                   {filteredExercises.length} exercises • {modeConfig.label} Training
                 </p>
@@ -113,7 +113,7 @@ export function ExercisePickerSheet({
               <span className="text-[9px] text-muted-foreground">total available</span>
             </div>
           </div>
-        </SheetHeader>
+        </DrawerHeader>
 
         <div className="px-5 py-4 space-y-4 overflow-y-auto h-[calc(100%-80px)]">
           {/* Difficulty Filter */}
@@ -267,7 +267,7 @@ export function ExercisePickerSheet({
             </div>
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
