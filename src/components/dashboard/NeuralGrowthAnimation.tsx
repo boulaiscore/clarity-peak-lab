@@ -27,12 +27,18 @@ export function NeuralGrowthAnimation({
 }: NeuralGrowthAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Map metrics to visual intensity
+  // Map metrics to visual intensity - more dramatic scaling based on score
   const isYounger = cognitiveAgeDelta < 0;
   const intensity = Math.min(1, Math.max(0.2, overallCognitiveScore / 100));
   const nodeCount = Math.floor(15 + intensity * 25);
   const connectionDensity = 0.3 + intensity * 0.4;
   const glowIntensity = isYounger ? 0.8 : 0.4;
+  
+  // Dynamic animation parameters based on score
+  const pulseSpeed = 1 + (overallCognitiveScore / 100) * 3; // 1x to 4x speed
+  const glowRadius = 3 + (overallCognitiveScore / 100) * 3; // 3 to 6 multiplier
+  const nodePulseAmplitude = 0.2 + (overallCognitiveScore / 100) * 0.5; // 0.2 to 0.7
+  const connectionPulseAmplitude = 0.2 + (overallCognitiveScore / 100) * 0.5;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -88,7 +94,7 @@ export function NeuralGrowthAnimation({
     let time = 0;
 
     const draw = () => {
-      time += 0.02;
+      time += 0.02 * pulseSpeed; // Speed scales with score
       ctx.clearRect(0, 0, width, height);
 
       // Draw connections
@@ -97,49 +103,54 @@ export function NeuralGrowthAnimation({
           const other = nodes[j];
           const bothActive = node.active && other.active;
 
-          // Pulsing effect on connections
-          const pulse = Math.sin(time * 2 + node.pulsePhase) * 0.3 + 0.7;
-          const alpha = bothActive ? 0.15 * pulse * glowIntensity : 0.05;
+          // Pulsing effect on connections - more intense with higher score
+          const pulse = Math.sin(time * 2 + node.pulsePhase) * connectionPulseAmplitude + (1 - connectionPulseAmplitude / 2);
+          const alpha = bothActive ? (0.1 + intensity * 0.2) * pulse * glowIntensity : 0.05;
 
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.lineTo(other.x, other.y);
           ctx.strokeStyle = `hsla(165, 82%, 51%, ${alpha})`;
-          ctx.lineWidth = bothActive ? 1.5 : 0.5;
+          ctx.lineWidth = bothActive ? 1 + intensity * 1.5 : 0.5;
           ctx.stroke();
         });
       });
 
       // Draw nodes
       nodes.forEach((node) => {
-        // Move nodes slightly
-        node.x += node.vx;
-        node.y += node.vy;
+        // Move nodes slightly - faster movement with higher score
+        node.x += node.vx * (0.8 + intensity * 0.4);
+        node.y += node.vy * (0.8 + intensity * 0.4);
 
         // Bounce off boundaries
         const margin = 20;
         if (node.x < margin || node.x > width - margin) node.vx *= -1;
         if (node.y < margin || node.y > height - margin) node.vy *= -1;
 
-        // Pulse effect
-        const pulse = Math.sin(time * 3 + node.pulsePhase) * 0.4 + 0.6;
-        const nodeIntensity = node.active ? pulse * glowIntensity : 0.3;
+        // Pulse effect - more dramatic amplitude with higher score
+        const pulse = Math.sin(time * 3 + node.pulsePhase) * nodePulseAmplitude + (1 - nodePulseAmplitude / 2);
+        const nodeIntensity = node.active ? pulse * glowIntensity * (0.8 + intensity * 0.4) : 0.3;
 
-        // Glow
+        // Glow - larger radius with higher score
         if (node.active) {
-          const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.radius * 4);
-          gradient.addColorStop(0, `hsla(165, 82%, 51%, ${nodeIntensity * 0.5})`);
+          const dynamicGlowRadius = node.radius * glowRadius;
+          const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, dynamicGlowRadius);
+          gradient.addColorStop(0, `hsla(165, 82%, 51%, ${nodeIntensity * (0.4 + intensity * 0.3)})`);
+          gradient.addColorStop(0.5, `hsla(165, 82%, 51%, ${nodeIntensity * 0.2})`);
           gradient.addColorStop(1, "transparent");
           ctx.beginPath();
-          ctx.arc(node.x, node.y, node.radius * 4, 0, Math.PI * 2);
+          ctx.arc(node.x, node.y, dynamicGlowRadius, 0, Math.PI * 2);
           ctx.fillStyle = gradient;
           ctx.fill();
         }
 
-        // Node core
+        // Node core - more vibrant with higher score
+        const corePulse = node.active ? pulse * (0.9 + intensity * 0.3) : 0.7;
         ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius * (node.active ? pulse : 0.7), 0, Math.PI * 2);
-        ctx.fillStyle = node.active ? `hsla(165, 82%, ${50 + pulse * 20}%, ${nodeIntensity})` : "hsla(0, 0%, 40%, 0.4)";
+        ctx.arc(node.x, node.y, node.radius * corePulse, 0, Math.PI * 2);
+        ctx.fillStyle = node.active 
+          ? `hsla(165, 82%, ${45 + pulse * 25 + intensity * 10}%, ${nodeIntensity})` 
+          : "hsla(0, 0%, 40%, 0.4)";
         ctx.fill();
       });
 
@@ -149,7 +160,7 @@ export function NeuralGrowthAnimation({
     draw();
 
     return () => cancelAnimationFrame(animationId);
-  }, [nodeCount, connectionDensity, glowIntensity, intensity]);
+  }, [nodeCount, connectionDensity, glowIntensity, intensity, pulseSpeed, glowRadius, nodePulseAmplitude, connectionPulseAmplitude]);
 
   const statusText = customStatusText ||
     (overallCognitiveScore >= 75
