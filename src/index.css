@@ -89,84 +89,84 @@
   }
 
   .light {
-    /* Muted light theme - soft, warm tones */
-    --background: 220 15% 96%;
-    --background-surface: 220 12% 93%;
-    --foreground: 220 20% 18%;
+    /* High contrast light theme - clear and readable */
+    --background: 220 14% 94%;
+    --background-surface: 220 12% 90%;
+    --foreground: 220 25% 12%;
 
-    --card: 220 14% 95%;
-    --card-foreground: 220 20% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 12%;
 
-    --popover: 220 14% 95%;
-    --popover-foreground: 220 20% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 12%;
 
-    /* Muted teal accent - softer for light mode */
-    --primary: 168 25% 35%;
+    /* Deeper teal accent for better visibility */
+    --primary: 168 35% 28%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 12% 88%;
-    --secondary-foreground: 220 20% 18%;
+    --secondary: 220 14% 84%;
+    --secondary-foreground: 220 25% 12%;
 
-    --muted: 220 10% 84%;
-    --muted-foreground: 220 10% 42%;
+    --muted: 220 12% 88%;
+    --muted-foreground: 220 15% 35%;
 
-    --accent: 168 22% 30%;
+    --accent: 168 30% 25%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 50% 45%;
+    --destructive: 0 65% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 28% 35%;
+    --success: 160 40% 30%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 42 55% 48%;
+    --warning: 42 75% 42%;
     --warning-foreground: 0 0% 0%;
 
-    --border: 220 12% 82%;
-    --input: 220 10% 86%;
-    --ring: 168 25% 35%;
+    --border: 220 14% 78%;
+    --input: 220 12% 82%;
+    --ring: 168 35% 28%;
 
-    /* Chart palette - muted light tones */
-    --chart-1: 168 28% 38%;
-    --chart-2: 260 25% 48%;
-    --chart-3: 42 42% 45%;
-    --chart-4: 195 32% 42%;
-    --chart-5: 0 35% 45%;
+    /* Chart palette - stronger contrast */
+    --chart-1: 168 38% 32%;
+    --chart-2: 260 35% 42%;
+    --chart-3: 42 55% 40%;
+    --chart-4: 195 42% 38%;
+    --chart-5: 0 45% 42%;
 
-    /* Area colors - muted light */
-    --area-focus: 210 30% 45%;
-    --area-reasoning: 260 25% 48%;
-    --area-creativity: 42 35% 48%;
-    --area-fast: 42 35% 48%;
-    --area-slow: 195 28% 45%;
+    /* Area colors - deeper for light mode */
+    --area-focus: 210 45% 38%;
+    --area-reasoning: 260 35% 42%;
+    --area-creativity: 42 50% 42%;
+    --area-fast: 42 50% 42%;
+    --area-slow: 195 38% 38%;
 
-    /* Brand tokens - Muted Light */
-    --bg-primary: 220 15% 96%;
-    --bg-surface: 220 12% 93%;
-    --accent-primary: 168 25% 35%;
-    --accent-secondary: 168 22% 30%;
-    --text-primary: 220 20% 18%;
-    --text-secondary: 220 10% 42%;
+    /* Brand tokens - High Contrast Light */
+    --bg-primary: 220 14% 94%;
+    --bg-surface: 220 12% 90%;
+    --accent-primary: 168 35% 28%;
+    --accent-secondary: 168 30% 25%;
+    --text-primary: 220 25% 12%;
+    --text-secondary: 220 15% 35%;
     
-    /* Gradients - Muted light mode */
-    --gradient-primary: linear-gradient(135deg, hsl(168, 25%, 35%) 0%, hsl(168, 22%, 30%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(168, 25%, 35%, 0.06) 0%, transparent 70%);
-    --gradient-surface: linear-gradient(180deg, hsl(220, 15%, 96%) 0%, hsl(220, 12%, 93%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(168, 25%, 35%, 0.03) 0%, transparent 100%);
+    /* Gradients - Stronger light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(168, 35%, 28%) 0%, hsl(168, 30%, 25%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(168, 35%, 28%, 0.08) 0%, transparent 70%);
+    --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(220, 14%, 94%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(168, 35%, 28%, 0.04) 0%, transparent 100%);
     
-    /* Shadows - Soft */
-    --shadow-glow: 0 0 60px -30px hsl(168, 25%, 35%, 0.15);
-    --shadow-card: 0 4px 16px -4px hsl(220, 20%, 0%, 0.08);
-    --shadow-button: 0 4px 16px -4px hsl(168, 25%, 35%, 0.12);
+    /* Shadows - More defined */
+    --shadow-glow: 0 0 50px -25px hsl(168, 35%, 28%, 0.2);
+    --shadow-card: 0 4px 20px -4px hsl(220, 25%, 0%, 0.1);
+    --shadow-button: 0 4px 16px -4px hsl(168, 35%, 28%, 0.18);
 
-    --sidebar-background: 220 12% 93%;
-    --sidebar-foreground: 220 20% 18%;
-    --sidebar-primary: 168 25% 35%;
+    --sidebar-background: 220 12% 90%;
+    --sidebar-foreground: 220 25% 12%;
+    --sidebar-primary: 168 35% 28%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 86%;
-    --sidebar-accent-foreground: 220 20% 18%;
-    --sidebar-border: 220 12% 82%;
-    --sidebar-ring: 168 25% 35%;
+    --sidebar-accent: 220 12% 84%;
+    --sidebar-accent-foreground: 220 25% 12%;
+    --sidebar-border: 220 14% 78%;
+    --sidebar-ring: 168 35% 28%;
   }
 }
 
