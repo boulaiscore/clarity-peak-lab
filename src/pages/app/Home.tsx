@@ -378,33 +378,6 @@ const Home = () => {
           <DistractionLoadCard />
         </motion.section>
 
-        {/* Insight Card - Protocol-driven coaching with cause-effect */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-          className="mb-6"
-        >
-          <div className="p-5 rounded-2xl bg-card border border-border/40">
-            <div className="flex items-start gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    readinessScore >= 75 ? "bg-emerald-400" : readinessScore >= 55 ? "bg-amber-400" : "bg-blue-400"
-                  )} />
-                  <h3 className="text-sm font-semibold">{insight.title}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                  {insight.body}
-                </p>
-                <p className="text-[10px] uppercase tracking-[0.12em] text-primary font-medium">
-                  → {insight.action}
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.section>
 
         {/* Quick Status Cards - Protocol as cause */}
         <motion.section
