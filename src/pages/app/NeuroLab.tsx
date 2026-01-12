@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { 
-  Zap, ChevronRight, Crown, 
+  Zap, ChevronRight, Crown, Swords,
   BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban,
   Headphones, BookOpen, FileText
 } from "lucide-react";
@@ -310,7 +310,7 @@ export default function NeuroLab() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
-              <Zap className="w-3.5 h-3.5" />
+              <Swords className="w-3.5 h-3.5" />
               Challenges
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
