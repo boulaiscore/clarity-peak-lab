@@ -253,17 +253,63 @@ const Home = () => {
               displayValue={`${cognitivePerformance}%`}
               microcopy="Reasoning depth and cognitive control"
             />
-            <ProgressRing
-              value={totalWeeklyXP}
-              max={weeklyXPTarget}
-              size={90}
-              strokeWidth={6}
-              color="hsl(38, 92%, 50%)"
-              label="Cognitive Load"
-              displayValue={`${totalWeeklyXP}`}
-              microcopy="Adaptive cognitive strain"
-              icon={<Layers className="w-3.5 h-3.5 text-amber-400 mb-0.5" />}
-            />
+            {/* Cognitive Load - Stacking/Recharging Visual */}
+            <div className="flex flex-col items-center">
+              <div className="relative w-[90px] h-[90px] flex items-center justify-center">
+                {/* Stacked layers container */}
+                <div className="flex flex-col-reverse gap-1 items-center justify-center">
+                  {[0, 1, 2, 3, 4].map((layer) => {
+                    const layerThreshold = (layer + 1) * (weeklyXPTarget / 5);
+                    const isFilled = totalWeeklyXP >= layerThreshold;
+                    const isPartial = totalWeeklyXP > (layer * (weeklyXPTarget / 5)) && totalWeeklyXP < layerThreshold;
+                    const partialFill = isPartial 
+                      ? ((totalWeeklyXP - (layer * (weeklyXPTarget / 5))) / (weeklyXPTarget / 5)) * 100 
+                      : 0;
+                    
+                    return (
+                      <motion.div
+                        key={layer}
+                        initial={{ opacity: 0, scaleX: 0 }}
+                        animate={{ 
+                          opacity: 1, 
+                          scaleX: 1,
+                        }}
+                        transition={{ delay: 0.1 + layer * 0.08, duration: 0.4 }}
+                        className="relative h-3 rounded-sm overflow-hidden"
+                        style={{ width: `${50 - layer * 6}px` }}
+                      >
+                        {/* Background */}
+                        <div className="absolute inset-0 bg-amber-500/15 rounded-sm" />
+                        {/* Fill */}
+                        <motion.div 
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 to-amber-500 rounded-sm"
+                          initial={{ width: 0 }}
+                          animate={{ 
+                            width: isFilled ? "100%" : isPartial ? `${partialFill}%` : "0%" 
+                          }}
+                          transition={{ duration: 0.6, delay: 0.2 + layer * 0.1 }}
+                        />
+                        {/* Glow effect for filled layers */}
+                        {isFilled && (
+                          <div className="absolute inset-0 bg-amber-400/20 animate-pulse rounded-sm" />
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                {/* XP value overlay */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1">
+                  <span className="text-lg font-bold text-amber-400 tabular-nums">{totalWeeklyXP}</span>
+                  <span className="text-[10px] text-muted-foreground ml-0.5">XP</span>
+                </div>
+              </div>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
+                Cognitive Load
+              </p>
+              <p className="mt-0.5 text-[8px] text-muted-foreground/60 text-center max-w-[80px] leading-tight">
+                Adaptive cognitive strain
+              </p>
+            </div>
           </div>
           
           {/* Explanatory line below rings */}
