@@ -131,6 +131,15 @@ const Home = () => {
   // Weekly target progress
   const weeklyTarget = 3;
   const sessionsProgress = Math.min(sessionsCompleted / weeklyTarget, 1) * 100;
+  
+  // Dynamic color for Cognitive Load based on progress
+  const cognitiveLoadProgress = weeklyXPTarget > 0 ? totalWeeklyXP / weeklyXPTarget : 0;
+  const cognitiveLoadColor = useMemo(() => {
+    if (cognitiveLoadProgress >= 0.9) return "hsl(142, 71%, 45%)"; // Green when near/at target
+    if (cognitiveLoadProgress >= 0.6) return "hsl(80, 60%, 45%)";  // Yellow-green
+    if (cognitiveLoadProgress >= 0.3) return "hsl(45, 85%, 50%)";  // Yellow-orange
+    return "hsl(25, 90%, 50%)"; // Orange when low
+  }, [cognitiveLoadProgress]);
 
   const handleStartSession = () => {
     navigate("/neuro-lab");
@@ -258,11 +267,10 @@ const Home = () => {
               max={weeklyXPTarget}
               size={90}
               strokeWidth={6}
-              color="hsl(38, 92%, 50%)"
+              color={cognitiveLoadColor}
               label="Cognitive Load"
               displayValue={`${totalWeeklyXP}`}
               microcopy="Weekly training volume"
-              icon={<Zap className="w-3.5 h-3.5 text-amber-400" />}
             />
           </div>
           
