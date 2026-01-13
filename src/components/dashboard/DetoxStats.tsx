@@ -69,25 +69,25 @@ export function DetoxStats() {
       className="space-y-4"
     >
       {/* Recovery Progress */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
+      <div className="p-4 rounded-xl bg-card/40 border border-border/30">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-teal-500/15 flex items-center justify-center relative">
-              <Smartphone className="w-3 h-3 text-teal-400" />
-              <Ban className="w-1.5 h-1.5 text-teal-400 absolute -bottom-0.5 -right-0.5" />
+            <div className="w-6 h-6 rounded-lg bg-muted/50 flex items-center justify-center relative">
+              <Smartphone className="w-3 h-3 text-muted-foreground" />
+              <Ban className="w-1.5 h-1.5 text-muted-foreground absolute -bottom-0.5 -right-0.5" />
             </div>
             <span className="text-[11px] font-medium text-foreground">Recovery Progress</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">
               {plan.name}
             </span>
           </div>
-          <span className="text-[11px] font-semibold text-teal-400">
+          <span className="text-[11px] font-semibold text-foreground">
             {totalMinutes} / {weeklyMinutesTarget} min
           </span>
         </div>
-        <div className="h-2 bg-teal-500/10 rounded-full overflow-hidden">
+        <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
           <motion.div 
-            className="h-full rounded-full bg-gradient-to-r from-teal-400 to-cyan-400"
+            className="h-full rounded-full bg-foreground/70"
             initial={{ width: 0 }}
             animate={{ width: `${goalProgress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -96,8 +96,8 @@ export function DetoxStats() {
         <p className="text-[9px] text-muted-foreground mt-1.5 flex items-center gap-1">
           {goalReached ? (
             <>
-              <Check className="w-3 h-3 text-emerald-400" />
-              <span className="text-emerald-400">Goal reached!</span>
+              <Check className="w-3 h-3 text-foreground" />
+              <span className="text-foreground">Goal reached!</span>
             </>
           ) : (
             `${Math.max(0, weeklyMinutesTarget - totalMinutes)} minutes remaining`
@@ -108,7 +108,7 @@ export function DetoxStats() {
       {/* Trend Chart - Minutes per day */}
       <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
+          <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
           <span className="text-[9px] text-muted-foreground ml-auto">min / day</span>
         </div>
@@ -176,7 +176,7 @@ export function DetoxStats() {
 
 
       {/* Metrics Impact */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-teal-500/5 border border-primary/20">
+      <div className="p-4 rounded-xl bg-card/40 border border-border/30">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
         
         {(() => {
@@ -190,17 +190,17 @@ export function DetoxStats() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2 rounded-lg bg-muted/20">
                   <p className="text-[8px] text-muted-foreground mb-1">Recovery Factor</p>
-                  <p className="text-sm font-bold text-teal-400">{Math.round(recoveryProgress)}%</p>
+                  <p className="text-sm font-bold text-foreground">{Math.round(recoveryProgress)}%</p>
                   <p className="text-[7px] text-muted-foreground">of weekly target</p>
                 </div>
                 <div className="p-2 rounded-lg bg-muted/20">
                   <p className="text-[8px] text-muted-foreground mb-1">SCI Contribution</p>
-                  <p className="text-sm font-bold text-emerald-400">+{sciContribution}</p>
+                  <p className="text-sm font-bold text-foreground">+{sciContribution}</p>
                   <p className="text-[7px] text-muted-foreground">pts to Network Score</p>
                 </div>
               </div>
               
-              <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
+              <div className="p-2 rounded-lg bg-muted/20 border border-border/20">
                 <p className="text-[8px] text-muted-foreground mb-1">How Recovery Improves Cognition</p>
                 <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
                   Digital detox restores attention capacity and reduces cognitive fatigue. 
@@ -217,7 +217,7 @@ export function DetoxStats() {
       {(todayMinutes || 0) > 0 && (
         <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-foreground/60 animate-pulse" />
             <span className="text-[11px] text-muted-foreground">
               Today: <span className="text-foreground font-medium">{todayMinutes} minutes</span> of detox completed
             </span>
@@ -238,15 +238,15 @@ export function DetoxStats() {
                 className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/20"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded bg-teal-500/10 flex items-center justify-center">
-                    <Smartphone className="w-3 h-3 text-teal-400" />
+                  <div className="w-6 h-6 rounded bg-muted/30 flex items-center justify-center">
+                    <Smartphone className="w-3 h-3 text-muted-foreground" />
                   </div>
                   <span className="text-[11px] text-foreground">
                     {completion.duration_minutes} min recovery
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-teal-400 font-medium">+{completion.xp_earned} XP</span>
+                  <span className="text-[10px] text-foreground font-medium">+{completion.xp_earned} XP</span>
                   <span className="text-[9px] text-muted-foreground">
                     {format(parseISO(completion.completed_at), "d MMM", { locale: it })}
                   </span>
