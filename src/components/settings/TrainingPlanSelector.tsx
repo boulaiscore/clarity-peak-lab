@@ -183,7 +183,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                           </div>
                           <div className="min-w-0">
                             <p className="text-[11px] font-semibold text-green-400">{detoxXPTarget} XP</p>
-                            <p className="text-[9px] text-muted-foreground">Recovery</p>
+                            <p className="text-[9px] text-muted-foreground">Step & Detox</p>
                           </div>
                         </div>
                       </div>
@@ -264,10 +264,10 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                     </div>
                   </div>
 
-                  {/* Recovery Requirement */}
+                  {/* Step & Detox Requirement */}
                   {plan.detox && (
                     <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Digital Recovery</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Step & Detox</p>
                       <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
