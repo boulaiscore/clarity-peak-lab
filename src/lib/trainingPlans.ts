@@ -25,10 +25,13 @@ export interface SessionConfig {
 }
 
 export interface DetoxRequirement {
-  weeklyMinutes: number;      // Target minutes per week
-  minSessionMinutes: number;  // Minimum session length to count
-  xpPerMinute: number;        // XP earned per minute
-  bonusXP: number;            // Bonus for hitting weekly target
+  weeklyMinutes: number;       // Target minutes per week
+  dailyMinimumMinutes: number; // Minimum minutes per day (30 for all plans)
+  minSessionMinutes: number;   // Minimum session length to count
+  xpPerMinute: number;         // XP earned per minute
+  bonusXP: number;             // Bonus for hitting weekly target
+  walkingRequired: boolean;    // Whether walking is required during recovery
+  walkingMinMinutes: number;   // Minimum walking minutes for full XP
 }
 
 export interface TrainingPlan {
@@ -102,10 +105,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     weeklyXPTarget: 120,
     contentXPTarget: 24, // 1 content × ~24 XP target
     detox: {
-      weeklyMinutes: 480,      // 8 hours per week
-      minSessionMinutes: 30,   // Min 30 min to count
-      xpPerMinute: 0.05,       // 480 min × 0.05 = 24 XP base
-      bonusXP: 5,              // Total ~29 XP from detox
+      weeklyMinutes: 480,        // 8 hours per week
+      dailyMinimumMinutes: 30,   // 30 min minimum per day
+      minSessionMinutes: 30,     // Min 30 min to count
+      xpPerMinute: 0.05,         // 480 min × 0.05 = 24 XP base
+      bonusXP: 5,                // Total ~29 XP from detox
+      walkingRequired: true,     // Walking required for full XP
+      walkingMinMinutes: 30,     // 30 min walking minimum
     },
     sessions: [
       {
@@ -169,10 +175,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     weeklyXPTarget: 200,
     contentXPTarget: 35, // 2 content × ~17.5 XP avg target
     detox: {
-      weeklyMinutes: 840,      // 14 hours per week
-      minSessionMinutes: 30,   // Min 30 min to count
-      xpPerMinute: 0.05,       // 840 min × 0.05 = 42 XP base
-      bonusXP: 8,              // Total ~50 XP from detox
+      weeklyMinutes: 840,        // 14 hours per week
+      dailyMinimumMinutes: 30,   // 30 min minimum per day
+      minSessionMinutes: 30,     // Min 30 min to count
+      xpPerMinute: 0.05,         // 840 min × 0.05 = 42 XP base
+      bonusXP: 8,                // Total ~50 XP from detox
+      walkingRequired: true,     // Walking required for full XP
+      walkingMinMinutes: 30,     // 30 min walking minimum
     },
     sessions: [
       {
@@ -236,10 +245,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     weeklyXPTarget: 300,
     contentXPTarget: 85, // 3 content × ~28 XP avg target
     detox: {
-      weeklyMinutes: 1680,     // 28 hours per week
-      minSessionMinutes: 30,   // Min 30 min to count
-      xpPerMinute: 0.05,       // 1680 min × 0.05 = 84 XP base
-      bonusXP: 15,             // Total ~99 XP from detox
+      weeklyMinutes: 1680,       // 28 hours per week
+      dailyMinimumMinutes: 30,   // 30 min minimum per day
+      minSessionMinutes: 30,     // Min 30 min to count
+      xpPerMinute: 0.05,         // 1680 min × 0.05 = 84 XP base
+      bonusXP: 15,               // Total ~99 XP from detox
+      walkingRequired: true,     // Walking required for full XP
+      walkingMinMinutes: 30,     // 30 min walking minimum
     },
     sessions: [
       {

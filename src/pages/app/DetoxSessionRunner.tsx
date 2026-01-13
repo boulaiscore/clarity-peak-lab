@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Brain, Sparkles, AlertTriangle } from "lucide-react";
+import { X, Brain, Sparkles, AlertTriangle, MapPin, Footprints, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -17,6 +17,7 @@ import { ParticleWave } from "@/components/detox/ParticleWave";
 import { DetoxWaveform } from "@/components/detox/DetoxWaveform";
 import { HoldToCompleteButton } from "@/components/detox/HoldToCompleteButton";
 import { useDetoxSession } from "@/hooks/useDetoxSession";
+import { useWalkingTracker, MIN_WALKING_MINUTES, NO_WALKING_XP_MULTIPLIER } from "@/hooks/useWalkingTracker";
 import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 
 export default function DetoxSessionRunner() {
@@ -40,6 +41,17 @@ export default function DetoxSessionRunner() {
     timerResetAt,
   } = useDetoxSession();
 
+  // Walking tracker
+  const {
+    progress: walkingProgress,
+    isTracking: isWalkingTracking,
+    startWalking,
+    stopWalking,
+    cancelWalking,
+    meetsMinimum: walkingMeetsMinimum,
+    permissionDenied: walkingPermissionDenied,
+  } = useWalkingTracker(activeSession?.id);
+
   // Start session on mount if not already active
   useEffect(() => {
     const initSession = async () => {
@@ -48,11 +60,14 @@ export default function DetoxSessionRunner() {
         const success = await startSession(duration, blockedApps);
         if (!success) {
           navigate("/neuro-lab");
+          return;
         }
+        // Auto-start walking tracker
+        await startWalking();
       }
     };
     initSession();
-  }, [isActive, sessionStarted, duration, blockedApps, startSession, navigate]);
+  }, [isActive, sessionStarted, duration, blockedApps, startSession, navigate, startWalking]);
 
   // Timer sync with session - COUNTDOWN mode
   useEffect(() => {
@@ -109,6 +124,7 @@ export default function DetoxSessionRunner() {
   };
 
   const handleConfirmExit = async () => {
+    await cancelWalking();
     await cancelSession();
     setShowExitDialog(false);
     navigate("/neuro-lab");
@@ -121,8 +137,11 @@ export default function DetoxSessionRunner() {
     if (sessionMinutes < 30) {
       return; // Button should be disabled anyway
     }
+
+    // Stop walking tracker and get final progress
+    const finalWalking = await stopWalking();
     
-    const success = await completeSession();
+    const success = await completeSession(finalWalking?.durationMinutes || 0);
     if (success) {
       setShowSuccess(true);
       const completedMinutes = Math.floor((duration * 60 - displaySeconds) / 60);
@@ -244,16 +263,71 @@ export default function DetoxSessionRunner() {
           )}
         </motion.div>
 
-        {/* Status badge */}
+        {/* Status badges */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8"
+          className="flex flex-col gap-3 mb-8"
         >
-          <Brain className="w-4 h-4 text-teal-400" />
-          <span className="text-sm text-white/70">Recovering clarity</span>
-          <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+          {/* Recovery status */}
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+            <Brain className="w-4 h-4 text-teal-400" />
+            <span className="text-sm text-white/70">Recovering clarity</span>
+            <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+          </div>
+
+          {/* Walking tracker status */}
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
+            walkingMeetsMinimum 
+              ? 'bg-emerald-500/10 border-emerald-500/30' 
+              : isWalkingTracking 
+                ? 'bg-amber-500/10 border-amber-500/30' 
+                : 'bg-white/5 border-white/10'
+          }`}>
+            <Footprints className={`w-4 h-4 ${
+              walkingMeetsMinimum ? 'text-emerald-400' : isWalkingTracking ? 'text-amber-400' : 'text-white/40'
+            }`} />
+            <span className={`text-sm ${
+              walkingMeetsMinimum ? 'text-emerald-400' : isWalkingTracking ? 'text-amber-300' : 'text-white/50'
+            }`}>
+              {walkingMeetsMinimum ? (
+                <>
+                  <CheckCircle2 className="w-3 h-3 inline mr-1" />
+                  Walking complete ({walkingProgress.durationMinutes} min)
+                </>
+              ) : isWalkingTracking ? (
+                <>Walking: {walkingProgress.durationMinutes}/{MIN_WALKING_MINUTES} min</>
+              ) : walkingPermissionDenied ? (
+                'Location access denied'
+              ) : (
+                'Walk 30 min for full XP'
+              )}
+            </span>
+            {isWalkingTracking && !walkingMeetsMinimum && (
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            )}
+          </div>
+
+          {/* Distance if tracking */}
+          {isWalkingTracking && walkingProgress.distanceMeters > 0 && (
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10">
+              <MapPin className="w-3 h-3 text-white/40" />
+              <span className="text-xs text-white/50">
+                Distance: {(walkingProgress.distanceMeters / 1000).toFixed(2)} km
+              </span>
+            </div>
+          )}
+
+          {/* XP warning if not walking */}
+          {!walkingMeetsMinimum && elapsedSeconds > 60 && (
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <AlertTriangle className="w-3 h-3 text-amber-400" />
+              <span className="text-xs text-amber-300">
+                Without walking: 50% XP only
+              </span>
+            </div>
+          )}
         </motion.div>
 
         {/* Waveform */}
