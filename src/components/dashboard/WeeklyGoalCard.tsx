@@ -330,7 +330,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               <div className="mb-2">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Brain className="w-3 h-3 text-teal-400" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Recovery</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Step & Detox</span>
                   <span className="text-[8px] text-muted-foreground/60 tabular-nums">
                     {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
                   </span>
@@ -535,11 +535,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
       </div>
 
-      {/* Recovery */}
+      {/* Step & Detox */}
       <div className="mb-3">
         <div className="flex items-center gap-1.5 mb-1.5">
           <Brain className="w-3 h-3 text-teal-400" />
-          <span className="text-[10px] text-muted-foreground font-medium">Recovery</span>
+          <span className="text-[10px] text-muted-foreground font-medium">Step & Detox</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
             {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
           </span>

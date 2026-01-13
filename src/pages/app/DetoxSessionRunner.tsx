@@ -234,7 +234,7 @@ export default function DetoxSessionRunner() {
         >
           <div className="flex items-center justify-center gap-2 mb-3">
             <div className="px-3 py-1.5 rounded-full bg-teal-500/20 border border-teal-500/30">
-              <span className="text-xs font-medium text-teal-400">Mental Recovery</span>
+              <span className="text-xs font-medium text-teal-400">Step & Detox</span>
             </div>
           </div>
           
@@ -369,7 +369,7 @@ export default function DetoxSessionRunner() {
           animate={{ opacity: 1 }}
           className="text-center text-white/40 text-xs pb-6"
         >
-          Minimum 30 minutes to complete recovery
+          Minimum 30 minutes to complete session
         </motion.p>
       )}
 
