@@ -180,7 +180,7 @@ export default function DetoxSessionRunner() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", damping: 15 }}
-              className="w-24 h-24 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mb-6"
+              className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center mb-6"
             >
               <Sparkles className="w-12 h-12 text-white" />
             </motion.div>
@@ -188,7 +188,7 @@ export default function DetoxSessionRunner() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-2xl font-semibold text-teal-400 mb-2"
+              className="text-2xl font-semibold text-primary mb-2"
             >
               {DETOX_COGNITIVE_MESSAGES.completion.headline}
             </motion.h2>
@@ -233,8 +233,8 @@ export default function DetoxSessionRunner() {
           className="text-center mb-8"
         >
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="px-3 py-1.5 rounded-full bg-teal-500/20 border border-teal-500/30">
-              <span className="text-xs font-medium text-teal-400">Step & Detox</span>
+            <div className="px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30">
+              <span className="text-xs font-medium text-primary">Step & Detox</span>
             </div>
           </div>
           
@@ -243,7 +243,7 @@ export default function DetoxSessionRunner() {
               {formatTime(displaySeconds)}
             </h1>
             {/* Glow effect */}
-            <div className="absolute inset-0 text-6xl font-mono font-bold tracking-wider text-teal-400/20 blur-lg -z-10">
+            <div className="absolute inset-0 text-6xl font-mono font-bold tracking-wider text-primary/20 blur-lg -z-10">
               {formatTime(displaySeconds)}
             </div>
           </div>
@@ -272,9 +272,9 @@ export default function DetoxSessionRunner() {
         >
           {/* Recovery status */}
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-            <Brain className="w-4 h-4 text-teal-400" />
+            <Brain className="w-4 h-4 text-primary" />
             <span className="text-sm text-white/70">Recovering clarity</span>
-            <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           </div>
 
           {/* Walking tracker status */}
