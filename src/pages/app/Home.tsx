@@ -14,6 +14,10 @@ import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
+import { HomeTabs, HomeTabId } from "@/components/home/HomeTabs";
+import { IntuitionTab } from "@/components/home/IntuitionTab";
+import { ReasoningTab } from "@/components/home/ReasoningTab";
+import { CapacityTab } from "@/components/home/CapacityTab";
 
 // Circular progress ring component
 interface RingProps {
@@ -104,6 +108,7 @@ const Home = () => {
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [activeTab, setActiveTab] = useState<HomeTabId>("overview");
   
 
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
@@ -234,51 +239,57 @@ const Home = () => {
     <AppShell>
       <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-5 py-4 max-w-md mx-auto">
 
-        {/* Three Rings with Cognitive Interpretations */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mb-6"
-        >
-          <div className="flex justify-center gap-6 mb-4">
-            <ProgressRing
-              value={readinessLoading ? 0 : readinessScore}
-              max={100}
-              size={90}
-              strokeWidth={6}
-              color="hsl(210, 70%, 55%)"
-              label="Intuition Strength"
-              displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
-              microcopy="Intuition and reaction capacity"
-            />
-            <ProgressRing
-              value={cognitivePerformance}
-              max={100}
-              size={90}
-              strokeWidth={6}
-              color="hsl(var(--primary))"
-              label="Reasoning Strength"
-              displayValue={`${cognitivePerformance}%`}
-              microcopy="Reasoning depth and cognitive control"
-            />
-            <ProgressRing
-              value={totalWeeklyXP}
-              max={weeklyXPTarget}
-              size={90}
-              strokeWidth={6}
-              color={cognitiveLoadColor}
-              label="Cognitive Capacity"
-              displayValue={`${totalWeeklyXP}`}
-              microcopy="Available mental bandwidth"
-            />
-          </div>
-          
-          {/* Explanatory line below rings */}
-          <p className="text-center text-xs text-muted-foreground leading-relaxed px-4">
-            The first session of the week calibrates your intuition–reasoning balance.
-          </p>
-        </motion.section>
+        {/* Tab Navigation */}
+        <HomeTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* Tab Content */}
+        {activeTab === "overview" && (
+          <>
+            {/* Three Rings with Cognitive Interpretations */}
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="mb-6"
+            >
+              <div className="flex justify-center gap-6 mb-4">
+                <ProgressRing
+                  value={readinessLoading ? 0 : readinessScore}
+                  max={100}
+                  size={90}
+                  strokeWidth={6}
+                  color="hsl(210, 70%, 55%)"
+                  label="Intuition Strength"
+                  displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
+                  microcopy="Intuition and reaction capacity"
+                />
+                <ProgressRing
+                  value={cognitivePerformance}
+                  max={100}
+                  size={90}
+                  strokeWidth={6}
+                  color="hsl(var(--primary))"
+                  label="Reasoning Strength"
+                  displayValue={`${cognitivePerformance}%`}
+                  microcopy="Reasoning depth and cognitive control"
+                />
+                <ProgressRing
+                  value={totalWeeklyXP}
+                  max={weeklyXPTarget}
+                  size={90}
+                  strokeWidth={6}
+                  color={cognitiveLoadColor}
+                  label="Cognitive Capacity"
+                  displayValue={`${totalWeeklyXP}`}
+                  microcopy="Available mental bandwidth"
+                />
+              </div>
+              
+              {/* Explanatory line below rings */}
+              <p className="text-center text-xs text-muted-foreground leading-relaxed px-4">
+                The first session of the week calibrates your intuition–reasoning balance.
+              </p>
+            </motion.section>
 
         {/* Detox Engagement Card - Whoop-style motivation */}
         {!detoxComplete && (() => {
@@ -454,6 +465,12 @@ const Home = () => {
             Train intuition and critical reasoning.
           </p>
         </motion.div>
+          </>
+        )}
+
+        {activeTab === "intuition" && <IntuitionTab />}
+        {activeTab === "reasoning" && <ReasoningTab />}
+        {activeTab === "capacity" && <CapacityTab />}
       </main>
 
       {/* Protocol Change Sheet */}
