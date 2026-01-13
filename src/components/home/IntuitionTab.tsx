@@ -24,22 +24,56 @@ export function IntuitionTab() {
     return "bg-red-500";
   };
 
+  // Ring calculations
+  const size = 160;
+  const strokeWidth = 10;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const progress = Math.min(score / 100, 1);
+  const strokeDashoffset = circumference - progress * circumference;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Main Score */}
-      <div className="text-center py-6">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Zap className="w-5 h-5 text-blue-400" />
-          <span className="text-sm uppercase tracking-wider text-muted-foreground">Intuition Strength</span>
+      {/* Main Ring */}
+      <div className="flex flex-col items-center py-4">
+        <div className="relative" style={{ width: size, height: size }}>
+          <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke="hsl(var(--muted))"
+              strokeWidth={strokeWidth}
+            />
+          </svg>
+          <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke="hsl(210, 70%, 55%)"
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <Zap className="w-5 h-5 text-blue-400 mb-1" />
+            <span className={`text-4xl font-bold tabular-nums ${getScoreColor(score)}`}>
+              {isLoading ? "—" : `${Math.round(score)}%`}
+            </span>
+          </div>
         </div>
-        <p className={`text-6xl font-bold tabular-nums ${getScoreColor(score)}`}>
-          {isLoading ? "—" : `${Math.round(score)}%`}
-        </p>
-        <p className="text-sm text-muted-foreground mt-2">System 1 · Fast Thinking</p>
+        <p className="mt-3 text-xs uppercase tracking-wider text-muted-foreground">Intuition Strength</p>
+        <p className="text-[10px] text-muted-foreground/60">System 1 · Fast Thinking</p>
       </div>
 
       {/* Metric Breakdown */}
