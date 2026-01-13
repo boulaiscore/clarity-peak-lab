@@ -213,9 +213,9 @@ export const TrainingProgressHeader = () => {
       <div className="mt-3 pt-3 border-t border-border/20">
         <div className="grid grid-cols-3 gap-2">
           {/* Games */}
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/10">
-            <div className="w-6 h-6 rounded-md bg-primary/15 flex items-center justify-center">
-              <Swords className="w-3 h-3 text-primary" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
+            <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center">
+              <Swords className="w-3 h-3 text-muted-foreground" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold text-foreground truncate">{cappedGamesXP}</p>
@@ -224,9 +224,9 @@ export const TrainingProgressHeader = () => {
           </div>
           
           {/* Tasks */}
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
-            <div className="w-6 h-6 rounded-md bg-violet-500/15 flex items-center justify-center">
-              <BookMarked className="w-3 h-3 text-violet-400" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
+            <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center">
+              <BookMarked className="w-3 h-3 text-muted-foreground" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold text-foreground truncate">{cappedTasksXP}</p>
@@ -235,10 +235,10 @@ export const TrainingProgressHeader = () => {
           </div>
           
           {/* Detox */}
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-teal-500/5 border border-teal-500/10">
-            <div className="w-6 h-6 rounded-md bg-teal-500/15 flex items-center justify-center relative">
-              <Smartphone className="w-3 h-3 text-teal-400" />
-              <Ban className="w-1.5 h-1.5 text-teal-400 absolute -bottom-0.5 -right-0.5" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
+            <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center relative">
+              <Smartphone className="w-3 h-3 text-muted-foreground" />
+              <Ban className="w-1.5 h-1.5 text-muted-foreground absolute -bottom-0.5 -right-0.5" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold text-foreground truncate">{cappedDetoxXP}</p>
