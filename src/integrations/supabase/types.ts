@@ -112,6 +112,9 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string
+          walking_completed: boolean | null
+          walking_distance_meters: number | null
+          walking_minutes: number | null
           xp_earned: number | null
         }
         Insert: {
@@ -124,6 +127,9 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id: string
+          walking_completed?: boolean | null
+          walking_distance_meters?: number | null
+          walking_minutes?: number | null
           xp_earned?: number | null
         }
         Update: {
@@ -136,6 +142,9 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+          walking_completed?: boolean | null
+          walking_distance_meters?: number | null
+          walking_minutes?: number | null
           xp_earned?: number | null
         }
         Relationships: []
@@ -284,6 +293,7 @@ export type Database = {
           birth_date: string | null
           created_at: string
           daily_detox_goal_minutes: number | null
+          daily_recovery_target_minutes: number | null
           daily_sessions_count: number | null
           daily_time_commitment: string | null
           degree_discipline: string | null
@@ -313,6 +323,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           daily_detox_goal_minutes?: number | null
+          daily_recovery_target_minutes?: number | null
           daily_sessions_count?: number | null
           daily_time_commitment?: string | null
           degree_discipline?: string | null
@@ -342,6 +353,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           daily_detox_goal_minutes?: number | null
+          daily_recovery_target_minutes?: number | null
           daily_sessions_count?: number | null
           daily_time_commitment?: string | null
           degree_discipline?: string | null
@@ -634,6 +646,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      walking_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          detox_session_id: string | null
+          distance_meters: number | null
+          duration_minutes: number
+          id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          detox_session_id?: string | null
+          distance_meters?: number | null
+          duration_minutes?: number
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          detox_session_id?: string | null
+          distance_meters?: number | null
+          duration_minutes?: number
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "walking_sessions_detox_session_id_fkey"
+            columns: ["detox_session_id"]
+            isOneToOne: false
+            referencedRelation: "detox_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wearable_snapshots: {
         Row: {

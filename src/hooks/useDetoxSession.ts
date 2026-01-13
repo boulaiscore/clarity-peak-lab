@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import AppBlocker, { isNativeAndroid, ViolationEvent } from '@/lib/capacitor/appBlocker';
 import { DETOX_XP_PER_MINUTE } from '@/hooks/useDetoxProgress';
+import { MIN_WALKING_MINUTES, NO_WALKING_XP_MULTIPLIER } from '@/hooks/useWalkingTracker';
 
 interface DetoxSession {
   id: string;
@@ -217,7 +218,8 @@ export function useDetoxSession() {
   // Complete a session (called when time is up or manually completed)
   const completeSession = useCallback(async (
     sessionId?: string,
-    durationMinutes?: number
+    durationMinutes?: number,
+    walkingMinutes?: number
   ): Promise<boolean> => {
     const id = sessionId || activeSession?.id;
     const duration = durationMinutes || activeSession?.duration_minutes || 0;
@@ -231,7 +233,11 @@ export function useDetoxSession() {
       
       // XP is based on actual elapsed time since last violation (or start)
       const actualMinutes = Math.min(elapsedMinutes, duration);
-      const xpEarned = Math.round(actualMinutes * DETOX_XP_PER_MINUTE);
+      
+      // Apply walking multiplier: full XP if walked 30+ min, 50% otherwise
+      const walkingMet = (walkingMinutes ?? 0) >= MIN_WALKING_MINUTES;
+      const xpMultiplier = walkingMet ? 1.0 : NO_WALKING_XP_MULTIPLIER;
+      const xpEarned = Math.round(actualMinutes * DETOX_XP_PER_MINUTE * xpMultiplier);
 
       // Cancel any pending notification for this session
       cancelDetoxEndNotification(id);
@@ -241,6 +247,8 @@ export function useDetoxSession() {
         .update({
           status: 'completed',
           xp_earned: xpEarned,
+          walking_completed: walkingMet,
+          walking_minutes: walkingMinutes ?? 0,
         })
         .eq('id', id);
 
@@ -267,10 +275,14 @@ export function useDetoxSession() {
         await AppBlocker.stopBlocking();
       }
 
+      const walkingNote = walkingMet 
+        ? '🚶 Walking bonus applied!' 
+        : '⚠️ 50% XP (no walking)';
+
       toast({
-        title: "Detox Complete! 🎉",
+        title: "Recovery Complete! 🎉",
         description: actualMinutes >= 30 
-          ? `You earned ${xpEarned} XP (${actualMinutes} min actual)`
+          ? `You earned ${xpEarned} XP (${actualMinutes} min). ${walkingNote}`
           : `Session too short for XP (${actualMinutes} min, min 30)`,
       });
 
@@ -361,7 +373,7 @@ export function useDetoxSession() {
     timerResetAt,
     getElapsedSeconds,
     startSession,
-    completeSession: () => completeSession(),
+    completeSession: (walkingMinutes?: number) => completeSession(undefined, undefined, walkingMinutes),
     cancelSession,
     refreshSession: loadActiveSession,
   };
