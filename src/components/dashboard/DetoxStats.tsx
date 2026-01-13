@@ -106,13 +106,13 @@ export function DetoxStats() {
       </div>
 
       {/* Trend Chart - Minutes per day */}
-      {chartData.length > 0 && (
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
-            <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
-            <span className="text-[9px] text-muted-foreground ml-auto">min / day</span>
-          </div>
+      <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
+          <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
+          <span className="text-[9px] text-muted-foreground ml-auto">min / day</span>
+        </div>
+        {chartData.length > 0 && chartData.some(d => d.minutes > 0) ? (
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
@@ -162,8 +162,17 @@ export function DetoxStats() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="h-24 flex flex-col items-center justify-center text-center">
+            <div className="relative mb-2">
+              <Smartphone className="h-6 w-6 text-muted-foreground/30" />
+              <Ban className="h-3 w-3 text-muted-foreground/30 absolute -bottom-0.5 -right-1" />
+            </div>
+            <p className="text-[11px] text-muted-foreground">No recovery sessions in the last 14 days</p>
+            <p className="text-[9px] text-muted-foreground/60 mt-0.5">Start a digital detox session to see your trend</p>
+          </div>
+        )}
+      </div>
 
 
       {/* Metrics Impact */}
