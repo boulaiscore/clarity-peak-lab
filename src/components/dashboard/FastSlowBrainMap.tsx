@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Zap, Brain, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { motion } from "framer-motion";
+
 interface FastSlowBrainMapProps {
   fastScore: number;
   fastBaseline: number;
@@ -86,7 +88,7 @@ const SLOW_NODES = [
 
 // Generate connections between nodes
 function generateConnections(nodes: typeof FAST_NODES, density: number = 0.3) {
-  const connections: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  const connections: { x1: number; y1: number; x2: number; y2: number; length: number }[] = [];
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
       const dist = Math.sqrt(
@@ -98,7 +100,8 @@ function generateConnections(nodes: typeof FAST_NODES, density: number = 0.3) {
           x1: nodes[i].x,
           y1: nodes[i].y,
           x2: nodes[j].x,
-          y2: nodes[j].y
+          y2: nodes[j].y,
+          length: dist
         });
       }
     }
@@ -110,15 +113,32 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
   const [fastPulse, setFastPulse] = useState(false);
   const [slowGlow, setSlowGlow] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [activeNodes, setActiveNodes] = useState<{fast: number[], slow: number[]}>({ fast: [], slow: [] });
 
   const fastConnections = useMemo(() => generateConnections(FAST_NODES, 0.5), []);
   const slowConnections = useMemo(() => generateConnections(SLOW_NODES, 0.5), []);
 
-  // Continuous subtle animation
+  // Continuous animation with faster update for smoother effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setAnimationPhase(p => (p + 1) % 360);
-    }, 50);
+      setAnimationPhase(p => (p + 2) % 360);
+    }, 30);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Random node activation for "thinking" effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Activate random fast nodes (more frequent for System 1)
+      const newFastActive = Array.from({ length: 4 }, () => 
+        Math.floor(Math.random() * FAST_NODES.length)
+      );
+      // Activate random slow nodes (less frequent for System 2)
+      const newSlowActive = Array.from({ length: 2 }, () => 
+        Math.floor(Math.random() * SLOW_NODES.length)
+      );
+      setActiveNodes({ fast: newFastActive, slow: newSlowActive });
+    }, 400);
     return () => clearInterval(interval);
   }, []);
 
@@ -247,44 +267,98 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
               fastPulse && "animate-pulse"
             )}
           >
-            {/* Fast connections */}
-            {fastConnections.map((conn, i) => (
-              <line
-                key={`fast-conn-${i}`}
-                x1={conn.x1}
-                y1={conn.y1}
-                x2={conn.x2}
-                y2={conn.y2}
-                stroke="url(#fastGradient)"
-                strokeWidth="0.8"
-                opacity={0.4 + Math.sin((animationPhase * 1.5 + i * 20) * Math.PI / 180) * 0.3}
-              />
-            ))}
+            {/* Fast connections with traveling pulse */}
+            {fastConnections.map((conn, i) => {
+              const pulseProgress = ((animationPhase * 3 + i * 40) % 360) / 360;
+              return (
+                <g key={`fast-conn-${i}`}>
+                  {/* Base connection */}
+                  <line
+                    x1={conn.x1}
+                    y1={conn.y1}
+                    x2={conn.x2}
+                    y2={conn.y2}
+                    stroke="url(#fastGradient)"
+                    strokeWidth="0.8"
+                    opacity={0.3 + Math.sin((animationPhase * 2 + i * 20) * Math.PI / 180) * 0.2}
+                  />
+                  {/* Traveling pulse dot */}
+                  <circle
+                    cx={conn.x1 + (conn.x2 - conn.x1) * pulseProgress}
+                    cy={conn.y1 + (conn.y2 - conn.y1) * pulseProgress}
+                    r={1}
+                    fill="#fbbf24"
+                    opacity={0.8}
+                  />
+                </g>
+              );
+            })}
             
-            {/* Fast nodes */}
-            {FAST_NODES.map((node, i) => (
-              <g key={`fast-node-${i}`}>
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={node.size + Math.sin((animationPhase * 1.8 + i * 35) * Math.PI / 180) * 0.3}
-                  fill="url(#fastGradient)"
-                  opacity={0.7 + Math.sin((animationPhase * 1.5 + i * 30) * Math.PI / 180) * 0.3}
-                />
-                {/* Spark effect */}
-                {Math.sin((animationPhase + i * 60) * Math.PI / 180) > 0.97 && (
+            {/* Fast nodes with activation effect */}
+            {FAST_NODES.map((node, i) => {
+              const isActive = activeNodes.fast.includes(i);
+              const baseSize = node.size + Math.sin((animationPhase * 2 + i * 35) * Math.PI / 180) * 0.5;
+              return (
+                <g key={`fast-node-${i}`}>
+                  {/* Outer glow ring when active */}
+                  {isActive && (
+                    <>
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={baseSize * 3}
+                        fill="none"
+                        stroke="#fbbf24"
+                        strokeWidth="0.5"
+                        opacity="0.3"
+                      >
+                        <animate
+                          attributeName="r"
+                          values={`${baseSize * 1.5};${baseSize * 4};${baseSize * 1.5}`}
+                          dur="0.6s"
+                          repeatCount="1"
+                        />
+                        <animate
+                          attributeName="opacity"
+                          values="0.6;0;0.6"
+                          dur="0.6s"
+                          repeatCount="1"
+                        />
+                      </circle>
+                    </>
+                  )}
+                  {/* Main node */}
                   <circle
                     cx={node.x}
                     cy={node.y}
-                    r={node.size * 2.5}
-                    fill="none"
-                    stroke="#fbbf24"
-                    strokeWidth="0.5"
-                    opacity="0.5"
-                  />
-                )}
-              </g>
-            ))}
+                    r={isActive ? baseSize * 1.5 : baseSize}
+                    fill="url(#fastGradient)"
+                    opacity={isActive ? 1 : 0.7 + Math.sin((animationPhase * 1.5 + i * 30) * Math.PI / 180) * 0.3}
+                  >
+                    {isActive && (
+                      <animate
+                        attributeName="r"
+                        values={`${baseSize * 1.5};${baseSize * 1.8};${baseSize * 1.5}`}
+                        dur="0.3s"
+                        repeatCount="1"
+                      />
+                    )}
+                  </circle>
+                  {/* Spark effect */}
+                  {Math.sin((animationPhase + i * 60) * Math.PI / 180) > 0.95 && (
+                    <circle
+                      cx={node.x}
+                      cy={node.y}
+                      r={node.size * 2.5}
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="0.5"
+                      opacity="0.6"
+                    />
+                  )}
+                </g>
+              );
+            })}
           </g>
 
           {/* RIGHT HEMISPHERE - SLOW NETWORK */}
@@ -297,31 +371,86 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
               slowGlow && "animate-pulse"
             )}
           >
-            {/* Slow connections */}
-            {slowConnections.map((conn, i) => (
-              <line
-                key={`slow-conn-${i}`}
-                x1={conn.x1}
-                y1={conn.y1}
-                x2={conn.x2}
-                y2={conn.y2}
-                stroke="url(#slowGradient)"
-                strokeWidth="1.2"
-                opacity={0.4 + Math.sin((animationPhase + i * 30) * Math.PI / 180) * 0.25}
-              />
-            ))}
+            {/* Slow connections with wave effect */}
+            {slowConnections.map((conn, i) => {
+              const waveOffset = ((animationPhase + i * 25) % 360) / 360;
+              const waveOpacity = 0.3 + Math.sin(waveOffset * Math.PI * 2) * 0.4;
+              return (
+                <g key={`slow-conn-${i}`}>
+                  {/* Base connection with breathing effect */}
+                  <line
+                    x1={conn.x1}
+                    y1={conn.y1}
+                    x2={conn.x2}
+                    y2={conn.y2}
+                    stroke="url(#slowGradient)"
+                    strokeWidth={1.2 + Math.sin((animationPhase + i * 30) * Math.PI / 180) * 0.4}
+                    opacity={waveOpacity}
+                  />
+                </g>
+              );
+            })}
             
-            {/* Slow nodes */}
-            {SLOW_NODES.map((node, i) => (
-              <circle
-                key={`slow-node-${i}`}
-                cx={node.x}
-                cy={node.y}
-                r={node.size + Math.sin((animationPhase + i * 40) * Math.PI / 180) * 0.4}
-                fill="url(#slowGradient)"
-                opacity={0.7 + Math.sin((animationPhase + i * 25) * Math.PI / 180) * 0.3}
-              />
-            ))}
+            {/* Slow nodes with deep pulse */}
+            {SLOW_NODES.map((node, i) => {
+              const isActive = activeNodes.slow.includes(i);
+              const baseSize = node.size + Math.sin((animationPhase * 0.8 + i * 40) * Math.PI / 180) * 0.6;
+              return (
+                <g key={`slow-node-${i}`}>
+                  {/* Concentric rings when active */}
+                  {isActive && (
+                    <>
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={baseSize * 2}
+                        fill="none"
+                        stroke="#22d3ee"
+                        strokeWidth="0.8"
+                        opacity="0.4"
+                      >
+                        <animate
+                          attributeName="r"
+                          values={`${baseSize};${baseSize * 4};${baseSize}`}
+                          dur="1.2s"
+                          repeatCount="1"
+                        />
+                        <animate
+                          attributeName="opacity"
+                          values="0.5;0;0.5"
+                          dur="1.2s"
+                          repeatCount="1"
+                        />
+                      </circle>
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={baseSize * 1.5}
+                        fill="none"
+                        stroke="#06b6d4"
+                        strokeWidth="0.5"
+                        opacity="0.3"
+                      >
+                        <animate
+                          attributeName="r"
+                          values={`${baseSize * 0.8};${baseSize * 3};${baseSize * 0.8}`}
+                          dur="1s"
+                          repeatCount="1"
+                        />
+                      </circle>
+                    </>
+                  )}
+                  {/* Main node */}
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={isActive ? baseSize * 1.3 : baseSize}
+                    fill="url(#slowGradient)"
+                    opacity={isActive ? 1 : 0.7 + Math.sin((animationPhase * 0.7 + i * 25) * Math.PI / 180) * 0.3}
+                  />
+                </g>
+              );
+            })}
           </g>
 
           {/* Labels */}
