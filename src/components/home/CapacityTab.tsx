@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, Swords, BookMarked, Smartphone, TrendingUp, Battery, Layers } from "lucide-react";
+import { Layers, Swords, BookMarked, Smartphone } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
@@ -18,25 +18,10 @@ export function CapacityTab() {
   const planConfig = TRAINING_PLANS[currentPlan];
   
   const totalProgress = weeklyXPTarget > 0 ? (cappedTotalXP / weeklyXPTarget) * 100 : 0;
-  const gamesProgress = gamesXPTarget > 0 ? (cappedGamesXP / gamesXPTarget) * 100 : 0;
-  const tasksProgress = tasksXPTarget > 0 ? (cappedTasksXP / tasksXPTarget) * 100 : 0;
-  const detoxProgress = detoxXPTarget > 0 ? (rawDetoxXP / detoxXPTarget) * 100 : 0;
   
-  const getScoreColor = (value: number) => {
-    if (value >= 90) return "text-green-400";
-    if (value >= 60) return "text-amber-400";
-    return "text-orange-400";
-  };
-  
-  const getBarColor = (value: number) => {
-    if (value >= 90) return "bg-green-500";
-    if (value >= 60) return "bg-amber-500";
-    return "bg-orange-500";
-  };
-
-  // Ring calculations
-  const size = 160;
-  const strokeWidth = 10;
+  // Ring calculations - LARGE
+  const size = 240;
+  const strokeWidth = 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(totalProgress / 100, 1);
@@ -46,7 +31,7 @@ export function CapacityTab() {
   const ringColor = totalProgress >= 90 
     ? "hsl(142, 71%, 45%)" 
     : totalProgress >= 60 
-      ? "hsl(80, 60%, 45%)" 
+      ? "hsl(80, 60%, 50%)" 
       : totalProgress >= 30 
         ? "hsl(45, 85%, 50%)" 
         : "hsl(25, 90%, 50%)";
@@ -55,10 +40,10 @@ export function CapacityTab() {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-8"
     >
-      {/* Main Ring */}
-      <div className="flex flex-col items-center py-4">
+      {/* Main Ring - Large & Centered */}
+      <div className="flex flex-col items-center pt-6 pb-4">
         <div className="relative" style={{ width: size, height: size }}>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
             <circle
@@ -66,7 +51,7 @@ export function CapacityTab() {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="hsl(var(--muted))"
+              stroke="hsl(var(--muted)/0.3)"
               strokeWidth={strokeWidth}
             />
           </svg>
@@ -85,96 +70,77 @@ export function CapacityTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <Layers className="w-5 h-5 text-amber-400 mb-1" />
-            <span className={`text-4xl font-bold tabular-nums ${getScoreColor(totalProgress)}`}>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Capacity</p>
+            <span className="text-6xl font-bold tabular-nums text-foreground">
               {cappedTotalXP}
             </span>
+            <span className="text-sm text-muted-foreground mt-1">of {weeklyXPTarget}</span>
           </div>
         </div>
-        <p className="mt-3 text-xs uppercase tracking-wider text-muted-foreground">Cognitive Capacity</p>
-        <p className="text-[10px] text-muted-foreground/60">
-          of {weeklyXPTarget} CC · {planConfig.name}
+      </div>
+
+      {/* Insight Card */}
+      <div className="px-2">
+        <div className="flex items-start gap-3 mb-2">
+          <Layers className="w-5 h-5 text-amber-400 mt-0.5" />
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Weekly Load</h3>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {totalProgress >= 100 
+            ? "Target reached. Your cognitive reserve is fully stocked for the week." 
+            : totalProgress >= 50 
+              ? `${Math.round(100 - totalProgress)}% remaining to hit your ${planConfig.name} target.`
+              : "Build momentum early—consistency compounds cognitive gains."}
         </p>
       </div>
 
       {/* Category Breakdown */}
-      <div className="space-y-4">
-        <h3 className="text-xs uppercase tracking-wider text-muted-foreground px-1">Capacity Breakdown</h3>
+      <div className="space-y-3 px-2">
+        <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
+          <span>Breakdown</span>
+          <span>target</span>
+        </div>
         
-        <div className="space-y-3">
+        <div className="space-y-2">
           <CategoryRow 
             icon={<Swords className="w-4 h-4 text-blue-400" />}
             label="Challenges"
             current={cappedGamesXP}
             target={gamesXPTarget}
-            progress={gamesProgress}
-            color="bg-blue-500"
           />
           <CategoryRow 
             icon={<BookMarked className="w-4 h-4 text-purple-400" />}
             label="Tasks"
             current={cappedTasksXP}
             target={tasksXPTarget}
-            progress={tasksProgress}
-            color="bg-purple-500"
           />
           <CategoryRow 
             icon={<Smartphone className="w-4 h-4 text-teal-400" />}
-            label="Recovery (Detox)"
-            current={rawDetoxXP}
+            label="Recovery"
+            current={Math.min(rawDetoxXP, detoxXPTarget)}
             target={detoxXPTarget}
-            progress={detoxProgress}
-            color="bg-teal-500"
           />
-        </div>
-      </div>
-
-      {/* Insight Card */}
-      <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
-            <Battery className="w-4 h-4 text-amber-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-amber-400 mb-1">Capacity Impact</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Consistent weekly capacity builds cognitive reserve. Missing targets 
-              for 2+ weeks leads to measurable performance decline.
-            </p>
-          </div>
         </div>
       </div>
     </motion.div>
   );
 }
 
-interface CategoryRowProps {
-  icon: React.ReactNode;
-  label: string;
-  current: number;
+function CategoryRow({ icon, label, current, target }: { 
+  icon: React.ReactNode; 
+  label: string; 
+  current: number; 
   target: number;
-  progress: number;
-  color: string;
-}
-
-function CategoryRow({ icon, label, current, target, progress, color }: CategoryRowProps) {
+}) {
   return (
-    <div className="p-3 rounded-xl bg-card border border-border/40">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="text-sm font-medium">{label}</span>
-        </div>
-        <span className="text-sm font-semibold tabular-nums">
-          {current} <span className="text-muted-foreground font-normal">/ {target}</span>
-        </span>
+    <div className="flex items-center justify-between py-3 border-b border-border/20">
+      <div className="flex items-center gap-3">
+        {icon}
+        <span className="text-sm">{label}</span>
       </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-        <div 
-          className={`h-full rounded-full transition-all duration-500 ${color}`}
-          style={{ width: `${Math.min(100, progress)}%` }}
-        />
-      </div>
+      <span className="text-sm font-medium tabular-nums">
+        {current} <span className="text-muted-foreground">/ {target}</span>
+      </span>
     </div>
   );
 }

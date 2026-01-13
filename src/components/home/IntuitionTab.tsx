@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Zap, TrendingUp, Activity, Brain, Clock, ChevronRight } from "lucide-react";
+import { Zap, Activity, Brain, TrendingUp } from "lucide-react";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
 
 export function IntuitionTab() {
@@ -12,34 +12,28 @@ export function IntuitionTab() {
   const fastThinking = cognitiveMetrics?.fast_thinking ?? 50;
   const visualProcessing = cognitiveMetrics?.visual_processing ?? 50;
   
-  const getScoreColor = (value: number) => {
-    if (value >= 75) return "text-green-400";
-    if (value >= 50) return "text-amber-400";
-    return "text-red-400";
-  };
-  
-  const getBarColor = (value: number) => {
-    if (value >= 75) return "bg-green-500";
-    if (value >= 50) return "bg-amber-500";
-    return "bg-red-500";
-  };
-
-  // Ring calculations
-  const size = 160;
-  const strokeWidth = 10;
+  // Ring calculations - LARGE
+  const size = 240;
+  const strokeWidth = 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(score / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
+  
+  const getScoreColor = (value: number) => {
+    if (value >= 75) return "hsl(142, 71%, 45%)";
+    if (value >= 50) return "hsl(80, 60%, 50%)";
+    return "hsl(45, 85%, 50%)";
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-8"
     >
-      {/* Main Ring */}
-      <div className="flex flex-col items-center py-4">
+      {/* Main Ring - Large & Centered */}
+      <div className="flex flex-col items-center pt-6 pb-4">
         <div className="relative" style={{ width: size, height: size }}>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
             <circle
@@ -47,7 +41,7 @@ export function IntuitionTab() {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="hsl(var(--muted))"
+              stroke="hsl(var(--muted)/0.3)"
               strokeWidth={strokeWidth}
             />
           </svg>
@@ -57,7 +51,7 @@ export function IntuitionTab() {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="hsl(210, 70%, 55%)"
+              stroke={getScoreColor(score)}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -66,96 +60,53 @@ export function IntuitionTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <Zap className="w-5 h-5 text-blue-400 mb-1" />
-            <span className={`text-4xl font-bold tabular-nums ${getScoreColor(score)}`}>
-              {isLoading ? "—" : `${Math.round(score)}%`}
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Intuition</p>
+            <span className="text-6xl font-bold tabular-nums text-foreground">
+              {isLoading ? "—" : `${Math.round(score)}`}
+              <span className="text-3xl">%</span>
             </span>
           </div>
-        </div>
-        <p className="mt-3 text-xs uppercase tracking-wider text-muted-foreground">Intuition Strength</p>
-        <p className="text-[10px] text-muted-foreground/60">System 1 · Fast Thinking</p>
-      </div>
-
-      {/* Metric Breakdown */}
-      <div className="space-y-4">
-        <h3 className="text-xs uppercase tracking-wider text-muted-foreground px-1">Performance Breakdown</h3>
-        
-        <div className="space-y-3">
-          <MetricRow 
-            icon={<Activity className="w-4 h-4" />}
-            label="Reaction Speed"
-            value={reactionSpeed}
-            description="Response time to stimuli"
-            barColor={getBarColor(reactionSpeed)}
-          />
-          <MetricRow 
-            icon={<Brain className="w-4 h-4" />}
-            label="Focus Stability"
-            value={focusStability}
-            description="Sustained attention capacity"
-            barColor={getBarColor(focusStability)}
-          />
-          <MetricRow 
-            icon={<Zap className="w-4 h-4" />}
-            label="Fast Thinking"
-            value={fastThinking}
-            description="Quick pattern recognition"
-            barColor={getBarColor(fastThinking)}
-          />
-          <MetricRow 
-            icon={<TrendingUp className="w-4 h-4" />}
-            label="Visual Processing"
-            value={visualProcessing}
-            description="Visual info processing speed"
-            barColor={getBarColor(visualProcessing)}
-          />
         </div>
       </div>
 
       {/* Insight Card */}
-      <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 text-blue-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-blue-400 mb-1">Training Impact</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Regular training improves reaction time by up to 15% in 4 weeks. 
-              Focus on Go/No-Go and visual tracking drills.
-            </p>
-          </div>
+      <div className="px-2">
+        <div className="flex items-start gap-3 mb-2">
+          <Zap className="w-5 h-5 text-blue-400 mt-0.5" />
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Fast Processing</h3>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Your System 1 is {score >= 70 ? "primed for rapid pattern recognition" : score >= 50 ? "stable and responsive" : "recovering—focus on rest"}. 
+          Quick decisions draw from this intuitive layer.
+        </p>
+      </div>
+
+      {/* Statistics Section */}
+      <div className="space-y-3 px-2">
+        <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
+          <span>Performance Metrics</span>
+          <span>vs. baseline</span>
+        </div>
+        
+        <div className="space-y-2">
+          <StatRow icon={<Activity className="w-4 h-4" />} label="Reaction Speed" value={reactionSpeed} />
+          <StatRow icon={<Brain className="w-4 h-4" />} label="Focus Stability" value={focusStability} />
+          <StatRow icon={<Zap className="w-4 h-4" />} label="Fast Thinking" value={fastThinking} />
+          <StatRow icon={<TrendingUp className="w-4 h-4" />} label="Visual Processing" value={visualProcessing} />
         </div>
       </div>
     </motion.div>
   );
 }
 
-interface MetricRowProps {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  description: string;
-  barColor: string;
-}
-
-function MetricRow({ icon, label, value, description, barColor }: MetricRowProps) {
+function StatRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="p-3 rounded-xl bg-card border border-border/40">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">{icon}</span>
-          <span className="text-sm font-medium">{label}</span>
-        </div>
-        <span className="text-sm font-semibold tabular-nums">{Math.round(value)}%</span>
+    <div className="flex items-center justify-between py-3 border-b border-border/20">
+      <div className="flex items-center gap-3">
+        <span className="text-muted-foreground">{icon}</span>
+        <span className="text-sm">{label}</span>
       </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-1.5">
-        <div 
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-          style={{ width: `${Math.min(100, value)}%` }}
-        />
-      </div>
-      <p className="text-[10px] text-muted-foreground">{description}</p>
+      <span className="text-sm font-medium tabular-nums">{Math.round(value)}</span>
     </div>
   );
 }
