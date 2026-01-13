@@ -79,8 +79,8 @@ export function usePremiumGating() {
   };
 
   const canAccessChallenges = (): boolean => {
-    // Challenges require Pro plan (or future add-on purchase)
-    return user?.subscriptionStatus === "pro";
+    // Challenges now accessible to all users
+    return true;
   };
 
   const canStartSession = (): boolean => {
