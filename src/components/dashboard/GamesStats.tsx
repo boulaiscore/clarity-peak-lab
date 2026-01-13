@@ -399,14 +399,14 @@ export function GamesStats() {
       className="space-y-4"
     >
       {/* Challenges Progress */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
+      <div className="p-4 rounded-xl bg-card/40 border border-border/30">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Swords className="h-4 w-4 text-primary" />
+            <Swords className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-[13px] font-semibold">Challenges Progress</h3>
           </div>
           <div className="text-right">
-            <span className="text-lg font-bold text-primary">{weeklyGamesXP}</span>
+            <span className="text-lg font-bold text-foreground">{weeklyGamesXP}</span>
             <span className="text-[10px] text-muted-foreground">/{gamesXPTarget} XP</span>
           </div>
         </div>
@@ -416,7 +416,7 @@ export function GamesStats() {
             initial={{ width: 0 }}
             animate={{ width: `${gamesProgress}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-primary to-amber-500 rounded-full"
+            className="h-full bg-foreground/70 rounded-full"
           />
         </div>
         
@@ -438,7 +438,7 @@ export function GamesStats() {
       {/* 14-Day Trend Chart with System1/System2 breakdown */}
       <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-3.5 h-3.5 text-primary" />
+          <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
           <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
         </div>

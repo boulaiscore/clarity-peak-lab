@@ -589,14 +589,14 @@ export function TrainingTasks() {
       className="space-y-4"
     >
       {/* Tasks Progress */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-card/50 to-amber-500/5 border border-primary/20">
+      <div className="p-4 rounded-xl bg-card/40 border border-border/30">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-primary" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-[13px] font-semibold">Tasks Progress</h3>
           </div>
           <div className="text-right">
-            <span className="text-lg font-bold text-primary">{earnedXP}</span>
+            <span className="text-lg font-bold text-foreground">{earnedXP}</span>
             <span className="text-[10px] text-muted-foreground">/{planTasksXPTarget} XP</span>
           </div>
         </div>
@@ -607,7 +607,7 @@ export function TrainingTasks() {
             initial={{ width: 0 }}
             animate={{ width: `${completionPercent}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-primary to-amber-500 rounded-full"
+            className="h-full bg-foreground/70 rounded-full"
           />
         </div>
         
@@ -618,7 +618,7 @@ export function TrainingTasks() {
             <span className="text-[10px] text-muted-foreground">S1 · Fast</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Timer className="h-3.5 w-3.5 text-blue-400" />
+            <Timer className="h-3.5 w-3.5 text-violet-400" />
             <span className="text-[10px] text-muted-foreground">S2 · Slow</span>
           </div>
         </div>
@@ -627,7 +627,7 @@ export function TrainingTasks() {
       {/* 14-Day Trend Chart */}
       <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
+          <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
           <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
         </div>
