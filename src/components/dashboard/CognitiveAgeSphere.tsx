@@ -7,6 +7,17 @@ interface CognitiveAgeSphereProps {
   chronologicalAge?: number;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  alpha: number;
+  baseAlpha: number;
+  pulseOffset: number;
+}
+
 export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: CognitiveAgeSphereProps) {
   const [animatedAge, setAnimatedAge] = useState(cognitiveAge);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,7 +38,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     requestAnimationFrame(animate);
   }, [cognitiveAge]);
 
-  // Particle animation with theme-aware colors
+  // Dense particle animation with organic pulsing border like WHOOP
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -35,56 +46,134 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Theme-aware particle colors - Blue theme
-    const isDark = theme === "dark";
+    const isDarkMode = theme === "dark";
     
-    const particleColor = isDark 
-      ? { h: 210, s: 90, l: 55 }  // Vibrant blue for dark mode
-      : { h: 210, s: 75, l: 45 }; // Deep blue for light mode
+    // Blue color palette
+    const particleColor = isDarkMode 
+      ? { h: 210, s: 90, l: 55 }
+      : { h: 210, s: 75, l: 45 };
 
-    const particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[] = [];
-    const particleCount = 60;
+    const particles: Particle[] = [];
+    const particleCount = 200; // Much denser like WHOOP
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = 80;
+    const baseRadius = 90;
 
-    // Initialize particles
+    // Initialize particles - fill the entire sphere
     for (let i = 0; i < particleCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const r = Math.random() * radius * 0.8;
+      const r = Math.random() * baseRadius * 0.95;
+      const baseAlpha = isDarkMode 
+        ? (Math.random() * 0.6 + 0.2) 
+        : (Math.random() * 0.8 + 0.3);
+      
       particles.push({
         x: centerX + Math.cos(angle) * r,
         y: centerY + Math.sin(angle) * r,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 2 + 1,
-        alpha: isDark ? (Math.random() * 0.5 + 0.3) : (Math.random() * 0.7 + 0.4),
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: Math.random() * 2.5 + 0.8,
+        alpha: baseAlpha,
+        baseAlpha,
+        pulseOffset: Math.random() * Math.PI * 2,
+      });
+    }
+
+    // Organic border particles
+    const borderParticles: Particle[] = [];
+    const borderCount = 80;
+    for (let i = 0; i < borderCount; i++) {
+      const angle = (i / borderCount) * Math.PI * 2;
+      const baseAlpha = isDarkMode ? 0.7 : 0.8;
+      borderParticles.push({
+        x: centerX + Math.cos(angle) * baseRadius,
+        y: centerY + Math.sin(angle) * baseRadius,
+        vx: 0,
+        vy: 0,
+        size: Math.random() * 2 + 1.5,
+        alpha: baseAlpha,
+        baseAlpha,
+        pulseOffset: angle,
       });
     }
 
     let animationId: number;
+    let time = 0;
 
     const draw = () => {
+      time += 0.02;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw particles
+      // Draw organic pulsing border
+      const pulseRadius = baseRadius + Math.sin(time * 0.8) * 3;
+      
+      // Draw border glow
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, pulseRadius + 8, 0, Math.PI * 2);
+      const glowGradient = ctx.createRadialGradient(
+        centerX, centerY, pulseRadius - 5,
+        centerX, centerY, pulseRadius + 15
+      );
+      glowGradient.addColorStop(0, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, 0)`);
+      glowGradient.addColorStop(0.5, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${isDarkMode ? 0.15 : 0.1})`);
+      glowGradient.addColorStop(1, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, 0)`);
+      ctx.fillStyle = glowGradient;
+      ctx.fill();
+
+      // Draw organic border with varying thickness
+      borderParticles.forEach((p, i) => {
+        const angle = (i / borderCount) * Math.PI * 2;
+        const wobble = Math.sin(time * 1.5 + p.pulseOffset * 3) * 4;
+        const radiusVariation = pulseRadius + wobble;
+        
+        p.x = centerX + Math.cos(angle + Math.sin(time * 0.5) * 0.02) * radiusVariation;
+        p.y = centerY + Math.sin(angle + Math.sin(time * 0.5) * 0.02) * radiusVariation;
+        
+        const pulseFactor = 0.5 + Math.sin(time * 2 + p.pulseOffset) * 0.3;
+        p.alpha = p.baseAlpha * pulseFactor;
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (0.8 + Math.sin(time + p.pulseOffset) * 0.3), 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha})`;
+        ctx.fill();
+        
+        // Glow for border particles
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * 0.2})`;
+        ctx.fill();
+      });
+
+      // Draw inner particles
       particles.forEach((p) => {
-        // Move particle
+        // Move particle with slight drift
         p.x += p.vx;
         p.y += p.vy;
 
-        // Keep within circle
+        // Gentle randomization of velocity
+        p.vx += (Math.random() - 0.5) * 0.05;
+        p.vy += (Math.random() - 0.5) * 0.05;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+
+        // Keep within organic boundary
         const dx = p.x - centerX;
         const dy = p.y - centerY;
         const dist = Math.sqrt(dx * dx + dy * dy);
+        const currentRadius = pulseRadius - 5;
         
-        if (dist > radius * 0.85) {
+        if (dist > currentRadius * 0.92) {
           const angle = Math.atan2(dy, dx);
-          p.x = centerX + Math.cos(angle) * radius * 0.8;
-          p.y = centerY + Math.sin(angle) * radius * 0.8;
-          p.vx = -p.vx * 0.5;
-          p.vy = -p.vy * 0.5;
+          const pushBack = (dist - currentRadius * 0.85) * 0.1;
+          p.x -= Math.cos(angle) * pushBack;
+          p.y -= Math.sin(angle) * pushBack;
+          p.vx *= 0.5;
+          p.vy *= 0.5;
         }
+
+        // Pulsing alpha
+        const pulseFactor = 0.7 + Math.sin(time * 1.5 + p.pulseOffset) * 0.3;
+        p.alpha = p.baseAlpha * pulseFactor;
 
         // Draw particle
         ctx.beginPath();
@@ -92,10 +181,10 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha})`;
         ctx.fill();
 
-        // Subtle glow (stronger in light mode)
+        // Subtle glow
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * (isDark ? 0.2 : 0.15)})`;
+        ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * 0.15})`;
         ctx.fill();
       });
 
@@ -107,7 +196,6 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     return () => cancelAnimationFrame(animationId);
   }, [theme]);
 
-  // Determine if cognitive age is better (lower) than chronological
   const isImproved = delta < 0;
   const deltaYears = Math.abs(delta);
   
@@ -121,43 +209,26 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     <div className="relative flex flex-col items-center justify-center py-6">
       {/* Main sphere container */}
       <div className="relative">
-        {/* Outer glow - Blue theme */}
+        {/* Outer ambient glow */}
         <div 
-          className="absolute inset-0 rounded-full blur-3xl scale-[1.8]"
+          className="absolute inset-0 rounded-full blur-3xl scale-[2]"
           style={{
             background: isDark 
-              ? 'radial-gradient(circle, hsla(210, 90%, 55%, 0.3) 0%, hsla(210, 90%, 55%, 0.1) 40%, transparent 70%)'
-              : 'radial-gradient(circle, hsla(210, 75%, 45%, 0.25) 0%, hsla(210, 75%, 45%, 0.08) 40%, transparent 70%)'
+              ? 'radial-gradient(circle, hsla(210, 90%, 55%, 0.25) 0%, hsla(210, 90%, 55%, 0.08) 40%, transparent 65%)'
+              : 'radial-gradient(circle, hsla(210, 75%, 45%, 0.2) 0%, hsla(210, 75%, 45%, 0.06) 40%, transparent 65%)'
           }}
         />
 
-        {/* Canvas for particles */}
+        {/* Canvas for particles and organic border */}
         <canvas
           ref={canvasRef}
-          width={200}
-          height={200}
-          className="absolute inset-0"
+          width={220}
+          height={220}
+          className="absolute -inset-[10px]"
         />
 
-        {/* Main circle - Blue border */}
-        <div 
-          className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center bg-background/20 dark:bg-transparent"
-          style={{
-            border: isDark 
-              ? '1px solid hsla(210, 90%, 55%, 0.35)'
-              : '1px solid hsla(210, 75%, 45%, 0.4)'
-          }}
-        >
-          {/* Inner border ring - Blue */}
-          <div 
-            className="absolute inset-2 rounded-full"
-            style={{
-              border: isDark 
-                ? '1px solid hsla(210, 90%, 55%, 0.15)'
-                : '1px solid hsla(210, 75%, 45%, 0.2)'
-            }}
-          />
-          
+        {/* Content overlay */}
+        <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
           <span className="label-uppercase mb-1">Cognitive Age</span>
           <div className="flex items-baseline gap-1">
             <span className="text-5xl font-semibold text-foreground number-display">
@@ -166,7 +237,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
             <span className="text-lg text-muted-foreground">years</span>
           </div>
           <span
-            className={`text-sm font-medium mt-1`}
+            className="text-sm font-medium mt-1"
             style={{
               color: isImproved 
                 ? 'hsl(210, 90%, 55%)' 
