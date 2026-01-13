@@ -179,6 +179,8 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
 
   return (
     <div className="py-2">
+      <h3 className="label-uppercase text-center mb-3">Dual-Process Integration</h3>
+      
       {/* SVG Brain Map - Split Brain */}
       <div className="relative h-[220px] w-full overflow-hidden rounded-xl">
         <svg 
