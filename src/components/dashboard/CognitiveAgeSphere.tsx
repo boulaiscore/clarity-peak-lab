@@ -11,6 +11,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const [animatedAge, setAnimatedAge] = useState(cognitiveAge);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const duration = 1500;
@@ -34,12 +35,12 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Theme-aware particle colors
+    // Theme-aware particle colors - Blue theme
     const isDark = theme === "dark";
     
     const particleColor = isDark 
-      ? { h: 165, s: 82, l: 51 }  // Vibrant teal for dark mode
-      : { h: 165, s: 65, l: 35 }; // Deeper, more saturated teal for light mode
+      ? { h: 210, s: 90, l: 55 }  // Vibrant blue for dark mode
+      : { h: 210, s: 75, l: 45 }; // Deep blue for light mode
 
     const particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[] = [];
     const particleCount = 60;
@@ -120,8 +121,15 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     <div className="relative flex flex-col items-center justify-center py-6">
       {/* Main sphere container */}
       <div className="relative">
-        {/* Outer glow - theme aware */}
-        <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/25 via-primary/10 to-transparent blur-2xl scale-150 dark:from-primary/20 dark:via-primary/5" />
+        {/* Outer glow - Blue theme */}
+        <div 
+          className="absolute inset-0 rounded-full blur-3xl scale-[1.8]"
+          style={{
+            background: isDark 
+              ? 'radial-gradient(circle, hsla(210, 90%, 55%, 0.3) 0%, hsla(210, 90%, 55%, 0.1) 40%, transparent 70%)'
+              : 'radial-gradient(circle, hsla(210, 75%, 45%, 0.25) 0%, hsla(210, 75%, 45%, 0.08) 40%, transparent 70%)'
+          }}
+        />
 
         {/* Canvas for particles */}
         <canvas
@@ -131,10 +139,24 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           className="absolute inset-0"
         />
 
-        {/* Main circle */}
-        <div className="relative w-[200px] h-[200px] rounded-full border border-primary/40 dark:border-primary/30 flex flex-col items-center justify-center bg-background/30 dark:bg-transparent">
-          {/* Inner border ring */}
-          <div className="absolute inset-2 rounded-full border border-primary/20 dark:border-primary/10" />
+        {/* Main circle - Blue border */}
+        <div 
+          className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center bg-background/20 dark:bg-transparent"
+          style={{
+            border: isDark 
+              ? '1px solid hsla(210, 90%, 55%, 0.35)'
+              : '1px solid hsla(210, 75%, 45%, 0.4)'
+          }}
+        >
+          {/* Inner border ring - Blue */}
+          <div 
+            className="absolute inset-2 rounded-full"
+            style={{
+              border: isDark 
+                ? '1px solid hsla(210, 90%, 55%, 0.15)'
+                : '1px solid hsla(210, 75%, 45%, 0.2)'
+            }}
+          />
           
           <span className="label-uppercase mb-1">Cognitive Age</span>
           <div className="flex items-baseline gap-1">
@@ -144,9 +166,14 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
             <span className="text-lg text-muted-foreground">years</span>
           </div>
           <span
-            className={`text-sm font-medium mt-1 ${
-              isImproved ? "text-primary" : delta > 0 ? "text-warning" : "text-muted-foreground"
-            }`}
+            className={`text-sm font-medium mt-1`}
+            style={{
+              color: isImproved 
+                ? 'hsl(210, 90%, 55%)' 
+                : delta > 0 
+                  ? 'hsl(var(--warning))' 
+                  : 'hsl(var(--muted-foreground))'
+            }}
           >
             {deltaText}
           </span>
