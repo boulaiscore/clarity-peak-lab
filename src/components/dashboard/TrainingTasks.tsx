@@ -625,13 +625,13 @@ export function TrainingTasks() {
       </div>
 
       {/* 14-Day Trend Chart */}
-      {tasksHistoryData && tasksHistoryData.some(d => d.xp > 0) && (
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
-            <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
-            <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
-          </div>
+      <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
+          <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
+          <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
+        </div>
+        {tasksHistoryData && tasksHistoryData.some(d => d.xp > 0) ? (
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={tasksHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
@@ -702,8 +702,14 @@ export function TrainingTasks() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="h-24 flex flex-col items-center justify-center text-center">
+            <BookOpen className="h-6 w-6 text-muted-foreground/30 mb-2" />
+            <p className="text-[11px] text-muted-foreground">No tasks in the last 14 days</p>
+            <p className="text-[9px] text-muted-foreground/60 mt-0.5">Complete podcasts, books or articles to see your trend</p>
+          </div>
+        )}
+      </div>
       {false && activeTasks.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1">
