@@ -49,10 +49,10 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
     const isDarkMode = theme === "dark";
     
-    // Blue color palette
+    // Vibrant bright blue color palette
     const particleColor = isDarkMode 
-      ? { h: 210, s: 90, l: 55 }
-      : { h: 210, s: 75, l: 45 };
+      ? { h: 215, s: 100, l: 65 }
+      : { h: 215, s: 85, l: 55 };
 
     const particles: Particle[] = [];
     const particleCount = 200; // Much denser like WHOOP
@@ -112,20 +112,21 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       // Draw organic pulsing border
       const pulseRadius = baseRadius + Math.sin(time * 0.3) * 3;
       
-      // Draw border glow
+      // Draw border glow - subtle fade on all edges
       ctx.beginPath();
       ctx.arc(centerX, centerY, pulseRadius + 8, 0, Math.PI * 2);
       const glowGradient = ctx.createRadialGradient(
-        centerX, centerY, pulseRadius - 5,
-        centerX, centerY, pulseRadius + 15
+        centerX, centerY, pulseRadius - 10,
+        centerX, centerY, pulseRadius + 20
       );
       glowGradient.addColorStop(0, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, 0)`);
-      glowGradient.addColorStop(0.5, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${isDarkMode ? 0.15 : 0.1})`);
+      glowGradient.addColorStop(0.4, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${isDarkMode ? 0.08 : 0.06})`);
+      glowGradient.addColorStop(0.7, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${isDarkMode ? 0.04 : 0.03})`);
       glowGradient.addColorStop(1, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, 0)`);
       ctx.fillStyle = glowGradient;
       ctx.fill();
 
-      // Draw organic border with varying thickness
+      // Draw organic border with varying thickness and edge fade
       borderParticles.forEach((p, i) => {
         const angle = (i / borderCount) * Math.PI * 2;
         const wobble = Math.sin(time * 0.5 + p.pulseOffset * 3) * 4;
@@ -134,8 +135,12 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         p.x = centerX + Math.cos(angle + Math.sin(time * 0.2) * 0.02) * radiusVariation;
         p.y = centerY + Math.sin(angle + Math.sin(time * 0.2) * 0.02) * radiusVariation;
         
+        // Fade at top and bottom of the circle for smooth blend
+        const verticalPos = Math.abs(Math.cos(angle));
+        const edgeFade = 0.3 + (1 - verticalPos) * 0.7; // Sides visible, top/bottom faded
+        
         const pulseFactor = 0.5 + Math.sin(time * 0.6 + p.pulseOffset) * 0.3;
-        p.alpha = p.baseAlpha * pulseFactor;
+        p.alpha = p.baseAlpha * pulseFactor * edgeFade;
         
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * (0.8 + Math.sin(time * 0.4 + p.pulseOffset) * 0.3), 0, Math.PI * 2);
@@ -145,7 +150,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         // Glow for border particles
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * 0.2})`;
+        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * 0.15})`;
         ctx.fill();
       });
 
@@ -226,13 +231,13 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     <div className="relative flex flex-col items-center justify-center py-6">
       {/* Main sphere container */}
       <div className="relative">
-        {/* Outer ambient glow */}
+        {/* Outer ambient glow - soft fade all around */}
         <div 
           className="absolute inset-0 rounded-full blur-3xl scale-[2]"
           style={{
             background: isDark 
-              ? 'radial-gradient(circle, hsla(210, 90%, 55%, 0.25) 0%, hsla(210, 90%, 55%, 0.08) 40%, transparent 65%)'
-              : 'radial-gradient(circle, hsla(210, 75%, 45%, 0.2) 0%, hsla(210, 75%, 45%, 0.06) 40%, transparent 65%)'
+              ? 'radial-gradient(circle, hsla(215, 100%, 65%, 0.12) 0%, hsla(215, 100%, 65%, 0.04) 45%, transparent 70%)'
+              : 'radial-gradient(circle, hsla(215, 85%, 55%, 0.1) 0%, hsla(215, 85%, 55%, 0.03) 45%, transparent 70%)'
           }}
         />
 
@@ -256,11 +261,13 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           <span
             className="text-sm font-medium mt-1"
             style={{
-              color: isImproved 
-                ? 'hsl(210, 90%, 55%)' 
-                : delta > 0 
-                  ? 'hsl(var(--warning))' 
-                  : 'hsl(var(--muted-foreground))'
+              color: isDark 
+                ? 'hsl(0, 0%, 100%)' 
+                : isImproved 
+                  ? 'hsl(215, 100%, 55%)' 
+                  : delta > 0 
+                    ? 'hsl(var(--warning))' 
+                    : 'hsl(var(--muted-foreground))'
             }}
           >
             {deltaText}
