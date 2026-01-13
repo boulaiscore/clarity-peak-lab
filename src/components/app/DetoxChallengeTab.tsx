@@ -278,10 +278,10 @@ export function DetoxChallengeTab() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="relative mb-2">
-                    <Leaf className="w-6 h-6 text-teal-400" />
+                    <Leaf className="w-6 h-6 text-primary" />
                   </div>
                   <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
-                  <span className="text-xs text-teal-400 font-medium">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
+                  <span className="text-xs text-primary font-medium">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
                   {violationCount > 0 && (
                     <span className="text-[10px] text-amber-400 mt-1">
                       ⚠️ {violationCount} violation{violationCount === 1 ? '' : 's'}
@@ -320,9 +320,9 @@ export function DetoxChallengeTab() {
         <>
           {/* Start Session Card */}
           <div className="p-6 rounded-2xl bg-card border border-border text-center">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-teal-500/10 flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
               <div className="relative">
-                <Leaf className="w-8 h-8 text-teal-400" />
+                <Leaf className="w-8 h-8 text-primary" />
               </div>
             </div>
             
@@ -332,7 +332,7 @@ export function DetoxChallengeTab() {
             <p className="text-sm text-muted-foreground mb-1">
               {DETOX_COGNITIVE_MESSAGES.preSession.subtitle}
             </p>
-            <p className="text-xs text-teal-400 mb-4">
+            <p className="text-xs text-primary mb-4">
               {DETOX_COGNITIVE_MESSAGES.preSession.benefit}
             </p>
 
@@ -375,16 +375,16 @@ export function DetoxChallengeTab() {
             </h4>
             <ul className="space-y-1.5 text-[11px] text-muted-foreground">
               <li className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-teal-400" />
+                <Clock className="w-3 h-3 text-primary" />
                 <span>Minimum session: <strong>30 min</strong> for measurable impact</span>
               </li>
               <li className="flex items-center gap-2">
-                <Leaf className="w-3 h-3 text-teal-400" />
+                <Leaf className="w-3 h-3 text-primary" />
                 <span>Reduces decision fatigue and restores clarity</span>
               </li>
               <li className="flex items-center gap-2">
                 {dailySettings?.reminderEnabled ? (
-                  <Bell className="w-3 h-3 text-teal-400" />
+                  <Bell className="w-3 h-3 text-primary" />
                 ) : (
                   <BellOff className="w-3 h-3 text-muted-foreground" />
                 )}

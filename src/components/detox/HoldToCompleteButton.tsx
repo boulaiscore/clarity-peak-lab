@@ -86,7 +86,7 @@ export function HoldToCompleteButton({
       className={`relative w-full h-14 rounded-2xl font-semibold text-sm overflow-hidden select-none touch-none ${
         disabled 
           ? "bg-white/5 text-white/30 cursor-not-allowed border border-white/10" 
-          : "bg-gradient-to-r from-teal-500 to-cyan-500 text-white active:scale-[0.98]"
+          : "bg-gradient-to-r from-primary to-blue-400 text-white active:scale-[0.98]"
       } ${className}`}
       onMouseDown={startHold}
       onMouseUp={stopHold}
@@ -109,7 +109,7 @@ export function HoldToCompleteButton({
       {/* Glow effect when holding */}
       {isHolding && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-teal-400/30 to-cyan-400/30"
+          className="absolute inset-0 bg-gradient-to-r from-primary/30 to-blue-400/30"
           initial={{ opacity: 0 }}
           animate={{ opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 0.5, repeat: Infinity }}
