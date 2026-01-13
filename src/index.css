@@ -6,26 +6,26 @@
 
 @layer base {
   :root {
-    /* Muted dark palette - sophisticated and easy on the eyes */
+    /* Muted dark palette - high contrast text */
     --background: 220 15% 6%;
     --background-surface: 220 12% 10%;
-    --foreground: 220 10% 92%;
+    --foreground: 220 8% 96%;
 
     --card: 220 12% 11%;
-    --card-foreground: 220 10% 92%;
+    --card-foreground: 220 8% 96%;
 
     --popover: 220 12% 10%;
-    --popover-foreground: 220 10% 92%;
+    --popover-foreground: 220 8% 96%;
 
     /* Primary blue - premium and refined */
     --primary: 220 35% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 10% 14%;
-    --secondary-foreground: 220 10% 90%;
+    --secondary-foreground: 220 8% 94%;
 
     --muted: 220 10% 16%;
-    --muted-foreground: 220 8% 50%;
+    --muted-foreground: 220 8% 60%;
 
     /* Accent blue - sophisticated highlight */
     --accent: 220 30% 38%;
@@ -64,8 +64,8 @@
     --bg-surface: 220 12% 10%;
     --accent-primary: 220 35% 48%;
     --accent-secondary: 220 30% 40%;
-    --text-primary: 220 10% 92%;
-    --text-secondary: 220 8% 50%;
+    --text-primary: 220 8% 96%;
+    --text-secondary: 220 8% 60%;
     
     /* Gradients - Premium blue */
     --gradient-primary: linear-gradient(135deg, hsl(220, 38%, 50%) 0%, hsl(220, 30%, 40%) 100%);
@@ -79,11 +79,11 @@
     --shadow-button: 0 0 20px -4px hsl(220, 35%, 48%, 0.15);
 
     --sidebar-background: 220 15% 5%;
-    --sidebar-foreground: 220 10% 92%;
+    --sidebar-foreground: 220 8% 96%;
     --sidebar-primary: 220 35% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 10% 14%;
-    --sidebar-accent-foreground: 220 10% 90%;
+    --sidebar-accent-foreground: 220 8% 94%;
     --sidebar-border: 220 10% 14%;
     --sidebar-ring: 220 35% 48%;
   }
