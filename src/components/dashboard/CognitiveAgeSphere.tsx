@@ -228,39 +228,42 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     : "at baseline";
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-6">
-      {/* Main sphere container */}
-      <div className="relative">
-        {/* Outer ambient glow - soft fade all around */}
-        <div 
-          className="absolute inset-0 rounded-full blur-3xl scale-[2]"
-          style={{
-            background: isDark 
-              ? 'radial-gradient(circle, hsla(215, 100%, 65%, 0.12) 0%, hsla(215, 100%, 65%, 0.04) 45%, transparent 70%)'
-              : 'radial-gradient(circle, hsla(215, 85%, 55%, 0.1) 0%, hsla(215, 85%, 55%, 0.03) 45%, transparent 70%)'
-          }}
-        />
+    <div className="py-2">
+      <h3 className="label-uppercase text-center mb-3">Cognitive Age</h3>
+      
+      <div className="relative flex flex-col items-center justify-center">
+        {/* Main sphere container */}
+        <div className="relative">
+          {/* Outer ambient glow - soft fade all around */}
+          <div 
+            className="absolute inset-0 rounded-full blur-3xl scale-[2]"
+            style={{
+              background: isDark 
+                ? 'radial-gradient(circle, hsla(215, 100%, 65%, 0.12) 0%, hsla(215, 100%, 65%, 0.04) 45%, transparent 70%)'
+                : 'radial-gradient(circle, hsla(215, 85%, 55%, 0.1) 0%, hsla(215, 85%, 55%, 0.03) 45%, transparent 70%)'
+            }}
+          />
 
-        {/* Canvas for particles and organic border */}
-        <canvas
-          ref={canvasRef}
-          width={220}
-          height={220}
-          className="absolute -inset-[10px]"
-        />
+          {/* Canvas for particles and organic border */}
+          <canvas
+            ref={canvasRef}
+            width={220}
+            height={220}
+            className="absolute -inset-[10px]"
+          />
 
-        {/* Content overlay */}
-        <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
-          <span className="label-uppercase mb-1">Cognitive Age</span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-semibold text-foreground number-display">
-              {Math.round(animatedAge)}
+          {/* Content overlay */}
+          <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-semibold text-foreground number-display">
+                {Math.round(animatedAge)}
+              </span>
+              <span className="text-sm text-muted-foreground">years</span>
+            </div>
+            <span className="text-sm font-medium mt-1 text-muted-foreground">
+              {deltaText}
             </span>
-            <span className="text-sm text-muted-foreground">years</span>
           </div>
-          <span className="text-sm font-medium mt-1 text-muted-foreground">
-            {deltaText}
-          </span>
         </div>
       </div>
     </div>
