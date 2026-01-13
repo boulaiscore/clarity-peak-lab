@@ -104,7 +104,7 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Draw organic pulsing border
-      const pulseRadius = baseRadius + Math.sin(time * 0.8) * 2;
+      const pulseRadius = baseRadius + Math.sin(time * 0.3) * 2;
       
       // Draw border glow
       ctx.beginPath();
@@ -122,17 +122,17 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
       // Draw organic border with varying thickness
       borderParticles.forEach((p, i) => {
         const angle = (i / borderCount) * Math.PI * 2;
-        const wobble = Math.sin(time * 1.5 + p.pulseOffset * 3) * 2.5;
+        const wobble = Math.sin(time * 0.5 + p.pulseOffset * 3) * 2.5;
         const radiusVariation = pulseRadius + wobble;
         
-        p.x = centerX + Math.cos(angle + Math.sin(time * 0.5) * 0.02) * radiusVariation;
-        p.y = centerY + Math.sin(angle + Math.sin(time * 0.5) * 0.02) * radiusVariation;
+        p.x = centerX + Math.cos(angle + Math.sin(time * 0.2) * 0.02) * radiusVariation;
+        p.y = centerY + Math.sin(angle + Math.sin(time * 0.2) * 0.02) * radiusVariation;
         
-        const pulseFactor = 0.5 + Math.sin(time * 2 + p.pulseOffset) * 0.3;
+        const pulseFactor = 0.5 + Math.sin(time * 0.6 + p.pulseOffset) * 0.3;
         p.alpha = p.baseAlpha * pulseFactor;
         
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (0.8 + Math.sin(time + p.pulseOffset) * 0.3), 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * (0.8 + Math.sin(time * 0.4 + p.pulseOffset) * 0.3), 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha})`;
         ctx.fill();
         
