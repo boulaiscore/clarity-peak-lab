@@ -78,6 +78,11 @@ export function usePremiumGating() {
     return isPremium;
   };
 
+  const canAccessChallenges = (): boolean => {
+    // Challenges require Pro plan (or future add-on purchase)
+    return user?.subscriptionStatus === "pro";
+  };
+
   const canStartSession = (): boolean => {
     if (isPremium) return true;
     return remainingSessions > 0;
@@ -93,9 +98,11 @@ export function usePremiumGating() {
 
   return {
     isPremium,
+    isPro: user?.subscriptionStatus === "pro",
     canAccessArea,
     canUseDuration,
     canAccessNeuroActivation,
+    canAccessChallenges,
     canStartSession,
     isAreaLocked,
     isDurationLocked,

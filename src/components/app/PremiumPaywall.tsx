@@ -14,9 +14,11 @@ import { cn } from "@/lib/utils";
 interface PremiumPaywallProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  feature?: "area" | "duration" | "neuro-activation" | "session-limit" | "report";
+  feature?: "area" | "duration" | "neuro-activation" | "session-limit" | "report" | "challenges";
   featureName?: string;
 }
+
+import { Swords } from "lucide-react";
 
 const FEATURES = [
   { icon: Brain, text: "All 3 training areas" },
@@ -24,6 +26,7 @@ const FEATURES = [
   { icon: Zap, text: "Neuro Activation warm-up" },
   { icon: Check, text: "Unlimited daily sessions" },
   { icon: FileText, text: "Cognitive Intelligence Report" },
+  { icon: Swords, text: "Advanced cognitive simulations" },
 ];
 
 const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {
@@ -46,6 +49,10 @@ const FEATURE_MESSAGES: Record<string, { title: string; description: string }> =
   "report": {
     title: "Cognitive Intelligence Report",
     description: "Get a comprehensive analysis of your cognitive performance with personalized insights.",
+  },
+  "challenges": {
+    title: "Advanced Simulations",
+    description: "Advanced cognitive simulations. Designed for deep training and assessment.",
   },
 };
 
@@ -96,7 +103,7 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
         <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button onClick={handleUpgrade} variant="hero" className="w-full min-h-[48px]">
             <Crown className="w-4 h-4 mr-2" />
-            Upgrade to Premium
+            {feature === "challenges" ? "Unlock Advanced Simulations" : "Upgrade to Premium"}
           </Button>
           <Button 
             variant="ghost" 
