@@ -324,46 +324,46 @@ const Home = () => {
               transition={{ delay: 0.1 }}
               className="mb-4"
             >
-              <button
-                onClick={() => navigate("/neuro-lab?tab=detox")}
-                className="w-full p-4 rounded-xl bg-gradient-to-br from-teal-500/10 via-teal-500/5 to-transparent border border-teal-500/20 hover:border-teal-500/40 transition-all active:scale-[0.98] text-left"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/15 flex items-center justify-center shrink-0">
-                    <div className="relative">
-                      <Smartphone className="w-4 h-4 text-teal-400" />
-                      <Ban className="w-4 h-4 text-teal-400 absolute inset-0" />
+                <button
+                  onClick={() => navigate("/neuro-lab?tab=detox")}
+                  className="w-full p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 hover:border-primary/40 transition-all active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                      <div className="relative">
+                        <Smartphone className="w-4 h-4 text-primary" />
+                        <Ban className="w-4 h-4 text-primary absolute inset-0" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-sm font-semibold text-primary">{message.headline}</h3>
+                        {message.urgency === "high" && (
+                          <Zap className="w-3.5 h-3.5 text-primary animate-pulse" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
+                        {message.body}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-medium text-primary uppercase tracking-wide">
+                          {message.metric}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-primary/60" />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-semibold text-teal-300">{message.headline}</h3>
-                      {message.urgency === "high" && (
-                        <Zap className="w-3.5 h-3.5 text-teal-400 animate-pulse" />
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
-                      {message.body}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-medium text-teal-400 uppercase tracking-wide">
-                        {message.metric}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-teal-400/60" />
-                    </div>
+                  
+                  {/* Progress bar */}
+                  <div className="mt-3 h-1 bg-primary/10 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-primary rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, detoxProgress)}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
                   </div>
-                </div>
-                
-                {/* Progress bar */}
-                <div className="mt-3 h-1 bg-teal-500/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-teal-400 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(100, detoxProgress)}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                  />
-                </div>
-              </button>
+                </button>
             </motion.section>
           );
         })()}

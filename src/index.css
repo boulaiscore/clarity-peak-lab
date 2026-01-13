@@ -17,8 +17,8 @@
     --popover: 220 12% 10%;
     --popover-foreground: 220 10% 92%;
 
-    /* Blue accent - sophisticated and premium */
-    --primary: 210 65% 45%;
+    /* Blue accent - muted and sophisticated */
+    --primary: 210 50% 42%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 10% 14%;
@@ -100,8 +100,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 12%;
 
-    /* Blue accent for better visibility */
-    --primary: 210 70% 38%;
+    /* Blue accent - muted for light mode */
+    --primary: 210 55% 35%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 84%;
