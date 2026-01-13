@@ -283,12 +283,6 @@ export function OverviewCarousel({
         </AnimatePresence>
       </div>
       
-      {/* Card title indicator */}
-      <div className="text-center">
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
-          {cardTitles[CARDS[currentIndex]]}
-        </span>
-      </div>
       
       {/* Report CTA - Always visible at bottom */}
       <motion.div
