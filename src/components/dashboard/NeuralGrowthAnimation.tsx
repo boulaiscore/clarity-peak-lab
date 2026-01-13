@@ -253,7 +253,7 @@ export function NeuralGrowthAnimation({
         : "Building cognitive foundation");
 
   return (
-    <div className="p-5 rounded-2xl bg-card border border-border/30">
+    <div className="py-2">
       <h3 className="label-uppercase text-center mb-3">Cognitive Network</h3>
       
       <div className="relative flex justify-center">

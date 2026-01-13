@@ -260,24 +260,14 @@ export function OverviewCarousel({
             )}
             
             {CARDS[currentIndex] === "dual-process" && (
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-[13px] font-semibold text-foreground">Dual-Process Integration</h2>
-                  <Link to="/brain-science" className="flex items-center gap-1 text-[10px] text-primary hover:underline">
-                    <BookOpen className="w-3 h-3" />
-                    Learn more
-                  </Link>
-                </div>
-                
-                <FastSlowBrainMap
-                  fastScore={thinkingScores.fastScore}
-                  fastBaseline={thinkingScores.baselineFast}
-                  fastDelta={thinkingScores.fastDelta}
-                  slowScore={thinkingScores.slowScore}
-                  slowBaseline={thinkingScores.baselineSlow}
-                  slowDelta={thinkingScores.slowDelta}
-                />
-              </div>
+              <FastSlowBrainMap
+                fastScore={thinkingScores.fastScore}
+                fastBaseline={thinkingScores.baselineFast}
+                fastDelta={thinkingScores.fastDelta}
+                slowScore={thinkingScores.slowScore}
+                slowBaseline={thinkingScores.baselineSlow}
+                slowDelta={thinkingScores.slowDelta}
+              />
             )}
           </motion.div>
         </AnimatePresence>

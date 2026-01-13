@@ -1,11 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Zap, Brain, TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Zap, Brain, TrendingUp, TrendingDown, Minus } from "lucide-react";
 interface FastSlowBrainMapProps {
   fastScore: number;
   fastBaseline: number;
@@ -163,13 +158,13 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
   };
 
   return (
-    <div className="rounded-2xl bg-[#05070B] border border-border/30 overflow-hidden">
+    <div className="py-2">
       {/* SVG Brain Map - Split Brain */}
-      <div className="relative h-[220px] w-full overflow-hidden">
+      <div className="relative h-[220px] w-full overflow-hidden rounded-xl">
         <svg 
           viewBox="0 0 300 160" 
           className="w-full h-full"
-          style={{ background: "radial-gradient(ellipse at center, #0a0d12 0%, #05070B 100%)" }}
+          style={{ background: "radial-gradient(ellipse at center, hsl(var(--muted)/0.3) 0%, transparent 100%)" }}
         >
           <defs>
             {/* Fast network gradient - amber/orange */}
@@ -212,9 +207,9 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
                Q 80 150, 110 145 
                Q 140 140, 150 130"
             fill="none"
-            stroke="#1a1f2e"
+            stroke="hsl(var(--border))"
             strokeWidth="1.5"
-            opacity="0.5"
+            opacity="0.3"
           />
           
           {/* Brain outline - Right hemisphere (Slow) */}
@@ -227,19 +222,19 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
                Q 220 150, 190 145 
                Q 160 140, 150 130"
             fill="none"
-            stroke="#1a1f2e"
+            stroke="hsl(var(--border))"
             strokeWidth="1.5"
-            opacity="0.5"
+            opacity="0.3"
           />
           
           {/* Center division line */}
           <line
             x1="150" y1="25"
             x2="150" y2="130"
-            stroke="#1a1f2e"
+            stroke="hsl(var(--border))"
             strokeWidth="1"
             strokeDasharray="3 3"
-            opacity="0.4"
+            opacity="0.3"
           />
 
           {/* LEFT HEMISPHERE - FAST NETWORK */}
@@ -373,9 +368,9 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 gap-px bg-border/20">
+      <div className="grid grid-cols-2 gap-3 mt-3">
         {/* Fast Thinking Card */}
-        <div className="p-3.5 bg-[#08090d]">
+        <div className="p-3 rounded-lg bg-muted/20">
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-5 h-5 rounded-md bg-amber-500/10 flex items-center justify-center">
               <Zap className="w-3 h-3 text-amber-400" />
@@ -383,22 +378,18 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
               System 1
             </span>
-            <div className="flex items-center gap-1 ml-auto">
-              <DeltaIndicator delta={fastDelta} />
-              <span className="text-[10px]">
-                <DeltaText delta={fastDelta} />
-                <span className="text-muted-foreground/60 ml-0.5">vs last</span>
-              </span>
-            </div>
           </div>
-          
-          <p className="text-[9px] text-muted-foreground leading-relaxed">
-            Pattern recognition, intuition
-          </p>
+          <div className="flex items-center gap-1">
+            <DeltaIndicator delta={fastDelta} />
+            <span className="text-[10px]">
+              <DeltaText delta={fastDelta} />
+              <span className="text-muted-foreground/60 ml-0.5">vs last</span>
+            </span>
+          </div>
         </div>
 
         {/* Slow Thinking Card */}
-        <div className="p-3.5 bg-[#08090d]">
+        <div className="p-3 rounded-lg bg-muted/20">
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-5 h-5 rounded-md bg-cyan-500/10 flex items-center justify-center">
               <Brain className="w-3 h-3 text-cyan-400" />
@@ -406,85 +397,21 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
               System 2
             </span>
-            <div className="flex items-center gap-1 ml-auto">
-              <DeltaIndicator delta={slowDelta} />
-              <span className="text-[10px]">
-                <DeltaText delta={slowDelta} />
-                <span className="text-muted-foreground/60 ml-0.5">vs last</span>
-              </span>
-            </div>
           </div>
-          
-          <p className="text-[9px] text-muted-foreground leading-relaxed">
-            Structured reasoning, analysis
-          </p>
+          <div className="flex items-center gap-1">
+            <DeltaIndicator delta={slowDelta} />
+            <span className="text-[10px]">
+              <DeltaText delta={slowDelta} />
+              <span className="text-muted-foreground/60 ml-0.5">vs last</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Scientific disclaimer with Info button */}
-      <div className="px-4 py-2.5 bg-[#05070B] border-t border-border/10">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <p className="text-[8px] text-muted-foreground/60 text-center leading-relaxed">
-            Functional cognitive systems based on Kahneman's dual-process theory.
-          </p>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="p-1 rounded-full hover:bg-border/20 transition-colors">
-                <Info className="w-3 h-3 text-muted-foreground/60 hover:text-muted-foreground" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-4 bg-[#0a0d12] border-border/30" align="center">
-              <div className="space-y-3">
-                <h4 className="text-xs font-semibold text-foreground">Come calcoliamo i punteggi</h4>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-3 h-3 text-amber-400" />
-                    <span className="text-[10px] font-medium text-amber-400">Fast Thinking</span>
-                  </div>
-                  <ul className="text-[9px] text-muted-foreground space-y-0.5 ml-5">
-                    <li>Focus Arena: <span className="text-amber-400">70%</span></li>
-                    <li>Critical Reasoning: <span className="text-amber-400">20%</span></li>
-                    <li>Creativity Hub: <span className="text-amber-400">50%</span></li>
-                  </ul>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Brain className="w-3 h-3 text-cyan-400" />
-                    <span className="text-[10px] font-medium text-cyan-400">Slow Thinking</span>
-                  </div>
-                  <ul className="text-[9px] text-muted-foreground space-y-0.5 ml-5">
-                    <li>Focus Arena: <span className="text-cyan-400">30%</span></li>
-                    <li>Critical Reasoning: <span className="text-cyan-400">80%</span></li>
-                    <li>Creativity Hub: <span className="text-cyan-400">50%</span></li>
-                  </ul>
-                </div>
-                
-                <p className="text-[8px] text-muted-foreground/70 pt-1 border-t border-border/20">
-                  Formula: media pesata normalizzata delle 3 aree
-                </p>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        {/* Score interpretation guide */}
-        <div className="flex items-center justify-center gap-3 text-[8px] text-muted-foreground/70">
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />85+ Elite
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />70+ High
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />50+ Moderate
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />&lt;50 Dev
-          </span>
-        </div>
-      </div>
+      {/* Scientific disclaimer */}
+      <p className="text-[8px] text-muted-foreground/60 text-center leading-relaxed mt-3">
+        Functional cognitive systems based on Kahneman's dual-process theory.
+      </p>
     </div>
   );
 }
