@@ -34,56 +34,67 @@ export function CapacityTab() {
     return "bg-orange-500";
   };
 
+  // Ring calculations
+  const size = 160;
+  const strokeWidth = 10;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const progress = Math.min(totalProgress / 100, 1);
+  const strokeDashoffset = circumference - progress * circumference;
+  
+  // Dynamic color based on progress
+  const ringColor = totalProgress >= 90 
+    ? "hsl(142, 71%, 45%)" 
+    : totalProgress >= 60 
+      ? "hsl(80, 60%, 45%)" 
+      : totalProgress >= 30 
+        ? "hsl(45, 85%, 50%)" 
+        : "hsl(25, 90%, 50%)";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Main Score */}
-      <div className="text-center py-6">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Layers className="w-5 h-5 text-amber-400" />
-          <span className="text-sm uppercase tracking-wider text-muted-foreground">Cognitive Capacity</span>
-        </div>
-        <p className={`text-6xl font-bold tabular-nums ${getScoreColor(totalProgress)}`}>
-          {cappedTotalXP}
-        </p>
-        <p className="text-sm text-muted-foreground mt-2">
-          of {weeklyXPTarget} CC · {planConfig.name}
-        </p>
-      </div>
-
-      {/* Progress Ring Summary */}
-      <div className="flex justify-center">
-        <div className="relative w-32 h-32">
-          <svg className="w-full h-full -rotate-90">
+      {/* Main Ring */}
+      <div className="flex flex-col items-center py-4">
+        <div className="relative" style={{ width: size, height: size }}>
+          <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
             <circle
-              cx="64"
-              cy="64"
-              r="56"
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
               fill="none"
               stroke="hsl(var(--muted))"
-              strokeWidth="8"
+              strokeWidth={strokeWidth}
             />
+          </svg>
+          <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
             <circle
-              cx="64"
-              cy="64"
-              r="56"
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
               fill="none"
-              stroke="hsl(var(--primary))"
-              strokeWidth="8"
+              stroke={ringColor}
+              strokeWidth={strokeWidth}
               strokeLinecap="round"
-              strokeDasharray={351.86}
-              strokeDashoffset={351.86 - (Math.min(100, totalProgress) / 100) * 351.86}
-              className="transition-all duration-700"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              className="transition-all duration-1000 ease-out"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold">{Math.round(totalProgress)}%</span>
-            <span className="text-[10px] text-muted-foreground">Complete</span>
+            <Layers className="w-5 h-5 text-amber-400 mb-1" />
+            <span className={`text-4xl font-bold tabular-nums ${getScoreColor(totalProgress)}`}>
+              {cappedTotalXP}
+            </span>
           </div>
         </div>
+        <p className="mt-3 text-xs uppercase tracking-wider text-muted-foreground">Cognitive Capacity</p>
+        <p className="text-[10px] text-muted-foreground/60">
+          of {weeklyXPTarget} CC · {planConfig.name}
+        </p>
       </div>
 
       {/* Category Breakdown */}
