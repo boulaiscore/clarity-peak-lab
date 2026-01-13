@@ -15,6 +15,7 @@ interface Particle {
   alpha: number;
   baseAlpha: number;
   pulseOffset: number;
+  targetRadius?: number;
 }
 
 export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeSphereCompactProps) {
@@ -58,10 +59,13 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
     const centerY = canvas.height / 2;
     const baseRadius = 58;
 
-    // Initialize particles - fill the entire sphere
+    // Initialize particles - concentrate near the border, leave center empty
     for (let i = 0; i < particleCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const r = Math.random() * baseRadius * 0.95;
+      // Use a distribution that favors the outer ring (50%-95% of radius)
+      const minRadius = baseRadius * 0.5;
+      const maxRadius = baseRadius * 0.95;
+      const r = minRadius + Math.random() * (maxRadius - minRadius);
       const baseAlpha = isDarkMode 
         ? (Math.random() * 0.6 + 0.2) 
         : (Math.random() * 0.8 + 0.3);
@@ -75,6 +79,7 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
         alpha: baseAlpha,
         baseAlpha,
         pulseOffset: Math.random() * Math.PI * 2,
+        targetRadius: r,
       });
     }
 
@@ -154,15 +159,27 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
         p.vx *= 0.98;
         p.vy *= 0.98;
 
-        // Keep within organic boundary
+        // Keep particles in their ring zone (near border, away from center)
         const dx = p.x - centerX;
         const dy = p.y - centerY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const currentRadius = pulseRadius - 3;
+        const minDist = baseRadius * 0.45; // Inner boundary - keep center empty
+        const maxDist = pulseRadius - 3;
         
-        if (dist > currentRadius * 0.92) {
+        // Push back if too close to center
+        if (dist < minDist) {
           const angle = Math.atan2(dy, dx);
-          const pushBack = (dist - currentRadius * 0.85) * 0.1;
+          const pushOut = (minDist - dist) * 0.15;
+          p.x += Math.cos(angle) * pushOut;
+          p.y += Math.sin(angle) * pushOut;
+          p.vx *= 0.5;
+          p.vy *= 0.5;
+        }
+        
+        // Push back if too close to border
+        if (dist > maxDist * 0.92) {
+          const angle = Math.atan2(dy, dx);
+          const pushBack = (dist - maxDist * 0.85) * 0.1;
           p.x -= Math.cos(angle) * pushBack;
           p.y -= Math.sin(angle) * pushBack;
           p.vx *= 0.5;
@@ -230,8 +247,8 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
             Cognitive Age
           </span>
           <div className="flex items-baseline gap-0.5">
-            <span className="text-3xl font-semibold text-foreground">{Math.round(animatedAge)}</span>
-            <span className="text-xs text-muted-foreground">y</span>
+            <span className="text-2xl font-semibold text-foreground">{Math.round(animatedAge)}</span>
+            <span className="text-[10px] text-muted-foreground">y</span>
           </div>
           <span
             className="text-[10px] font-medium mt-0.5"
