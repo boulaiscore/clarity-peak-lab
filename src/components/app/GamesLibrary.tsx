@@ -197,6 +197,16 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
+      {/* Unlocked Status Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-success/10 border border-success/30 w-fit mx-auto"
+      >
+        <Swords className="w-4 h-4 text-success" />
+        <span className="text-xs font-medium text-success">Advanced Simulations Unlocked</span>
+      </motion.div>
+
       {/* System Tab Icons */}
       <div className="flex items-center justify-center gap-3">
         {SYSTEM_TABS.map((tab) => {
