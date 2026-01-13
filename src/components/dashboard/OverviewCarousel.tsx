@@ -279,7 +279,7 @@ export function OverviewCarousel({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="-mt-4"
+        className="-mt-8"
       >
         <Link to="/app/report" className="block group">
           <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
