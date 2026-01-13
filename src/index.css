@@ -17,8 +17,8 @@
     --popover: 220 12% 10%;
     --popover-foreground: 220 10% 92%;
 
-    /* Muted teal accent - calm and sophisticated */
-    --primary: 168 28% 38%;
+    /* Blue accent - sophisticated and premium */
+    --primary: 210 65% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 10% 14%;
@@ -27,7 +27,7 @@
     --muted: 220 10% 16%;
     --muted-foreground: 220 8% 50%;
 
-    --accent: 168 24% 32%;
+    --accent: 210 55% 38%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 55% 48%;
@@ -41,12 +41,12 @@
 
     --border: 220 10% 18%;
     --input: 220 10% 14%;
-    --ring: 168 28% 38%;
+    --ring: 210 65% 45%;
 
     --radius: 1rem;
 
-    /* Chart palette - muted tones */
-    --chart-1: 168 30% 42%;
+    /* Chart palette - blue tones */
+    --chart-1: 210 50% 50%;
     --chart-2: 260 28% 52%;
     --chart-3: 42 45% 48%;
     --chart-4: 195 35% 45%;
@@ -59,33 +59,33 @@
     --area-fast: 42 40% 50%;
     --area-slow: 195 30% 48%;
 
-    /* Brand tokens - Muted style */
+    /* Brand tokens - Blue style */
     --bg-primary: 220 15% 6%;
     --bg-surface: 220 12% 10%;
-    --accent-primary: 168 28% 38%;
-    --accent-secondary: 168 24% 32%;
+    --accent-primary: 210 65% 45%;
+    --accent-secondary: 210 55% 38%;
     --text-primary: 220 10% 92%;
     --text-secondary: 220 8% 50%;
     
-    /* Gradients - Subtle, muted */
-    --gradient-primary: linear-gradient(135deg, hsl(168, 28%, 38%) 0%, hsl(168, 24%, 32%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(168, 28%, 38%, 0.08) 0%, transparent 70%);
+    /* Gradients - Blue, subtle */
+    --gradient-primary: linear-gradient(135deg, hsl(210, 65%, 45%) 0%, hsl(210, 55%, 38%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(210, 65%, 45%, 0.08) 0%, transparent 70%);
     --gradient-surface: linear-gradient(180deg, hsl(220, 12%, 11%) 0%, hsl(220, 15%, 6%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(168, 28%, 38%, 0.02) 0%, transparent 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(210, 65%, 45%, 0.02) 0%, transparent 100%);
     
-    /* Shadows - Very subtle */
-    --shadow-glow: 0 0 80px -40px hsl(168, 28%, 38%, 0.2);
+    /* Shadows - Blue glow */
+    --shadow-glow: 0 0 80px -40px hsl(210, 65%, 45%, 0.2);
     --shadow-card: 0 2px 20px -4px hsl(220, 20%, 0%, 0.6);
-    --shadow-button: 0 0 20px -4px hsl(168, 28%, 38%, 0.15);
+    --shadow-button: 0 0 20px -4px hsl(210, 65%, 45%, 0.15);
 
     --sidebar-background: 220 15% 5%;
     --sidebar-foreground: 220 10% 92%;
-    --sidebar-primary: 168 28% 38%;
+    --sidebar-primary: 210 65% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 10% 14%;
     --sidebar-accent-foreground: 220 10% 90%;
     --sidebar-border: 220 10% 14%;
-    --sidebar-ring: 168 28% 38%;
+    --sidebar-ring: 210 65% 45%;
   }
 
   .light {
@@ -100,8 +100,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 12%;
 
-    /* Deeper teal accent for better visibility */
-    --primary: 168 35% 28%;
+    /* Blue accent for better visibility */
+    --primary: 210 70% 38%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 84%;
@@ -110,7 +110,7 @@
     --muted: 220 12% 88%;
     --muted-foreground: 220 15% 35%;
 
-    --accent: 168 30% 25%;
+    --accent: 210 60% 32%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 65% 42%;
@@ -124,10 +124,10 @@
 
     --border: 220 14% 78%;
     --input: 220 12% 82%;
-    --ring: 168 35% 28%;
+    --ring: 210 70% 38%;
 
-    /* Chart palette - stronger contrast */
-    --chart-1: 168 38% 32%;
+    /* Chart palette - blue tones */
+    --chart-1: 210 55% 40%;
     --chart-2: 260 35% 42%;
     --chart-3: 42 55% 40%;
     --chart-4: 195 42% 38%;
@@ -140,33 +140,33 @@
     --area-fast: 42 50% 42%;
     --area-slow: 195 38% 38%;
 
-    /* Brand tokens - High Contrast Light */
+    /* Brand tokens - Blue Light */
     --bg-primary: 220 14% 94%;
     --bg-surface: 220 12% 90%;
-    --accent-primary: 168 35% 28%;
-    --accent-secondary: 168 30% 25%;
+    --accent-primary: 210 70% 38%;
+    --accent-secondary: 210 60% 32%;
     --text-primary: 220 25% 12%;
     --text-secondary: 220 15% 35%;
     
-    /* Gradients - Stronger light mode */
-    --gradient-primary: linear-gradient(135deg, hsl(168, 35%, 28%) 0%, hsl(168, 30%, 25%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(168, 35%, 28%, 0.08) 0%, transparent 70%);
+    /* Gradients - Blue light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(210, 70%, 38%) 0%, hsl(210, 60%, 32%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(210, 70%, 38%, 0.08) 0%, transparent 70%);
     --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(220, 14%, 94%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(168, 35%, 28%, 0.04) 0%, transparent 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(210, 70%, 38%, 0.04) 0%, transparent 100%);
     
-    /* Shadows - More defined */
-    --shadow-glow: 0 0 50px -25px hsl(168, 35%, 28%, 0.2);
+    /* Shadows - Blue defined */
+    --shadow-glow: 0 0 50px -25px hsl(210, 70%, 38%, 0.2);
     --shadow-card: 0 4px 20px -4px hsl(220, 25%, 0%, 0.1);
-    --shadow-button: 0 4px 16px -4px hsl(168, 35%, 28%, 0.18);
+    --shadow-button: 0 4px 16px -4px hsl(210, 70%, 38%, 0.18);
 
     --sidebar-background: 220 12% 90%;
     --sidebar-foreground: 220 25% 12%;
-    --sidebar-primary: 168 35% 28%;
+    --sidebar-primary: 210 70% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 12% 84%;
     --sidebar-accent-foreground: 220 25% 12%;
     --sidebar-border: 220 14% 78%;
-    --sidebar-ring: 168 35% 28%;
+    --sidebar-ring: 210 70% 38%;
   }
 }
 
@@ -288,13 +288,13 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(ellipse at 50% 0%, hsl(168, 28%, 38%, 0.04) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 50% 0%, hsl(210, 65%, 45%, 0.04) 0%, transparent 60%);
     pointer-events: none;
   }
 
   /* Particle glow for sphere */
   .sphere-glow {
-    background: radial-gradient(ellipse at center, hsl(168, 28%, 38%, 0.1) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, hsl(210, 65%, 45%, 0.1) 0%, transparent 70%);
   }
 
   .animate-pulse-slow {
