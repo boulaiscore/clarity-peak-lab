@@ -258,40 +258,10 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
             </span>
             <span className="text-sm text-muted-foreground">years</span>
           </div>
-          <span
-            className="text-sm font-medium mt-1"
-            style={{
-              color: isDark 
-                ? 'hsl(0, 0%, 100%)' 
-                : isImproved 
-                  ? 'hsl(215, 100%, 55%)' 
-                  : delta > 0 
-                    ? 'hsl(var(--warning))' 
-                    : 'hsl(var(--muted-foreground))'
-            }}
-          >
+          <span className="text-sm font-medium mt-1 text-muted-foreground">
             {deltaText}
           </span>
         </div>
-      </div>
-
-      {/* Chronological age reference */}
-      {chronologicalAge && (
-        <p className="text-muted-foreground text-xs text-center mt-4">
-          Chronological age: {chronologicalAge} years
-        </p>
-      )}
-
-      {/* Description */}
-      <p className="text-muted-foreground text-xs text-center mt-2 max-w-[280px]">
-        Your brain's functional age based on reasoning speed, clarity, decision quality, and focus.
-      </p>
-
-      {/* Disclaimer */}
-      <div className="mt-4 px-3 py-2 rounded-lg bg-card/50 border border-border/30">
-        <p className="text-[9px] text-muted-foreground/60 text-center uppercase tracking-wider">
-          Cognitive performance index · Not a medical measurement
-        </p>
       </div>
     </div>
   );
