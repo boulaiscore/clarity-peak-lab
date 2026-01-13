@@ -10,6 +10,7 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
   const [animatedAge, setAnimatedAge] = useState(cognitiveAge);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const duration = 1200;
@@ -33,12 +34,12 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Theme-aware particle colors
+    // Theme-aware particle colors - Blue theme
     const isDark = theme === "dark";
     
     const particleColor = isDark 
-      ? { h: 165, s: 82, l: 51 }  // Vibrant teal for dark mode
-      : { h: 165, s: 65, l: 35 }; // Deeper, more saturated teal for light mode
+      ? { h: 210, s: 90, l: 55 }  // Vibrant blue for dark mode
+      : { h: 210, s: 75, l: 45 }; // Deep blue for light mode
 
     const particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[] = [];
     const particleCount = 40;
@@ -106,10 +107,17 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
   return (
     <div className="relative flex items-center justify-center">
       <div className="relative">
-        {/* Glow - theme aware */}
-        <div className="absolute inset-0 rounded-full bg-gradient-radial from-primary/20 via-primary/5 to-transparent blur-xl scale-150 dark:from-primary/15 dark:via-primary/5" />
+        {/* Glow - Blue theme */}
+        <div 
+          className="absolute inset-0 rounded-full blur-2xl scale-[1.6]"
+          style={{
+            background: isDark 
+              ? 'radial-gradient(circle, hsla(210, 90%, 55%, 0.25) 0%, hsla(210, 90%, 55%, 0.08) 40%, transparent 70%)'
+              : 'radial-gradient(circle, hsla(210, 75%, 45%, 0.2) 0%, hsla(210, 75%, 45%, 0.06) 40%, transparent 70%)'
+          }}
+        />
 
-        {/* Animated rotating ring */}
+        {/* Animated rotating ring - Blue */}
         <svg 
           className="absolute inset-0 w-[130px] h-[130px] animate-spin-slow"
           viewBox="0 0 130 130"
@@ -119,14 +127,13 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
             cy="65"
             r="62"
             fill="none"
-            stroke="currentColor"
+            stroke={isDark ? 'hsla(210, 90%, 55%, 0.35)' : 'hsla(210, 75%, 45%, 0.4)'}
             strokeWidth="1"
             strokeDasharray="8 12"
-            className="text-primary/40 dark:text-primary/30"
           />
         </svg>
 
-        {/* Second rotating ring - opposite direction */}
+        {/* Second rotating ring - opposite direction - Blue */}
         <svg 
           className="absolute inset-0 w-[130px] h-[130px] animate-spin-slow-reverse"
           viewBox="0 0 130 130"
@@ -136,29 +143,40 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
             cy="65"
             r="58"
             fill="none"
-            stroke="currentColor"
+            stroke={isDark ? 'hsla(210, 90%, 55%, 0.2)' : 'hsla(210, 75%, 45%, 0.25)'}
             strokeWidth="0.5"
             strokeDasharray="4 20"
-            className="text-primary/25 dark:text-primary/20"
           />
         </svg>
 
-        {/* Orbiting dots */}
+        {/* Orbiting dots - Blue */}
         <div className="absolute inset-0 w-[130px] h-[130px] animate-spin-slower">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary/60 dark:bg-primary/50 shadow-[0_0_6px_hsl(var(--primary))]" />
+          <div 
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
+            style={{
+              backgroundColor: isDark ? 'hsla(210, 90%, 55%, 0.6)' : 'hsla(210, 75%, 45%, 0.7)',
+              boxShadow: '0 0 6px hsla(210, 90%, 55%, 0.5)'
+            }}
+          />
         </div>
         <div className="absolute inset-0 w-[130px] h-[130px] animate-spin-slower" style={{ animationDelay: '-5s' }}>
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/40 dark:bg-primary/30" />
+          <div 
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+            style={{ backgroundColor: isDark ? 'hsla(210, 90%, 55%, 0.4)' : 'hsla(210, 75%, 45%, 0.5)' }}
+          />
         </div>
         <div className="absolute inset-0 w-[130px] h-[130px] animate-spin-slower" style={{ animationDelay: '-10s' }}>
-          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1 h-1 rounded-full bg-primary/50 dark:bg-primary/40" />
+          <div 
+            className="absolute top-1/2 right-0 -translate-y-1/2 w-1 h-1 rounded-full"
+            style={{ backgroundColor: isDark ? 'hsla(210, 90%, 55%, 0.5)' : 'hsla(210, 75%, 45%, 0.6)' }}
+          />
         </div>
 
         {/* Canvas for inner particles */}
         <canvas ref={canvasRef} width={130} height={130} className="absolute inset-0" />
 
         {/* Inner circle with content */}
-        <div className="relative w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center bg-background/30 dark:bg-transparent">
+        <div className="relative w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center bg-background/20 dark:bg-transparent">
           <span className="text-[9px] uppercase tracking-wider text-muted-foreground mb-0.5">
             Cognitive Age
           </span>
@@ -167,9 +185,14 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
             <span className="text-xs text-muted-foreground">y</span>
           </div>
           <span
-            className={`text-[10px] font-medium mt-0.5 ${
-              isImproved ? "text-primary" : delta > 0 ? "text-warning" : "text-muted-foreground"
-            }`}
+            className="text-[10px] font-medium mt-0.5"
+            style={{
+              color: isImproved 
+                ? 'hsl(210, 90%, 55%)' 
+                : delta > 0 
+                  ? 'hsl(var(--warning))' 
+                  : 'hsl(var(--muted-foreground))'
+            }}
           >
             {deltaText}
           </span>
