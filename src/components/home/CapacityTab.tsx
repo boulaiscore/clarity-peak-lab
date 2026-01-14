@@ -70,7 +70,7 @@ export function CapacityTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Capacity</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Recovery</p>
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {cappedTotalXP}
             </span>
@@ -83,14 +83,14 @@ export function CapacityTab() {
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Layers className="w-5 h-5 text-amber-400 mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Weekly Load</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {totalProgress >= 100 
-            ? "Target reached. Your cognitive reserve is fully stocked for the week." 
+            ? "Recovery target reached. Your cognitive reserve is fully restored for the week." 
             : totalProgress >= 50 
-              ? `${Math.round(100 - totalProgress)}% remaining to hit your ${planConfig.name} target.`
-              : "Build momentum early—consistency compounds cognitive gains."}
+              ? `${Math.round(100 - totalProgress)}% remaining to complete your ${planConfig.name} recovery target.`
+              : "Build recovery early—consistency compounds cognitive restoration."}
         </p>
       </div>
 

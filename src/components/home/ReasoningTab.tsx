@@ -67,7 +67,7 @@ export function ReasoningTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Reasoning</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Readiness</p>
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {`${overallScore}`}
               <span className="text-3xl">%</span>
@@ -80,10 +80,10 @@ export function ReasoningTab() {
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Brain className="w-5 h-5 text-primary mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Deep Analysis</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Cognitive Readiness</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Your System 2 is {overallScore >= 70 ? "sharp for complex problem-solving" : overallScore >= 50 ? "balanced for deliberate thinking" : "fatigued—avoid major decisions"}. 
+          Your cognitive readiness is {overallScore >= 70 ? "sharp for complex problem-solving" : overallScore >= 50 ? "balanced for deliberate thinking" : "fatigued—avoid major decisions"}. 
           Analytical tasks engage this cognitive layer.
         </p>
       </div>
