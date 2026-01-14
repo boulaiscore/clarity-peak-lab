@@ -230,7 +230,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Swords className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Challenges</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Training</span>
                   <span className="text-[8px] text-muted-foreground/60 tabular-nums">
                     {Math.round(cappedGames)}/{Math.round(gamesXPTarget)}
                   </span>
@@ -444,7 +444,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       <div className="mb-3">
         <div className="flex items-center gap-1.5 mb-2">
           <Swords className="w-3 h-3 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground font-medium">Challenges</span>
+          <span className="text-[10px] text-muted-foreground font-medium">Training</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
             {Math.round(cappedGames)}/{Math.round(gamesXPTarget)}
           </span>

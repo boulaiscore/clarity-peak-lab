@@ -116,7 +116,7 @@ export function CapacityTab() {
           />
           <CategoryRow 
             icon={<Swords className="w-4 h-4 text-blue-400" />}
-            label="Challenges"
+            label="Training"
             current={cappedGamesXP}
             target={gamesXPTarget}
           />

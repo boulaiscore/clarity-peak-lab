@@ -561,7 +561,7 @@ const Home = () => {
                       <div className="flex items-center gap-1.5">
                         <Swords className="w-3 h-3 text-blue-400" />
                         <span className="text-[10px] text-muted-foreground">
-                          Challenges: <span className="text-blue-400 font-medium">{gamesXPTarget}</span>
+                          Training: <span className="text-blue-400 font-medium">{gamesXPTarget}</span>
                         </span>
                       </div>
                     </div>

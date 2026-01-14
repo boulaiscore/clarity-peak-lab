@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 interface PremiumPaywallProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  feature?: "area" | "duration" | "neuro-activation" | "session-limit" | "report" | "challenges";
+  feature?: "area" | "duration" | "neuro-activation" | "session-limit" | "report" | "training";
   featureName?: string;
 }
 
@@ -50,9 +50,9 @@ const FEATURE_MESSAGES: Record<string, { title: string; description: string }> =
     title: "Cognitive Intelligence Report",
     description: "Get a comprehensive analysis of your cognitive performance with personalized insights.",
   },
-  "challenges": {
-    title: "Advanced Simulations",
-    description: "Advanced cognitive simulations. Designed for deep training and assessment.",
+  "training": {
+    title: "Advanced Training",
+    description: "Advanced cognitive training modules. Designed for deep performance optimization.",
   },
 };
 
@@ -103,7 +103,7 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
         <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button onClick={handleUpgrade} variant="hero" className="w-full min-h-[48px]">
             <Crown className="w-4 h-4 mr-2" />
-            {feature === "challenges" ? "Unlock Advanced Simulations" : "Upgrade to Premium"}
+            {feature === "training" ? "Unlock Advanced Training" : "Upgrade to Premium"}
           </Button>
           <Button 
             variant="ghost" 

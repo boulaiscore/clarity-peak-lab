@@ -183,7 +183,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                           </div>
                           <div className="min-w-0">
                             <p className="text-[11px] font-semibold text-blue-400">{gamesXPTarget} XP</p>
-                            <p className="text-[9px] text-muted-foreground">Challenges</p>
+                            <p className="text-[9px] text-muted-foreground">Training</p>
                           </div>
                         </div>
                       </div>
