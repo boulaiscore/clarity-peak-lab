@@ -544,12 +544,6 @@ const Home = () => {
                     </div>
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-1.5">
-                        <Swords className="w-3 h-3 text-blue-400" />
-                        <span className="text-[10px] text-muted-foreground">
-                          Challenges: <span className="text-blue-400 font-medium">{gamesXPTarget}</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
                         <BookMarked className="w-3 h-3 text-purple-400" />
                         <span className="text-[10px] text-muted-foreground">
                           Tasks: <span className="text-purple-400 font-medium">{tasksXPTarget}</span>
@@ -559,11 +553,17 @@ const Home = () => {
                         <div className="flex items-center gap-1.5">
                           <Smartphone className="w-3 h-3 text-teal-400" />
                           <span className="text-[10px] text-muted-foreground">
-                            Recovery: <span className="text-teal-400 font-medium">{detoxXPTarget}</span>
+                            Step & Detox: <span className="text-teal-400 font-medium">{detoxXPTarget}</span>
                             <span className="text-muted-foreground/60"> ({Math.round(plan.detox.weeklyMinutes / 60)}h)</span>
                           </span>
                         </div>
                       )}
+                      <div className="flex items-center gap-1.5">
+                        <Swords className="w-3 h-3 text-blue-400" />
+                        <span className="text-[10px] text-muted-foreground">
+                          Challenges: <span className="text-blue-400 font-medium">{gamesXPTarget}</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </button>

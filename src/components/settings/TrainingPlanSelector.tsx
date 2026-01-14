@@ -160,15 +160,6 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center shrink-0">
-                            <Swords className="w-3 h-3 text-blue-400" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-semibold text-blue-400">{gamesXPTarget} XP</p>
-                            <p className="text-[9px] text-muted-foreground">Challenges</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
                           <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center shrink-0">
                             <BookOpen className="w-3 h-3 text-purple-400" />
                           </div>
@@ -184,6 +175,15 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                           <div className="min-w-0">
                             <p className="text-[11px] font-semibold text-green-400">{detoxXPTarget} XP</p>
                             <p className="text-[9px] text-muted-foreground">Step & Detox</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center shrink-0">
+                            <Swords className="w-3 h-3 text-blue-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-semibold text-blue-400">{gamesXPTarget} XP</p>
+                            <p className="text-[9px] text-muted-foreground">Challenges</p>
                           </div>
                         </div>
                       </div>
