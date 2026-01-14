@@ -234,7 +234,7 @@ export default function DetoxSessionRunner() {
         >
           <div className="flex items-center justify-center gap-2 mb-3">
             <div className="px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30">
-              <span className="text-xs font-medium text-primary">Step & Detox</span>
+              <span className="text-xs font-medium text-primary">Walk & Detox</span>
             </div>
           </div>
           

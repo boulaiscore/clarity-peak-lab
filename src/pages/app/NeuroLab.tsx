@@ -318,7 +318,7 @@ export default function NeuroLab() {
                 <Smartphone className="w-3.5 h-3.5" />
                 <Ban className="w-3.5 h-3.5 absolute inset-0" />
               </div>
-              Step & Detox
+              Walk & Detox
             </TabsTrigger>
             <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
               <Swords className="w-3.5 h-3.5" />

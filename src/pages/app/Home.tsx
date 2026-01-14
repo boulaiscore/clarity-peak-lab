@@ -553,7 +553,7 @@ const Home = () => {
                         <div className="flex items-center gap-1.5">
                           <Smartphone className="w-3 h-3 text-teal-400" />
                           <span className="text-[10px] text-muted-foreground">
-                            Step & Detox: <span className="text-teal-400 font-medium">{detoxXPTarget}</span>
+                            Walk & Detox: <span className="text-teal-400 font-medium">{detoxXPTarget}</span>
                             <span className="text-muted-foreground/60"> ({Math.round(plan.detox.weeklyMinutes / 60)}h)</span>
                           </span>
                         </div>

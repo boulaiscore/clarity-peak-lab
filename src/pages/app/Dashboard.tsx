@@ -185,7 +185,7 @@ const Dashboard = () => {
                   <Smartphone className="w-3.5 h-3.5" />
                   <Ban className="w-2 h-2 absolute -bottom-0.5 -right-1" />
                 </div>
-                Step & Detox
+                Walk & Detox
               </button>
               <button
                 onClick={() => setTrainingSubTab("games")}

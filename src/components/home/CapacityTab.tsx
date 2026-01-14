@@ -110,7 +110,7 @@ export function CapacityTab() {
           />
           <CategoryRow 
             icon={<Smartphone className="w-4 h-4 text-teal-400" />}
-            label="Step & Detox"
+            label="Walk & Detox"
             current={Math.min(rawDetoxXP, detoxXPTarget)}
             target={detoxXPTarget}
           />
