@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Zap, Timer,
-  ChevronRight
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
@@ -12,35 +12,73 @@ import { CognitiveExercise } from "@/lib/exercises";
 import { GAME_COGNITIVE_BENEFITS } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
+
 const AREA_ICONS: Record<string, React.ElementType> = {
   focus: Target,
   reasoning: Brain,
   creativity: Lightbulb,
 };
 
-const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  focus: { bg: "bg-[hsl(var(--area-focus))]/10", text: "text-[hsl(var(--area-focus))]", border: "border-[hsl(var(--area-focus))]/30" },
-  reasoning: { bg: "bg-[hsl(var(--area-reasoning))]/10", text: "text-[hsl(var(--area-reasoning))]", border: "border-[hsl(var(--area-reasoning))]/30" },
-  creativity: { bg: "bg-[hsl(var(--area-creativity))]/10", text: "text-[hsl(var(--area-creativity))]", border: "border-[hsl(var(--area-creativity))]/30" },
+const AREA_GRADIENTS: Record<string, string> = {
+  focus: "from-[hsl(var(--area-focus))]/20 via-[hsl(var(--area-focus))]/5 to-transparent",
+  reasoning: "from-[hsl(var(--area-reasoning))]/20 via-[hsl(var(--area-reasoning))]/5 to-transparent",
+  creativity: "from-[hsl(var(--area-creativity))]/20 via-[hsl(var(--area-creativity))]/5 to-transparent",
+};
+
+const AREA_COLORS: Record<string, { bg: string; text: string; border: string; glow: string }> = {
+  focus: { 
+    bg: "bg-[hsl(var(--area-focus))]/15", 
+    text: "text-[hsl(var(--area-focus))]", 
+    border: "border-[hsl(var(--area-focus))]/20",
+    glow: "shadow-[0_0_20px_hsl(var(--area-focus)/0.15)]"
+  },
+  reasoning: { 
+    bg: "bg-[hsl(var(--area-reasoning))]/15", 
+    text: "text-[hsl(var(--area-reasoning))]", 
+    border: "border-[hsl(var(--area-reasoning))]/20",
+    glow: "shadow-[0_0_20px_hsl(var(--area-reasoning)/0.15)]"
+  },
+  creativity: { 
+    bg: "bg-[hsl(var(--area-creativity))]/15", 
+    text: "text-[hsl(var(--area-creativity))]", 
+    border: "border-[hsl(var(--area-creativity))]/20",
+    glow: "shadow-[0_0_20px_hsl(var(--area-creativity)/0.15)]"
+  },
 };
 
 // Areas available per thinking system (2x2 matrix)
-const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string }[] = [
-  { areaId: "focus", name: "Focus" },
-  { areaId: "creativity", name: "Creativity" },
+const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] = [
+  { areaId: "focus", name: "Focus", tagline: "Speed & Precision" },
+  { areaId: "creativity", name: "Creativity", tagline: "Rapid Ideation" },
 ];
 
-const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string }[] = [
-  { areaId: "reasoning", name: "Reasoning" },
-  { areaId: "creativity", name: "Creativity" },
+const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] = [
+  { areaId: "reasoning", name: "Reasoning", tagline: "Deep Analysis" },
+  { areaId: "creativity", name: "Creativity", tagline: "Structured Innovation" },
 ];
 
 type ThinkingSystem = "fast" | "slow";
 
-const SYSTEM_TABS: { id: ThinkingSystem; label: string; sublabel: string; icon: typeof Zap; color: string; bgColor: string }[] = [
-  { id: "fast", label: "System 1", sublabel: "Intuition", icon: Zap, color: "text-[hsl(var(--area-fast))]", bgColor: "bg-[hsl(var(--area-fast))]/15" },
-  { id: "slow", label: "System 2", sublabel: "Reasoning", icon: Timer, color: "text-[hsl(var(--area-slow))]", bgColor: "bg-[hsl(var(--area-slow))]/15" },
-];
+const SYSTEM_INFO: Record<ThinkingSystem, { label: string; sublabel: string; description: string; icon: typeof Zap; color: string; bgColor: string; borderColor: string }> = {
+  fast: { 
+    label: "System 1", 
+    sublabel: "Intuition", 
+    description: "Quick decisions, pattern recognition",
+    icon: Zap, 
+    color: "text-[hsl(var(--area-fast))]", 
+    bgColor: "bg-[hsl(var(--area-fast))]/12",
+    borderColor: "border-[hsl(var(--area-fast))]/30"
+  },
+  slow: { 
+    label: "System 2", 
+    sublabel: "Reasoning", 
+    description: "Deliberate thinking, logical analysis",
+    icon: Timer, 
+    color: "text-[hsl(var(--area-slow))]", 
+    bgColor: "bg-[hsl(var(--area-slow))]/12",
+    borderColor: "border-[hsl(var(--area-slow))]/30"
+  },
+};
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
@@ -85,96 +123,150 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
-  const getBenefitKey = (areaId: NeuroLabArea, mode: ThinkingSystem) => {
-    return `${areaId}-${mode}` as keyof typeof GAME_COGNITIVE_BENEFITS;
-  };
-
-  const renderGameCard = (areaId: NeuroLabArea, mode: ThinkingSystem, index: number) => {
-    const Icon = AREA_ICONS[areaId] || Brain;
-    const colors = AREA_COLORS[areaId];
-    const benefitKey = getBenefitKey(areaId, mode);
-    const benefit = GAME_COGNITIVE_BENEFITS[benefitKey];
-    const areaName = areaId.charAt(0).toUpperCase() + areaId.slice(1);
-    
-    return (
-      <motion.button
-        key={`${areaId}-${mode}`}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05 }}
-        onClick={() => handleGameTypeClick(areaId, mode)}
-        className={cn(
-          "w-full p-3.5 rounded-xl border transition-all duration-200 text-left",
-          "bg-card/60 hover:bg-card/90",
-          colors.border,
-          "hover:border-opacity-60",
-          "active:scale-[0.98]"
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0", colors.bg)}>
-            <Icon className={cn("w-5 h-5", colors.text)} />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium leading-tight">{areaName}</h4>
-            <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
-              {benefit?.shortBenefit || "Cognitive training"}
-            </p>
-          </div>
-
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0" />
-        </div>
-      </motion.button>
-    );
-  };
+  const currentAreas = activeSystem === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
+  const systemInfo = SYSTEM_INFO[activeSystem];
 
   return (
-    <div className="space-y-4">
-      {/* System Tab Icons */}
-      <div className="flex items-center justify-center gap-3">
-        {SYSTEM_TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeSystem === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveSystem(tab.id)}
-              className={cn(
-                "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all",
-                isActive 
-                  ? `${tab.bgColor} ring-1 ring-current ${tab.color}` 
-                  : "bg-card/50 hover:bg-card text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center",
-                isActive ? tab.bgColor : "bg-muted/30"
-              )}>
-                <Icon className={cn("w-5 h-5", isActive ? tab.color : "text-muted-foreground")} />
-              </div>
-              <div className="text-center">
-                <span className={cn(
-                  "text-[11px] font-medium block",
-                  isActive ? tab.color : "text-muted-foreground"
-                )}>
-                  {tab.label}
-                </span>
-                <span className="text-[9px] text-muted-foreground/70">
-                  {tab.sublabel}
-                </span>
-              </div>
-            </button>
-          );
-        })}
+    <div className="space-y-5">
+      {/* Elegant System Switcher */}
+      <div className="relative">
+        <div className="flex items-stretch rounded-2xl bg-card/40 backdrop-blur-sm border border-border/50 p-1 gap-1">
+          {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
+            const info = SYSTEM_INFO[system];
+            const Icon = info.icon;
+            const isActive = activeSystem === system;
+            
+            return (
+              <motion.button
+                key={system}
+                onClick={() => setActiveSystem(system)}
+                className={cn(
+                  "relative flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl transition-colors",
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"
+                )}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeSystemBg"
+                    className={cn(
+                      "absolute inset-0 rounded-xl border",
+                      info.bgColor,
+                      info.borderColor
+                    )}
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                  />
+                )}
+                <div className="relative z-10 flex items-center gap-2.5">
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                    isActive ? info.bgColor : "bg-muted/20"
+                  )}>
+                    <Icon className={cn("w-4 h-4", isActive ? info.color : "text-muted-foreground")} />
+                  </div>
+                  <div className="text-left">
+                    <div className={cn(
+                      "text-xs font-semibold tracking-wide",
+                      isActive ? info.color : ""
+                    )}>
+                      {info.label}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {info.sublabel}
+                    </div>
+                  </div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Game Cards for Selected System - 2x2 Matrix */}
-      <div className="grid grid-cols-2 gap-2">
-        {(activeSystem === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS).map((area, index) => 
-          renderGameCard(area.areaId, activeSystem, index)
-        )}
-      </div>
+      {/* System Description */}
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={activeSystem}
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 5 }}
+          transition={{ duration: 0.2 }}
+          className="text-center text-xs text-muted-foreground px-4"
+        >
+          {systemInfo.description}
+        </motion.p>
+      </AnimatePresence>
+
+      {/* Area Cards - Elegant 2x2 Grid */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeSystem}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.25 }}
+          className="grid grid-cols-2 gap-3"
+        >
+          {currentAreas.map((area, index) => {
+            const Icon = AREA_ICONS[area.areaId] || Brain;
+            const colors = AREA_COLORS[area.areaId];
+            const gradient = AREA_GRADIENTS[area.areaId];
+            
+            return (
+              <motion.button
+                key={`${area.areaId}-${activeSystem}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.08, duration: 0.3 }}
+                onClick={() => handleGameTypeClick(area.areaId, activeSystem)}
+                className={cn(
+                  "group relative overflow-hidden rounded-2xl border transition-all duration-300",
+                  "bg-card/70 backdrop-blur-sm",
+                  colors.border,
+                  "hover:border-opacity-50 hover:scale-[1.02]",
+                  "active:scale-[0.98]",
+                  colors.glow
+                )}
+              >
+                {/* Gradient Background */}
+                <div className={cn(
+                  "absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity group-hover:opacity-100",
+                  gradient
+                )} />
+                
+                {/* Content */}
+                <div className="relative z-10 p-5 flex flex-col items-center text-center">
+                  {/* Icon with glow effect */}
+                  <div className={cn(
+                    "w-14 h-14 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110",
+                    colors.bg
+                  )}>
+                    <Icon className={cn("w-7 h-7", colors.text)} />
+                  </div>
+                  
+                  {/* Area Name */}
+                  <h3 className={cn("text-sm font-semibold mb-1", colors.text)}>
+                    {area.name}
+                  </h3>
+                  
+                  {/* Tagline */}
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    {area.tagline}
+                  </p>
+                  
+                  {/* Hover indicator */}
+                  <div className={cn(
+                    "mt-3 flex items-center gap-1 text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity",
+                    colors.text
+                  )}>
+                    <Sparkles className="w-3 h-3" />
+                    <span>Start Challenge</span>
+                  </div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Exercise Picker Sheet */}
       <ExercisePickerSheet
