@@ -48,8 +48,8 @@ const AREA_COLORS: Record<string, { bg: string; text: string; border: string; gl
 
 // Areas available per thinking system (2x2 matrix)
 const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] = [
-  { areaId: "focus", name: "Focus", tagline: "Speed & Precision" },
-  { areaId: "creativity", name: "Creativity", tagline: "Rapid Ideation" },
+  { areaId: "focus", name: "Attentional Efficiency", tagline: "Speed & Precision" },
+  { areaId: "creativity", name: "Rapid Association", tagline: "Intuitive Links" },
 ];
 
 const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] = [
