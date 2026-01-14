@@ -402,7 +402,7 @@ export function DetoxChallengeTab() {
         open={showTargetExceededDialog}
         onOpenChange={setShowTargetExceededDialog}
         onConfirm={proceedWithStart}
-        categoryName="Step & Detox"
+        categoryName="Walk & Detox"
       />
     </div>
   );

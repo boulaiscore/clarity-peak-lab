@@ -80,7 +80,7 @@ export const DETOX_COGNITIVE_MESSAGES = {
   },
   // Post-session
   completion: {
-    headline: "Step & Detox Complete",
+    headline: "Walk & Detox Complete",
     getDescription: (minutes: number) => 
       `${minutes} minutes of restored cognitive capacity`,
     getBenefit: (minutes: number) => {
@@ -91,11 +91,11 @@ export const DETOX_COGNITIVE_MESSAGES = {
   },
   // Weekly context
   weekly: {
-    goalLabel: "Weekly Step & Detox",
+    goalLabel: "Weekly Walk & Detox",
     recommendation: "7h weekly recommended for sustained clarity",
     getProgress: (minutes: number, target: number) => {
       const percentage = Math.round((minutes / target) * 100);
-      if (percentage >= 100) return "Step & Detox target reached";
+      if (percentage >= 100) return "Walk & Detox target reached";
       if (percentage >= 70) return "Strong momentum";
       if (percentage >= 40) return "Building the habit";
       return "Starting routine";
