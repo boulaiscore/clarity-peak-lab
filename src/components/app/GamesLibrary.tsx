@@ -24,9 +24,13 @@ const AREA_COLORS: Record<string, { bg: string; text: string; border: string }> 
   creativity: { bg: "bg-[hsl(var(--area-creativity))]/10", text: "text-[hsl(var(--area-creativity))]", border: "border-[hsl(var(--area-creativity))]/30" },
 };
 
-// Unified game structure by area
-const GAME_AREAS: { areaId: NeuroLabArea; name: string }[] = [
+// Areas available per thinking system (2x2 matrix)
+const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string }[] = [
   { areaId: "focus", name: "Focus" },
+  { areaId: "creativity", name: "Creativity" },
+];
+
+const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string }[] = [
   { areaId: "reasoning", name: "Reasoning" },
   { areaId: "creativity", name: "Creativity" },
 ];
@@ -165,9 +169,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         })}
       </div>
 
-      {/* Game Cards for Selected System */}
-      <div className="space-y-2">
-        {GAME_AREAS.map((area, index) => renderGameCard(area.areaId, activeSystem, index))}
+      {/* Game Cards for Selected System - 2x2 Matrix */}
+      <div className="grid grid-cols-2 gap-2">
+        {(activeSystem === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS).map((area, index) => 
+          renderGameCard(area.areaId, activeSystem, index)
+        )}
       </div>
 
       {/* Exercise Picker Sheet */}
