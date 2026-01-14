@@ -155,11 +155,11 @@ export default function NeuroLab() {
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   
-  // Read tab from URL query param, default to "games"
+  // Read tab from URL query param, default to "tasks"
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(() => {
-    if (tabFromUrl === "tasks" || tabFromUrl === "detox") return tabFromUrl;
-    return "games";
+    if (tabFromUrl === "games" || tabFromUrl === "detox") return tabFromUrl;
+    return "tasks";
   });
   
   // Sync activeTab when URL changes
