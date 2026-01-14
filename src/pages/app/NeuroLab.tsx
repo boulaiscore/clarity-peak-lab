@@ -322,7 +322,7 @@ export default function NeuroLab() {
             </TabsTrigger>
             <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
               <Swords className="w-3.5 h-3.5" />
-              Challenges
+              Training
             </TabsTrigger>
           </TabsList>
 

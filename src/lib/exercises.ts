@@ -201,7 +201,7 @@ export const CATEGORY_INFO: Record<ExerciseCategory, { title: string; subtitle: 
   },
   game: {
     title: "Cognitive Games",
-    subtitle: "Interactive Challenges",
+    subtitle: "Interactive Training",
     description: "Engage with gamified cognitive tasks combining multiple skills.",
   },
   visual_memory: {

@@ -282,7 +282,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         open={showTargetExceededDialog}
         onOpenChange={setShowTargetExceededDialog}
         onConfirm={handleConfirmExcessGame}
-        categoryName="Challenges"
+        categoryName="Training"
       />
     </div>
   );

@@ -403,7 +403,7 @@ export function GamesStats() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Swords className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-[13px] font-semibold">Challenges Progress</h3>
+            <h3 className="text-[13px] font-semibold">Training Progress</h3>
           </div>
           <div className="text-right">
             <span className="text-lg font-bold text-foreground">{weeklyGamesXP}</span>
@@ -488,8 +488,8 @@ export function GamesStats() {
         ) : (
           <div className="h-24 flex flex-col items-center justify-center text-center">
             <Swords className="h-6 w-6 text-muted-foreground/30 mb-2" />
-            <p className="text-[10px] text-muted-foreground">No challenges in the last 14 days</p>
-            <p className="text-[9px] text-muted-foreground/60">Play challenges in the Lab to see your trend</p>
+            <p className="text-[10px] text-muted-foreground">No training in the last 14 days</p>
+            <p className="text-[9px] text-muted-foreground/60">Complete training sessions in the Lab to see your trend</p>
           </div>
         )}
         

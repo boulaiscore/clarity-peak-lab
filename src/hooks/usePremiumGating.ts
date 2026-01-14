@@ -78,8 +78,8 @@ export function usePremiumGating() {
     return isPremium;
   };
 
-  const canAccessChallenges = (): boolean => {
-    // Challenges now accessible to all users
+  const canAccessTraining = (): boolean => {
+    // Training now accessible to all users
     return true;
   };
 
@@ -102,7 +102,7 @@ export function usePremiumGating() {
     canAccessArea,
     canUseDuration,
     canAccessNeuroActivation,
-    canAccessChallenges,
+    canAccessTraining,
     canStartSession,
     isAreaLocked,
     isDurationLocked,
