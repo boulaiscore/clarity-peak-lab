@@ -158,20 +158,8 @@ const Dashboard = () => {
             <TrainingProgressHeader />
 
 
-            {/* Sub-tabs for Games/Tasks/Detox */}
+            {/* Sub-tabs for Tasks/Detox/Games */}
             <div className="flex items-center gap-1 p-1 bg-card border border-border/50 rounded-lg">
-              <button
-                onClick={() => setTrainingSubTab("games")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-all",
-                  trainingSubTab === "games"
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <Swords className="w-3.5 h-3.5" />
-                Challenges
-              </button>
               <button
                 onClick={() => setTrainingSubTab("tasks")}
                 className={cn(
@@ -199,15 +187,27 @@ const Dashboard = () => {
                 </div>
                 Step & Detox
               </button>
+              <button
+                onClick={() => setTrainingSubTab("games")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-all",
+                  trainingSubTab === "games"
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <Swords className="w-3.5 h-3.5" />
+                Challenges
+              </button>
             </div>
 
-            {/* Games, Tasks or Detox Content */}
-            {trainingSubTab === "games" ? (
-              <GamesStats />
-            ) : trainingSubTab === "tasks" ? (
+            {/* Tasks, Detox or Games Content */}
+            {trainingSubTab === "tasks" ? (
               <TrainingTasks />
-            ) : (
+            ) : trainingSubTab === "detox" ? (
               <DetoxStats />
+            ) : (
+              <GamesStats />
             )}
 
             {/* CTA */}

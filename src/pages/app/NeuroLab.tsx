@@ -309,10 +309,6 @@ export default function NeuroLab() {
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-3 mb-4">
-            <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
-              <Swords className="w-3.5 h-3.5" />
-              Challenges
-            </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
               <BookMarked className="w-3.5 h-3.5" />
               Tasks
@@ -324,15 +320,13 @@ export default function NeuroLab() {
               </div>
               Step & Detox
             </TabsTrigger>
+            <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
+              <Swords className="w-3.5 h-3.5" />
+              Challenges
+            </TabsTrigger>
           </TabsList>
 
-          {/* Games Tab */}
-          <TabsContent value="games" className="mt-0">
-            <GamesLibrary 
-              onStartGame={handleEnterArea}
-            />
-          </TabsContent>
-
+          {/* Tasks Tab */}
           <TabsContent value="tasks" className="mt-0">
             <TasksTabContent />
           </TabsContent>
@@ -340,6 +334,13 @@ export default function NeuroLab() {
           {/* Detox Tab */}
           <TabsContent value="detox" className="mt-0">
             <DetoxChallengeTab />
+          </TabsContent>
+
+          {/* Games Tab */}
+          <TabsContent value="games" className="mt-0">
+            <GamesLibrary 
+              onStartGame={handleEnterArea}
+            />
           </TabsContent>
         </Tabs>
       </div>
