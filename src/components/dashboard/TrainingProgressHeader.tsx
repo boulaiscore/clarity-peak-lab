@@ -212,17 +212,6 @@ export const TrainingProgressHeader = () => {
       {/* Activity Summary - Macro stats */}
       <div className="mt-3 pt-3 border-t border-border/20">
         <div className="grid grid-cols-3 gap-2">
-          {/* Games */}
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
-            <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center">
-              <Swords className="w-3 h-3 text-muted-foreground" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold text-foreground truncate">{cappedGamesXP}</p>
-              <p className="text-[7px] text-muted-foreground">/{gamesXPTarget} XP</p>
-            </div>
-          </div>
-          
           {/* Tasks */}
           <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
             <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center">
@@ -243,6 +232,17 @@ export const TrainingProgressHeader = () => {
             <div className="min-w-0">
               <p className="text-[10px] font-semibold text-foreground truncate">{cappedDetoxXP}</p>
               <p className="text-[7px] text-muted-foreground">/{detoxXPTarget} XP</p>
+            </div>
+          </div>
+          
+          {/* Games */}
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
+            <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center">
+              <Swords className="w-3 h-3 text-muted-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold text-foreground truncate">{cappedGamesXP}</p>
+              <p className="text-[7px] text-muted-foreground">/{gamesXPTarget} XP</p>
             </div>
           </div>
         </div>
