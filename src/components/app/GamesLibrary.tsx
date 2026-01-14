@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Zap, Timer,
   Sparkles
@@ -183,90 +183,69 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       </div>
 
       {/* System Description */}
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={activeSystem}
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 5 }}
-          transition={{ duration: 0.2 }}
-          className="text-center text-xs text-muted-foreground px-4"
-        >
-          {systemInfo.description}
-        </motion.p>
-      </AnimatePresence>
+      <p className="text-center text-xs text-muted-foreground px-4">
+        {systemInfo.description}
+      </p>
 
-      {/* Area Cards - Elegant 2x2 Grid */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeSystem}
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.25 }}
-          className="grid grid-cols-2 gap-3"
-        >
-          {currentAreas.map((area, index) => {
-            const Icon = AREA_ICONS[area.areaId] || Brain;
-            const colors = AREA_COLORS[area.areaId];
-            const gradient = AREA_GRADIENTS[area.areaId];
-            
-            return (
-              <motion.button
-                key={`${area.areaId}-${activeSystem}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08, duration: 0.3 }}
-                onClick={() => handleGameTypeClick(area.areaId, activeSystem)}
-                className={cn(
-                  "group relative overflow-hidden rounded-2xl border transition-all duration-300",
-                  "bg-card/70 backdrop-blur-sm",
-                  colors.border,
-                  "hover:border-opacity-50 hover:scale-[1.02]",
-                  "active:scale-[0.98]",
-                  colors.glow
-                )}
-              >
-                {/* Gradient Background */}
+      {/* Area Cards - 2x2 Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {currentAreas.map((area, index) => {
+          const Icon = AREA_ICONS[area.areaId] || Brain;
+          const colors = AREA_COLORS[area.areaId];
+          const gradient = AREA_GRADIENTS[area.areaId];
+          
+          return (
+            <button
+              key={`${area.areaId}-${activeSystem}`}
+              onClick={() => handleGameTypeClick(area.areaId, activeSystem)}
+              className={cn(
+                "group relative overflow-hidden rounded-2xl border transition-all duration-300",
+                "bg-card/70 backdrop-blur-sm",
+                colors.border,
+                "hover:border-opacity-50 hover:scale-[1.02]",
+                "active:scale-[0.98]",
+                colors.glow
+              )}
+            >
+              {/* Gradient Background */}
+              <div className={cn(
+                "absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity group-hover:opacity-100",
+                gradient
+              )} />
+              
+              {/* Content */}
+              <div className="relative z-10 p-5 flex flex-col items-center text-center">
+                {/* Icon with glow effect */}
                 <div className={cn(
-                  "absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity group-hover:opacity-100",
-                  gradient
-                )} />
-                
-                {/* Content */}
-                <div className="relative z-10 p-5 flex flex-col items-center text-center">
-                  {/* Icon with glow effect */}
-                  <div className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110",
-                    colors.bg
-                  )}>
-                    <Icon className={cn("w-7 h-7", colors.text)} />
-                  </div>
-                  
-                  {/* Area Name */}
-                  <h3 className={cn("text-sm font-semibold mb-1", colors.text)}>
-                    {area.name}
-                  </h3>
-                  
-                  {/* Tagline */}
-                  <p className="text-[10px] text-muted-foreground leading-tight">
-                    {area.tagline}
-                  </p>
-                  
-                  {/* Hover indicator */}
-                  <div className={cn(
-                    "mt-3 flex items-center gap-1 text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity",
-                    colors.text
-                  )}>
-                    <Sparkles className="w-3 h-3" />
-                    <span>Start Challenge</span>
-                  </div>
+                  "w-14 h-14 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110",
+                  colors.bg
+                )}>
+                  <Icon className={cn("w-7 h-7", colors.text)} />
                 </div>
-              </motion.button>
-            );
-          })}
-        </motion.div>
-      </AnimatePresence>
+                
+                {/* Area Name */}
+                <h3 className={cn("text-sm font-semibold mb-1", colors.text)}>
+                  {area.name}
+                </h3>
+                
+                {/* Tagline */}
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  {area.tagline}
+                </p>
+                
+                {/* Hover indicator */}
+                <div className={cn(
+                  "mt-3 flex items-center gap-1 text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity",
+                  colors.text
+                )}>
+                  <Sparkles className="w-3 h-3" />
+                  <span>Start Training</span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Exercise Picker Sheet */}
       <ExercisePickerSheet
