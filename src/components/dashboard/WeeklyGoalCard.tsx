@@ -25,11 +25,13 @@ function CategoryCompleteBadge({ show }: { show: boolean }) {
   );
 }
 
-// Icon mapping for areas - matches GamesLibrary.tsx
+// Icon mapping for 2x2 matrix areas - matches GamesLibrary.tsx
+// S1: focus (Attentional Efficiency), creativity (Rapid Association)
+// S2: reasoning (Critical Thinking), creativity (Deliberate Association)
 const AREA_ICONS = {
-  focus: Target,
-  reasoning: Brain,
-  creativity: Lightbulb,
+  focus: Target,       // S1 only
+  reasoning: Brain,    // S2 only
+  creativity: Lightbulb, // Both systems
 } as const;
 
 // Storage key for tracking if user has seen the celebration this week
@@ -237,113 +239,99 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   <CategoryCompleteBadge show={gamesComplete} />
                 </div>
                 
-                {/* Grid header: area icons + totals */}
-                {(() => {
-                  const focusTotal = (s1Areas.find(a => a.area === "focus")?.cappedXP || 0) + (s2Areas.find(a => a.area === "focus")?.cappedXP || 0);
-                  const reasoningTotal = (s1Areas.find(a => a.area === "reasoning")?.cappedXP || 0) + (s2Areas.find(a => a.area === "reasoning")?.cappedXP || 0);
-                  const creativityTotal = (s1Areas.find(a => a.area === "creativity")?.cappedXP || 0) + (s2Areas.find(a => a.area === "creativity")?.cappedXP || 0);
-                  
-                  return (
-                    <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
-                      <div />
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Target className="w-2.5 h-2.5 text-muted-foreground/40" />
-                        <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(focusTotal)}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Brain className="w-2.5 h-2.5 text-muted-foreground/40" />
-                        <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(reasoningTotal)}</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Lightbulb className="w-2.5 h-2.5 text-muted-foreground/40" />
-                        <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(creativityTotal)}</span>
-                      </div>
-                    </div>
-                  );
-                })()}
+                {/* 2x2 Matrix: S1 has focus+creativity, S2 has reasoning+creativity */}
+                {/* Column headers per row since each system has different areas */}
                 
-                {/* S1 row */}
-                <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
+                {/* S1 row: focus + creativity (2 columns) */}
+                <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
                   <div className="flex items-center">
                     <span className="text-[8px] text-amber-400 font-medium">S1</span>
                   </div>
-                  {s1Areas.map((area) => (
-                    <button
-                      key={area.area}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`);
-                      }}
-                      className="h-auto bg-amber-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
-                    >
-                      <div className="flex items-center">
-                        <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                          <motion.div
-                            className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
-                            initial={false}
-                            animate={{ width: `${Math.min(100, area.progress)}%` }}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
-                          />
+                  {s1Areas.map((area) => {
+                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+                    return (
+                      <button
+                        key={area.area}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`);
+                        }}
+                        className="h-auto bg-amber-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+                      >
+                        <div className="flex items-center gap-1">
+                          <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
+                          <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                            <motion.div
+                              className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
+                              initial={false}
+                              animate={{ width: `${Math.min(100, area.progress)}%` }}
+                              transition={{ duration: 0.4, ease: "easeOut" }}
+                            />
+                          </div>
+                          {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                         </div>
-                        {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
-                      </div>
-                      <AnimatePresence>
-                        {expandedCell === `s1-${area.area}` && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.15 }}
-                            className="text-[7px] text-amber-300 tabular-nums text-center mt-0.5"
-                          >
-                            {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </button>
-                  ))}
+                        <AnimatePresence>
+                          {expandedCell === `s1-${area.area}` && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="text-[7px] text-amber-300 tabular-nums text-center mt-0.5"
+                            >
+                              {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    );
+                  })}
                 </div>
                 
-                {/* S2 row */}
-                <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1">
+                {/* S2 row: reasoning + creativity (2 columns) */}
+                <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
                   <div className="flex items-center">
                     <span className="text-[8px] text-violet-400 font-medium">S2</span>
                   </div>
-                  {s2Areas.map((area) => (
-                    <button
-                      key={area.area}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`);
-                      }}
-                      className="h-auto bg-violet-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
-                    >
-                      <div className="flex items-center">
-                        <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                          <motion.div
-                            className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
-                            initial={false}
-                            animate={{ width: `${Math.min(100, area.progress)}%` }}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
-                          />
+                  {s2Areas.map((area) => {
+                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+                    return (
+                      <button
+                        key={area.area}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`);
+                        }}
+                        className="h-auto bg-violet-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+                      >
+                        <div className="flex items-center gap-1">
+                          <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
+                          <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                            <motion.div
+                              className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
+                              initial={false}
+                              animate={{ width: `${Math.min(100, area.progress)}%` }}
+                              transition={{ duration: 0.4, ease: "easeOut" }}
+                            />
+                          </div>
+                          {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                         </div>
-                        {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
-                      </div>
-                      <AnimatePresence>
-                        {expandedCell === `s2-${area.area}` && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.15 }}
-                            className="text-[7px] text-violet-300 tabular-nums text-center mt-0.5"
-                          >
-                            {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </button>
-                  ))}
+                        <AnimatePresence>
+                          {expandedCell === `s2-${area.area}` && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="text-[7px] text-violet-300 tabular-nums text-center mt-0.5"
+                            >
+                              {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -440,7 +428,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
       </div>
 
-      {/* Challenges: 6-bar grid (2 rows × 3 cols) */}
+      {/* Challenges: 2x2 matrix (2 rows × 2 cols per system) */}
       <div className="mb-3">
         <div className="flex items-center gap-1.5 mb-2">
           <Dumbbell className="w-3 h-3 text-muted-foreground" />
@@ -451,108 +439,93 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           <CategoryCompleteBadge show={gamesComplete} />
         </div>
         
-        {/* Grid header: area icons + totals */}
-        {(() => {
-          // Calculate totals per area (S1 + S2)
-          const focusTotal = (s1Areas.find(a => a.area === "focus")?.cappedXP || 0) + (s2Areas.find(a => a.area === "focus")?.cappedXP || 0);
-          const reasoningTotal = (s1Areas.find(a => a.area === "reasoning")?.cappedXP || 0) + (s2Areas.find(a => a.area === "reasoning")?.cappedXP || 0);
-          const creativityTotal = (s1Areas.find(a => a.area === "creativity")?.cappedXP || 0) + (s2Areas.find(a => a.area === "creativity")?.cappedXP || 0);
-          
-          return (
-            <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
-              <div />
-              <div className="flex flex-col items-center gap-0.5">
-                <Target className="w-2.5 h-2.5 text-muted-foreground/40" />
-                <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(focusTotal)}</span>
-              </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <Brain className="w-2.5 h-2.5 text-muted-foreground/40" />
-                <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(reasoningTotal)}</span>
-              </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <Lightbulb className="w-2.5 h-2.5 text-muted-foreground/40" />
-                <span className="text-[7px] text-muted-foreground tabular-nums">{Math.round(creativityTotal)}</span>
-              </div>
-            </div>
-          );
-        })()}
+        {/* 2x2 Matrix: S1 has focus+creativity, S2 has reasoning+creativity */}
+        {/* Column headers per row since each system has different areas */}
         
-        {/* S1 row */}
-        <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
+        {/* S1 row: focus + creativity (2 columns) */}
+        <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
           <div className="flex items-center">
             <span className="text-[8px] text-amber-400 font-medium">S1</span>
           </div>
-          {s1Areas.map((area) => (
-            <button
-              key={area.area}
-              onClick={() => setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`)}
-              className="h-auto bg-amber-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
-            >
-              <div className="flex items-center">
-                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
-                    initial={false}
-                    animate={{ width: `${Math.min(100, area.progress)}%` }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  />
+          {s1Areas.map((area) => {
+            const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+            return (
+              <button
+                key={area.area}
+                onClick={() => setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`)}
+                className="h-auto bg-amber-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+              >
+                <div className="flex items-center gap-1">
+                  <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
+                  <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                    <motion.div
+                      className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
+                      initial={false}
+                      animate={{ width: `${Math.min(100, area.progress)}%` }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    />
+                  </div>
+                  {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                 </div>
-                {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
-              </div>
-              <AnimatePresence>
-                {expandedCell === `s1-${area.area}` && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="text-[7px] text-amber-300 tabular-nums text-center mt-0.5"
-                  >
-                    {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
-          ))}
+                <AnimatePresence>
+                  {expandedCell === `s1-${area.area}` && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="text-[7px] text-amber-300 tabular-nums text-center mt-0.5"
+                    >
+                      {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </button>
+            );
+          })}
         </div>
         
-        {/* S2 row */}
-        <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1">
+        {/* S2 row: reasoning + creativity (2 columns) */}
+        <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
           <div className="flex items-center">
             <span className="text-[8px] text-violet-400 font-medium">S2</span>
           </div>
-          {s2Areas.map((area) => (
-            <button
-              key={area.area}
-              onClick={() => setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`)}
-              className="h-auto bg-violet-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
-            >
-              <div className="flex items-center">
-                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
-                    initial={false}
-                    animate={{ width: `${Math.min(100, area.progress)}%` }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  />
+          {s2Areas.map((area) => {
+            const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+            return (
+              <button
+                key={area.area}
+                onClick={() => setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`)}
+                className="h-auto bg-violet-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+              >
+                <div className="flex items-center gap-1">
+                  <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
+                  <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                    <motion.div
+                      className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
+                      initial={false}
+                      animate={{ width: `${Math.min(100, area.progress)}%` }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    />
+                  </div>
+                  {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                 </div>
-                {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
-              </div>
-              <AnimatePresence>
-                {expandedCell === `s2-${area.area}` && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="text-[7px] text-violet-300 tabular-nums text-center mt-0.5"
-                  >
-                    {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
-          ))}
+                <AnimatePresence>
+                  {expandedCell === `s2-${area.area}` && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="text-[7px] text-violet-300 tabular-nums text-center mt-0.5"
+                    >
+                      {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </button>
+            );
+          })}
         </div>
       </div>
 

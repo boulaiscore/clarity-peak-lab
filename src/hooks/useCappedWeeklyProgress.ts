@@ -2,9 +2,9 @@
  * Hook that provides capped XP values for the Weekly Cognitive Load.
  * XP beyond category targets does NOT count towards the total.
  * 
- * Games target is split into 6 sub-targets:
- * - System 1 (Fast): Focus, Reasoning, Creativity
- * - System 2 (Slow): Focus, Reasoning, Creativity
+ * Games target is split into 4 sub-targets (2x2 matrix):
+ * - System 1 (Fast): Focus (Attentional Efficiency), Creativity (Rapid Association)
+ * - System 2 (Slow): Reasoning (Critical Thinking), Creativity (Deliberate Association)
  */
 
 import { useMemo } from "react";
@@ -88,7 +88,9 @@ function safeProgress(value: number, target: number): number {
   return Math.min(100, (value / target) * 100);
 }
 
-const AREAS = ["focus", "reasoning", "creativity"] as const;
+// 2x2 matrix: S1 gets focus+creativity, S2 gets reasoning+creativity
+const S1_AREAS = ["focus", "creativity"] as const;
+const S2_AREAS = ["reasoning", "creativity"] as const;
 
 export function useCappedWeeklyProgress(): CappedProgressData {
   const {
@@ -124,8 +126,8 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     const tasksXPTarget = plan.contentXPTarget;
     const gamesXPTarget = Math.max(0, weeklyXPTarget - detoxXPTarget - tasksXPTarget);
 
-    // Each of 6 sub-targets gets 1/6 of gamesXPTarget
-    const perSubTarget = gamesXPTarget / 6;
+    // Each of 4 sub-targets gets 1/4 of gamesXPTarget (2x2 matrix)
+    const perSubTarget = gamesXPTarget / 4;
 
     // Build sub-targets for each area+mode
     const breakdown = gamesBreakdown ?? {
@@ -165,8 +167,8 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       return { area, mode, rawXP, target: perSubTarget, cappedXP, progress, complete };
     };
 
-    // Build System 1 (fast) sub-targets
-    const s1Areas: AreaModeSubTarget[] = AREAS.map((a) => buildAreaSubTarget(a, "fast"));
+    // Build System 1 (fast) sub-targets: focus + creativity only
+    const s1Areas: AreaModeSubTarget[] = S1_AREAS.map((a) => buildAreaSubTarget(a, "fast"));
     const s1TotalRaw = s1Areas.reduce((sum, a) => sum + a.rawXP, 0);
     const s1TotalTarget = s1Areas.reduce((sum, a) => sum + a.target, 0);
     const s1TotalCapped = s1Areas.reduce((sum, a) => sum + a.cappedXP, 0);
@@ -184,8 +186,8 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       complete: s1Complete,
     };
 
-    // Build System 2 (slow) sub-targets
-    const s2Areas: AreaModeSubTarget[] = AREAS.map((a) => buildAreaSubTarget(a, "slow"));
+    // Build System 2 (slow) sub-targets: reasoning + creativity only
+    const s2Areas: AreaModeSubTarget[] = S2_AREAS.map((a) => buildAreaSubTarget(a, "slow"));
     const s2TotalRaw = s2Areas.reduce((sum, a) => sum + a.rawXP, 0);
     const s2TotalTarget = s2Areas.reduce((sum, a) => sum + a.target, 0);
     const s2TotalCapped = s2Areas.reduce((sum, a) => sum + a.cappedXP, 0);
