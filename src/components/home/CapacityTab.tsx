@@ -103,12 +103,6 @@ export function CapacityTab() {
         
         <div className="space-y-2">
           <CategoryRow 
-            icon={<Swords className="w-4 h-4 text-blue-400" />}
-            label="Challenges"
-            current={cappedGamesXP}
-            target={gamesXPTarget}
-          />
-          <CategoryRow 
             icon={<BookMarked className="w-4 h-4 text-purple-400" />}
             label="Tasks"
             current={cappedTasksXP}
@@ -116,9 +110,15 @@ export function CapacityTab() {
           />
           <CategoryRow 
             icon={<Smartphone className="w-4 h-4 text-teal-400" />}
-            label="Recovery"
+            label="Step & Detox"
             current={Math.min(rawDetoxXP, detoxXPTarget)}
             target={detoxXPTarget}
+          />
+          <CategoryRow 
+            icon={<Swords className="w-4 h-4 text-blue-400" />}
+            label="Challenges"
+            current={cappedGamesXP}
+            target={gamesXPTarget}
           />
         </div>
       </div>
