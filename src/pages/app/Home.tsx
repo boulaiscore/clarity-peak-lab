@@ -261,7 +261,7 @@ const Home = () => {
                   color="hsl(210, 70%, 55%)"
                   label="Sharpness"
                   displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
-                  microcopy="Intuition and reaction capacity"
+                  microcopy="Intuitive clarity and decision speed"
                 />
                 <ProgressRing
                   value={cognitivePerformance}
@@ -271,7 +271,7 @@ const Home = () => {
                   color="hsl(var(--primary))"
                   label="Readiness"
                   displayValue={`${cognitivePerformance}%`}
-                  microcopy="Reasoning depth and cognitive control"
+                  microcopy="Capacity for focused reasoning"
                 />
                 <ProgressRing
                   value={totalWeeklyXP}
