@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 const Dashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"overview" | "training">("overview");
-  const [trainingSubTab, setTrainingSubTab] = useState<"games" | "tasks" | "detox">("games");
+  const [trainingSubTab, setTrainingSubTab] = useState<"games" | "tasks" | "detox">("tasks");
   
   const isPremium = user?.subscriptionStatus === "premium";
   
