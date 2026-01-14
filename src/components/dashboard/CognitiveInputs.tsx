@@ -51,9 +51,9 @@ interface CognitiveInput {
 }
 
 const INPUT_TYPE_CONFIG: Record<InputType, { label: string; icon: typeof Headphones; color: string }> = {
-  podcast: { label: "Podcast", icon: Headphones, color: "text-violet-500/70" },
-  book: { label: "Book", icon: BookOpen, color: "text-amber-500/70" },
-  article: { label: "Reading", icon: FileText, color: "text-blue-500/70" },
+  podcast: { label: "Podcast", icon: Headphones, color: "text-muted-foreground" },
+  book: { label: "Book", icon: BookOpen, color: "text-muted-foreground" },
+  article: { label: "Reading", icon: FileText, color: "text-muted-foreground" },
 };
 
 const THINKING_SYSTEM_CONFIG: Record<ThinkingSystem, { label: string; description: string }> = {
@@ -394,7 +394,7 @@ function useLoggedExposures(userId: string | undefined) {
   });
 }
 
-// Difficulty indicator component
+// Difficulty indicator component - muted tones
 function DifficultyIndicator({ level }: { level: 1 | 2 | 3 | 4 | 5 }) {
   return (
     <div className="flex items-center gap-0.5" title={`Cognitive load: ${level}/5`}>
@@ -403,11 +403,7 @@ function DifficultyIndicator({ level }: { level: 1 | 2 | 3 | 4 | 5 }) {
           key={i}
           className={`w-1.5 h-1.5 rounded-full ${
             i <= level 
-              ? level >= 4 
-                ? "bg-red-500/70" 
-                : level >= 3 
-                ? "bg-amber-500/70" 
-                : "bg-green-500/70"
+              ? "bg-foreground/40"
               : "bg-muted/30"
           }`}
         />
@@ -416,32 +412,32 @@ function DifficultyIndicator({ level }: { level: 1 | 2 | 3 | 4 | 5 }) {
   );
 }
 
-// Thinking System Icon component - matches GamesLibrary icons
+// Thinking System Icon component - muted elegant tones
 function ThinkingSystemIcon({ system }: { system: ThinkingSystem }) {
   if (system === "S1") {
-    return <Zap className="h-3.5 w-3.5 text-amber-400" />;
+    return <Zap className="h-3.5 w-3.5 text-foreground/50" />;
   }
   if (system === "S2") {
-    return <Timer className="h-3.5 w-3.5 text-blue-400" />;
+    return <Timer className="h-3.5 w-3.5 text-foreground/50" />;
   }
   return (
     <div className="flex items-center -space-x-1">
-      <Zap className="h-3 w-3 text-amber-400" />
-      <Timer className="h-3 w-3 text-blue-400" />
+      <Zap className="h-3 w-3 text-foreground/40" />
+      <Timer className="h-3 w-3 text-foreground/40" />
     </div>
   );
 }
 
-// Prescription block for active items - compact version
+// Prescription block for active items - muted version
 function PrescriptionBlockDisplay({ prescription }: { prescription: PrescriptionBlock }) {
   return (
-    <div className="flex items-center gap-4 text-[10px] text-muted-foreground bg-violet-500/5 rounded-md px-3 py-2">
+    <div className="flex items-center gap-4 text-[10px] text-muted-foreground bg-muted/20 rounded-md px-3 py-2">
       <div className="flex items-center gap-1.5">
-        <Calendar className="h-3 w-3 text-violet-500/60" />
+        <Calendar className="h-3 w-3 text-muted-foreground/60" />
         <span>{prescription.whenToUse}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <StopCircle className="h-3 w-3 text-violet-500/60" />
+        <StopCircle className="h-3 w-3 text-muted-foreground/60" />
         <span>{prescription.stopRule}</span>
       </div>
     </div>
@@ -464,7 +460,7 @@ function ReflectionPrompt({
       <div className="flex items-center gap-2">
         <button
           onClick={() => onRespond("yes")}
-          className="px-3 py-1 text-[10px] bg-violet-500/10 hover:bg-violet-500/20 text-violet-500 rounded-md transition-colors"
+          className="px-3 py-1 text-[10px] bg-primary/10 hover:bg-primary/20 text-primary/70 rounded-md transition-colors"
         >
           Yes
         </button>
@@ -534,8 +530,8 @@ function PrescriptionCard({
     <>
       <div className={`border rounded-xl overflow-hidden transition-all ${
         isLogged 
-          ? "border-violet-500/30 bg-violet-500/5" 
-          : "border-violet-500/40 bg-gradient-to-br from-violet-500/5 via-card/50 to-transparent"
+          ? "border-border/40 bg-muted/10" 
+          : "border-border/50 bg-card/50"
       }`}>
         {/* Header row - compact */}
         <div className="flex items-start gap-3 p-3">
@@ -548,22 +544,18 @@ function PrescriptionCard({
             title={isLogged ? "Completed" : "Mark as completed"}
           >
             {isToggling ? (
-              <div className="h-5 w-5 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+              <div className="h-5 w-5 border-2 border-muted-foreground/30 border-t-foreground/50 rounded-full animate-spin" />
             ) : isLogged ? (
-              <CheckCircle2 className="h-5 w-5 text-violet-500" />
+              <CheckCircle2 className="h-5 w-5 text-foreground/60" />
             ) : (
-              <div className="h-5 w-5 border-2 border-violet-500/50 rounded-full group-hover:border-violet-500 transition-colors flex items-center justify-center">
-                <div className="h-2 w-2 rounded-full bg-violet-500/0 group-hover:bg-violet-500/50 transition-colors" />
+              <div className="h-5 w-5 border-2 border-muted-foreground/40 rounded-full group-hover:border-foreground/50 transition-colors flex items-center justify-center">
+                <div className="h-2 w-2 rounded-full bg-transparent group-hover:bg-foreground/30 transition-colors" />
               </div>
             )}
           </button>
           
           {/* Icon */}
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-            input.type === "podcast" ? "bg-violet-500/20" : 
-            input.type === "book" ? "bg-amber-500/20" : 
-            "bg-blue-500/20"
-          }`}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-muted/30">
             <Icon className={`h-4 w-4 ${config.color}`} />
           </div>
           
@@ -582,15 +574,15 @@ function PrescriptionCard({
             {/* Badges row */}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               {isLogged ? (
-                <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-violet-500/10 border-violet-500/30 text-violet-600 dark:text-violet-400">
+                <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-muted/20 border-border/40 text-muted-foreground">
                   Completed
                 </Badge>
               ) : (
                 <>
-                  <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-violet-500/10 border-violet-500/30 text-violet-500">
+                  <Badge variant="outline" className="text-[9px] px-2 py-0.5 h-5 bg-primary/5 border-primary/20 text-primary/70">
                     Active
                   </Badge>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500 font-semibold">
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted/30 text-foreground/60 font-medium">
                     +{calculateItemRawPoints(input)} XP
                   </span>
                 </>
@@ -641,9 +633,9 @@ function PrescriptionCard({
             )}
 
             {/* Reflection prompt */}
-            <div className="flex items-start gap-2 bg-muted/20 rounded-md p-2">
-              <Zap className="h-3 w-3 text-amber-500/70 mt-0.5 shrink-0" />
-              <span className="text-[11px] text-amber-600/80 dark:text-amber-400/80 italic">
+            <div className="flex items-start gap-2 bg-muted/15 rounded-md p-2">
+              <Zap className="h-3 w-3 text-muted-foreground/50 mt-0.5 shrink-0" />
+              <span className="text-[11px] text-muted-foreground italic">
                 "{input.reflectionPrompt}"
               </span>
             </div>
@@ -656,7 +648,7 @@ function PrescriptionCard({
                     href={input.primaryUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400 hover:underline"
+                    className="flex items-center gap-1.5 text-xs text-foreground/60 hover:text-foreground transition-colors"
                   >
                     <ExternalLink className="h-3 w-3" />
                     Open in Spotify
@@ -666,7 +658,7 @@ function PrescriptionCard({
                       href={input.secondaryUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline"
+                      className="flex items-center gap-1.5 text-xs text-foreground/60 hover:text-foreground transition-colors"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Open in Apple Podcasts
@@ -678,11 +670,7 @@ function PrescriptionCard({
                   href={input.primaryUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex items-center gap-1.5 text-xs hover:underline ${
-                    input.type === "book"
-                      ? "text-amber-600 dark:text-amber-400"
-                      : "text-blue-600 dark:text-blue-400"
-                  }`}
+                  className="flex items-center gap-1.5 text-xs text-foreground/60 hover:text-foreground transition-colors"
                 >
                   <ExternalLink className="h-3 w-3" />
                   Read
@@ -759,16 +747,12 @@ function SwipeableAlternativeCard({
       <button
         onClick={onSelect}
         className={`flex-shrink-0 w-36 p-2.5 border border-border/20 bg-card/30 rounded-xl 
-          transition-all hover:bg-card/50 hover:border-violet-500/40 active:scale-95 text-left
+          transition-all hover:bg-card/50 hover:border-border/50 active:scale-95 text-left
           ${isLogged ? 'opacity-40' : 'opacity-80 hover:opacity-100'}`}
       >
         {/* Icon + log button */}
         <div className="flex items-center justify-between mb-2">
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-            input.type === "podcast" ? "bg-violet-500/15" : 
-            input.type === "book" ? "bg-amber-500/15" : 
-            "bg-blue-500/15"
-          }`}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-muted/30">
             <Icon className={`h-3.5 w-3.5 ${config.color}`} />
           </div>
           <div 
@@ -780,7 +764,7 @@ function SwipeableAlternativeCard({
             {isToggling ? (
               <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
             ) : isLogged ? (
-              <CheckCircle2 className="h-3.5 w-3.5 text-violet-500/60" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-foreground/50" />
             ) : (
               <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full" />
             )}
@@ -806,7 +790,7 @@ function SwipeableAlternativeCard({
           <div title={thinkingConfig.description} className="opacity-70">
             <ThinkingSystemIcon system={input.thinkingSystem} />
           </div>
-          <span className="text-[8px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium">
+          <span className="text-[8px] px-1 py-0.5 rounded bg-muted/30 text-foreground/60 font-medium">
             +{calculateItemRawPoints(input)}
           </span>
         </div>
@@ -960,15 +944,11 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
         <div className="flex flex-col">
           {/* Compact Header */}
           <div className="flex flex-col items-center gap-1.5 mb-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-              type === "podcast" ? "bg-violet-500/10" : 
-              type === "book" ? "bg-amber-500/10" : 
-              "bg-blue-500/10"
-            }`}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted/30">
               <Icon className={`h-4 w-4 ${config.color}`} />
             </div>
             <h4 className="text-xs font-medium text-center">{title}</h4>
-            <p className="text-[9px] text-violet-500">All done ✓</p>
+            <p className="text-[9px] text-muted-foreground">All done ✓</p>
           </div>
           <div className="flex-1 flex items-center justify-center p-3 rounded-xl border border-border/20 bg-muted/10">
             <CheckCircle2 className="h-5 w-5 text-violet-500/40" />
@@ -1025,7 +1005,7 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
                     {togglingId === input.id ? (
                       <div className="h-3.5 w-3.5 border border-muted/30 border-t-muted-foreground rounded-full animate-spin" />
                     ) : isLogged ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-violet-500/60" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-foreground/50" />
                     ) : (
                       <div className="h-3.5 w-3.5 border border-muted-foreground/30 rounded-full hover:border-primary/50 transition-colors" />
                     )}
@@ -1068,8 +1048,8 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
           <AlertDialogContent className="max-w-sm">
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-primary/60" />
                 </div>
                 <AlertDialogTitle className="text-base">
                   Tasks {WEEKLY_GOAL_MESSAGES.targetExceededWarning.title}
@@ -1103,23 +1083,19 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              type === "podcast" ? "bg-violet-500/10" : 
-              type === "book" ? "bg-amber-500/10" : 
-              "bg-blue-500/10"
-            }`}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/30">
               <Icon className={`h-4 w-4 ${config.color}`} />
             </div>
             <div>
               <h4 className="text-sm font-medium">{title}</h4>
-              <p className="text-[10px] text-violet-500">
+              <p className="text-[10px] text-muted-foreground">
                 All {completedCount} completed ✓
               </p>
             </div>
           </div>
         </div>
         <div className="p-4 rounded-xl border border-border/20 bg-muted/20 text-center">
-          <CheckCircle2 className="h-6 w-6 text-violet-500/50 mx-auto mb-2" />
+          <CheckCircle2 className="h-6 w-6 text-foreground/30 mx-auto mb-2" />
           <p className="text-xs text-muted-foreground">All items moved to Library</p>
         </div>
       </div>
@@ -1131,18 +1107,14 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-            type === "podcast" ? "bg-violet-500/10" : 
-            type === "book" ? "bg-amber-500/10" : 
-            "bg-blue-500/10"
-          }`}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/30">
             <Icon className={`h-4 w-4 ${config.color}`} />
           </div>
           <div>
             <h4 className="text-sm font-medium">{title}</h4>
             <p className="text-[10px] text-muted-foreground">
               {isLoading ? "..." : `${allInputs.length} remaining`}
-              {completedCount > 0 && <span className="text-violet-500 ml-1">({completedCount} in library)</span>}
+              {completedCount > 0 && <span className="text-foreground/50 ml-1">({completedCount} in library)</span>}
             </p>
           </div>
         </div>
