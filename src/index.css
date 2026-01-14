@@ -7,28 +7,28 @@
 @layer base {
   :root {
     /* Muted dark palette - crisp text contrast */
-    --background: 180 15% 6%;
-    --background-surface: 180 12% 10%;
+    --background: 220 15% 6%;
+    --background-surface: 220 12% 10%;
     --foreground: 0 0% 98%;
 
-    --card: 180 12% 11%;
+    --card: 220 12% 11%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 180 12% 10%;
+    --popover: 220 12% 10%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary petrol blue - teal/cyan with green undertone */
-    --primary: 175 45% 42%;
+    /* Primary blue - premium and vibrant */
+    --primary: 220 50% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 180 10% 14%;
+    --secondary: 220 10% 14%;
     --secondary-foreground: 0 0% 95%;
 
-    --muted: 180 10% 16%;
-    --muted-foreground: 180 6% 68%;
+    --muted: 220 10% 16%;
+    --muted-foreground: 220 6% 68%;
 
-    /* Accent petrol - sophisticated teal */
-    --accent: 175 40% 38%;
+    /* Accent blue - vibrant highlight */
+    --accent: 220 45% 45%;
 
     --destructive: 0 55% 48%;
     --destructive-foreground: 0 0% 98%;
@@ -39,79 +39,79 @@
     --warning: 42 65% 48%;
     --warning-foreground: 0 0% 0%;
 
-    --border: 180 10% 18%;
-    --input: 180 10% 14%;
-    --ring: 175 50% 45%;
+    --border: 220 10% 18%;
+    --input: 220 10% 14%;
+    --ring: 220 55% 55%;
 
     --radius: 1rem;
 
-    /* Chart palette - petrol tones */
-    --chart-1: 175 45% 45%;
+    /* Chart palette - blue tones */
+    --chart-1: 210 50% 50%;
     --chart-2: 260 28% 52%;
     --chart-3: 42 45% 48%;
     --chart-4: 195 35% 45%;
     --chart-5: 0 38% 48%;
 
     /* Area colors - muted */
-    --area-focus: 175 35% 45%;
+    --area-focus: 210 35% 50%;
     --area-reasoning: 260 28% 52%;
     --area-creativity: 42 40% 50%;
     --area-fast: 42 40% 50%;
     --area-slow: 195 30% 48%;
 
-    /* Brand tokens - Petrol blue premium */
-    --bg-primary: 180 15% 6%;
-    --bg-surface: 180 12% 10%;
-    --accent-primary: 175 45% 44%;
-    --accent-secondary: 175 40% 38%;
+    /* Brand tokens - Vibrant premium blue */
+    --bg-primary: 220 15% 6%;
+    --bg-surface: 220 12% 10%;
+    --accent-primary: 220 50% 52%;
+    --accent-secondary: 220 45% 45%;
     --text-primary: 0 0% 98%;
-    --text-secondary: 180 6% 68%;
+    --text-secondary: 220 6% 68%;
     
-    /* Gradients - Petrol blue */
-    --gradient-primary: linear-gradient(135deg, hsl(175, 48%, 46%) 0%, hsl(175, 40%, 38%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(175, 45%, 44%, 0.12) 0%, transparent 70%);
-    --gradient-surface: linear-gradient(180deg, hsl(180, 12%, 11%) 0%, hsl(180, 15%, 6%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(175, 45%, 44%, 0.04) 0%, transparent 100%);
+    /* Gradients - Vibrant blue */
+    --gradient-primary: linear-gradient(135deg, hsl(220, 52%, 54%) 0%, hsl(220, 45%, 45%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(220, 50%, 52%, 0.12) 0%, transparent 70%);
+    --gradient-surface: linear-gradient(180deg, hsl(220, 12%, 11%) 0%, hsl(220, 15%, 6%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(220, 50%, 52%, 0.04) 0%, transparent 100%);
     
-    /* Shadows - Petrol blue glow */
-    --shadow-glow: 0 0 60px -20px hsl(175, 50%, 45%, 0.25);
-    --shadow-card: 0 2px 20px -4px hsl(180, 20%, 0%, 0.6);
-    --shadow-button: 0 0 24px -4px hsl(175, 45%, 44%, 0.2);
+    /* Shadows - Vibrant blue glow */
+    --shadow-glow: 0 0 60px -20px hsl(220, 55%, 55%, 0.25);
+    --shadow-card: 0 2px 20px -4px hsl(220, 20%, 0%, 0.6);
+    --shadow-button: 0 0 24px -4px hsl(220, 50%, 52%, 0.2);
 
-    --sidebar-background: 180 15% 5%;
+    --sidebar-background: 220 15% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 175 45% 44%;
+    --sidebar-primary: 220 50% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 10% 14%;
+    --sidebar-accent: 220 10% 14%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 180 10% 14%;
-    --sidebar-ring: 175 45% 44%;
+    --sidebar-border: 220 10% 14%;
+    --sidebar-ring: 220 50% 52%;
   }
 
   .light {
     /* High contrast light theme - clear and readable */
-    --background: 180 14% 94%;
-    --background-surface: 180 12% 90%;
-    --foreground: 180 25% 12%;
+    --background: 220 14% 94%;
+    --background-surface: 220 12% 90%;
+    --foreground: 220 25% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 180 25% 12%;
+    --card-foreground: 220 25% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 180 25% 12%;
+    --popover-foreground: 220 25% 12%;
 
-    /* Primary petrol blue - teal for light mode */
-    --primary: 175 40% 35%;
+    /* Primary blue - premium for light mode */
+    --primary: 220 40% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 180 14% 84%;
-    --secondary-foreground: 180 25% 12%;
+    --secondary: 220 14% 84%;
+    --secondary-foreground: 220 25% 12%;
 
-    --muted: 180 12% 88%;
-    --muted-foreground: 180 15% 35%;
+    --muted: 220 12% 88%;
+    --muted-foreground: 220 15% 35%;
 
-    /* Accent petrol - sophisticated teal */
-    --accent: 175 35% 32%;
+    /* Accent blue - sophisticated */
+    --accent: 220 35% 35%;
 
     --destructive: 0 65% 42%;
     --destructive-foreground: 0 0% 100%;
@@ -122,51 +122,51 @@
     --warning: 42 75% 42%;
     --warning-foreground: 0 0% 0%;
 
-    --border: 180 14% 78%;
-    --input: 180 12% 82%;
-    --ring: 175 42% 40%;
+    --border: 220 14% 78%;
+    --input: 220 12% 82%;
+    --ring: 220 45% 45%;
 
-    /* Chart palette - petrol tones */
-    --chart-1: 175 50% 35%;
+    /* Chart palette - blue tones */
+    --chart-1: 210 55% 40%;
     --chart-2: 260 35% 42%;
     --chart-3: 42 55% 40%;
     --chart-4: 195 42% 38%;
     --chart-5: 0 45% 42%;
 
     /* Area colors - deeper for light mode */
-    --area-focus: 175 42% 35%;
+    --area-focus: 210 45% 38%;
     --area-reasoning: 260 35% 42%;
     --area-creativity: 42 50% 42%;
     --area-fast: 42 50% 42%;
     --area-slow: 195 38% 38%;
 
-    /* Brand tokens - Petrol blue Light */
-    --bg-primary: 180 14% 94%;
-    --bg-surface: 180 12% 90%;
-    --accent-primary: 175 40% 38%;
-    --accent-secondary: 175 35% 32%;
-    --text-primary: 180 25% 12%;
-    --text-secondary: 180 15% 35%;
+    /* Brand tokens - Premium blue Light */
+    --bg-primary: 220 14% 94%;
+    --bg-surface: 220 12% 90%;
+    --accent-primary: 220 40% 45%;
+    --accent-secondary: 220 35% 38%;
+    --text-primary: 220 25% 12%;
+    --text-secondary: 220 15% 35%;
     
-    /* Gradients - Petrol blue light mode */
-    --gradient-primary: linear-gradient(135deg, hsl(175, 42%, 40%) 0%, hsl(175, 35%, 32%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(175, 40%, 38%, 0.1) 0%, transparent 70%);
-    --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(180, 14%, 94%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(175, 40%, 38%, 0.05) 0%, transparent 100%);
+    /* Gradients - Premium blue light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(220, 42%, 45%) 0%, hsl(220, 35%, 38%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(220, 40%, 45%, 0.1) 0%, transparent 70%);
+    --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(220, 14%, 94%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(220, 40%, 45%, 0.05) 0%, transparent 100%);
     
-    /* Shadows - Petrol blue */
-    --shadow-glow: 0 0 50px -20px hsl(175, 40%, 38%, 0.2);
-    --shadow-card: 0 4px 20px -4px hsl(180, 25%, 0%, 0.08);
-    --shadow-button: 0 4px 14px -4px hsl(175, 40%, 38%, 0.15);
+    /* Shadows - Premium blue */
+    --shadow-glow: 0 0 50px -20px hsl(220, 40%, 45%, 0.2);
+    --shadow-card: 0 4px 20px -4px hsl(220, 25%, 0%, 0.08);
+    --shadow-button: 0 4px 14px -4px hsl(220, 40%, 45%, 0.15);
 
-    --sidebar-background: 180 12% 90%;
-    --sidebar-foreground: 180 25% 12%;
-    --sidebar-primary: 175 40% 38%;
+    --sidebar-background: 220 12% 90%;
+    --sidebar-foreground: 220 25% 12%;
+    --sidebar-primary: 220 40% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 12% 84%;
-    --sidebar-accent-foreground: 180 25% 12%;
-    --sidebar-border: 180 14% 78%;
-    --sidebar-ring: 175 40% 38%;
+    --sidebar-accent: 220 12% 84%;
+    --sidebar-accent-foreground: 220 25% 12%;
+    --sidebar-border: 220 14% 78%;
+    --sidebar-ring: 220 40% 45%;
   }
 }
 
