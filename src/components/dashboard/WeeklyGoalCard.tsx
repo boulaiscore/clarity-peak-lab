@@ -186,7 +186,47 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               animate={{ opacity: 1 }}
               className="mt-3 pt-3 border-t border-border/30"
             >
-              {/* Games: 6-bar grid (2 rows × 3 cols) */}
+              {/* Tasks */}
+              <div className="mb-2">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <BookMarked className="w-3 h-3 text-violet-400" />
+                  <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
+                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
+                    {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
+                  </span>
+                  <CategoryCompleteBadge show={tasksComplete} />
+                </div>
+                <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
+                    initial={false}
+                    animate={{ width: `${Math.min(100, tasksProgress)}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+
+              {/* Step & Detox */}
+              <div className="mb-2">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Brain className="w-3 h-3 text-teal-400" />
+                  <span className="text-[10px] text-muted-foreground font-medium">Step & Detox</span>
+                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
+                    {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
+                  </span>
+                  <CategoryCompleteBadge show={detoxComplete} />
+                </div>
+                <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+                    initial={false}
+                    animate={{ width: `${Math.min(100, detoxProgress)}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+
+              {/* Challenges: 6-bar grid (2 rows × 3 cols) */}
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Swords className="w-3 h-3 text-muted-foreground" />
@@ -307,45 +347,6 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </div>
               </div>
 
-              {/* Tasks */}
-              <div className="mb-2">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <BookMarked className="w-3 h-3 text-violet-400" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
-                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-                    {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
-                  </span>
-                  <CategoryCompleteBadge show={tasksComplete} />
-                </div>
-                <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
-                    initial={false}
-                    animate={{ width: `${Math.min(100, tasksProgress)}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-
-              <div className="mb-2">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <Brain className="w-3 h-3 text-teal-400" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Step & Detox</span>
-                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-                    {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
-                  </span>
-                  <CategoryCompleteBadge show={detoxComplete} />
-                </div>
-                <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
-                    initial={false}
-                    animate={{ width: `${Math.min(100, detoxProgress)}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-
               <p className="text-[9px] text-muted-foreground">
                 {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, totalXPTarget)}
               </p>
@@ -399,7 +400,47 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         />
       </div>
 
-      {/* Games: 6-bar grid (2 rows × 3 cols) */}
+      {/* Tasks */}
+      <div className="mb-2">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <BookMarked className="w-3 h-3 text-violet-400" />
+          <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
+          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
+            {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
+          </span>
+          <CategoryCompleteBadge show={tasksComplete} />
+        </div>
+        <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
+            initial={false}
+            animate={{ width: `${Math.min(100, tasksProgress)}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          />
+        </div>
+      </div>
+
+      {/* Step & Detox */}
+      <div className="mb-3">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <Brain className="w-3 h-3 text-teal-400" />
+          <span className="text-[10px] text-muted-foreground font-medium">Step & Detox</span>
+          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
+            {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
+          </span>
+          <CategoryCompleteBadge show={detoxComplete} />
+        </div>
+        <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+            initial={false}
+            animate={{ width: `${Math.min(100, detoxProgress)}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          />
+        </div>
+      </div>
+
+      {/* Challenges: 6-bar grid (2 rows × 3 cols) */}
       <div className="mb-3">
         <div className="flex items-center gap-1.5 mb-2">
           <Swords className="w-3 h-3 text-muted-foreground" />
@@ -512,46 +553,6 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </AnimatePresence>
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Tasks */}
-      <div className="mb-2">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <BookMarked className="w-3 h-3 text-violet-400" />
-          <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
-          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
-          </span>
-          <CategoryCompleteBadge show={tasksComplete} />
-        </div>
-        <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
-          <motion.div
-            className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
-            initial={false}
-            animate={{ width: `${Math.min(100, tasksProgress)}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
-      </div>
-
-      {/* Step & Detox */}
-      <div className="mb-3">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Brain className="w-3 h-3 text-teal-400" />
-          <span className="text-[10px] text-muted-foreground font-medium">Step & Detox</span>
-          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
-          </span>
-          <CategoryCompleteBadge show={detoxComplete} />
-        </div>
-        <div className="h-1.5 bg-teal-500/10 rounded-full overflow-hidden">
-          <motion.div
-            className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-teal-400"}`}
-            initial={false}
-            animate={{ width: `${Math.min(100, detoxProgress)}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
         </div>
       </div>
 
