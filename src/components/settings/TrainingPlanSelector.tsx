@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { TRAINING_PLANS, TrainingPlanId, TrainingPlan } from "@/lib/trainingPlans";
-import { Leaf, Target, Flame, Check, Clock, BookOpen, Swords, ChevronDown, ChevronUp, Star, Smartphone } from "lucide-react";
+import { Leaf, Target, Flame, Check, Clock, BookOpen, Dumbbell, ChevronDown, ChevronUp, Star, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PLAN_ICONS: Record<TrainingPlanId, typeof Leaf> = {
@@ -179,7 +179,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                         </div>
                         <div className="flex items-center gap-1.5">
                           <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center shrink-0">
-                            <Swords className="w-3 h-3 text-blue-400" />
+                            <Dumbbell className="w-3 h-3 text-blue-400" />
                           </div>
                           <div className="min-w-0">
                             <p className="text-[11px] font-semibold text-blue-400">{gamesXPTarget} XP</p>

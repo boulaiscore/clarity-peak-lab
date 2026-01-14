@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { 
-  Zap, ChevronRight, Crown, Swords,
+  Zap, ChevronRight, Crown, Dumbbell,
   BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban,
   Headphones, BookOpen, FileText
 } from "lucide-react";
@@ -321,7 +321,7 @@ export default function NeuroLab() {
               Walk & Detox
             </TabsTrigger>
             <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
-              <Swords className="w-3.5 h-3.5" />
+              <Dumbbell className="w-3.5 h-3.5" />
               Training
             </TabsTrigger>
           </TabsList>

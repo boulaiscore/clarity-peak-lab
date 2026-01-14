@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Flame, TrendingUp, TrendingDown, Minus, Swords, BookMarked, Smartphone, Ban, Zap, Calendar, Target, Clock } from "lucide-react";
+import { Flame, TrendingUp, TrendingDown, Minus, Dumbbell, BookMarked, Smartphone, Ban, Zap, Calendar, Target, Clock } from "lucide-react";
 import { useDailyTrainingStreak, useDailyTrainingHistory } from "@/hooks/useDailyTraining";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useWeeklyTrainingTime } from "@/hooks/useWeeklyTrainingTime";
@@ -238,7 +238,7 @@ export const TrainingProgressHeader = () => {
           {/* Games */}
           <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/30">
             <div className="w-6 h-6 rounded-md bg-muted/50 flex items-center justify-center">
-              <Swords className="w-3 h-3 text-muted-foreground" />
+              <Dumbbell className="w-3 h-3 text-muted-foreground" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold text-foreground truncate">{cappedGamesXP}</p>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Swords, BookMarked, Smartphone, Zap, Ban, Layers } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Layers } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
@@ -559,7 +559,7 @@ const Home = () => {
                         </div>
                       )}
                       <div className="flex items-center gap-1.5">
-                        <Swords className="w-3 h-3 text-blue-400" />
+                        <Dumbbell className="w-3 h-3 text-blue-400" />
                         <span className="text-[10px] text-muted-foreground">
                           Training: <span className="text-blue-400 font-medium">{gamesXPTarget}</span>
                         </span>

@@ -11,7 +11,7 @@ import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Swords, BookMarked, Smartphone, Ban, Sparkles } from "lucide-react";
+import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Dumbbell, BookMarked, Smartphone, Ban, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
@@ -196,7 +196,7 @@ const Dashboard = () => {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
-                <Swords className="w-3.5 h-3.5" />
+                <Dumbbell className="w-3.5 h-3.5" />
                 Training
               </button>
             </div>
