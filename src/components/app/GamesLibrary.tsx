@@ -53,8 +53,8 @@ const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] 
 ];
 
 const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] = [
-  { areaId: "reasoning", name: "Reasoning", tagline: "Deep Analysis" },
-  { areaId: "creativity", name: "Creativity", tagline: "Structured Innovation" },
+  { areaId: "reasoning", name: "Critical Thinking", tagline: "Deep Analysis" },
+  { areaId: "creativity", name: "Structured Association", tagline: "Deliberate Innovation" },
 ];
 
 type ThinkingSystem = "fast" | "slow";
