@@ -60,7 +60,7 @@ export function IntuitionTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Intuition</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Sharpness</p>
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {isLoading ? "—" : `${Math.round(score)}`}
               <span className="text-3xl">%</span>
@@ -73,10 +73,10 @@ export function IntuitionTab() {
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Zap className="w-5 h-5 text-blue-400 mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Fast Processing</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Mental Sharpness</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Your System 1 is {score >= 70 ? "primed for rapid pattern recognition" : score >= 50 ? "stable and responsive" : "recovering—focus on rest"}. 
+          Your mental sharpness is {score >= 70 ? "primed for rapid pattern recognition" : score >= 50 ? "stable and responsive" : "recovering—focus on rest"}. 
           Quick decisions draw from this intuitive layer.
         </p>
       </div>
