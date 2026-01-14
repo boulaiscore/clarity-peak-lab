@@ -528,15 +528,14 @@ export function GamesStats() {
             {/* S1 Area breakdown */}
             {stats.s1Count > 0 && (
               <div className="space-y-2 pt-3 border-t border-amber-500/10">
-                {(["focus", "reasoning", "creativity"] as const).map((area) => {
+                {(["focus", "creativity"] as const).map((area) => {
                   const areaStats = stats.s1.areas[area];
                   if (areaStats.count === 0) return null;
                   
-                  const areaLabels = { focus: "Focus", reasoning: "Reasoning", creativity: "Creativity" };
-                  const areaColors = { focus: "blue", reasoning: "purple", creativity: "amber" };
+                  const areaLabels = { focus: "Attentional Efficiency", creativity: "Rapid Association" };
+                  const areaColors = { focus: "blue", creativity: "amber" };
                   const metricsImpact = {
                     focus: ["Focus Stability", "Reaction Speed"],
-                    reasoning: ["Reasoning Accuracy", "Decision Quality"],
                     creativity: ["Creative Thinking", "Pattern Recognition"],
                   };
                   
@@ -587,13 +586,12 @@ export function GamesStats() {
             {/* S2 Area breakdown */}
             {stats.s2Count > 0 && (
               <div className="space-y-2 pt-3 border-t border-violet-500/10">
-                {(["focus", "reasoning", "creativity"] as const).map((area) => {
+                {(["reasoning", "creativity"] as const).map((area) => {
                   const areaStats = stats.s2.areas[area];
                   if (areaStats.count === 0) return null;
                   
-                  const areaLabels = { focus: "Focus", reasoning: "Reasoning", creativity: "Creativity" };
+                  const areaLabels = { reasoning: "Critical Thinking", creativity: "Deliberate Association" };
                   const metricsImpact = {
-                    focus: ["Clarity Score", "Attention Control"],
                     reasoning: ["Critical Thinking", "Logical Analysis"],
                     creativity: ["Conceptual Depth", "Divergent Thinking"],
                   };
