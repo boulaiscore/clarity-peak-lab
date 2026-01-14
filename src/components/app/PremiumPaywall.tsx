@@ -18,7 +18,7 @@ interface PremiumPaywallProps {
   featureName?: string;
 }
 
-import { Swords } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 
 const FEATURES = [
   { icon: Brain, text: "All 3 training areas" },
@@ -26,7 +26,7 @@ const FEATURES = [
   { icon: Zap, text: "Neuro Activation warm-up" },
   { icon: Check, text: "Unlimited daily sessions" },
   { icon: FileText, text: "Cognitive Intelligence Report" },
-  { icon: Swords, text: "Advanced cognitive simulations" },
+  { icon: Dumbbell, text: "Advanced cognitive training" },
 ];
 
 const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {

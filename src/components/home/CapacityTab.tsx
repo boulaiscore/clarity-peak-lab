@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Layers, Swords, BookMarked, Smartphone } from "lucide-react";
+import { Layers, Dumbbell, BookMarked, Smartphone } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
@@ -115,7 +115,7 @@ export function CapacityTab() {
             target={detoxXPTarget}
           />
           <CategoryRow 
-            icon={<Swords className="w-4 h-4 text-blue-400" />}
+            icon={<Dumbbell className="w-4 h-4 text-blue-400" />}
             label="Training"
             current={cappedGamesXP}
             target={gamesXPTarget}
