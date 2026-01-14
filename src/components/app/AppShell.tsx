@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, User, Bell, BellOff, Sparkles, BookOpen, Sun, Moon } from "lucide-react";
+import { Home, LayoutDashboard, User, Bell, BellOff, Activity, BookOpen, Sun, Moon } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
@@ -12,7 +12,7 @@ interface AppShellProps {
 
 const navItems = [
   { to: "/app", icon: Home, label: "Home" },
-  { to: "/neuro-lab", icon: Sparkles, label: "Lab" },
+  { to: "/neuro-lab", icon: Activity, label: "Lab" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/brain-science", icon: BookOpen, label: "Science" },
   { to: "/app/account", icon: User, label: "Account" },
