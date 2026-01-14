@@ -10,9 +10,9 @@ interface HomeTabsProps {
 
 const tabs: { id: HomeTabId; label: string }[] = [
   { id: "overview", label: "Overview" },
-  { id: "intuition", label: "Intuition" },
-  { id: "reasoning", label: "Reasoning" },
-  { id: "capacity", label: "Capacity" },
+  { id: "intuition", label: "Sharpness" },
+  { id: "reasoning", label: "Readiness" },
+  { id: "capacity", label: "Recovery" },
 ];
 
 export function HomeTabs({ activeTab, onTabChange }: HomeTabsProps) {
