@@ -9,7 +9,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, Calculator, Info } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, Calculator, Info, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
@@ -884,6 +884,78 @@ const Account = () => {
                     
                     <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs">
                       <p><strong>Example:</strong> If you score 80% on a medium exercise affecting reasoning_accuracy (currently at 55), the update would be: 55 + (0.8 × 2 × 1 × 0.5) = 55.8 → reasoning_accuracy becomes 55.8.</p>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Cognitive Readiness */}
+              <AccordionItem value="cognitive-readiness" className="border-border/50">
+                <AccordionTrigger className="text-sm hover:no-underline py-3">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-400" />
+                    Cognitive Readiness
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <p>Cognitive Readiness measures your mental and physical state to determine optimal conditions for demanding cognitive work. It combines physiological signals with cognitive performance metrics.</p>
+                    
+                    <div className="p-3 rounded-lg bg-muted/30 border border-border/50 font-mono text-xs">
+                      <p className="text-foreground font-semibold mb-1">Master Formula:</p>
+                      <p>Cognitive Readiness = <strong className="text-emerald-400">0.5</strong> × PhysioComponent + <strong className="text-primary">0.5</strong> × CognitiveComponent</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                        <p className="font-semibold text-emerald-400 text-xs mb-2">🩺 Physiological Component (50%)</p>
+                        <p className="text-xs mb-2">Derived from wearable data when available:</p>
+                        <ul className="text-xs space-y-1">
+                          <li>• <strong>HRV Score (40%)</strong>: Normalized 20-120ms → 0-100</li>
+                          <li>• <strong>Resting HR Score (20%)</strong>: Normalized 45-90bpm (lower is better)</li>
+                          <li>• <strong>Sleep Score (40%)</strong>: Duration (60%) + Efficiency (40%)</li>
+                        </ul>
+                        <div className="mt-2 p-2 rounded bg-muted/30 font-mono text-[10px]">
+                          PhysioComponent = 0.4×HRV + 0.2×RHR + 0.4×Sleep
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                        <p className="font-semibold text-primary text-xs mb-2">🧠 Cognitive Component (50%)</p>
+                        <p className="text-xs mb-2">Weighted combination of your cognitive metrics:</p>
+                        <ul className="text-xs space-y-1">
+                          <li>• <strong>Reasoning Accuracy (30%)</strong></li>
+                          <li>• <strong>Focus Index (25%)</strong></li>
+                          <li>• <strong>Working Memory (20%)</strong></li>
+                          <li>• <strong>Slow Thinking (15%)</strong></li>
+                          <li>• <strong>Fast Thinking (10%)</strong></li>
+                        </ul>
+                        <div className="mt-2 p-2 rounded bg-muted/30 font-mono text-[10px]">
+                          CognitiveComponent = 0.3×Reasoning + 0.25×Focus + 0.2×WM + 0.15×Slow + 0.1×Fast
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 rounded-lg bg-gradient-to-r from-emerald-500/10 via-amber-500/10 to-red-500/10 border border-border/50">
+                      <p className="font-semibold text-foreground text-xs mb-2">Readiness Classification:</p>
+                      <div className="grid grid-cols-3 gap-2 text-xs text-center">
+                        <div className="p-2 rounded bg-emerald-500/20 border border-emerald-500/40">
+                          <p className="font-semibold text-emerald-400">HIGH</p>
+                          <p className="text-muted-foreground">≥ 70</p>
+                        </div>
+                        <div className="p-2 rounded bg-amber-500/20 border border-amber-500/40">
+                          <p className="font-semibold text-amber-400">MEDIUM</p>
+                          <p className="text-muted-foreground">40-69</p>
+                        </div>
+                        <div className="p-2 rounded bg-red-500/20 border border-red-500/40">
+                          <p className="font-semibold text-red-400">LOW</p>
+                          <p className="text-muted-foreground">&lt; 40</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-xs">
+                      <p><strong>Note:</strong> Without wearable data, Cognitive Readiness is calculated using only the Cognitive Component (100%). Connect a wearable device for a more comprehensive assessment.</p>
                     </div>
                   </div>
                 </AccordionContent>
