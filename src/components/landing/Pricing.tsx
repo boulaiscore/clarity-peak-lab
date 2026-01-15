@@ -10,10 +10,10 @@ export function Pricing() {
       <div className="container px-6 relative">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
-            Upgrade to <span className="text-gradient">Premium</span>
+            Choose Your <span className="text-gradient">Access</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Unlock advanced cognitive protocols, deeper reasoning sequences, and weekly insights into your thinking patterns.
+            Select the depth of cognitive insight and reporting that matches your needs.
           </p>
         </div>
 
@@ -22,7 +22,7 @@ export function Pricing() {
           <div className="p-8 rounded-xl bg-card border border-border animate-fade-in-up shadow-card">
             <div className="mb-8">
               <h3 className="text-xl font-semibold mb-2">Free</h3>
-              <p className="text-muted-foreground text-sm">Core protocols to start training</p>
+              <p className="text-muted-foreground text-sm">Introductory system access</p>
             </div>
             
             <div className="mb-8">
@@ -32,10 +32,11 @@ export function Pricing() {
 
             <ul className="space-y-4 mb-8">
               {[
-                "Focus Arena training area",
-                "30s & 2min session durations",
-                "3 sessions per day",
-                "Basic SCI tracking",
+                "2 daily cognitive sessions",
+                "Introductory S1 & S2 access",
+                "Limited Neuro Lab protocols",
+                "Basic progress tracking",
+                "Standard accuracy modeling",
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
                   <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -50,43 +51,7 @@ export function Pricing() {
           </div>
 
           {/* Premium Tier */}
-          <div className="p-8 rounded-xl bg-card border border-border shadow-card animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-5 h-5 text-primary" />
-                <h3 className="text-xl font-semibold">Premium</h3>
-              </div>
-              <p className="text-muted-foreground text-sm">Complete training system</p>
-            </div>
-            
-            <div className="mb-8">
-              <span className="text-4xl font-semibold">$12</span>
-              <span className="text-muted-foreground">/month</span>
-            </div>
-
-            <ul className="space-y-4 mb-8">
-              {[
-                "All 3 Neuro Lab areas",
-                "Extended sessions (5min, 7min)",
-                "Neuro Activation™ warm-up",
-                "Unlimited daily sessions",
-                "Full dashboard with trends",
-                "1 Cognitive Report/month",
-              ].map((feature) => (
-                <li key={feature} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Button asChild variant="outline" className="w-full min-h-[52px] rounded-xl">
-              <Link to="/auth">Start Free Trial</Link>
-            </Button>
-          </div>
-
-          {/* Pro Tier */}
-          <div className="p-8 rounded-xl bg-card border border-primary/25 shadow-glow animate-fade-in-up relative" style={{ animationDelay: "0.2s" }}>
+          <div className="p-8 rounded-xl bg-card border border-primary/25 shadow-glow animate-fade-in-up relative" style={{ animationDelay: "0.1s" }}>
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
                 BEST VALUE
@@ -95,10 +60,45 @@ export function Pricing() {
             
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-2">
-                <Crown className="w-5 h-5 text-primary" />
+                <Zap className="w-5 h-5 text-primary" />
+                <h3 className="text-xl font-semibold">Premium</h3>
+              </div>
+              <p className="text-muted-foreground text-sm">Complete cognitive system</p>
+            </div>
+            
+            <div className="mb-8">
+              <span className="text-4xl font-semibold">$11.99</span>
+              <span className="text-muted-foreground">/month</span>
+            </div>
+
+            <ul className="space-y-4 mb-8">
+              {[
+                "Unlimited daily sessions",
+                "Full S1 & S2 protocols",
+                "Full Neuro Lab access",
+                "Enhanced cognitive accuracy",
+                "Monthly Cognitive Report",
+              ].map((feature) => (
+                <li key={feature} className="flex items-start gap-3 text-sm">
+                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Button asChild variant="hero" className="w-full min-h-[52px] rounded-xl">
+              <Link to="/auth">Start Free Trial</Link>
+            </Button>
+          </div>
+
+          {/* Pro Tier */}
+          <div className="p-8 rounded-xl bg-card border border-border shadow-card animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Crown className="w-5 h-5 text-muted-foreground" />
                 <h3 className="text-xl font-semibold">Pro</h3>
               </div>
-              <p className="text-muted-foreground text-sm">Unlimited everything</p>
+              <p className="text-muted-foreground text-sm">Advanced insight layer</p>
             </div>
             
             <div className="mb-8">
@@ -108,10 +108,11 @@ export function Pricing() {
 
             <ul className="space-y-4 mb-8">
               {[
-                "All Premium features",
-                "Unlimited Cognitive Reports",
+                "Everything in Premium",
+                "On-demand Cognitive Reports",
+                "Advanced trend analytics",
                 "Priority support",
-                "Early access to new features",
+                "Early access to features",
               ].map((feature, i) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
                   <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -120,7 +121,7 @@ export function Pricing() {
               ))}
             </ul>
 
-            <Button asChild variant="hero" className="w-full min-h-[52px] rounded-xl">
+            <Button asChild variant="outline" className="w-full min-h-[52px] rounded-xl">
               <Link to="/auth">Start Free Trial</Link>
             </Button>
           </div>

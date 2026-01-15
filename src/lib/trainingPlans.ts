@@ -86,13 +86,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   light: {
     id: "light",
     name: "Light Training",
-    tagline: "Maintain & Sharpen",
-    description: "Smart and light training. Content helps, not burdens.",
-    philosophy: "For those who want to stay sharp without overexerting. Ideal entry point.",
+    tagline: "Maintain & Regulate",
+    description: "Sustainable cognitive load. Structure without overexertion.",
+    philosophy: "Matches current capacity without accumulating cognitive debt.",
     targetAudience: [
-      "Busy professionals",
-      "Cognitive maintenance seekers",
-      "New users"
+      "Maintenance focus",
+      "Variable schedules",
+      "Entry configuration"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "15-18 min",
@@ -157,12 +157,12 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     id: "expert",
     name: "Expert Training",
     tagline: "Build Depth & Control",
-    description: "Balance speed and depth. Think better under pressure.",
-    philosophy: "For decision-makers who want control, not just speed.",
+    description: "Moderate cognitive load. Balances intensity with sustainability.",
+    philosophy: "Structured progression with deliberate recovery periods.",
     targetAudience: [
-      "Engaged users",
-      "Decision-makers",
-      "Depth seekers"
+      "Regular practice",
+      "Structured depth",
+      "Sustained engagement"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "22-25 min",
@@ -226,13 +226,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   superhuman: {
     id: "superhuman",
     name: "Superhuman Training",
-    tagline: "Elite Cognitive Conditioning",
-    description: "Content doesn't accompany training. It's part of the load.",
-    philosophy: "For high performers with tolerance for cognitive effort.",
+    tagline: "High Cognitive Load",
+    description: "Maximum load configuration. Content integrated into protocols.",
+    philosophy: "For sustained high-intensity cognitive engagement.",
     targetAudience: [
-      "Advanced users",
-      "High performers",
-      "Elite seekers"
+      "High tolerance",
+      "Consistent availability",
+      "Maximum structure"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "30-35 min",

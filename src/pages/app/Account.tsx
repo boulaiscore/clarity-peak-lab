@@ -347,7 +347,7 @@ const Account = () => {
             {/* Available Plans */}
             <div className="mb-4">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                Available Plans
+                Subscription Plans
               </h4>
               <div className="space-y-3">
                 {/* Free Plan */}
@@ -371,19 +371,23 @@ const Account = () => {
                   <ul className="space-y-1.5 text-xs text-muted-foreground">
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      2 daily training sessions
+                      2 daily cognitive sessions
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      Basic cognitive drills
+                      Introductory System 1 & System 2 access
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      Neuro Lab access (limited)
+                      Limited Neuro Lab protocols
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      Dashboard & progress tracking
+                      Basic progress tracking
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                      Standard accuracy modeling
                     </li>
                   </ul>
                 </div>
@@ -416,19 +420,19 @@ const Account = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-primary" />
+                      <span className="text-foreground">Full System 1 & System 2 protocols</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
                       <span className="text-foreground">Full Neuro Lab access</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">Apple Health integration</span>
+                      <span className="text-foreground">Enhanced cognitive accuracy</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">1 Cognitive Report / month</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">All training protocols</span>
+                      <span className="text-foreground">Monthly Cognitive Report</span>
                     </li>
                   </ul>
                 </div>
@@ -448,11 +452,11 @@ const Account = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">Unlimited Cognitive Reports</span>
+                      <span className="text-foreground">On-demand Cognitive Reports</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">Advanced analytics & insights</span>
+                      <span className="text-foreground">Advanced analytics & trend insights</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-amber-400" />
@@ -460,7 +464,7 @@ const Account = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">Early access to new features</span>
+                      <span className="text-foreground">Early access to experimental features</span>
                     </li>
                   </ul>
                 </div>
