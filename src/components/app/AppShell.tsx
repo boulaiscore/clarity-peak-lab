@@ -17,7 +17,7 @@ const navItems = [
 ];
 
 const menuItems = [
-  { to: "/app/health", icon: Layers, label: "Health" },
+  { to: "/app/health", icon: Layers, label: "Health", badge: true },
   { to: "/brain-science", icon: BookOpen, label: "Science" },
   { to: "/app/account", icon: User, label: "Account" },
 ];
@@ -179,7 +179,12 @@ export function AppShell({ children }: AppShellProps) {
                           : "text-foreground hover:bg-muted/50"
                       )}
                     >
-                      <item.icon className="w-5 h-5" />
+                      <div className="relative">
+                        <item.icon className="w-5 h-5" />
+                        {'badge' in item && item.badge && (
+                          <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+                        )}
+                      </div>
                       <span className="text-sm font-medium">{item.label}</span>
                     </Link>
                   );
