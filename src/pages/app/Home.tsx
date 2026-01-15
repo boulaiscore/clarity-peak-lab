@@ -1,13 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Layers } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
-import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
-import { useUserMetrics } from "@/hooks/useExercises";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 
@@ -102,49 +101,26 @@ const Home = () => {
   const stableCognitiveLoad = useStableCognitiveLoad();
   const { cappedTotalXP, rawDetoxXP, detoxXPTarget, detoxProgress, detoxComplete } = stableCognitiveLoad;
   const totalWeeklyXP = cappedTotalXP;
-  const { cognitiveReadinessScore, isLoading: readinessLoading, cognitiveMetrics } = useCognitiveReadiness();
-  const { data: userMetrics } = useUserMetrics(user?.id);
+  
+  // New cognitive engine metrics
+  const { sharpness, readiness, recovery, isLoading: metricsLoading } = useTodayMetrics();
   
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState<HomeTabId>("overview");
   
-
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
-  const readinessScore = cognitiveReadinessScore ?? 50;
   
-  // Calculate cognitive performance from ACTUAL metrics (not simplified formula)
-  const cognitivePerformance = useMemo(() => {
-    const metrics = userMetrics || cognitiveMetrics;
-    if (!metrics) return 50; // Default starting point
-    
-    // Average of key cognitive metrics for a holistic performance score
-    const scores = [
-      metrics.reasoning_accuracy ?? 50,
-      metrics.focus_stability ?? 50,
-      metrics.fast_thinking ?? 50,
-      metrics.slow_thinking ?? 50,
-      metrics.creativity ?? 50,
-    ];
-    
-    const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
-    return Math.round(avg);
-  }, [userMetrics, cognitiveMetrics]);
-  
-  // Weekly target progress
-  const weeklyTarget = 3;
-  const sessionsProgress = Math.min(sessionsCompleted / weeklyTarget, 1) * 100;
-  
-  // Dynamic color for Cognitive Capacity based on progress
-  const cognitiveCapacityProgress = weeklyXPTarget > 0 ? totalWeeklyXP / weeklyXPTarget : 0;
-  const cognitiveLoadColor = useMemo(() => {
-    if (cognitiveCapacityProgress >= 0.9) return "hsl(142, 71%, 45%)"; // Green when near/at target
-    if (cognitiveCapacityProgress >= 0.6) return "hsl(80, 60%, 45%)";  // Yellow-green
-    if (cognitiveCapacityProgress >= 0.3) return "hsl(45, 85%, 50%)";  // Yellow-orange
-    return "hsl(25, 90%, 50%)"; // Orange when low
-  }, [cognitiveCapacityProgress]);
+  // Dynamic color for Recovery based on progress
+  const recoveryColor = recovery >= 90 
+    ? "hsl(142, 71%, 45%)" 
+    : recovery >= 60 
+      ? "hsl(80, 60%, 45%)"  
+      : recovery >= 30 
+        ? "hsl(45, 85%, 50%)"  
+        : "hsl(25, 90%, 50%)";
 
   const handleStartSession = () => {
     navigate("/neuro-lab");
@@ -186,14 +162,14 @@ const Home = () => {
   const getInsight = () => {
     const planName = TRAINING_PLANS[currentPlan].name.replace(" Training", "");
     
-    if (readinessScore >= 75) {
+    if (readiness >= 75) {
       return {
         title: "Optimal window",
         body: `Your ${planName} protocol detected peak readiness. High-intensity training today will have 2x impact on memory consolidation tonight.`,
         action: "Push intensity"
       };
     }
-    if (readinessScore >= 55) {
+    if (readiness >= 55) {
       return {
         title: "Stable foundation",
         body: `Conditions support your ${planName} load. Training now maintains the cognitive edge you've built—skipping starts a 48h decline curve.`,
@@ -245,7 +221,7 @@ const Home = () => {
         {/* Tab Content */}
         {activeTab === "overview" && (
           <>
-            {/* Three Rings with Cognitive Interpretations */}
+            {/* Three Rings with Cognitive Engine Metrics */}
             <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -254,34 +230,34 @@ const Home = () => {
             >
               <div className="flex justify-center gap-6 mb-4">
                 <ProgressRing
-                  value={readinessLoading ? 0 : readinessScore}
+                  value={metricsLoading ? 0 : sharpness}
                   max={100}
                   size={90}
                   strokeWidth={6}
                   color="hsl(210, 70%, 55%)"
                   label="Sharpness"
-                  displayValue={readinessLoading ? "—" : `${Math.round(readinessScore)}%`}
+                  displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}%`}
                   microcopy="Intuitive clarity and decision speed"
                 />
                 <ProgressRing
-                  value={cognitivePerformance}
+                  value={readiness}
                   max={100}
                   size={90}
                   strokeWidth={6}
                   color="hsl(var(--primary))"
                   label="Readiness"
-                  displayValue={`${cognitivePerformance}%`}
+                  displayValue={`${Math.round(readiness)}%`}
                   microcopy="Capacity for focused reasoning"
                 />
                 <ProgressRing
-                  value={totalWeeklyXP}
-                  max={weeklyXPTarget}
+                  value={recovery}
+                  max={100}
                   size={90}
                   strokeWidth={6}
-                  color={cognitiveLoadColor}
+                  color={recoveryColor}
                   label="Recovery"
-                  displayValue={`${totalWeeklyXP}`}
-                  microcopy="Available mental bandwidth"
+                  displayValue={`${Math.round(recovery)}%`}
+                  microcopy="Cognitive restoration level"
                 />
               </div>
               
