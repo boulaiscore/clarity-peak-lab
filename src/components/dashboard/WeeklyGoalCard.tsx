@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, BookMarked, Brain, Shield, Trophy, Target, Lightbulb, ChevronDown, Footprints, Zap, Timer } from "lucide-react";
+import { Dumbbell, BookMarked, Brain, Shield, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Smartphone, Ban } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
@@ -191,16 +191,16 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               {/* Tasks */}
               <div className="mb-2">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <BookMarked className="w-3 h-3 text-violet-400" />
+                  <BookMarked className="w-3 h-3 text-muted-foreground" />
                   <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
                   <span className="text-[8px] text-muted-foreground/60 tabular-nums">
                     {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
                   </span>
                   <CategoryCompleteBadge show={tasksComplete} />
                 </div>
-                <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
                   <motion.div
-                    className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
+                    className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
                     initial={false}
                     animate={{ width: `${Math.min(100, tasksProgress)}%` }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
@@ -211,16 +211,19 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               {/* Walk & Detox */}
               <div className="mb-2">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <Footprints className="w-3 h-3 text-cyan-400" />
+                  <div className="relative w-3 h-3">
+                    <Smartphone className="w-3 h-3 text-muted-foreground" />
+                    <Ban className="w-3 h-3 text-muted-foreground absolute inset-0" />
+                  </div>
                   <span className="text-[10px] text-muted-foreground font-medium">Walk & Detox</span>
                   <span className="text-[8px] text-muted-foreground/60 tabular-nums">
                     {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
                   </span>
                   <CategoryCompleteBadge show={detoxComplete} />
                 </div>
-                <div className="h-1.5 bg-cyan-500/10 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
                   <motion.div
-                    className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-cyan-400"}`}
+                    className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
                     initial={false}
                     animate={{ width: `${Math.min(100, detoxProgress)}%` }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
@@ -393,16 +396,16 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       {/* Tasks */}
       <div className="mb-2">
         <div className="flex items-center gap-1.5 mb-1.5">
-          <BookMarked className="w-3 h-3 text-violet-400" />
+          <BookMarked className="w-3 h-3 text-muted-foreground" />
           <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
             {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
           </span>
           <CategoryCompleteBadge show={tasksComplete} />
         </div>
-        <div className="h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
           <motion.div
-            className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-violet-400"}`}
+            className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
             initial={false}
             animate={{ width: `${Math.min(100, tasksProgress)}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -413,16 +416,19 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       {/* Walk & Detox */}
       <div className="mb-3">
         <div className="flex items-center gap-1.5 mb-1.5">
-          <Footprints className="w-3 h-3 text-cyan-400" />
+          <div className="relative w-3 h-3">
+            <Smartphone className="w-3 h-3 text-muted-foreground" />
+            <Ban className="w-3 h-3 text-muted-foreground absolute inset-0" />
+          </div>
           <span className="text-[10px] text-muted-foreground font-medium">Walk & Detox</span>
           <span className="text-[8px] text-muted-foreground/60 tabular-nums">
             {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
           </span>
           <CategoryCompleteBadge show={detoxComplete} />
         </div>
-        <div className="h-1.5 bg-cyan-500/10 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
           <motion.div
-            className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-cyan-400"}`}
+            className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
             initial={false}
             animate={{ width: `${Math.min(100, detoxProgress)}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
