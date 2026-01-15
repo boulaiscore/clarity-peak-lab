@@ -352,12 +352,12 @@ const Account = () => {
               <div className="space-y-3">
                 {/* Free Plan */}
                 <div className={cn(
-                  "p-3 rounded-lg border transition-all",
+                  "p-4 rounded-lg border transition-all",
                   !isPremium 
                     ? "border-primary/30 bg-primary/5" 
                     : "border-border/50 bg-muted/10"
                 )}>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">Free</span>
                       {!isPremium && (
@@ -368,19 +368,34 @@ const Account = () => {
                     </div>
                     <span className="font-semibold">$0/mo</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    2 daily sessions • Basic training areas • Limited features
-                  </p>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                      2 daily training sessions
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                      Basic cognitive drills
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                      Neuro Lab access (limited)
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                      Dashboard & progress tracking
+                    </li>
+                  </ul>
                 </div>
 
                 {/* Premium Plan */}
                 <div className={cn(
-                  "p-3 rounded-lg border transition-all",
+                  "p-4 rounded-lg border transition-all",
                   isPremium 
                     ? "border-primary/30 bg-primary/5" 
                     : "border-border/50 bg-muted/10"
                 )}>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">Premium</span>
                       {isPremium && (
@@ -391,14 +406,33 @@ const Account = () => {
                     </div>
                     <span className="font-semibold">$12/mo</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Unlimited sessions • All training areas • 1 report/month
-                  </p>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
+                      <span className="text-foreground">Unlimited daily sessions</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
+                      <span className="text-foreground">Full Neuro Lab access</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
+                      <span className="text-foreground">Apple Health integration</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
+                      <span className="text-foreground">1 Cognitive Report / month</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
+                      <span className="text-foreground">All training protocols</span>
+                    </li>
+                  </ul>
                 </div>
 
                 {/* Pro Plan */}
-                <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="p-4 rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">Pro</span>
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/15 text-amber-400">
@@ -407,9 +441,28 @@ const Account = () => {
                     </div>
                     <span className="font-semibold">$16.99/mo</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Everything in Premium • Unlimited reports • Priority support
-                  </p>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-amber-400" />
+                      <span className="text-foreground">Everything in Premium</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-amber-400" />
+                      <span className="text-foreground">Unlimited Cognitive Reports</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-amber-400" />
+                      <span className="text-foreground">Advanced analytics & insights</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-amber-400" />
+                      <span className="text-foreground">Priority support</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-amber-400" />
+                      <span className="text-foreground">Early access to new features</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
