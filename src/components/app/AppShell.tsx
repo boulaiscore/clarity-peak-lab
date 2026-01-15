@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, User, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, FlaskConical } from "lucide-react";
+import { Home, LayoutDashboard, User, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,7 @@ interface AppShellProps {
 const navItems = [
   { to: "/app", icon: Home, label: "Home" },
   { to: "/neuro-lab", icon: Activity, label: "Lab" },
+  { to: "/app/health", icon: Layers, label: "Health" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard" },
 ];
 

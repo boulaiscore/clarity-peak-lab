@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Crown, Save, LogOut, Zap, Brain, Calendar, Lock, RotateCcw, Shield, Mail, CreditCard, HelpCircle, CheckCircle2, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, Calculator, Info, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { WearableIntegrationSection } from "@/components/settings/WearableIntegrationSection";
+
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { supabase } from "@/integrations/supabase/client";
@@ -565,8 +565,6 @@ const Account = () => {
             </div>
           </div>
 
-          {/* Wearable Integration */}
-          <WearableIntegrationSection />
 
           {/* How We Calculate Your Metrics - Q&A Section */}
           <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
