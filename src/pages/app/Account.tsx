@@ -9,7 +9,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
@@ -250,6 +250,53 @@ const Account = () => {
                   Account ID
                 </span>
                 <span className="text-sm font-medium font-mono">{maskedAccountId}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Demographics */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" />
+              Demographics
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2 border-b border-border/30">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Birth Date
+                </span>
+                <span className="text-sm font-medium">
+                  {user?.birthDate ? format(new Date(user.birthDate), "MMMM d, yyyy") : "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-border/30">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <User className="w-3.5 h-3.5" />
+                  Gender
+                </span>
+                <span className="text-sm font-medium capitalize">
+                  {user?.gender || "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-border/30">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  Education
+                </span>
+                <span className="text-sm font-medium">
+                  {user?.educationLevel ? user.educationLevel.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()) : "—"}
+                  {user?.degreeDiscipline && ` · ${user.degreeDiscipline.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}`}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  Work Type
+                </span>
+                <span className="text-sm font-medium capitalize">
+                  {user?.workType ? user.workType.replace(/_/g, " ") : "—"}
+                </span>
               </div>
             </div>
           </div>
