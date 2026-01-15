@@ -149,10 +149,10 @@ const TrainingRunner = () => {
             </div>
             <p className="text-[10px] text-muted-foreground text-center mt-2">
               {score >= 75 
-                ? "Excellent performance!" 
+                ? "Session complete. Metrics updated." 
                 : score >= 50 
-                  ? "Good progress. Keep training." 
-                  : "Keep practicing to improve."}
+                  ? "Session recorded. Consistent practice refines capacity." 
+                  : "Session logged. Consider recovery before next protocol."}
             </p>
           </div>
 

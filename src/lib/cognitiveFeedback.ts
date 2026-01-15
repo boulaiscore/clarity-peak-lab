@@ -284,8 +284,8 @@ export function getCognitiveAgeInterpretation(delta: number, chronologicalAge?: 
     };
   }
   return {
-    status: "Room for cognitive optimization",
-    implication: "Training can improve processing efficiency",
+    status: "Capacity for calibration",
+    implication: "Structured protocols can refine processing efficiency",
   };
 }
 

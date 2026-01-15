@@ -74,14 +74,14 @@ export function IntuitionTab() {
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Zap className="w-5 h-5 text-blue-400 mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Mental Sharpness</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Current Sharpness State</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {sharpness >= 70 
-            ? "Your mental sharpness is primed for rapid pattern recognition and quick decisions." 
+            ? "Indicates elevated capacity for intuitive pattern recognition and rapid judgment." 
             : sharpness >= 50 
-              ? "Sharpness is stable—intuition and decision speed are responsive." 
-              : "Sharpness is recovering. Focus on rest to restore intuitive clarity."}
+              ? "Standard clarity levels. Suitable for routine cognitive demands." 
+              : "Reduced sharpness suggests prioritizing recovery before demanding work."}
         </p>
       </div>
 

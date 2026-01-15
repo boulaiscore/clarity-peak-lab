@@ -145,8 +145,8 @@ export const BADGES: Badge[] = [
   // IMPORTANT: These require a valid baseline to be set first
   {
     id: "fast_improvement_10",
-    name: "Quick Learner",
-    description: "Improve Fast Thinking by 10% from baseline",
+    name: "S1 Calibration I",
+    description: "System 1 processing calibrated 10% above baseline",
     category: "milestone",
     icon: Zap,
     iconColor: "text-amber-400",
@@ -155,8 +155,8 @@ export const BADGES: Badge[] = [
   },
   {
     id: "fast_improvement_25",
-    name: "Lightning Mind",
-    description: "Improve Fast Thinking by 25% from baseline",
+    name: "S1 Calibration II",
+    description: "System 1 processing calibrated 25% above baseline",
     category: "milestone",
     icon: Zap,
     iconColor: "text-amber-400",
@@ -165,8 +165,8 @@ export const BADGES: Badge[] = [
   },
   {
     id: "slow_improvement_10",
-    name: "Deep Thinker",
-    description: "Improve Slow Thinking by 10% from baseline",
+    name: "S2 Calibration I",
+    description: "System 2 processing calibrated 10% above baseline",
     category: "milestone",
     icon: Brain,
     iconColor: "text-teal-400",
@@ -175,8 +175,8 @@ export const BADGES: Badge[] = [
   },
   {
     id: "slow_improvement_25",
-    name: "Philosopher",
-    description: "Improve Slow Thinking by 25% from baseline",
+    name: "S2 Calibration II",
+    description: "System 2 processing calibrated 25% above baseline",
     category: "milestone",
     icon: Brain,
     iconColor: "text-teal-400",
@@ -185,8 +185,8 @@ export const BADGES: Badge[] = [
   },
   {
     id: "focus_improvement_10",
-    name: "Focused",
-    description: "Improve Focus by 10% from baseline",
+    name: "Attention Calibration",
+    description: "Focus metrics calibrated 10% above baseline",
     category: "milestone",
     icon: Target,
     iconColor: "text-emerald-400",
@@ -195,8 +195,8 @@ export const BADGES: Badge[] = [
   },
   {
     id: "reasoning_improvement_10",
-    name: "Logical",
-    description: "Improve Reasoning by 10% from baseline",
+    name: "Reasoning Calibration",
+    description: "Reasoning metrics calibrated 10% above baseline",
     category: "milestone",
     icon: Lightbulb,
     iconColor: "text-blue-400",
@@ -205,8 +205,8 @@ export const BADGES: Badge[] = [
   },
   {
     id: "creativity_improvement_10",
-    name: "Creative Spark",
-    description: "Improve Creativity by 10% from baseline",
+    name: "Divergent Calibration",
+    description: "Creativity metrics calibrated 10% above baseline",
     category: "milestone",
     icon: Sparkles,
     iconColor: "text-violet-400",
