@@ -1,30 +1,26 @@
 import { motion } from "framer-motion";
-import { Brain, Scale, Lightbulb, Target, TrendingUp } from "lucide-react";
-import { useUserMetrics } from "@/hooks/useExercises";
-import { useAuth } from "@/contexts/AuthContext";
+import { Brain, Target, Lightbulb, Focus } from "lucide-react";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 
 export function ReasoningTab() {
-  const { user } = useAuth();
-  const { data: userMetrics } = useUserMetrics(user?.id);
-  
-  // System 2 metrics
-  const reasoningAccuracy = userMetrics?.reasoning_accuracy ?? 50;
-  const slowThinking = userMetrics?.slow_thinking ?? 50;
-  const criticalThinking = userMetrics?.critical_thinking_score ?? 50;
-  const biasResistance = userMetrics?.bias_resistance ?? 50;
-  const decisionQuality = userMetrics?.decision_quality ?? 50;
-  
-  // Calculate overall
-  const overallScore = Math.round(
-    (reasoningAccuracy + slowThinking + criticalThinking + biasResistance) / 4
-  );
+  const { 
+    readiness, 
+    recovery,
+    AE, 
+    CT,
+    IN,
+    S1,
+    S2,
+    hasWearableData,
+    isLoading 
+  } = useTodayMetrics();
   
   // Ring calculations - LARGE
   const size = 240;
   const strokeWidth = 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const progress = Math.min(overallScore / 100, 1);
+  const progress = Math.min(readiness / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
   
   const getScoreColor = (value: number) => {
@@ -58,7 +54,7 @@ export function ReasoningTab() {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke={getScoreColor(overallScore)}
+              stroke={getScoreColor(readiness)}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -69,7 +65,7 @@ export function ReasoningTab() {
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Readiness</p>
             <span className="text-6xl font-bold tabular-nums text-foreground">
-              {`${overallScore}`}
+              {isLoading ? "—" : `${Math.round(readiness)}`}
               <span className="text-3xl">%</span>
             </span>
           </div>
@@ -83,38 +79,115 @@ export function ReasoningTab() {
           <h3 className="text-sm font-semibold uppercase tracking-wide">Cognitive Readiness</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Your cognitive readiness is {overallScore >= 70 ? "sharp for complex problem-solving" : overallScore >= 50 ? "balanced for deliberate thinking" : "fatigued—avoid major decisions"}. 
-          Analytical tasks engage this cognitive layer.
+          {readiness >= 70 
+            ? "Your cognitive readiness is sharp for complex problem-solving and important decisions." 
+            : readiness >= 50 
+              ? "Readiness is balanced for deliberate thinking. Pace high-load tasks." 
+              : "Readiness is low—avoid high-stakes decisions and prioritize recovery."}
         </p>
       </div>
 
-      {/* Statistics Section */}
+      {/* Formula Variables Section */}
       <div className="space-y-3 px-2">
         <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span>Performance Metrics</span>
-          <span>vs. baseline</span>
+          <span>Formula Components</span>
+          <span className="text-[10px]">
+            {hasWearableData ? "50% Physio + 50% Cognitive" : "0.35×REC + 0.35×S2 + 0.30×AE"}
+          </span>
         </div>
         
-        <div className="space-y-2">
-          <StatRow icon={<Target className="w-4 h-4" />} label="Reasoning Accuracy" value={reasoningAccuracy} />
-          <StatRow icon={<Brain className="w-4 h-4" />} label="Slow Thinking" value={slowThinking} />
-          <StatRow icon={<Lightbulb className="w-4 h-4" />} label="Critical Thinking" value={criticalThinking} />
-          <StatRow icon={<Scale className="w-4 h-4" />} label="Bias Resistance" value={biasResistance} />
-          <StatRow icon={<TrendingUp className="w-4 h-4" />} label="Decision Quality" value={decisionQuality} />
+        {hasWearableData ? (
+          // With wearable: show cognitive component breakdown
+          <div className="space-y-2">
+            <StatRow 
+              icon={<Target className="w-4 h-4" />} 
+              label="Critical Thinking (CT)" 
+              value={CT} 
+              weight="30%"
+            />
+            <StatRow 
+              icon={<Focus className="w-4 h-4" />} 
+              label="Attentional Efficiency (AE)" 
+              value={AE} 
+              weight="25%"
+            />
+            <StatRow 
+              icon={<Lightbulb className="w-4 h-4" />} 
+              label="Insight (IN)" 
+              value={IN} 
+              weight="20%"
+            />
+            <StatRow 
+              icon={<Brain className="w-4 h-4" />} 
+              label="System 2 (S2)" 
+              value={S2} 
+              weight="15%"
+            />
+            <StatRow 
+              icon={<Brain className="w-4 h-4" />} 
+              label="System 1 (S1)" 
+              value={S1} 
+              weight="10%"
+            />
+          </div>
+        ) : (
+          // Without wearable
+          <div className="space-y-2">
+            <StatRow 
+              icon={<Brain className="w-4 h-4" />} 
+              label="Recovery (REC)" 
+              value={recovery} 
+              weight="35%"
+            />
+            <StatRow 
+              icon={<Target className="w-4 h-4" />} 
+              label="System 2 (S2)" 
+              value={S2} 
+              weight="35%"
+            />
+            <StatRow 
+              icon={<Focus className="w-4 h-4" />} 
+              label="Attentional Efficiency (AE)" 
+              value={AE} 
+              weight="30%"
+            />
+          </div>
+        )}
+        
+        {/* Wearable status note */}
+        <div className="pt-3 border-t border-border/20">
+          <p className="text-[10px] text-muted-foreground/60">
+            {hasWearableData 
+              ? "Using wearable data for physio component (HRV, sleep, resting HR)."
+              : "Connect a wearable for enhanced readiness calculation with physiological data."}
+          </p>
         </div>
       </div>
     </motion.div>
   );
 }
 
-function StatRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function StatRow({ 
+  icon, 
+  label, 
+  value, 
+  weight 
+}: { 
+  icon: React.ReactNode; 
+  label: string; 
+  value: number;
+  weight: string;
+}) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-border/20">
       <div className="flex items-center gap-3">
         <span className="text-muted-foreground">{icon}</span>
         <span className="text-sm">{label}</span>
       </div>
-      <span className="text-sm font-medium tabular-nums">{Math.round(value)}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-[10px] text-muted-foreground">{weight}</span>
+        <span className="text-sm font-medium tabular-nums w-8 text-right">{Math.round(value)}</span>
+      </div>
     </div>
   );
 }

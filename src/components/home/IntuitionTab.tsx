@@ -1,23 +1,24 @@
 import { motion } from "framer-motion";
-import { Zap, Activity, Brain, TrendingUp } from "lucide-react";
-import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
+import { Zap, Focus, Sparkles } from "lucide-react";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 
 export function IntuitionTab() {
-  const { cognitiveReadinessScore, isLoading, cognitiveMetrics } = useCognitiveReadiness();
-  const score = cognitiveReadinessScore ?? 50;
-  
-  // System 1 metrics
-  const reactionSpeed = cognitiveMetrics?.reaction_speed ?? 50;
-  const focusStability = cognitiveMetrics?.focus_stability ?? 50;
-  const fastThinking = cognitiveMetrics?.fast_thinking ?? 50;
-  const visualProcessing = cognitiveMetrics?.visual_processing ?? 50;
+  const { 
+    sharpness, 
+    AE, 
+    RA, 
+    S1, 
+    S2,
+    recovery,
+    isLoading 
+  } = useTodayMetrics();
   
   // Ring calculations - LARGE
   const size = 240;
   const strokeWidth = 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const progress = Math.min(score / 100, 1);
+  const progress = Math.min(sharpness / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
   
   const getScoreColor = (value: number) => {
@@ -51,7 +52,7 @@ export function IntuitionTab() {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke={getScoreColor(score)}
+              stroke={getScoreColor(sharpness)}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -62,7 +63,7 @@ export function IntuitionTab() {
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Sharpness</p>
             <span className="text-6xl font-bold tabular-nums text-foreground">
-              {isLoading ? "—" : `${Math.round(score)}`}
+              {isLoading ? "—" : `${Math.round(sharpness)}`}
               <span className="text-3xl">%</span>
             </span>
           </div>
@@ -76,37 +77,86 @@ export function IntuitionTab() {
           <h3 className="text-sm font-semibold uppercase tracking-wide">Mental Sharpness</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Your mental sharpness is {score >= 70 ? "primed for rapid pattern recognition" : score >= 50 ? "stable and responsive" : "recovering—focus on rest"}. 
-          Quick decisions draw from this intuitive layer.
+          {sharpness >= 70 
+            ? "Your mental sharpness is primed for rapid pattern recognition and quick decisions." 
+            : sharpness >= 50 
+              ? "Sharpness is stable—intuition and decision speed are responsive." 
+              : "Sharpness is recovering. Focus on rest to restore intuitive clarity."}
         </p>
       </div>
 
-      {/* Statistics Section */}
+      {/* Formula Variables Section */}
       <div className="space-y-3 px-2">
         <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span>Performance Metrics</span>
-          <span>vs. baseline</span>
+          <span>Formula Components</span>
+          <span className="text-[10px]">0.50×S1 + 0.30×AE + 0.20×S2</span>
         </div>
         
         <div className="space-y-2">
-          <StatRow icon={<Activity className="w-4 h-4" />} label="Reaction Speed" value={reactionSpeed} />
-          <StatRow icon={<Brain className="w-4 h-4" />} label="Focus Stability" value={focusStability} />
-          <StatRow icon={<Zap className="w-4 h-4" />} label="Fast Thinking" value={fastThinking} />
-          <StatRow icon={<TrendingUp className="w-4 h-4" />} label="Visual Processing" value={visualProcessing} />
+          <StatRow 
+            icon={<Zap className="w-4 h-4" />} 
+            label="System 1 (S1)" 
+            value={S1} 
+            weight="50%"
+            description="Intuition composite" 
+          />
+          <StatRow 
+            icon={<Focus className="w-4 h-4" />} 
+            label="Attentional Efficiency (AE)" 
+            value={AE} 
+            weight="30%"
+            description="Focus & attention" 
+          />
+          <StatRow 
+            icon={<Sparkles className="w-4 h-4" />} 
+            label="System 2 (S2)" 
+            value={S2} 
+            weight="20%"
+            description="Reasoning composite" 
+          />
+        </div>
+        
+        {/* Recovery modulation note */}
+        <div className="pt-3 border-t border-border/20">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Recovery Modulation</span>
+            <span className="font-medium text-foreground">×{(0.75 + 0.25 * recovery / 100).toFixed(2)}</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
+            Sharpness = base × (0.75 + 0.25 × REC/100)
+          </p>
         </div>
       </div>
     </motion.div>
   );
 }
 
-function StatRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function StatRow({ 
+  icon, 
+  label, 
+  value, 
+  weight,
+  description 
+}: { 
+  icon: React.ReactNode; 
+  label: string; 
+  value: number;
+  weight: string;
+  description: string;
+}) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-border/20">
-      <div className="flex items-center gap-3">
-        <span className="text-muted-foreground">{icon}</span>
-        <span className="text-sm">{label}</span>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <span className="text-muted-foreground shrink-0">{icon}</span>
+        <div className="min-w-0">
+          <span className="text-sm block truncate">{label}</span>
+          <span className="text-[10px] text-muted-foreground/60">{description}</span>
+        </div>
       </div>
-      <span className="text-sm font-medium tabular-nums">{Math.round(value)}</span>
+      <div className="flex items-center gap-3 shrink-0">
+        <span className="text-[10px] text-muted-foreground">{weight}</span>
+        <span className="text-sm font-medium tabular-nums w-8 text-right">{Math.round(value)}</span>
+      </div>
     </div>
   );
 }

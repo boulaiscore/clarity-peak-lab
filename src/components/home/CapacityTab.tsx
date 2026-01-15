@@ -1,41 +1,36 @@
 import { motion } from "framer-motion";
-import { Layers, Dumbbell, BookMarked, Smartphone } from "lucide-react";
-import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
-import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-import { useAuth } from "@/contexts/AuthContext";
+import { Leaf, Smartphone, Footprints } from "lucide-react";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 
 export function CapacityTab() {
-  const { user } = useAuth();
-  const { weeklyXPTarget } = useWeeklyProgress();
-  const { cappedTotalXP, rawGamesXP, rawTasksXP, rawDetoxXP, gamesXPTarget, tasksXPTarget, detoxXPTarget } = useStableCognitiveLoad();
-  
-  // Calculate capped values
-  const cappedGamesXP = Math.min(rawGamesXP, gamesXPTarget);
-  const cappedTasksXP = Math.min(rawTasksXP, tasksXPTarget);
-  
-  const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
-  const planConfig = TRAINING_PLANS[currentPlan];
-  
-  const totalProgress = weeklyXPTarget > 0 ? (cappedTotalXP / weeklyXPTarget) * 100 : 0;
+  const { 
+    recovery, 
+    weeklyDetoxMinutes,
+    weeklyWalkMinutes,
+    detoxTarget,
+    isLoading 
+  } = useTodayMetrics();
   
   // Ring calculations - LARGE
   const size = 240;
   const strokeWidth = 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const progress = Math.min(totalProgress / 100, 1);
+  const progress = Math.min(recovery / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
   
   // Dynamic color based on progress
-  const ringColor = totalProgress >= 90 
+  const ringColor = recovery >= 90 
     ? "hsl(142, 71%, 45%)" 
-    : totalProgress >= 60 
+    : recovery >= 60 
       ? "hsl(80, 60%, 50%)" 
-      : totalProgress >= 30 
+      : recovery >= 30 
         ? "hsl(45, 85%, 50%)" 
         : "hsl(25, 90%, 50%)";
 
+  // Calculate effective recovery input
+  const effectiveRecoveryInput = weeklyDetoxMinutes + 0.5 * weeklyWalkMinutes;
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -72,9 +67,9 @@ export function CapacityTab() {
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Recovery</p>
             <span className="text-6xl font-bold tabular-nums text-foreground">
-              {cappedTotalXP}
+              {isLoading ? "—" : `${Math.round(recovery)}`}
+              <span className="text-3xl">%</span>
             </span>
-            <span className="text-sm text-muted-foreground mt-1">of {weeklyXPTarget}</span>
           </div>
         </div>
       </div>
@@ -82,65 +77,90 @@ export function CapacityTab() {
       {/* Insight Card */}
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
-          <Layers className="w-5 h-5 text-amber-400 mt-0.5" />
+          <Leaf className="w-5 h-5 text-amber-400 mt-0.5" />
           <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {totalProgress >= 100 
-            ? "Recovery target reached. Your cognitive reserve is fully restored for the week." 
-            : totalProgress >= 50 
-              ? `${Math.round(100 - totalProgress)}% remaining to complete your ${planConfig.name} recovery target.`
-              : "Build recovery early—consistency compounds cognitive restoration."}
+          {recovery >= 100 
+            ? "Recovery target reached. Your cognitive reserve is fully restored." 
+            : recovery >= 50 
+              ? `${Math.round(100 - recovery)}% remaining to complete your weekly recovery target.`
+              : "Build recovery early—detox and walking compound cognitive restoration."}
         </p>
       </div>
 
-      {/* Category Breakdown */}
+      {/* Recovery Breakdown - ONLY Detox and Walk (per spec) */}
       <div className="space-y-3 px-2">
         <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span>Breakdown</span>
-          <span>target</span>
+          <span>Recovery Inputs</span>
+          <span className="text-[10px]">target: {detoxTarget} min</span>
         </div>
         
         <div className="space-y-2">
-          <CategoryRow 
-            icon={<BookMarked className="w-4 h-4 text-purple-400" />}
-            label="Tasks"
-            current={cappedTasksXP}
-            target={tasksXPTarget}
-          />
-          <CategoryRow 
+          <RecoveryRow 
             icon={<Smartphone className="w-4 h-4 text-teal-400" />}
-            label="Walk & Detox"
-            current={Math.min(rawDetoxXP, detoxXPTarget)}
-            target={detoxXPTarget}
+            label="Digital Detox"
+            minutes={weeklyDetoxMinutes}
+            contribution="100%"
+            description="Full contribution to recovery"
           />
-          <CategoryRow 
-            icon={<Dumbbell className="w-4 h-4 text-blue-400" />}
-            label="Training"
-            current={cappedGamesXP}
-            target={gamesXPTarget}
+          <RecoveryRow 
+            icon={<Footprints className="w-4 h-4 text-emerald-400" />}
+            label="Walking"
+            minutes={weeklyWalkMinutes}
+            contribution="50%"
+            description="Half contribution to recovery"
           />
+        </div>
+        
+        {/* Formula explanation */}
+        <div className="pt-3 border-t border-border/20">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+            <span>Effective Input</span>
+            <span className="font-medium text-foreground">{Math.round(effectiveRecoveryInput)} min</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground/60">
+            REC = min(100, (detox + 0.5×walk) / {detoxTarget} × 100)
+          </p>
+        </div>
+        
+        {/* Note: No Training or Tasks here - per spec */}
+        <div className="pt-2">
+          <p className="text-[10px] text-muted-foreground/50 italic">
+            Note: Training and Tasks contribute to cognitive skills, not recovery.
+          </p>
         </div>
       </div>
     </motion.div>
   );
 }
 
-function CategoryRow({ icon, label, current, target }: { 
+function RecoveryRow({ 
+  icon, 
+  label, 
+  minutes, 
+  contribution,
+  description 
+}: { 
   icon: React.ReactNode; 
   label: string; 
-  current: number; 
-  target: number;
+  minutes: number;
+  contribution: string;
+  description: string;
 }) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-border/20">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
         {icon}
-        <span className="text-sm">{label}</span>
+        <div className="min-w-0">
+          <span className="text-sm block">{label}</span>
+          <span className="text-[10px] text-muted-foreground/60">{description}</span>
+        </div>
       </div>
-      <span className="text-sm font-medium tabular-nums">
-        {current} <span className="text-muted-foreground">/ {target}</span>
-      </span>
+      <div className="flex items-center gap-3 shrink-0">
+        <span className="text-[10px] text-muted-foreground">{contribution}</span>
+        <span className="text-sm font-medium tabular-nums">{Math.round(minutes)} min</span>
+      </div>
     </div>
   );
 }
