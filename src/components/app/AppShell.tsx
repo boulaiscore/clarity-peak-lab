@@ -14,8 +14,6 @@ const navItems = [
   { to: "/app", icon: Home, label: "Home" },
   { to: "/neuro-lab", icon: Activity, label: "Lab" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/brain-science", icon: BookOpen, label: "Science" },
-  { to: "/app/account", icon: User, label: "Account" },
 ];
 
 const menuItems = [
@@ -95,54 +93,18 @@ export function AppShell({ children }: AppShellProps) {
               <span className="font-semibold tracking-tight text-sm">NeuroLoop</span>
             </Link>
             
-            <button 
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors"
-              aria-label="Open menu"
-            >
-              {menuOpen ? (
-                <X className="w-4 h-4 text-foreground" />
+            <Link to="/app/install" className="w-8 flex justify-end">
+              {isSupported && permission !== "granted" ? (
+                <BellOff className="w-4 h-4 text-muted-foreground" />
               ) : (
-                <Menu className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+                <Bell className={cn(
+                  "w-4 h-4",
+                  permission === "granted" ? "text-primary" : "text-muted-foreground"
+                )} />
               )}
-            </button>
+            </Link>
           </div>
         </div>
-        
-        {/* Dropdown Menu */}
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="border-t border-border/30 bg-background/95 backdrop-blur-xl overflow-hidden"
-            >
-              <div className="container px-4 py-2">
-                {menuItems.map((item) => {
-                  const isActive = location.pathname === item.to;
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                      )}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </header>
 
       {/* Main content with swipe */}
@@ -176,7 +138,56 @@ export function AppShell({ children }: AppShellProps) {
               </Link>
             );
           })}
+          
+          {/* Menu button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[52px]",
+              menuOpen || menuItems.some(item => location.pathname === item.to)
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <span className="text-[9px] font-medium uppercase tracking-wider">More</span>
+          </button>
         </div>
+        
+        {/* Bottom Menu Popup */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="absolute bottom-full left-0 right-0 mb-2 mx-4"
+            >
+              <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden max-w-md mx-auto">
+                {menuItems.map((item) => {
+                  const isActive = location.pathname === item.to;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3.5 transition-colors border-b border-border/30 last:border-b-0",
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </div>
   );
