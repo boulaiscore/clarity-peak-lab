@@ -64,43 +64,49 @@ const Health = () => {
             </p>
           </div>
 
-          {/* Subscription Badge */}
+          {/* Coming Soon Badge */}
           <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Crown className="w-5 h-5 text-primary" />
-              </div>
-              <div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Crown className="w-5 h-5 text-primary" />
+                </div>
                 <p className="text-sm font-medium">Premium & Pro Feature</p>
-                <p className="text-xs text-muted-foreground">Available with Premium or Pro subscription</p>
               </div>
-            </div>
-          </div>
-
-          {/* Performance Link Card */}
-          <div className="p-4 rounded-xl bg-card border border-border mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-muted/30 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Linked to Performance</p>
-                <p className="text-xs text-muted-foreground">Health data directly enhances your cognitive metrics and readiness scores</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Integration Status Card */}
-          <div className="p-5 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-muted-foreground">Integration status</span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
                 Coming soon
               </span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Sleep, movement, and recovery signals will be used only to refine cognitive metrics.
-            </p>
+          </div>
+
+          {/* Premium Tier */}
+          <div className="p-4 rounded-xl bg-card border border-border mb-3">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted/30 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Premium</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  Health data enhances cognitive accuracy. Sleep, movement, and recovery signals refine your readiness and capacity metrics.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pro Tier */}
+          <div className="p-4 rounded-xl bg-card border border-border mb-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted/30 flex items-center justify-center flex-shrink-0">
+                <Activity className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Pro</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  In-depth physiological analysis in Cognitive Reports. Correlation insights between health patterns and cognitive performance.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Supported Metrics */}
