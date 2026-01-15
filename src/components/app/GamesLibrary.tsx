@@ -81,7 +81,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         const isActive = activeSystem === system;
         const SystemIcon = system === "fast" ? Zap : Timer;
         const systemLabel = system === "fast" ? "System 1" : "System 2";
-        const systemDesc = system === "fast" ? "Intuition" : "Reasoning";
+        const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
         const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
         const accentClass = system === "fast" 
           ? "border-amber-500/30 bg-amber-500/5" 
@@ -113,7 +113,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   <span className="text-[10px] text-muted-foreground">• {systemDesc}</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">
-                  {system === "fast" ? "Quick pattern recognition & reactions" : "Deliberate analysis & logic"}
+                  {system === "fast" ? "Rapid pattern recognition & intuitive processing" : "Structured analysis & deliberate reasoning"}
                 </p>
               </div>
               <motion.div

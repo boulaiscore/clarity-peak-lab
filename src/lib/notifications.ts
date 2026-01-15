@@ -187,11 +187,11 @@ export function checkMissedReminder(reminderTime: string, dailyCommitment: strin
 // Schedule a training reminder notification
 export function scheduleTrainingReminder(): void {
   const messages = [
-    { title: "Time for cognitive training", body: "5 minutes to sharpen your thinking." },
-    { title: "Train your mind", body: "A quick reasoning exercise awaits." },
-    { title: "Cognitive check-in", body: "Keep your mental edge sharp." },
-    { title: "Ready for a challenge?", body: "Your brain is trainable. Let's exercise it." },
-    { title: "Decision quality check", body: "Practice structured thinking today." },
+    { title: "Cognitive protocol available", body: "A brief session maintains your baseline." },
+    { title: "Scheduled protocol", body: "Your daily cognitive allocation is ready." },
+    { title: "Cognitive maintenance", body: "Consistent protocols sustain capacity." },
+    { title: "Protocol reminder", body: "Structured reasoning session available." },
+    { title: "Capacity check", body: "Brief calibration maintains clarity." },
   ];
   
   const randomMessage = messages[Math.floor(Math.random() * messages.length)];

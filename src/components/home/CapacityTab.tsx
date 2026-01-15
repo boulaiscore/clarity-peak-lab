@@ -78,14 +78,14 @@ export function CapacityTab() {
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Leaf className="w-5 h-5 text-amber-400 mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Allocation</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {recovery >= 100 
-            ? "Recovery target reached. Your cognitive reserve is fully restored." 
+            ? "Weekly recovery target met. Attentional capacity restored." 
             : recovery >= 50 
-              ? `${Math.round(100 - recovery)}% remaining to complete your weekly recovery target.`
-              : "Build recovery early—detox and walking compound cognitive restoration."}
+              ? `${Math.round(100 - recovery)}% remaining to meet weekly recovery allocation.`
+              : "Recovery below threshold. Prioritize detox and walking to restore capacity."}
         </p>
       </div>
 

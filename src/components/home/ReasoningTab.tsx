@@ -76,14 +76,14 @@ export function ReasoningTab() {
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Brain className="w-5 h-5 text-primary mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Cognitive Readiness</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Current Readiness State</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {readiness >= 70 
-            ? "Your cognitive readiness is sharp for complex problem-solving and important decisions." 
+            ? "Indicates capacity for sustained deliberate reasoning and complex analysis." 
             : readiness >= 50 
-              ? "Readiness is balanced for deliberate thinking. Pace high-load tasks." 
-              : "Readiness is low—avoid high-stakes decisions and prioritize recovery."}
+              ? "Moderate capacity for structured thinking. Consider pacing demanding tasks." 
+              : "Reduced readiness suggests deferring high-stakes cognitive work."}
         </p>
       </div>
 

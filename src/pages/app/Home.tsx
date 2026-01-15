@@ -237,7 +237,7 @@ const Home = () => {
                   color="hsl(210, 70%, 55%)"
                   label="Sharpness"
                   displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}%`}
-                  microcopy="Intuitive clarity and decision speed"
+                  microcopy="Current intuitive clarity"
                 />
                 <ProgressRing
                   value={readiness}
@@ -247,7 +247,7 @@ const Home = () => {
                   color="hsl(var(--primary))"
                   label="Readiness"
                   displayValue={`${Math.round(readiness)}%`}
-                  microcopy="Capacity for focused reasoning"
+                  microcopy="Capacity for deliberate work"
                 />
                 <ProgressRing
                   value={recovery}
@@ -257,13 +257,13 @@ const Home = () => {
                   color={recoveryColor}
                   label="Recovery"
                   displayValue={`${Math.round(recovery)}%`}
-                  microcopy="Cognitive restoration level"
+                  microcopy="Attentional restoration"
                 />
               </div>
               
               {/* Explanatory line below rings */}
               <p className="text-center text-xs text-muted-foreground leading-relaxed px-4">
-                The first session of the week calibrates your intuition–reasoning balance.
+                Today's cognitive state based on training and recovery inputs.
               </p>
             </motion.section>
 
@@ -276,25 +276,25 @@ const Home = () => {
           const getDetoxMessage = () => {
             if (detoxProgress === 0) {
               return {
-                headline: "Your mental sharpness is waiting",
-                body: `${minutesRemaining} minutes of digital detox unlocks peak cognitive clarity. Every minute of focus compounds into faster reaction time.`,
-                metric: `+${Math.round(detoxXPTarget * 0.15)}% sharpness potential`,
+                headline: "Recovery allocation pending",
+                body: `${minutesRemaining} minutes of attentional reset remaining this week. Reduces accumulated cognitive load.`,
+                metric: `${detoxXPTarget} min target`,
                 urgency: "high"
               };
             }
             if (detoxProgress < 50) {
               return {
-                headline: "You're building mental edge",
-                body: `${minutesRemaining} min left to hit your detox target. Your prefrontal cortex is recalibrating—don't break the chain.`,
-                metric: `${Math.round(detoxProgress)}% → 100% clarity`,
+                headline: "Recovery in progress",
+                body: `${minutesRemaining} minutes remaining to meet weekly recovery target. Attentional capacity restores gradually.`,
+                metric: `${Math.round(detoxProgress)}% complete`,
                 urgency: "medium"
               };
             }
             if (detoxProgress < 100) {
               return {
-                headline: "Almost there—finish strong",
-                body: `Just ${minutesRemaining} min to lock in this week's cognitive gains. Your attention span is sharpening with every session.`,
-                metric: `${Math.round(100 - detoxProgress)}% to peak focus`,
+                headline: "Recovery nearly complete",
+                body: `${minutesRemaining} minutes to reach weekly target. Sustained recovery maintains decision-making capacity.`,
+                metric: `${Math.round(100 - detoxProgress)}% remaining`,
                 urgency: "low"
               };
             }
