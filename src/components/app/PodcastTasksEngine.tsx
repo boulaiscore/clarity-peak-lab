@@ -7,6 +7,11 @@
  * Copy rules:
  * - "Enabled today" / "Withheld due to cognitive load" - NOT "recommended" or "suggested"
  * - Each card shows status with 1-line motivation
+ * 
+ * Override system:
+ * - Withheld tasks can be overridden (if S1Buffer >= 40)
+ * - Max 1 override/day, 3/week
+ * - Temporary S2 penalty after override
  */
 
 import { useState } from "react";
@@ -14,11 +19,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Headphones, 
   ExternalLink, 
-  X, 
   AlertCircle,
   Battery,
   BrainCircuit,
-  Zap
+  Zap,
+  ChevronRight
 } from "lucide-react";
 import { 
   Dialog,
@@ -29,11 +34,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { usePodcastPermissioning, PodcastEligibility } from "@/hooks/usePodcastPermissioning";
+import { useTaskOverride } from "@/hooks/useTaskOverride";
+import { TaskOverrideModal, PostOverrideNotice } from "@/components/app/TaskOverrideModal";
 import { 
   getApplePodcastUrl, 
   getSpotifySearchUrl, 
   getWhenToUse,
-  PodcastDemand 
+  PodcastDemand,
+  DEMAND_THRESHOLDS 
 } from "@/data/podcasts";
 import { cn } from "@/lib/utils";
 
@@ -105,14 +113,24 @@ function EnabledPodcastCard({ eligibility, s2Capacity, s1Buffer, onOpenDetails }
   );
 }
 
-function WithheldPodcastCard({ eligibility }: { eligibility: PodcastEligibility }) {
+interface WithheldCardProps {
+  eligibility: PodcastEligibility;
+  onTap: () => void;
+  canOverride: boolean;
+}
+
+function WithheldPodcastCard({ eligibility, onTap, canOverride }: WithheldCardProps) {
   const { podcast, withheldReason } = eligibility;
   
   return (
-    <motion.div
+    <motion.button
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full p-3 rounded-xl border border-border/20 bg-muted/20 opacity-50"
+      onClick={onTap}
+      className={cn(
+        "w-full text-left p-3 rounded-xl border border-border/20 bg-muted/20 opacity-60 transition-all",
+        canOverride && "hover:opacity-80 hover:border-border/40 cursor-pointer"
+      )}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
@@ -132,8 +150,13 @@ function WithheldPodcastCard({ eligibility }: { eligibility: PodcastEligibility 
             {withheldReason}
           </p>
         </div>
+        
+        {/* Override hint */}
+        {canOverride && (
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 mt-1" />
+        )}
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 
@@ -301,8 +324,41 @@ export function PodcastTasksEngine() {
     isLoading,
   } = usePodcastPermissioning();
   
+  // Override management
+  const {
+    canOverride,
+    overrideDisabledReason,
+    remainingDailyOverrides,
+    remainingWeeklyOverrides,
+    s2Penalty,
+    adjustedS2Capacity,
+    recordOverride,
+    wasOverriddenToday,
+  } = useTaskOverride(s1Buffer, s2Capacity);
+  
   const [selectedPodcast, setSelectedPodcast] = useState<PodcastEligibility | null>(null);
+  const [overridePodcast, setOverridePodcast] = useState<PodcastEligibility | null>(null);
   const [showWithheld, setShowWithheld] = useState(false);
+  
+  // Handle override confirmation
+  const handleOverrideConfirm = () => {
+    if (overridePodcast) {
+      recordOverride(overridePodcast.podcast.id, "podcast");
+      // After override, open the details dialog
+      setSelectedPodcast(overridePodcast);
+      setOverridePodcast(null);
+    }
+  };
+  
+  // Get thresholds for override modal
+  const getThresholdsForPodcast = (podcast: PodcastEligibility) => {
+    const thresholds = DEMAND_THRESHOLDS[podcast.podcast.demand];
+    return {
+      requiredS2Capacity: thresholds.s2Capacity,
+      requiredS1Buffer: thresholds.s1Buffer,
+      requiredSharpness: thresholds.sharpness,
+    };
+  };
   
   if (isLoading) {
     return (
@@ -312,11 +368,17 @@ export function PodcastTasksEngine() {
     );
   }
   
+  // Check if any override was used today
+  const hasOverrideToday = s2Penalty > 0;
+  
   return (
     <div className="space-y-3">
+      {/* Post-override notice */}
+      {hasOverrideToday && <PostOverrideNotice />}
+      
       {/* Metrics bar */}
       <MetricsBar 
-        s2Capacity={s2Capacity} 
+        s2Capacity={hasOverrideToday ? adjustedS2Capacity : s2Capacity} 
         s1Buffer={s1Buffer} 
         sharpness={sharpness}
         globalMode={globalMode}
@@ -386,7 +448,12 @@ export function PodcastTasksEngine() {
                 className="space-y-2 overflow-hidden"
               >
                 {withheldPodcasts.map((eligibility) => (
-                  <WithheldPodcastCard key={eligibility.podcast.id} eligibility={eligibility} />
+                  <WithheldPodcastCard 
+                    key={eligibility.podcast.id} 
+                    eligibility={eligibility}
+                    onTap={() => setOverridePodcast(eligibility)}
+                    canOverride={canOverride && !wasOverriddenToday(eligibility.podcast.id)}
+                  />
                 ))}
               </motion.div>
             )}
@@ -402,6 +469,28 @@ export function PodcastTasksEngine() {
         open={!!selectedPodcast}
         onClose={() => setSelectedPodcast(null)}
       />
+      
+      {/* Override modal */}
+      {overridePodcast && (
+        <TaskOverrideModal
+          open={!!overridePodcast}
+          onClose={() => setOverridePodcast(null)}
+          taskTitle={overridePodcast.podcast.title}
+          taskType="podcast"
+          demandLevel={overridePodcast.podcast.demand}
+          sharpness={sharpness}
+          readiness={Math.round((s2Capacity - 0.6 * sharpness) / 0.4)} // Derive readiness
+          recovery={s1Buffer}
+          s2Capacity={s2Capacity}
+          s1Buffer={s1Buffer}
+          {...getThresholdsForPodcast(overridePodcast)}
+          canOverride={canOverride}
+          overrideDisabledReason={overrideDisabledReason}
+          remainingDailyOverrides={remainingDailyOverrides}
+          remainingWeeklyOverrides={remainingWeeklyOverrides}
+          onOverrideConfirm={handleOverrideConfirm}
+        />
+      )}
     </div>
   );
 }
