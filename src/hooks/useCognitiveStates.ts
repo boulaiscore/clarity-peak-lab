@@ -5,14 +5,23 @@
  * - AE, RA, CT, IN (the 4 base cognitive states)
  * - S1, S2 (derived system scores)
  * - Baseline values for Cognitive Age calculation
+ * 
+ * DATA SOURCE: user_cognitive_metrics table
+ * 
+ * COLUMN MAPPING:
+ * - AE (Attentional Efficiency) ← focus_stability
+ * - RA (Rapid Association) ← fast_thinking
+ * - CT (Critical Thinking) ← reasoning_accuracy
+ * - IN (Insight) ← slow_thinking
  */
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import {
   CognitiveStates,
-  DerivedSystemScores,
   CognitiveAgeBaseline,
   mapDatabaseToCognitiveStates,
   mapDatabaseToBaseline,
@@ -39,7 +48,54 @@ export interface UseCognitiveStatesResult {
 
 export function useCognitiveStates(): UseCognitiveStatesResult {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: rawMetrics, isLoading } = useUserMetrics(user?.id);
+  
+  // Create initial metrics record if none exists
+  const createInitialMetrics = useMutation({
+    mutationFn: async (userId: string) => {
+      // Check if record already exists
+      const { data: existing } = await supabase
+        .from("user_cognitive_metrics")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (existing) return existing;
+      
+      // Create new record with defaults
+      const { data, error } = await supabase
+        .from("user_cognitive_metrics")
+        .insert({
+          user_id: userId,
+          focus_stability: 50,      // AE
+          fast_thinking: 50,        // RA
+          reasoning_accuracy: 50,   // CT
+          slow_thinking: 50,        // IN
+          total_sessions: 0,
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("[useCognitiveStates] Error creating metrics:", error);
+        throw error;
+      }
+      
+      console.log("[useCognitiveStates] Created initial metrics for user:", userId);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+    },
+  });
+  
+  // Auto-create metrics if user exists but no metrics record
+  useEffect(() => {
+    if (user?.id && !isLoading && rawMetrics === null) {
+      createInitialMetrics.mutate(user.id);
+    }
+  }, [user?.id, isLoading, rawMetrics]);
   
   const result = useMemo(() => {
     // Map database columns to cognitive states
@@ -69,6 +125,6 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
   return {
     ...result,
     rawMetrics,
-    isLoading,
+    isLoading: isLoading || createInitialMetrics.isPending,
   };
 }
