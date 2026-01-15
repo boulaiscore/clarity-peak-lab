@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TRAINING_PLANS, TrainingPlanId, SessionConfig, SessionType } from "@/lib/trainingPlans";
-import { Check, Zap, Brain, Sparkles } from "lucide-react";
+import { Check, Zap, Timer, Sparkles } from "lucide-react";
 
 interface WeeklyScheduleProps {
   planId: TrainingPlanId;
@@ -24,7 +24,7 @@ const getSessionIcon = (session: SessionConfig, isCompleted: boolean) => {
   if (isCompleted) return Check;
   if (session.thinkingSystems.length === 2) return Sparkles;
   if (session.thinkingSystems.includes("S1")) return Zap;
-  return Brain;
+  return Timer;
 };
 
 const getSessionColor = (session: SessionConfig, isCompleted: boolean) => {
@@ -32,12 +32,12 @@ const getSessionColor = (session: SessionConfig, isCompleted: boolean) => {
     return "from-emerald-500/30 to-emerald-600/30 border-emerald-500/50";
   }
   if (session.thinkingSystems.length === 2) {
-    return "from-purple-500/20 to-purple-600/20 border-purple-500/30";
+    return "from-violet-500/20 to-amber-500/20 border-violet-500/30";
   }
   if (session.thinkingSystems.includes("S1")) {
     return "from-amber-500/20 to-amber-600/20 border-amber-500/30";
   }
-  return "from-teal-500/20 to-teal-600/20 border-teal-500/30";
+  return "from-violet-500/20 to-violet-600/20 border-violet-500/30";
 };
 
 export function WeeklySchedule({ 
