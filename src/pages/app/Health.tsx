@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app/AppShell";
-import { Layers, Moon, Footprints, Heart, Activity, Flame, Info } from "lucide-react";
+import { Layers, Moon, Footprints, Heart, Activity, Flame, Info, Crown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MetricItem {
@@ -62,6 +62,32 @@ const Health = () => {
             <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
               Connect your Apple Health data to improve NeuroLoop accuracy. This integration is optional.
             </p>
+          </div>
+
+          {/* Pro Subscription Badge */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Crown className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Included in Pro</p>
+                <p className="text-xs text-muted-foreground">This feature will be available with a Pro subscription</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Link Card */}
+          <div className="p-4 rounded-xl bg-card border border-border mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted/30 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Linked to Performance</p>
+                <p className="text-xs text-muted-foreground">Health data directly enhances your cognitive metrics and readiness scores</p>
+              </div>
+            </div>
           </div>
 
           {/* Integration Status Card */}
