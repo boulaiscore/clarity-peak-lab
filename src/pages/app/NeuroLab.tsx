@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
+import { CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { PodcastTasksEngine } from "@/components/app/PodcastTasksEngine";
+import { ReadingTasksEngine } from "@/components/app/ReadingTasksEngine";
 import { 
   Zap, ChevronRight, Crown, Dumbbell,
   BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban,
@@ -105,23 +106,15 @@ function TasksTabContent() {
                 </button>
               );
             })}
-            
-            {/* Legend - Only show for non-podcast categories */}
-            {activeCategory !== "podcast" && (
-              <div className="ml-auto">
-                <CognitiveTasksLegend />
-              </div>
-            )}
           </div>
 
-          {/* Selected Category Content */}
+          {/* Selected Category Content - All use cognitive permissioning */}
           {activeCategory === "podcast" ? (
             <PodcastTasksEngine />
+          ) : activeCategory === "book" ? (
+            <ReadingTasksEngine type="book" />
           ) : (
-            <CognitiveTasksSection 
-              type={activeCategory} 
-              title={TASK_CATEGORIES.find(c => c.id === activeCategory)?.label || "Content"}
-            />
+            <ReadingTasksEngine type="article" />
           )}
         </>
       ) : (
