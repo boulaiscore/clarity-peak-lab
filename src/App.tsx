@@ -32,7 +32,6 @@ import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
-import RingWaitlist from "./pages/RingWaitlist";
 
 const queryClient = new QueryClient();
 
@@ -258,7 +257,6 @@ function AppRoutes() {
         }
       />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/ring" element={<RingWaitlist />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
