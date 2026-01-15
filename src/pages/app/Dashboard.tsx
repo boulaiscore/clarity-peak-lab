@@ -153,78 +153,93 @@ const Dashboard = () => {
           />
 
         ) : (
-          <div className="space-y-5">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4"
+          >
             {/* Progress Header with Animation */}
             <TrainingProgressHeader />
 
-
-            {/* Sub-tabs for Tasks/Detox/Games */}
-            <div className="flex items-center gap-1 p-1 bg-card border border-border/50 rounded-lg">
-              <button
-                onClick={() => setTrainingSubTab("tasks")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-all",
-                  trainingSubTab === "tasks"
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <BookMarked className="w-3.5 h-3.5" />
-                Tasks
-              </button>
-              <button
-                onClick={() => setTrainingSubTab("detox")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-all",
-                  trainingSubTab === "detox"
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-              <div className="relative">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <Ban className="w-2 h-2 absolute -bottom-0.5 -right-1" />
-                </div>
-                Walk & Detox
-              </button>
-              <button
-                onClick={() => setTrainingSubTab("games")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-md text-xs font-medium transition-all",
-                  trainingSubTab === "games"
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <Dumbbell className="w-3.5 h-3.5" />
-                Training
-              </button>
+            {/* Sub-tabs for Tasks/Detox/Games - Cleaner pill style */}
+            <div className="bg-muted/40 p-1 rounded-xl">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setTrainingSubTab("tasks")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
+                    trainingSubTab === "tasks"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <BookMarked className="w-3.5 h-3.5" />
+                  <span>Tasks</span>
+                </button>
+                <button
+                  onClick={() => setTrainingSubTab("detox")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
+                    trainingSubTab === "detox"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <div className="relative">
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <Ban className="w-2 h-2 absolute -bottom-0.5 -right-1" />
+                  </div>
+                  <span>Detox</span>
+                </button>
+                <button
+                  onClick={() => setTrainingSubTab("games")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
+                    trainingSubTab === "games"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Dumbbell className="w-3.5 h-3.5" />
+                  <span>Training</span>
+                </button>
+              </div>
             </div>
 
-            {/* Tasks, Detox or Games Content */}
-            {trainingSubTab === "tasks" ? (
-              <TrainingTasks />
-            ) : trainingSubTab === "detox" ? (
-              <DetoxStats />
-            ) : (
-              <GamesStats />
-            )}
+            {/* Tab Content with animation */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={trainingSubTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+              >
+                {trainingSubTab === "tasks" ? (
+                  <TrainingTasks />
+                ) : trainingSubTab === "detox" ? (
+                  <DetoxStats />
+                ) : (
+                  <GamesStats />
+                )}
+              </motion.div>
+            </AnimatePresence>
 
-            {/* CTA */}
+            {/* CTA - More subtle */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-              className="pt-1"
+              transition={{ duration: 0.4, delay: 0.2 }}
             >
               <Link to="/neuro-lab">
-                <Button variant="premium" className="w-full h-11 text-[13px] gap-2">
+                <Button variant="premium" className="w-full h-11 text-[13px] gap-2 shadow-lg">
                   <Play className="w-4 h-4" />
                   Start Training
                 </Button>
               </Link>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </div>
     </AppShell>
