@@ -398,13 +398,16 @@ const Account = () => {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">Premium</span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/15 text-emerald-400">
+                        BEST VALUE
+                      </span>
                       {isPremium && (
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-primary/15 text-primary">
                           CURRENT
                         </span>
                       )}
                     </div>
-                    <span className="font-semibold">$12/mo</span>
+                    <span className="font-semibold">$11.99/mo</span>
                   </div>
                   <ul className="space-y-1.5 text-xs text-muted-foreground">
                     <li className="flex items-center gap-2">
@@ -431,13 +434,10 @@ const Account = () => {
                 </div>
 
                 {/* Pro Plan */}
-                <div className="p-4 rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
+                <div className="p-4 rounded-lg border border-border/50 bg-muted/10">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">Pro</span>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/15 text-amber-400">
-                        BEST VALUE
-                      </span>
                     </div>
                     <span className="font-semibold">$16.99/mo</span>
                   </div>
