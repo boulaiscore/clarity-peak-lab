@@ -13,11 +13,11 @@ interface AppShellProps {
 const navItems = [
   { to: "/app", icon: Home, label: "Home" },
   { to: "/neuro-lab", icon: Activity, label: "Lab" },
-  { to: "/app/health", icon: Layers, label: "Health" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard" },
 ];
 
 const menuItems = [
+  { to: "/app/health", icon: Layers, label: "Health" },
   { to: "/brain-science", icon: BookOpen, label: "Science" },
   { to: "/app/account", icon: User, label: "Account" },
 ];
