@@ -164,7 +164,7 @@ function WithheldPodcastCard({ eligibility, onTap, canOverride }: WithheldCardPr
   );
 }
 
-function RecoveryModeCard() {
+function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -183,6 +183,14 @@ function RecoveryModeCard() {
           <p className="text-[11px] text-muted-foreground">
             Recovery is low. Today the system prioritizes restoration over cognitive input.
           </p>
+          
+          {/* Override unavailable explanation */}
+          <div className="mt-2 pt-2 border-t border-amber-500/10">
+            <p className="text-[10px] text-muted-foreground/70 flex items-center gap-1.5">
+              <AlertCircle className="w-3 h-3" />
+              Override unavailable — S1 Buffer ({s1Buffer}) must be ≥40
+            </p>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -390,7 +398,7 @@ export function PodcastTasksEngine() {
       
       {/* Recovery mode - single card */}
       {isRecoveryMode ? (
-        <RecoveryModeCard />
+        <RecoveryModeCard s1Buffer={s1Buffer} />
       ) : (
         <>
           {/* Enabled podcasts (max 3) */}
