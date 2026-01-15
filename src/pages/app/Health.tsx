@@ -103,7 +103,7 @@ const Health = () => {
               <div>
                 <p className="text-sm font-medium">Pro</p>
                 <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                  In-depth physiological analysis in Cognitive Reports. Correlation insights between health patterns and cognitive performance.
+                  In-depth physiological analysis in Cognitive Reports. Cross-variable correlation modeling between biometric inputs and cognitive output variance.
                 </p>
               </div>
             </div>
