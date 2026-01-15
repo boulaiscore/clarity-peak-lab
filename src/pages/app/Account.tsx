@@ -28,6 +28,27 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 
+// Education level labels mapping
+const educationLevelLabels: Record<string, string> = {
+  high_school: "High School",
+  bachelor: "Bachelor's Degree",
+  master: "Master's Degree",
+  phd: "PhD / Doctorate",
+  other: "Other",
+};
+
+// Field of study labels mapping
+const disciplineLabels: Record<string, string> = {
+  stem: "STEM",
+  business: "Business & Economics",
+  humanities: "Humanities & Literature",
+  social_sciences: "Social Sciences",
+  health: "Health & Medicine",
+  law: "Law",
+  arts: "Arts & Design",
+  other: "Other",
+};
+
 const Account = () => {
   const { user, updateUser, logout } = useAuth();
   const { isPremium, dailySessionsUsed, remainingSessions } = usePremiumGating();
@@ -285,8 +306,8 @@ const Account = () => {
                   Education
                 </span>
                 <span className="text-sm font-medium">
-                  {user?.educationLevel ? user.educationLevel.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()) : "—"}
-                  {user?.degreeDiscipline && ` · ${user.degreeDiscipline.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}`}
+                  {user?.educationLevel ? educationLevelLabels[user.educationLevel] || user.educationLevel : "—"}
+                  {user?.degreeDiscipline && ` · ${disciplineLabels[user.degreeDiscipline] || user.degreeDiscipline}`}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2">
