@@ -23,7 +23,8 @@ import {
   Battery,
   BrainCircuit,
   Zap,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from "lucide-react";
 import { 
   Dialog,
@@ -151,9 +152,12 @@ function WithheldPodcastCard({ eligibility, onTap, canOverride }: WithheldCardPr
           </p>
         </div>
         
-        {/* Override hint */}
+        {/* Override hint - more visible */}
         {canOverride && (
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 mt-1" />
+          <div className="flex items-center gap-1 text-[10px] text-amber-500 shrink-0 self-center">
+            <span className="font-medium">Tap to override</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </div>
         )}
       </div>
     </motion.button>
@@ -432,9 +436,13 @@ export function PodcastTasksEngine() {
           {withheldPodcasts.length > 0 && (
             <button
               onClick={() => setShowWithheld(!showWithheld)}
-              className="w-full text-[10px] text-muted-foreground/60 hover:text-muted-foreground py-2 transition-colors"
+              className="w-full flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground py-2.5 px-4 rounded-lg border border-dashed border-border/50 hover:border-border hover:bg-muted/30 transition-all"
             >
-              {showWithheld ? "Hide" : "Show"} {withheldPodcasts.length} withheld {withheldPodcasts.length === 1 ? "input" : "inputs"}
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>
+                {showWithheld ? "Hide" : "View"} {withheldPodcasts.length} withheld {withheldPodcasts.length === 1 ? "input" : "inputs"}
+              </span>
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showWithheld && "rotate-180")} />
             </button>
           )}
           
