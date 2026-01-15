@@ -579,6 +579,50 @@ const Account = () => {
             </p>
             
             <Accordion type="single" collapsible className="w-full">
+              {/* Baseline Assessment - NEW SECTION */}
+              <AccordionItem value="baseline-assessment" className="border-border/50">
+                <AccordionTrigger className="text-sm hover:no-underline py-3">
+                  <div className="flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-violet-400" />
+                    Baseline Assessment
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <p>The initial assessment establishes your <strong>cognitive baseline</strong> — the starting point for all progress tracking.</p>
+                    
+                    <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/30">
+                      <p className="font-semibold text-violet-400 text-xs mb-2">📊 Assessment → Cognitive States</p>
+                      <ul className="text-xs space-y-1">
+                        <li>• <strong>Focus drills</strong> → AE (Attentional Efficiency)</li>
+                        <li>• <strong>Reasoning drills</strong> → CT (Critical Thinking)</li>
+                        <li>• <strong>Creativity Fast drill</strong> → RA (Rapid Association)</li>
+                        <li>• <strong>Creativity Slow drill</strong> → IN (Insight)</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
+                      <p className="font-semibold text-foreground text-xs mb-2">What Baseline Determines:</p>
+                      <ul className="text-xs space-y-1 text-muted-foreground">
+                        <li>• <strong>Initial Cognitive Age</strong> — Your starting cognitive age estimate</li>
+                        <li>• <strong>Baseline AE, RA, CT, IN</strong> — Reference values for progress tracking</li>
+                        <li>• <strong>Improvement Delta</strong> — How much you've improved from baseline</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="p-2 rounded bg-primary/5 border border-primary/20 text-xs">
+                      <p className="flex items-start gap-2">
+                        <Info className="w-3 h-3 mt-1 text-primary flex-shrink-0" />
+                        <span>
+                          <strong>Skipped Assessment:</strong> If skipped, all states default to 50 and cognitive age equals chronological age. 
+                          You can retake the assessment in Settings.
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            
               {/* Cognitive States - BASE VARIABLES */}
               <AccordionItem value="cognitive-states" className="border-border/50">
                 <AccordionTrigger className="text-sm hover:no-underline py-3">
@@ -617,9 +661,9 @@ const Account = () => {
                       <p className="font-semibold text-foreground mb-1">Database Mapping:</p>
                       <ul className="space-y-0.5 text-muted-foreground">
                         <li>• AE ← <code className="bg-muted/50 px-1 rounded">focus_stability</code></li>
-                        <li>• RA ← <code className="bg-muted/50 px-1 rounded">creativity</code></li>
+                        <li>• RA ← <code className="bg-muted/50 px-1 rounded">fast_thinking</code></li>
                         <li>• CT ← <code className="bg-muted/50 px-1 rounded">reasoning_accuracy</code></li>
-                        <li>• IN ← <code className="bg-muted/50 px-1 rounded">clarity_score</code></li>
+                        <li>• IN ← <code className="bg-muted/50 px-1 rounded">slow_thinking</code></li>
                       </ul>
                     </div>
                   </div>

@@ -52,40 +52,40 @@ const Onboarding = () => {
 
   const handleAssessmentComplete = async (
     results: {
-      fastScore: number;
-      slowScore: number;
-      focusScore: number;
-      reasoningScore: number;
-      creativityScore: number;
-      overallScore: number;
+      // NEW COGNITIVE STATES
+      AE: number;  // Attentional Efficiency
+      RA: number;  // Rapid Association
+      CT: number;  // Critical Thinking
+      IN: number;  // Insight
+      S1: number;  // System 1 score
+      S2: number;  // System 2 score
       cognitiveAge: number;
     },
     skipped: boolean = false
   ) => {
     try {
       if (user?.id && !skipped) {
-        // FIRST: Create/update metrics record with current values = assessment values
-        // This creates the record if it doesn't exist, using isBaseline to save values directly
+        // Save cognitive states to database
+        // AE → focus_stability, RA → fast_thinking, CT → reasoning_accuracy, IN → slow_thinking
         await updateMetrics.mutateAsync({
           userId: user.id,
           metricUpdates: {
-            fast_thinking: results.fastScore,
-            slow_thinking: results.slowScore,
-            focus_stability: results.focusScore,
-            reasoning_accuracy: results.reasoningScore,
-            creativity: results.creativityScore,
+            focus_stability: results.AE,       // AE
+            fast_thinking: results.RA,         // RA
+            reasoning_accuracy: results.CT,    // CT
+            slow_thinking: results.IN,         // IN
           },
           isBaseline: true, // Flag to save values directly without training formula
         });
         
-        // THEN: Save baseline columns (record now exists, so UPDATE will work)
+        // Save baseline columns for Cognitive Age calculation
         await saveBaseline.mutateAsync({
           userId: user.id,
-          fastThinking: results.fastScore,
-          slowThinking: results.slowScore,
-          focus: results.focusScore,
-          reasoning: results.reasoningScore,
-          creativity: results.creativityScore,
+          focus: results.AE,          // baseline_focus → AE
+          fastThinking: results.RA,   // baseline_fast_thinking → RA
+          reasoning: results.CT,      // baseline_reasoning → CT
+          slowThinking: results.IN,   // baseline_slow_thinking → IN
+          creativity: 50,             // Legacy, not used in new engine
           cognitiveAge: results.cognitiveAge,
         });
       }
@@ -118,6 +118,34 @@ const Onboarding = () => {
 
   const handleAssessmentSkipped = async () => {
     try {
+      // Even when skipped, initialize cognitive states with defaults
+      if (user?.id) {
+        const defaultAge = calculatedAge ?? 35;
+        
+        // Create metrics record with default values
+        await updateMetrics.mutateAsync({
+          userId: user.id,
+          metricUpdates: {
+            focus_stability: 50,      // AE
+            fast_thinking: 50,        // RA
+            reasoning_accuracy: 50,   // CT
+            slow_thinking: 50,        // IN
+          },
+          isBaseline: true,
+        });
+        
+        // Save baseline values so Cognitive Age can be calculated
+        await saveBaseline.mutateAsync({
+          userId: user.id,
+          focus: 50,           // baseline_focus
+          fastThinking: 50,    // baseline_fast_thinking
+          reasoning: 50,       // baseline_reasoning
+          slowThinking: 50,    // baseline_slow_thinking
+          creativity: 50,      // Legacy
+          cognitiveAge: defaultAge,
+        });
+      }
+      
       if (isResetAssessment) {
         navigate("/app/dashboard");
         return;
