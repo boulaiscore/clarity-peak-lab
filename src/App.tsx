@@ -25,6 +25,7 @@ import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
 import BrainScienceDeepDive from "./pages/BrainScienceDeepDive";
 import InstallPage from "./pages/app/Install";
 import NeuroLab from "./pages/app/NeuroLab";
+import Health from "./pages/app/Health";
 import NeuroLabArea from "./pages/app/NeuroLabArea";
 import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
 import NeuroActivationRunner from "./pages/app/NeuroActivationRunner";
@@ -253,6 +254,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DetoxSessionRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/health"
+        element={
+          <ProtectedRoute>
+            <Health />
           </ProtectedRoute>
         }
       />
