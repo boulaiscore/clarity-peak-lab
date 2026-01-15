@@ -17,8 +17,8 @@
     --popover: 220 12% 10%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary blue - premium and vibrant */
-    --primary: 220 50% 50%;
+    /* Primary blue - metallic steel blue */
+    --primary: 215 45% 42%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 10% 14%;
@@ -27,8 +27,8 @@
     --muted: 220 10% 16%;
     --muted-foreground: 220 6% 68%;
 
-    /* Accent blue - vibrant highlight */
-    --accent: 220 45% 45%;
+    /* Accent blue - metallic highlight */
+    --accent: 215 40% 38%;
 
     --destructive: 0 55% 48%;
     --destructive-foreground: 0 0% 98%;
@@ -41,7 +41,7 @@
 
     --border: 220 10% 18%;
     --input: 220 10% 14%;
-    --ring: 220 55% 55%;
+    --ring: 215 45% 45%;
 
     --radius: 1rem;
 
@@ -59,24 +59,24 @@
     --area-fast: 42 40% 50%;
     --area-slow: 195 30% 48%;
 
-    /* Brand tokens - Vibrant premium blue */
+    /* Brand tokens - Metallic steel blue */
     --bg-primary: 220 15% 6%;
     --bg-surface: 220 12% 10%;
-    --accent-primary: 220 50% 52%;
-    --accent-secondary: 220 45% 45%;
+    --accent-primary: 215 45% 44%;
+    --accent-secondary: 215 40% 38%;
     --text-primary: 0 0% 98%;
     --text-secondary: 220 6% 68%;
     
-    /* Gradients - Vibrant blue */
-    --gradient-primary: linear-gradient(135deg, hsl(220, 52%, 54%) 0%, hsl(220, 45%, 45%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(220, 50%, 52%, 0.12) 0%, transparent 70%);
+    /* Gradients - Metallic blue */
+    --gradient-primary: linear-gradient(135deg, hsl(215, 45%, 46%) 0%, hsl(215, 40%, 36%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(215, 45%, 44%, 0.12) 0%, transparent 70%);
     --gradient-surface: linear-gradient(180deg, hsl(220, 12%, 11%) 0%, hsl(220, 15%, 6%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(220, 50%, 52%, 0.04) 0%, transparent 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(215, 45%, 44%, 0.04) 0%, transparent 100%);
     
-    /* Shadows - Vibrant blue glow */
-    --shadow-glow: 0 0 60px -20px hsl(220, 55%, 55%, 0.25);
+    /* Shadows - Metallic blue glow */
+    --shadow-glow: 0 0 60px -20px hsl(215, 45%, 48%, 0.25);
     --shadow-card: 0 2px 20px -4px hsl(220, 20%, 0%, 0.6);
-    --shadow-button: 0 0 24px -4px hsl(220, 50%, 52%, 0.2);
+    --shadow-button: 0 0 24px -4px hsl(215, 45%, 44%, 0.2);
 
     --sidebar-background: 220 15% 5%;
     --sidebar-foreground: 0 0% 98%;
