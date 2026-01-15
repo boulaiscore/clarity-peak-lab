@@ -103,8 +103,8 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                       <span>{plan.sessionDuration}/session</span>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Star className="w-3 h-3" />
-                      <span>{plan.weeklyXPTarget} XP/week</span>
+                      <Dumbbell className="w-3 h-3" />
+                      <span>{plan.sessionsPerWeek}×/week</span>
                     </div>
                   </div>
                 </div>
@@ -148,24 +148,18 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                 className="px-4 pb-4 border-t border-border/20"
               >
                 <div className="pt-3 space-y-3">
-                  {/* XP Breakdown */}
+                  {/* Weekly Load Summary */}
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly XP Target</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly Cognitive Load</p>
                     <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Star className="w-4 h-4 text-amber-400" />
-                          <span className="text-[12px] font-semibold">{plan.weeklyXPTarget} XP total</span>
-                        </div>
-                      </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="flex items-center gap-1.5">
                           <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center shrink-0">
                             <BookOpen className="w-3 h-3 text-purple-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[11px] font-semibold text-purple-400">{tasksXPTarget} XP</p>
-                            <p className="text-[9px] text-muted-foreground">Tasks</p>
+                            <p className="text-[11px] font-semibold text-purple-400">{plan.contentPerWeek}</p>
+                            <p className="text-[9px] text-muted-foreground">Content</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -173,8 +167,8 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                             <Smartphone className="w-3 h-3 text-green-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[11px] font-semibold text-green-400">{detoxXPTarget} XP</p>
-                            <p className="text-[9px] text-muted-foreground">Walk & Detox</p>
+                            <p className="text-[11px] font-semibold text-green-400">{Math.round(plan.detox.weeklyMinutes / 60)}h</p>
+                            <p className="text-[9px] text-muted-foreground">Recovery</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -182,17 +176,17 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                             <Dumbbell className="w-3 h-3 text-blue-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[11px] font-semibold text-blue-400">{gamesXPTarget} XP</p>
-                            <p className="text-[9px] text-muted-foreground">Training</p>
+                            <p className="text-[11px] font-semibold text-blue-400">{plan.sessionsPerWeek}</p>
+                            <p className="text-[9px] text-muted-foreground">Sessions</p>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Target Audience */}
+                  {/* Suitable For */}
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">For</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Configuration For</p>
                     <div className="flex flex-wrap gap-1.5">
                       {plan.targetAudience.map((audience, i) => (
                         <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
@@ -264,10 +258,10 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                     </div>
                   </div>
 
-                  {/* Walk & Detox Requirement */}
+                  {/* Recovery Allocation */}
                   {plan.detox && (
                     <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Walk & Detox</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Allocation</p>
                       <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
@@ -283,13 +277,9 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                             <span className="ml-1 text-foreground">{plan.detox.minSessionMinutes} min</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">XP/min:</span>
-                            <span className="ml-1 text-green-400">{plan.detox.xpPerMinute} XP</span>
+                            <span className="text-muted-foreground">Walking:</span>
+                            <span className="ml-1 text-foreground">{plan.detox.walkingMinMinutes} min</span>
                           </div>
-                        </div>
-                        <div className="mt-1.5 text-[10px]">
-                          <span className="text-muted-foreground">Goal bonus:</span>
-                          <span className="ml-1 text-amber-400">+{plan.detox.bonusXP} XP</span>
                         </div>
                       </div>
                     </div>

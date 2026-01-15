@@ -10,22 +10,23 @@ import { sendPremiumUpgradeEmail } from "@/lib/emailService";
 const BETA_LIMIT = 100;
 
 const baseFeatures = [
-  "All 3 Neuro Lab training areas",
+  "All Neuro Lab cognitive protocols",
   "Extended session durations (5min, 7min)",
-  "Neuro Activation™ cognitive warm-up",
-  "Unlimited daily training sessions",
+  "Neuro Activation™ pre-session calibration",
+  "Unlimited daily sessions",
   "Full cognitive dashboard with trends",
-  "Complete badge & achievement system",
+  "Complete progress tracking system",
 ];
 
 const premiumFeatures = [
   ...baseFeatures,
-  "1 Cognitive Report per month",
+  "Monthly Cognitive Report",
 ];
 
 const proFeatures = [
   ...baseFeatures,
-  "Unlimited Cognitive Reports",
+  "On-demand Cognitive Reports",
+  "Advanced trend analytics",
   "Priority support",
 ];
 
@@ -182,13 +183,13 @@ const Premium = () => {
             </h1>
             <p className="text-muted-foreground mb-8">
               {isPro 
-                ? "You have unlimited access to all features including reports."
-                : "Thank you for subscribing. You have full access to all training features."
+                ? "Full access to all cognitive protocols and on-demand reporting."
+                : "Full access to all cognitive protocols and monthly reporting."
               }
             </p>
 
             <div className="p-6 rounded-xl bg-card border border-border text-left shadow-card">
-              <h3 className="font-semibold mb-4">Your {tierName} Benefits</h3>
+              <h3 className="font-semibold mb-4">Your {tierName} Access</h3>
               <ul className="space-y-3">
                 {features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm">
@@ -207,7 +208,7 @@ const Premium = () => {
                   <span className="font-semibold">Upgrade to Pro</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Get unlimited Cognitive Reports for just $4.99 more per month.
+                  On-demand Cognitive Reports and advanced trend analytics.
                 </p>
                 <Button 
                   onClick={() => handleStripeCheckout('pro')} 
