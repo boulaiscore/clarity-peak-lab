@@ -5,21 +5,26 @@
  * SHARPNESS = 0.50×S1 + 0.30×AE + 0.20×S2, modulated by Recovery
  * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable)
  * RECOVERY = min(100, (detox_min + 0.5×walk_min) / target × 100)
+ * 
+ * DATA SOURCES:
+ * - Cognitive States (AE, RA, CT, IN): from user_cognitive_metrics table
+ * - Detox Minutes: from detox_completions table (weekly aggregate)
+ * - Walking Minutes: from walking_sessions table (weekly aggregate)
+ * - Wearable Data: from wearable_snapshots table
  */
 
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
-import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
-import { useTodayWalkingMinutes } from "@/hooks/useWalkingTracker";
-import { useCognitiveReadiness } from "@/hooks/useCognitiveReadiness";
 import { useAuth } from "@/contexts/AuthContext";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { startOfWeek, format } from "date-fns";
 import {
   calculateSharpness,
   calculateReadiness,
   calculateRecovery,
   calculatePhysioComponent,
-  TodayMetrics,
 } from "@/lib/cognitiveEngine";
 
 export interface UseTodayMetricsResult {
@@ -46,22 +51,84 @@ export interface UseTodayMetricsResult {
   isLoading: boolean;
 }
 
+function getCurrentWeekStart(): string {
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  return format(weekStart, "yyyy-MM-dd");
+}
+
 export function useTodayMetrics(): UseTodayMetricsResult {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
+  const userId = user?.id ?? session?.user?.id;
+  const weekStart = getCurrentWeekStart();
+  const today = new Date().toISOString().split("T")[0];
+  
   const { states, S1, S2, isLoading: statesLoading } = useCognitiveStates();
   
-  // Get weekly detox minutes
-  const { data: detoxData, isLoading: detoxLoading } = useWeeklyDetoxXP();
+  // Fetch weekly detox minutes from detox_completions
+  const { data: detoxData, isLoading: detoxLoading } = useQuery({
+    queryKey: ["weekly-detox-minutes", userId, weekStart],
+    queryFn: async () => {
+      if (!userId) return { totalMinutes: 0 };
+      
+      const { data, error } = await supabase
+        .from("detox_completions")
+        .select("duration_minutes")
+        .eq("user_id", userId)
+        .eq("week_start", weekStart);
+      
+      if (error) throw error;
+      
+      const totalMinutes = (data || []).reduce((sum, c) => sum + (c.duration_minutes || 0), 0);
+      return { totalMinutes };
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+  
+  // Fetch weekly walking minutes from walking_sessions
+  const { data: walkingData, isLoading: walkingLoading } = useQuery({
+    queryKey: ["weekly-walking-minutes", userId, weekStart],
+    queryFn: async () => {
+      if (!userId) return { totalMinutes: 0 };
+      
+      const { data, error } = await supabase
+        .from("walking_sessions")
+        .select("duration_minutes, status, completed_at")
+        .eq("user_id", userId)
+        .eq("status", "completed")
+        .gte("completed_at", `${weekStart}T00:00:00`);
+      
+      if (error) throw error;
+      
+      const totalMinutes = (data || []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+      return { totalMinutes };
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+  
+  // Fetch today's wearable snapshot
+  const { data: wearableSnapshot, isLoading: wearableLoading } = useQuery({
+    queryKey: ["wearable-snapshot", userId, today],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data, error } = await supabase
+        .from("wearable_snapshots")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("date", today)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+  
   const weeklyDetoxMinutes = detoxData?.totalMinutes ?? 0;
-  
-  // Get walking minutes
-  const { data: walkingMinutes = 0, isLoading: walkingLoading } = useTodayWalkingMinutes();
-  // NOTE: Walking is currently per-day, but spec says weekly. 
-  // For now we use 0 for weekly walk until we have weekly aggregation
-  const weeklyWalkMinutes = walkingMinutes; // TODO: Aggregate weekly
-  
-  // Get wearable data for physio component
-  const { wearableSnapshot } = useCognitiveReadiness();
+  const weeklyWalkMinutes = walkingData?.totalMinutes ?? 0;
   
   // Get detox target from training plan
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
@@ -109,6 +176,6 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     weeklyDetoxMinutes,
     weeklyWalkMinutes,
     detoxTarget,
-    isLoading: statesLoading || detoxLoading || walkingLoading,
+    isLoading: statesLoading || detoxLoading || walkingLoading || wearableLoading,
   };
 }

@@ -2,8 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getExerciseXP } from "@/lib/trainingPlans";
-import { getSingleExerciseMetricUpdate } from "@/lib/exercises";
 import { startOfWeek, format } from "date-fns";
+import { 
+  getXPRouting, 
+  calculateStateUpdate, 
+  getTaskXPAllocation,
+  SkillTarget,
+} from "@/lib/cognitiveEngine";
 
 export interface ExerciseCompletion {
   id: string;
@@ -23,6 +28,14 @@ function getCurrentWeekStart(): string {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   return format(weekStart, "yyyy-MM-dd");
 }
+
+// Map skill target to database column
+const SKILL_TO_COLUMN: Record<SkillTarget, string> = {
+  AE: "focus_stability",
+  RA: "fast_thinking",
+  CT: "reasoning_accuracy",
+  IN: "slow_thinking",
+};
 
 // Fetch weekly XP earned from exercise completions
 export function useWeeklyExerciseXP() {
@@ -52,7 +65,7 @@ export function useWeeklyExerciseXP() {
   });
 }
 
-// Record a completed exercise AND update cognitive metrics in real-time
+// Record a completed exercise AND update cognitive metrics using NEW cognitive engine
 export function useRecordExerciseCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -64,18 +77,13 @@ export function useRecordExerciseCompletion() {
       thinkingMode,
       difficulty,
       score,
-      exercise, // Pass the full exercise for metric calculation
     }: {
       exerciseId: string;
       gymArea: string;
       thinkingMode: string | null;
       difficulty: "easy" | "medium" | "hard";
       score: number;
-      exercise?: {
-        metrics_affected: string[];
-        weight?: number;
-        difficulty: string;
-      };
+      exercise?: any; // Legacy, not used
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
@@ -100,62 +108,56 @@ export function useRecordExerciseCompletion() {
 
       if (error) throw error;
 
-      // 2. Update cognitive metrics in real-time if exercise data provided
-      if (exercise && exercise.metrics_affected.length > 0) {
-        const isCorrect = score >= 50;
-        const metricUpdates = getSingleExerciseMetricUpdate(
-          {
-            id: exerciseId,
-            metrics_affected: exercise.metrics_affected,
-            weight: exercise.weight || 1,
-            difficulty: exercise.difficulty as "easy" | "medium" | "hard",
-          } as any,
-          score,
-          isCorrect
-        );
+      // 2. Update cognitive metrics using NEW cognitive engine
+      // Route XP to ONE AND ONLY ONE skill based on gym_area + thinking_mode
+      const routing = getXPRouting(gymArea, thinkingMode || "slow");
+      const targetColumn = SKILL_TO_COLUMN[routing.skill];
 
-        // Get current metrics
-        const { data: currentMetrics } = await supabase
+      // Get current metrics
+      const { data: currentMetrics } = await supabase
+        .from("user_cognitive_metrics")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (currentMetrics) {
+        const currentValue = (currentMetrics as any)[targetColumn] || 50;
+        
+        // Apply score scaling: XP = baseXP × (score / 100)
+        const scaledXP = xpEarned * (score / 100);
+        
+        // Apply state update formula: Δstate = XP × 0.5
+        const newValue = calculateStateUpdate(currentValue, scaledXP);
+        
+        const updates: Record<string, number> = {
+          [targetColumn]: Math.round(newValue * 10) / 10,
+        };
+
+        console.log("[XP Routing]", {
+          exerciseId,
+          gymArea,
+          thinkingMode,
+          routing,
+          targetColumn,
+          currentValue,
+          scaledXP,
+          newValue,
+        });
+
+        await supabase
           .from("user_cognitive_metrics")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (currentMetrics) {
-          const updates: Record<string, number> = {};
-          
-          // Map metric names and apply gradual improvement
-          const metricMapping: Record<string, string> = {
-            reasoning: "reasoning_accuracy",
-            focus: "focus_stability",
-            memory: "visual_processing",
-            creativity: "creativity",
-            fast_thinking: "fast_thinking",
-            slow_thinking: "slow_thinking",
-            reasoning_accuracy: "reasoning_accuracy",
-            focus_stability: "focus_stability",
-            decision_quality: "decision_quality",
-            bias_resistance: "bias_resistance",
-            critical_thinking: "critical_thinking_score",
-          };
-
-          Object.entries(metricUpdates).forEach(([metric, points]) => {
-            const dbKey = metricMapping[metric] || metric.replace(/-/g, "_");
-            const currentValue = (currentMetrics as any)[dbKey] || 50;
-            
-            // Apply the gradual improvement formula: newValue = min(100, max(0, current + points × 0.5))
-            // This ensures scores update immediately but don't inflate too quickly
-            const newValue = Math.min(100, Math.max(0, currentValue + points * 0.5));
-            updates[dbKey] = Math.round(newValue * 10) / 10;
+          .update(updates)
+          .eq("user_id", user.id);
+      } else {
+        // Create new metrics record if none exists
+        const initialValue = calculateStateUpdate(50, xpEarned * (score / 100));
+        
+        await supabase
+          .from("user_cognitive_metrics")
+          .insert({
+            user_id: user.id,
+            [targetColumn]: Math.round(initialValue * 10) / 10,
           });
-
-          if (Object.keys(updates).length > 0) {
-            await supabase
-              .from("user_cognitive_metrics")
-              .update(updates)
-              .eq("user_id", user.id);
-          }
-        }
       }
 
       return { ...data, xpEarned } as ExerciseCompletion & { xpEarned: number };
@@ -166,6 +168,7 @@ export function useRecordExerciseCompletion() {
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
       queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["games-xp-breakdown"] });
       // Dashboard Training Details queries
       queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
       queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
@@ -174,6 +177,7 @@ export function useRecordExerciseCompletion() {
 }
 
 // Record a completed content item (podcast, book, article)
+// Tasks affect ONLY CT and IN with specific ratios per the spec
 export function useRecordContentCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -192,6 +196,7 @@ export function useRecordContentCompletion() {
 
       const weekStart = getCurrentWeekStart();
 
+      // 1. Record the content completion
       const { data, error } = await supabase
         .from("exercise_completions")
         .insert({
@@ -208,6 +213,43 @@ export function useRecordContentCompletion() {
         .single();
 
       if (error) throw error;
+
+      // 2. Update cognitive metrics - Tasks affect ONLY CT and IN
+      const allocation = getTaskXPAllocation(contentType, xpEarned);
+      
+      const { data: currentMetrics } = await supabase
+        .from("user_cognitive_metrics")
+        .select("reasoning_accuracy, slow_thinking")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (currentMetrics) {
+        const currentCT = currentMetrics.reasoning_accuracy || 50;
+        const currentIN = currentMetrics.slow_thinking || 50;
+        
+        // Apply state update formula: Δstate = allocated XP × 0.5
+        const newCT = calculateStateUpdate(currentCT, allocation.CT);
+        const newIN = calculateStateUpdate(currentIN, allocation.IN);
+        
+        console.log("[Task XP Routing]", {
+          contentType,
+          xpEarned,
+          allocation,
+          currentCT,
+          currentIN,
+          newCT,
+          newIN,
+        });
+
+        await supabase
+          .from("user_cognitive_metrics")
+          .update({
+            reasoning_accuracy: Math.round(newCT * 10) / 10,
+            slow_thinking: Math.round(newIN * 10) / 10,
+          })
+          .eq("user_id", user.id);
+      }
+
       return data as ExerciseCompletion;
     },
     onSuccess: () => {
