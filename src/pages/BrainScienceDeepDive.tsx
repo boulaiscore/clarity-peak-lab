@@ -1,9 +1,15 @@
-import { Brain, Zap, Clock, AlertTriangle, Smartphone, Bot, BookOpen, ExternalLink, Award, Users, GraduationCap, FlaskConical, Sparkles } from "lucide-react";
+import { Brain, Zap, Clock, AlertTriangle, Smartphone, Bot, BookOpen, ExternalLink, Award, Users, GraduationCap, FlaskConical, Sparkles, Calculator, Activity, Dumbbell, Rocket, RotateCcw, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AppShell } from "@/components/app/AppShell";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import eegBrainScan from "@/assets/eeg-brain-scan-1.png";
 import dualBrainSystems from "@/assets/dual-brain-systems.png";
 
@@ -521,6 +527,312 @@ export default function BrainScienceDeepDive() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <Separator className="opacity-30" />
+
+        {/* How We Calculate Your Metrics */}
+        <section className="space-y-5">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Metric Calculations</h3>
+          </div>
+          
+          <Card className="border-border/30 bg-card/50">
+            <CardContent className="p-5 space-y-4">
+              <div>
+                <h4 className="font-semibold text-sm mb-1">How We Calculate Your Metrics</h4>
+                <p className="text-xs text-muted-foreground">
+                  Understand the exact formulas and data sources behind your cognitive scores. All values are normalized 0–100.
+                </p>
+              </div>
+              
+              <Accordion type="single" collapsible className="w-full">
+                {/* Baseline Assessment */}
+                <AccordionItem value="baseline-assessment" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <RotateCcw className="w-4 h-4 text-violet-400" />
+                      Baseline Assessment
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>The initial assessment establishes your <strong>cognitive baseline</strong> — the starting point for all progress tracking.</p>
+                      
+                      <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/30">
+                        <p className="font-semibold text-violet-400 text-xs mb-2">📊 Assessment → Cognitive States</p>
+                        <ul className="text-xs space-y-1">
+                          <li>• <strong>Focus drills</strong> → AE (Attentional Efficiency)</li>
+                          <li>• <strong>Reasoning drills</strong> → CT (Critical Thinking)</li>
+                          <li>• <strong>Creativity Fast drill</strong> → RA (Rapid Association)</li>
+                          <li>• <strong>Creativity Slow drill</strong> → IN (Insight)</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
+                        <p className="font-semibold text-foreground text-xs mb-2">What Baseline Determines:</p>
+                        <ul className="text-xs space-y-1 text-muted-foreground">
+                          <li>• <strong>Initial Cognitive Age</strong> — Your starting cognitive age estimate</li>
+                          <li>• <strong>Baseline AE, RA, CT, IN</strong> — Reference values for progress tracking</li>
+                          <li>• <strong>Improvement Delta</strong> — How much you've improved from baseline</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              
+                {/* Cognitive States */}
+                <AccordionItem value="cognitive-states" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-primary" />
+                      Cognitive States (Base Variables)
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>These are the ONLY trainable cognitive states. All metrics are derived from these base variables.</p>
+                      
+                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                        <p className="font-semibold text-amber-400 text-xs mb-2">⚡ System 1 — Intuition (Fast Thinking)</p>
+                        <ul className="text-xs space-y-1 mb-2">
+                          <li>• <strong>AE</strong> = Attentional Efficiency (0–100)</li>
+                          <li>• <strong>RA</strong> = Rapid Association (0–100)</li>
+                        </ul>
+                        <div className="p-2 rounded bg-muted/30 font-mono text-[10px]">
+                          S1 = (AE + RA) / 2
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                        <p className="font-semibold text-primary text-xs mb-2">🧠 System 2 — Reasoning (Slow Thinking)</p>
+                        <ul className="text-xs space-y-1 mb-2">
+                          <li>• <strong>CT</strong> = Critical Thinking (0–100)</li>
+                          <li>• <strong>IN</strong> = Insight (0–100)</li>
+                        </ul>
+                        <div className="p-2 rounded bg-muted/30 font-mono text-[10px]">
+                          S2 = (CT + IN) / 2
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Sharpness */}
+                <AccordionItem value="sharpness" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-400" />
+                      Sharpness (Primary Metric)
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>Sharpness measures your <strong>immediate cognitive performance capacity</strong>.</p>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50 font-mono text-xs">
+                        <p className="text-foreground font-semibold mb-2">Formula:</p>
+                        <p className="mb-2">Sharpness_base = <strong className="text-amber-400">0.50</strong> × S1 + <strong className="text-primary">0.30</strong> × AE + <strong className="text-primary">0.20</strong> × S2</p>
+                        <p className="text-primary">Sharpness = Sharpness_base × (0.75 + 0.25 × REC / 100)</p>
+                      </div>
+                      
+                      <div className="space-y-2 text-xs">
+                        <p className="flex items-start gap-2">
+                          <Info className="w-3 h-3 mt-1 text-primary flex-shrink-0" />
+                          <span><strong>Base Weights:</strong> 50% System 1, 30% Attentional Efficiency, 20% System 2.</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <Info className="w-3 h-3 mt-1 text-primary flex-shrink-0" />
+                          <span><strong>Recovery Modulation:</strong> Recovery provides 0–25% boost.</span>
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Cognitive Readiness */}
+                <AccordionItem value="cognitive-readiness" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-emerald-400" />
+                      Cognitive Readiness
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>Cognitive Readiness measures your <strong>capacity for focused reasoning</strong>.</p>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
+                        <p className="font-semibold text-foreground text-xs mb-2">Without Wearable:</p>
+                        <div className="font-mono text-[10px] bg-background/50 p-2 rounded">
+                          Readiness = <strong className="text-emerald-400">0.35</strong> × REC + <strong className="text-primary">0.35</strong> × S2 + <strong className="text-amber-400">0.30</strong> × AE
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2 text-xs text-center">
+                        <div className="p-2 rounded bg-emerald-500/20 border border-emerald-500/40">
+                          <p className="font-semibold text-emerald-400">HIGH</p>
+                          <p className="text-muted-foreground">≥ 70</p>
+                        </div>
+                        <div className="p-2 rounded bg-amber-500/20 border border-amber-500/40">
+                          <p className="font-semibold text-amber-400">MEDIUM</p>
+                          <p className="text-muted-foreground">40-69</p>
+                        </div>
+                        <div className="p-2 rounded bg-red-500/20 border border-red-500/40">
+                          <p className="font-semibold text-red-400">LOW</p>
+                          <p className="text-muted-foreground">&lt; 40</p>
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Recovery */}
+                <AccordionItem value="recovery" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <Dumbbell className="w-4 h-4 text-emerald-400" />
+                      Recovery (Foundational Metric)
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>Recovery is a <strong>modulator, not a trainable skill</strong>. It affects Sharpness, Readiness, and SCI.</p>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50 font-mono text-xs">
+                        <p className="text-foreground font-semibold mb-2">Formula:</p>
+                        <p className="mb-2">REC_input = weekly_detox_minutes + <strong className="text-emerald-400">0.5</strong> × weekly_walk_minutes</p>
+                        <p className="text-primary">REC = min(100, REC_input / detox_target × 100)</p>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                        <p className="font-semibold text-emerald-400 text-xs mb-2">🚫 Important: NO XP from Detox/Walk</p>
+                        <p className="text-xs">Detox and Walking sessions contribute <strong>only to Recovery calculation</strong>.</p>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                {/* Cognitive Age */}
+                <AccordionItem value="cognitive-age" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-primary" />
+                      Cognitive Age
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>Cognitive Age tracks improvement over time. <strong>Recovery does NOT affect Cognitive Age.</strong></p>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50 font-mono text-xs">
+                        <p className="text-foreground font-semibold mb-2">Formula:</p>
+                        <p className="mb-1">PerformanceAvg = (AE + RA + CT + IN + S2) / 5</p>
+                        <p className="mb-1">Improvement = PerformanceAvg − BaselinePerformanceAvg</p>
+                        <p className="text-primary">CognitiveAge = BaselineCognitiveAge − (Improvement / 10)</p>
+                      </div>
+                      
+                      <div className="space-y-2 text-xs">
+                        <p className="flex items-start gap-2">
+                          <Info className="w-3 h-3 mt-1 text-primary flex-shrink-0" />
+                          <span><strong>Improvement Rate:</strong> Every 10 points of improvement = 1 year younger.</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <Info className="w-3 h-3 mt-1 text-amber-400 flex-shrink-0" />
+                          <span><strong>Cap:</strong> ±15 years from baseline cognitive age.</span>
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Cognitive Network SCI */}
+                <AccordionItem value="cognitive-network" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-primary" />
+                      Cognitive Network (SCI)
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 text-sm text-muted-foreground">
+                      <p>The Synthesized Cognitive Index (SCI) integrates performance, engagement, and recovery.</p>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50 font-mono text-xs">
+                        <p className="text-foreground font-semibold mb-2">Master Formula:</p>
+                        <p className="text-primary">SCI = <strong>0.50</strong> × CP + <strong>0.30</strong> × BE + <strong>0.20</strong> × REC</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">80+: Elite integration</div>
+                        <div className="p-2 rounded bg-primary/10 border border-primary/30 text-primary">65-79: High clarity</div>
+                        <div className="p-2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">50-64: Developing</div>
+                        <div className="p-2 rounded bg-muted/30 border border-border/50">{"<50"}: Building foundation</div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* XP Routing */}
+                <AccordionItem value="xp-routing" className="border-border/50">
+                  <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <div className="flex items-center gap-2">
+                      <Rocket className="w-4 h-4 text-primary" />
+                      XP Routing & State Updates
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>Each exercise routes XP to <strong>ONE AND ONLY ONE skill</strong>.</p>
+                      
+                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                        <p className="font-semibold text-amber-400 text-xs mb-2">🎮 Training (Games/Challenges)</p>
+                        <div className="grid grid-cols-3 gap-2 text-xs mb-2">
+                          <div className="p-1.5 rounded bg-muted/30 text-center">
+                            <p className="font-semibold">Easy</p>
+                            <p className="text-muted-foreground">3 XP</p>
+                          </div>
+                          <div className="p-1.5 rounded bg-muted/30 text-center">
+                            <p className="font-semibold">Medium</p>
+                            <p className="text-muted-foreground">5 XP</p>
+                          </div>
+                          <div className="p-1.5 rounded bg-muted/30 text-center">
+                            <p className="font-semibold">Hard</p>
+                            <p className="text-muted-foreground">8 XP</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
+                        <p className="font-semibold text-foreground text-xs mb-2">Skill Routing:</p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="p-2 rounded bg-amber-500/10">
+                            <p className="text-amber-400 font-semibold">S1 Focus → AE</p>
+                          </div>
+                          <div className="p-2 rounded bg-amber-500/10">
+                            <p className="text-amber-400 font-semibold">S1 Creativity → RA</p>
+                          </div>
+                          <div className="p-2 rounded bg-primary/10">
+                            <p className="text-primary font-semibold">S2 Reasoning → CT</p>
+                          </div>
+                          <div className="p-2 rounded bg-primary/10">
+                            <p className="text-primary font-semibold">S2 Creativity → IN</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/50 font-mono text-xs">
+                        <p className="text-foreground font-semibold mb-1">State Update Formula:</p>
+                        <p>Δstate = XP × 0.5</p>
+                        <p>state = clamp(0, 100, state + Δstate)</p>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </CardContent>
           </Card>
         </section>
