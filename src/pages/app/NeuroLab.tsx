@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { CognitiveTasksSection, CognitiveTasksLegend, CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
+import { PodcastTasksEngine } from "@/components/app/PodcastTasksEngine";
 import { 
   Zap, ChevronRight, Crown, Dumbbell,
   BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban,
@@ -105,17 +106,23 @@ function TasksTabContent() {
               );
             })}
             
-            {/* Legend - Pushed to the right */}
-            <div className="ml-auto">
-              <CognitiveTasksLegend />
-            </div>
+            {/* Legend - Only show for non-podcast categories */}
+            {activeCategory !== "podcast" && (
+              <div className="ml-auto">
+                <CognitiveTasksLegend />
+              </div>
+            )}
           </div>
 
           {/* Selected Category Content */}
-          <CognitiveTasksSection 
-            type={activeCategory} 
-            title={TASK_CATEGORIES.find(c => c.id === activeCategory)?.label || "Content"}
-          />
+          {activeCategory === "podcast" ? (
+            <PodcastTasksEngine />
+          ) : (
+            <CognitiveTasksSection 
+              type={activeCategory} 
+              title={TASK_CATEGORIES.find(c => c.id === activeCategory)?.label || "Content"}
+            />
+          )}
         </>
       ) : (
         <CognitiveLibrary />
