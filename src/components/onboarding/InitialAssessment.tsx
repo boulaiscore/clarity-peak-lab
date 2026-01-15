@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Brain, Zap, Target, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
+import { Brain, Zap, Target, Lightbulb, Sparkles, ArrowRight, Eye, Activity } from "lucide-react";
 import { AssessmentDrillRenderer, ASSESSMENT_DRILLS } from "./AssessmentDrillRenderer";
 import { cn } from "@/lib/utils";
 
@@ -15,21 +15,18 @@ const ASSESSMENT_EXERCISES = ASSESSMENT_DRILLS.map((drill, index) => ({
   name: drill.name,
 }));
 
-// Training weights by area and system (from design)
-// Focus: 70% Fast / 30% Slow
-// Reasoning: 20% Fast / 80% Slow
-// Creativity: 50% Fast / 50% Slow
-const AREA_FAST_WEIGHTS = {
-  focus: 0.7,
-  reasoning: 0.2,
-  creativity: 0.5,
-} as const;
-
-const AREA_SLOW_WEIGHTS = {
-  focus: 0.3,
-  reasoning: 0.8,
-  creativity: 0.5,
-} as const;
+/**
+ * Assessment Drill → Cognitive State Mapping:
+ * 
+ * | Drill Area  | Mode  | Target State |
+ * |-------------|-------|--------------|
+ * | focus       | fast  | AE (Attentional Efficiency) |
+ * | focus       | slow  | AE (Attentional Efficiency) |
+ * | reasoning   | fast  | CT (Critical Thinking) |
+ * | reasoning   | slow  | CT (Critical Thinking) |
+ * | creativity  | fast  | RA (Rapid Association) |
+ * | creativity  | slow  | IN (Insight) |
+ */
 
 interface ExerciseResult {
   exerciseId: number;
@@ -40,13 +37,14 @@ interface ExerciseResult {
   avgReactionTime?: number;
 }
 
-interface AssessmentResults {
-  fastScore: number;
-  slowScore: number;
-  focusScore: number;
-  reasoningScore: number;
-  creativityScore: number;
-  overallScore: number;
+// NEW: Assessment results aligned with cognitive engine
+export interface AssessmentResults {
+  AE: number;  // Attentional Efficiency (from focus drills)
+  RA: number;  // Rapid Association (from creativity fast)
+  CT: number;  // Critical Thinking (from reasoning drills)
+  IN: number;  // Insight (from creativity slow)
+  S1: number;  // System 1 = (AE + RA) / 2
+  S2: number;  // System 2 = (CT + IN) / 2
   cognitiveAge: number;
 }
 
@@ -75,12 +73,12 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
   const [results, setResults] = useState<ExerciseResult[]>([]);
 
   const defaultResults: AssessmentResults = {
-    fastScore: 50,
-    slowScore: 50,
-    focusScore: 50,
-    reasoningScore: 50,
-    creativityScore: 50,
-    overallScore: 50,
+    AE: 50,
+    RA: 50,
+    CT: 50,
+    IN: 50,
+    S1: 50,
+    S2: 50,
     cognitiveAge: userAge,
   };
 
@@ -122,86 +120,51 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
 
   const calculateResults = useMemo((): AssessmentResults => {
     if (results.length === 0) {
-      return {
-        fastScore: 50,
-        slowScore: 50,
-        focusScore: 50,
-        reasoningScore: 50,
-        creativityScore: 50,
-        overallScore: 50,
-        cognitiveAge: userAge,
-      };
+      return defaultResults;
     }
-
-    // --- 1) Raggruppa risultati per area + thinkingMode ---
-    const focusFast = results.filter((r) => r.area === "focus" && r.thinkingMode === "fast");
-    const focusSlow = results.filter((r) => r.area === "focus" && r.thinkingMode === "slow");
-    const reasoningFast = results.filter((r) => r.area === "reasoning" && r.thinkingMode === "fast");
-    const reasoningSlow = results.filter((r) => r.area === "reasoning" && r.thinkingMode === "slow");
-    const creativityFast = results.filter((r) => r.area === "creativity" && r.thinkingMode === "fast");
-    const creativitySlow = results.filter((r) => r.area === "creativity" && r.thinkingMode === "slow");
 
     const avg = (arr: ExerciseResult[]) =>
       arr.length > 0 ? arr.reduce((sum, r) => sum + r.score, 0) / arr.length : 50;
 
-    // Punteggi per area + sistema
-    const focusFastScore = avg(focusFast);
-    const focusSlowScore = avg(focusSlow);
-    const reasoningFastScore = avg(reasoningFast);
-    const reasoningSlowScore = avg(reasoningSlow);
-    const creativityFastScore = avg(creativityFast);
-    const creativitySlowScore = avg(creativitySlow);
+    // ===== MAP DRILLS TO COGNITIVE STATES =====
+    
+    // AE (Attentional Efficiency) ← Focus drills (both fast and slow)
+    const focusDrills = results.filter((r) => r.area === "focus");
+    const AE = Math.round(avg(focusDrills));
 
-    // --- 2) Area scores = media dei drill dell'area (fast + slow) ---
-    const focusResults = results.filter((r) => r.area === "focus");
-    const reasoningResults = results.filter((r) => r.area === "reasoning");
-    const creativityResults = results.filter((r) => r.area === "creativity");
+    // CT (Critical Thinking) ← Reasoning drills (both fast and slow)
+    const reasoningDrills = results.filter((r) => r.area === "reasoning");
+    const CT = Math.round(avg(reasoningDrills));
 
-    const focusScore =
-      focusResults.length > 0
-        ? Math.round(focusResults.reduce((sum, r) => sum + r.score, 0) / focusResults.length)
-        : 50;
+    // RA (Rapid Association) ← Creativity FAST drill
+    const creativityFastDrills = results.filter(
+      (r) => r.area === "creativity" && r.thinkingMode === "fast"
+    );
+    const RA = Math.round(avg(creativityFastDrills));
 
-    const reasoningScore =
-      reasoningResults.length > 0
-        ? Math.round(reasoningResults.reduce((sum, r) => sum + r.score, 0) / reasoningResults.length)
-        : 50;
+    // IN (Insight) ← Creativity SLOW drill
+    const creativitySlowDrills = results.filter(
+      (r) => r.area === "creativity" && r.thinkingMode === "slow"
+    );
+    const IN = Math.round(avg(creativitySlowDrills));
 
-    const creativityScore =
-      creativityResults.length > 0
-        ? Math.round(creativityResults.reduce((sum, r) => sum + r.score, 0) / creativityResults.length)
-        : 50;
+    // ===== DERIVE SYSTEM SCORES =====
+    const S1 = Math.round((AE + RA) / 2);  // System 1 (Intuition/Fast)
+    const S2 = Math.round((CT + IN) / 2);  // System 2 (Reasoning/Slow)
 
-    // --- 3) Fast / Slow globali come medie PESATE usando i punteggi TOTALI delle aree ---
-    // Focus: 70% Fast, 30% Slow | Reasoning: 20% Fast, 80% Slow | Creativity: 50% Fast, 50% Slow
-    const fastNumerator =
-      focusScore * AREA_FAST_WEIGHTS.focus +
-      reasoningScore * AREA_FAST_WEIGHTS.reasoning +
-      creativityScore * AREA_FAST_WEIGHTS.creativity;
-    const fastDenominator = AREA_FAST_WEIGHTS.focus + AREA_FAST_WEIGHTS.reasoning + AREA_FAST_WEIGHTS.creativity;
-    const fastScore = Math.round(fastNumerator / fastDenominator);
-
-    const slowNumerator =
-      focusScore * AREA_SLOW_WEIGHTS.focus +
-      reasoningScore * AREA_SLOW_WEIGHTS.reasoning +
-      creativityScore * AREA_SLOW_WEIGHTS.creativity;
-    const slowDenominator = AREA_SLOW_WEIGHTS.focus + AREA_SLOW_WEIGHTS.reasoning + AREA_SLOW_WEIGHTS.creativity;
-    const slowScore = Math.round(slowNumerator / slowDenominator);
-
-    // --- 4) Overall score = media di tutti i drill (come prima) ---
-    const overallScore = Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length);
-
-    // --- 5) Cognitive age (stessa logica, basata su overallScore) ---
-    const performanceDelta = (overallScore - 50) / 10; // -5 .. +5
+    // ===== COGNITIVE AGE =====
+    // PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+    const performanceAvg = (AE + RA + CT + IN + S2) / 5;
+    const performanceDelta = (performanceAvg - 50) / 10; // -5 .. +5
     const cognitiveAge = Math.max(18, Math.round(userAge - performanceDelta));
 
     return {
-      fastScore,
-      slowScore,
-      focusScore,
-      reasoningScore,
-      creativityScore,
-      overallScore,
+      AE,
+      RA,
+      CT,
+      IN,
+      S1,
+      S2,
       cognitiveAge,
     };
   }, [results, userAge]);
@@ -329,7 +292,7 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
     );
   }
 
-  // Results phase
+  // Results phase - NEW UI with 4 cognitive states
   if (phase === "results") {
     const res = calculateResults;
     const ageDiff = userAge - res.cognitiveAge;
@@ -356,37 +319,45 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
           )}
         </div>
 
-        {/* Thinking Systems */}
+        {/* System Scores */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
             <div className="flex items-center justify-center gap-1.5 mb-1">
               <Zap className="w-4 h-4 text-amber-400" />
-              <span className="text-[11px] text-amber-400">Fast Thinking</span>
+              <span className="text-[11px] text-amber-400">S1 Intuition</span>
             </div>
-            <span className="text-lg font-semibold">{res.fastScore}</span>
+            <span className="text-lg font-semibold">{res.S1}</span>
           </div>
           <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/20">
             <div className="flex items-center justify-center gap-1.5 mb-1">
               <Brain className="w-4 h-4 text-teal-400" />
-              <span className="text-[11px] text-teal-400">Slow Thinking</span>
+              <span className="text-[11px] text-teal-400">S2 Reasoning</span>
             </div>
-            <span className="text-lg font-semibold">{res.slowScore}</span>
+            <span className="text-lg font-semibold">{res.S2}</span>
           </div>
         </div>
 
-        {/* Area Scores */}
-        <div className="grid grid-cols-3 gap-2 mb-8">
+        {/* 4 Cognitive States */}
+        <div className="grid grid-cols-4 gap-2 mb-8">
           <div className="p-2 rounded-lg bg-card/50 border border-border/40">
-            <Target className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-            <span className="text-sm font-medium">{res.focusScore}</span>
+            <Eye className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
+            <span className="text-sm font-medium">{res.AE}</span>
+            <span className="text-[9px] text-muted-foreground block">Attention</span>
           </div>
           <div className="p-2 rounded-lg bg-card/50 border border-border/40">
-            <Lightbulb className="w-4 h-4 text-amber-400 mx-auto mb-1" />
-            <span className="text-sm font-medium">{res.reasoningScore}</span>
+            <Zap className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+            <span className="text-sm font-medium">{res.RA}</span>
+            <span className="text-[9px] text-muted-foreground block">Association</span>
           </div>
           <div className="p-2 rounded-lg bg-card/50 border border-border/40">
-            <Sparkles className="w-4 h-4 text-violet-400 mx-auto mb-1" />
-            <span className="text-sm font-medium">{res.creativityScore}</span>
+            <Lightbulb className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+            <span className="text-sm font-medium">{res.CT}</span>
+            <span className="text-[9px] text-muted-foreground block">Critical</span>
+          </div>
+          <div className="p-2 rounded-lg bg-card/50 border border-border/40">
+            <Activity className="w-4 h-4 text-violet-400 mx-auto mb-1" />
+            <span className="text-sm font-medium">{res.IN}</span>
+            <span className="text-[9px] text-muted-foreground block">Insight</span>
           </div>
         </div>
 
