@@ -2,14 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Zap, Timer,
-  Sparkles
+  Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { CognitiveExercise } from "@/lib/exercises";
-import { GAME_COGNITIVE_BENEFITS } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
 
@@ -17,33 +16,6 @@ const AREA_ICONS: Record<string, React.ElementType> = {
   focus: Target,
   reasoning: Brain,
   creativity: Lightbulb,
-};
-
-const AREA_GRADIENTS: Record<string, string> = {
-  focus: "from-[hsl(var(--area-focus))]/20 via-[hsl(var(--area-focus))]/5 to-transparent",
-  reasoning: "from-[hsl(var(--area-reasoning))]/20 via-[hsl(var(--area-reasoning))]/5 to-transparent",
-  creativity: "from-[hsl(var(--area-creativity))]/20 via-[hsl(var(--area-creativity))]/5 to-transparent",
-};
-
-const AREA_COLORS: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  focus: { 
-    bg: "bg-[hsl(var(--area-focus))]/15", 
-    text: "text-[hsl(var(--area-focus))]", 
-    border: "border-[hsl(var(--area-focus))]/20",
-    glow: "shadow-[0_0_20px_hsl(var(--area-focus)/0.15)]"
-  },
-  reasoning: { 
-    bg: "bg-[hsl(var(--area-reasoning))]/15", 
-    text: "text-[hsl(var(--area-reasoning))]", 
-    border: "border-[hsl(var(--area-reasoning))]/20",
-    glow: "shadow-[0_0_20px_hsl(var(--area-reasoning)/0.15)]"
-  },
-  creativity: { 
-    bg: "bg-[hsl(var(--area-creativity))]/15", 
-    text: "text-[hsl(var(--area-creativity))]", 
-    border: "border-[hsl(var(--area-creativity))]/20",
-    glow: "shadow-[0_0_20px_hsl(var(--area-creativity)/0.15)]"
-  },
 };
 
 // Areas available per thinking system (2x2 matrix)
@@ -58,27 +30,6 @@ const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] 
 ];
 
 type ThinkingSystem = "fast" | "slow";
-
-const SYSTEM_INFO: Record<ThinkingSystem, { label: string; sublabel: string; description: string; icon: typeof Zap; color: string; bgColor: string; borderColor: string }> = {
-  fast: { 
-    label: "System 1", 
-    sublabel: "Intuition", 
-    description: "Quick decisions, pattern recognition",
-    icon: Zap, 
-    color: "text-[hsl(var(--area-fast))]", 
-    bgColor: "bg-[hsl(var(--area-fast))]/12",
-    borderColor: "border-[hsl(var(--area-fast))]/30"
-  },
-  slow: { 
-    label: "System 2", 
-    sublabel: "Reasoning", 
-    description: "Deliberate thinking, logical analysis",
-    icon: Timer, 
-    color: "text-[hsl(var(--area-slow))]", 
-    bgColor: "bg-[hsl(var(--area-slow))]/12",
-    borderColor: "border-[hsl(var(--area-slow))]/30"
-  },
-};
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
@@ -123,129 +74,112 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
-  const currentAreas = activeSystem === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
-  const systemInfo = SYSTEM_INFO[activeSystem];
-
   return (
-    <div className="space-y-5">
-      {/* Elegant System Switcher */}
-      <div className="relative">
-        <div className="flex items-stretch rounded-2xl bg-card/40 backdrop-blur-sm border border-border/50 p-1 gap-1">
-          {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
-            const info = SYSTEM_INFO[system];
-            const Icon = info.icon;
-            const isActive = activeSystem === system;
-            
-            return (
-              <motion.button
-                key={system}
-                onClick={() => setActiveSystem(system)}
-                className={cn(
-                  "relative flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl transition-colors",
-                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"
-                )}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeSystemBg"
-                    className={cn(
-                      "absolute inset-0 rounded-xl border",
-                      info.bgColor,
-                      info.borderColor
-                    )}
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                  />
-                )}
-                <div className="relative z-10 flex items-center gap-2.5">
-                  <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                    isActive ? info.bgColor : "bg-muted/20"
-                  )}>
-                    <Icon className={cn("w-4 h-4", isActive ? info.color : "text-muted-foreground")} />
-                  </div>
-                  <div className="text-left">
-                    <div className={cn(
-                      "text-xs font-semibold tracking-wide",
-                      isActive ? info.color : ""
-                    )}>
-                      {info.label}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">
-                      {info.sublabel}
-                    </div>
-                  </div>
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* System Description */}
-      <p className="text-center text-xs text-muted-foreground px-4">
-        {systemInfo.description}
-      </p>
-
-      {/* Area Cards - 2x2 Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {currentAreas.map((area, index) => {
-          const Icon = AREA_ICONS[area.areaId] || Brain;
-          const colors = AREA_COLORS[area.areaId];
-          const gradient = AREA_GRADIENTS[area.areaId];
-          
-          return (
+    <div className="space-y-4">
+      {/* System Cards - Stacked Layout */}
+      {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
+        const isActive = activeSystem === system;
+        const SystemIcon = system === "fast" ? Zap : Timer;
+        const systemLabel = system === "fast" ? "System 1" : "System 2";
+        const systemDesc = system === "fast" ? "Intuition" : "Reasoning";
+        const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
+        const accentClass = system === "fast" 
+          ? "border-amber-500/30 bg-amber-500/5" 
+          : "border-violet-500/30 bg-violet-500/5";
+        const iconColor = system === "fast" ? "text-amber-400" : "text-violet-400";
+        
+        return (
+          <div
+            key={system}
+            className={cn(
+              "rounded-xl border transition-all overflow-hidden",
+              isActive ? accentClass : "border-border/50 bg-card/30"
+            )}
+          >
+            {/* System Header - Clickable to expand/collapse */}
             <button
-              key={`${area.areaId}-${activeSystem}`}
-              onClick={() => handleGameTypeClick(area.areaId, activeSystem)}
-              className={cn(
-                "group relative overflow-hidden rounded-2xl border transition-all duration-300",
-                "bg-card/70 backdrop-blur-sm",
-                colors.border,
-                "hover:border-opacity-50 hover:scale-[1.02]",
-                "active:scale-[0.98]",
-                colors.glow
-              )}
+              onClick={() => setActiveSystem(system)}
+              className="w-full p-3 flex items-center gap-3 text-left"
             >
-              {/* Gradient Background */}
               <div className={cn(
-                "absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity group-hover:opacity-100",
-                gradient
-              )} />
-              
-              {/* Content */}
-              <div className="relative z-10 p-5 flex flex-col items-center text-center">
-                {/* Icon with glow effect */}
-                <div className={cn(
-                  "w-14 h-14 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110",
-                  colors.bg
-                )}>
-                  <Icon className={cn("w-7 h-7", colors.text)} />
-                </div>
-                
-                {/* Area Name */}
-                <h3 className={cn("text-sm font-semibold mb-1", colors.text)}>
-                  {area.name}
-                </h3>
-                
-                {/* Tagline */}
-                <p className="text-[10px] text-muted-foreground leading-tight">
-                  {area.tagline}
-                </p>
-                
-                {/* Hover indicator */}
-                <div className={cn(
-                  "mt-3 flex items-center gap-1 text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity",
-                  colors.text
-                )}>
-                  <Sparkles className="w-3 h-3" />
-                  <span>Start Training</span>
-                </div>
+                "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                system === "fast" ? "bg-amber-500/15" : "bg-violet-500/15"
+              )}>
+                <SystemIcon className={cn("w-4 h-4", iconColor)} />
               </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={cn("text-xs font-semibold", iconColor)}>{systemLabel}</span>
+                  <span className="text-[10px] text-muted-foreground">• {systemDesc}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {system === "fast" ? "Quick pattern recognition & reactions" : "Deliberate analysis & logic"}
+                </p>
+              </div>
+              <motion.div
+                animate={{ rotate: isActive ? 0 : -90 }}
+                transition={{ duration: 0.2 }}
+                className="text-muted-foreground/50"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.div>
             </button>
-          );
-        })}
-      </div>
+
+            {/* Expanded Area Cards */}
+            {isActive && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="px-3 pb-3"
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  {areas.map((area) => {
+                    const Icon = AREA_ICONS[area.areaId] || Brain;
+                    
+                    return (
+                      <button
+                        key={`${area.areaId}-${system}`}
+                        onClick={() => handleGameTypeClick(area.areaId, system)}
+                        className={cn(
+                          "group relative p-3 rounded-lg border transition-all text-left",
+                          "bg-background/50 hover:bg-background border-border/50",
+                          "hover:border-primary/30 active:scale-[0.98]"
+                        )}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <div className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                            system === "fast" ? "bg-amber-500/10" : "bg-violet-500/10"
+                          )}>
+                            <Icon className={cn("w-4 h-4", iconColor)} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-[11px] font-medium text-foreground leading-tight mb-0.5">
+                              {area.name}
+                            </h4>
+                            <p className="text-[9px] text-muted-foreground">
+                              {area.tagline}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Play indicator */}
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Play className={cn("w-3.5 h-3.5", iconColor)} />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        );
+      })}
 
       {/* Exercise Picker Sheet */}
       <ExercisePickerSheet

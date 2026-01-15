@@ -41,10 +41,10 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
 
 type TaskCategory = "podcast" | "book" | "article";
 
-const TASK_CATEGORIES: { id: TaskCategory; label: string; icon: typeof Headphones; color: string; bgColor: string }[] = [
-  { id: "podcast", label: "Podcast", icon: Headphones, color: "text-violet-500", bgColor: "bg-violet-500/15" },
-  { id: "book", label: "Book", icon: BookOpen, color: "text-amber-500", bgColor: "bg-amber-500/15" },
-  { id: "article", label: "Reading", icon: FileText, color: "text-blue-500", bgColor: "bg-blue-500/15" },
+const TASK_CATEGORIES: { id: TaskCategory; label: string; icon: typeof Headphones }[] = [
+  { id: "podcast", label: "Podcast", icon: Headphones },
+  { id: "book", label: "Book", icon: BookOpen },
+  { id: "article", label: "Reading", icon: FileText },
 ];
 
 function TasksTabContent() {
@@ -52,39 +52,39 @@ function TasksTabContent() {
   const [viewMode, setViewMode] = useState<"active" | "library">("active");
 
   return (
-    <div className="space-y-4">
-      {/* View Mode Toggle */}
-      <div className="flex items-center gap-1 p-1 bg-card border border-border/50 rounded-lg">
+    <div className="space-y-3">
+      {/* Compact View Mode Toggle */}
+      <div className="flex items-center gap-1 p-0.5 bg-muted/30 border border-border/40 rounded-lg">
         <button
           onClick={() => setViewMode("active")}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-[11px] font-medium transition-all",
             viewMode === "active" 
-              ? "bg-primary text-primary-foreground shadow-sm" 
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              ? "bg-background text-foreground shadow-sm" 
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <BookMarked className="w-3.5 h-3.5" />
+          <BookMarked className="w-3 h-3" />
           Active
         </button>
         <button
           onClick={() => setViewMode("library")}
           className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all",
+            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-[11px] font-medium transition-all",
             viewMode === "library" 
-              ? "bg-primary text-primary-foreground shadow-sm" 
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              ? "bg-background text-foreground shadow-sm" 
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <Library className="w-3.5 h-3.5" />
+          <Library className="w-3 h-3" />
           Library
         </button>
       </div>
 
       {viewMode === "active" ? (
         <>
-          {/* Category Icon Tabs */}
-          <div className="flex items-center justify-center gap-2">
+          {/* Simplified Category Tabs - Horizontal Pills */}
+          <div className="flex items-center gap-1.5">
             {TASK_CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategory === cat.id;
@@ -93,30 +93,20 @@ function TasksTabContent() {
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   className={cn(
-                    "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all",
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all",
                     isActive 
-                      ? `${cat.bgColor} ring-1 ring-current ${cat.color}` 
-                      : "bg-card/50 hover:bg-card text-muted-foreground hover:text-foreground"
+                      ? "bg-primary/10 text-primary border border-primary/20" 
+                      : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
                   )}
                 >
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center",
-                    isActive ? cat.bgColor : "bg-muted/30"
-                  )}>
-                    <Icon className={cn("w-5 h-5", isActive ? cat.color : "text-muted-foreground")} />
-                  </div>
-                  <span className={cn(
-                    "text-[10px] font-medium",
-                    isActive ? cat.color : "text-muted-foreground"
-                  )}>
-                    {cat.label}
-                  </span>
+                  <Icon className="w-3.5 h-3.5" />
+                  {cat.label}
                 </button>
               );
             })}
             
-            {/* Legend */}
-            <div className="ml-2">
+            {/* Legend - Pushed to the right */}
+            <div className="ml-auto">
               <CognitiveTasksLegend />
             </div>
           </div>
@@ -248,53 +238,51 @@ export default function NeuroLab() {
 
   return (
     <AppShell>
-      <div className="px-5 py-5 max-w-md mx-auto">
+      <div className="px-4 py-4 max-w-md mx-auto space-y-0">
 
-        {/* Week Complete Banner - only show when week is complete */}
+        {/* Week Complete Banner - Compact */}
         {isWeekComplete && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-4 rounded-2xl bg-success/10 border border-success/30"
+            className="mb-3 p-3 rounded-xl bg-success/8 border border-success/25"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-success/20 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-success" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-success/15 flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-success" />
               </div>
               <div>
-                <h3 className="text-[14px] font-semibold text-success">Week Complete!</h3>
-                <p className="text-[11px] text-muted-foreground">
-                  All {sessionsRequired} sessions done. Free training unlocked.
+                <h3 className="text-[12px] font-semibold text-success">Week Complete!</h3>
+                <p className="text-[10px] text-muted-foreground">
+                  {sessionsRequired} sessions done • Free training unlocked
                 </p>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Neuro Activation */}
+        {/* Neuro Activation - Compact */}
         <button
           onClick={handleNeuroActivation}
           className={cn(
-            "w-full p-4 rounded-xl border transition-all duration-200 mb-5",
-            "bg-gradient-to-br from-primary/12 to-transparent",
-            "border-primary/25 hover:border-primary/40 active:scale-[0.98]",
-            !canAccessNeuroActivation() && "opacity-80"
+            "w-full p-3 rounded-xl border transition-all duration-200 mb-4",
+            "bg-gradient-to-r from-primary/8 to-transparent",
+            "border-primary/20 hover:border-primary/35 active:scale-[0.99]",
+            !canAccessNeuroActivation() && "opacity-85"
           )}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-              <Zap className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-primary/12 flex items-center justify-center shrink-0">
+              <Zap className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1 text-left">
-              <h3 className="font-semibold text-[14px]">Neuro Activation</h3>
-              <p className="text-[11px] text-muted-foreground">
-                5-min cognitive warm-up protocol
-              </p>
+              <h3 className="font-semibold text-[13px]">Neuro Activation</h3>
+              <p className="text-[10px] text-muted-foreground">5-min warm-up protocol</p>
             </div>
             <div className="flex items-center gap-1.5">
               {!canAccessNeuroActivation() && (
-                <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-primary/15 rounded text-primary font-medium">
-                  <Crown className="w-3 h-3" />
+                <span className="flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 bg-primary/12 rounded text-primary font-medium">
+                  <Crown className="w-2.5 h-2.5" />
                   PRO
                 </span>
               )}
@@ -303,24 +291,24 @@ export default function NeuroLab() {
           </div>
         </button>
 
-        {/* Weekly Goal - shared across Games/Tasks */}
+        {/* Weekly Goal - Compact */}
         <WeeklyGoalCard compact />
 
-        {/* Main Tabs */}
+        {/* Main Tabs - Simplified */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-4">
-            <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
+          <TabsList className="w-full grid grid-cols-3 h-10 mb-3 bg-muted/30">
+            <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
               <BookMarked className="w-3.5 h-3.5" />
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="detox" className="flex items-center gap-1.5 text-xs">
+            <TabsTrigger value="detox" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
               <div className="relative w-3.5 h-3.5">
                 <Smartphone className="w-3.5 h-3.5" />
                 <Ban className="w-3.5 h-3.5 absolute inset-0" />
               </div>
-              Walk & Detox
+              Detox
             </TabsTrigger>
-            <TabsTrigger value="games" className="flex items-center gap-1.5 text-xs">
+            <TabsTrigger value="games" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
               <Dumbbell className="w-3.5 h-3.5" />
               Training
             </TabsTrigger>
