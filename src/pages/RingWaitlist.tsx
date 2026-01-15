@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+import neuroloopRing from "@/assets/neuroloop-ring.png";
 
 export default function RingWaitlist() {
   const [email, setEmail] = useState("");
@@ -26,11 +29,26 @@ export default function RingWaitlist() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a]">
+      {/* Back Button */}
+      <header className="sticky top-0 z-50 bg-[#fafafa]/90 backdrop-blur-xl border-b border-[#e8e8e8]">
+        <div className="max-w-2xl mx-auto px-6">
+          <div className="flex items-center h-14">
+            <Link 
+              to="/app" 
+              className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm">Back to app</span>
+            </Link>
+          </div>
+        </div>
+      </header>
+
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-6 py-24 md:py-32">
+      <main className="max-w-2xl mx-auto px-6 py-16 md:py-24">
         
         {/* Hero Section */}
-        <section className="text-center mb-20">
+        <section className="text-center mb-16">
           <h1 className="text-3xl md:text-4xl font-light tracking-tight mb-4">
             NeuroLoop Ring
           </h1>
@@ -59,9 +77,11 @@ export default function RingWaitlist() {
 
         {/* Ring Visual */}
         <section className="mb-20 flex justify-center">
-          <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] shadow-2xl flex items-center justify-center">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[#fafafa]" />
-          </div>
+          <img 
+            src={neuroloopRing} 
+            alt="NeuroLoop Ring - Matte black titanium smart ring" 
+            className="w-64 h-64 md:w-80 md:h-80 object-contain"
+          />
         </section>
 
         {/* Product Explanation */}
