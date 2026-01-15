@@ -19,7 +19,6 @@ const navItems = [
 const menuItems = [
   { to: "/brain-science", icon: BookOpen, label: "Science" },
   { to: "/app/account", icon: User, label: "Account" },
-  { to: "/ring", icon: FlaskConical, label: "Ring Waitlist" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
