@@ -68,7 +68,7 @@ export function AppShell({ children }: AppShellProps) {
   }, [permission]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30">
         <div className="container px-4">

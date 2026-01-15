@@ -466,7 +466,7 @@ export default function NeuroLabSessionRunner() {
 
   return (
     <>
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen flex flex-col">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30 px-4 py-3">
           <div className="flex items-center justify-between mb-3">

@@ -71,7 +71,7 @@ export default function DailySession() {
   };
   
   return (
-    <div className="min-h-screen bg-background p-6 flex flex-col">
+    <div className="min-h-screen p-6 flex flex-col">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

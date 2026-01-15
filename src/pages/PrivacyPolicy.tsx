@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <div className="container max-w-4xl py-12 px-6">
         <Link to="/">
           <Button variant="ghost" className="mb-8">
