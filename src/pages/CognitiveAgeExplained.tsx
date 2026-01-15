@@ -4,7 +4,7 @@ import { ArrowLeft, Brain, Target, TrendingUp, Shield, Zap, BarChart3 } from "lu
 
 const SCIExplained = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30">
         <div className="container px-4 py-3 flex items-center gap-3">

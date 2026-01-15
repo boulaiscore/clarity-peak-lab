@@ -237,7 +237,7 @@ const Onboarding = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Progress indicator */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex gap-1.5 max-w-[280px] mx-auto">
