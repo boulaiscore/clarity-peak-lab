@@ -145,11 +145,11 @@ export default function NeuroLab() {
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   
-  // Read tab from URL query param, default to "tasks"
+  // Read tab from URL query param, default to "games" (Training first)
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(() => {
-    if (tabFromUrl === "games" || tabFromUrl === "detox") return tabFromUrl;
-    return "tasks";
+    if (tabFromUrl === "tasks" || tabFromUrl === "detox") return tabFromUrl;
+    return "games"; // Training as default
   });
   
   // Sync activeTab when URL changes
@@ -297,6 +297,10 @@ export default function NeuroLab() {
         {/* Main Tabs - Simplified */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-3 h-10 mb-3 bg-muted/30">
+            <TabsTrigger value="games" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
+              <Dumbbell className="w-3.5 h-3.5" />
+              Training
+            </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
               <BookMarked className="w-3.5 h-3.5" />
               Tasks
@@ -308,11 +312,14 @@ export default function NeuroLab() {
               </div>
               Detox
             </TabsTrigger>
-            <TabsTrigger value="games" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-              <Dumbbell className="w-3.5 h-3.5" />
-              Training
-            </TabsTrigger>
           </TabsList>
+
+          {/* Training Tab (Games) - First */}
+          <TabsContent value="games" className="mt-0">
+            <GamesLibrary 
+              onStartGame={handleEnterArea}
+            />
+          </TabsContent>
 
           {/* Tasks Tab */}
           <TabsContent value="tasks" className="mt-0">
@@ -322,13 +329,6 @@ export default function NeuroLab() {
           {/* Detox Tab */}
           <TabsContent value="detox" className="mt-0">
             <DetoxChallengeTab />
-          </TabsContent>
-
-          {/* Games Tab */}
-          <TabsContent value="games" className="mt-0">
-            <GamesLibrary 
-              onStartGame={handleEnterArea}
-            />
           </TabsContent>
         </Tabs>
       </div>
