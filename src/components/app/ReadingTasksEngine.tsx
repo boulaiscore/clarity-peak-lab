@@ -11,6 +11,11 @@
  * 
  * Copy rules:
  * - "Enabled today" / "Withheld due to cognitive load" - NOT "recommended" or "suggested"
+ * 
+ * Override system:
+ * - Withheld tasks can be overridden (if S1Buffer >= 40)
+ * - Max 1 override/day, 3/week
+ * - Temporary S2 penalty after override
  */
 
 import { useState } from "react";
@@ -24,7 +29,8 @@ import {
   BrainCircuit,
   Zap,
   Clock,
-  Leaf
+  Leaf,
+  ChevronRight
 } from "lucide-react";
 import { 
   Dialog,
@@ -35,12 +41,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useReadingPermissioning, ReadingEligibility } from "@/hooks/useReadingPermissioning";
+import { useTaskOverride } from "@/hooks/useTaskOverride";
+import { TaskOverrideModal, PostOverrideNotice } from "@/components/app/TaskOverrideModal";
 import { 
   Reading,
   ReadingType,
   ReadingDemand,
   getReadingTypeCopy,
   getWhenToUse,
+  READING_THRESHOLDS,
+  GLOBAL_READING_OVERRIDES,
 } from "@/data/readings";
 import { cn } from "@/lib/utils";
 
@@ -147,16 +157,26 @@ function EnabledReadingCard({ eligibility, s2Capacity, s1Buffer, onOpenDetails }
   );
 }
 
-function WithheldReadingCard({ eligibility }: { eligibility: ReadingEligibility }) {
+interface WithheldCardProps {
+  eligibility: ReadingEligibility;
+  onTap: () => void;
+  canOverride: boolean;
+}
+
+function WithheldReadingCard({ eligibility, onTap, canOverride }: WithheldCardProps) {
   const { reading, withheldReason } = eligibility;
   const typeStyle = TYPE_STYLES[reading.readingType];
   const Icon = typeStyle.icon;
   
   return (
-    <motion.div
+    <motion.button
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full p-3 rounded-xl border border-border/20 bg-muted/20 opacity-50"
+      onClick={onTap}
+      className={cn(
+        "w-full text-left p-3 rounded-xl border border-border/20 bg-muted/20 opacity-60 transition-all",
+        canOverride && "hover:opacity-80 hover:border-border/40 cursor-pointer"
+      )}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
@@ -177,8 +197,13 @@ function WithheldReadingCard({ eligibility }: { eligibility: ReadingEligibility 
             {withheldReason}
           </p>
         </div>
+        
+        {/* Override hint */}
+        {canOverride && (
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 mt-1" />
+        )}
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 
@@ -353,7 +378,20 @@ export function ReadingTasksEngine({ type }: ReadingTasksEngineProps) {
     isLoading,
   } = useReadingPermissioning();
   
+  // Override management
+  const {
+    canOverride,
+    overrideDisabledReason,
+    remainingDailyOverrides,
+    remainingWeeklyOverrides,
+    s2Penalty,
+    adjustedS2Capacity,
+    recordOverride,
+    wasOverriddenToday,
+  } = useTaskOverride(s1Buffer, s2Capacity);
+  
   const [selectedReading, setSelectedReading] = useState<ReadingEligibility | null>(null);
+  const [overrideReading, setOverrideReading] = useState<ReadingEligibility | null>(null);
   const [showWithheld, setShowWithheld] = useState(false);
   
   // Filter based on type prop
@@ -374,6 +412,47 @@ export function ReadingTasksEngine({ type }: ReadingTasksEngineProps) {
     }
   });
   
+  // Handle override confirmation
+  const handleOverrideConfirm = () => {
+    if (overrideReading) {
+      const taskType = overrideReading.reading.readingType === "BOOK" ? "book" : "reading";
+      recordOverride(overrideReading.reading.id, taskType);
+      // After override, open the details dialog
+      setSelectedReading(overrideReading);
+      setOverrideReading(null);
+    }
+  };
+  
+  // Get thresholds for override modal
+  const getThresholdsForReading = (eligibility: ReadingEligibility) => {
+    const { reading } = eligibility;
+    
+    if (reading.readingType === "RECOVERY_SAFE") {
+      return { requiredS1Buffer: 50 };
+    }
+    
+    if (reading.readingType === "NON_FICTION") {
+      const thresholds = READING_THRESHOLDS.NON_FICTION[reading.demand as keyof typeof READING_THRESHOLDS.NON_FICTION];
+      return {
+        requiredS2Capacity: thresholds?.s2Capacity,
+        requiredS1Buffer: thresholds?.s1Buffer,
+        requiredSharpness: Math.max(thresholds?.sharpness || 0, GLOBAL_READING_OVERRIDES.NON_FICTION_MIN_SHARPNESS),
+      };
+    }
+    
+    if (reading.readingType === "BOOK") {
+      const thresholds = READING_THRESHOLDS.BOOK[reading.demand as keyof typeof READING_THRESHOLDS.BOOK];
+      return {
+        requiredS2Capacity: thresholds?.s2Capacity,
+        requiredS1Buffer: thresholds?.s1Buffer,
+        requiredSharpness: Math.max(thresholds?.sharpness || 0, GLOBAL_READING_OVERRIDES.BOOK_MIN_SHARPNESS),
+        requiredReadiness: GLOBAL_READING_OVERRIDES.BOOK_MIN_READINESS,
+      };
+    }
+    
+    return {};
+  };
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -382,11 +461,17 @@ export function ReadingTasksEngine({ type }: ReadingTasksEngineProps) {
     );
   }
   
+  // Check if any override was used today
+  const hasOverrideToday = s2Penalty > 0;
+  
   return (
     <div className="space-y-3">
+      {/* Post-override notice */}
+      {hasOverrideToday && <PostOverrideNotice />}
+      
       {/* Metrics bar */}
       <MetricsBar 
-        s2Capacity={s2Capacity} 
+        s2Capacity={hasOverrideToday ? adjustedS2Capacity : s2Capacity} 
         s1Buffer={s1Buffer} 
         sharpness={sharpness}
         readiness={readiness}
@@ -457,7 +542,12 @@ export function ReadingTasksEngine({ type }: ReadingTasksEngineProps) {
                 className="space-y-2 overflow-hidden"
               >
                 {filteredWithheld.map((eligibility) => (
-                  <WithheldReadingCard key={eligibility.reading.id} eligibility={eligibility} />
+                  <WithheldReadingCard 
+                    key={eligibility.reading.id} 
+                    eligibility={eligibility}
+                    onTap={() => setOverrideReading(eligibility)}
+                    canOverride={canOverride && !wasOverriddenToday(eligibility.reading.id)}
+                  />
                 ))}
               </motion.div>
             )}
@@ -473,6 +563,28 @@ export function ReadingTasksEngine({ type }: ReadingTasksEngineProps) {
         open={!!selectedReading}
         onClose={() => setSelectedReading(null)}
       />
+      
+      {/* Override modal */}
+      {overrideReading && (
+        <TaskOverrideModal
+          open={!!overrideReading}
+          onClose={() => setOverrideReading(null)}
+          taskTitle={overrideReading.reading.title}
+          taskType={overrideReading.reading.readingType === "BOOK" ? "book" : "reading"}
+          demandLevel={overrideReading.reading.demand}
+          sharpness={sharpness}
+          readiness={readiness}
+          recovery={s1Buffer}
+          s2Capacity={s2Capacity}
+          s1Buffer={s1Buffer}
+          {...getThresholdsForReading(overrideReading)}
+          canOverride={canOverride}
+          overrideDisabledReason={overrideDisabledReason}
+          remainingDailyOverrides={remainingDailyOverrides}
+          remainingWeeklyOverrides={remainingWeeklyOverrides}
+          onOverrideConfirm={handleOverrideConfirm}
+        />
+      )}
     </div>
   );
 }
