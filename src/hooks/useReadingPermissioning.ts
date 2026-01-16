@@ -1,5 +1,5 @@
 /**
- * Reading Cognitive Permissioning Engine
+ * Reading Cognitive Permissioning Engine v1.3
  * 
  * Extends the podcast permissioning logic to Books and Articles.
  * 
@@ -10,15 +10,17 @@
  * - NON_FICTION: Requires S2 + S1 + Sharpness >= 60
  * - BOOK: Highest thresholds + Readiness >= 55 + Sharpness >= 65
  * 
- * HARD LIMITS:
- * - Max 1 Recovery-Safe per day
- * - Max 1 Non-Fiction per day  
- * - Max 2 total reading items per day
- * - Prefer diversity: if Book shown, don't show Non-Fiction same day
+ * HARD LIMITS (v1.3 Anti-Catalog):
+ * - Max 1 reading item per day (across all types)
+ * - Max 3 book sessions per week
+ * - LOW_BANDWIDTH_MODE: No readings, no books (only podcasts LOW/MEDIUM)
+ * 
+ * IMPORTANT: Tasks do NOT give XP in v1.3 - they are cognitive inputs, not rewards
  */
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { startOfDay, startOfWeek, isAfter, parseISO } from "date-fns";
 import { 
   READINGS, 
   Reading, 
@@ -38,6 +40,42 @@ export interface ReadingEligibility {
   fitScore: number;
 }
 
+// Track reading completions for anti-catalog limits
+interface ReadingCompletion {
+  readingId: string;
+  readingType: ReadingType;
+  timestamp: string;
+}
+
+const READING_COMPLETIONS_KEY = "neuroloop_reading_completions";
+
+function getReadingCompletions(): { todayCount: number; weeklyBookCount: number } {
+  try {
+    const stored = localStorage.getItem(READING_COMPLETIONS_KEY);
+    if (!stored) return { todayCount: 0, weeklyBookCount: 0 };
+    
+    const data: ReadingCompletion[] = JSON.parse(stored);
+    const now = new Date();
+    const todayStart = startOfDay(now);
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    
+    const todayCompletions = data.filter(r => 
+      isAfter(parseISO(r.timestamp), todayStart)
+    );
+    
+    const weeklyBookCompletions = data.filter(r => 
+      r.readingType === "BOOK" && isAfter(parseISO(r.timestamp), weekStart)
+    );
+    
+    return {
+      todayCount: todayCompletions.length,
+      weeklyBookCount: weeklyBookCompletions.length,
+    };
+  } catch {
+    return { todayCount: 0, weeklyBookCount: 0 };
+  }
+}
+
 export interface ReadingPermissioningResult {
   // Current cognitive indices
   s2Capacity: number;
@@ -53,7 +91,7 @@ export interface ReadingPermissioningResult {
   enabledNonFiction: ReadingEligibility[];
   enabledBooks: ReadingEligibility[];
   
-  // Final enabled list (max 2 total, diversity rule applied)
+  // Final enabled list (max 1 per day in v1.3)
   enabledReadings: ReadingEligibility[];
   
   // All withheld readings
@@ -62,12 +100,19 @@ export interface ReadingPermissioningResult {
   // Whether we're in recovery mode (show special card)
   isRecoveryMode: boolean;
   
+  // v1.3: Anti-catalog limits
+  todayReadingCount: number;
+  weeklyBookCount: number;
+  maxDailyReached: boolean;
+  maxWeeklyBooksReached: boolean;
+  
   // Loading state
   isLoading: boolean;
 }
 
 /**
  * Determine the global mode based on cognitive indices
+ * v1.3: LOW_BANDWIDTH_MODE means NO readings (only podcasts LOW/MEDIUM allowed)
  */
 function determineGlobalMode(s1Buffer: number, s2Capacity: number): GlobalMode {
   if (s1Buffer < 45) {
@@ -81,6 +126,7 @@ function determineGlobalMode(s1Buffer: number, s2Capacity: number): GlobalMode {
 
 /**
  * Check if a reading is eligible based on its type and demand thresholds
+ * v1.3: LOW_BANDWIDTH_MODE now withholds ALL readings (not just books)
  */
 function checkEligibility(
   reading: Reading,
@@ -88,13 +134,39 @@ function checkEligibility(
   s2Capacity: number,
   sharpness: number,
   readiness: number,
-  globalMode: GlobalMode
+  globalMode: GlobalMode,
+  maxDailyReached: boolean,
+  maxWeeklyBooksReached: boolean
 ): { enabled: boolean; reason: string | null } {
   // In RECOVERY_MODE, withhold EVERYTHING
   if (globalMode === "RECOVERY_MODE") {
     return {
       enabled: false,
       reason: "Withheld: recovery is low. Even structured reading would add invisible load today.",
+    };
+  }
+  
+  // v1.3: LOW_BANDWIDTH_MODE withholds ALL readings (only podcasts LOW/MEDIUM allowed)
+  if (globalMode === "LOW_BANDWIDTH_MODE") {
+    return {
+      enabled: false,
+      reason: "Withheld: low bandwidth mode. Only light podcasts enabled today.",
+    };
+  }
+  
+  // v1.3 Anti-catalog: Max 1 reading per day
+  if (maxDailyReached) {
+    return {
+      enabled: false,
+      reason: "Withheld: daily reading limit reached. Cognitive load managed.",
+    };
+  }
+  
+  // v1.3 Anti-catalog: Max 3 book sessions per week
+  if (reading.readingType === "BOOK" && maxWeeklyBooksReached) {
+    return {
+      enabled: false,
+      reason: "Withheld: weekly book session limit reached (3/week).",
     };
   }
   
@@ -114,14 +186,6 @@ function checkEligibility(
   
   // === NON_FICTION READING ===
   if (readingType === "NON_FICTION") {
-    // In LOW_BANDWIDTH_MODE, non-fiction is withheld
-    if (globalMode === "LOW_BANDWIDTH_MODE") {
-      return {
-        enabled: false,
-        reason: "Withheld: insufficient capacity for active understanding.",
-      };
-    }
-    
     // Global override: Sharpness < 60 → withhold ALL non-fiction
     if (sharpness < GLOBAL_READING_OVERRIDES.NON_FICTION_MIN_SHARPNESS) {
       return {
@@ -162,14 +226,6 @@ function checkEligibility(
   
   // === BOOK (Long-form) ===
   if (readingType === "BOOK") {
-    // In LOW_BANDWIDTH_MODE, books are withheld
-    if (globalMode === "LOW_BANDWIDTH_MODE") {
-      return {
-        enabled: false,
-        reason: "Withheld: long-form reading would accumulate fatigue.",
-      };
-    }
-    
     // Global override: Readiness < 55 → withhold ALL books
     if (readiness < GLOBAL_READING_OVERRIDES.BOOK_MIN_READINESS) {
       return {
@@ -235,6 +291,21 @@ function calculateFitScore(
 export function useReadingPermissioning(): ReadingPermissioningResult {
   const { sharpness, readiness, recovery, isLoading } = useTodayMetrics();
   
+  // v1.3: Get anti-catalog limits from localStorage
+  const [completionLimits, setCompletionLimits] = useState(() => getReadingCompletions());
+  
+  // Reload on mount and focus
+  useEffect(() => {
+    const reload = () => setCompletionLimits(getReadingCompletions());
+    reload();
+    window.addEventListener("focus", reload);
+    return () => window.removeEventListener("focus", reload);
+  }, []);
+  
+  const { todayCount, weeklyBookCount } = completionLimits;
+  const maxDailyReached = todayCount >= 1; // v1.3: Max 1 reading per day
+  const maxWeeklyBooksReached = weeklyBookCount >= 3; // v1.3: Max 3 book sessions per week
+  
   const result = useMemo(() => {
     // Calculate derived indices
     const s2Capacity = Math.round(0.6 * sharpness + 0.4 * readiness);
@@ -243,7 +314,7 @@ export function useReadingPermissioning(): ReadingPermissioningResult {
     // Determine global mode
     const globalMode = determineGlobalMode(s1Buffer, s2Capacity);
     
-    // Process all readings
+    // Process all readings with anti-catalog limits
     const allEligibility: ReadingEligibility[] = READINGS.map((reading) => {
       const { enabled, reason } = checkEligibility(
         reading,
@@ -251,7 +322,9 @@ export function useReadingPermissioning(): ReadingPermissioningResult {
         s2Capacity,
         sharpness,
         readiness,
-        globalMode
+        globalMode,
+        maxDailyReached,
+        maxWeeklyBooksReached
       );
       
       const fitScore = calculateFitScore(reading, s2Capacity, s1Buffer);
@@ -268,38 +341,31 @@ export function useReadingPermissioning(): ReadingPermissioningResult {
     const enabledRecoverySafe = allEligibility
       .filter(e => e.enabled && e.reading.readingType === "RECOVERY_SAFE")
       .sort((a, b) => b.fitScore - a.fitScore)
-      .slice(0, 1); // Max 1 recovery-safe per day
+      .slice(0, 1); // Max 1 recovery-safe
     
     const enabledNonFiction = allEligibility
       .filter(e => e.enabled && e.reading.readingType === "NON_FICTION")
       .sort((a, b) => b.fitScore - a.fitScore)
-      .slice(0, 1); // Max 1 non-fiction per day
+      .slice(0, 1); // Max 1 non-fiction
     
     const enabledBooks = allEligibility
       .filter(e => e.enabled && e.reading.readingType === "BOOK")
       .sort((a, b) => b.fitScore - a.fitScore)
-      .slice(0, 1); // Max 1 book shown at a time
+      .slice(0, 1); // Max 1 book shown
     
-    // Apply diversity rule: max 2 total, prefer diversity
-    // If we have a book, prioritize it, then add recovery-safe if available
-    // Avoid showing book + non-fiction on same day (too much S2 load)
+    // v1.3: Only 1 reading per day, prioritize books > non-fiction > recovery-safe
     const enabledReadings: ReadingEligibility[] = [];
     
     if (enabledBooks.length > 0) {
       enabledReadings.push(...enabledBooks);
-      // Add recovery-safe as complement (it's S1-leaning, provides balance)
-      if (enabledRecoverySafe.length > 0 && enabledReadings.length < 2) {
-        enabledReadings.push(...enabledRecoverySafe);
-      }
     } else if (enabledNonFiction.length > 0) {
       enabledReadings.push(...enabledNonFiction);
-      // Add recovery-safe as complement
-      if (enabledRecoverySafe.length > 0 && enabledReadings.length < 2) {
-        enabledReadings.push(...enabledRecoverySafe);
-      }
     } else if (enabledRecoverySafe.length > 0) {
       enabledReadings.push(...enabledRecoverySafe);
     }
+    
+    // v1.3: Limit to 1 reading per day
+    const finalEnabledReadings = enabledReadings.slice(0, 1);
     
     // All withheld readings
     const withheldReadings = allEligibility.filter(e => !e.enabled);
@@ -313,11 +379,15 @@ export function useReadingPermissioning(): ReadingPermissioningResult {
       enabledRecoverySafe,
       enabledNonFiction,
       enabledBooks,
-      enabledReadings,
+      enabledReadings: finalEnabledReadings,
       withheldReadings,
       isRecoveryMode: globalMode === "RECOVERY_MODE",
+      todayReadingCount: todayCount,
+      weeklyBookCount,
+      maxDailyReached,
+      maxWeeklyBooksReached,
     };
-  }, [sharpness, readiness, recovery]);
+  }, [sharpness, readiness, recovery, maxDailyReached, maxWeeklyBooksReached, todayCount, weeklyBookCount]);
   
   return {
     ...result,
