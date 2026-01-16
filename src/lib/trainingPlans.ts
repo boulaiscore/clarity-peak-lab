@@ -72,12 +72,15 @@ export interface TrainingPlan {
   icon: "leaf" | "target" | "flame";
   // XP target is ONLY from games (v1.3)
   xpTargetWeek: number;
+  weeklyXPTarget: number; // Alias for xpTargetWeek (backward compat)
+  contentXPTarget: number; // v1.3: always 0 (tasks don't give XP)
   detox: DetoxRequirement;
   gamesGating: GamesGatingModifiers;
   sessions: SessionConfig[];
 }
 
 // XP Points configuration (Games only in v1.3)
+// Note: Content XP values kept at 0 for backward compatibility
 export const XP_VALUES = {
   // Games (full session of ~5 exercises)
   gameComplete: 25,
@@ -86,6 +89,10 @@ export const XP_VALUES = {
   exerciseEasy: 3,
   exerciseMedium: 5,
   exerciseHard: 8,
+  // Content - v1.3: Tasks don't give XP (values kept for API compat)
+  podcastComplete: 0,
+  readingComplete: 0,
+  bookChapterComplete: 0,
   // Detox - uniform rate across all plans
   detoxPerMinute: 0.05,
   detoxWeeklyBonus: 5,
@@ -122,6 +129,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     icon: "leaf",
     // v1.3: XP target is only from games (120 XP/week)
     xpTargetWeek: 120,
+    weeklyXPTarget: 120, // Alias
+    contentXPTarget: 0, // v1.3: tasks don't give XP
     detox: {
       weeklyMinutes: 480,
       dailyMinimumMinutes: 30,

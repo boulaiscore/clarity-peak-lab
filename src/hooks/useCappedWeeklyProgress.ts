@@ -1,136 +1,143 @@
 /**
- * Hook that provides capped XP values for the Weekly Cognitive Load.
- * XP beyond category targets does NOT count towards the total.
+ * useCappedWeeklyProgress v1.3
  * 
- * Games target is split into 4 sub-targets (2x2 matrix):
- * - System 1 (Fast): Focus (Attentional Efficiency), Creativity (Rapid Association)
- * - System 2 (Slow): Reasoning (Critical Thinking), Creativity (Deliberate Association)
+ * Provides capped XP values for weekly progress tracking.
+ * v1.3: Tasks don't contribute to XP - only games do.
+ * BUT: maintains backward-compatible interface for existing UI components.
  */
 
 import { useMemo } from "react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
-import { useGamesXPBreakdown, GamesXPBreakdown } from "@/hooks/useGamesXPBreakdown";
+import { useGamesXPBreakdown } from "@/hooks/useGamesXPBreakdown";
+import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Sub-target for each area+mode combination
 export interface AreaModeSubTarget {
   area: "focus" | "reasoning" | "creativity";
   mode: "fast" | "slow";
-  rawXP: number;
   target: number;
-  cappedXP: number;
-  progress: number; // 0-100
-  complete: boolean;
-}
-
-// System-level aggregation (S1 = fast, S2 = slow)
-export interface SystemSubTarget {
-  system: "S1" | "S2";
-  label: string;
-  areas: AreaModeSubTarget[];
-  totalRawXP: number;
-  totalTarget: number;
-  totalCappedXP: number;
+  earned: number;
+  capped: number;
+  cappedXP: number; // Alias for capped (backward compat)
   progress: number;
   complete: boolean;
 }
 
+export interface SystemSubTarget {
+  system: "S1" | "S2";
+  label: string;
+  target: number;
+  earned: number;
+  capped: number;
+  progress: number;
+  areas: AreaModeSubTarget[];
+}
+
+export interface GamesBreakdownData {
+  focusFast: number;
+  focusSlow: number;
+  reasoningFast: number;
+  reasoningSlow: number;
+  creativityFast: number;
+  creativitySlow: number;
+  system1Total: number;
+  system2Total: number;
+  totalGamesXP: number;
+  completionsCount: number;
+}
+
 export interface CappedProgressData {
-  // Raw values (actual earned)
+  // Raw values (uncapped)
   rawGamesXP: number;
-  rawTasksXP: number;
+  rawTasksXP: number; // v1.3: always 0, kept for compat
   rawDetoxXP: number;
+  rawTotalXP: number;
   
-  // Capped values (max = target)
-  cappedGamesXP: number;
-  cappedTasksXP: number;
-  cappedDetoxXP: number;
-  
-  // Targets
+  // Individual targets
   gamesXPTarget: number;
-  tasksXPTarget: number;
+  tasksXPTarget: number; // v1.3: 0, kept for compat
   detoxXPTarget: number;
-  
-  // Total (sum of capped values)
-  cappedTotalXP: number;
   totalXPTarget: number;
+  
+  // Capped values (can't exceed target)
+  cappedGamesXP: number;
+  cappedTasksXP: number; // v1.3: 0, kept for compat
+  cappedDetoxXP: number;
+  cappedTotalXP: number;
   
   // Completion status
   gamesComplete: boolean;
-  tasksComplete: boolean;
+  tasksComplete: boolean; // v1.3: always true (no tasks to complete)
   detoxComplete: boolean;
-  allCategoriesComplete: boolean;
+  weekComplete: boolean;
+  allCategoriesComplete: boolean; // Alias for weekComplete
   
-  // Progress percentages (based on capped values)
+  // Progress percentages (0-100)
   gamesProgress: number;
-  tasksProgress: number;
+  tasksProgress: number; // v1.3: 100 (tasks don't block)
   detoxProgress: number;
   totalProgress: number;
   
-  // Games sub-targets (6 area+mode combinations grouped by system)
-  gamesSubTargets: SystemSubTarget[];
+  // Sub-targets for games (by system)
+  systemSubTargets: SystemSubTarget[];
+  gamesSubTargets: SystemSubTarget[]; // Alias for systemSubTargets
+  gamesBreakdown: GamesBreakdownData;
   
-  // Breakdown data for debugging/display
-  gamesBreakdown: GamesXPBreakdown;
+  // Content completions (count only, no XP in v1.3)
+  contentCompletionsCount: number;
   
-  // Loading state
+  // Loading states
   isLoading: boolean;
-  
-  // Whether queries have fetched at least once (used for snapshot validation)
   isFetched: boolean;
-  
-  // Plan reference
-  plan: ReturnType<typeof useWeeklyProgress>["plan"];
+  isSyncing: boolean;
 }
 
+// Safe progress calculation
 function safeProgress(value: number, target: number): number {
   if (target <= 0) return 0;
-  return Math.min(100, (value / target) * 100);
+  return Math.min(100, Math.round((value / target) * 100));
 }
 
-// 2x2 matrix: S1 gets focus+creativity, S2 gets reasoning+creativity
-const S1_AREAS = ["focus", "creativity"] as const;
-const S2_AREAS = ["reasoning", "creativity"] as const;
-
 export function useCappedWeeklyProgress(): CappedProgressData {
+  const { user } = useAuth();
+  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
+  const plan = TRAINING_PLANS[planId];
+  
+  // v1.3: xpTargetWeek is the total (games only)
+  const weeklyXPTarget = plan.xpTargetWeek;
+  
   const {
     weeklyGamesXP,
-    weeklyContentXP,
-    weeklyXPTarget,
-    plan,
     isLoading: progressLoading,
-    isSyncing: progressSyncing,
     isFetched: progressFetched,
+    isSyncing,
   } = useWeeklyProgress();
-
+  
   const {
     data: detoxData,
     isLoading: detoxLoading,
-    isFetching: detoxFetching,
-    isFetched: detoxFetched,
   } = useWeeklyDetoxXP();
   
   const {
     data: gamesBreakdown,
     isLoading: breakdownLoading,
-    isFetching: breakdownFetching,
     isFetched: breakdownFetched,
   } = useGamesXPBreakdown();
 
-  // Use 0 only when we have no cached data at all
   const weeklyDetoxXP = detoxData?.totalXP ?? 0;
 
   return useMemo(() => {
-    // Calculate individual targets
+    // Calculate individual targets (v1.3)
     const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
-    const tasksXPTarget = plan.contentXPTarget;
-    const gamesXPTarget = Math.max(0, weeklyXPTarget - detoxXPTarget - tasksXPTarget);
+    const gamesXPTarget = weeklyXPTarget; // v1.3: all XP comes from games
+    const tasksXPTarget = 0; // v1.3: tasks don't give XP
 
     // Each of 4 sub-targets gets 1/4 of gamesXPTarget (2x2 matrix)
     const perSubTarget = gamesXPTarget / 4;
 
     // Build sub-targets for each area+mode
-    const breakdown = gamesBreakdown ?? {
+    const breakdown: GamesBreakdownData = gamesBreakdown ?? {
       focusFast: 0,
       focusSlow: 0,
       reasoningFast: 0,
@@ -143,150 +150,143 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       completionsCount: 0,
     };
 
+    // Helper to build area subtarget
     const buildAreaSubTarget = (
       area: "focus" | "reasoning" | "creativity",
-      mode: "fast" | "slow"
+      mode: "fast" | "slow",
+      earned: number,
+      target: number
     ): AreaModeSubTarget => {
-      const rawXP =
-        area === "focus"
-          ? mode === "fast"
-            ? breakdown.focusFast
-            : breakdown.focusSlow
-          : area === "reasoning"
-            ? mode === "fast"
-              ? breakdown.reasoningFast
-              : breakdown.reasoningSlow
-            : mode === "fast"
-              ? breakdown.creativityFast
-              : breakdown.creativitySlow;
-
-      const cappedXP = Math.min(rawXP, perSubTarget);
-      const progress = safeProgress(cappedXP, perSubTarget);
-      const complete = rawXP >= perSubTarget && perSubTarget > 0;
-
-      return { area, mode, rawXP, target: perSubTarget, cappedXP, progress, complete };
+      const capped = Math.min(earned, target);
+      const progress = safeProgress(earned, target);
+      return {
+        area,
+        mode,
+        target,
+        earned,
+        capped,
+        cappedXP: capped,
+        progress,
+        complete: earned >= target,
+      };
     };
 
-    // Build System 1 (fast) sub-targets: focus + creativity only
-    const s1Areas: AreaModeSubTarget[] = S1_AREAS.map((a) => buildAreaSubTarget(a, "fast"));
-    const s1TotalRaw = s1Areas.reduce((sum, a) => sum + a.rawXP, 0);
-    const s1TotalTarget = s1Areas.reduce((sum, a) => sum + a.target, 0);
-    const s1TotalCapped = s1Areas.reduce((sum, a) => sum + a.cappedXP, 0);
-    const s1Progress = safeProgress(s1TotalCapped, s1TotalTarget);
-    const s1Complete = s1Areas.every((a) => a.complete);
+    const areaTarget = perSubTarget / 3;
 
-    const system1: SystemSubTarget = {
-      system: "S1",
-      label: "System 1 (Fast)",
-      areas: s1Areas,
-      totalRawXP: s1TotalRaw,
-      totalTarget: s1TotalTarget,
-      totalCappedXP: s1TotalCapped,
-      progress: s1Progress,
-      complete: s1Complete,
-    };
+    // Build area breakdowns for each system
+    const s1Areas: AreaModeSubTarget[] = [
+      buildAreaSubTarget("focus", "fast", breakdown.focusFast, areaTarget),
+      buildAreaSubTarget("reasoning", "fast", breakdown.reasoningFast, areaTarget),
+      buildAreaSubTarget("creativity", "fast", breakdown.creativityFast, areaTarget),
+    ];
 
-    // Build System 2 (slow) sub-targets: reasoning + creativity only
-    const s2Areas: AreaModeSubTarget[] = S2_AREAS.map((a) => buildAreaSubTarget(a, "slow"));
-    const s2TotalRaw = s2Areas.reduce((sum, a) => sum + a.rawXP, 0);
-    const s2TotalTarget = s2Areas.reduce((sum, a) => sum + a.target, 0);
-    const s2TotalCapped = s2Areas.reduce((sum, a) => sum + a.cappedXP, 0);
-    const s2Progress = safeProgress(s2TotalCapped, s2TotalTarget);
-    const s2Complete = s2Areas.every((a) => a.complete);
+    const s2Areas: AreaModeSubTarget[] = [
+      buildAreaSubTarget("focus", "slow", breakdown.focusSlow, areaTarget),
+      buildAreaSubTarget("reasoning", "slow", breakdown.reasoningSlow, areaTarget),
+      buildAreaSubTarget("creativity", "slow", breakdown.creativitySlow, areaTarget),
+    ];
 
-    const system2: SystemSubTarget = {
-      system: "S2",
-      label: "System 2 (Slow)",
-      areas: s2Areas,
-      totalRawXP: s2TotalRaw,
-      totalTarget: s2TotalTarget,
-      totalCappedXP: s2TotalCapped,
-      progress: s2Progress,
-      complete: s2Complete,
-    };
+    const s1Target = gamesXPTarget / 2;
+    const s2Target = gamesXPTarget / 2;
 
-    const gamesSubTargets: SystemSubTarget[] = [system1, system2];
+    const systemSubTargets: SystemSubTarget[] = [
+      {
+        system: "S1",
+        label: "System 1 (Fast)",
+        target: s1Target,
+        earned: breakdown.system1Total,
+        capped: Math.min(breakdown.system1Total, s1Target),
+        progress: safeProgress(breakdown.system1Total, s1Target),
+        areas: s1Areas,
+      },
+      {
+        system: "S2",
+        label: "System 2 (Slow)",
+        target: s2Target,
+        earned: breakdown.system2Total,
+        capped: Math.min(breakdown.system2Total, s2Target),
+        progress: safeProgress(breakdown.system2Total, s2Target),
+        areas: s2Areas,
+      },
+    ];
 
-    // Raw values (use breakdown total for consistency)
-    const rawGamesXP = breakdown.totalGamesXP;
-    const rawTasksXP = weeklyContentXP;
-    const rawDetoxXP = weeklyDetoxXP;
+    // Cap individual categories
+    const cappedGamesXP = Math.min(weeklyGamesXP ?? 0, gamesXPTarget);
+    const cappedTasksXP = 0; // v1.3: no task XP
+    const cappedDetoxXP = Math.min(weeklyDetoxXP, detoxXPTarget);
 
-    // Capped values (cannot exceed target)
-    // For games, sum of all 6 sub-target capped values
-    const cappedGamesXP = s1TotalCapped + s2TotalCapped;
-    const cappedTasksXP = Math.min(rawTasksXP, tasksXPTarget);
-    const cappedDetoxXP = Math.min(rawDetoxXP, detoxXPTarget);
-
-    // Total is sum of capped values only
-    const cappedTotalXP = cappedGamesXP + cappedTasksXP + cappedDetoxXP;
-    const totalXPTarget = weeklyXPTarget;
+    // Total capped = sum of capped categories
+    const cappedTotalXP = cappedGamesXP + cappedDetoxXP;
+    const totalXPTarget = gamesXPTarget + detoxXPTarget;
 
     // Completion status
-    const gamesComplete = cappedGamesXP >= gamesXPTarget && gamesXPTarget > 0;
-    const tasksComplete = rawTasksXP >= tasksXPTarget && tasksXPTarget > 0;
-    const detoxComplete = rawDetoxXP >= detoxXPTarget && detoxXPTarget > 0;
-    const allCategoriesComplete = gamesComplete && tasksComplete && detoxComplete;
+    const gamesComplete = (weeklyGamesXP ?? 0) >= gamesXPTarget;
+    const tasksComplete = true; // v1.3: tasks don't block progress
+    const detoxComplete = weeklyDetoxXP >= detoxXPTarget;
+    const weekComplete = cappedTotalXP >= totalXPTarget;
 
     // Progress percentages
-    const gamesProgress = safeProgress(cappedGamesXP, gamesXPTarget);
-    const tasksProgress = safeProgress(cappedTasksXP, tasksXPTarget);
-    const detoxProgress = safeProgress(cappedDetoxXP, detoxXPTarget);
+    const gamesProgress = safeProgress(weeklyGamesXP ?? 0, gamesXPTarget);
+    const tasksProgress = 100; // v1.3: tasks always "complete"
+    const detoxProgress = safeProgress(weeklyDetoxXP, detoxXPTarget);
     const totalProgress = safeProgress(cappedTotalXP, totalXPTarget);
 
-    // isLoading must include syncing/fetching states so WeeklyGoalCard doesn't update snapshot mid-refetch
-    const isLoading =
-      progressLoading ||
-      detoxLoading ||
-      breakdownLoading ||
-      progressSyncing ||
-      detoxFetching ||
-      breakdownFetching;
-
-    // isFetched = all queries have successfully fetched at least once
-    const isFetched = progressFetched && detoxFetched && breakdownFetched;
-
     return {
-      rawGamesXP,
-      rawTasksXP,
-      rawDetoxXP,
-      cappedGamesXP,
-      cappedTasksXP,
-      cappedDetoxXP,
+      // Raw values
+      rawGamesXP: weeklyGamesXP ?? 0,
+      rawTasksXP: 0, // v1.3: no task XP
+      rawDetoxXP: weeklyDetoxXP,
+      rawTotalXP: (weeklyGamesXP ?? 0) + weeklyDetoxXP,
+      
+      // Targets
       gamesXPTarget,
       tasksXPTarget,
       detoxXPTarget,
-      cappedTotalXP,
       totalXPTarget,
+      
+      // Capped values
+      cappedGamesXP,
+      cappedTasksXP,
+      cappedDetoxXP,
+      cappedTotalXP,
+      
+      // Completion status
       gamesComplete,
       tasksComplete,
       detoxComplete,
-      allCategoriesComplete,
+      weekComplete,
+      allCategoriesComplete: weekComplete,
+      
+      // Progress
       gamesProgress,
       tasksProgress,
       detoxProgress,
       totalProgress,
-      gamesSubTargets,
+      
+      // Sub-targets
+      systemSubTargets,
+      gamesSubTargets: systemSubTargets, // Alias
       gamesBreakdown: breakdown,
-      isLoading,
-      isFetched,
-      plan,
+      
+      // Content completions (count only in v1.3)
+      contentCompletionsCount: breakdown.completionsCount,
+      
+      // Loading states
+      isLoading: progressLoading || detoxLoading || breakdownLoading,
+      isFetched: progressFetched && breakdownFetched,
+      isSyncing,
     };
   }, [
     weeklyGamesXP,
-    weeklyContentXP,
     weeklyDetoxXP,
-    weeklyXPTarget,
+    gamesBreakdown,
     plan,
+    weeklyXPTarget,
     progressLoading,
     detoxLoading,
     breakdownLoading,
-    progressSyncing,
-    detoxFetching,
-    breakdownFetching,
     progressFetched,
-    detoxFetched,
     breakdownFetched,
-    gamesBreakdown,
+    isSyncing,
   ]);
 }
