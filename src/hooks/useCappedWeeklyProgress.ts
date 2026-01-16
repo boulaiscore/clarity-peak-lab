@@ -177,19 +177,20 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       };
     };
 
-    const areaTarget = perSubTarget / 3;
+    // v1.4: Each system has 2 areas (2x2 matrix matching GamesLibrary)
+    // S1 = Focus (AE) + Creativity (RA)
+    // S2 = Reasoning (CT) + Creativity (IN)
+    const areaTarget = perSubTarget / 2; // 2 areas per system, not 3
 
-    // Build area breakdowns for each system
+    // Build area breakdowns for each system (matching GamesLibrary)
     const s1Areas: AreaModeSubTarget[] = [
-      buildAreaSubTarget("focus", "fast", breakdown.focusFast, areaTarget),
-      buildAreaSubTarget("reasoning", "fast", breakdown.reasoningFast, areaTarget),
-      buildAreaSubTarget("creativity", "fast", breakdown.creativityFast, areaTarget),
+      buildAreaSubTarget("focus", "fast", breakdown.focusFast, areaTarget),       // S1-AE: Attentional Efficiency
+      buildAreaSubTarget("creativity", "fast", breakdown.creativityFast, areaTarget), // S1-RA: Rapid Association
     ];
 
     const s2Areas: AreaModeSubTarget[] = [
-      buildAreaSubTarget("focus", "slow", breakdown.focusSlow, areaTarget),
-      buildAreaSubTarget("reasoning", "slow", breakdown.reasoningSlow, areaTarget),
-      buildAreaSubTarget("creativity", "slow", breakdown.creativitySlow, areaTarget),
+      buildAreaSubTarget("reasoning", "slow", breakdown.reasoningSlow, areaTarget),   // S2-CT: Critical Thinking
+      buildAreaSubTarget("creativity", "slow", breakdown.creativitySlow, areaTarget), // S2-IN: Insight
     ];
 
     const s1Target = gamesXPTarget / 2;
