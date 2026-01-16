@@ -100,3 +100,35 @@ export const COGNITIVE_AGE_TRACKING_PERIOD_DAYS = 30;
  * 840 min = 14 hours/week = 2 hours/day average
  */
 export const REC_TARGET = 840;
+
+// ============================================
+// TRAINING CAPACITY (TC) CONSTANTS
+// ============================================
+
+/** Minimum TC value (floor) */
+export const TC_FLOOR = 30;
+
+/** Growth rate alpha for TC update formula */
+export const TC_GROWTH_ALPHA = 0.06;
+
+/** Decay per week when inactive for 7+ days */
+export const TC_DECAY_PER_WEEK = 3;
+
+/** Days without XP before TC decay kicks in */
+export const TC_INACTIVITY_THRESHOLD_DAYS = 7;
+
+/** Minimum percentage of TC for optimal range */
+export const TC_OPTIMAL_MIN_PERCENT = 0.60;
+
+/** Maximum percentage of TC for optimal range */
+export const TC_OPTIMAL_MAX_PERCENT = 0.85;
+
+/** Threshold for showing upgrade hint (optMax >= 90% of planCap) */
+export const TC_UPGRADE_HINT_THRESHOLD = 0.90;
+
+/** Plan capacity caps */
+export const TC_PLAN_CAPS: Record<string, number> = {
+  light: 120,
+  expert: 200,
+  superhuman: 300,
+};

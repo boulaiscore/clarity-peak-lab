@@ -615,7 +615,9 @@ export type Database = {
           sci_decay_week_start: string | null
           slow_thinking: number
           spatial_reasoning: number
+          tc_last_updated_at: string | null
           total_sessions: number
+          training_capacity: number | null
           updated_at: string
           user_id: string
           visual_processing: number
@@ -668,7 +670,9 @@ export type Database = {
           sci_decay_week_start?: string | null
           slow_thinking?: number
           spatial_reasoning?: number
+          tc_last_updated_at?: string | null
           total_sessions?: number
+          training_capacity?: number | null
           updated_at?: string
           user_id: string
           visual_processing?: number
@@ -721,7 +725,9 @@ export type Database = {
           sci_decay_week_start?: string | null
           slow_thinking?: number
           spatial_reasoning?: number
+          tc_last_updated_at?: string | null
           total_sessions?: number
+          training_capacity?: number | null
           updated_at?: string
           user_id?: string
           visual_processing?: number

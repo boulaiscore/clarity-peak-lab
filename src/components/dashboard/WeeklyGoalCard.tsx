@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, Activity } from "lucide-react";
+import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, Activity, TrendingUp } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
+import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/contexts/AuthContext";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { TrainingPlanId } from "@/lib/trainingPlans";
 
 // Adaptive range status types
 type AdaptiveStatus = "below" | "within" | "above";
@@ -15,19 +16,6 @@ interface AdaptiveStatusInfo {
   label: string;
 }
 
-// OPTIMAL RANGE RULE (GLOBAL)
-// OptimalRange_min = 25% of weekly XP cap
-// OptimalRange_max = 60% of weekly XP cap
-// Applies uniformly to Light, Expert, Superhuman
-function getOptimalRangeXP(planId: TrainingPlanId): { min: number; max: number; cap: number } {
-  const plan = TRAINING_PLANS[planId];
-  const cap = plan?.xpTargetWeek ?? 200;
-  // 25% and 60% of cap, rounded to integers
-  const min = Math.round(cap * 0.25);
-  const max = Math.round(cap * 0.60);
-  return { min, max, cap };
-}
-
 // Status info with label and description - SIMPLE & CLEAR
 interface StatusCopy {
   label: string;
@@ -35,24 +23,24 @@ interface StatusCopy {
 }
 
 // Helper to determine adaptive status based on current XP and optimal range
-// Returns simple, actionable messaging
+// Returns simple, actionable messaging per user spec
 function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo & { copy: StatusCopy } {
   if (currentXP < optimalRange.min) {
     return {
       status: "below",
-      label: "Add one optimal zone",
+      label: "Below optimal zone",
       copy: {
-        label: "Add one optimal zone",
-        description: "Add one short training session this week."
+        label: "Below optimal zone",
+        description: "One more session brings you into the optimal zone."
       }
     };
   }
   if (currentXP <= optimalRange.max) {
     return {
       status: "within",
-      label: "Inside optimal zone",
+      label: "Optimal zone",
       copy: {
-        label: "Inside optimal zone",
+        label: "Optimal zone",
         description: "You're in the optimal training zone."
       }
     };
@@ -62,7 +50,7 @@ function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: 
     label: "Above optimal zone",
     copy: {
       label: "Above optimal zone",
-      description: "More training won't add benefits right now."
+      description: "More isn't better this week — consolidate with recovery."
     }
   };
 }
@@ -135,7 +123,15 @@ interface WeeklyGoalCardProps {
 export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   const { user } = useAuth();
   const planId = (user?.trainingPlan || "expert") as TrainingPlanId;
-  const optimalRangeXP = useMemo(() => getOptimalRangeXP(planId), [planId]);
+  
+  // Use dynamic Training Capacity hook
+  const { 
+    trainingCapacity, 
+    optimalRange: optimalRangeXP, 
+    planCap,
+    shouldSuggestUpgrade,
+    isLoading: tcLoading 
+  } = useTrainingCapacity();
   
   const data = useStableCognitiveLoad();
   
@@ -167,19 +163,19 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
 
   const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
   
-  // Calculate adaptive status based on actual XP, not percentage
+  // Calculate adaptive status based on actual XP and dynamic optimal range
   const adaptiveStatus = useMemo(() => getAdaptiveStatus(rawGamesXP, optimalRangeXP), [rawGamesXP, optimalRangeXP]);
   
-  // Calculate bar percentages for optimal range visualization
+  // Calculate bar percentages for optimal range visualization (scale 0 → planCap)
   const optimalRangePercent = useMemo(() => ({
-    min: (optimalRangeXP.min / optimalRangeXP.cap) * 100,
-    max: (optimalRangeXP.max / optimalRangeXP.cap) * 100
-  }), [optimalRangeXP]);
+    min: (optimalRangeXP.min / planCap) * 100,
+    max: (optimalRangeXP.max / planCap) * 100
+  }), [optimalRangeXP, planCap]);
   
-  // Current progress as percentage of cap
+  // Current progress as percentage of planCap
   const progressPercent = useMemo(() => 
-    Math.min(100, (rawGamesXP / optimalRangeXP.cap) * 100), 
-    [rawGamesXP, optimalRangeXP.cap]
+    Math.min(100, (rawGamesXP / planCap) * 100), 
+    [rawGamesXP, planCap]
   );
 
   useEffect(() => {
@@ -278,6 +274,9 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 <span className="text-[11px] font-semibold">Training Load (Weekly)</span>
               </div>
               <div className="flex items-center gap-2">
+                <span className="text-[9px] text-muted-foreground/70 tabular-nums">
+                  {Math.round(rawGamesXP)} / {planCap} XP
+                </span>
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -287,10 +286,13 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </div>
             </div>
             
-            {/* Sub-label - simple explanation */}
-            <p className="text-[9px] text-muted-foreground/70 mb-2">
-              How much cognitive training you've done this week.
-            </p>
+            {/* Your Capacity indicator */}
+            <div className="flex items-center gap-1 mb-2">
+              <TrendingUp className="w-2.5 h-2.5 text-muted-foreground/50" />
+              <span className="text-[8px] text-muted-foreground/50">
+                Your Capacity: {Math.round(trainingCapacity)} XP
+              </span>
+            </div>
             
             {/* Status Label - Clear actionable message */}
             <div className="mb-2">
@@ -322,11 +324,21 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               />
             </div>
             
-            {/* Range Labels - Too little / Too much */}
+            {/* Range Labels with optimal range values */}
             <div className="flex justify-between mt-1.5">
-              <span className="text-[8px] text-muted-foreground/60">Too little</span>
-              <span className="text-[8px] text-muted-foreground/60">Too much</span>
+              <span className="text-[8px] text-muted-foreground/60">0 XP</span>
+              <span className="text-[8px] text-teal-400/70">
+                Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP
+              </span>
+              <span className="text-[8px] text-muted-foreground/60">{planCap} XP</span>
             </div>
+            
+            {/* Upgrade hint */}
+            {shouldSuggestUpgrade && (
+              <div className="mt-2 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-[8px] text-amber-400 text-center">
+                Your capacity is approaching this plan's limit.
+              </div>
+            )}
           </CollapsibleTrigger>
 
           <CollapsibleContent>
@@ -501,15 +513,18 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           <span className="text-[12px] font-semibold">Training Load (Weekly)</span>
         </div>
         <div className="text-[10px] text-muted-foreground/50 tabular-nums">
-          {Math.round(rawGamesXP)} / {optimalRangeXP.cap} XP
+          {Math.round(rawGamesXP)} / {planCap} XP
           {isSyncing && <span className="ml-1 text-[8px]">•</span>}
         </div>
       </div>
       
-      {/* Sub-label - simple */}
-      <p className="text-[10px] text-muted-foreground/70 mb-3">
-        How much cognitive training you've done this week.
-      </p>
+      {/* Your Capacity indicator */}
+      <div className="flex items-center gap-1.5 mb-3">
+        <TrendingUp className="w-3 h-3 text-muted-foreground/50" />
+        <span className="text-[10px] text-muted-foreground/60">
+          Your Capacity: {Math.round(trainingCapacity)} XP
+        </span>
+      </div>
       
       {/* Status Label - Clear actionable message */}
       <div className="mb-3">
@@ -541,11 +556,21 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         />
       </div>
       
-      {/* Range Labels - Too little / Too much */}
+      {/* Range Labels with optimal range values */}
       <div className="flex justify-between mb-3">
-        <span className="text-[9px] text-muted-foreground/60">Too little</span>
-        <span className="text-[9px] text-muted-foreground/60">Too much</span>
+        <span className="text-[9px] text-muted-foreground/60">0 XP</span>
+        <span className="text-[9px] text-teal-400/70">
+          Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP
+        </span>
+        <span className="text-[9px] text-muted-foreground/60">{planCap} XP</span>
       </div>
+      
+      {/* Upgrade hint */}
+      {shouldSuggestUpgrade && (
+        <div className="mb-3 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-[10px] text-amber-400 text-center">
+          Your capacity is approaching this plan's limit.
+        </div>
+      )}
       
       {/* XP explanation - minimal */}
       <p className="text-[8px] text-muted-foreground/50 mb-4">
