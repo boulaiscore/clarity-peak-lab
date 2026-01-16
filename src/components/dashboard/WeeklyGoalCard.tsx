@@ -29,23 +29,41 @@ function getOptimalRange(planId: TrainingPlanId): { min: number; max: number } {
   }
 }
 
+// Status info with label and description
+interface StatusCopy {
+  label: string;
+  description: string;
+}
+
 // Helper to determine adaptive status based on progress and optimal range
-function getAdaptiveStatus(progress: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo {
+function getAdaptiveStatus(progress: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo & { copy: StatusCopy } {
   if (progress < optimalRange.min) {
     return {
       status: "below",
-      label: "Below adaptive range",
+      label: "Below effective range",
+      copy: {
+        label: "Below effective range",
+        description: "Light training maintains function, but may not drive improvement yet."
+      }
     };
   }
   if (progress <= optimalRange.max) {
     return {
       status: "within",
-      label: "Within adaptive range",
+      label: "Within optimal range",
+      copy: {
+        label: "Within optimal range",
+        description: "This level of training supports cognitive adaptation without overload."
+      }
     };
   }
   return {
     status: "above",
-    label: "Above adaptive range",
+    label: "Beyond effective range",
+    copy: {
+      label: "Beyond effective range",
+      description: "Additional training requires recovery to translate into gains."
+    }
   };
 }
 
@@ -227,7 +245,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             
             {/* Sub-label */}
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[9px] text-muted-foreground/70">Maximum tolerable cognitive load</p>
+              <p className="text-[9px] text-muted-foreground/70">Maximum effective cognitive load for this week</p>
               <span className="text-[9px] text-muted-foreground/50 tabular-nums">
                 {Math.round(gamesXPTarget)} XP max
               </span>
@@ -236,7 +254,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             {/* Status Label */}
             <div className="mb-2">
               <span className={`text-[10px] font-medium ${getStatusColor(adaptiveStatus.status)}`}>
-                {adaptiveStatus.label}
+                {adaptiveStatus.copy.label}
               </span>
             </div>
 
@@ -277,24 +295,32 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               animate={{ opacity: 1 }}
               className="mt-3 pt-3 border-t border-border/30"
             >
+              {/* Status Description */}
+              <p className="text-[9px] text-muted-foreground/80 mb-2 leading-relaxed">
+                {adaptiveStatus.copy.description}
+              </p>
+              
               {/* Explanatory Micro-copy */}
-              <p className="text-[9px] text-muted-foreground/70 mb-3 leading-relaxed">
-                Optimal training drives cognitive adaptation without overload.
-                Training beyond this range does not increase benefit.
+              <p className="text-[8px] text-muted-foreground/60 mb-3 leading-relaxed">
+                Training beyond this range does not increase benefit unless supported by recovery.
+                Detox and walking restore capacity and enable consolidation.
               </p>
               
               {/* Training breakdown: S1/S2 */}
               <div className="mb-3">
-                <div className="flex items-center gap-1.5 mb-2">
+                <div className="flex items-center gap-1.5 mb-1">
                   <Dumbbell className="w-3 h-3 text-muted-foreground" />
                   <span className="text-[10px] text-muted-foreground font-medium">Load Distribution</span>
                 </div>
+                <p className="text-[8px] text-muted-foreground/60 mb-2">
+                  Balanced input across fast (S1) and deliberate (S2) systems.
+                </p>
                 
-                {/* S1 row - Fast skills */}
-                <div className="grid grid-cols-[80px_1fr_1fr] gap-1 mb-1">
+                {/* S1 row - Fast processing */}
+                <div className="grid grid-cols-[100px_1fr_1fr] gap-1 mb-1">
                   <div className="flex items-center gap-0.5">
                     <Zap className="w-2 h-2 text-amber-400" />
-                    <span className="text-[8px] text-amber-400 font-medium">S1 — Fast</span>
+                    <span className="text-[8px] text-amber-400 font-medium">S1 — Fast processing</span>
                   </div>
                   {s1Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -336,11 +362,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   })}
                 </div>
                 
-                {/* S2 row - Reasoning skills */}
-                <div className="grid grid-cols-[80px_1fr_1fr] gap-1">
+                {/* S2 row - Reasoned processing */}
+                <div className="grid grid-cols-[100px_1fr_1fr] gap-1">
                   <div className="flex items-center gap-0.5">
                     <Timer className="w-2 h-2 text-violet-400" />
-                    <span className="text-[8px] text-violet-400 font-medium">S2 — Reasoning</span>
+                    <span className="text-[8px] text-violet-400 font-medium">S2 — Reasoned processing</span>
                   </div>
                   {s2Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -443,16 +469,22 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       </div>
       
       {/* Sub-label */}
-      <p className="text-[10px] text-muted-foreground/70 mb-4">
-        Maximum tolerable cognitive load
+      <p className="text-[10px] text-muted-foreground/70 mb-1">
+        Maximum effective cognitive load for this week.
+      </p>
+      <p className="text-[9px] text-muted-foreground/60 mb-4">
+        Training within the optimal range drives adaptation and clarity.
       </p>
       
       {/* Status Label - Neutral and prominent */}
-      <div className="mb-3">
+      <div className="mb-1">
         <span className={`text-[13px] font-medium ${getStatusColor(adaptiveStatus.status)}`}>
-          {adaptiveStatus.label}
+          {adaptiveStatus.copy.label}
         </span>
       </div>
+      <p className="text-[10px] text-muted-foreground/70 mb-3">
+        {adaptiveStatus.copy.description}
+      </p>
 
       {/* Main Progress Bar with Optimal Range Band */}
       <div className="relative h-4 bg-muted/30 rounded-full overflow-hidden mb-2">
@@ -485,23 +517,26 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       </div>
       
       {/* Explanatory Micro-copy - Always visible */}
-      <p className="text-[10px] text-muted-foreground/70 mb-4 leading-relaxed">
-        Optimal training drives cognitive adaptation without overload.
-        Training beyond this range does not increase benefit.
+      <p className="text-[9px] text-muted-foreground/60 mb-4 leading-relaxed">
+        Training beyond this range does not increase benefit unless supported by recovery.
+        Detox and walking restore capacity and enable consolidation.
       </p>
 
       {/* Load Distribution: S1/S2 breakdown */}
       <div className="mb-4">
-        <div className="flex items-center gap-1.5 mb-2">
+        <div className="flex items-center gap-1.5 mb-1">
           <Dumbbell className="w-3 h-3 text-muted-foreground" />
           <span className="text-[10px] text-muted-foreground font-medium">Load Distribution</span>
         </div>
+        <p className="text-[8px] text-muted-foreground/60 mb-2">
+          Balanced input across fast (S1) and deliberate (S2) systems.
+        </p>
         
-        {/* S1 row - Fast skills */}
-        <div className="grid grid-cols-[100px_1fr_1fr] gap-1 mb-1">
+        {/* S1 row - Fast processing */}
+        <div className="grid grid-cols-[120px_1fr_1fr] gap-1 mb-1">
           <div className="flex items-center gap-0.5">
             <Zap className="w-2.5 h-2.5 text-amber-400" />
-            <span className="text-[9px] text-amber-400 font-medium">S1 — Fast skills</span>
+            <span className="text-[9px] text-amber-400 font-medium">S1 — Fast processing</span>
           </div>
           {s1Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -540,11 +575,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           })}
         </div>
         
-        {/* S2 row - Reasoning skills */}
-        <div className="grid grid-cols-[100px_1fr_1fr] gap-1">
+        {/* S2 row - Reasoned processing */}
+        <div className="grid grid-cols-[120px_1fr_1fr] gap-1">
           <div className="flex items-center gap-0.5">
             <Timer className="w-2.5 h-2.5 text-violet-400" />
-            <span className="text-[9px] text-violet-400 font-medium">S2 — Reasoning skills</span>
+            <span className="text-[9px] text-violet-400 font-medium">S2 — Reasoned processing</span>
           </div>
           {s2Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
