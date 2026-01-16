@@ -3,6 +3,8 @@
  * - Dual-Process Integration
  * - Cognitive Network (SCI)
  * - Cognitive Age
+ * 
+ * v1.3: SCI uses only games XP for behavioral engagement
  */
 
 import { useMemo } from "react";
@@ -45,9 +47,6 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
   const { recovery, isLoading: metricsLoading } = useTodayMetrics();
   const { 
     weeklyGamesXP, 
-    weeklyContentXP, 
-    sessionsCompleted,
-    sessionsRequired,
     isLoading: progressLoading 
   } = useWeeklyProgress();
   
@@ -60,21 +59,13 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
     const dualProcessScore = calculateDualProcessBalance(S1, S2);
     const dualProcessLevel = getDualProcessLevel(dualProcessScore);
     
-    // Calculate behavioral engagement targets
-    const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
-    const tasksTarget = plan.contentXPTarget;
-    const gamesTarget = Math.max(0, plan.weeklyXPTarget - detoxXPTarget - tasksTarget);
-    
-    // Calculate SCI
+    // v1.3: Calculate SCI with simplified behavioral engagement
+    // BE = games XP only, no tasks XP
     const sci = calculateSCI(
       states,
       {
         weeklyGamesXP: weeklyGamesXP ?? 0,
-        gamesTarget,
-        weeklyTasksXP: weeklyContentXP ?? 0,
-        tasksTarget,
-        sessionsCompleted: sessionsCompleted ?? 0,
-        sessionsRequired: sessionsRequired ?? 3,
+        xpTargetWeek: plan.xpTargetWeek,
       },
       recovery
     );
@@ -92,7 +83,7 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
       sciStatusText,
       cognitiveAge,
     };
-  }, [states, S1, S2, baseline, recovery, weeklyGamesXP, weeklyContentXP, sessionsCompleted, sessionsRequired, plan]);
+  }, [states, S1, S2, baseline, recovery, weeklyGamesXP, plan]);
   
   return {
     ...result,

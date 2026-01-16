@@ -6,7 +6,6 @@ import { startOfWeek, format } from "date-fns";
 import { 
   getXPRouting, 
   calculateStateUpdate, 
-  getTaskXPAllocation,
   SkillTarget,
 } from "@/lib/cognitiveEngine";
 
@@ -176,8 +175,11 @@ export function useRecordExerciseCompletion() {
   });
 }
 
-// Record a completed content item (podcast, book, article)
-// Tasks affect ONLY CT and IN with specific ratios per the spec
+/**
+ * Record a completed content item (podcast, book, article)
+ * v1.3: Tasks do NOT give XP - they are tracked for protocol adherence only
+ * This function records completions but xpEarned is 0
+ */
 export function useRecordContentCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -186,17 +188,16 @@ export function useRecordContentCompletion() {
     mutationFn: async ({
       contentId,
       contentType,
-      xpEarned,
     }: {
       contentId: string;
       contentType: "podcast" | "book" | "article";
-      xpEarned: number;
+      xpEarned?: number; // Deprecated in v1.3, kept for API compatibility
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
       const weekStart = getCurrentWeekStart();
 
-      // 1. Record the content completion
+      // v1.3: Tasks do NOT give XP - record with 0 XP
       const { data, error } = await supabase
         .from("exercise_completions")
         .insert({
@@ -205,7 +206,7 @@ export function useRecordContentCompletion() {
           gym_area: "content",
           thinking_mode: null,
           difficulty: "medium",
-          xp_earned: xpEarned,
+          xp_earned: 0, // v1.3: Tasks don't give XP
           score: 100,
           week_start: weekStart,
         })
@@ -214,41 +215,8 @@ export function useRecordContentCompletion() {
 
       if (error) throw error;
 
-      // 2. Update cognitive metrics - Tasks affect ONLY CT and IN
-      const allocation = getTaskXPAllocation(contentType, xpEarned);
-      
-      const { data: currentMetrics } = await supabase
-        .from("user_cognitive_metrics")
-        .select("reasoning_accuracy, slow_thinking")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (currentMetrics) {
-        const currentCT = currentMetrics.reasoning_accuracy || 50;
-        const currentIN = currentMetrics.slow_thinking || 50;
-        
-        // Apply state update formula: Δstate = allocated XP × 0.5
-        const newCT = calculateStateUpdate(currentCT, allocation.CT);
-        const newIN = calculateStateUpdate(currentIN, allocation.IN);
-        
-        console.log("[Task XP Routing]", {
-          contentType,
-          xpEarned,
-          allocation,
-          currentCT,
-          currentIN,
-          newCT,
-          newIN,
-        });
-
-        await supabase
-          .from("user_cognitive_metrics")
-          .update({
-            reasoning_accuracy: Math.round(newCT * 10) / 10,
-            slow_thinking: Math.round(newIN * 10) / 10,
-          })
-          .eq("user_id", user.id);
-      }
+      // v1.3: Tasks do NOT affect cognitive metrics
+      // Removed: getTaskXPAllocation and metric updates
 
       return data as ExerciseCompletion;
     },

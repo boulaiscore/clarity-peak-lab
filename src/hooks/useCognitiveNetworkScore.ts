@@ -23,9 +23,9 @@ interface UseCognitiveNetworkScoreResult {
 
 /**
  * Hook to calculate the Synthesized Cognitive Index (SCI)
- * Aggregates data from:
+ * v1.3: Aggregates data from:
  * - user_cognitive_metrics (raw cognitive scores)
- * - weekly XP tracking (games + tasks engagement)
+ * - weekly XP tracking (games only - tasks don't contribute)
  * - weekly detox data (recovery factor)
  */
 export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
@@ -34,12 +34,9 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
   // Fetch cognitive metrics
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
   
-  // Fetch weekly progress (games, tasks, sessions)
+  // Fetch weekly progress (games only in v1.3)
   const { 
     weeklyGamesXP, 
-    weeklyContentXP,
-    sessionsCompleted,
-    sessionsRequired,
     isLoading: progressLoading 
   } = useWeeklyProgress();
   
@@ -61,24 +58,18 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     const trainingPlan = user?.trainingPlan || "expert";
     const targets = getTargetsForPlan(trainingPlan);
 
-    // Prepare cognitive metrics input
+    // Prepare cognitive metrics input (v1.3 format)
     const cognitiveInput: CognitiveMetricsInput = {
-      reasoning_accuracy: metrics.reasoning_accuracy ?? 50,
-      focus_stability: metrics.focus_stability ?? 50,
-      decision_quality: metrics.decision_quality ?? 50,
-      creativity: metrics.creativity ?? 50,
-      fast_thinking: metrics.fast_thinking ?? 50,
-      slow_thinking: metrics.slow_thinking ?? 50,
+      focus_stability: metrics.focus_stability ?? 50,      // AE
+      fast_thinking: metrics.fast_thinking ?? 50,          // RA
+      reasoning_accuracy: metrics.reasoning_accuracy ?? 50, // CT
+      slow_thinking: metrics.slow_thinking ?? 50,          // IN
     };
 
-    // Prepare behavioral engagement input
+    // Prepare behavioral engagement input (v1.3: games only)
     const behavioralInput: BehavioralEngagementInput = {
       weeklyGamesXP: weeklyGamesXP ?? 0,
-      gamesTarget: targets.gamesXP,
-      weeklyTasksXP: weeklyContentXP ?? 0,
-      tasksTarget: targets.tasksXP,
-      sessionsCompleted: sessionsCompleted ?? 0,
-      sessionsRequired: targets.sessionsRequired,
+      xpTargetWeek: targets.xpTargetWeek,
     };
 
     // Prepare recovery input
@@ -93,7 +84,7 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     const level = getSCILevel(sci.total);
 
     return { sci, statusText, level };
-  }, [metrics, weeklyGamesXP, weeklyContentXP, sessionsCompleted, sessionsRequired, detoxData, user?.trainingPlan]);
+  }, [metrics, weeklyGamesXP, detoxData, user?.trainingPlan]);
 
   return {
     ...result,
