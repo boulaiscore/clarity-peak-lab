@@ -200,7 +200,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </div>
                 
                 {/* S1 row */}
-                <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
+                <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
                   <div className="flex items-center gap-0.5">
                     <Zap className="w-2 h-2 text-amber-400" />
                     <span className="text-[8px] text-amber-400 font-medium">S1</span>
@@ -247,7 +247,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </div>
                 
                 {/* S2 row */}
-                <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
+                <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1">
                   <div className="flex items-center gap-0.5">
                     <Timer className="w-2 h-2 text-violet-400" />
                     <span className="text-[8px] text-violet-400 font-medium">S2</span>
@@ -386,7 +386,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
         
         {/* S1 row */}
-        <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
+        <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1 mb-1">
           <div className="flex items-center gap-0.5">
             <Zap className="w-2 h-2 text-amber-400" />
             <span className="text-[8px] text-amber-400 font-medium">S1</span>
@@ -430,7 +430,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
         
         {/* S2 row */}
-        <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
+        <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-1">
           <div className="flex items-center gap-0.5">
             <Timer className="w-2 h-2 text-violet-400" />
             <span className="text-[8px] text-violet-400 font-medium">S2</span>
