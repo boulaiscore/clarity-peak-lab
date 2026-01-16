@@ -103,13 +103,13 @@ export function CapacityTab() {
             icon={<Smartphone className="w-5 h-5 text-teal-400" />}
             label="Digital Detox"
             impact="Full recovery impact"
-            example="30 min ≈ +6% Recovery"
+            example="30 min ≈ +4% Recovery"
           />
           <RecoveryActionCard 
             icon={<Footprints className="w-5 h-5 text-emerald-400" />}
             label="Walking"
             impact="Moderate recovery impact"
-            example="30 min ≈ +3% Recovery"
+            example="30 min ≈ +2% Recovery"
           />
         </div>
         
