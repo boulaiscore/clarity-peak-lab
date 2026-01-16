@@ -30,40 +30,41 @@ function getOptimalRangeXP(planId: TrainingPlanId): { min: number; max: number; 
   }
 }
 
-// Status info with label and description
+// Status info with label and description - SIMPLE & CLEAR
 interface StatusCopy {
   label: string;
   description: string;
 }
 
 // Helper to determine adaptive status based on current XP and optimal range
+// Returns simple, actionable messaging
 function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo & { copy: StatusCopy } {
   if (currentXP < optimalRange.min) {
     return {
       status: "below",
-      label: "Below adaptive range",
+      label: "Train a bit more",
       copy: {
-        label: "Below adaptive range",
-        description: "Training input this week is currently too low to drive adaptation."
+        label: "Train a bit more",
+        description: "This week's training is still too low to drive improvement."
       }
     };
   }
   if (currentXP <= optimalRange.max) {
     return {
       status: "within",
-      label: "Within adaptive range",
+      label: "You're on track",
       copy: {
-        label: "Within adaptive range",
-        description: "Current training supports cognitive adaptation."
+        label: "You're on track",
+        description: "This amount of training is enough for progress."
       }
     };
   }
   return {
     status: "above",
-    label: "Beyond adaptive range",
+    label: "You've done enough this week",
     copy: {
-      label: "Beyond adaptive range",
-      description: "Additional training requires recovery to translate into gains."
+      label: "You've done enough this week",
+      description: "More training won't add extra benefits."
     }
   };
 }
@@ -219,12 +220,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
     );
   }
 
-  // Status indicator color
+  // Status indicator color - clear visual states
   const getStatusColor = (status: AdaptiveStatus) => {
     switch (status) {
-      case "below": return "text-muted-foreground";
-      case "within": return "text-emerald-400";
-      case "above": return "text-muted-foreground";
+      case "below": return "text-amber-400"; // Yellow = train more
+      case "within": return "text-emerald-400"; // Green = on track
+      case "above": return "text-sky-400"; // Blue = done enough
     }
   };
 
@@ -256,19 +257,19 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </div>
             </div>
             
-            {/* Sub-label */}
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[9px] text-muted-foreground/70">XP accumulated from training games (last 7 days)</p>
-              <span className="text-[9px] text-muted-foreground/50 tabular-nums">
-                {Math.round(rawGamesXP)} / {optimalRangeXP.cap} XP
-              </span>
-            </div>
+            {/* Sub-label - simple explanation */}
+            <p className="text-[9px] text-muted-foreground/70 mb-2">
+              How much cognitive training you've done this week.
+            </p>
             
-            {/* Status Label */}
+            {/* Status Label - Clear actionable message */}
             <div className="mb-2">
-              <span className={`text-[10px] font-medium ${getStatusColor(adaptiveStatus.status)}`}>
+              <span className={`text-[11px] font-semibold ${getStatusColor(adaptiveStatus.status)}`}>
                 {adaptiveStatus.copy.label}
               </span>
+              <p className="text-[8px] text-muted-foreground/60 mt-0.5">
+                {adaptiveStatus.copy.description}
+              </p>
             </div>
 
             {/* Main Progress Bar with Optimal Range - 3 zones */}
@@ -296,14 +297,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               />
             </div>
             
-            {/* Range Labels */}
+            {/* Range Labels - Simple */}
             <div className="flex justify-between mt-1">
               <span className="text-[8px] text-muted-foreground/50">0</span>
-              <div className="flex flex-col items-center">
-                <span className="text-[8px] text-emerald-400/70">Optimal Range</span>
-                <span className="text-[7px] text-muted-foreground/50 text-center max-w-[140px]">This range represents sufficient training to drive cognitive adaptation.</span>
-              </div>
-              <span className="text-[8px] text-muted-foreground/50">{optimalRangeXP.cap}</span>
+              <span className="text-[8px] text-emerald-400/70">Optimal range</span>
+              <span className="text-[8px] text-muted-foreground/50">Weekly target</span>
             </div>
           </CollapsibleTrigger>
 
@@ -313,31 +311,22 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               animate={{ opacity: 1 }}
               className="mt-3 pt-3 border-t border-border/30"
             >
-              {/* Status Description */}
-              <p className="text-[9px] text-muted-foreground/80 mb-2 leading-relaxed">
-                {adaptiveStatus.copy.description}
+              {/* XP explanation - minimal */}
+              <p className="text-[8px] text-muted-foreground/50 mb-3">
+                XP only show how much you trained — not how good you are.
               </p>
               
-              {/* Explanatory Micro-copy */}
-              <p className="text-[8px] text-muted-foreground/60 mb-3 leading-relaxed">
-                Training increases skills. Recovery determines whether training translates into lasting gains.
-              </p>
-              
-              {/* Training breakdown: S1/S2 */}
+              {/* Training mix - simple */}
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Dumbbell className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Load Distribution</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Training mix</span>
                 </div>
-                <p className="text-[8px] text-muted-foreground/60 mb-2">
-                  Balanced input across fast (S1) and deliberate (S2) systems.
-                </p>
                 
-                {/* S1 row - Fast processing */}
-                <div className="grid grid-cols-[100px_1fr_1fr] gap-1 mb-1">
+                <div className="grid grid-cols-[110px_1fr_1fr] gap-1 mb-1">
                   <div className="flex items-center gap-0.5">
                     <Zap className="w-2 h-2 text-amber-400" />
-                    <span className="text-[8px] text-amber-400 font-medium">S1 — Fast processing</span>
+                    <span className="text-[8px] text-amber-400 font-medium">Fast (S1) — attention & speed</span>
                   </div>
                   {s1Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -379,11 +368,10 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   })}
                 </div>
                 
-                {/* S2 row - Reasoned processing */}
-                <div className="grid grid-cols-[100px_1fr_1fr] gap-1">
+                <div className="grid grid-cols-[110px_1fr_1fr] gap-1">
                   <div className="flex items-center gap-0.5">
                     <Timer className="w-2 h-2 text-violet-400" />
-                    <span className="text-[8px] text-violet-400 font-medium">S2 — Reasoned processing</span>
+                    <span className="text-[8px] text-violet-400 font-medium">Reasoned (S2) — thinking & analysis</span>
                   </div>
                   {s2Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -447,8 +435,8 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-[8px] text-muted-foreground/60 mt-1 leading-relaxed">
-                  Recovery does not add XP. It restores readiness and enables consolidation.
+                <p className="text-[8px] text-muted-foreground/50 mt-1">
+                  Recovery doesn't add XP. It helps training turn into real gains.
                 </p>
               </div>
             </motion.div>
@@ -484,20 +472,20 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
       </div>
       
-      {/* Sub-label */}
-      <p className="text-[10px] text-muted-foreground/70 mb-4">
-        XP accumulated from training games (last 7 days)
+      {/* Sub-label - simple */}
+      <p className="text-[10px] text-muted-foreground/70 mb-3">
+        How much cognitive training you've done this week.
       </p>
       
-      {/* Status Label - Neutral and prominent */}
-      <div className="mb-1">
-        <span className={`text-[13px] font-medium ${getStatusColor(adaptiveStatus.status)}`}>
+      {/* Status Label - Clear actionable message */}
+      <div className="mb-3">
+        <span className={`text-[14px] font-semibold ${getStatusColor(adaptiveStatus.status)}`}>
           {adaptiveStatus.copy.label}
         </span>
+        <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+          {adaptiveStatus.copy.description}
+        </p>
       </div>
-      <p className="text-[10px] text-muted-foreground/70 mb-3">
-        {adaptiveStatus.copy.description}
-      </p>
 
       {/* Main Progress Bar with Optimal Range Band - 3 zones */}
       <div className="relative h-4 bg-muted/30 rounded-full overflow-hidden mb-2">
@@ -524,36 +512,30 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         />
       </div>
       
-      {/* Range Labels */}
-      <div className="flex justify-between items-start mb-4">
-        <span className="text-[9px] text-muted-foreground/50">0 XP</span>
-        <div className="flex flex-col items-center">
-          <span className="text-[9px] text-emerald-400/80 font-medium">Optimal Range</span>
-          <span className="text-[8px] text-muted-foreground/50 text-center max-w-[180px]">This range represents sufficient training to drive cognitive adaptation.</span>
-        </div>
-        <span className="text-[9px] text-muted-foreground/50">{optimalRangeXP.cap} XP</span>
+      {/* Range Labels - Simple */}
+      <div className="flex justify-between mb-3">
+        <span className="text-[9px] text-muted-foreground/50">0</span>
+        <span className="text-[9px] text-emerald-400/80 font-medium">Optimal range</span>
+        <span className="text-[9px] text-muted-foreground/50">Weekly target</span>
       </div>
       
-      {/* Explanatory Micro-copy - Always visible */}
-      <p className="text-[9px] text-muted-foreground/60 mb-4 leading-relaxed">
-        Training increases skills. Recovery determines whether training translates into lasting gains.
+      {/* XP explanation - minimal */}
+      <p className="text-[8px] text-muted-foreground/50 mb-4">
+        XP only show how much you trained — not how good you are.
       </p>
 
-      {/* Load Distribution: S1/S2 breakdown */}
+      {/* Training mix - simple */}
       <div className="mb-4">
-        <div className="flex items-center gap-1.5 mb-1">
+        <div className="flex items-center gap-1.5 mb-2">
           <Dumbbell className="w-3 h-3 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground font-medium">Load Distribution</span>
+          <span className="text-[10px] text-muted-foreground font-medium">Training mix</span>
         </div>
-        <p className="text-[8px] text-muted-foreground/60 mb-2">
-          Balanced input across fast (S1) and deliberate (S2) systems.
-        </p>
         
-        {/* S1 row - Fast processing */}
-        <div className="grid grid-cols-[120px_1fr_1fr] gap-1 mb-1">
+        {/* S1 row */}
+        <div className="grid grid-cols-[140px_1fr_1fr] gap-1 mb-1">
           <div className="flex items-center gap-0.5">
             <Zap className="w-2.5 h-2.5 text-amber-400" />
-            <span className="text-[9px] text-amber-400 font-medium">S1 — Fast processing</span>
+            <span className="text-[9px] text-amber-400 font-medium">Fast (S1) — attention & speed</span>
           </div>
           {s1Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -592,11 +574,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           })}
         </div>
         
-        {/* S2 row - Reasoned processing */}
-        <div className="grid grid-cols-[120px_1fr_1fr] gap-1">
+        {/* S2 row */}
+        <div className="grid grid-cols-[140px_1fr_1fr] gap-1">
           <div className="flex items-center gap-0.5">
             <Timer className="w-2.5 h-2.5 text-violet-400" />
-            <span className="text-[9px] text-violet-400 font-medium">S2 — Reasoned processing</span>
+            <span className="text-[9px] text-violet-400 font-medium">Reasoned (S2) — thinking & analysis</span>
           </div>
           {s2Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -657,8 +639,8 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
-        <p className="text-[9px] text-muted-foreground/60 mt-1.5 leading-relaxed">
-          Recovery does not add XP. It restores readiness and enables consolidation.
+        <p className="text-[8px] text-muted-foreground/50 mt-1.5">
+          Recovery doesn't add XP. It helps training turn into real gains.
         </p>
       </div>
 
