@@ -1,42 +1,97 @@
 import { motion } from "framer-motion";
-import { Brain, Target, Lightbulb, Focus } from "lucide-react";
+import { Brain, Battery, Target, Focus, ChevronDown } from "lucide-react";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
 
 export function ReasoningTab() {
-  const { 
-    readiness, 
-    recovery,
-    AE, 
-    CT,
-    IN,
-    S1,
-    S2,
-    hasWearableData,
-    isLoading 
-  } = useTodayMetrics();
-  
-  // Ring calculations - LARGE
-  const size = 240;
-  const strokeWidth = 14;
+  const { readiness, recovery, S2, AE, isLoading } = useTodayMetrics();
+  const navigate = useNavigate();
+  const [infoOpen, setInfoOpen] = useState(false);
+
+  // Determine status levels
+  const getStatus = (value: number): "Low" | "Moderate" | "Good" => {
+    if (value < 40) return "Low";
+    if (value < 70) return "Moderate";
+    return "Good";
+  };
+
+  const readinessStatus = getStatus(readiness);
+  const recoveryStatus = getStatus(recovery);
+  const reasoningStatus = getStatus(S2);
+  const focusStatus = getStatus(AE);
+
+  // Dynamic subtitle based on readiness
+  const getSubtitle = () => {
+    if (readiness < 40) return "Your capacity for sustained cognitive work is currently limited.";
+    if (readiness < 70) return "You can handle moderate cognitive effort today.";
+    return "You are ready for demanding, high-focus work.";
+  };
+
+  // Dynamic recovery impact text
+  const getRecoveryImpact = () => {
+    if (recovery < 40) return "Low recovery reduces your ability to sustain effort, even if your skills are strong.";
+    if (recovery < 70) return "Recovery partially supports your cognitive endurance.";
+    return "Recovery fully supports sustained cognitive effort today.";
+  };
+
+  // CTA based on readiness
+  const getCTA = () => {
+    if (readiness < 40) return { label: "Prioritize Recovery", action: () => navigate("/app/detox") };
+    if (readiness < 70) return { label: "Light Cognitive Work", action: () => navigate("/app/neuro-lab") };
+    return { label: "Deep Work Session", action: () => navigate("/app/neuro-lab") };
+  };
+
+  const cta = getCTA();
+
+  // Ring calculations
+  const size = 200;
+  const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(readiness / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
-  
+
   const getScoreColor = (value: number) => {
-    if (value >= 75) return "hsl(142, 71%, 45%)";
-    if (value >= 50) return "hsl(80, 60%, 50%)";
-    return "hsl(45, 85%, 50%)";
+    if (value >= 70) return "hsl(142, 71%, 45%)";
+    if (value >= 40) return "hsl(45, 85%, 50%)";
+    return "hsl(0, 70%, 50%)";
   };
+
+  const getStatusColor = (status: "Low" | "Moderate" | "Good") => {
+    switch (status) {
+      case "Good": return "text-emerald-400 bg-emerald-500/20";
+      case "Moderate": return "text-amber-400 bg-amber-500/20";
+      case "Low": return "text-red-400 bg-red-500/20";
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
+      className="space-y-6 pb-8"
     >
-      {/* Main Ring - Large & Centered */}
-      <div className="flex flex-col items-center pt-6 pb-4">
+      {/* 1) HEADER */}
+      <div className="text-center pt-4">
+        <h2 className="text-2xl font-bold tracking-tight">Readiness</h2>
+        <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
+          {getSubtitle()}
+        </p>
+      </div>
+
+      {/* 2) MAIN SCORE */}
+      <div className="flex flex-col items-center py-4">
         <div className="relative" style={{ width: size, height: size }}>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
             <circle
@@ -63,130 +118,119 @@ export function ReasoningTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Readiness</p>
-            <span className="text-6xl font-bold tabular-nums text-foreground">
-              {isLoading ? "—" : `${Math.round(readiness)}`}
-              <span className="text-3xl">%</span>
+            <span className="text-5xl font-bold tabular-nums text-foreground">
+              {Math.round(readiness)}
+              <span className="text-2xl">%</span>
             </span>
+            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-widest">Readiness</span>
           </div>
         </div>
       </div>
 
-      {/* Insight Card */}
-      <div className="px-2">
-        <div className="flex items-start gap-3 mb-2">
-          <Brain className="w-5 h-5 text-primary mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Current Readiness State</h3>
-        </div>
+      {/* 3) SECTION TITLE */}
+      <div className="px-4">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          What's affecting your readiness today
+        </h3>
+      </div>
+
+      {/* 4) DRIVER CARDS */}
+      <div className="space-y-3 px-4">
+        <DriverCard
+          icon={<Battery className="w-5 h-5" />}
+          title="Recovery"
+          description="Recovery determines how much mental effort you can sustain today."
+          status={recoveryStatus}
+        />
+        <DriverCard
+          icon={<Brain className="w-5 h-5" />}
+          title="Reasoning Capacity"
+          description="Reflects your ability to engage in structured, analytical thinking."
+          status={reasoningStatus}
+        />
+        <DriverCard
+          icon={<Focus className="w-5 h-5" />}
+          title="Focus Stability"
+          description="Reflects how well you can maintain attention without mental fatigue."
+          status={focusStatus}
+        />
+      </div>
+
+      {/* 5) RECOVERY ROLE */}
+      <div className="px-4 py-4 bg-muted/30 rounded-xl mx-4">
+        <h4 className="text-sm font-medium mb-2">Why recovery matters</h4>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {readiness >= 70 
-            ? "Indicates capacity for sustained deliberate reasoning and complex analysis." 
-            : readiness >= 50 
-              ? "Moderate capacity for structured thinking. Consider pacing demanding tasks." 
-              : "Reduced readiness suggests deferring high-stakes cognitive work."}
+          {getRecoveryImpact()}
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-2 italic">
+          Improving recovery increases readiness faster than training alone.
         </p>
       </div>
 
-      {/* Formula Variables Section */}
-      <div className="space-y-3 px-2">
-        <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span>Formula Components</span>
-          <span className="text-[10px]">
-            {hasWearableData ? "50% Physio + 50% Cognitive" : "0.35×REC + 0.35×S2 + 0.30×AE"}
-          </span>
-        </div>
-        
-        {hasWearableData ? (
-          // With wearable: show cognitive component breakdown
-          <div className="space-y-2">
-            <StatRow 
-              icon={<Target className="w-4 h-4" />} 
-              label="Critical Thinking (CT)" 
-              value={CT} 
-              weight="30%"
-            />
-            <StatRow 
-              icon={<Focus className="w-4 h-4" />} 
-              label="Attentional Efficiency (AE)" 
-              value={AE} 
-              weight="25%"
-            />
-            <StatRow 
-              icon={<Lightbulb className="w-4 h-4" />} 
-              label="Insight (IN)" 
-              value={IN} 
-              weight="20%"
-            />
-            <StatRow 
-              icon={<Brain className="w-4 h-4" />} 
-              label="System 2 (S2)" 
-              value={S2} 
-              weight="15%"
-            />
-            <StatRow 
-              icon={<Brain className="w-4 h-4" />} 
-              label="System 1 (S1)" 
-              value={S1} 
-              weight="10%"
-            />
-          </div>
-        ) : (
-          // Without wearable
-          <div className="space-y-2">
-            <StatRow 
-              icon={<Brain className="w-4 h-4" />} 
-              label="Recovery (REC)" 
-              value={recovery} 
-              weight="35%"
-            />
-            <StatRow 
-              icon={<Target className="w-4 h-4" />} 
-              label="System 2 (S2)" 
-              value={S2} 
-              weight="35%"
-            />
-            <StatRow 
-              icon={<Focus className="w-4 h-4" />} 
-              label="Attentional Efficiency (AE)" 
-              value={AE} 
-              weight="30%"
-            />
-          </div>
-        )}
-        
-        {/* Wearable status note */}
-        <div className="pt-3 border-t border-border/20">
-          <p className="text-[10px] text-muted-foreground/60">
-            {hasWearableData 
-              ? "Using wearable data for physio component (HRV, sleep, resting HR)."
-              : "Connect a wearable for enhanced readiness calculation with physiological data."}
-          </p>
-        </div>
+      {/* 6) RECOMMENDED ACTION */}
+      <div className="px-4">
+        <Button
+          onClick={cta.action}
+          className="w-full h-12 text-base font-medium"
+          variant={readiness < 40 ? "secondary" : "default"}
+        >
+          {cta.label}
+        </Button>
+      </div>
+
+      {/* 7) COLLAPSIBLE INFO */}
+      <div className="px-4">
+        <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <span>What Readiness means</span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${infoOpen ? "rotate-180" : ""}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pb-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Readiness reflects your ability to sustain demanding cognitive work.
+              It changes daily and is strongly influenced by recovery.
+            </p>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </motion.div>
   );
 }
 
-function StatRow({ 
-  icon, 
-  label, 
-  value, 
-  weight 
-}: { 
-  icon: React.ReactNode; 
-  label: string; 
-  value: number;
-  weight: string;
+function DriverCard({
+  icon,
+  title,
+  description,
+  status,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  status: "Low" | "Moderate" | "Good";
 }) {
+  const getStatusColor = (s: "Low" | "Moderate" | "Good") => {
+    switch (s) {
+      case "Good": return "text-emerald-400 bg-emerald-500/20";
+      case "Moderate": return "text-amber-400 bg-amber-500/20";
+      case "Low": return "text-red-400 bg-red-500/20";
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between py-3 border-b border-border/20">
-      <div className="flex items-center gap-3">
-        <span className="text-muted-foreground">{icon}</span>
-        <span className="text-sm">{label}</span>
+    <div className="flex items-start gap-4 p-4 rounded-xl bg-card/50 border border-border/30">
+      <div className="p-2 rounded-lg bg-muted/50 text-muted-foreground">
+        {icon}
       </div>
-      <div className="flex items-center gap-3">
-        <span className="text-[10px] text-muted-foreground">{weight}</span>
-        <span className="text-sm font-medium tabular-nums w-8 text-right">{Math.round(value)}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h4 className="font-medium text-sm">{title}</h4>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(status)}`}>
+            {status}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );
