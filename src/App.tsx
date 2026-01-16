@@ -28,7 +28,7 @@ import NeuroLab from "./pages/app/NeuroLab";
 import Health from "./pages/app/Health";
 import NeuroLabArea from "./pages/app/NeuroLabArea";
 import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
-import NeuroActivationRunner from "./pages/app/NeuroActivationRunner";
+import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
@@ -227,10 +227,10 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/neuro-lab/neuro-activation"
+        path="/neural-reset"
         element={
           <ProtectedRoute>
-            <NeuroActivationRunner />
+            <NeuralResetRunner />
           </ProtectedRoute>
         }
       />
