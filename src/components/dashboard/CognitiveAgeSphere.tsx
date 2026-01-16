@@ -53,8 +53,8 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const sphereRadius = 95; // Increased radius
 
     // Colors matching the reference image
-    // Cyan/teal for connections
-    const connectionColor = { h: 195, s: 80, l: isDarkMode ? 60 : 50 };
+    // Blue for connections
+    const connectionColor = { h: 210, s: 90, l: isDarkMode ? 55 : 45 };
     // Warm orange/amber for node cores
     const nodeColor = { h: 35, s: 100, l: 60 };
 
@@ -83,15 +83,15 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       });
     }
 
-    // Create connections between nearby nodes
-    const connectionDistance = 55;
+    // Create connections between nearby nodes - increased density
+    const connectionDistance = 70;
     nodes.forEach((node, i) => {
       nodes.forEach((other, j) => {
         if (i >= j) return;
         const dx = node.x - other.x;
         const dy = node.y - other.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < connectionDistance && Math.random() < 0.5) {
+        if (dist < connectionDistance && Math.random() < 0.75) {
           node.connections.push(j);
         }
       });
@@ -107,16 +107,15 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       // Draw irregular organic sphere border
       const segments = 60;
       
-      // Outer glow with irregular shape
+      // Outer glow with subtle irregular shape
       ctx.beginPath();
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
-        // Create organic wobble using multiple sine waves
-        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 6;
-        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 3;
-        const wobble3 = Math.sin(angle * 7 + time * 0.7) * 2;
-        const pulseWobble = Math.sin(time * 0.5) * 2;
-        const r = sphereRadius + wobble1 + wobble2 + wobble3 + pulseWobble;
+        // Subtle organic wobble using sine waves
+        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 2;
+        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 1;
+        const pulseWobble = Math.sin(time * 0.5) * 1.5;
+        const r = sphereRadius + wobble1 + wobble2 + pulseWobble;
         
         const x = centerX + Math.cos(angle) * (r + 15);
         const y = centerY + Math.sin(angle) * (r + 15);
@@ -142,12 +141,11 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       ctx.beginPath();
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
-        // Same organic wobble for consistency
-        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 6;
-        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 3;
-        const wobble3 = Math.sin(angle * 7 + time * 0.7) * 2;
-        const pulseWobble = Math.sin(time * 0.5) * 2;
-        const r = sphereRadius + wobble1 + wobble2 + wobble3 + pulseWobble;
+        // Same subtle wobble for consistency
+        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 2;
+        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 1;
+        const pulseWobble = Math.sin(time * 0.5) * 1.5;
+        const r = sphereRadius + wobble1 + wobble2 + pulseWobble;
         
         const x = centerX + Math.cos(angle) * r;
         const y = centerY + Math.sin(angle) * r;
