@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { TRAINING_PLANS, TrainingPlanId, TrainingPlan } from "@/lib/trainingPlans";
-import { Leaf, Target, Flame, Check, Clock, BookOpen, Dumbbell, ChevronDown, ChevronUp, Star, Smartphone } from "lucide-react";
+import { TRAINING_PLANS, TrainingPlanId, TrainingPlan, SessionConfig } from "@/lib/trainingPlans";
+import { Leaf, Target, Flame, Check, Clock, BookOpen, Dumbbell, ChevronDown, ChevronUp, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PLAN_ICONS: Record<TrainingPlanId, typeof Leaf> = {
@@ -31,6 +31,35 @@ const PLAN_COLORS: Record<TrainingPlanId, { bg: string; border: string; text: st
   },
 };
 
+// Light plan session copy refinements
+const LIGHT_SESSION_COPY: Record<string, { title: string; subtitle: string; microcopy: string; badge: string }> = {
+  "fast-focus": {
+    title: "Fast Focus",
+    subtitle: "Attention & reactivity (System 1)",
+    microcopy: "Enabled when clarity and recovery are sufficient.",
+    badge: "S1",
+  },
+  "mixed": {
+    title: "Mixed Session",
+    subtitle: "Fast processing with light reasoning",
+    microcopy: "Available only when system capacity allows.",
+    badge: "S1 + light S2",
+  },
+  "consolidation": {
+    title: "Consolidation",
+    subtitle: "Light integration & stabilization",
+    microcopy: "Prioritized during stable recovery phases.",
+    badge: "Light S2",
+  },
+};
+
+// Light plan audience tag refinements
+const LIGHT_AUDIENCE_TAGS: Record<string, string> = {
+  "Maintenance focus": "Stability & continuity",
+  "Variable schedules": "Flexible scheduling",
+  "Entry configuration": "Low-friction entry",
+};
+
 interface TrainingPlanSelectorProps {
   selectedPlan: TrainingPlanId;
   onSelectPlan: (plan: TrainingPlanId) => void;
@@ -44,6 +73,297 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
     setExpandedPlan(expandedPlan === planId ? null : planId);
   };
 
+  // Render Light plan expanded details (refined copy)
+  const renderLightPlanDetails = (plan: TrainingPlan, colors: typeof PLAN_COLORS.light) => (
+    <div className="pt-3 space-y-4">
+      {/* Weekly Cognitive Configuration */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Weekly Cognitive Configuration</p>
+        <p className="text-[9px] text-muted-foreground/70 mb-2.5 italic">
+          Defines maximum cognitive input, not required activity.
+        </p>
+        <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Content Cap */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-purple-500/15 flex items-center justify-center mx-auto mb-1">
+                <BookOpen className="w-3 h-3 text-purple-400" />
+              </div>
+              <p className="text-[10px] font-medium text-purple-400">Cap: {plan.contentPerWeek}</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Maximum enabled content
+              </p>
+            </div>
+            {/* Recovery Target */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-green-500/15 flex items-center justify-center mx-auto mb-1">
+                <Smartphone className="w-3 h-3 text-green-400" />
+              </div>
+              <p className="text-[10px] font-medium text-green-400">Target: {Math.round(plan.detox.weeklyMinutes / 60)}h</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Detox & walking buffer
+              </p>
+            </div>
+            {/* Sessions */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-blue-500/15 flex items-center justify-center mx-auto mb-1">
+                <Dumbbell className="w-3 h-3 text-blue-400" />
+              </div>
+              <p className="text-[10px] font-medium text-blue-400">Up to {plan.sessionsPerWeek}</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Contextually enabled
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Designed For */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Designed For</p>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {plan.targetAudience.map((audience, i) => (
+            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400/90">
+              {LIGHT_AUDIENCE_TAGS[audience] || audience}
+            </span>
+          ))}
+        </div>
+        <p className="text-[9px] text-muted-foreground/70 italic">
+          Recommended for your first 7–14 days.
+        </p>
+      </div>
+
+      {/* Session Templates */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Session Templates</p>
+        <p className="text-[9px] text-muted-foreground/70 mb-2 italic">
+          Sessions are enabled based on your cognitive state.
+        </p>
+        <div className="space-y-2">
+          {plan.sessions.map((session) => {
+            const copy = LIGHT_SESSION_COPY[session.id];
+            if (!copy) return null;
+            
+            return (
+              <div
+                key={session.id}
+                className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
+              >
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[11px] font-medium">{copy.title}</span>
+                  <span className="text-[9px] text-muted-foreground">{session.duration}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mb-1.5">{copy.subtitle}</p>
+                
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[8px] px-1.5 py-0.5 rounded font-medium bg-emerald-500/15 text-emerald-400">
+                    {copy.badge}
+                  </span>
+                  {session.content && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">
+                      Content optional
+                    </span>
+                  )}
+                </div>
+                
+                <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
+                  {copy.microcopy}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Eligible Content */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">
+          Eligible Content <span className="font-normal">(when enabled)</span>
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {plan.contentTypes.filter(t => t !== "none").map((type) => (
+            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
+              {type === "podcast" && "🎧 Podcast"}
+              {type === "reading" && "📄 Reading"}
+              {type === "book-extract" && "📚 Book"}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Recovery Budget */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Budget</p>
+        <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
+              <Smartphone className="w-3 h-3 text-green-400" />
+            </div>
+            <span className="text-[11px] font-semibold text-green-400">
+              {Math.round(plan.detox.weeklyMinutes / 60)}h / week
+            </span>
+          </div>
+          <div className="space-y-1 text-[10px] text-muted-foreground mb-2">
+            <p>Minimum session: {plan.detox.minSessionMinutes} min</p>
+            <p>Walking contributes to recovery</p>
+          </div>
+          <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
+            Recovery builds your cognitive buffer and affects availability of sessions and content.
+          </p>
+        </div>
+      </div>
+
+      {/* Closing Statement */}
+      <div className="pt-2 border-t border-border/20">
+        <p className="text-[10px] text-muted-foreground/50 text-center italic">
+          Light Training prioritizes continuity over intensity. Fewer sessions is a valid outcome.
+        </p>
+      </div>
+    </div>
+  );
+
+  // Render default plan expanded details (Expert/Superhuman)
+  const renderDefaultPlanDetails = (plan: TrainingPlan) => (
+    <div className="pt-3 space-y-3">
+      {/* Weekly Load Summary */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly Cognitive Load</p>
+        <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center shrink-0">
+                <BookOpen className="w-3 h-3 text-purple-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-purple-400">{plan.contentPerWeek}</p>
+                <p className="text-[9px] text-muted-foreground">Content</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded bg-green-500/15 flex items-center justify-center shrink-0">
+                <Smartphone className="w-3 h-3 text-green-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-green-400">{Math.round(plan.detox.weeklyMinutes / 60)}h</p>
+                <p className="text-[9px] text-muted-foreground">Recovery</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center shrink-0">
+                <Dumbbell className="w-3 h-3 text-blue-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-blue-400">{plan.sessionsPerWeek}</p>
+                <p className="text-[9px] text-muted-foreground">Sessions</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Suitable For */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Configuration For</p>
+        <div className="flex flex-wrap gap-1.5">
+          {plan.targetAudience.map((audience, i) => (
+            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
+              {audience}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Weekly Schedule */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly Schedule</p>
+        <div className="space-y-2">
+          {plan.sessions.map((session, i) => (
+            <div
+              key={session.id}
+              className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-medium">Session {i + 1}: {session.name}</span>
+                <span className="text-[9px] text-muted-foreground">{session.duration}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mb-1.5">{session.description}</p>
+              
+              <div className="flex items-center gap-2">
+                {/* Thinking Systems */}
+                <div className="flex items-center gap-1">
+                  {session.thinkingSystems.map((sys) => (
+                    <span
+                      key={sys}
+                      className={cn(
+                        "text-[8px] px-1.5 py-0.5 rounded font-medium",
+                        sys === "S1" ? "bg-amber-500/20 text-amber-400" : "bg-teal-500/20 text-teal-400"
+                      )}
+                    >
+                      {sys}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Content */}
+                {session.content && (
+                  <span className={cn(
+                    "text-[9px] px-1.5 py-0.5 rounded",
+                    session.content.required 
+                      ? "bg-primary/20 text-primary" 
+                      : "bg-muted/30 text-muted-foreground"
+                  )}>
+                    {session.content.required ? "📖 Required" : "📖 Optional"}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Types Allowed */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Content Types</p>
+        <div className="flex flex-wrap gap-1.5">
+          {plan.contentTypes.map((type) => (
+            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              {type === "podcast" && "🎧 Podcast"}
+              {type === "reading" && "📄 Reading"}
+              {type === "book-extract" && "📚 Book"}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Recovery Allocation */}
+      {plan.detox && (
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Allocation</p>
+          <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
+                <Smartphone className="w-3 h-3 text-green-400" />
+              </div>
+              <span className="text-[11px] font-semibold text-green-400">
+                {Math.round(plan.detox.weeklyMinutes / 60)}h / week
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div>
+                <span className="text-muted-foreground">Min session:</span>
+                <span className="ml-1 text-foreground">{plan.detox.minSessionMinutes} min</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Walking:</span>
+                <span className="ml-1 text-foreground">{plan.detox.walkingMinMinutes} min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-3">
       {(Object.keys(TRAINING_PLANS) as TrainingPlanId[]).map((planId) => {
@@ -52,6 +372,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
         const colors = PLAN_COLORS[planId];
         const isSelected = selectedPlan === planId;
         const isExpanded = expandedPlan === planId;
+        const isLight = planId === "light";
 
         return (
           <motion.div
@@ -99,7 +420,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                       <Dumbbell className="w-3 h-3" />
-                      <span>{plan.sessionsPerWeek}×/week</span>
+                      <span>{isLight ? `up to ${plan.sessionsPerWeek}` : `${plan.sessionsPerWeek}×`}/week</span>
                     </div>
                   </div>
                 </div>
@@ -142,144 +463,10 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                 exit={{ height: 0, opacity: 0 }}
                 className="px-4 pb-4 border-t border-border/20"
               >
-                <div className="pt-3 space-y-3">
-                  {/* Weekly Load Summary */}
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly Cognitive Load</p>
-                    <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center shrink-0">
-                            <BookOpen className="w-3 h-3 text-purple-400" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-semibold text-purple-400">{plan.contentPerWeek}</p>
-                            <p className="text-[9px] text-muted-foreground">Content</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded bg-green-500/15 flex items-center justify-center shrink-0">
-                            <Smartphone className="w-3 h-3 text-green-400" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-semibold text-green-400">{Math.round(plan.detox.weeklyMinutes / 60)}h</p>
-                            <p className="text-[9px] text-muted-foreground">Recovery</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center shrink-0">
-                            <Dumbbell className="w-3 h-3 text-blue-400" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-semibold text-blue-400">{plan.sessionsPerWeek}</p>
-                            <p className="text-[9px] text-muted-foreground">Sessions</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Suitable For */}
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Configuration For</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {plan.targetAudience.map((audience, i) => (
-                        <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-                          {audience}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Weekly Schedule */}
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly Schedule</p>
-                    <div className="space-y-2">
-                      {plan.sessions.map((session, i) => (
-                        <div
-                          key={session.id}
-                          className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] font-medium">Session {i + 1}: {session.name}</span>
-                            <span className="text-[9px] text-muted-foreground">{session.duration}</span>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground mb-1.5">{session.description}</p>
-                          
-                          <div className="flex items-center gap-2">
-                            {/* Thinking Systems */}
-                            <div className="flex items-center gap-1">
-                              {session.thinkingSystems.map((sys) => (
-                                <span
-                                  key={sys}
-                                  className={cn(
-                                    "text-[8px] px-1.5 py-0.5 rounded font-medium",
-                                    sys === "S1" ? "bg-amber-500/20 text-amber-400" : "bg-teal-500/20 text-teal-400"
-                                  )}
-                                >
-                                  {sys}
-                                </span>
-                              ))}
-                            </div>
-
-                            {/* Content */}
-                            {session.content && (
-                              <span className={cn(
-                                "text-[9px] px-1.5 py-0.5 rounded",
-                                session.content.required 
-                                  ? "bg-primary/20 text-primary" 
-                                  : "bg-muted/30 text-muted-foreground"
-                              )}>
-                                {session.content.required ? "📖 Required" : "📖 Optional"}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Content Types Allowed */}
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Content Types</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {plan.contentTypes.map((type) => (
-                        <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                          {type === "podcast" && "🎧 Podcast"}
-                          {type === "reading" && "📄 Reading"}
-                          {type === "book-extract" && "📚 Book"}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recovery Allocation */}
-                  {plan.detox && (
-                    <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Allocation</p>
-                      <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
-                            <Smartphone className="w-3 h-3 text-green-400" />
-                          </div>
-                          <span className="text-[11px] font-semibold text-green-400">
-                            {Math.round(plan.detox.weeklyMinutes / 60)}h / week
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-[10px]">
-                          <div>
-                            <span className="text-muted-foreground">Min session:</span>
-                            <span className="ml-1 text-foreground">{plan.detox.minSessionMinutes} min</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Walking:</span>
-                            <span className="ml-1 text-foreground">{plan.detox.walkingMinMinutes} min</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {isLight 
+                  ? renderLightPlanDetails(plan, colors)
+                  : renderDefaultPlanDetails(plan)
+                }
               </motion.div>
             )}
           </motion.div>
