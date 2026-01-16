@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Info, Brain, Link2, Sprout } from "lucide-react";
+import { Info, Zap, Target, Moon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -41,8 +41,8 @@ interface Particle {
 }
 
 /**
- * Neural Growth Animation with Cognitive Network
- * Displays network activation with Activity, Stability, Consolidation
+ * Neural Strength Animation
+ * Displays network activation with Intensity, Consistency, Recovery (gym metaphor)
  */
 export function NeuralGrowthAnimation({ 
   cognitiveAgeDelta, 
@@ -52,47 +52,47 @@ export function NeuralGrowthAnimation({
 }: NeuralGrowthAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Phase-based status and description
+  // Phase-based status and description (gym tone)
   const getPhaseInfo = (score: number) => {
     if (score >= 80) return { 
-      phase: "Integrated",
-      description: "Your cognitive network is stable and highly responsive."
+      phase: "Peak",
+      description: "Your cognitive network is powerful and resilient."
     };
     if (score >= 65) return { 
-      phase: "Coordinated",
-      description: "Your cognitive activity is becoming more coordinated."
+      phase: "Strong",
+      description: "Your neural pathways are well-trained and responsive."
     };
     if (score >= 50) return { 
-      phase: "Forming",
-      description: "Your cognitive network is forming stable patterns."
+      phase: "Progressing",
+      description: "Your reasoning and intuition are developing solid foundations."
     };
     if (score >= 35) return { 
       phase: "Building",
-      description: "Your cognitive activity is increasing, but the network is still stabilizing."
+      description: "Your neural connections are getting stronger. Stay consistent."
     };
     return { 
-      phase: "Activation phase",
-      description: "Your cognitive activity is increasing, but the network is still stabilizing."
+      phase: "Warming up",
+      description: "Your neurons are starting to activate. Keep showing up."
     };
   };
 
-  // Get Activity status (from cognitive performance)
-  const getActivityStatus = (score: number) => {
+  // Get Intensity status (from cognitive performance)
+  const getIntensityStatus = (score: number) => {
     if (score >= 70) return { label: "High", color: "text-emerald-500" };
     if (score >= 40) return { label: "Increasing", color: "text-primary" };
     if (score >= 10) return { label: "Active", color: "text-amber-400" };
     return { label: "Low", color: "text-muted-foreground/60" };
   };
 
-  // Get Stability status (from behavioral engagement)
-  const getStabilityStatus = (score: number) => {
+  // Get Consistency status (from behavioral engagement)
+  const getConsistencyStatus = (score: number) => {
     if (score >= 70) return { label: "Stable", color: "text-emerald-500" };
     if (score >= 40) return { label: "Building", color: "text-amber-400" };
     return { label: "Low", color: "text-muted-foreground/60" };
   };
 
-  // Get Consolidation status (from recovery)
-  const getConsolidationStatus = (score: number) => {
+  // Get Recovery status (from recovery factor)
+  const getRecoveryStatus = (score: number) => {
     if (score >= 70) return { label: "High", color: "text-emerald-500" };
     if (score >= 40) return { label: "Moderate", color: "text-amber-400" };
     return { label: "Low", color: "text-muted-foreground/60" };
@@ -101,9 +101,9 @@ export function NeuralGrowthAnimation({
   const phaseInfo = getPhaseInfo(overallCognitiveScore);
   const statusText = customStatusText || phaseInfo.phase;
   
-  const activityStatus = sciBreakdown ? getActivityStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
-  const stabilityStatus = sciBreakdown ? getStabilityStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
-  const consolidationStatus = sciBreakdown ? getConsolidationStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
+  const intensityStatus = sciBreakdown ? getIntensityStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
+  const consistencyStatus = sciBreakdown ? getConsistencyStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
+  const recoveryStatus = sciBreakdown ? getRecoveryStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
 
   // Map metrics to visual intensity
   const isYounger = cognitiveAgeDelta < 0;
@@ -315,7 +315,7 @@ export function NeuralGrowthAnimation({
 
   return (
     <div className="py-2">
-      <h3 className="label-uppercase text-center mb-3">Cognitive Network</h3>
+      <h3 className="label-uppercase text-center mb-3">Neural Strength</h3>
       
       <div className="relative flex justify-center">
         <canvas ref={canvasRef} width={200} height={160} className="opacity-90" />
@@ -334,33 +334,33 @@ export function NeuralGrowthAnimation({
           {phaseInfo.description}
         </p>
         
-        {/* Status Breakdown - What's shaping your network */}
+        {/* Status Breakdown - What's shaping your strength */}
         {sciBreakdown && (
           <div className="mt-3 pt-3 border-t border-border/20">
             <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-2">
-              What's shaping your network
+              What's shaping your strength
             </p>
             <div className="space-y-1.5 text-left px-3">
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
-                  <Brain className="w-3 h-3 text-primary/60" />
-                  <span className="text-muted-foreground">Activity</span>
+                  <Zap className="w-3 h-3 text-primary/60" />
+                  <span className="text-muted-foreground">Intensity</span>
                 </div>
-                <span className={activityStatus.color}>{activityStatus.label}</span>
+                <span className={intensityStatus.color}>{intensityStatus.label}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
-                  <Link2 className="w-3 h-3 text-blue-400/60" />
-                  <span className="text-muted-foreground">Stability</span>
+                  <Target className="w-3 h-3 text-blue-400/60" />
+                  <span className="text-muted-foreground">Consistency</span>
                 </div>
-                <span className={stabilityStatus.color}>{stabilityStatus.label}</span>
+                <span className={consistencyStatus.color}>{consistencyStatus.label}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
-                  <Sprout className="w-3 h-3 text-purple-400/60" />
-                  <span className="text-muted-foreground">Consolidation</span>
+                  <Moon className="w-3 h-3 text-purple-400/60" />
+                  <span className="text-muted-foreground">Recovery</span>
                 </div>
-                <span className={consolidationStatus.color}>{consolidationStatus.label}</span>
+                <span className={recoveryStatus.color}>{recoveryStatus.label}</span>
               </div>
             </div>
           </div>
@@ -371,27 +371,27 @@ export function NeuralGrowthAnimation({
           <div className="mt-3 pt-3 border-t border-border/20">
             <div className="grid grid-cols-3 gap-2 text-[9px]">
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Activity</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Intensity</div>
                 <div className="font-semibold text-primary">{sciBreakdown.cognitivePerformance.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Cognitive activation</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Neural stimulation</div>
               </div>
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Stability</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Consistency</div>
                 <div className="font-semibold text-blue-400">{sciBreakdown.behavioralEngagement.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Consistency over time</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Training regularity</div>
               </div>
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Consolidation</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Recovery</div>
                 <div className="font-semibold text-purple-400">{sciBreakdown.recoveryFactor.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Integration & retention</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Absorption & rest</div>
               </div>
             </div>
           </div>
         )}
         
-        {/* Footer */}
+        {/* Footer - gym metaphor */}
         <p className="text-[9px] text-muted-foreground/50 mt-4 px-4 italic">
-          Cognitive networks form gradually through repeated activation and recovery.
+          Neural strength builds like muscle: stimulus, consistency, recovery.
         </p>
         
         {/* Learn More button opens detailed explanation */}
@@ -404,9 +404,9 @@ export function NeuralGrowthAnimation({
           </DialogTrigger>
           <DialogContent className="max-w-sm max-h-[85vh]">
             <DialogHeader>
-              <DialogTitle className="text-base">Cognitive Network</DialogTitle>
+              <DialogTitle className="text-base">Neural Strength</DialogTitle>
               <p className="text-xs text-muted-foreground">
-                How your cognitive activity is organizing over time.
+                How your reasoning and intuition grow over time.
               </p>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(85vh-80px)] pr-2">
