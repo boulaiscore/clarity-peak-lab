@@ -54,30 +54,30 @@ export interface CappedProgressData {
   rawDetoxXP: number;
   rawTotalXP: number;
   
-  // Individual targets
+  // Individual targets - TRAINING XP ONLY (games)
   gamesXPTarget: number;
   tasksXPTarget: number; // v1.3: 0, kept for compat
-  detoxXPTarget: number;
-  totalXPTarget: number;
+  detoxXPTarget: number; // DEPRECATED: kept for compat, always 0
+  totalXPTarget: number; // v1.4: Games XP ONLY, no detox
   
   // Capped values (can't exceed target)
   cappedGamesXP: number;
   cappedTasksXP: number; // v1.3: 0, kept for compat
-  cappedDetoxXP: number;
-  cappedTotalXP: number;
+  cappedDetoxXP: number; // DEPRECATED: kept for compat
+  cappedTotalXP: number; // v1.4: Games XP ONLY
   
   // Completion status
   gamesComplete: boolean;
   tasksComplete: boolean; // v1.3: always true (no tasks to complete)
-  detoxComplete: boolean;
+  detoxComplete: boolean; // DEPRECATED: use recoveryComplete instead
   weekComplete: boolean;
   allCategoriesComplete: boolean; // Alias for weekComplete
   
   // Progress percentages (0-100)
   gamesProgress: number;
   tasksProgress: number; // v1.3: 100 (tasks don't block)
-  detoxProgress: number;
-  totalProgress: number;
+  detoxProgress: number; // DEPRECATED: use recoveryProgress instead
+  totalProgress: number; // v1.4: Based on Games XP only
   
   // Sub-targets for games (by system)
   systemSubTargets: SystemSubTarget[];
@@ -86,6 +86,12 @@ export interface CappedProgressData {
   
   // Content completions (count only, no XP in v1.3)
   contentCompletionsCount: number;
+  
+  // NEW v1.4: Recovery metrics (time-based, NOT XP)
+  recoveryMinutesTarget: number;   // plan.detox.weeklyMinutes (480/840/1680)
+  recoveryMinutesEarned: number;   // actual detox minutes completed
+  recoveryProgress: number;        // 0-100%
+  recoveryComplete: boolean;
   
   // Loading states
   isLoading: boolean;
@@ -213,35 +219,41 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     // Cap individual categories
     const cappedGamesXP = Math.min(weeklyGamesXP ?? 0, gamesXPTarget);
     const cappedTasksXP = 0; // v1.3: no task XP
-    const cappedDetoxXP = Math.min(weeklyDetoxXP, detoxXPTarget);
+    const cappedDetoxXP = 0; // v1.4: Detox is time-based, no XP
 
-    // Total capped = sum of capped categories
-    const cappedTotalXP = cappedGamesXP + cappedDetoxXP;
-    const totalXPTarget = gamesXPTarget + detoxXPTarget;
+    // v1.4: Total XP = Games ONLY (no detox XP)
+    const cappedTotalXP = cappedGamesXP;
+    const totalXPTarget = gamesXPTarget; // Games XP only!
+
+    // v1.4: Recovery metrics (time-based, NOT XP)
+    const recoveryMinutesTarget = plan.detox.weeklyMinutes; // 480/840/1680 based on plan
+    const recoveryMinutesEarned = detoxData?.totalMinutes ?? 0;
+    const recoveryProgress = safeProgress(recoveryMinutesEarned, recoveryMinutesTarget);
+    const recoveryComplete = recoveryMinutesEarned >= recoveryMinutesTarget;
 
     // Completion status
     const gamesComplete = (weeklyGamesXP ?? 0) >= gamesXPTarget;
     const tasksComplete = true; // v1.3: tasks don't block progress
-    const detoxComplete = weeklyDetoxXP >= detoxXPTarget;
-    const weekComplete = cappedTotalXP >= totalXPTarget;
+    const detoxComplete = recoveryComplete; // DEPRECATED: alias for recoveryComplete
+    const weekComplete = gamesComplete; // v1.4: Only games matter for weekly completion
 
     // Progress percentages
     const gamesProgress = safeProgress(weeklyGamesXP ?? 0, gamesXPTarget);
     const tasksProgress = 100; // v1.3: tasks always "complete"
-    const detoxProgress = safeProgress(weeklyDetoxXP, detoxXPTarget);
-    const totalProgress = safeProgress(cappedTotalXP, totalXPTarget);
+    const detoxProgress = recoveryProgress; // DEPRECATED: alias for recoveryProgress
+    const totalProgress = gamesProgress; // v1.4: Based on Games XP only
 
     return {
       // Raw values
       rawGamesXP: weeklyGamesXP ?? 0,
       rawTasksXP: 0, // v1.3: no task XP
-      rawDetoxXP: weeklyDetoxXP,
-      rawTotalXP: (weeklyGamesXP ?? 0) + weeklyDetoxXP,
+      rawDetoxXP: 0, // v1.4: Detox doesn't give XP
+      rawTotalXP: weeklyGamesXP ?? 0, // v1.4: Games only
       
       // Targets
       gamesXPTarget,
       tasksXPTarget,
-      detoxXPTarget,
+      detoxXPTarget: 0, // v1.4: Deprecated, always 0
       totalXPTarget,
       
       // Capped values
@@ -270,6 +282,12 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       
       // Content completions (count only in v1.3)
       contentCompletionsCount: breakdown.completionsCount,
+      
+      // NEW v1.4: Recovery metrics (time-based)
+      recoveryMinutesTarget,
+      recoveryMinutesEarned,
+      recoveryProgress,
+      recoveryComplete,
       
       // Loading states
       isLoading: progressLoading || detoxLoading || breakdownLoading,

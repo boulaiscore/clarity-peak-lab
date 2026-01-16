@@ -17,22 +17,27 @@ export interface StableCognitiveLoadData {
   rawGamesXP: number;
   rawTasksXP: number;
   rawDetoxXP: number;
-  totalXPTarget: number;
+  totalXPTarget: number; // v1.4: Games XP only
   gamesXPTarget: number;
   tasksXPTarget: number;
-  detoxXPTarget: number;
+  detoxXPTarget: number; // DEPRECATED: always 0
   gamesComplete: boolean;
   tasksComplete: boolean;
-  detoxComplete: boolean;
+  detoxComplete: boolean; // DEPRECATED: alias for recoveryComplete
   gamesProgress: number;
   tasksProgress: number;
-  detoxProgress: number;
+  detoxProgress: number; // DEPRECATED: alias for recoveryProgress
   gamesSubTargets: SystemSubTarget[];
   // Derived
-  cappedTotalXP: number;
-  totalProgress: number;
+  cappedTotalXP: number; // v1.4: Games XP only
+  totalProgress: number; // v1.4: Games progress only
   xpRemaining: number;
   goalReached: boolean;
+  // NEW v1.4: Recovery metrics (time-based, NOT XP)
+  recoveryMinutesTarget: number;
+  recoveryMinutesEarned: number;
+  recoveryProgress: number;
+  recoveryComplete: boolean;
   // Status
   isLoading: boolean;
   isSyncing: boolean;
@@ -95,18 +100,21 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
     tasksProgress,
     detoxProgress,
     gamesSubTargets,
+    recoveryMinutesTarget,
+    recoveryMinutesEarned,
+    recoveryProgress,
+    recoveryComplete,
     isLoading,
   } = useCappedWeeklyProgress();
 
   // Build fresh data object
   const freshData = useMemo((): StableCognitiveLoadData => {
+    // v1.4: Total XP = Games ONLY (no detox, no tasks)
     const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
-    const cappedTasks = Math.min(rawTasksXP, tasksXPTarget);
-    const cappedDetox = Math.min(rawDetoxXP, detoxXPTarget);
-    const cappedTotalXP = cappedGames + cappedTasks + cappedDetox;
-    const totalProgress = totalXPTarget > 0 ? Math.min(100, (cappedTotalXP / totalXPTarget) * 100) : 0;
-    const xpRemaining = Math.max(0, totalXPTarget - cappedTotalXP);
-    const goalReached = cappedTotalXP >= totalXPTarget && totalXPTarget > 0;
+    const cappedTotalXP = cappedGames; // Games only!
+    const totalProgress = gamesXPTarget > 0 ? Math.min(100, (cappedGames / gamesXPTarget) * 100) : 0;
+    const xpRemaining = Math.max(0, gamesXPTarget - cappedGames);
+    const goalReached = cappedGames >= gamesXPTarget && gamesXPTarget > 0;
 
     return {
       rawGamesXP,
@@ -127,6 +135,11 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
       totalProgress,
       xpRemaining,
       goalReached,
+      // NEW v1.4: Recovery metrics
+      recoveryMinutesTarget,
+      recoveryMinutesEarned,
+      recoveryProgress,
+      recoveryComplete,
       isLoading,
       isSyncing: isLoading,
     };
@@ -135,10 +148,13 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
     totalXPTarget, gamesXPTarget, tasksXPTarget, detoxXPTarget,
     gamesComplete, tasksComplete, detoxComplete,
     gamesProgress, tasksProgress, detoxProgress,
-    gamesSubTargets, isLoading,
+    gamesSubTargets, 
+    recoveryMinutesTarget, recoveryMinutesEarned, recoveryProgress, recoveryComplete,
+    isLoading,
   ]);
 
-  const freshTotal = freshData.rawGamesXP + freshData.rawTasksXP + freshData.rawDetoxXP;
+  // v1.4: freshTotal = Games XP only (no detox, no tasks)
+  const freshTotal = freshData.rawGamesXP;
 
   // IMPORTANT: don't gate on "isFetched" here.
   // In some routes (e.g. NeuroLab) auxiliary queries can lag, but Tasks XP is already known.
@@ -164,9 +180,8 @@ export function useStableCognitiveLoad(): StableCognitiveLoadData {
   };
 
   const cachedSnapshot = getCachedSnapshot();
-  const cachedTotal = cachedSnapshot
-    ? cachedSnapshot.rawGamesXP + cachedSnapshot.rawTasksXP + cachedSnapshot.rawDetoxXP
-    : 0;
+  // v1.4: cachedTotal = Games XP only
+  const cachedTotal = cachedSnapshot ? cachedSnapshot.rawGamesXP : 0;
 
   // Update cache only when fresh data is meaningful AND better than cached
   useEffect(() => {
