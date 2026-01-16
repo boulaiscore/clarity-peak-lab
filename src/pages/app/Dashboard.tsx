@@ -71,16 +71,30 @@ const Dashboard = () => {
   }, [metrics, user?.age]);
   
   // Get fast/slow thinking scores with deltas from baseline
+  // S1 (Fast) = (AE + RA) / 2 = (focus_stability + fast_thinking) / 2
+  // S2 (Slow) = (CT + IN) / 2 = (reasoning_accuracy + slow_thinking) / 2
   const thinkingScores = useMemo(() => {
-    const currentFast = Math.round(metrics?.fast_thinking || 50);
-    const currentSlow = Math.round(metrics?.slow_thinking || 50);
+    // Current skill values
+    const AE = metrics?.focus_stability || 50;
+    const RA = metrics?.fast_thinking || 50;
+    const CT = metrics?.reasoning_accuracy || 50;
+    const IN = metrics?.slow_thinking || 50;
     
-    // Get baseline scores from initial assessment
-    const baselineFast = metrics?.baseline_fast_thinking || 50;
-    const baselineSlow = metrics?.baseline_slow_thinking || 50;
+    // Calculate S1 and S2 using correct aggregation formula
+    const currentFast = Math.round((AE + RA) / 2);  // S1
+    const currentSlow = Math.round((CT + IN) / 2);  // S2
+    
+    // Baseline skill values
+    const baselineAE = metrics?.baseline_focus || 50;
+    const baselineRA = metrics?.baseline_fast_thinking || 50;
+    const baselineCT = metrics?.baseline_reasoning || 50;
+    const baselineIN = metrics?.baseline_slow_thinking || 50;
+    
+    // Calculate baseline S1 and S2 with same formula
+    const baselineFast = (baselineAE + baselineRA) / 2;
+    const baselineSlow = (baselineCT + baselineIN) / 2;
     
     // Only show delta if user has completed at least 1 training session
-    // (total_sessions > 0 means they've trained after baseline)
     const hasTrainedAfterBaseline = (metrics?.total_sessions || 0) > 0;
     
     // Calculate improvement from baseline only if training has occurred
