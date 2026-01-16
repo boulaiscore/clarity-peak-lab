@@ -339,7 +339,7 @@ export function DetoxChallengeTab() {
           </div>
 
           {/* Recovery Mode Selector */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
               const Icon = mode.icon;
               const isSelected = selectedMode === mode.id;
