@@ -119,11 +119,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Recovery Low Banner with S1 explanation */}
+      {/* Recovery Low Banner - muted styling */}
       {safetyRuleActive && (
-        <Alert className="border-amber-500/30 bg-amber-500/5">
-          <Info className="h-4 w-4 text-amber-500" />
-          <AlertDescription className="text-xs text-amber-200/90">
+        <Alert className="border-muted-foreground/20 bg-muted/30">
+          <Info className="h-4 w-4 text-muted-foreground" />
+          <AlertDescription className="text-xs text-muted-foreground">
             <span className="font-medium">Light focus available.</span> Fast focus requires less recovery than deep work. Build recovery through Detox or Walk to unlock more options.
           </AlertDescription>
         </Alert>
@@ -136,10 +136,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         const systemLabel = system === "fast" ? "System 1" : "System 2";
         const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
         const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
+        // Muted, clinical styling - no bright colors
         const accentClass = system === "fast" 
-          ? "border-amber-500/30 bg-amber-500/5" 
-          : "border-violet-500/30 bg-violet-500/5";
-        const iconColor = system === "fast" ? "text-amber-400" : "text-violet-400";
+          ? "border-foreground/20 bg-foreground/5" 
+          : "border-foreground/20 bg-foreground/5";
+        const iconColor = system === "fast" ? "text-foreground/60" : "text-foreground/60";
         
         return (
           <div
@@ -156,13 +157,13 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
             >
               <div className={cn(
                 "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                system === "fast" ? "bg-amber-500/15" : "bg-violet-500/15"
+                "bg-muted/50"
               )}>
                 <SystemIcon className={cn("w-4 h-4", iconColor)} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className={cn("text-xs font-semibold", iconColor)}>{systemLabel}</span>
+                  <span className={cn("text-xs font-semibold", "text-foreground/80")}>{systemLabel}</span>
                   <span className="text-[10px] text-muted-foreground">• {systemDesc}</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">
@@ -214,18 +215,18 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                               )}
                             >
                               <div className="flex items-start gap-2.5">
-                                <div className={cn(
+                              <div className={cn(
                                   "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
                                   isEnabled
-                                    ? system === "fast" ? "bg-amber-500/10" : "bg-violet-500/10"
-                                    : "bg-muted/50"
+                                    ? "bg-muted/50"
+                                    : "bg-muted/30"
                                 )}>
                                   {isProtection ? (
                                     <ShieldAlert className="w-4 h-4 text-amber-500" />
                                   ) : isWithheld ? (
                                     <Lock className="w-4 h-4 text-muted-foreground" />
                                   ) : (
-                                    <Icon className={cn("w-4 h-4", iconColor)} />
+                                    <Icon className="w-4 h-4 text-foreground/60" />
                                   )}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -248,7 +249,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                               {/* Play indicator - only for enabled games */}
                               {isEnabled && (
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Play className={cn("w-3.5 h-3.5", iconColor)} />
+                                  <Play className="w-3.5 h-3.5 text-foreground/50" />
                                 </div>
                               )}
                             </button>
