@@ -60,7 +60,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
     // Create nodes arranged around the perimeter (center stays empty)
     const nodes: Node[] = [];
-    const nodeCount = 55;
+    const nodeCount = 80;
     
     // Create nodes distributed around the outer ring only
     for (let i = 0; i < nodeCount; i++) {
