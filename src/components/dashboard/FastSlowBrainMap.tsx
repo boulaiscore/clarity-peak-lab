@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Zap, Brain, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Zap, Timer, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface FastSlowBrainMapProps {
@@ -195,10 +195,10 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
               <stop offset="100%" stopColor="#fbbf24" />
             </linearGradient>
             
-            {/* Slow network gradient - cyan/teal */}
+            {/* Slow network gradient - violet */}
             <linearGradient id="slowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#22d3ee" />
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#a78bfa" />
             </linearGradient>
             
             {/* Glow filters */}
@@ -459,7 +459,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           <text x="70" y="155" fill="#fbbf24" fontSize="8" fontWeight="600" textAnchor="middle" opacity="0.9">
             FAST
           </text>
-          <text x="230" y="155" fill="#22d3ee" fontSize="8" fontWeight="600" textAnchor="middle" opacity="0.9">
+          <text x="230" y="155" fill="#a78bfa" fontSize="8" fontWeight="600" textAnchor="middle" opacity="0.9">
             SLOW
           </text>
         </svg>
@@ -475,7 +475,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           {/* Slow baseline */}
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <span className="text-3xl font-bold text-cyan-400 drop-shadow-lg">{slowBaseline}</span>
+              <span className="text-3xl font-bold text-violet-400 drop-shadow-lg">{slowBaseline}</span>
             </div>
           </div>
         </div>
@@ -508,14 +508,14 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           
           if (score >= 70) return {
             band: labels.high,
-            color: type === "fast" ? "text-amber-400" : "text-cyan-400",
+            color: type === "fast" ? "text-amber-400" : "text-violet-400",
             comment: type === "fast" 
               ? "Quick pattern recognition and intuitive responses."
               : "Strong deliberate reasoning and analysis."
           };
           if (score >= 50) return {
             band: labels.mid,
-            color: type === "fast" ? "text-amber-300" : "text-cyan-300",
+            color: type === "fast" ? "text-amber-300" : "text-violet-300",
             comment: type === "fast"
               ? "Developing rapid intuition."
               : "Growing analytical depth."
@@ -581,11 +581,11 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
               initial={{ opacity: 0, x: 5 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/15"
+              className="p-2 rounded-lg bg-violet-500/5 border border-violet-500/15"
             >
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <Brain className="w-3 h-3 text-cyan-400/70" />
+                  <Timer className="w-3 h-3 text-violet-400/70" />
                   <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 2</span>
                 </div>
                 <span className={cn("text-[10px] font-semibold", slowBand.color)}>{slowBand.band}</span>
