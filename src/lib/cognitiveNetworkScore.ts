@@ -1,17 +1,19 @@
 /**
- * Synthesized Cognitive Index (SCI)
+ * ============================================
+ * COGNITIVE NETWORK SCORE (SCI) v1.3
+ * ============================================
  * 
- * A scientifically-grounded cognitive network score based on:
- * - Cognitive Reserve Theory (Stern 2002, Medaglia et al. 2017)
- * - Dual-Process Theory (Kahneman, Gronchi 2018)
- * - Attention Restoration Theory (Kaplan 1995)
+ * Technical Manual v1.3 Aligned
  * 
- * Formula: SCI = (0.50 × CP) + (0.30 × BE) + (0.20 × RF)
+ * SCI = 0.50×CP + 0.30×BE + 0.20×REC
  * 
  * Where:
- * - CP = Cognitive Performance (raw abilities + dual-process balance)
- * - BE = Behavioral Engagement (games, tasks, session consistency)
- * - RF = Recovery Factor (digital detox)
+ * - CP = clamp(0, 100, PerformanceAvg)
+ * - PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+ * - BE = min(100, (weekly_games_xp / xp_target_week) × 100)
+ * - REC = Recovery from detox + walking
+ * 
+ * NOTE: Tasks do NOT contribute to XP or BE in v1.3
  */
 
 // Component weights
@@ -21,38 +23,21 @@ const WEIGHTS = {
   RECOVERY_FACTOR: 0.20,
 };
 
-// Cognitive Performance sub-weights
-const CP_WEIGHTS = {
-  REASONING: 0.25,
-  FOCUS: 0.25,
-  DECISION_QUALITY: 0.20,
-  CREATIVITY: 0.15,
-  DUAL_PROCESS_BALANCE: 0.15,
-};
-
-// Behavioral Engagement sub-weights
-const BE_WEIGHTS = {
-  GAMES: 0.50,
-  TASKS: 0.30,
-  SESSION_CONSISTENCY: 0.20,
-};
-
 export interface CognitiveMetricsInput {
-  reasoning_accuracy: number;
-  focus_stability: number;
-  decision_quality: number;
-  creativity: number;
-  fast_thinking: number;
-  slow_thinking: number;
+  // Raw cognitive states (AE, RA, CT, IN mapped from DB)
+  focus_stability: number; // AE
+  fast_thinking: number; // RA
+  reasoning_accuracy: number; // CT
+  slow_thinking: number; // IN
 }
 
+/**
+ * BehavioralEngagementInput v1.3
+ * Only games XP matters for behavioral engagement
+ */
 export interface BehavioralEngagementInput {
   weeklyGamesXP: number;
-  gamesTarget: number;
-  weeklyTasksXP: number;
-  tasksTarget: number;
-  sessionsCompleted: number;
-  sessionsRequired: number;
+  xpTargetWeek: number; // From training plan
 }
 
 export interface RecoveryInput {
@@ -66,20 +51,19 @@ export interface SCIBreakdown {
     score: number;
     weighted: number;
     components: {
-      reasoning: number;
-      focus: number;
-      decisionQuality: number;
-      creativity: number;
-      dualProcessBalance: number;
+      AE: number;
+      RA: number;
+      CT: number;
+      IN: number;
+      S2: number;
+      performanceAvg: number;
     };
   };
   behavioralEngagement: {
     score: number;
     weighted: number;
     components: {
-      gamesEngagement: number;
-      tasksEngagement: number;
-      sessionConsistency: number;
+      gamesProgress: number;
     };
   };
   recoveryFactor: {
@@ -89,76 +73,55 @@ export interface SCIBreakdown {
 }
 
 /**
- * Calculate Dual-Process Balance
- * Perfect balance (fast ≈ slow) = 100
- * Maximum imbalance (|fast - slow| = 100) = 0
- */
-function calculateDualProcessBalance(fastScore: number, slowScore: number): number {
-  const imbalance = Math.abs(fastScore - slowScore);
-  return Math.max(0, 100 - imbalance);
-}
-
-/**
- * Calculate Cognitive Performance Component (50% of SCI)
+ * Calculate Cognitive Performance (CP) v1.3
+ * CP = PerformanceAvg = (AE + RA + CT + IN + S2) / 5
  */
 function calculateCognitivePerformance(metrics: CognitiveMetricsInput): {
   score: number;
   components: SCIBreakdown["cognitivePerformance"]["components"];
 } {
-  const dualProcessBalance = calculateDualProcessBalance(
-    metrics.fast_thinking,
-    metrics.slow_thinking
-  );
+  const AE = metrics.focus_stability;
+  const RA = metrics.fast_thinking;
+  const CT = metrics.reasoning_accuracy;
+  const IN = metrics.slow_thinking;
+  const S2 = (CT + IN) / 2;
+  
+  const performanceAvg = (AE + RA + CT + IN + S2) / 5;
+  const score = Math.max(0, Math.min(100, performanceAvg));
 
-  const components = {
-    reasoning: metrics.reasoning_accuracy,
-    focus: metrics.focus_stability,
-    decisionQuality: metrics.decision_quality,
-    creativity: metrics.creativity,
-    dualProcessBalance,
+  return {
+    score: Math.round(score),
+    components: { AE, RA, CT, IN, S2, performanceAvg },
   };
-
-  const score =
-    CP_WEIGHTS.REASONING * metrics.reasoning_accuracy +
-    CP_WEIGHTS.FOCUS * metrics.focus_stability +
-    CP_WEIGHTS.DECISION_QUALITY * metrics.decision_quality +
-    CP_WEIGHTS.CREATIVITY * metrics.creativity +
-    CP_WEIGHTS.DUAL_PROCESS_BALANCE * dualProcessBalance;
-
-  return { score: Math.round(score), components };
 }
 
 /**
- * Calculate Behavioral Engagement Component (30% of SCI)
+ * Calculate Behavioral Engagement (BE) v1.3
+ * BE = min(100, (weekly_games_xp / xp_target_week) × 100)
+ * 
+ * NOTE: Tasks removed from BE calculation
  */
 function calculateBehavioralEngagement(input: BehavioralEngagementInput): {
   score: number;
   components: SCIBreakdown["behavioralEngagement"]["components"];
 } {
-  // Cap each engagement at 100%
-  const gamesEngagement = Math.min(100, (input.weeklyGamesXP / Math.max(1, input.gamesTarget)) * 100);
-  const tasksEngagement = Math.min(100, (input.weeklyTasksXP / Math.max(1, input.tasksTarget)) * 100);
-  const sessionConsistency = Math.min(100, (input.sessionsCompleted / Math.max(1, input.sessionsRequired)) * 100);
+  const gamesProgress = input.xpTargetWeek > 0
+    ? Math.min(100, (input.weeklyGamesXP / input.xpTargetWeek) * 100)
+    : 0;
 
-  const components = {
-    gamesEngagement: Math.round(gamesEngagement),
-    tasksEngagement: Math.round(tasksEngagement),
-    sessionConsistency: Math.round(sessionConsistency),
+  return {
+    score: Math.round(gamesProgress),
+    components: { gamesProgress: Math.round(gamesProgress) },
   };
-
-  const score =
-    BE_WEIGHTS.GAMES * gamesEngagement +
-    BE_WEIGHTS.TASKS * tasksEngagement +
-    BE_WEIGHTS.SESSION_CONSISTENCY * sessionConsistency;
-
-  return { score: Math.round(score), components };
 }
 
 /**
  * Calculate Recovery Factor (20% of SCI)
  */
 function calculateRecoveryFactor(input: RecoveryInput): number {
-  const detoxProgress = Math.min(100, (input.weeklyDetoxMinutes / Math.max(1, input.detoxTarget)) * 100);
+  const detoxProgress = input.detoxTarget > 0
+    ? Math.min(100, (input.weeklyDetoxMinutes / input.detoxTarget) * 100)
+    : 0;
   return Math.round(detoxProgress);
 }
 
@@ -221,25 +184,23 @@ export function getSCILevel(score: number): "elite" | "high" | "moderate" | "dev
   return "early";
 }
 
-// Default targets based on training plans
+/**
+ * Default targets based on training plans v1.3
+ * - Only games XP target (tasks removed)
+ * - Detox minutes for recovery
+ */
 export const DEFAULT_TARGETS = {
   light: {
-    gamesXP: 60,
-    tasksXP: 30,
-    detoxMinutes: 90,
-    sessionsRequired: 3,
+    xpTargetWeek: 120,
+    detoxMinutes: 480, // 8 hours
   },
   expert: {
-    gamesXP: 100,
-    tasksXP: 60,
-    detoxMinutes: 120,
-    sessionsRequired: 5,
+    xpTargetWeek: 200,
+    detoxMinutes: 840, // 14 hours
   },
   superhuman: {
-    gamesXP: 160,
-    tasksXP: 100,
-    detoxMinutes: 180,
-    sessionsRequired: 7,
+    xpTargetWeek: 300,
+    detoxMinutes: 1680, // 28 hours
   },
 };
 

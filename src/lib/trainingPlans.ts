@@ -1,4 +1,15 @@
-// NeuroLoop Official Training Plans
+/**
+ * ============================================
+ * NEUROLOOP PRO – TRAINING PLANS v1.3
+ * ============================================
+ * 
+ * Technical Manual v1.3 Aligned
+ * 
+ * KEY CHANGES:
+ * - Tasks do NOT give XP (removed contentXPTarget)
+ * - xpTargetWeek is ONLY from games
+ * - Added plan-specific modifiers for games gating
+ */
 
 export type TrainingPlanId = "light" | "expert" | "superhuman";
 
@@ -10,12 +21,12 @@ export interface SessionConfig {
   id: SessionType;
   name: string;
   description: string;
-  duration: string; // e.g. "15-18 min"
+  duration: string;
   thinkingSystems: ("S1" | "S2")[];
   content: {
     type: ContentType;
     required: boolean;
-    duration?: string; // e.g. "5-10 min"
+    duration?: string;
     description: string;
   } | null;
   games: {
@@ -25,13 +36,24 @@ export interface SessionConfig {
 }
 
 export interface DetoxRequirement {
-  weeklyMinutes: number;       // Target minutes per week
-  dailyMinimumMinutes: number; // Minimum minutes per day (30 for all plans)
-  minSessionMinutes: number;   // Minimum session length to count
-  xpPerMinute: number;         // XP earned per minute
-  bonusXP: number;             // Bonus for hitting weekly target
-  walkingRequired: boolean;    // Whether walking is required during recovery
-  walkingMinMinutes: number;   // Minimum walking minutes for full XP
+  weeklyMinutes: number;
+  dailyMinimumMinutes: number;
+  minSessionMinutes: number;
+  xpPerMinute: number;
+  bonusXP: number;
+  walkingRequired: boolean;
+  walkingMinMinutes: number;
+}
+
+/**
+ * Games Gating Modifiers (v1.3)
+ * Applied to S2 thresholds based on training plan
+ */
+export interface GamesGatingModifiers {
+  s2ThresholdModifier: number; // +3 for Light, 0 for Expert, -5 for Superhuman
+  requireRecForS2: number; // Minimum REC for S2 games
+  insightMaxPerWeek: number; // Weekly cap for S2-IN
+  s2MaxPerWeek: number; // Weekly cap for all S2 games
 }
 
 export interface TrainingPlan {
@@ -42,34 +64,31 @@ export interface TrainingPlan {
   philosophy: string;
   targetAudience: string[];
   sessionsPerWeek: number;
-  sessionDuration: string; // e.g. "15-18 min"
-  contentPerWeek: number;
+  sessionDuration: string;
+  contentPerWeek: number; // Protocol adherence tracking (count, not XP)
   contentTypes: ContentType[];
   intensity: "low" | "medium" | "high";
   color: string;
   icon: "leaf" | "target" | "flame";
-  weeklyXPTarget: number; // Target XP to earn per week
-  contentXPTarget: number; // Target XP from content/tasks per week
-  detox: DetoxRequirement; // Required detox configuration
+  // XP target is ONLY from games (v1.3)
+  xpTargetWeek: number;
+  detox: DetoxRequirement;
+  gamesGating: GamesGatingModifiers;
   sessions: SessionConfig[];
 }
 
-// XP Points configuration
+// XP Points configuration (Games only in v1.3)
 export const XP_VALUES = {
   // Games (full session of ~5 exercises)
-  gameComplete: 25,        // Per game session completed
-  gamePerfect: 10,         // Bonus for 90%+ score
+  gameComplete: 25,
+  gamePerfect: 10, // Bonus for 90%+ score
   // Individual exercise XP by difficulty
   exerciseEasy: 3,
   exerciseMedium: 5,
   exerciseHard: 8,
-  // Content - reduced values to require multiple pieces
-  podcastComplete: 8,        // Per podcast listened
-  readingComplete: 10,       // Per reading/article completed
-  bookChapterComplete: 12,   // Per book chapter read
   // Detox - uniform rate across all plans
-  detoxPerMinute: 0.05,      // XP per minute of detox (same for all plans)
-  detoxWeeklyBonus: 5,       // Average bonus for hitting weekly target
+  detoxPerMinute: 0.05,
+  detoxWeeklyBonus: 5,
 } as const;
 
 // Helper to get XP for exercise difficulty
@@ -96,22 +115,28 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     ],
     sessionsPerWeek: 3,
     sessionDuration: "15-18 min",
-    contentPerWeek: 1,
+    contentPerWeek: 1, // Protocol adherence (count only)
     contentTypes: ["podcast", "reading"],
     intensity: "low",
     color: "emerald",
     icon: "leaf",
-    // 3 sessions × ~5 exercises × 5 avg XP = 72 + tasks (24) + detox (24) = 120
-    weeklyXPTarget: 120,
-    contentXPTarget: 24, // 1 content × ~24 XP target
+    // v1.3: XP target is only from games (120 XP/week)
+    xpTargetWeek: 120,
     detox: {
-      weeklyMinutes: 480,        // 8 hours per week
-      dailyMinimumMinutes: 30,   // 30 min minimum per day
-      minSessionMinutes: 30,     // Min 30 min to count
-      xpPerMinute: 0.05,         // 480 min × 0.05 = 24 XP base
-      bonusXP: 5,                // Total ~29 XP from detox
-      walkingRequired: true,     // Walking required for full XP
-      walkingMinMinutes: 30,     // 30 min walking minimum
+      weeklyMinutes: 480,
+      dailyMinimumMinutes: 30,
+      minSessionMinutes: 30,
+      xpPerMinute: 0.05,
+      bonusXP: 5,
+      walkingRequired: true,
+      walkingMinMinutes: 30,
+    },
+    // v1.3: Games gating modifiers
+    gamesGating: {
+      s2ThresholdModifier: 3, // +3 to S2 thresholds (harder to access)
+      requireRecForS2: 50,
+      insightMaxPerWeek: 2,
+      s2MaxPerWeek: 4,
     },
     sessions: [
       {
@@ -166,22 +191,28 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     ],
     sessionsPerWeek: 3,
     sessionDuration: "22-25 min",
-    contentPerWeek: 2,
+    contentPerWeek: 2, // Protocol adherence (count only)
     contentTypes: ["podcast", "reading", "book-extract"],
     intensity: "medium",
     color: "blue",
     icon: "target",
-    // 3 sessions × ~6 exercises × 5 avg XP = 123 + tasks (35) + detox (42) = 200
-    weeklyXPTarget: 200,
-    contentXPTarget: 35, // 2 content × ~17.5 XP avg target
+    // v1.3: XP target is only from games (200 XP/week)
+    xpTargetWeek: 200,
     detox: {
-      weeklyMinutes: 840,        // 14 hours per week
-      dailyMinimumMinutes: 30,   // 30 min minimum per day
-      minSessionMinutes: 30,     // Min 30 min to count
-      xpPerMinute: 0.05,         // 840 min × 0.05 = 42 XP base
-      bonusXP: 8,                // Total ~50 XP from detox
-      walkingRequired: true,     // Walking required for full XP
-      walkingMinMinutes: 30,     // 30 min walking minimum
+      weeklyMinutes: 840,
+      dailyMinimumMinutes: 30,
+      minSessionMinutes: 30,
+      xpPerMinute: 0.05,
+      bonusXP: 8,
+      walkingRequired: true,
+      walkingMinMinutes: 30,
+    },
+    // v1.3: Games gating modifiers (default thresholds)
+    gamesGating: {
+      s2ThresholdModifier: 0, // Standard thresholds
+      requireRecForS2: 50,
+      insightMaxPerWeek: 3,
+      s2MaxPerWeek: 7,
     },
     sessions: [
       {
@@ -236,22 +267,28 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     ],
     sessionsPerWeek: 3,
     sessionDuration: "30-35 min",
-    contentPerWeek: 3,
+    contentPerWeek: 3, // Protocol adherence (count only)
     contentTypes: ["podcast", "reading", "book-extract"],
     intensity: "high",
     color: "red",
     icon: "flame",
-    // 3 sessions × ~8 exercises × 6 avg XP = 131 + tasks (85) + detox (84) = 300
-    weeklyXPTarget: 300,
-    contentXPTarget: 85, // 3 content × ~28 XP avg target
+    // v1.3: XP target is only from games (300 XP/week)
+    xpTargetWeek: 300,
     detox: {
-      weeklyMinutes: 1680,       // 28 hours per week
-      dailyMinimumMinutes: 30,   // 30 min minimum per day
-      minSessionMinutes: 30,     // Min 30 min to count
-      xpPerMinute: 0.05,         // 1680 min × 0.05 = 84 XP base
-      bonusXP: 15,               // Total ~99 XP from detox
-      walkingRequired: true,     // Walking required for full XP
-      walkingMinMinutes: 30,     // 30 min walking minimum
+      weeklyMinutes: 1680,
+      dailyMinimumMinutes: 30,
+      minSessionMinutes: 30,
+      xpPerMinute: 0.05,
+      bonusXP: 15,
+      walkingRequired: true,
+      walkingMinMinutes: 30,
+    },
+    // v1.3: Games gating modifiers (easier access to S2)
+    gamesGating: {
+      s2ThresholdModifier: -5, // -5 from S2 thresholds (easier access)
+      requireRecForS2: 55, // Higher REC requirement
+      insightMaxPerWeek: 4,
+      s2MaxPerWeek: 10,
     },
     sessions: [
       {
@@ -320,4 +357,11 @@ export function getPlanIntensityLabel(intensity: "low" | "medium" | "high"): str
     high: "High"
   };
   return labels[intensity];
+}
+
+/**
+ * Get games gating modifiers for a training plan
+ */
+export function getPlanGamesGatingModifiers(planId: TrainingPlanId): TrainingPlan["gamesGating"] {
+  return TRAINING_PLANS[planId].gamesGating;
 }
