@@ -5,8 +5,10 @@ import { NEURO_LAB_AREAS, NeuroLabArea as AreaType, NeuroLabDuration, getNeuroLa
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating, FREE_DURATIONS } from "@/hooks/usePremiumGating";
+import { useGamesGating } from "@/hooks/useGamesGating";
+import { getGameTypeFromArea } from "@/lib/gamesGating";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
-import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap, Lock, Crown } from "lucide-react";
+import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap, Lock, Crown, ShieldAlert, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -34,6 +36,7 @@ export default function NeuroLabArea() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isDurationLocked, canStartSession } = usePremiumGating();
+  const { games, checkGame, metrics, isLoading: gatingLoading } = useGamesGating();
   
   const [selectedMode, setSelectedMode] = useState<ThinkingMode | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<NeuroLabDuration>(
@@ -41,6 +44,11 @@ export default function NeuroLabArea() {
   );
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"duration" | "session-limit">("duration");
+  
+  // Get gating status for selected mode
+  const selectedGameType = selectedMode ? getGameTypeFromArea(area || "", selectedMode) : null;
+  const gatingResult = selectedGameType ? games[selectedGameType] : null;
+  const isGameEnabled = !gatingResult || gatingResult.status === "ENABLED";
   
   const areaConfig = NEURO_LAB_AREAS.find(a => a.id === area);
   
@@ -72,6 +80,12 @@ export default function NeuroLabArea() {
   
   const handleStartSession = () => {
     if (!selectedMode) return;
+    
+    // Check gating first (no override for games)
+    if (!isGameEnabled) {
+      // Games cannot be overridden - just return
+      return;
+    }
     
     if (!canStartSession()) {
       setPaywallFeature("session-limit");
@@ -222,14 +236,62 @@ export default function NeuroLabArea() {
           onClick={handleStartSession}
           variant="hero"
           className="w-full min-h-[56px] mb-6"
-          disabled={!selectedMode}
+          disabled={!selectedMode || !isGameEnabled || gatingLoading}
         >
-          <Play className="w-5 h-5 mr-2" />
-          {selectedMode 
-            ? `Start ${selectedMode === "fast" ? "System 1" : "System 2"} Training`
-            : "Select a Training Mode"
-          }
+          {gatingLoading ? (
+            <>Loading...</>
+          ) : !selectedMode ? (
+            <>Select a Training Mode</>
+          ) : !isGameEnabled && gatingResult ? (
+            <>
+              <ShieldAlert className="w-5 h-5 mr-2" />
+              {gatingResult.status === "PROTECTION" ? "Protected" : "Withheld"}
+            </>
+          ) : (
+            <>
+              <Play className="w-5 h-5 mr-2" />
+              Start {selectedMode === "fast" ? "System 1" : "System 2"} Training
+            </>
+          )}
         </Button>
+        
+        {/* Gating Status Message */}
+        {selectedMode && !isGameEnabled && gatingResult && (
+          <div className={cn(
+            "p-3 rounded-lg mb-4 text-sm",
+            gatingResult.status === "PROTECTION" 
+              ? "bg-amber-500/10 border border-amber-500/30 text-amber-400"
+              : "bg-muted/50 border border-border/50 text-muted-foreground"
+          )}>
+            <div className="flex items-start gap-2">
+              {gatingResult.status === "PROTECTION" ? (
+                <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              )}
+              <div>
+                <p className="font-medium">
+                  {gatingResult.status === "PROTECTION" ? "System Protection Active" : "Session Withheld"}
+                </p>
+                <p className="text-xs mt-0.5 opacity-80">
+                  {gatingResult.reasonCode === "CAP_REACHED_DAILY_S1" && "S1 daily limit reached (3/day)"}
+                  {gatingResult.reasonCode === "CAP_REACHED_DAILY_S2" && "S2 daily limit reached (1/day)"}
+                  {gatingResult.reasonCode === "CAP_REACHED_WEEKLY_S2" && "S2 weekly limit reached"}
+                  {gatingResult.reasonCode === "CAP_REACHED_WEEKLY_IN" && "Insight weekly limit reached"}
+                  {gatingResult.reasonCode === "SUPERHUMAN_REC_REQUIRED" && `Recovery ≥55 required (current: ${metrics.recovery.toFixed(0)})`}
+                  {gatingResult.reasonCode === "RECOVERY_TOO_LOW" && `Recovery too low: ${gatingResult.details?.currentValue ?? 0} / ${gatingResult.details?.requiredValue ?? 50}`}
+                  {gatingResult.reasonCode === "SHARPNESS_TOO_LOW" && `Sharpness too low: ${gatingResult.details?.currentValue ?? 0} / ${gatingResult.details?.requiredValue ?? 65}`}
+                  {gatingResult.reasonCode === "SHARPNESS_TOO_HIGH" && "Sharpness already high — S1-AE not needed"}
+                  {gatingResult.reasonCode === "READINESS_TOO_LOW" && `Readiness too low: ${gatingResult.details?.currentValue ?? 0} / ${gatingResult.details?.requiredValue ?? 50}`}
+                  {gatingResult.reasonCode === "READINESS_OUT_OF_RANGE" && "Readiness out of optimal range for Insight"}
+                </p>
+                {gatingResult.unlockActions.length > 0 && (
+                  <p className="text-xs mt-1 opacity-60">Try: {gatingResult.unlockActions[0]}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Benefits */}
         <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">

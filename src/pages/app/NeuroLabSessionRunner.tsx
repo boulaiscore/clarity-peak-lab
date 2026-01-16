@@ -10,6 +10,7 @@ import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useDailyTraining } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useRecordExerciseCompletion } from "@/hooks/useExerciseXP";
+import { useRecordGameSession } from "@/hooks/useGamesGating";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { XP_REWARDS, BadgeMetrics, Badge } from "@/lib/badges";
 import { getExerciseXP } from "@/lib/trainingPlans";
@@ -21,8 +22,10 @@ import {
 } from "@/lib/neuroLab";
 import { SessionType } from "@/lib/trainingPlans";
 import { CognitiveExercise, getMetricUpdates } from "@/lib/exercises";
+import { getGameTypeFromArea, GameType } from "@/lib/gamesGating";
 import { toast } from "sonner";
 import { DrillRenderer } from "@/components/drills/DrillRenderer";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Helper to format metric names for display
 function formatMetricName(metric: string): string {
@@ -50,6 +53,8 @@ export default function NeuroLabSessionRunner() {
   const { isDailyCompleted, invalidateDailyTraining } = useDailyTraining();
   const { recordSession, getNextSession } = useWeeklyProgress();
   const recordExerciseCompletion = useRecordExerciseCompletion();
+  const recordGameSession = useRecordGameSession();
+  const queryClient = useQueryClient();
   // Support both path param (/neuro-lab/:area/session) and query param (?area=)
   const area = (pathArea || searchParams.get("area")) as NeuroLabArea;
   const duration = searchParams.get("duration") as NeuroLabDuration;
@@ -248,6 +253,24 @@ export default function NeuroLabSessionRunner() {
             completed_at: new Date().toISOString(),
             is_daily_training: isDailyTraining,
           });
+          
+          // Record game session for caps tracking (v1.3 gating)
+          const mode = thinkingMode || "slow";
+          const gameType = getGameTypeFromArea(area, mode);
+          try {
+            await recordGameSession({
+              gameType,
+              gymArea: area,
+              thinkingMode: mode,
+              xpAwarded: XP_REWARDS.sessionComplete,
+              score: averageScore,
+            });
+            // Invalidate game session queries to update caps
+            queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
+            queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
+          } catch (gameSessionError) {
+            console.error("Failed to record game session for caps:", gameSessionError);
+          }
           
           // Record this game in weekly progress if we have a session type
           if (currentSessionType) {
