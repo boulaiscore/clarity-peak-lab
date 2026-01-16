@@ -290,9 +290,8 @@ export function GamesStats() {
   const userPlan = (profile?.training_plan as TrainingPlanId) || "light";
   const plan = TRAINING_PLANS[userPlan];
   
-  // Match useCappedWeeklyProgress formula: detoxXPTarget = weeklyMinutes * xpPerMinute (no bonusXP)
-  const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
-  const gamesXPTarget = Math.max(0, plan.weeklyXPTarget - plan.contentXPTarget - detoxXPTarget);
+  // v1.3: All XP comes from games, so gamesXPTarget = plan.xpTargetWeek
+  const gamesXPTarget = plan.xpTargetWeek;
   
   const { data: sessions = [], isLoading } = useWeeklyGameCompletions();
   const { data: historyData } = useGamesHistory(14);
@@ -632,10 +631,10 @@ export function GamesStats() {
               const totalGamesXP = stats.s1XP + stats.s2XP;
               
               // Games Engagement = min(100, weeklyGamesXP / gamesTarget × 100)
-              // This contributes to Behavioral Engagement (30% of SCI) with weight 50%
-              // So Games → SCI contribution = 0.30 × 0.50 × GamesEngagement = 0.15 × GamesEngagement
+              // This contributes to Behavioral Engagement (BE) which is 30% of SCI
+              // So Games → SCI contribution = 0.30 × GamesEngagement
               const gamesEngagement = gamesXPTarget > 0 ? Math.min(100, (totalGamesXP / gamesXPTarget) * 100) : 0;
-              const sciContribution = Math.round(0.15 * gamesEngagement);
+              const sciContribution = Math.round(0.30 * gamesEngagement);
               
               // Dual Process Balance = 100 - |S1% - S2%| where S1%,S2% are portion of total
               // Perfect balance when S1 ≈ S2

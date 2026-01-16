@@ -626,7 +626,7 @@ export function TrainingTasks() {
           <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
           <span className="text-[9px] text-muted-foreground ml-auto">completions / day</span>
         </div>
-        {tasksHistoryData && tasksHistoryData.some(d => d.xp > 0) ? (
+        {tasksHistoryData && tasksHistoryData.some(d => (d.podcast + d.book + d.article) > 0) ? (
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={tasksHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>

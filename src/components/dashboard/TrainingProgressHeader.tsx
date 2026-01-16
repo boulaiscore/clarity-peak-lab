@@ -17,13 +17,12 @@ export const TrainingProgressHeader = () => {
     cappedTotalXP,
     totalXPTarget,
     cappedGamesXP,
-    cappedTasksXP,
-    cappedDetoxXP,
     gamesXPTarget,
-    tasksXPTarget,
-    detoxXPTarget,
     gamesBreakdown,
     totalProgress,
+    recoveryMinutesTarget,
+    recoveryMinutesEarned,
+    contentCompletionsCount,
     isLoading: progressLoading,
   } = useCappedWeeklyProgress();
 
@@ -160,26 +159,26 @@ export const TrainingProgressHeader = () => {
         <div className="grid grid-cols-3 gap-2">
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <BookMarked className="w-3 h-3 text-muted-foreground" />
+              <Dumbbell className="w-3 h-3 text-muted-foreground" />
             </div>
-            <p className="text-xs font-semibold text-foreground">{cappedTasksXP}</p>
-            <p className="text-[8px] text-muted-foreground">/{tasksXPTarget} Tasks</p>
+            <p className="text-xs font-semibold text-foreground">{cappedGamesXP}</p>
+            <p className="text-[8px] text-muted-foreground">/{gamesXPTarget} XP</p>
           </div>
           
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Smartphone className="w-3 h-3 text-muted-foreground" />
             </div>
-            <p className="text-xs font-semibold text-foreground">{cappedDetoxXP}</p>
-            <p className="text-[8px] text-muted-foreground">/{detoxXPTarget} Detox</p>
+            <p className="text-xs font-semibold text-foreground">{recoveryMinutesEarned}m</p>
+            <p className="text-[8px] text-muted-foreground">/{recoveryMinutesTarget}m Recovery</p>
           </div>
           
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Dumbbell className="w-3 h-3 text-muted-foreground" />
+              <BookMarked className="w-3 h-3 text-muted-foreground" />
             </div>
-            <p className="text-xs font-semibold text-foreground">{cappedGamesXP}</p>
-            <p className="text-[8px] text-muted-foreground">/{gamesXPTarget} Training</p>
+            <p className="text-xs font-semibold text-foreground">{contentCompletionsCount}</p>
+            <p className="text-[8px] text-muted-foreground">Tasks done</p>
           </div>
         </div>
         
