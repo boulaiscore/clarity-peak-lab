@@ -50,7 +50,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const isDarkMode = theme === "dark";
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const sphereRadius = 85;
+    const sphereRadius = 95; // Increased radius
 
     // Colors matching the reference image
     // Cyan/teal for connections
@@ -104,27 +104,59 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       time += 0.015;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw outer sphere border (pulsing)
-      const pulseRadius = sphereRadius + Math.sin(time * 0.5) * 2;
+      // Draw irregular organic sphere border
+      const segments = 60;
       
-      // Outer glow ring
+      // Outer glow with irregular shape
+      ctx.beginPath();
+      for (let i = 0; i <= segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        // Create organic wobble using multiple sine waves
+        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 6;
+        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 3;
+        const wobble3 = Math.sin(angle * 7 + time * 0.7) * 2;
+        const pulseWobble = Math.sin(time * 0.5) * 2;
+        const r = sphereRadius + wobble1 + wobble2 + wobble3 + pulseWobble;
+        
+        const x = centerX + Math.cos(angle) * (r + 15);
+        const y = centerY + Math.sin(angle) * (r + 15);
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      
+      // Outer glow gradient
       const outerGlow = ctx.createRadialGradient(
-        centerX, centerY, pulseRadius - 15,
-        centerX, centerY, pulseRadius + 20
+        centerX, centerY, sphereRadius - 15,
+        centerX, centerY, sphereRadius + 30
       );
       outerGlow.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      outerGlow.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.15 : 0.1})`);
-      outerGlow.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`);
+      outerGlow.addColorStop(0.4, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.12 : 0.08})`);
+      outerGlow.addColorStop(0.7, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.06 : 0.04})`);
       outerGlow.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, pulseRadius + 15, 0, Math.PI * 2);
       ctx.fillStyle = outerGlow;
       ctx.fill();
 
-      // Sphere border ring
+      // Irregular sphere border ring
       ctx.beginPath();
-      ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.4 : 0.3})`;
+      for (let i = 0; i <= segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        // Same organic wobble for consistency
+        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 6;
+        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 3;
+        const wobble3 = Math.sin(angle * 7 + time * 0.7) * 2;
+        const pulseWobble = Math.sin(time * 0.5) * 2;
+        const r = sphereRadius + wobble1 + wobble2 + wobble3 + pulseWobble;
+        
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.5 : 0.4})`;
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
