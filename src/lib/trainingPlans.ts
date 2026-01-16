@@ -207,6 +207,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     icon: "target",
     // v1.3: XP target is only from games (200 XP/week)
     xpTargetWeek: 200,
+    // Backward compatibility aliases
+    weeklyXPTarget: 200,
+    contentXPTarget: 0, // v1.3: Tasks don't give XP
     detox: {
       weeklyMinutes: 840,
       dailyMinimumMinutes: 30,
@@ -283,6 +286,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     icon: "flame",
     // v1.3: XP target is only from games (300 XP/week)
     xpTargetWeek: 300,
+    // Backward compatibility aliases
+    weeklyXPTarget: 300,
+    contentXPTarget: 0, // v1.3: Tasks don't give XP
     detox: {
       weeklyMinutes: 1680,
       dailyMinimumMinutes: 30,
