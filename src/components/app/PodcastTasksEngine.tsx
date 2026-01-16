@@ -170,15 +170,15 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5"
+      className="p-4 rounded-xl border border-amber-500/15 bg-amber-500/5"
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-          <Battery className="w-5 h-5 text-amber-500" />
+        <div className="w-10 h-10 rounded-lg bg-amber-500/8 flex items-center justify-center shrink-0">
+          <Battery className="w-5 h-5 text-amber-400/70" />
         </div>
         
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1 uppercase tracking-wide">
+          <h4 className="text-sm font-medium text-amber-500/80 mb-1 uppercase tracking-wide">
             System Prioritizing Recovery
           </h4>
           <p className="text-[11px] text-muted-foreground">
@@ -193,7 +193,7 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
             </p>
             <Link 
               to="/neuro-lab?tab=detox" 
-              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-amber-500 hover:text-amber-400 transition-colors"
+              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-amber-400/70 hover:text-amber-400 transition-colors"
             >
               Build recovery through Detox or Walk →
             </Link>
