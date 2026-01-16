@@ -1,10 +1,53 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints } from "lucide-react";
+import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, TrendingDown, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
-import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+// Training status types
+type TrainingStatus = "low" | "ok" | "high";
+
+interface TrainingStatusInfo {
+  status: TrainingStatus;
+  label: string;
+  subtitle: string;
+  footerMessage: string;
+  color: string;
+  icon: React.ElementType;
+}
+
+// Helper to determine training status based on progress
+function getTrainingStatus(progress: number): TrainingStatusInfo {
+  if (progress < 40) {
+    return {
+      status: "low",
+      label: "Too little training",
+      subtitle: "You're not training enough to improve.",
+      footerMessage: "Train more this week to reach an effective level.",
+      color: "text-amber-400",
+      icon: TrendingDown,
+    };
+  }
+  if (progress <= 100) {
+    return {
+      status: "ok",
+      label: "Training at the right level",
+      subtitle: "This amount of training is effective.",
+      footerMessage: "Keep this rhythm to improve.",
+      color: "text-emerald-400",
+      icon: CheckCircle2,
+    };
+  }
+  return {
+    status: "high",
+    label: "Too much training",
+    subtitle: "More training won't help right now.",
+    footerMessage: "Recovery is required before more training.",
+    color: "text-orange-400",
+    icon: AlertTriangle,
+  };
+}
 
 // Mini celebration badge
 function CategoryCompleteBadge({ show }: { show: boolean }) {
@@ -81,8 +124,6 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
     gamesProgress,
     gamesSubTargets,
     cappedTotalXP,
-    totalProgress,
-    xpRemaining,
     goalReached,
     recoveryMinutesTarget,
     recoveryMinutesEarned,
@@ -103,6 +144,9 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   const s2Areas = gamesSubTargets.find((s) => s.system === "S2")?.areas ?? [];
 
   const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
+  
+  // Calculate training status
+  const trainingStatus = useMemo(() => getTrainingStatus(gamesProgress), [gamesProgress]);
 
   useEffect(() => {
     // Only trigger celebration once per week, when goal transitions from not-reached to reached
@@ -170,13 +214,22 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </motion.div>
               </div>
             </div>
+            
+            {/* Training Status - Most prominent element */}
+            <div className="flex items-center gap-2 mb-2">
+              <trainingStatus.icon className={`w-4 h-4 ${trainingStatus.color}`} />
+              <div>
+                <p className={`text-[12px] font-bold ${trainingStatus.color}`}>{trainingStatus.label}</p>
+                <p className="text-[9px] text-muted-foreground">{trainingStatus.subtitle}</p>
+              </div>
+            </div>
 
             {/* Training Progress Bar - Always visible */}
             <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
               <motion.div
                 className={`h-full rounded-full ${gamesComplete ? "bg-emerald-400" : "bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400"}`}
                 initial={false}
-                animate={{ width: `${gamesProgress}%` }}
+                animate={{ width: `${Math.min(100, gamesProgress)}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
@@ -199,11 +252,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   <CategoryCompleteBadge show={gamesComplete} />
                 </div>
                 
-                {/* S1 row */}
-                <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
+                {/* S1 row - Fast skills */}
+                <div className="grid grid-cols-[80px_1fr_1fr] gap-1 mb-1">
                   <div className="flex items-center gap-0.5">
                     <Zap className="w-2 h-2 text-amber-400" />
-                    <span className="text-[8px] text-amber-400 font-medium">S1</span>
+                    <span className="text-[8px] text-amber-400 font-medium">S1 — Fast</span>
                   </div>
                   {s1Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -246,11 +299,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   })}
                 </div>
                 
-                {/* S2 row */}
-                <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
+                {/* S2 row - Reasoning skills */}
+                <div className="grid grid-cols-[80px_1fr_1fr] gap-1">
                   <div className="flex items-center gap-0.5">
                     <Timer className="w-2 h-2 text-violet-400" />
-                    <span className="text-[8px] text-violet-400 font-medium">S2</span>
+                    <span className="text-[8px] text-violet-400 font-medium">S2 — Reasoning</span>
                   </div>
                   {s2Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -316,12 +369,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   />
                 </div>
                 <p className="text-[8px] text-muted-foreground/60 mt-1">
-                  Detox + Walking restore cognitive capacity
+                  Restores training capacity
                 </p>
               </div>
 
               <p className="text-[9px] text-muted-foreground mt-3">
-                {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, gamesXPTarget)}
+                {trainingStatus.footerMessage}
               </p>
             </motion.div>
           </CollapsibleContent>
@@ -345,22 +398,23 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
     >
       {/* Header - Training Load Only */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Dumbbell className="w-4 h-4 text-primary" />
-          <div>
-            <span className="text-[12px] font-semibold">Training Load</span>
-            <p className="text-[9px] text-muted-foreground">Weekly cognitive training progress</p>
-          </div>
+          <span className="text-[12px] font-semibold">Training Load</span>
         </div>
-        <div className="text-right">
-          <div className="text-[11px] font-medium text-muted-foreground">
-            {Math.round(gamesProgress)}%
-            {isSyncing && <span className="ml-1 text-[8px] text-muted-foreground/50">•</span>}
-          </div>
-          <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-            {Math.round(cappedGames)}/{Math.round(gamesXPTarget)} XP
-          </div>
+        <div className="text-[10px] text-muted-foreground/80 tabular-nums">
+          {Math.round(cappedGames)}/{Math.round(gamesXPTarget)} XP
+          {isSyncing && <span className="ml-1 text-[8px] text-muted-foreground/50">•</span>}
+        </div>
+      </div>
+      
+      {/* Training Status - Most prominent element */}
+      <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted/30 border border-border/30">
+        <trainingStatus.icon className={`w-6 h-6 ${trainingStatus.color}`} />
+        <div>
+          <p className={`text-[14px] font-bold ${trainingStatus.color}`}>{trainingStatus.label}</p>
+          <p className="text-[10px] text-muted-foreground">{trainingStatus.subtitle}</p>
         </div>
       </div>
 
@@ -369,7 +423,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         <motion.div
           className={`h-full rounded-full ${gamesComplete ? "bg-emerald-400" : "bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400"}`}
           initial={false}
-          animate={{ width: `${gamesProgress}%` }}
+          animate={{ width: `${Math.min(100, gamesProgress)}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
@@ -385,11 +439,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           <CategoryCompleteBadge show={gamesComplete} />
         </div>
         
-        {/* S1 row */}
-        <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
+        {/* S1 row - Fast skills */}
+        <div className="grid grid-cols-[100px_1fr_1fr] gap-1 mb-1">
           <div className="flex items-center gap-0.5">
-            <Zap className="w-2 h-2 text-amber-400" />
-            <span className="text-[8px] text-amber-400 font-medium">S1</span>
+            <Zap className="w-2.5 h-2.5 text-amber-400" />
+            <span className="text-[9px] text-amber-400 font-medium">S1 — Fast skills</span>
           </div>
           {s1Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -429,11 +483,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           })}
         </div>
         
-        {/* S2 row */}
-        <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
+        {/* S2 row - Reasoning skills */}
+        <div className="grid grid-cols-[100px_1fr_1fr] gap-1">
           <div className="flex items-center gap-0.5">
-            <Timer className="w-2 h-2 text-violet-400" />
-            <span className="text-[8px] text-violet-400 font-medium">S2</span>
+            <Timer className="w-2.5 h-2.5 text-violet-400" />
+            <span className="text-[9px] text-violet-400 font-medium">S2 — Reasoning skills</span>
           </div>
           {s2Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -496,12 +550,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           />
         </div>
         <p className="text-[9px] text-muted-foreground/60 mt-1">
-          Detox + Walking restore cognitive capacity
+          Restores training capacity
         </p>
       </div>
 
       <p className="text-[10px] text-muted-foreground">
-        {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, gamesXPTarget)}
+        {trainingStatus.footerMessage}
       </p>
 
       {/* Weekly completion celebration with report popup */}
