@@ -17,7 +17,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
@@ -283,10 +283,22 @@ const Account = () => {
           {/* Tabbed Navigation */}
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
-              <TabsTrigger value="profile" className="text-xs">Profile</TabsTrigger>
-              <TabsTrigger value="training" className="text-xs">Training</TabsTrigger>
-              <TabsTrigger value="preferences" className="text-xs">Settings</TabsTrigger>
-              <TabsTrigger value="subscription" className="text-xs">Plan</TabsTrigger>
+              <TabsTrigger value="profile" className="text-xs gap-1.5">
+                <User className="w-3.5 h-3.5" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="training" className="text-xs gap-1.5">
+                <Dumbbell className="w-3.5 h-3.5" />
+                Training
+              </TabsTrigger>
+              <TabsTrigger value="preferences" className="text-xs gap-1.5">
+                <Settings className="w-3.5 h-3.5" />
+                Settings
+              </TabsTrigger>
+              <TabsTrigger value="subscription" className="text-xs gap-1.5">
+                <CreditCard className="w-3.5 h-3.5" />
+                Plan
+              </TabsTrigger>
             </TabsList>
 
             {/* ==================== PROFILE TAB ==================== */}
