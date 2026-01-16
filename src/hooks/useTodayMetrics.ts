@@ -149,6 +149,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   });
   
   // Fetch readiness decay tracking data
+  // NOTE: Using type cast because these columns are new and types.ts may not be updated yet
   const { data: decayData, isLoading: decayLoading } = useQuery({
     queryKey: ["readiness-decay-tracking", userId, weekStart],
     queryFn: async () => {
@@ -157,7 +158,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       const { data, error } = await supabase
         .from("user_cognitive_metrics")
         .select(`
-          consecutive_low_rec_days,
+          low_rec_streak_days,
           readiness_decay_applied,
           readiness_decay_week_start
         `)
@@ -165,7 +166,13 @@ export function useTodayMetrics(): UseTodayMetricsResult {
         .maybeSingle();
       
       if (error) throw error;
-      return data;
+      
+      // Cast to expected shape
+      return data as {
+        low_rec_streak_days: number | null;
+        readiness_decay_applied: number | null;
+        readiness_decay_week_start: string | null;
+      } | null;
     },
     enabled: !!userId,
     staleTime: 60_000,
@@ -201,8 +208,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     // Calculate base Readiness
     const baseReadiness = calculateReadiness(states, recovery, physioComponent);
     
-    // Calculate Readiness decay
-    const consecutiveLowRecDays = decayData?.consecutive_low_rec_days ?? 0;
+    // Calculate Readiness decay (using low_rec_streak_days from daily snapshot)
+    const consecutiveLowRecDays = decayData?.low_rec_streak_days ?? 0;
     const readinessDecayWeekStart = decayData?.readiness_decay_week_start;
     const currentDecayApplied = 
       readinessDecayWeekStart === weekStart 

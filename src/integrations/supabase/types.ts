@@ -589,12 +589,14 @@ export type Database = {
           fast_thinking: number
           focus_stability: number
           id: string
-          last_ae_xp_date: string | null
-          last_ct_xp_date: string | null
+          last_ae_xp_at: string | null
+          last_ct_xp_at: string | null
           last_decay_calculation_date: string | null
-          last_in_xp_date: string | null
+          last_in_xp_at: string | null
           last_low_rec_check_date: string | null
-          last_ra_xp_date: string | null
+          last_ra_xp_at: string | null
+          last_xp_at: string | null
+          low_rec_streak_days: number | null
           performance_avg_window_start_date: string | null
           performance_avg_window_start_value: number | null
           philosophical_reasoning: number
@@ -604,6 +606,8 @@ export type Database = {
           readiness_decay_applied: number | null
           readiness_decay_week_start: string | null
           reasoning_accuracy: number
+          rec_snapshot_date: string | null
+          rec_snapshot_value: number | null
           sci_decay_applied: number | null
           sci_decay_week_start: string | null
           slow_thinking: number
@@ -638,12 +642,14 @@ export type Database = {
           fast_thinking?: number
           focus_stability?: number
           id?: string
-          last_ae_xp_date?: string | null
-          last_ct_xp_date?: string | null
+          last_ae_xp_at?: string | null
+          last_ct_xp_at?: string | null
           last_decay_calculation_date?: string | null
-          last_in_xp_date?: string | null
+          last_in_xp_at?: string | null
           last_low_rec_check_date?: string | null
-          last_ra_xp_date?: string | null
+          last_ra_xp_at?: string | null
+          last_xp_at?: string | null
+          low_rec_streak_days?: number | null
           performance_avg_window_start_date?: string | null
           performance_avg_window_start_value?: number | null
           philosophical_reasoning?: number
@@ -653,6 +659,8 @@ export type Database = {
           readiness_decay_applied?: number | null
           readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
+          rec_snapshot_date?: string | null
+          rec_snapshot_value?: number | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
           slow_thinking?: number
@@ -687,12 +695,14 @@ export type Database = {
           fast_thinking?: number
           focus_stability?: number
           id?: string
-          last_ae_xp_date?: string | null
-          last_ct_xp_date?: string | null
+          last_ae_xp_at?: string | null
+          last_ct_xp_at?: string | null
           last_decay_calculation_date?: string | null
-          last_in_xp_date?: string | null
+          last_in_xp_at?: string | null
           last_low_rec_check_date?: string | null
-          last_ra_xp_date?: string | null
+          last_ra_xp_at?: string | null
+          last_xp_at?: string | null
+          low_rec_streak_days?: number | null
           performance_avg_window_start_date?: string | null
           performance_avg_window_start_value?: number | null
           philosophical_reasoning?: number
@@ -702,6 +712,8 @@ export type Database = {
           readiness_decay_applied?: number | null
           readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
+          rec_snapshot_date?: string | null
+          rec_snapshot_value?: number | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
           slow_thinking?: number

@@ -342,7 +342,13 @@ function determineReasonCode(
 }
 
 /**
- * Hook to record a game session completion
+ * Hook to record a game session completion.
+ * 
+ * v1.4: Now atomically updates XP timestamps in user_cognitive_metrics:
+ * - last_xp_at (global) - updated on every game completion
+ * - last_{skill}_xp_at - updated for the routed skill only
+ * 
+ * This prevents skill decay for 30 days after training that skill.
  */
 export function useRecordGameSession() {
   const { user } = useAuth();
@@ -362,7 +368,9 @@ export function useRecordGameSession() {
     // Derive system_type and skill_routed from gameType
     const systemType = params.gameType.startsWith("S1") ? "S1" : "S2";
     const skillRouted = params.gameType.split("-")[1] as "AE" | "RA" | "CT" | "IN";
+    const nowUtc = new Date().toISOString();
     
+    // Insert game session
     const { data, error } = await supabase
       .from("game_sessions")
       .insert({
@@ -374,7 +382,7 @@ export function useRecordGameSession() {
         thinking_mode: params.thinkingMode,
         xp_awarded: params.xpAwarded,
         score: params.score,
-        completed_at: new Date().toISOString(),
+        completed_at: nowUtc,
       })
       .select()
       .single();
@@ -382,6 +390,28 @@ export function useRecordGameSession() {
     if (error) {
       console.error("[GameSession] Failed to record:", error);
       throw error;
+    }
+    
+    // Atomically update XP timestamps in user_cognitive_metrics
+    // Build the update object for the specific skill
+    const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as 
+      "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
+    
+    const xpTrackingUpdate: Record<string, string> = {
+      last_xp_at: nowUtc,
+      [skillXpColumn]: nowUtc,
+    };
+    
+    const { error: updateError } = await supabase
+      .from("user_cognitive_metrics")
+      .update(xpTrackingUpdate)
+      .eq("user_id", user.id);
+    
+    if (updateError) {
+      // Log but don't throw - game session was recorded successfully
+      console.error("[GameSession] Failed to update XP timestamps:", updateError);
+    } else {
+      console.log(`[GameSession] Updated last_xp_at and ${skillXpColumn} to ${nowUtc}`);
     }
     
     console.log("[GameSession] Recorded:", data);

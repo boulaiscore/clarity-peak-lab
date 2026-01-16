@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
@@ -8,6 +8,7 @@ import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
+import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 
@@ -108,6 +109,19 @@ const Home = () => {
   
   // New cognitive engine metrics
   const { sharpness, readiness, recovery, isLoading: metricsLoading } = useTodayMetrics();
+  
+  // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
+  const { persistDailySnapshot, isSnapshotCurrentToday } = useDailyRecoverySnapshot();
+  
+  // Persist daily REC snapshot on mount (once per day only)
+  useEffect(() => {
+    // Only run if metrics are loaded and snapshot hasn't been taken today
+    if (!metricsLoading && !isSnapshotCurrentToday()) {
+      persistDailySnapshot(recovery).catch((err) => {
+        console.error("[Home] Failed to persist daily snapshot:", err);
+      });
+    }
+  }, [metricsLoading, recovery, persistDailySnapshot, isSnapshotCurrentToday]);
   
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
