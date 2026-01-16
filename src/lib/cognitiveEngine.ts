@@ -1,10 +1,9 @@
 /**
  * ============================================
- * NEUROLOOP PRO – COGNITIVE ENGINE
+ * NEUROLOOP PRO – COGNITIVE ENGINE v1.3
  * ============================================
  * 
- * This is the SINGLE SOURCE OF TRUTH for all cognitive metrics calculations.
- * All formulas match the specification exactly.
+ * Technical Manual v1.3 Aligned
  * 
  * COGNITIVE STATES (BASE VARIABLES):
  * - AE = Attentional Efficiency (0-100) – mapped from focus_stability
@@ -16,10 +15,13 @@
  * - S1 = (AE + RA) / 2  (Intuition/Fast)
  * - S2 = (CT + IN) / 2  (Reasoning/Slow)
  * 
- * RECOVERY (REC):
- * - Purely time-based (detox + walk minutes)
- * - NOT an XP source
- * - Modulates Sharpness and Readiness
+ * SCI FORMULA (v1.3):
+ * - CP = clamp(0, 100, PerformanceAvg)
+ * - PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+ * - BE = min(100, (weekly_games_xp / xp_target_week) × 100)
+ * - SCI = 0.50×CP + 0.30×BE + 0.20×REC
+ * 
+ * NOTE: Tasks do NOT give XP. They are cognitive inputs, not training rewards.
  */
 
 // ============================================
@@ -57,13 +59,14 @@ export interface TodayMetrics {
   recovery: number;
 }
 
+/**
+ * BehavioralEngagement v1.3
+ * - Tasks removed (they don't contribute to XP)
+ * - Only games XP matters for behavioral engagement
+ */
 export interface BehavioralEngagement {
   weeklyGamesXP: number;
-  gamesTarget: number;
-  weeklyTasksXP: number;
-  tasksTarget: number;
-  sessionsCompleted: number;
-  sessionsRequired: number;
+  xpTargetWeek: number; // From training plan
 }
 
 export interface SCIResult {
@@ -221,11 +224,14 @@ export function getDualProcessLevel(score: number): "elite" | "good" | "unbalanc
 }
 
 // ============================================
-// COGNITIVE NETWORK (SCI)
-// Formula:
-//   CP = 0.30 × CT + 0.25 × AE + 0.15 × IN + 0.30 × DualProcess
-//   BE = 0.50 × Games% + 0.30 × Tasks% + 0.20 × Consistency%
-//   SCI = 0.50 × CP + 0.30 × BE + 0.20 × REC
+// COGNITIVE NETWORK (SCI) - v1.3 Formula
+// 
+// CP = clamp(0, 100, PerformanceAvg)
+// PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+// BE = min(100, (weekly_games_xp / xp_target_week) × 100)
+// SCI = 0.50×CP + 0.30×BE + 0.20×REC
+// 
+// NOTE: Tasks removed from BE calculation
 // ============================================
 
 export function calculateSCI(
@@ -238,27 +244,18 @@ export function calculateSCI(
   // Dual Process Balance
   const dualProcessBalance = calculateDualProcessBalance(S1, S2);
   
-  // Cognitive Performance (CP)
-  const CP = 
-    0.30 * states.CT +
-    0.25 * states.AE +
-    0.15 * states.IN +
-    0.30 * dualProcessBalance;
+  // Cognitive Performance (CP) = PerformanceAvg
+  // PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+  const performanceAvg = (states.AE + states.RA + states.CT + states.IN + S2) / 5;
+  const CP = clamp(performanceAvg, 0, 100);
   
-  // Behavioral Engagement (BE)
-  const gamesPercent = behavioral.gamesTarget > 0 
-    ? Math.min(100, (behavioral.weeklyGamesXP / behavioral.gamesTarget) * 100)
-    : 0;
-  const tasksPercent = behavioral.tasksTarget > 0
-    ? Math.min(100, (behavioral.weeklyTasksXP / behavioral.tasksTarget) * 100)
-    : 0;
-  const consistencyPercent = behavioral.sessionsRequired > 0
-    ? Math.min(100, (behavioral.sessionsCompleted / behavioral.sessionsRequired) * 100)
+  // Behavioral Engagement (BE) = based on games XP only
+  // BE = min(100, (weekly_games_xp / xp_target_week) × 100)
+  const BE = behavioral.xpTargetWeek > 0 
+    ? Math.min(100, (behavioral.weeklyGamesXP / behavioral.xpTargetWeek) * 100)
     : 0;
   
-  const BE = 0.50 * gamesPercent + 0.30 * tasksPercent + 0.20 * consistencyPercent;
-  
-  // SCI Total
+  // SCI = 0.50×CP + 0.30×BE + 0.20×REC
   const total = 0.50 * CP + 0.30 * BE + 0.20 * recovery;
   
   return {
@@ -439,40 +436,4 @@ export function getXPRouting(gymArea: string, thinkingMode: string): XPRouting {
 export function calculateStateUpdate(currentValue: number, earnedXP: number): number {
   const delta = earnedXP * 0.5;
   return clamp(currentValue + delta, 0, 100);
-}
-
-// ============================================
-// TASKS XP ROUTING (System 2 only)
-// Podcast: CT 60%, IN 40% (× 0.25 dampening)
-// Article: CT 70%, IN 30%
-// Book:    CT 60%, IN 40%
-// ============================================
-
-export type TaskType = "podcast" | "article" | "book";
-
-export interface TaskXPAllocation {
-  CT: number;
-  IN: number;
-}
-
-export function getTaskXPAllocation(taskType: TaskType, xpEarned: number): TaskXPAllocation {
-  const dampening = 0.25;
-  
-  switch (taskType) {
-    case "podcast":
-      return {
-        CT: xpEarned * 0.6 * dampening,
-        IN: xpEarned * 0.4 * dampening,
-      };
-    case "article":
-      return {
-        CT: xpEarned * 0.7 * dampening,
-        IN: xpEarned * 0.3 * dampening,
-      };
-    case "book":
-      return {
-        CT: xpEarned * 0.6 * dampening,
-        IN: xpEarned * 0.4 * dampening,
-      };
-  }
 }
