@@ -498,66 +498,115 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
         )}
       </div>
 
-      {/* Evaluation Band for Dual Process Integration */}
+      {/* Three Evaluation Bands: Fast, Slow, Balance */}
       {(() => {
-        // Calculate integration score: average of both systems weighted by balance
-        const avgScore = Math.round((fastScore + slowScore) / 2);
-        const balance = 100 - Math.abs(fastScore - slowScore); // 0-100, higher = more balanced
-        const integrationScore = Math.round((avgScore * 0.7) + (balance * 0.3)); // Weighted combo
-        
-        // Band classification similar to Neural Strength
-        const getBand = (score: number) => {
-          if (score >= 75) return {
-            band: "Integrated",
-            color: "text-emerald-400",
-            bgColor: "bg-emerald-500/10 border-emerald-500/20",
-            comment: "Both systems work in harmony. Strong cognitive flexibility."
+        // Band classification for individual scores (0-100)
+        const getScoreBand = (score: number, type: "fast" | "slow") => {
+          const labels = type === "fast" 
+            ? { high: "Sharp", mid: "Reactive", low: "Building" }
+            : { high: "Deep", mid: "Analytical", low: "Building" };
+          
+          if (score >= 70) return {
+            band: labels.high,
+            color: type === "fast" ? "text-amber-400" : "text-cyan-400",
+            comment: type === "fast" 
+              ? "Quick pattern recognition and intuitive responses."
+              : "Strong deliberate reasoning and analysis."
           };
-          if (score >= 60) return {
-            band: "Aligned",
-            color: "text-primary",
-            bgColor: "bg-primary/10 border-primary/20",
-            comment: "Good balance between intuition and analysis."
-          };
-          if (score >= 45) return {
-            band: "Developing",
-            color: "text-blue-400",
-            bgColor: "bg-blue-500/10 border-blue-500/20",
-            comment: "Systems are building coordination. Keep training both."
-          };
-          if (score >= 30) return {
-            band: "Imbalanced",
-            color: "text-amber-400",
-            bgColor: "bg-amber-500/10 border-amber-500/20",
-            comment: fastScore > slowScore 
-              ? "Intuition leads. Strengthen deliberate reasoning."
-              : "Analysis leads. Sharpen rapid pattern recognition."
+          if (score >= 50) return {
+            band: labels.mid,
+            color: type === "fast" ? "text-amber-300" : "text-cyan-300",
+            comment: type === "fast"
+              ? "Developing rapid intuition."
+              : "Growing analytical depth."
           };
           return {
-            band: "Early",
+            band: labels.low,
             color: "text-muted-foreground",
-            bgColor: "bg-muted/20 border-muted-foreground/20",
-            comment: "Just getting started. Both systems need activation."
+            comment: type === "fast"
+              ? "Intuitive responses need training."
+              : "Deliberate reasoning needs practice."
           };
         };
         
-        const { band, color, bgColor, comment } = getBand(integrationScore);
+        // Balance evaluation (difference between systems)
+        const diff = Math.abs(fastScore - slowScore);
+        const getBalanceBand = () => {
+          if (diff <= 10) return {
+            band: "Balanced",
+            color: "text-emerald-400",
+            comment: "Both systems work in harmony."
+          };
+          if (diff <= 25) return {
+            band: "Slight tilt",
+            color: "text-blue-400",
+            comment: fastScore > slowScore 
+              ? "Intuition slightly leads analysis."
+              : "Analysis slightly leads intuition."
+          };
+          return {
+            band: "Imbalanced",
+            color: "text-amber-400",
+            comment: fastScore > slowScore
+              ? "Intuition dominates. Train deliberate reasoning."
+              : "Analysis dominates. Train rapid pattern recognition."
+          };
+        };
+        
+        const fastBand = getScoreBand(fastScore, "fast");
+        const slowBand = getScoreBand(slowScore, "slow");
+        const balanceBand = getBalanceBand();
         
         return (
-          <motion.div 
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className={cn("mt-3 p-2.5 rounded-lg border", bgColor)}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Integration</span>
-              <span className={cn("text-xs font-semibold", color)}>{band}</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground/80 leading-relaxed">
-              {comment}
-            </p>
-          </motion.div>
+          <div className="mt-3 space-y-2">
+            {/* Fast Band */}
+            <motion.div 
+              initial={{ opacity: 0, x: -5 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="p-2 rounded-lg bg-amber-500/5 border border-amber-500/15"
+            >
+              <div className="flex items-center justify-between mb-0.5">
+                <div className="flex items-center gap-1.5">
+                  <Zap className="w-3 h-3 text-amber-400/70" />
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 1</span>
+                </div>
+                <span className={cn("text-[10px] font-semibold", fastBand.color)}>{fastBand.band}</span>
+              </div>
+              <p className="text-[9px] text-muted-foreground/70 leading-relaxed">{fastBand.comment}</p>
+            </motion.div>
+            
+            {/* Slow Band */}
+            <motion.div 
+              initial={{ opacity: 0, x: 5 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/15"
+            >
+              <div className="flex items-center justify-between mb-0.5">
+                <div className="flex items-center gap-1.5">
+                  <Brain className="w-3 h-3 text-cyan-400/70" />
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 2</span>
+                </div>
+                <span className={cn("text-[10px] font-semibold", slowBand.color)}>{slowBand.band}</span>
+              </div>
+              <p className="text-[9px] text-muted-foreground/70 leading-relaxed">{slowBand.comment}</p>
+            </motion.div>
+            
+            {/* Balance Band */}
+            <motion.div 
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="p-2 rounded-lg bg-muted/30 border border-border/30"
+            >
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Balance</span>
+                <span className={cn("text-[10px] font-semibold", balanceBand.color)}>{balanceBand.band}</span>
+              </div>
+              <p className="text-[9px] text-muted-foreground/70 leading-relaxed">{balanceBand.comment}</p>
+            </motion.div>
+          </div>
         );
       })()}
 
