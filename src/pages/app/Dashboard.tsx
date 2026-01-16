@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"overview" | "training">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "training" | "report">("overview");
   const [trainingSubTab, setTrainingSubTab] = useState<"games" | "tasks" | "detox">("tasks");
   
   const isPremium = user?.subscriptionStatus === "premium";
@@ -152,7 +152,19 @@ const Dashboard = () => {
             )}
           >
             <Activity className="w-3.5 h-3.5" />
-            Training Details
+            Training
+          </button>
+          <button
+            onClick={() => setActiveTab("report")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
+              activeTab === "report"
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Report
           </button>
         </div>
 
@@ -163,11 +175,10 @@ const Dashboard = () => {
             sci={sci}
             sciStatusText={sciStatusText}
             thinkingScores={thinkingScores}
-            isPremium={isPremium}
             bottleneck={bottleneck}
           />
 
-        ) : (
+        ) : activeTab === "training" ? (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -254,6 +265,76 @@ const Dashboard = () => {
                 </Button>
               </Link>
             </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4"
+          >
+            {/* Report CTA */}
+            <Link to="/app/report" className="block group">
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
+                {/* Ambient glow effects */}
+                <div className="absolute inset-0 opacity-40 pointer-events-none">
+                  <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-radial from-primary/30 to-transparent rounded-full blur-2xl" />
+                  <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-gradient-radial from-primary/20 to-transparent rounded-full blur-2xl" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-20 bg-primary/10 rounded-full blur-3xl" />
+                </div>
+                
+                {/* Subtle animated shimmer */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+                
+                <div className="relative z-10">
+                  {/* Header with icon */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 shadow-inner flex-shrink-0">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Cognitive Intelligence Report</h3>
+                        {!isPremium && (
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-amber-400/10 text-amber-400 border border-amber-500/30">
+                            Premium
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                        Deep analysis of your cognitive architecture
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Feature highlights */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:gap-4 mb-4 px-1">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1 h-1 rounded-full bg-primary/60" />
+                      <span className="text-[9px] sm:text-[10px] text-muted-foreground">Performance Metrics</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1 h-1 rounded-full bg-primary/60" />
+                      <span className="text-[9px] sm:text-[10px] text-muted-foreground">Actionable Insights</span>
+                    </div>
+                  </div>
+                  
+                  {/* CTA Button */}
+                  <Button 
+                    variant={isPremium ? "premium" : "default"} 
+                    className={cn(
+                      "w-full h-11 text-[12px] font-medium gap-2 transition-all duration-300",
+                      isPremium 
+                        ? "shadow-lg shadow-primary/20" 
+                        : "bg-primary/90 hover:bg-primary text-primary-foreground shadow-md shadow-primary/15"
+                    )}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {isPremium ? "View Full Report" : "Explore Report"}
+                  </Button>
+                </div>
+              </div>
+            </Link>
           </motion.div>
         )}
       </div>

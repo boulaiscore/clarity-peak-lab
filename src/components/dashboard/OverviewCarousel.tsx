@@ -1,12 +1,9 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
-import { SCIExplanation } from "./SCIExplanation";
-import { Button } from "@/components/ui/button";
-import { FileText, Sparkles, ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -34,7 +31,6 @@ interface OverviewCarouselProps {
     baselineFast: number;
     baselineSlow: number;
   };
-  isPremium: boolean;
   bottleneck?: BottleneckResult | null;
 }
 
@@ -52,7 +48,6 @@ export function OverviewCarousel({
   sci,
   sciStatusText,
   thinkingScores,
-  isPremium,
   bottleneck
 }: OverviewCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -253,77 +248,6 @@ export function OverviewCarousel({
           </motion.div>
         </AnimatePresence>
       </div>
-      
-      
-      {/* Report CTA - Always visible at bottom */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="-mt-8"
-      >
-        <Link to="/app/report" className="block group">
-          <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
-            {/* Ambient glow effects */}
-            <div className="absolute inset-0 opacity-40 pointer-events-none">
-              <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-radial from-primary/30 to-transparent rounded-full blur-2xl" />
-              <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-gradient-radial from-primary/20 to-transparent rounded-full blur-2xl" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-20 bg-primary/10 rounded-full blur-3xl" />
-            </div>
-            
-            {/* Subtle animated shimmer */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-            
-            <div className="relative z-10">
-              {/* Header with icon */}
-              <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 shadow-inner flex-shrink-0">
-                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                    <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Cognitive Intelligence Report</h3>
-                    {!isPremium && (
-                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-amber-400/10 text-amber-400 border border-amber-500/30">
-                        Premium
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                    Deep analysis of your cognitive architecture
-                  </p>
-                </div>
-              </div>
-              
-              {/* Feature highlights */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:gap-4 mb-4 px-1">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1 h-1 rounded-full bg-primary/60" />
-                  <span className="text-[9px] sm:text-[10px] text-muted-foreground">Performance Metrics</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1 h-1 rounded-full bg-primary/60" />
-                  <span className="text-[9px] sm:text-[10px] text-muted-foreground">Actionable Insights</span>
-                </div>
-              </div>
-              
-              {/* CTA Button */}
-              <Button 
-                variant={isPremium ? "premium" : "default"} 
-                className={cn(
-                  "w-full h-11 text-[12px] font-medium gap-2 transition-all duration-300",
-                  isPremium 
-                    ? "shadow-lg shadow-primary/20" 
-                    : "bg-primary/90 hover:bg-primary text-primary-foreground shadow-md shadow-primary/15"
-                )}
-              >
-                <Sparkles className="w-4 h-4" />
-                {isPremium ? "View Full Report" : "Explore Report"}
-              </Button>
-            </div>
-          </div>
-        </Link>
-      </motion.div>
     </div>
   );
 }
