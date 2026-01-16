@@ -174,7 +174,7 @@ export function OverviewCarousel({
       <div 
         ref={containerRef}
         className="relative overflow-hidden"
-        style={{ minHeight: "420px" }}
+        style={{ minHeight: "520px" }}
       >
         {/* Navigation arrows */}
         <button
