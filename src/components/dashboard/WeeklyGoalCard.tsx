@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, Activity, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
+import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, Activity, TrendingUp, ArrowUp, ArrowDown, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
@@ -335,9 +336,19 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             {/* Range Labels with optimal range values */}
             <div className="flex justify-between mt-1.5">
               <span className="text-[8px] text-muted-foreground/60">0 XP</span>
-              <span className="text-[8px] text-teal-400/70">
-                Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP
-              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-[8px] text-teal-400/70 flex items-center gap-0.5 cursor-help">
+                      Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP
+                      <Info className="w-2.5 h-2.5" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px] text-xs">
+                    The sweet spot where you train enough to grow, but not so much that you burn out. It shifts up as your brain adapts.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <span className="text-[8px] text-muted-foreground/60">{planCap} XP</span>
             </div>
             
