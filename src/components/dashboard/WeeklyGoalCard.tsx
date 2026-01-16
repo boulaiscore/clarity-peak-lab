@@ -323,10 +323,15 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   <span className="text-[10px] text-muted-foreground font-medium">Training mix</span>
                 </div>
                 
-                <div className="grid grid-cols-[110px_1fr_1fr] gap-1 mb-1">
-                  <div className="flex items-center gap-0.5">
-                    <Zap className="w-2 h-2 text-amber-400" />
-                    <span className="text-[8px] text-amber-400 font-medium">Fast (S1) — attention & speed</span>
+                <div className="grid grid-cols-[130px_1fr_1fr] gap-1 mb-1">
+                  <div className="flex items-center justify-between gap-0.5">
+                    <div className="flex items-center gap-0.5">
+                      <Zap className="w-2 h-2 text-amber-400" />
+                      <span className="text-[8px] text-amber-400 font-medium">Fast (S1)</span>
+                    </div>
+                    <span className="text-[7px] text-amber-400/70 tabular-nums">
+                      {Math.round(gamesSubTargets[0]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)}
+                    </span>
                   </div>
                   {s1Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -368,10 +373,15 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   })}
                 </div>
                 
-                <div className="grid grid-cols-[110px_1fr_1fr] gap-1">
-                  <div className="flex items-center gap-0.5">
-                    <Timer className="w-2 h-2 text-violet-400" />
-                    <span className="text-[8px] text-violet-400 font-medium">Reasoned (S2) — thinking & analysis</span>
+                <div className="grid grid-cols-[130px_1fr_1fr] gap-1">
+                  <div className="flex items-center justify-between gap-0.5">
+                    <div className="flex items-center gap-0.5">
+                      <Timer className="w-2 h-2 text-violet-400" />
+                      <span className="text-[8px] text-violet-400 font-medium">Reasoned (S2)</span>
+                    </div>
+                    <span className="text-[7px] text-violet-400/70 tabular-nums">
+                      {Math.round(gamesSubTargets[1]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)}
+                    </span>
                   </div>
                   {s2Areas.map((area) => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -532,10 +542,15 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
         
         {/* S1 row */}
-        <div className="grid grid-cols-[140px_1fr_1fr] gap-1 mb-1">
-          <div className="flex items-center gap-0.5">
-            <Zap className="w-2.5 h-2.5 text-amber-400" />
-            <span className="text-[9px] text-amber-400 font-medium">Fast (S1) — attention & speed</span>
+        <div className="grid grid-cols-[180px_1fr_1fr] gap-1 mb-1">
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-0.5">
+              <Zap className="w-2.5 h-2.5 text-amber-400" />
+              <span className="text-[9px] text-amber-400 font-medium">Fast (S1)</span>
+            </div>
+            <span className="text-[8px] text-amber-400/70 tabular-nums">
+              {Math.round(gamesSubTargets[0]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)} XP
+            </span>
           </div>
           {s1Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
@@ -575,10 +590,15 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
         
         {/* S2 row */}
-        <div className="grid grid-cols-[140px_1fr_1fr] gap-1">
-          <div className="flex items-center gap-0.5">
-            <Timer className="w-2.5 h-2.5 text-violet-400" />
-            <span className="text-[9px] text-violet-400 font-medium">Reasoned (S2) — thinking & analysis</span>
+        <div className="grid grid-cols-[180px_1fr_1fr] gap-1">
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-0.5">
+              <Timer className="w-2.5 h-2.5 text-violet-400" />
+              <span className="text-[9px] text-violet-400 font-medium">Reasoned (S2)</span>
+            </div>
+            <span className="text-[8px] text-violet-400/70 tabular-nums">
+              {Math.round(gamesSubTargets[1]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)} XP
+            </span>
           </div>
           {s2Areas.map((area) => {
             const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
