@@ -131,14 +131,16 @@ const Home = () => {
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
   
-  // Dynamic color for Recovery based on progress
-  const recoveryColor = recovery >= 90 
-    ? "hsl(142, 71%, 45%)" 
-    : recovery >= 60 
-      ? "hsl(80, 60%, 45%)"  
-      : recovery >= 30 
-        ? "hsl(45, 85%, 50%)"  
-        : "hsl(25, 90%, 50%)";
+  // Dynamic colors matching status tab rings
+  const getScoreColor = (value: number) => {
+    if (value >= 70) return "hsl(142, 71%, 45%)"; // Green
+    if (value >= 40) return "hsl(45, 85%, 50%)";  // Yellow/Amber
+    return "hsl(0, 70%, 50%)";                     // Red
+  };
+
+  const sharpnessColor = getScoreColor(sharpness);
+  const readinessColor = getScoreColor(readiness);
+  const recoveryColor = getScoreColor(recovery);
 
   const handleStartSession = () => {
     navigate("/neuro-lab");
@@ -283,7 +285,7 @@ const Home = () => {
                   max={100}
                   size={90}
                   strokeWidth={6}
-                  color="hsl(210, 70%, 55%)"
+                  color={sharpnessColor}
                   label="Sharpness"
                   displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}%`}
                   microcopy="Current intuitive clarity"
@@ -293,7 +295,7 @@ const Home = () => {
                   max={100}
                   size={90}
                   strokeWidth={6}
-                  color="hsl(var(--primary))"
+                  color={readinessColor}
                   label="Readiness"
                   displayValue={`${Math.round(readiness)}%`}
                   microcopy="Capacity for deliberate work"
