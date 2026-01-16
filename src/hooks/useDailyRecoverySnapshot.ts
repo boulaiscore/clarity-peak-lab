@@ -25,7 +25,7 @@ import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
 import { LOW_RECOVERY_THRESHOLD } from "@/lib/decayConstants";
 
 interface RecoverySnapshotData {
@@ -43,14 +43,11 @@ function getUserLocalDate(): string {
 }
 
 /**
- * Calculate the difference in days between two YYYY-MM-DD date strings.
- * Returns the number of days from `fromDate` to `toDate`.
+ * Calculate the calendar day difference between two YYYY-MM-DD date strings.
+ * Uses date-fns differenceInCalendarDays for accurate calendar math.
  */
 function getDayDiff(fromDate: string, toDate: string): number {
-  const from = new Date(fromDate + "T00:00:00");
-  const to = new Date(toDate + "T00:00:00");
-  const diffMs = to.getTime() - from.getTime();
-  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+  return differenceInCalendarDays(parseISO(toDate), parseISO(fromDate));
 }
 
 /**
