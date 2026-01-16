@@ -498,6 +498,69 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
         )}
       </div>
 
+      {/* Evaluation Band for Dual Process Integration */}
+      {(() => {
+        // Calculate integration score: average of both systems weighted by balance
+        const avgScore = Math.round((fastScore + slowScore) / 2);
+        const balance = 100 - Math.abs(fastScore - slowScore); // 0-100, higher = more balanced
+        const integrationScore = Math.round((avgScore * 0.7) + (balance * 0.3)); // Weighted combo
+        
+        // Band classification similar to Neural Strength
+        const getBand = (score: number) => {
+          if (score >= 75) return {
+            band: "Integrated",
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/10 border-emerald-500/20",
+            comment: "Both systems work in harmony. Strong cognitive flexibility."
+          };
+          if (score >= 60) return {
+            band: "Aligned",
+            color: "text-primary",
+            bgColor: "bg-primary/10 border-primary/20",
+            comment: "Good balance between intuition and analysis."
+          };
+          if (score >= 45) return {
+            band: "Developing",
+            color: "text-blue-400",
+            bgColor: "bg-blue-500/10 border-blue-500/20",
+            comment: "Systems are building coordination. Keep training both."
+          };
+          if (score >= 30) return {
+            band: "Imbalanced",
+            color: "text-amber-400",
+            bgColor: "bg-amber-500/10 border-amber-500/20",
+            comment: fastScore > slowScore 
+              ? "Intuition leads. Strengthen deliberate reasoning."
+              : "Analysis leads. Sharpen rapid pattern recognition."
+          };
+          return {
+            band: "Early",
+            color: "text-muted-foreground",
+            bgColor: "bg-muted/20 border-muted-foreground/20",
+            comment: "Just getting started. Both systems need activation."
+          };
+        };
+        
+        const { band, color, bgColor, comment } = getBand(integrationScore);
+        
+        return (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className={cn("mt-3 p-2.5 rounded-lg border", bgColor)}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Integration</span>
+              <span className={cn("text-xs font-semibold", color)}>{band}</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground/80 leading-relaxed">
+              {comment}
+            </p>
+          </motion.div>
+        );
+      })()}
+
       {/* Metric Cards */}
       <div className="grid grid-cols-2 gap-3 mt-3">
         {/* Fast Thinking Card */}
