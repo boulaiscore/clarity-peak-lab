@@ -225,18 +225,24 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
         
         <div className="flex-1">
           <h4 className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1 uppercase tracking-wide">
-            System Protection
+            System Prioritizing Recovery
           </h4>
           <p className="text-[11px] text-muted-foreground">
-            Recovery is low. Even structured reading would add invisible load today.
+            Recovery is currently low. The system limits cognitive input to protect clarity.
           </p>
           
-          {/* Override unavailable explanation */}
+          {/* Recovery CTA */}
           <div className="mt-2 pt-2 border-t border-amber-500/10">
-            <p className="text-[10px] text-muted-foreground/70 flex items-center gap-1.5">
+            <p className="text-[10px] text-muted-foreground/70 flex items-center gap-1.5 mb-2">
               <AlertCircle className="w-3 h-3" />
-              Override unavailable — S1 Buffer ({s1Buffer}) must be ≥40
+              Content requires recovery to be effective.
             </p>
+            <a 
+              href="#/detox" 
+              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-amber-500 hover:text-amber-400 transition-colors"
+            >
+              Build recovery through Detox or Walk →
+            </a>
           </div>
         </div>
       </div>
@@ -365,8 +371,8 @@ function MetricsBar({
   return (
     <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-3 px-1">
       <div className="flex items-center gap-3">
-        <span>S2: <span className="font-medium text-foreground">{s2Capacity}</span></span>
-        <span>S1: <span className="font-medium text-foreground">{s1Buffer}</span></span>
+        <span>Deep work capacity: <span className="font-medium text-foreground">{s2Capacity >= 55 ? "Available" : "Limited"}</span></span>
+        <span>Recovery: <span className="font-medium text-foreground">{s1Buffer >= 50 ? "Good" : s1Buffer >= 30 ? "Low" : "Very low"}</span></span>
       </div>
       <span className={cn("font-medium", modeColor)}>{modeLabel}</span>
     </div>

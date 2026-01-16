@@ -309,7 +309,7 @@ export function formatMetricName(metric: MetricType): string {
     case "recovery":
       return "Recovery";
     case "s2Capacity":
-      return "S2 Capacity";
+      return "Deep work capacity";
   }
 }
 
@@ -335,8 +335,8 @@ export function getGameUnlockActions(
         actions.push("Short rest (10-20 min)");
         break;
       case "recovery":
-        actions.push("30-min detox session");
-        actions.push("20-min walk");
+        actions.push("Complete a Detox session (30 min)");
+        actions.push("Take a Walk (20 min)");
         break;
     }
   }

@@ -39,31 +39,31 @@ interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
 }
 
-// Helper to get human-readable reason
+// Helper to get human-readable reason (user-facing language)
 function getWithholdReason(result: GameGatingResult): string {
   if (!result.reasonCode) return "Unavailable";
   
   switch (result.reasonCode) {
     case "RECOVERY_TOO_LOW":
-      return `Recovery too low (${result.details?.currentValue ?? 0}/${result.details?.requiredValue ?? 50})`;
+      return "Recovery is low — build recovery through Detox or Walk";
     case "SHARPNESS_TOO_LOW":
-      return `Sharpness too low (${result.details?.currentValue ?? 0}/${result.details?.requiredValue ?? 65})`;
+      return `Sharpness below threshold (${result.details?.currentValue ?? 0}%)`;
     case "SHARPNESS_TOO_HIGH":
-      return "Sharpness already high — S1-AE not needed";
+      return "Sharpness already optimal — focus training not needed";
     case "READINESS_TOO_LOW":
-      return `Readiness too low (${result.details?.currentValue ?? 0}/${result.details?.requiredValue ?? 50})`;
+      return `Readiness below threshold (${result.details?.currentValue ?? 0}%)`;
     case "READINESS_OUT_OF_RANGE":
-      return "Readiness out of optimal range for Insight";
+      return "Readiness outside optimal range for this session";
     case "CAP_REACHED_DAILY_S1":
-      return "S1 daily limit reached (3/day)";
+      return "Daily fast focus limit reached (3/day)";
     case "CAP_REACHED_DAILY_S2":
-      return "S2 daily limit reached (1/day)";
+      return "Daily deep work limit reached (1/day)";
     case "CAP_REACHED_WEEKLY_S2":
-      return "S2 weekly limit reached";
+      return "Weekly deep work limit reached";
     case "CAP_REACHED_WEEKLY_IN":
-      return "Insight weekly limit reached";
+      return "Weekly insight limit reached";
     case "SUPERHUMAN_REC_REQUIRED":
-      return "Recovery ≥55 required for Superhuman S2";
+      return "Recovery ≥55% required for advanced deep work";
     default:
       return "Temporarily unavailable";
   }
@@ -119,12 +119,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Post-Baseline Safety Banner */}
+      {/* Recovery Low Banner with S1 explanation */}
       {safetyRuleActive && (
         <Alert className="border-amber-500/30 bg-amber-500/5">
           <Info className="h-4 w-4 text-amber-500" />
           <AlertDescription className="text-xs text-amber-200/90">
-            System stabilizing after calibration. Start with a short focus session or build recovery to unlock more options.
+            <span className="font-medium">Light focus available.</span> Fast focus requires less recovery than deep work. Build recovery through Detox or Walk to unlock more options.
           </AlertDescription>
         </Alert>
       )}
@@ -238,7 +238,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                                   <p className="text-[9px] text-muted-foreground">
                                     {isEnabled ? area.tagline : (
                                       <span className={isProtection ? "text-amber-500/70" : ""}>
-                                        {isProtection ? "Protection" : "Withheld"}
+                                        {isProtection ? "Prioritizing Recovery" : "Requires Recovery"}
                                       </span>
                                     )}
                                   </p>

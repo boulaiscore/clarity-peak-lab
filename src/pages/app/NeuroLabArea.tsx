@@ -271,19 +271,19 @@ export default function NeuroLabArea() {
               )}
               <div>
                 <p className="font-medium">
-                  {gatingResult.status === "PROTECTION" ? "System Protection Active" : "Session Withheld"}
+                  {gatingResult.status === "PROTECTION" ? "System Prioritizing Recovery" : "Requires Recovery"}
                 </p>
                 <p className="text-xs mt-0.5 opacity-80">
-                  {gatingResult.reasonCode === "CAP_REACHED_DAILY_S1" && "S1 daily limit reached (3/day)"}
-                  {gatingResult.reasonCode === "CAP_REACHED_DAILY_S2" && "S2 daily limit reached (1/day)"}
-                  {gatingResult.reasonCode === "CAP_REACHED_WEEKLY_S2" && "S2 weekly limit reached"}
-                  {gatingResult.reasonCode === "CAP_REACHED_WEEKLY_IN" && "Insight weekly limit reached"}
-                  {gatingResult.reasonCode === "SUPERHUMAN_REC_REQUIRED" && `Recovery ≥55 required (current: ${metrics.recovery.toFixed(0)})`}
-                  {gatingResult.reasonCode === "RECOVERY_TOO_LOW" && `Recovery too low: ${gatingResult.details?.currentValue ?? 0} / ${gatingResult.details?.requiredValue ?? 50}`}
-                  {gatingResult.reasonCode === "SHARPNESS_TOO_LOW" && `Sharpness too low: ${gatingResult.details?.currentValue ?? 0} / ${gatingResult.details?.requiredValue ?? 65}`}
-                  {gatingResult.reasonCode === "SHARPNESS_TOO_HIGH" && "Sharpness already high — S1-AE not needed"}
-                  {gatingResult.reasonCode === "READINESS_TOO_LOW" && `Readiness too low: ${gatingResult.details?.currentValue ?? 0} / ${gatingResult.details?.requiredValue ?? 50}`}
-                  {gatingResult.reasonCode === "READINESS_OUT_OF_RANGE" && "Readiness out of optimal range for Insight"}
+                  {gatingResult.reasonCode === "CAP_REACHED_DAILY_S1" && "Daily fast focus limit reached (3/day)"}
+                  {gatingResult.reasonCode === "CAP_REACHED_DAILY_S2" && "Daily deep work limit reached (1/day)"}
+                  {gatingResult.reasonCode === "CAP_REACHED_WEEKLY_S2" && "Weekly deep work limit reached"}
+                  {gatingResult.reasonCode === "CAP_REACHED_WEEKLY_IN" && "Weekly insight limit reached"}
+                  {gatingResult.reasonCode === "SUPERHUMAN_REC_REQUIRED" && `Recovery ≥55% required (current: ${metrics.recovery.toFixed(0)}%)`}
+                  {gatingResult.reasonCode === "RECOVERY_TOO_LOW" && "Recovery is low — build recovery through Detox or Walk"}
+                  {gatingResult.reasonCode === "SHARPNESS_TOO_LOW" && `Sharpness below threshold (${gatingResult.details?.currentValue ?? 0}%)`}
+                  {gatingResult.reasonCode === "SHARPNESS_TOO_HIGH" && "Sharpness already optimal — focus training not needed"}
+                  {gatingResult.reasonCode === "READINESS_TOO_LOW" && `Readiness below threshold (${gatingResult.details?.currentValue ?? 0}%)`}
+                  {gatingResult.reasonCode === "READINESS_OUT_OF_RANGE" && "Readiness outside optimal range for this session"}
                 </p>
                 {gatingResult.unlockActions.length > 0 && (
                   <p className="text-xs mt-1 opacity-60">Try: {gatingResult.unlockActions[0]}</p>
