@@ -5,9 +5,6 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 export function CapacityTab() {
   const { 
     recovery, 
-    weeklyDetoxMinutes,
-    weeklyWalkMinutes,
-    detoxTarget,
     isLoading 
   } = useTodayMetrics();
   
@@ -28,8 +25,13 @@ export function CapacityTab() {
         ? "hsl(45, 85%, 50%)" 
         : "hsl(25, 90%, 50%)";
 
-  // Calculate effective recovery input
-  const effectiveRecoveryInput = weeklyDetoxMinutes + 0.5 * weeklyWalkMinutes;
+  // Status text based on recovery level
+  const getRecoveryLabel = () => {
+    if (recovery >= 80) return "High";
+    if (recovery >= 50) return "Moderate";
+    if (recovery >= 20) return "Low";
+    return "Very Low";
+  };
   
   return (
     <motion.div
@@ -70,64 +72,54 @@ export function CapacityTab() {
               {isLoading ? "—" : `${Math.round(recovery)}`}
               <span className="text-3xl">%</span>
             </span>
+            <span className="text-xs text-muted-foreground mt-1">{getRecoveryLabel()}</span>
           </div>
         </div>
       </div>
 
-      {/* Insight Card */}
+      {/* Recovery Status Card */}
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Leaf className="w-5 h-5 text-amber-400 mt-0.5" />
           <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {recovery >= 100 
-            ? "Weekly recovery target met. Cognitive capacity fully restored." 
+          {recovery >= 80 
+            ? "Recovery is high. Cognitive capacity is fully available." 
             : recovery >= 50 
-              ? `${Math.round(100 - recovery)}% remaining to meet weekly recovery target.`
-              : "Recovery is low. Build recovery through Detox or Walk to restore capacity."}
+              ? "Recovery is moderate. Deep focus is accessible."
+              : "Recovery is currently low. Build recovery through Detox or Walk to restore capacity."}
         </p>
       </div>
 
-      {/* Recovery Actions - Detox and Walk build Recovery */}
+      {/* Recovery Actions */}
       <div className="space-y-3 px-2">
-        <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span>Recovery Actions</span>
-          <span className="text-[10px]">target: {detoxTarget} min</span>
+        <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Recovery Actions
         </div>
         
-        <div className="space-y-2">
-          <RecoveryRow 
-            icon={<Smartphone className="w-4 h-4 text-teal-400" />}
+        <div className="space-y-3">
+          <RecoveryActionCard 
+            icon={<Smartphone className="w-5 h-5 text-teal-400" />}
             label="Digital Detox"
-            minutes={weeklyDetoxMinutes}
-            contribution="100%"
-            description="Stopping digital input builds recovery"
+            impact="Full recovery impact"
+            example="30 min ≈ +6% Recovery"
           />
-          <RecoveryRow 
-            icon={<Footprints className="w-4 h-4 text-emerald-400" />}
+          <RecoveryActionCard 
+            icon={<Footprints className="w-5 h-5 text-emerald-400" />}
             label="Walking"
-            minutes={weeklyWalkMinutes}
-            contribution="50%"
-            description="Light movement builds partial recovery"
+            impact="Moderate recovery impact"
+            example="30 min ≈ +3% Recovery"
           />
         </div>
         
-        {/* Formula explanation */}
-        <div className="pt-3 border-t border-border/20">
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span>Effective Input</span>
-            <span className="font-medium text-foreground">{Math.round(effectiveRecoveryInput)} min</span>
-          </div>
-          <p className="text-[10px] text-muted-foreground/60">
-            REC = min(100, (detox + 0.5×walk) / {detoxTarget} × 100)
-          </p>
-        </div>
-        
-        {/* Note: No Training or Tasks here - per spec */}
-        <div className="pt-2">
-          <p className="text-[10px] text-muted-foreground/50 italic">
-            Note: Training and Tasks contribute to cognitive skills, not recovery.
+        {/* Explanatory Note */}
+        <div className="pt-4">
+          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+            Training builds cognitive skills.{" "}
+            <span className="text-muted-foreground/50">
+              Recovery determines when they can be used effectively.
+            </span>
           </p>
         </div>
       </div>
@@ -135,31 +127,24 @@ export function CapacityTab() {
   );
 }
 
-function RecoveryRow({ 
+function RecoveryActionCard({ 
   icon, 
   label, 
-  minutes, 
-  contribution,
-  description 
+  impact,
+  example 
 }: { 
   icon: React.ReactNode; 
   label: string; 
-  minutes: number;
-  contribution: string;
-  description: string;
+  impact: string;
+  example: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-border/20">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        {icon}
-        <div className="min-w-0">
-          <span className="text-sm block">{label}</span>
-          <span className="text-[10px] text-muted-foreground/60">{description}</span>
-        </div>
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <span className="text-[10px] text-muted-foreground">{contribution}</span>
-        <span className="text-sm font-medium tabular-nums">{Math.round(minutes)} min</span>
+    <div className="flex items-start gap-3 p-3 rounded-lg bg-card/50 border border-border/30">
+      <div className="mt-0.5">{icon}</div>
+      <div className="flex-1 min-w-0">
+        <span className="text-sm font-medium block">{label}</span>
+        <span className="text-[11px] text-muted-foreground block mt-0.5">{impact}</span>
+        <span className="text-[10px] text-primary/80 block mt-1">{example}</span>
       </div>
     </div>
   );
