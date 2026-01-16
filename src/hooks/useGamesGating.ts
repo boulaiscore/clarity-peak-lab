@@ -392,11 +392,10 @@ export function useRecordGameSession() {
       throw error;
     }
     
-    // Only update XP timestamps when XP was actually awarded
+    // Update XP timestamps (separate write after successful session insert)
     if (params.xpAwarded > 0) {
-      // Atomically update XP timestamps in user_cognitive_metrics
       // Build the update object for the specific skill
-      const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as 
+      const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as
         "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
       
       const xpTrackingUpdate: Record<string, string> = {
