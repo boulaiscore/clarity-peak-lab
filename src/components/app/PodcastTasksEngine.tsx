@@ -15,6 +15,7 @@
  */
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Headphones, 
@@ -190,12 +191,12 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
               <AlertCircle className="w-3 h-3" />
               Content requires recovery to be effective.
             </p>
-            <a 
-              href="#/detox" 
+            <Link 
+              to="/neuro-lab?tab=detox" 
               className="inline-flex items-center gap-1.5 text-[10px] font-medium text-amber-500 hover:text-amber-400 transition-colors"
             >
               Build recovery through Detox or Walk →
-            </a>
+            </Link>
           </div>
         </div>
       </div>
