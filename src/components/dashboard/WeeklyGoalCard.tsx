@@ -297,11 +297,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               />
             </div>
             
-            {/* Range Labels - Simple */}
+            {/* Range Labels - Explicit XP values */}
             <div className="flex justify-between mt-1">
-              <span className="text-[8px] text-muted-foreground/50">0</span>
-              <span className="text-[8px] text-emerald-400/70">Optimal range</span>
-              <span className="text-[8px] text-muted-foreground/50">Weekly target</span>
+              <span className="text-[8px] text-muted-foreground/50">0 XP</span>
+              <span className="text-[8px] text-emerald-400/70">Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
+              <span className="text-[8px] text-muted-foreground/50">{optimalRangeXP.cap} XP</span>
             </div>
           </CollapsibleTrigger>
 
@@ -512,11 +512,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         />
       </div>
       
-      {/* Range Labels - Simple */}
+      {/* Range Labels - Explicit XP values */}
       <div className="flex justify-between mb-3">
-        <span className="text-[9px] text-muted-foreground/50">0</span>
-        <span className="text-[9px] text-emerald-400/80 font-medium">Optimal range</span>
-        <span className="text-[9px] text-muted-foreground/50">Weekly target</span>
+        <span className="text-[9px] text-muted-foreground/50">0 XP</span>
+        <span className="text-[9px] text-emerald-400/80 font-medium">Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
+        <span className="text-[9px] text-muted-foreground/50">{optimalRangeXP.cap} XP</span>
       </div>
       
       {/* XP explanation - minimal */}
