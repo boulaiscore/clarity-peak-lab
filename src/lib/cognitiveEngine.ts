@@ -690,3 +690,81 @@ export function calculateCognitiveAgeRegression(input: CognitiveAgeRegressionInp
 export function isRecoveryLow(recovery: number): boolean {
   return recovery < LOW_RECOVERY_THRESHOLD;
 }
+
+// ============================================
+// TRAINING CAPACITY (TC) FUNCTIONS
+// ============================================
+
+import {
+  TC_FLOOR,
+  TC_GROWTH_ALPHA,
+  TC_DECAY_PER_WEEK,
+  TC_INACTIVITY_THRESHOLD_DAYS,
+  TC_OPTIMAL_MIN_PERCENT,
+  TC_OPTIMAL_MAX_PERCENT,
+} from "@/lib/decayConstants";
+
+/**
+ * Initialize Training Capacity for a new user based on cognitive states.
+ * TC0 = clamp(round((S1+S2)/2), 30, planCap*0.6)
+ */
+export function initializeTrainingCapacity(
+  states: CognitiveStates,
+  planCap: number
+): number {
+  const S1 = (states.AE + states.RA) / 2;
+  const S2 = (states.CT + states.IN) / 2;
+  const base = (S1 + S2) / 2;
+  return clamp(Math.round(base), TC_FLOOR, Math.round(planCap * 0.6));
+}
+
+/**
+ * Calculate recovery multiplier for TC growth.
+ * recMult = clamp(0.6 + 0.006 * avgREC, 0.6, 1.2)
+ */
+export function calculateRecoveryMultiplier(avgREC: number): number {
+  return clamp(0.6 + 0.006 * avgREC, 0.6, 1.2);
+}
+
+export interface TrainingCapacityUpdateInput {
+  currentTC: number;
+  weeklyXP: number;
+  avgREC: number;
+  daysSinceLastXP: number;
+  planCap: number;
+}
+
+/**
+ * Update Training Capacity based on weekly XP and recovery.
+ * TC_new = clamp(TC + growth - decay, TC_FLOOR, planCap)
+ * growth = alpha * min(weeklyXP, planCap) * recMult
+ * decay = 3 if daysSinceLastXP >= 7, else 0
+ */
+export function updateTrainingCapacity(input: TrainingCapacityUpdateInput): number {
+  const { currentTC, weeklyXP, avgREC, daysSinceLastXP, planCap } = input;
+  
+  const recMult = calculateRecoveryMultiplier(avgREC);
+  const xpEff = Math.min(weeklyXP, planCap);
+  const growth = TC_GROWTH_ALPHA * xpEff * recMult;
+  const decay = daysSinceLastXP >= TC_INACTIVITY_THRESHOLD_DAYS ? TC_DECAY_PER_WEEK : 0;
+  
+  const newTC = currentTC + growth - decay;
+  return clamp(Math.round(newTC * 10) / 10, TC_FLOOR, planCap);
+}
+
+export interface DynamicOptimalRange {
+  min: number;
+  max: number;
+  cap: number;
+}
+
+/**
+ * Get dynamic optimal range based on Training Capacity.
+ * optMin = round(0.60 * TC)
+ * optMax = round(0.85 * TC)
+ */
+export function getDynamicOptimalRange(tc: number, planCap: number): DynamicOptimalRange {
+  const min = Math.round(tc * TC_OPTIMAL_MIN_PERCENT);
+  const max = Math.round(tc * TC_OPTIMAL_MAX_PERCENT);
+  return { min, max, cap: planCap };
+}
