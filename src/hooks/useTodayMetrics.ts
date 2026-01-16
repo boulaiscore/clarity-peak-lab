@@ -2,19 +2,23 @@
  * Hook that computes Today's metrics (Sharpness, Readiness, Recovery)
  * using the new cognitive engine formulas.
  * 
+ * v1.4: Now includes Readiness decay adjustment.
+ * Readiness decays if REC < 40 for 3+ consecutive days.
+ * 
  * ⚠️ CRITICAL: This hook follows the MANDATORY computation order (Section D):
  * 
  * 1. Load persistent skills: AE, RA, CT, IN (from useCognitiveStates)
  * 2. Compute aggregates: S1 = (AE+RA)/2, S2 = (CT+IN)/2 (from useCognitiveStates)
  * 3. Compute Recovery: REC = min(100, (detox + 0.5×walk) / target × 100)
  * 4. Compute Sharpness and Readiness from skill values and Recovery
+ * 5. Apply Readiness decay if consecutive low REC days >= 3
  * 
  * METRICS READ ONLY FROM PERSISTENT SKILL STATE:
  * - NEVER from per-session game data (accuracy, reaction time, score)
  * - NEVER from baseline session records
  * 
  * SHARPNESS = 0.50×S1 + 0.30×AE + 0.20×S2, modulated by Recovery
- * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable)
+ * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable) - decay
  * RECOVERY = min(100, (detox_min + 0.5×walk_min) / target × 100)
  * 
  * DATA SOURCES:
@@ -36,6 +40,8 @@ import {
   calculateReadiness,
   calculateRecovery,
   calculatePhysioComponent,
+  calculateReadinessDecay,
+  clamp,
 } from "@/lib/cognitiveEngine";
 
 export interface UseTodayMetricsResult {
@@ -43,6 +49,10 @@ export interface UseTodayMetricsResult {
   sharpness: number;
   readiness: number;
   recovery: number;
+  
+  // Decay adjustments
+  readinessDecay: number;
+  consecutiveLowRecDays: number;
   
   // Underlying cognitive states
   AE: number;
@@ -138,6 +148,29 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     staleTime: 5 * 60_000,
   });
   
+  // Fetch readiness decay tracking data
+  const { data: decayData, isLoading: decayLoading } = useQuery({
+    queryKey: ["readiness-decay-tracking", userId, weekStart],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data, error } = await supabase
+        .from("user_cognitive_metrics")
+        .select(`
+          consecutive_low_rec_days,
+          readiness_decay_applied,
+          readiness_decay_week_start
+        `)
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+  
   const weeklyDetoxMinutes = detoxData?.totalMinutes ?? 0;
   const weeklyWalkMinutes = walkingData?.totalMinutes ?? 0;
   
@@ -165,16 +198,34 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     // Calculate Sharpness
     const sharpness = calculateSharpness(states, recovery);
     
-    // Calculate Readiness
-    const readiness = calculateReadiness(states, recovery, physioComponent);
+    // Calculate base Readiness
+    const baseReadiness = calculateReadiness(states, recovery, physioComponent);
+    
+    // Calculate Readiness decay
+    const consecutiveLowRecDays = decayData?.consecutive_low_rec_days ?? 0;
+    const readinessDecayWeekStart = decayData?.readiness_decay_week_start;
+    const currentDecayApplied = 
+      readinessDecayWeekStart === weekStart 
+        ? (decayData?.readiness_decay_applied ?? 0) 
+        : 0;
+    
+    const readinessDecay = calculateReadinessDecay({
+      consecutiveLowRecDays,
+      currentDecayApplied,
+    });
+    
+    // Apply Readiness decay
+    const readiness = clamp(baseReadiness - readinessDecay, 0, 100);
     
     return {
       sharpness,
       readiness,
       recovery,
+      readinessDecay,
+      consecutiveLowRecDays,
       hasWearableData: !!wearableSnapshot,
     };
-  }, [states, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot]);
+  }, [states, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot, decayData, weekStart]);
   
   return {
     ...result,
@@ -187,6 +238,6 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     weeklyDetoxMinutes,
     weeklyWalkMinutes,
     detoxTarget,
-    isLoading: statesLoading || detoxLoading || walkingLoading || wearableLoading,
+    isLoading: statesLoading || detoxLoading || walkingLoading || wearableLoading || decayLoading,
   };
 }

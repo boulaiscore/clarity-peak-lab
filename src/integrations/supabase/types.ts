@@ -577,19 +577,35 @@ export type Database = {
           cognitive_level: number | null
           cognitive_performance_score: number | null
           cognitive_readiness_score: number | null
+          consecutive_low_rec_days: number | null
+          consecutive_performance_drop_days: number | null
           created_at: string
           creativity: number
           critical_thinking_score: number
           decision_quality: number
+          dual_process_decay_applied: number | null
+          dual_process_decay_week_start: string | null
           experience_points: number | null
           fast_thinking: number
           focus_stability: number
           id: string
+          last_ae_xp_date: string | null
+          last_ct_xp_date: string | null
+          last_decay_calculation_date: string | null
+          last_in_xp_date: string | null
+          last_low_rec_check_date: string | null
+          last_ra_xp_date: string | null
+          performance_avg_window_start_date: string | null
+          performance_avg_window_start_value: number | null
           philosophical_reasoning: number
           physio_component_score: number | null
           reaction_speed: number
           readiness_classification: string | null
+          readiness_decay_applied: number | null
+          readiness_decay_week_start: string | null
           reasoning_accuracy: number
+          sci_decay_applied: number | null
+          sci_decay_week_start: string | null
           slow_thinking: number
           spatial_reasoning: number
           total_sessions: number
@@ -610,19 +626,35 @@ export type Database = {
           cognitive_level?: number | null
           cognitive_performance_score?: number | null
           cognitive_readiness_score?: number | null
+          consecutive_low_rec_days?: number | null
+          consecutive_performance_drop_days?: number | null
           created_at?: string
           creativity?: number
           critical_thinking_score?: number
           decision_quality?: number
+          dual_process_decay_applied?: number | null
+          dual_process_decay_week_start?: string | null
           experience_points?: number | null
           fast_thinking?: number
           focus_stability?: number
           id?: string
+          last_ae_xp_date?: string | null
+          last_ct_xp_date?: string | null
+          last_decay_calculation_date?: string | null
+          last_in_xp_date?: string | null
+          last_low_rec_check_date?: string | null
+          last_ra_xp_date?: string | null
+          performance_avg_window_start_date?: string | null
+          performance_avg_window_start_value?: number | null
           philosophical_reasoning?: number
           physio_component_score?: number | null
           reaction_speed?: number
           readiness_classification?: string | null
+          readiness_decay_applied?: number | null
+          readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
+          sci_decay_applied?: number | null
+          sci_decay_week_start?: string | null
           slow_thinking?: number
           spatial_reasoning?: number
           total_sessions?: number
@@ -643,19 +675,35 @@ export type Database = {
           cognitive_level?: number | null
           cognitive_performance_score?: number | null
           cognitive_readiness_score?: number | null
+          consecutive_low_rec_days?: number | null
+          consecutive_performance_drop_days?: number | null
           created_at?: string
           creativity?: number
           critical_thinking_score?: number
           decision_quality?: number
+          dual_process_decay_applied?: number | null
+          dual_process_decay_week_start?: string | null
           experience_points?: number | null
           fast_thinking?: number
           focus_stability?: number
           id?: string
+          last_ae_xp_date?: string | null
+          last_ct_xp_date?: string | null
+          last_decay_calculation_date?: string | null
+          last_in_xp_date?: string | null
+          last_low_rec_check_date?: string | null
+          last_ra_xp_date?: string | null
+          performance_avg_window_start_date?: string | null
+          performance_avg_window_start_value?: number | null
           philosophical_reasoning?: number
           physio_component_score?: number | null
           reaction_speed?: number
           readiness_classification?: string | null
+          readiness_decay_applied?: number | null
+          readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
+          sci_decay_applied?: number | null
+          sci_decay_week_start?: string | null
           slow_thinking?: number
           spatial_reasoning?: number
           total_sessions?: number
