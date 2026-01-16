@@ -62,7 +62,9 @@ export function NeuralResetPrompt({ className }: NeuralResetPromptProps) {
               )}
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed">
-              {isRecommended ? copy : "Stabilize cognitive activity (4 min)"}
+              {isRecommended 
+                ? copy 
+                : "Activity stable. Not needed now."}
             </p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
