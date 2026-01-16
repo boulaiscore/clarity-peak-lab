@@ -234,15 +234,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       <div className="relative flex flex-col items-center justify-center">
         {/* Main sphere container */}
         <div className="relative">
-          {/* Outer ambient glow - soft fade all around using primary color */}
-          <div 
-            className="absolute inset-0 rounded-full blur-3xl scale-[2]"
-            style={{
-              background: isDark 
-                ? 'radial-gradient(circle, hsla(165, 82%, 55%, 0.08) 0%, hsla(165, 82%, 55%, 0.02) 45%, transparent 70%)'
-                : 'radial-gradient(circle, hsla(165, 82%, 45%, 0.06) 0%, hsla(165, 82%, 45%, 0.015) 45%, transparent 70%)'
-            }}
-          />
+          {/* Outer ambient glow removed for seamless background integration */}
 
           {/* Canvas for particles and organic border */}
           <canvas
