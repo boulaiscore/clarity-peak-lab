@@ -77,6 +77,7 @@ export function useMetricDecay(
   const weekStart = getCurrentWeekStart();
   
   // Fetch decay tracking data from user_cognitive_metrics
+  // NOTE: Using type cast because these columns are new and types.ts may not be updated yet
   const { data: decayData, isLoading: decayLoading } = useQuery({
     queryKey: ["decay-tracking", userId],
     queryFn: async () => {
@@ -85,12 +86,12 @@ export function useMetricDecay(
       const { data, error } = await supabase
         .from("user_cognitive_metrics")
         .select(`
-          last_ae_xp_date,
-          last_ra_xp_date,
-          last_ct_xp_date,
-          last_in_xp_date,
-          consecutive_low_rec_days,
-          last_low_rec_check_date,
+          last_ae_xp_at,
+          last_ra_xp_at,
+          last_ct_xp_at,
+          last_in_xp_at,
+          low_rec_streak_days,
+          rec_snapshot_date,
           readiness_decay_applied,
           readiness_decay_week_start,
           sci_decay_applied,
@@ -105,7 +106,25 @@ export function useMetricDecay(
         .maybeSingle();
       
       if (error) throw error;
-      return data;
+      
+      // Cast to expected shape since types may be stale
+      return data as {
+        last_ae_xp_at: string | null;
+        last_ra_xp_at: string | null;
+        last_ct_xp_at: string | null;
+        last_in_xp_at: string | null;
+        low_rec_streak_days: number | null;
+        rec_snapshot_date: string | null;
+        readiness_decay_applied: number | null;
+        readiness_decay_week_start: string | null;
+        sci_decay_applied: number | null;
+        sci_decay_week_start: string | null;
+        dual_process_decay_applied: number | null;
+        dual_process_decay_week_start: string | null;
+        performance_avg_window_start_value: number | null;
+        performance_avg_window_start_date: string | null;
+        consecutive_performance_drop_days: number | null;
+      } | null;
     },
     enabled: !!userId,
     staleTime: 60_000,
@@ -210,10 +229,10 @@ export function useMetricDecay(
       daysSinceLastTraining = 30;
     }
     
-    // Get consecutive low REC days (updated elsewhere, read here)
-    const consecutiveLowRecDays = decayData.consecutive_low_rec_days ?? 0;
+    // Get consecutive low REC days from the daily snapshot (updated by useDailyRecoverySnapshot)
+    const consecutiveLowRecDays = decayData.low_rec_streak_days ?? 0;
     
-    // Calculate skill decay
+    // Calculate skill decay using timestamp columns
     const buildSkillInput = (
       lastXpDateStr: string | null,
       currentValue: number,
@@ -226,16 +245,16 @@ export function useMetricDecay(
     });
     
     const aeDecay = calculateSkillDecay(
-      buildSkillInput(decayData.last_ae_xp_date, currentStates.AE, baseline.baselineAE)
+      buildSkillInput(decayData.last_ae_xp_at, currentStates.AE, baseline.baselineAE)
     );
     const raDecay = calculateSkillDecay(
-      buildSkillInput(decayData.last_ra_xp_date, currentStates.RA, baseline.baselineRA)
+      buildSkillInput(decayData.last_ra_xp_at, currentStates.RA, baseline.baselineRA)
     );
     const ctDecay = calculateSkillDecay(
-      buildSkillInput(decayData.last_ct_xp_date, currentStates.CT, baseline.baselineCT)
+      buildSkillInput(decayData.last_ct_xp_at, currentStates.CT, baseline.baselineCT)
     );
     const inDecay = calculateSkillDecay(
-      buildSkillInput(decayData.last_in_xp_date, currentStates.IN, baseline.baselineIN)
+      buildSkillInput(decayData.last_in_xp_at, currentStates.IN, baseline.baselineIN)
     );
     
     // Calculate readiness decay - check if week reset needed

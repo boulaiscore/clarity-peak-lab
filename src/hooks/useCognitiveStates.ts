@@ -145,11 +145,11 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
       }
     };
     
-    // Get last XP dates from rawMetrics (new columns)
-    const lastAeXpDate = parseXpDate((rawMetrics as any)?.last_ae_xp_date);
-    const lastRaXpDate = parseXpDate((rawMetrics as any)?.last_ra_xp_date);
-    const lastCtXpDate = parseXpDate((rawMetrics as any)?.last_ct_xp_date);
-    const lastInXpDate = parseXpDate((rawMetrics as any)?.last_in_xp_date);
+    // Get last XP timestamps from rawMetrics (new columns with _at suffix)
+    const lastAeXpDate = parseXpDate((rawMetrics as any)?.last_ae_xp_at);
+    const lastRaXpDate = parseXpDate((rawMetrics as any)?.last_ra_xp_at);
+    const lastCtXpDate = parseXpDate((rawMetrics as any)?.last_ct_xp_at);
+    const lastInXpDate = parseXpDate((rawMetrics as any)?.last_in_xp_at);
     
     const aeDecay = calculateSkillDecay({
       lastXpDate: lastAeXpDate,
