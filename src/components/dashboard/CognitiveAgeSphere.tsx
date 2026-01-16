@@ -175,7 +175,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         node.vy *= 0.98;
       });
 
-      // Draw connections first (behind nodes) - thin blue filaments
+      // Draw connections first (behind nodes) - curved blue filaments
       ctx.lineCap = 'round';
       nodes.forEach((node, i) => {
         node.connections.forEach((j) => {
@@ -185,33 +185,45 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           const dist = Math.sqrt(dx * dx + dy * dy);
           
           // Pulsing opacity on connections
-          const pulse = 0.15 + Math.sin(time * 1.2 + node.pulsePhase) * 0.1;
+          const pulse = 0.15 + Math.sin(time * 0.8 + node.pulsePhase) * 0.1;
           const opacity = Math.max(0, pulse * (1 - dist / connectionDistance));
           
-          // Draw thin connection line with subtle glow
+          // Calculate control point for curved line (perpendicular offset)
+          const midX = (node.x + other.x) / 2;
+          const midY = (node.y + other.y) / 2;
+          const perpX = -dy / dist;
+          const perpY = dx / dist;
+          // Add some variation to curve direction and intensity
+          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 15) + (Math.sin(time * 0.3 + i) * 5);
+          const ctrlX = midX + perpX * curveIntensity;
+          const ctrlY = midY + perpY * curveIntensity;
+          
+          // Draw curved connection line
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
-          ctx.lineTo(other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${opacity * 0.6})`;
+          ctx.quadraticCurveTo(ctrlX, ctrlY, other.x, other.y);
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${opacity * 0.5})`;
           ctx.lineWidth = 0.5;
           ctx.stroke();
           
           // Add second layer for glow effect
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
-          ctx.lineTo(other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${opacity * 0.25})`;
-          ctx.lineWidth = 2;
+          ctx.quadraticCurveTo(ctrlX, ctrlY, other.x, other.y);
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${opacity * 0.2})`;
+          ctx.lineWidth = 2.5;
           ctx.stroke();
 
           // Add traveling pulse effect along some connections
-          if (Math.random() < 0.3) {
-            const pulsePos = (time * 0.4 + i * 0.15) % 1;
-            const px = node.x + dx * pulsePos;
-            const py = node.y + dy * pulsePos;
+          if (Math.random() < 0.25) {
+            const pulsePos = (time * 0.25 + i * 0.15) % 1;
+            // Calculate point along quadratic curve
+            const t = pulsePos;
+            const px = (1-t)*(1-t)*node.x + 2*(1-t)*t*ctrlX + t*t*other.x;
+            const py = (1-t)*(1-t)*node.y + 2*(1-t)*t*ctrlY + t*t*other.y;
             
             const pulseGradient = ctx.createRadialGradient(px, py, 0, px, py, 2);
-            pulseGradient.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${opacity * 0.6})`);
+            pulseGradient.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${opacity * 0.5})`);
             pulseGradient.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
             ctx.beginPath();
             ctx.arc(px, py, 2, 0, Math.PI * 2);
@@ -221,9 +233,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         });
       });
 
-      // Draw nodes (neurons) - warm orange/amber glow
+      // Draw nodes (neurons) - warm orange/amber glow with slower pulse
       nodes.forEach((node) => {
-        const pulse = Math.sin(time * 2.5 + node.pulsePhase);
+        const pulse = Math.sin(time * 0.8 + node.pulsePhase);
         const currentRadius = node.radius * (0.8 + pulse * 0.3);
         const glowIntensity = 0.5 + pulse * 0.4;
 
