@@ -267,7 +267,7 @@ export function UnifiedLearningPath({
                         ? "bg-emerald-500/10 text-emerald-400" 
                         : "bg-muted/20 text-muted-foreground/60"
                     )}>
-                      +{node.xpReward} XP
+                      {node.status === "completed" ? "Done" : "—"}
                     </span>
                   )}
                 </button>

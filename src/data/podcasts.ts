@@ -17,22 +17,34 @@ export interface Podcast {
 }
 
 export const PODCASTS: Podcast[] = [
+  // ==================== LOW DEMAND PODCASTS ====================
+  // Lightweight content for lower bandwidth states
   {
-    id: "in-our-time",
-    title: "In Our Time (BBC)",
-    demand: "HIGH",
-    intent: "Concept compression + rigor (philosophy/history/science).",
-    applePodcastId: "73330895",
-    spotifyQuery: "In Our Time BBC",
+    id: "freakonomics-radio",
+    title: "Freakonomics Radio",
+    demand: "LOW",
+    intent: "Accessible economics + behavioral insights. Easy entry point.",
+    applePodcastId: "354668519",
+    spotifyQuery: "Freakonomics Radio",
   },
   {
-    id: "history-philosophy-without-gaps",
-    title: "History of Philosophy Without Any Gaps",
-    demand: "VERY_HIGH",
-    intent: "Argument chain building (Socrates → Plato → Aristotle → …).",
-    applePodcastId: "396903391",
-    spotifyQuery: "History of Philosophy Without Any Gaps",
+    id: "hidden-brain",
+    title: "Hidden Brain (NPR)",
+    demand: "LOW",
+    intent: "Light psychology with narrative structure. Minimal cognitive overhead.",
+    applePodcastId: "1028908750",
+    spotifyQuery: "Hidden Brain NPR",
   },
+  {
+    id: "radiolab",
+    title: "Radiolab",
+    demand: "LOW",
+    intent: "Narrative science storytelling. Concept delivery through story.",
+    applePodcastId: "152249110",
+    spotifyQuery: "Radiolab",
+  },
+
+  // ==================== MEDIUM DEMAND PODCASTS ====================
   {
     id: "philosophize-this",
     title: "Philosophize This!",
@@ -42,12 +54,30 @@ export const PODCASTS: Podcast[] = [
     spotifyQuery: "Philosophize This",
   },
   {
-    id: "partially-examined-life",
-    title: "The Partially Examined Life",
-    demand: "VERY_HIGH",
-    intent: "Text-driven critical reading (real argumentation, not summaries).",
-    applePodcastId: "318345767",
-    spotifyQuery: "Partially Examined Life",
+    id: "throughline",
+    title: "Throughline (NPR)",
+    demand: "MEDIUM",
+    intent: "Context building: connect present problems to historical roots.",
+    applePodcastId: "1451109634",
+    spotifyQuery: "Throughline NPR",
+  },
+  {
+    id: "planet-money",
+    title: "Planet Money (NPR)",
+    demand: "MEDIUM",
+    intent: "Trade-offs + incentives; decision models via real cases.",
+    applePodcastId: "290783428",
+    spotifyQuery: "Planet Money",
+  },
+
+  // ==================== HIGH DEMAND PODCASTS ====================
+  {
+    id: "in-our-time",
+    title: "In Our Time (BBC)",
+    demand: "HIGH",
+    intent: "Concept compression + rigor (philosophy/history/science).",
+    applePodcastId: "73330895",
+    spotifyQuery: "In Our Time BBC",
   },
   {
     id: "intelligence-squared",
@@ -74,28 +104,30 @@ export const PODCASTS: Podcast[] = [
     spotifyQuery: "Fall of Civilizations",
   },
   {
-    id: "throughline",
-    title: "Throughline (NPR)",
-    demand: "MEDIUM",
-    intent: "Context building: connect present problems to historical roots.",
-    applePodcastId: "1451109634",
-    spotifyQuery: "Throughline NPR",
-  },
-  {
-    id: "planet-money",
-    title: "Planet Money (NPR)",
-    demand: "MEDIUM",
-    intent: "Trade-offs + incentives; decision models via real cases.",
-    applePodcastId: "290783428",
-    spotifyQuery: "Planet Money",
-  },
-  {
     id: "the-intelligence",
     title: "The Intelligence (The Economist)",
     demand: "HIGH",
     intent: "Synthesis + signal detection; current events without doomscrolling.",
     applePodcastId: "1449631195",
     spotifyQuery: "The Intelligence The Economist",
+  },
+
+  // ==================== VERY HIGH DEMAND PODCASTS ====================
+  {
+    id: "history-philosophy-without-gaps",
+    title: "History of Philosophy Without Any Gaps",
+    demand: "VERY_HIGH",
+    intent: "Argument chain building (Socrates → Plato → Aristotle → …).",
+    applePodcastId: "396903391",
+    spotifyQuery: "History of Philosophy Without Any Gaps",
+  },
+  {
+    id: "partially-examined-life",
+    title: "The Partially Examined Life",
+    demand: "VERY_HIGH",
+    intent: "Text-driven critical reading (real argumentation, not summaries).",
+    applePodcastId: "318345767",
+    spotifyQuery: "Partially Examined Life",
   },
 ];
 
