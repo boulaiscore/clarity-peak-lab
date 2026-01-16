@@ -3,13 +3,20 @@ import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth, SessionDuration } from "@/contexts/AuthContext";
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
@@ -66,15 +73,18 @@ const Account = () => {
   // Daily Reminder states
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState("08:30");
+  
+  // Timezone state
+  const [timezone, setTimezone] = useState("UTC");
 
-  // Load reminder settings from database
+  // Load settings from database
   useEffect(() => {
-    const loadReminderSettings = async () => {
+    const loadSettings = async () => {
       if (!user?.id) return;
       
       const { data } = await supabase
         .from("profiles")
-        .select("reminder_enabled, reminder_time")
+        .select("reminder_enabled, reminder_time, timezone")
         .eq("user_id", user.id)
         .single();
       
@@ -84,10 +94,17 @@ const Account = () => {
           // Format time from "HH:mm:ss" to "HH:mm"
           setReminderTime(data.reminder_time.substring(0, 5));
         }
+        if (data.timezone) {
+          setTimezone(data.timezone);
+        } else {
+          // Auto-detect timezone on first load if not set
+          const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          setTimezone(detectedTz || "UTC");
+        }
       }
     };
     
-    loadReminderSettings();
+    loadSettings();
   }, [user?.id]);
 
   // Check if user has completed assessment (non-default baseline values)
@@ -212,6 +229,22 @@ const Account = () => {
         .from("profiles")
         .update({ reminder_time: time + ":00" })
         .eq("user_id", user.id);
+    }
+  };
+
+  const handleTimezoneChange = async (newTimezone: string) => {
+    setTimezone(newTimezone);
+    
+    if (user?.id) {
+      await supabase
+        .from("profiles")
+        .update({ timezone: newTimezone })
+        .eq("user_id", user.id);
+      
+      toast({
+        title: "Timezone updated",
+        description: `Your timezone is now set to ${newTimezone}`,
+      });
     }
   };
 
@@ -684,6 +717,48 @@ const Account = () => {
             </div>
           </div>
 
+          {/* Timezone */}
+          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-primary" />
+              Timezone
+            </h3>
+            
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Used for day boundary calculations (streak tracking, daily resets).
+              </p>
+              <Select value={timezone} onValueChange={handleTimezoneChange}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="Pacific/Honolulu">Hawaii (UTC-10)</SelectItem>
+                  <SelectItem value="America/Anchorage">Alaska (UTC-9)</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific Time (UTC-8)</SelectItem>
+                  <SelectItem value="America/Denver">Mountain Time (UTC-7)</SelectItem>
+                  <SelectItem value="America/Chicago">Central Time (UTC-6)</SelectItem>
+                  <SelectItem value="America/New_York">Eastern Time (UTC-5)</SelectItem>
+                  <SelectItem value="America/Sao_Paulo">São Paulo (UTC-3)</SelectItem>
+                  <SelectItem value="UTC">UTC (UTC+0)</SelectItem>
+                  <SelectItem value="Europe/London">London (UTC+0/+1)</SelectItem>
+                  <SelectItem value="Europe/Paris">Paris / Berlin (UTC+1/+2)</SelectItem>
+                  <SelectItem value="Europe/Helsinki">Helsinki (UTC+2/+3)</SelectItem>
+                  <SelectItem value="Europe/Moscow">Moscow (UTC+3)</SelectItem>
+                  <SelectItem value="Asia/Dubai">Dubai (UTC+4)</SelectItem>
+                  <SelectItem value="Asia/Kolkata">India (UTC+5:30)</SelectItem>
+                  <SelectItem value="Asia/Bangkok">Bangkok (UTC+7)</SelectItem>
+                  <SelectItem value="Asia/Singapore">Singapore (UTC+8)</SelectItem>
+                  <SelectItem value="Asia/Tokyo">Tokyo (UTC+9)</SelectItem>
+                  <SelectItem value="Australia/Sydney">Sydney (UTC+10/+11)</SelectItem>
+                  <SelectItem value="Pacific/Auckland">Auckland (UTC+12/+13)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground/60">
+                Current device timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+              </p>
+            </div>
+          </div>
 
 
           {/* Cognitive Baseline */}
