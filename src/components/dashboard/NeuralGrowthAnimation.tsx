@@ -370,16 +370,18 @@ export function NeuralGrowthAnimation({
           </div>
         )}
         
-        {/* Bottleneck - Biggest Lever */}
+        {/* Bottleneck - Biggest Lever with Scientific Classification */}
         {bottleneck && bottleneck.potentialGain > 0 && (
           <div className="mt-3 pt-3 border-t border-border/20">
             <div 
               className={`mx-2 p-2.5 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${
-                bottleneck.variable === "thinking" 
-                  ? "bg-primary/5 border-primary/20 hover:border-primary/40" 
-                  : bottleneck.variable === "training"
-                    ? "bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40"
-                    : "bg-purple-500/5 border-purple-500/20 hover:border-purple-500/40"
+                bottleneck.impact.level === "critical"
+                  ? "bg-red-500/5 border-red-500/30 hover:border-red-500/50"
+                  : bottleneck.impact.level === "high"
+                    ? "bg-amber-500/5 border-amber-500/30 hover:border-amber-500/50"
+                    : bottleneck.impact.level === "moderate"
+                      ? "bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40"
+                      : "bg-muted/5 border-muted/20 hover:border-muted/40"
               }`}
               onClick={() => {
                 if (bottleneck.variable === "thinking" || bottleneck.variable === "training") {
@@ -389,25 +391,56 @@ export function NeuralGrowthAnimation({
                 }
               }}
             >
+              {/* Impact Level Badge */}
+              <div className="flex items-center justify-between mb-1.5">
+                <span className={`text-[8px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${
+                  bottleneck.impact.level === "critical"
+                    ? "bg-red-500/20 text-red-400"
+                    : bottleneck.impact.level === "high"
+                      ? "bg-amber-500/20 text-amber-400"
+                      : bottleneck.impact.level === "moderate"
+                        ? "bg-blue-500/20 text-blue-400"
+                        : "bg-muted/20 text-muted-foreground"
+                }`}>
+                  {bottleneck.impact.label}
+                </span>
+                <span className="text-[9px] text-muted-foreground/60">
+                  {bottleneck.impact.normalizedImpact}% of max potential
+                </span>
+              </div>
+              
+              {/* Variable and Points */}
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                   {bottleneck.variable === "thinking" && <Zap className="w-3.5 h-3.5 text-primary" />}
                   {bottleneck.variable === "training" && <Target className="w-3.5 h-3.5 text-blue-400" />}
                   {bottleneck.variable === "recovery" && <Moon className="w-3.5 h-3.5 text-purple-400" />}
-                  <span className="text-[10px] font-medium text-foreground/80 uppercase tracking-wide">
-                    Biggest Lever
+                  <span className="text-[10px] font-medium text-foreground/80">
+                    {bottleneck.variable === "thinking" ? "Thinking Scores" : 
+                     bottleneck.variable === "training" ? "Training Load" : "Recovery"}
                   </span>
                 </div>
-                <span className={`text-[11px] font-bold ${
-                  bottleneck.variable === "thinking" 
-                    ? "text-primary" 
-                    : bottleneck.variable === "training"
-                      ? "text-blue-400"
-                      : "text-purple-400"
+                <span className={`text-[12px] font-bold ${
+                  bottleneck.impact.level === "critical"
+                    ? "text-red-400"
+                    : bottleneck.impact.level === "high"
+                      ? "text-amber-400"
+                      : bottleneck.variable === "thinking"
+                        ? "text-primary"
+                        : bottleneck.variable === "training"
+                          ? "text-blue-400"
+                          : "text-purple-400"
                 }`}>
                   +{bottleneck.potentialGain} pts
                 </span>
               </div>
+              
+              {/* Scientific Description */}
+              <p className="text-[9px] text-muted-foreground/70 italic mb-1">
+                {bottleneck.impact.description}
+              </p>
+              
+              {/* Action */}
               <p className="text-[10px] text-muted-foreground leading-relaxed">
                 {bottleneck.actionDescription}
               </p>

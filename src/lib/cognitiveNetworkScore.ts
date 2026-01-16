@@ -23,6 +23,15 @@ export const WEIGHTS = {
   recoveryFactor: 0.20,
 };
 
+export type ImpactLevel = "low" | "moderate" | "high" | "critical";
+
+export interface ImpactClassification {
+  level: ImpactLevel;
+  normalizedImpact: number; // 0-100 (percentage of max potential for this component)
+  label: string;
+  description: string;
+}
+
 export interface BottleneckResult {
   variable: "thinking" | "training" | "recovery";
   potentialGain: number;
@@ -30,6 +39,61 @@ export interface BottleneckResult {
   weight: number;
   actionLabel: string;
   actionDescription: string;
+  impact: ImpactClassification;
+}
+
+/**
+ * Classify the impact level of a bottleneck based on normalized potential
+ * 
+ * Scientific basis: We normalize the potential gain against the maximum
+ * theoretical gain for each component (weight × 100), creating comparable
+ * thresholds across components with different weights.
+ * 
+ * Thresholds based on effect size conventions:
+ * - Low (0-20%): Marginal effect, component near optimal
+ * - Moderate (20-50%): Medium effect size, meaningful improvement possible
+ * - High (50-80%): Large effect size, substantial leverage point
+ * - Critical (80-100%): Dominant effect, primary constraint on system
+ */
+export function classifyBottleneckImpact(
+  potentialGain: number,
+  weight: number
+): ImpactClassification {
+  const maxPotential = weight * 100;
+  const normalizedImpact = maxPotential > 0
+    ? (potentialGain / maxPotential) * 100
+    : 0;
+
+  if (normalizedImpact >= 80) {
+    return {
+      level: "critical",
+      normalizedImpact: Math.round(normalizedImpact),
+      label: "Critical lever",
+      description: "This component dominates your potential growth"
+    };
+  }
+  if (normalizedImpact >= 50) {
+    return {
+      level: "high",
+      normalizedImpact: Math.round(normalizedImpact),
+      label: "High leverage",
+      description: "Substantial room for improvement here"
+    };
+  }
+  if (normalizedImpact >= 20) {
+    return {
+      level: "moderate",
+      normalizedImpact: Math.round(normalizedImpact),
+      label: "Moderate impact",
+      description: "Meaningful gains available"
+    };
+  }
+  return {
+    level: "low",
+    normalizedImpact: Math.round(normalizedImpact),
+    label: "Low priority",
+    description: "Already near optimal for this component"
+  };
 }
 
 export interface CognitiveMetricsInput {
@@ -226,7 +290,7 @@ export function getTargetsForPlan(plan: string): typeof DEFAULT_TARGETS.expert {
  * Calculates gap-to-100 weighted by component weight
  */
 export function identifyBottleneck(breakdown: SCIBreakdown): BottleneckResult {
-  const gaps = [
+  const rawGaps = [
     {
       variable: "thinking" as const,
       currentScore: breakdown.cognitivePerformance.score,
@@ -252,6 +316,12 @@ export function identifyBottleneck(breakdown: SCIBreakdown): BottleneckResult {
       actionDescription: "Complete Detox or Walking sessions"
     }
   ];
+
+  // Add impact classification to each gap
+  const gaps: BottleneckResult[] = rawGaps.map(gap => ({
+    ...gap,
+    impact: classifyBottleneckImpact(gap.potentialGain, gap.weight)
+  }));
   
   // Sort by potential gain descending
   gaps.sort((a, b) => b.potentialGain - a.potentialGain);
