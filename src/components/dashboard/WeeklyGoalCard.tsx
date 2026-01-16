@@ -381,10 +381,10 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 <div className="grid grid-cols-[130px_1fr_1fr] gap-1 mb-1">
                   <div className="flex items-center justify-between gap-0.5">
                     <div className="flex items-center gap-0.5">
-                      <Zap className="w-2 h-2 text-amber-400" />
-                      <span className="text-[8px] text-amber-400 font-medium">Fast (S1)</span>
+                      <Zap className="w-2 h-2 text-muted-foreground/50" />
+                      <span className="text-[8px] text-muted-foreground font-medium">Fast (S1)</span>
                     </div>
-                    <span className="text-[7px] text-amber-400/70 tabular-nums">
+                    <span className="text-[7px] text-muted-foreground/70 tabular-nums">
                       {Math.round(gamesSubTargets[0]?.earned ?? 0)} XP
                     </span>
                   </div>
@@ -397,13 +397,13 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                           e.stopPropagation();
                           setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`);
                         }}
-                        className="h-auto bg-amber-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+                        className="h-auto bg-muted/30 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
                       >
                         <div className="flex items-center gap-1">
                           <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
                           <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-amber-400/60"
+                              className="h-full rounded-full bg-muted-foreground/40"
                               initial={false}
                               animate={{ width: `${Math.min(100, area.progress)}%` }}
                               transition={{ duration: 0.4, ease: "easeOut" }}
@@ -417,7 +417,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="text-[7px] text-amber-300/70 tabular-nums text-center mt-0.5"
+                              className="text-[7px] text-muted-foreground/70 tabular-nums text-center mt-0.5"
                             >
                               {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
                             </motion.div>
@@ -431,10 +431,10 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 <div className="grid grid-cols-[130px_1fr_1fr] gap-1">
                   <div className="flex items-center justify-between gap-0.5">
                     <div className="flex items-center gap-0.5">
-                      <Timer className="w-2 h-2 text-violet-400" />
-                      <span className="text-[8px] text-violet-400 font-medium">Reasoned (S2)</span>
+                      <Timer className="w-2 h-2 text-muted-foreground/50" />
+                      <span className="text-[8px] text-muted-foreground font-medium">Reasoned (S2)</span>
                     </div>
-                    <span className="text-[7px] text-violet-400/70 tabular-nums">
+                    <span className="text-[7px] text-muted-foreground/70 tabular-nums">
                       {Math.round(gamesSubTargets[1]?.earned ?? 0)} XP
                     </span>
                   </div>
@@ -447,13 +447,13 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                           e.stopPropagation();
                           setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`);
                         }}
-                        className="h-auto bg-violet-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+                        className="h-auto bg-muted/30 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
                       >
                         <div className="flex items-center gap-1">
                           <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
                           <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-violet-400/60"
+                              className="h-full rounded-full bg-muted-foreground/40"
                               initial={false}
                               animate={{ width: `${Math.min(100, area.progress)}%` }}
                               transition={{ duration: 0.4, ease: "easeOut" }}
@@ -467,7 +467,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="text-[7px] text-violet-300/70 tabular-nums text-center mt-0.5"
+                              className="text-[7px] text-muted-foreground/70 tabular-nums text-center mt-0.5"
                             >
                               {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
                             </motion.div>
@@ -483,8 +483,8 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               <div className="pt-3 border-t border-border/30">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <div className="flex items-center gap-0.5">
-                    <Leaf className="w-3 h-3 text-teal-400" />
-                    <Footprints className="w-2.5 h-2.5 text-teal-400" />
+                    <Leaf className="w-3 h-3 text-muted-foreground/50" />
+                    <Footprints className="w-2.5 h-2.5 text-muted-foreground/50" />
                   </div>
                   <span className="text-[10px] text-muted-foreground font-medium">Recovery Budget</span>
                   <span className="text-[8px] text-muted-foreground/60 tabular-nums">
@@ -494,7 +494,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </div>
                 <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
                   <motion.div
-                    className={`h-full rounded-full ${recoveryComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+                    className={`h-full rounded-full ${recoveryComplete ? "bg-muted-foreground/50" : "bg-muted-foreground/40"}`}
                     initial={false}
                     animate={{ width: `${Math.min(100, recoveryProgress)}%` }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
@@ -674,7 +674,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               <button
                 key={area.area}
                 onClick={() => setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`)}
-                className="h-auto bg-violet-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
+                className="h-auto bg-muted/30 rounded flex flex-col items-stretch px-1 py-0.5 transition-all"
               >
                 <div className="flex items-center gap-1">
                   <AreaIcon className="w-2 h-2 text-muted-foreground/50" />

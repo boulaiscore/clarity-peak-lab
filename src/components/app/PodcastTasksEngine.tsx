@@ -47,12 +47,12 @@ import {
 } from "@/data/podcasts";
 import { cn } from "@/lib/utils";
 
-// Demand badge colors - muted palette
+// Demand badge colors - muted neutral palette
 const DEMAND_STYLES: Record<PodcastDemand, { bg: string; text: string; border: string }> = {
-  LOW: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/20" },
-  MEDIUM: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", border: "border-blue-500/20" },
-  HIGH: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/20" },
-  VERY_HIGH: { bg: "bg-rose-500/10", text: "text-rose-600 dark:text-rose-400", border: "border-rose-500/20" },
+  LOW: { bg: "bg-muted/30", text: "text-muted-foreground", border: "border-muted-foreground/20" },
+  MEDIUM: { bg: "bg-muted/30", text: "text-muted-foreground", border: "border-muted-foreground/20" },
+  HIGH: { bg: "bg-muted/40", text: "text-muted-foreground", border: "border-muted-foreground/25" },
+  VERY_HIGH: { bg: "bg-muted/50", text: "text-muted-foreground", border: "border-muted-foreground/30" },
 };
 
 function DemandBadge({ demand }: { demand: PodcastDemand }) {

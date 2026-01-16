@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Activity, ChevronRight, Zap } from "lucide-react";
+import { Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNeuralResetTrigger } from "@/hooks/useNeuralReset";
 import { cn } from "@/lib/utils";
@@ -29,45 +29,32 @@ export function NeuralResetPrompt({ className }: NeuralResetPromptProps) {
       <button
         onClick={() => navigate("/neural-reset")}
         className={cn(
-          "w-full p-3 rounded-xl border transition-all duration-200",
+          "w-full p-2.5 rounded-lg border transition-all duration-200",
           "text-left active:scale-[0.99]",
           isRecommended
-            ? "bg-foreground/5 border-foreground/20 hover:border-foreground/30"
-            : "bg-card/50 border-border/40 hover:border-border/60"
+            ? "bg-muted/40 border-muted-foreground/20 hover:border-muted-foreground/30"
+            : "bg-card/30 border-border/30 hover:border-border/50"
         )}
       >
-        <div className="flex items-center gap-2.5">
-          <div className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-            isRecommended ? "bg-foreground/10" : "bg-muted/50"
+        <div className="flex items-center gap-2">
+          <Activity className={cn(
+            "w-3.5 h-3.5 shrink-0",
+            isRecommended ? "text-muted-foreground" : "text-muted-foreground/50"
+          )} />
+          <span className={cn(
+            "text-[11px] font-medium",
+            isRecommended ? "text-foreground/80" : "text-muted-foreground"
           )}>
-            <Activity className={cn(
-              "w-4 h-4",
-              isRecommended ? "text-foreground/70" : "text-muted-foreground"
-            )} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h3 className={cn(
-                "text-[13px] font-semibold",
-                isRecommended ? "text-foreground" : "text-foreground/80"
-              )}>
-                Neural Reset
-              </h3>
-              {isRecommended && (
-                <span className="flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 bg-foreground/10 rounded text-foreground/60 font-medium uppercase tracking-wider">
-                  <Zap className="w-2 h-2" />
-                  Suggested
-                </span>
-              )}
-            </div>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
-              {isRecommended 
-                ? copy 
-                : "Activity stable. Not needed now."}
-            </p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
+            Neural Reset
+          </span>
+          {isRecommended && (
+            <span className="text-[8px] px-1.5 py-0.5 bg-muted/50 rounded text-muted-foreground/70 font-medium">
+              Suggested
+            </span>
+          )}
+          <span className="text-[9px] text-muted-foreground/50 ml-auto">
+            {isRecommended ? "Activity high" : "Not needed"}
+          </span>
         </div>
       </button>
     </motion.div>

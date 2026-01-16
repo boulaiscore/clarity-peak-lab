@@ -119,12 +119,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Recovery Low Banner - muted amber */}
+      {/* Recovery Low Banner - muted neutral */}
       {safetyRuleActive && (
-        <Alert className="border-amber-500/15 bg-amber-500/5">
-          <Info className="h-4 w-4 text-amber-400/70" />
-          <AlertDescription className="text-xs text-amber-200/70">
-            <span className="font-medium">Light focus available.</span> Fast focus requires less recovery than deep work. Build recovery through Detox or Walk to unlock more options.
+        <Alert className="border-muted-foreground/15 bg-muted/20">
+          <Info className="h-4 w-4 text-muted-foreground/60" />
+          <AlertDescription className="text-xs text-muted-foreground/70">
+            <span className="font-medium">Light focus available.</span> Build recovery through Detox or Walk to unlock more options.
           </AlertDescription>
         </Alert>
       )}
@@ -136,11 +136,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         const systemLabel = system === "fast" ? "System 1" : "System 2";
         const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
         const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
-        // Muted but still colored styling
+        // Muted neutral styling - no bright colors
         const accentClass = system === "fast" 
-          ? "border-amber-500/15 bg-amber-500/5" 
-          : "border-violet-500/15 bg-violet-500/5";
-        const iconColor = system === "fast" ? "text-amber-400/70" : "text-violet-400/70";
+          ? "border-muted-foreground/15 bg-muted/20" 
+          : "border-muted-foreground/15 bg-muted/20";
+        const iconColor = "text-muted-foreground/60";
         
         return (
           <div
