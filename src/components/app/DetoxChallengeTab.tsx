@@ -517,7 +517,7 @@ function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: num
       <p className="text-[10px] text-muted-foreground/70 mt-3 pt-3 border-t border-border/30 leading-relaxed">
         Recovery does not train skills directly. It determines how effective cognitive input can be.
         <span className="block mt-1 text-muted-foreground/50">
-          Impact scales with duration but may vary slightly due to rounding.
+          Impact increases with duration but is not strictly linear.
         </span>
       </p>
     </div>
