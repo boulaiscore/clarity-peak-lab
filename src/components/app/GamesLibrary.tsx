@@ -136,11 +136,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         const systemLabel = system === "fast" ? "System 1" : "System 2";
         const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
         const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
-        // Muted neutral styling - no bright colors
+        // Vibrant colored styling per system
         const accentClass = system === "fast" 
-          ? "border-muted-foreground/15 bg-muted/20" 
-          : "border-muted-foreground/15 bg-muted/20";
-        const iconColor = "text-muted-foreground/60";
+          ? "border-amber-500/30 bg-amber-500/5" 
+          : "border-violet-500/30 bg-violet-500/5";
+        const iconColor = system === "fast" ? "text-amber-500" : "text-violet-500";
         
         return (
           <div
@@ -157,14 +157,14 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
             >
               <div className={cn(
                 "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                system === "fast" ? "bg-amber-500/10" : "bg-violet-500/10"
+                system === "fast" ? "bg-amber-500/15" : "bg-violet-500/15"
               )}>
-                <SystemIcon className={cn("w-4 h-4", iconColor)} />
+                <SystemIcon className={cn("w-4.5 h-4.5", iconColor)} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs font-semibold", iconColor)}>{systemLabel}</span>
-                  <span className="text-[10px] text-muted-foreground">• {systemDesc}</span>
+                  <span className={cn("text-[10px]", system === "fast" ? "text-amber-500/60" : "text-violet-500/60")}>• {systemDesc}</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">
                   {system === "fast" ? "Rapid pattern recognition & intuitive processing" : "Structured analysis & deliberate reasoning"}
@@ -218,7 +218,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                               <div className={cn(
                                   "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
                                   isEnabled
-                                    ? system === "fast" ? "bg-amber-500/8" : "bg-violet-500/8"
+                                    ? system === "fast" ? "bg-amber-500/15" : "bg-violet-500/15"
                                     : "bg-muted/30"
                                 )}>
                                   {isProtection ? (
