@@ -139,8 +139,10 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     const gamesXPTarget = weeklyXPTarget; // v1.3: all XP comes from games
     const tasksXPTarget = 0; // v1.3: tasks don't give XP
 
-    // Each of 4 sub-targets gets 1/4 of gamesXPTarget (2x2 matrix)
-    const perSubTarget = gamesXPTarget / 4;
+    // S1 and S2 each get half the target
+    const systemTarget = gamesXPTarget / 2;
+    // Each system has 2 areas, so each area gets half of system target
+    const areaTarget = systemTarget / 2;
 
     // Build sub-targets for each area+mode
     const breakdown: GamesBreakdownData = gamesBreakdown ?? {
@@ -177,10 +179,8 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       };
     };
 
-    // v1.4: Each system has 2 areas (2x2 matrix matching GamesLibrary)
-    // S1 = Focus (AE) + Creativity (RA)
-    // S2 = Reasoning (CT) + Creativity (IN)
-    const areaTarget = perSubTarget / 2; // 2 areas per system, not 3
+    // Build area breakdowns for each system (matching GamesLibrary)
+    // S1 = Focus (AE) + Creativity (RA) - each gets areaTarget (e.g., 30 for Light plan)
 
     // Build area breakdowns for each system (matching GamesLibrary)
     const s1Areas: AreaModeSubTarget[] = [
@@ -193,8 +193,8 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       buildAreaSubTarget("creativity", "slow", breakdown.creativitySlow, areaTarget), // S2-IN: Insight
     ];
 
-    const s1Target = gamesXPTarget / 2;
-    const s2Target = gamesXPTarget / 2;
+    const s1Target = systemTarget;
+    const s2Target = systemTarget;
 
     const systemSubTargets: SystemSubTarget[] = [
       {
