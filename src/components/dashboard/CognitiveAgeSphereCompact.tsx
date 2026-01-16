@@ -228,13 +228,13 @@ export function CognitiveAgeSphereCompact({ cognitiveAge, delta }: CognitiveAgeS
   return (
     <div className="relative flex items-center justify-center">
       <div className="relative">
-        {/* Outer ambient glow - soft fade all around */}
+        {/* Outer ambient glow - soft fade all around using primary color */}
         <div 
           className="absolute inset-0 rounded-full blur-2xl scale-[1.8]"
           style={{
             background: isDark 
-              ? 'radial-gradient(circle, hsla(215, 100%, 65%, 0.1) 0%, hsla(215, 100%, 65%, 0.03) 45%, transparent 70%)'
-              : 'radial-gradient(circle, hsla(215, 85%, 55%, 0.08) 0%, hsla(215, 85%, 55%, 0.02) 45%, transparent 70%)'
+              ? 'radial-gradient(circle, hsla(165, 82%, 55%, 0.06) 0%, hsla(165, 82%, 55%, 0.015) 45%, transparent 70%)'
+              : 'radial-gradient(circle, hsla(165, 82%, 45%, 0.04) 0%, hsla(165, 82%, 45%, 0.01) 45%, transparent 70%)'
           }}
         />
 
