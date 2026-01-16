@@ -53,11 +53,6 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
         const isSelected = selectedPlan === planId;
         const isExpanded = expandedPlan === planId;
 
-        // Calculate XP targets matching useCappedWeeklyProgress logic
-        const detoxXPTarget = plan.detox ? Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute) : 0;
-        const tasksXPTarget = plan.contentXPTarget;
-        const gamesXPTarget = Math.max(0, plan.weeklyXPTarget - tasksXPTarget - detoxXPTarget);
-
         return (
           <motion.div
             key={planId}
