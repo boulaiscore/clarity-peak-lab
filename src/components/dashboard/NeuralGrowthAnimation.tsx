@@ -255,12 +255,43 @@ export function NeuralGrowthAnimation({
     return () => cancelAnimationFrame(animationId);
   }, [nodeCount, connectionDensity, glowIntensity, intensity, pulseSpeed, glowRadius, nodePulseAmplitude, connectionPulseAmplitude, showParticles]);
 
-  const statusText = customStatusText ||
-    (overallCognitiveScore >= 75
-      ? "High strategic clarity"
-      : overallCognitiveScore >= 50
-        ? "Developing strategic capacity"
-        : "Building cognitive foundation");
+  // Phase-based status and description
+  const getPhaseInfo = (score: number) => {
+    if (score >= 80) return { 
+      phase: "Elite cognitive integration",
+      description: "Your cognitive network is highly integrated and stable."
+    };
+    if (score >= 65) return { 
+      phase: "High strategic clarity",
+      description: "Your skills are consolidating into a coherent network."
+    };
+    if (score >= 50) return { 
+      phase: "Developing strategic capacity",
+      description: "Your network is building momentum through consistent effort."
+    };
+    if (score >= 35) return { 
+      phase: "Building cognitive foundation",
+      description: "Your cognitive skills are developing, connections are forming."
+    };
+    return { 
+      phase: "Early activation phase",
+      description: "Your cognitive skills are activating, but the network is not yet stable."
+    };
+  };
+
+  const phaseInfo = getPhaseInfo(overallCognitiveScore);
+  const statusText = customStatusText || phaseInfo.phase;
+
+  // Component status helpers
+  const getComponentStatus = (score: number) => {
+    if (score >= 50) return { label: "Active", color: "text-primary" };
+    if (score >= 20) return { label: "Developing", color: "text-amber-400" };
+    return { label: "Missing", color: "text-muted-foreground/60" };
+  };
+
+  const performanceStatus = sciBreakdown ? getComponentStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
+  const engagementStatus = sciBreakdown ? getComponentStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
+  const recoveryStatus = sciBreakdown ? getComponentStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
 
   return (
     <div className="py-2">
@@ -271,34 +302,80 @@ export function NeuralGrowthAnimation({
       </div>
       
       <div className="mt-3 text-center">
+        {/* Score */}
         <div className="flex items-center justify-center gap-2 mb-1">
           <span className="text-2xl font-bold text-primary">{overallCognitiveScore}</span>
           <span className="text-[10px] text-muted-foreground/60 uppercase">/ 100</span>
         </div>
         <p className="text-[11px] text-primary font-medium">{statusText}</p>
         
-        {/* SCI Component Breakdown - compact 3-column grid */}
+        {/* Phase Description */}
+        <p className="text-[10px] text-muted-foreground mt-1.5 px-4 leading-relaxed">
+          {phaseInfo.description}
+        </p>
+        
+        {/* Status Breakdown - What's shaping your network */}
+        {sciBreakdown && (
+          <div className="mt-3 pt-3 border-t border-border/20">
+            <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-2">
+              What's shaping your network
+            </p>
+            <div className="space-y-1.5 text-left px-3">
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-muted-foreground">Performance</span>
+                <span className={performanceStatus.color}>{performanceStatus.label}</span>
+              </div>
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-muted-foreground">Engagement</span>
+                <span className={engagementStatus.color}>{engagementStatus.label}</span>
+              </div>
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-muted-foreground">Recovery</span>
+                <span className={recoveryStatus.color}>{recoveryStatus.label}</span>
+              </div>
+            </div>
+            
+            {/* Synthesis Line */}
+            <p className="text-[9px] text-muted-foreground/70 mt-3 px-2 italic">
+              The network grows when training, consistency, and recovery work together.
+            </p>
+          </div>
+        )}
+        
+        {/* Current Components - 3-column grid */}
         {sciBreakdown && (
           <div className="mt-3 pt-3 border-t border-border/20">
             <div className="grid grid-cols-3 gap-2 text-[9px]">
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Performance</div>
                 <div className="font-semibold text-primary">{sciBreakdown.cognitivePerformance.score}</div>
-                <div className="text-muted-foreground/40">50%</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Skill activation</div>
               </div>
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Engagement</div>
                 <div className="font-semibold text-blue-400">{sciBreakdown.behavioralEngagement.score}</div>
-                <div className="text-muted-foreground/40">30%</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Consistency</div>
               </div>
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Recovery</div>
                 <div className="font-semibold text-purple-400">{sciBreakdown.recoveryFactor.score}</div>
-                <div className="text-muted-foreground/40">20%</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Restoration</div>
               </div>
             </div>
           </div>
         )}
+        
+        {/* Action Guidance */}
+        <div className="mt-3 pt-3 border-t border-border/20 text-left px-3">
+          <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-2">
+            To strengthen your network
+          </p>
+          <ul className="text-[10px] text-muted-foreground space-y-1">
+            <li>• Train to activate skills</li>
+            <li>• Add consistency across the week</li>
+            <li>• Prioritize recovery for consolidation</li>
+          </ul>
+        </div>
         
         {/* Learn More button opens detailed explanation */}
         <Dialog>
@@ -311,6 +388,9 @@ export function NeuralGrowthAnimation({
           <DialogContent className="max-w-sm max-h-[85vh]">
             <DialogHeader>
               <DialogTitle className="text-base">Cognitive Network</DialogTitle>
+              <p className="text-xs text-muted-foreground">
+                How your cognitive skills integrate and stabilize over time.
+              </p>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(85vh-80px)] pr-2">
               <SCIExplanation sciBreakdown={sciBreakdown} />
