@@ -58,14 +58,15 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     // Warm orange/amber for node cores
     const nodeColor = { h: 35, s: 100, l: 60 };
 
-    // Create nodes arranged in a spherical pattern
+    // Create nodes arranged around the perimeter (center stays empty)
     const nodes: Node[] = [];
-    const nodeCount = 30;
+    const nodeCount = 55;
     
-    // Create nodes distributed around a sphere
+    // Create nodes distributed around the outer ring only
     for (let i = 0; i < nodeCount; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radiusVariation = 0.4 + Math.random() * 0.55;
+      const angle = (i / nodeCount) * Math.PI * 2 + Math.random() * 0.3;
+      // Keep nodes in outer ring area (60-100% of radius)
+      const radiusVariation = 0.6 + Math.random() * 0.4;
       const r = sphereRadius * radiusVariation;
       const x = centerX + Math.cos(angle) * r;
       const y = centerY + Math.sin(angle) * r;
@@ -75,23 +76,23 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         y,
         baseX: x,
         baseY: y,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
-        radius: 2 + Math.random() * 2.5,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        radius: 1.5 + Math.random() * 2,
         pulsePhase: Math.random() * Math.PI * 2,
         connections: [],
       });
     }
 
-    // Create connections between nearby nodes - increased density
-    const connectionDistance = 70;
+    // Create many connections between nodes - dense neural network
+    const connectionDistance = 90;
     nodes.forEach((node, i) => {
       nodes.forEach((other, j) => {
         if (i >= j) return;
         const dx = node.x - other.x;
         const dy = node.y - other.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < connectionDistance && Math.random() < 0.75) {
+        if (dist < connectionDistance && Math.random() < 0.85) {
           node.connections.push(j);
         }
       });
@@ -174,7 +175,8 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         node.vy *= 0.98;
       });
 
-      // Draw connections first (behind nodes) - cyan/teal color
+      // Draw connections first (behind nodes) - thin blue filaments
+      ctx.lineCap = 'round';
       nodes.forEach((node, i) => {
         node.connections.forEach((j) => {
           const other = nodes[j];
@@ -183,81 +185,91 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           const dist = Math.sqrt(dx * dx + dy * dy);
           
           // Pulsing opacity on connections
-          const pulse = 0.2 + Math.sin(time * 1.5 + node.pulsePhase) * 0.15;
+          const pulse = 0.15 + Math.sin(time * 1.2 + node.pulsePhase) * 0.1;
           const opacity = Math.max(0, pulse * (1 - dist / connectionDistance));
           
-          // Draw connection line with glow
+          // Draw thin connection line with subtle glow
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.lineTo(other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${opacity * 0.8})`;
-          ctx.lineWidth = 1;
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${opacity * 0.6})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+          
+          // Add second layer for glow effect
+          ctx.beginPath();
+          ctx.moveTo(node.x, node.y);
+          ctx.lineTo(other.x, other.y);
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${opacity * 0.25})`;
+          ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Add traveling pulse effect along connections
-          const pulsePos = (time * 0.3 + i * 0.2) % 1;
-          const px = node.x + dx * pulsePos;
-          const py = node.y + dy * pulsePos;
-          
-          const pulseGradient = ctx.createRadialGradient(px, py, 0, px, py, 3);
-          pulseGradient.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${opacity * 0.5})`);
-          pulseGradient.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
-          ctx.beginPath();
-          ctx.arc(px, py, 3, 0, Math.PI * 2);
-          ctx.fillStyle = pulseGradient;
-          ctx.fill();
+          // Add traveling pulse effect along some connections
+          if (Math.random() < 0.3) {
+            const pulsePos = (time * 0.4 + i * 0.15) % 1;
+            const px = node.x + dx * pulsePos;
+            const py = node.y + dy * pulsePos;
+            
+            const pulseGradient = ctx.createRadialGradient(px, py, 0, px, py, 2);
+            pulseGradient.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${opacity * 0.6})`);
+            pulseGradient.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
+            ctx.beginPath();
+            ctx.arc(px, py, 2, 0, Math.PI * 2);
+            ctx.fillStyle = pulseGradient;
+            ctx.fill();
+          }
         });
       });
 
       // Draw nodes (neurons) - warm orange/amber glow
       nodes.forEach((node) => {
-        const pulse = Math.sin(time * 2 + node.pulsePhase);
-        const currentRadius = node.radius * (0.85 + pulse * 0.25);
-        const glowIntensity = 0.6 + pulse * 0.3;
+        const pulse = Math.sin(time * 2.5 + node.pulsePhase);
+        const currentRadius = node.radius * (0.8 + pulse * 0.3);
+        const glowIntensity = 0.5 + pulse * 0.4;
 
         // Outer glow (large, soft) - orange tint
         const outerNodeGlow = ctx.createRadialGradient(
           node.x, node.y, 0,
-          node.x, node.y, currentRadius * 6
+          node.x, node.y, currentRadius * 5
         );
-        outerNodeGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.25 * glowIntensity})`);
-        outerNodeGlow.addColorStop(0.4, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l - 10}%, ${0.1 * glowIntensity})`);
+        outerNodeGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.2 * glowIntensity})`);
+        outerNodeGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l - 10}%, ${0.08 * glowIntensity})`);
         outerNodeGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 6, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, currentRadius * 5, 0, Math.PI * 2);
         ctx.fillStyle = outerNodeGlow;
         ctx.fill();
 
         // Middle glow
         const middleGlow = ctx.createRadialGradient(
           node.x, node.y, 0,
-          node.x, node.y, currentRadius * 3
+          node.x, node.y, currentRadius * 2.5
         );
-        middleGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 15}%, ${0.6 * glowIntensity})`);
-        middleGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.3 * glowIntensity})`);
+        middleGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 15}%, ${0.5 * glowIntensity})`);
+        middleGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.25 * glowIntensity})`);
         middleGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 3, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, currentRadius * 2.5, 0, Math.PI * 2);
         ctx.fillStyle = middleGlow;
         ctx.fill();
 
         // Inner bright core - white/yellow hot
         const coreGlow = ctx.createRadialGradient(
           node.x, node.y, 0,
-          node.x, node.y, currentRadius * 1.2
+          node.x, node.y, currentRadius
         );
-        coreGlow.addColorStop(0, `hsla(45, 100%, 95%, ${0.95 * glowIntensity})`);
-        coreGlow.addColorStop(0.3, `hsla(${nodeColor.h}, 100%, 75%, ${0.8 * glowIntensity})`);
+        coreGlow.addColorStop(0, `hsla(45, 100%, 95%, ${0.9 * glowIntensity})`);
+        coreGlow.addColorStop(0.4, `hsla(${nodeColor.h}, 100%, 75%, ${0.7 * glowIntensity})`);
         coreGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 1.2, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
         ctx.fillStyle = coreGlow;
         ctx.fill();
 
         // White hot center point
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.35, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(50, 100%, 98%, ${0.9 * glowIntensity})`;
+        ctx.arc(node.x, node.y, currentRadius * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(50, 100%, 98%, ${0.85 * glowIntensity})`;
         ctx.fill();
       });
 
