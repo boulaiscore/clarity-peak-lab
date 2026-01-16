@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Info } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Info, Brain, Link2, Sprout } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,10 @@ interface Particle {
   hue: number;
 }
 
+/**
+ * Neural Growth Animation with Cognitive Network
+ * Displays network activation with Activity, Stability, Consolidation
+ */
 export function NeuralGrowthAnimation({ 
   cognitiveAgeDelta, 
   overallCognitiveScore, 
@@ -48,7 +52,60 @@ export function NeuralGrowthAnimation({
 }: NeuralGrowthAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Map metrics to visual intensity - more dramatic scaling based on score
+  // Phase-based status and description
+  const getPhaseInfo = (score: number) => {
+    if (score >= 80) return { 
+      phase: "Integrated",
+      description: "Your cognitive network is stable and highly responsive."
+    };
+    if (score >= 65) return { 
+      phase: "Coordinated",
+      description: "Your cognitive activity is becoming more coordinated."
+    };
+    if (score >= 50) return { 
+      phase: "Forming",
+      description: "Your cognitive network is forming stable patterns."
+    };
+    if (score >= 35) return { 
+      phase: "Building",
+      description: "Your cognitive activity is increasing, but the network is still stabilizing."
+    };
+    return { 
+      phase: "Activation phase",
+      description: "Your cognitive activity is increasing, but the network is still stabilizing."
+    };
+  };
+
+  // Get Activity status (from cognitive performance)
+  const getActivityStatus = (score: number) => {
+    if (score >= 70) return { label: "High", color: "text-emerald-500" };
+    if (score >= 40) return { label: "Increasing", color: "text-primary" };
+    if (score >= 10) return { label: "Active", color: "text-amber-400" };
+    return { label: "Low", color: "text-muted-foreground/60" };
+  };
+
+  // Get Stability status (from behavioral engagement)
+  const getStabilityStatus = (score: number) => {
+    if (score >= 70) return { label: "Stable", color: "text-emerald-500" };
+    if (score >= 40) return { label: "Building", color: "text-amber-400" };
+    return { label: "Low", color: "text-muted-foreground/60" };
+  };
+
+  // Get Consolidation status (from recovery)
+  const getConsolidationStatus = (score: number) => {
+    if (score >= 70) return { label: "High", color: "text-emerald-500" };
+    if (score >= 40) return { label: "Moderate", color: "text-amber-400" };
+    return { label: "Low", color: "text-muted-foreground/60" };
+  };
+
+  const phaseInfo = getPhaseInfo(overallCognitiveScore);
+  const statusText = customStatusText || phaseInfo.phase;
+  
+  const activityStatus = sciBreakdown ? getActivityStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
+  const stabilityStatus = sciBreakdown ? getStabilityStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
+  const consolidationStatus = sciBreakdown ? getConsolidationStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
+
+  // Map metrics to visual intensity
   const isYounger = cognitiveAgeDelta < 0;
   const intensity = Math.min(1, Math.max(0.2, overallCognitiveScore / 100));
   const nodeCount = Math.floor(15 + intensity * 25);
@@ -56,9 +113,9 @@ export function NeuralGrowthAnimation({
   const glowIntensity = isYounger ? 0.8 : 0.4;
   
   // Dynamic animation parameters based on score
-  const pulseSpeed = 1 + (overallCognitiveScore / 100) * 3; // 1x to 4x speed
-  const glowRadius = 3 + (overallCognitiveScore / 100) * 3; // 3 to 6 multiplier
-  const nodePulseAmplitude = 0.2 + (overallCognitiveScore / 100) * 0.5; // 0.2 to 0.7
+  const pulseSpeed = 1 + (overallCognitiveScore / 100) * 3;
+  const glowRadius = 3 + (overallCognitiveScore / 100) * 3;
+  const nodePulseAmplitude = 0.2 + (overallCognitiveScore / 100) * 0.5;
   const connectionPulseAmplitude = 0.2 + (overallCognitiveScore / 100) * 0.5;
   const showParticles = overallCognitiveScore >= 75;
 
@@ -77,12 +134,9 @@ export function NeuralGrowthAnimation({
     // Initialize nodes in a brain-like shape
     const nodes: Node[] = [];
     for (let i = 0; i < nodeCount; i++) {
-      // Create nodes in a more organic, brain-like distribution
       const angle = Math.random() * Math.PI * 2;
       const radiusVariation = 0.4 + Math.random() * 0.5;
       const baseRadius = 60;
-
-      // Create two hemispheres
       const hemisphere = Math.random() > 0.5 ? 1 : -1;
       const x = centerX + Math.cos(angle) * baseRadius * radiusVariation * (0.8 + Math.random() * 0.4);
       const y = centerY + Math.sin(angle) * baseRadius * radiusVariation * 0.7 + hemisphere * 10;
@@ -112,7 +166,7 @@ export function NeuralGrowthAnimation({
       });
     });
 
-    // Initialize particles array (only used when score >= 75)
+    // Initialize particles array
     const particles: Particle[] = [];
     const maxParticles = 20;
     let particleSpawnTimer = 0;
@@ -123,7 +177,6 @@ export function NeuralGrowthAnimation({
     const spawnParticle = () => {
       if (particles.length >= maxParticles) return;
       
-      // Spawn from a random active node
       const activeNodes = nodes.filter(n => n.active);
       if (activeNodes.length === 0) return;
       
@@ -135,22 +188,22 @@ export function NeuralGrowthAnimation({
         x: sourceNode.x,
         y: sourceNode.y,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 0.5, // Slight upward bias
+        vy: Math.sin(angle) * speed - 0.5,
         life: 1,
         maxLife: 60 + Math.random() * 40,
         size: 1 + Math.random() * 2,
-        hue: 155 + Math.random() * 30, // Teal to cyan range
+        hue: 155 + Math.random() * 30,
       });
     };
 
     const draw = () => {
-      time += 0.02 * pulseSpeed; // Speed scales with score
+      time += 0.02 * pulseSpeed;
       ctx.clearRect(0, 0, width, height);
 
       // Spawn particles when score >= 75
       if (showParticles) {
         particleSpawnTimer++;
-        if (particleSpawnTimer > 8) { // Spawn every ~8 frames
+        if (particleSpawnTimer > 8) {
           spawnParticle();
           particleSpawnTimer = 0;
         }
@@ -161,7 +214,7 @@ export function NeuralGrowthAnimation({
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy -= 0.01; // Slight upward drift
+        p.vy -= 0.01;
         p.life--;
         
         if (p.life <= 0 || p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
@@ -173,7 +226,6 @@ export function NeuralGrowthAnimation({
         const alpha = lifeRatio * 0.8;
         const currentSize = p.size * (0.5 + lifeRatio * 0.5);
         
-        // Draw particle glow
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, currentSize * 3);
         gradient.addColorStop(0, `hsla(${p.hue}, 82%, 65%, ${alpha * 0.6})`);
         gradient.addColorStop(0.5, `hsla(${p.hue}, 82%, 55%, ${alpha * 0.3})`);
@@ -183,7 +235,6 @@ export function NeuralGrowthAnimation({
         ctx.fillStyle = gradient;
         ctx.fill();
         
-        // Draw particle core
         ctx.beginPath();
         ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${p.hue}, 82%, 70%, ${alpha})`;
@@ -195,55 +246,62 @@ export function NeuralGrowthAnimation({
         node.connections.forEach((j) => {
           const other = nodes[j];
           const bothActive = node.active && other.active;
-
-          // Pulsing effect on connections - more intense with higher score
           const pulse = Math.sin(time * 2 + node.pulsePhase) * connectionPulseAmplitude + (1 - connectionPulseAmplitude / 2);
-          const alpha = bothActive ? (0.1 + intensity * 0.2) * pulse * glowIntensity : 0.05;
 
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.lineTo(other.x, other.y);
-          ctx.strokeStyle = `hsla(165, 82%, 51%, ${alpha})`;
-          ctx.lineWidth = bothActive ? 1 + intensity * 1.5 : 0.5;
+          ctx.strokeStyle = bothActive
+            ? `hsla(165, 82%, 55%, ${0.15 + pulse * 0.25})`
+            : `hsla(165, 30%, 50%, ${0.05 + pulse * 0.1})`;
+          ctx.lineWidth = bothActive ? 1.2 : 0.6;
           ctx.stroke();
         });
       });
 
       // Draw nodes
       nodes.forEach((node) => {
-        // Move nodes slightly - faster movement with higher score
-        node.x += node.vx * (0.8 + intensity * 0.4);
-        node.y += node.vy * (0.8 + intensity * 0.4);
-
-        // Bounce off boundaries
-        const margin = 20;
-        if (node.x < margin || node.x > width - margin) node.vx *= -1;
-        if (node.y < margin || node.y > height - margin) node.vy *= -1;
-
-        // Pulse effect - more dramatic amplitude with higher score
         const pulse = Math.sin(time * 3 + node.pulsePhase) * nodePulseAmplitude + (1 - nodePulseAmplitude / 2);
-        const nodeIntensity = node.active ? pulse * glowIntensity * (0.8 + intensity * 0.4) : 0.3;
+        const currentRadius = node.radius * (0.8 + pulse * 0.4);
 
-        // Glow - larger radius with higher score
+        // Node update
+        node.x += node.vx;
+        node.y += node.vy;
+
+        // Soft boundary
+        const dx = node.x - centerX;
+        const dy = node.y - centerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 80) {
+          node.vx -= dx * 0.001;
+          node.vy -= dy * 0.001;
+        }
+
+        // Damping
+        node.vx *= 0.99;
+        node.vy *= 0.99;
+
+        // Glow for active nodes
         if (node.active) {
-          const dynamicGlowRadius = node.radius * glowRadius;
-          const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, dynamicGlowRadius);
-          gradient.addColorStop(0, `hsla(165, 82%, 51%, ${nodeIntensity * (0.4 + intensity * 0.3)})`);
-          gradient.addColorStop(0.5, `hsla(165, 82%, 51%, ${nodeIntensity * 0.2})`);
-          gradient.addColorStop(1, "transparent");
+          const glowGradient = ctx.createRadialGradient(
+            node.x, node.y, 0,
+            node.x, node.y, currentRadius * glowRadius
+          );
+          glowGradient.addColorStop(0, `hsla(165, 82%, 55%, ${0.4 * glowIntensity})`);
+          glowGradient.addColorStop(0.5, `hsla(165, 82%, 55%, ${0.15 * glowIntensity})`);
+          glowGradient.addColorStop(1, "transparent");
           ctx.beginPath();
-          ctx.arc(node.x, node.y, dynamicGlowRadius, 0, Math.PI * 2);
-          ctx.fillStyle = gradient;
+          ctx.arc(node.x, node.y, currentRadius * glowRadius, 0, Math.PI * 2);
+          ctx.fillStyle = glowGradient;
           ctx.fill();
         }
 
-        // Node core - more vibrant with higher score
-        const corePulse = node.active ? pulse * (0.9 + intensity * 0.3) : 0.7;
+        // Node core
         ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius * corePulse, 0, Math.PI * 2);
-        ctx.fillStyle = node.active 
-          ? `hsla(165, 82%, ${45 + pulse * 25 + intensity * 10}%, ${nodeIntensity})` 
-          : "hsla(0, 0%, 40%, 0.4)";
+        ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
+        ctx.fillStyle = node.active
+          ? `hsla(165, 82%, 55%, ${0.7 + pulse * 0.3})`
+          : `hsla(165, 30%, 50%, ${0.3 + pulse * 0.2})`;
         ctx.fill();
       });
 
@@ -254,44 +312,6 @@ export function NeuralGrowthAnimation({
 
     return () => cancelAnimationFrame(animationId);
   }, [nodeCount, connectionDensity, glowIntensity, intensity, pulseSpeed, glowRadius, nodePulseAmplitude, connectionPulseAmplitude, showParticles]);
-
-  // Phase-based status and description
-  const getPhaseInfo = (score: number) => {
-    if (score >= 80) return { 
-      phase: "Elite cognitive integration",
-      description: "Your cognitive network is highly integrated and stable."
-    };
-    if (score >= 65) return { 
-      phase: "High strategic clarity",
-      description: "Your skills are consolidating into a coherent network."
-    };
-    if (score >= 50) return { 
-      phase: "Developing strategic capacity",
-      description: "Your network is building momentum through consistent effort."
-    };
-    if (score >= 35) return { 
-      phase: "Building cognitive foundation",
-      description: "Your cognitive skills are developing, connections are forming."
-    };
-    return { 
-      phase: "Early activation phase",
-      description: "Your cognitive skills are activating, but the network is not yet stable."
-    };
-  };
-
-  const phaseInfo = getPhaseInfo(overallCognitiveScore);
-  const statusText = customStatusText || phaseInfo.phase;
-
-  // Component status helpers
-  const getComponentStatus = (score: number) => {
-    if (score >= 50) return { label: "Active", color: "text-primary" };
-    if (score >= 20) return { label: "Developing", color: "text-amber-400" };
-    return { label: "Missing", color: "text-muted-foreground/60" };
-  };
-
-  const performanceStatus = sciBreakdown ? getComponentStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
-  const engagementStatus = sciBreakdown ? getComponentStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
-  const recoveryStatus = sciBreakdown ? getComponentStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
 
   return (
     <div className="py-2">
@@ -322,23 +342,27 @@ export function NeuralGrowthAnimation({
             </p>
             <div className="space-y-1.5 text-left px-3">
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-muted-foreground">Performance</span>
-                <span className={performanceStatus.color}>{performanceStatus.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <Brain className="w-3 h-3 text-primary/60" />
+                  <span className="text-muted-foreground">Activity</span>
+                </div>
+                <span className={activityStatus.color}>{activityStatus.label}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-muted-foreground">Engagement</span>
-                <span className={engagementStatus.color}>{engagementStatus.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <Link2 className="w-3 h-3 text-blue-400/60" />
+                  <span className="text-muted-foreground">Stability</span>
+                </div>
+                <span className={stabilityStatus.color}>{stabilityStatus.label}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-muted-foreground">Recovery</span>
-                <span className={recoveryStatus.color}>{recoveryStatus.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <Sprout className="w-3 h-3 text-purple-400/60" />
+                  <span className="text-muted-foreground">Consolidation</span>
+                </div>
+                <span className={consolidationStatus.color}>{consolidationStatus.label}</span>
               </div>
             </div>
-            
-            {/* Synthesis Line */}
-            <p className="text-[9px] text-muted-foreground/70 mt-3 px-2 italic">
-              The network grows when training, consistency, and recovery work together.
-            </p>
           </div>
         )}
         
@@ -347,35 +371,28 @@ export function NeuralGrowthAnimation({
           <div className="mt-3 pt-3 border-t border-border/20">
             <div className="grid grid-cols-3 gap-2 text-[9px]">
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Performance</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Activity</div>
                 <div className="font-semibold text-primary">{sciBreakdown.cognitivePerformance.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Skill activation</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Cognitive activation</div>
               </div>
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Engagement</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Stability</div>
                 <div className="font-semibold text-blue-400">{sciBreakdown.behavioralEngagement.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Consistency</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Consistency over time</div>
               </div>
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Recovery</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Consolidation</div>
                 <div className="font-semibold text-purple-400">{sciBreakdown.recoveryFactor.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Restoration</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Integration & retention</div>
               </div>
             </div>
           </div>
         )}
         
-        {/* Action Guidance */}
-        <div className="mt-3 pt-3 border-t border-border/20 text-left px-3">
-          <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-2">
-            To strengthen your network
-          </p>
-          <ul className="text-[10px] text-muted-foreground space-y-1">
-            <li>• Train to activate skills</li>
-            <li>• Add consistency across the week</li>
-            <li>• Prioritize recovery for consolidation</li>
-          </ul>
-        </div>
+        {/* Footer */}
+        <p className="text-[9px] text-muted-foreground/50 mt-4 px-4 italic">
+          Cognitive networks form gradually through repeated activation and recovery.
+        </p>
         
         {/* Learn More button opens detailed explanation */}
         <Dialog>
@@ -389,7 +406,7 @@ export function NeuralGrowthAnimation({
             <DialogHeader>
               <DialogTitle className="text-base">Cognitive Network</DialogTitle>
               <p className="text-xs text-muted-foreground">
-                How your cognitive skills integrate and stabilize over time.
+                How your cognitive activity is organizing over time.
               </p>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(85vh-80px)] pr-2">
