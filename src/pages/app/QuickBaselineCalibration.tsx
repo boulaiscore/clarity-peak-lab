@@ -43,7 +43,7 @@ interface CalibrationState {
 
 export default function QuickBaselineCalibration() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<CalibrationStep>("intro");
   const [results, setResults] = useState<CalibrationState>({});
@@ -110,18 +110,11 @@ export default function QuickBaselineCalibration() {
 
       if (metricsError) throw metricsError;
 
-      // Update profile to mark calibration complete
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          onboarding_completed: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+      // CRITICAL: Update AuthContext state to mark onboarding complete
+      // This prevents the redirect loop back to /onboarding
+      await updateUser({ onboardingCompleted: true });
 
-      if (profileError) throw profileError;
-
-      // CRITICAL: Invalidate baseline-status cache to prevent redirect loop
+      // Invalidate baseline-status cache
       await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"] });
 
