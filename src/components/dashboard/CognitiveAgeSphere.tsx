@@ -155,9 +155,16 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.5 : 0.4})`;
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.15 : 0.1})`;
+      ctx.lineWidth = 4;
+      ctx.filter = 'blur(3px)';
       ctx.stroke();
+      
+      // Second softer pass
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`;
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      ctx.filter = 'none';
 
       // Update node positions with gentle floating
       nodes.forEach((node) => {
