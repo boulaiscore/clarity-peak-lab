@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, BookMarked, Brain, Shield, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Smartphone, Ban } from "lucide-react";
+import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
@@ -26,8 +26,6 @@ function CategoryCompleteBadge({ show }: { show: boolean }) {
 }
 
 // Icon mapping for 2x2 matrix areas - matches GamesLibrary.tsx
-// S1: focus (Attentional Efficiency), creativity (Rapid Association)
-// S2: reasoning (Critical Thinking), creativity (Deliberate Association)
 const AREA_ICONS = {
   focus: Target,       // S1 only
   reasoning: Brain,    // S2 only
@@ -60,6 +58,15 @@ function markCelebrationSeen(): void {
   }
 }
 
+// Helper to format minutes as hours
+function formatRecoveryTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours === 0) return `${mins}m`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}
+
 interface WeeklyGoalCardProps {
   compact?: boolean;
 }
@@ -69,23 +76,18 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   
   const {
     rawGamesXP,
-    rawTasksXP,
-    rawDetoxXP,
-    totalXPTarget,
     gamesXPTarget,
-    tasksXPTarget,
-    detoxXPTarget,
     gamesComplete,
-    tasksComplete,
-    detoxComplete,
     gamesProgress,
-    tasksProgress,
-    detoxProgress,
     gamesSubTargets,
     cappedTotalXP,
     totalProgress,
     xpRemaining,
     goalReached,
+    recoveryMinutesTarget,
+    recoveryMinutesEarned,
+    recoveryProgress,
+    recoveryComplete,
     isLoading,
     isSyncing,
   } = data;
@@ -101,8 +103,6 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   const s2Areas = gamesSubTargets.find((s) => s.system === "S2")?.areas ?? [];
 
   const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
-  const cappedTasks = Math.min(rawTasksXP, tasksXPTarget);
-  const cappedDetox = Math.min(rawDetoxXP, detoxXPTarget);
 
   useEffect(() => {
     // Only trigger celebration once per week, when goal transitions from not-reached to reached
@@ -121,7 +121,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   };
 
   // Show skeleton only on very first load (no data at all)
-  const hasNoData = cappedTotalXP === 0 && totalXPTarget === 0;
+  const hasNoData = cappedTotalXP === 0 && gamesXPTarget === 0;
   
   if (isLoading && hasNoData) {
     return (
@@ -152,15 +152,15 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           className="p-3 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
         >
           <CollapsibleTrigger className="w-full">
-            {/* Compact Header */}
+            {/* Compact Header - Training Load */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Shield className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[11px] font-semibold">Weekly Load</span>
+                <Dumbbell className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[11px] font-semibold">Training Load</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-[10px] font-medium text-muted-foreground tabular-nums">
-                  {Math.round(cappedTotalXP)}/{Math.round(totalXPTarget)} XP
+                  {Math.round(cappedGames)}/{Math.round(gamesXPTarget)} XP
                 </div>
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -171,12 +171,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </div>
             </div>
 
-            {/* Total Progress Bar - Always visible */}
+            {/* Training Progress Bar - Always visible */}
             <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400 rounded-full"
+                className={`h-full rounded-full ${gamesComplete ? "bg-emerald-400" : "bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400"}`}
                 initial={false}
-                animate={{ width: `${totalProgress}%` }}
+                animate={{ width: `${gamesProgress}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
@@ -188,50 +188,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               animate={{ opacity: 1 }}
               className="mt-3 pt-3 border-t border-border/30"
             >
-              {/* Tasks */}
-              <div className="mb-2">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <BookMarked className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
-                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-                    {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
-                  </span>
-                  <CategoryCompleteBadge show={tasksComplete} />
-                </div>
-                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
-                    initial={false}
-                    animate={{ width: `${Math.min(100, tasksProgress)}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-
-              {/* Walk & Detox */}
-              <div className="mb-2">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <div className="relative w-3 h-3">
-                    <Smartphone className="w-3 h-3 text-muted-foreground" />
-                    <Ban className="w-3 h-3 text-muted-foreground absolute inset-0" />
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-medium">Walk & Detox</span>
-                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-                    {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
-                  </span>
-                  <CategoryCompleteBadge show={detoxComplete} />
-                </div>
-                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
-                    initial={false}
-                    animate={{ width: `${Math.min(100, detoxProgress)}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-
-              {/* Challenges: 6-bar grid (2 rows × 3 cols) */}
+              {/* Training breakdown: 2x2 grid */}
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Dumbbell className="w-3 h-3 text-muted-foreground" />
@@ -242,10 +199,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   <CategoryCompleteBadge show={gamesComplete} />
                 </div>
                 
-                {/* 2x2 Matrix: S1 has focus+creativity, S2 has reasoning+creativity */}
-                {/* Column headers per row since each system has different areas */}
-                
-                {/* S1 row: focus + creativity (2 columns) */}
+                {/* S1 row */}
                 <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
                   <div className="flex items-center gap-0.5">
                     <Zap className="w-2 h-2 text-amber-400" />
@@ -292,7 +246,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   })}
                 </div>
                 
-                {/* S2 row: reasoning + creativity (2 columns) */}
+                {/* S2 row */}
                 <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
                   <div className="flex items-center gap-0.5">
                     <Timer className="w-2 h-2 text-violet-400" />
@@ -340,8 +294,34 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </div>
               </div>
 
-              <p className="text-[9px] text-muted-foreground">
-                {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, totalXPTarget)}
+              {/* Recovery Budget Section - Separate from Training */}
+              <div className="pt-3 border-t border-border/30">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <div className="flex items-center gap-0.5">
+                    <Leaf className="w-3 h-3 text-teal-400" />
+                    <Footprints className="w-2.5 h-2.5 text-teal-400" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium">Recovery Budget</span>
+                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
+                    {formatRecoveryTime(recoveryMinutesEarned)}/{formatRecoveryTime(recoveryMinutesTarget)}
+                  </span>
+                  <CategoryCompleteBadge show={recoveryComplete} />
+                </div>
+                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${recoveryComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+                    initial={false}
+                    animate={{ width: `${Math.min(100, recoveryProgress)}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-[8px] text-muted-foreground/60 mt-1">
+                  Detox + Walking restore cognitive capacity
+                </p>
+              </div>
+
+              <p className="text-[9px] text-muted-foreground mt-3">
+                {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, gamesXPTarget)}
               </p>
             </motion.div>
           </CollapsibleContent>
@@ -355,6 +335,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
     );
   }
 
+  // Full version
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -363,81 +344,38 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       aria-busy={isSyncing}
       className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
     >
-      {/* Header */}
+      {/* Header - Training Load Only */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-primary" />
+          <Dumbbell className="w-4 h-4 text-primary" />
           <div>
-            <span className="text-[12px] font-semibold">{WEEKLY_GOAL_MESSAGES.headline}</span>
-            <p className="text-[9px] text-muted-foreground">{WEEKLY_GOAL_MESSAGES.subtitle}</p>
+            <span className="text-[12px] font-semibold">Training Load</span>
+            <p className="text-[9px] text-muted-foreground">Weekly cognitive training progress</p>
           </div>
         </div>
         <div className="text-right">
           <div className="text-[11px] font-medium text-muted-foreground">
-            {Math.round(totalProgress)}%
+            {Math.round(gamesProgress)}%
             {isSyncing && <span className="ml-1 text-[8px] text-muted-foreground/50">•</span>}
           </div>
           <div className="text-[9px] text-muted-foreground/80 tabular-nums">
-            {Math.round(cappedTotalXP)}/{Math.round(totalXPTarget)} XP
+            {Math.round(cappedGames)}/{Math.round(gamesXPTarget)} XP
           </div>
         </div>
       </div>
 
-      {/* Total Progress Bar */}
+      {/* Training Progress Bar */}
       <div className="h-2 bg-muted/50 rounded-full overflow-hidden mb-4">
         <motion.div
-          className="h-full bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400 rounded-full"
+          className={`h-full rounded-full ${gamesComplete ? "bg-emerald-400" : "bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400"}`}
           initial={false}
-          animate={{ width: `${totalProgress}%` }}
+          animate={{ width: `${gamesProgress}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
 
-      {/* Tasks */}
-      <div className="mb-2">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <BookMarked className="w-3 h-3 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground font-medium">Tasks</span>
-          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(cappedTasks)}/{Math.round(tasksXPTarget)}
-          </span>
-          <CategoryCompleteBadge show={tasksComplete} />
-        </div>
-        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-          <motion.div
-            className={`h-full rounded-full ${tasksComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
-            initial={false}
-            animate={{ width: `${Math.min(100, tasksProgress)}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
-      </div>
-
-      {/* Walk & Detox */}
-      <div className="mb-3">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <div className="relative w-3 h-3">
-            <Smartphone className="w-3 h-3 text-muted-foreground" />
-            <Ban className="w-3 h-3 text-muted-foreground absolute inset-0" />
-          </div>
-          <span className="text-[10px] text-muted-foreground font-medium">Walk & Detox</span>
-          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(cappedDetox)}/{Math.round(detoxXPTarget)}
-          </span>
-          <CategoryCompleteBadge show={detoxComplete} />
-        </div>
-        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-          <motion.div
-            className={`h-full rounded-full ${detoxComplete ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
-            initial={false}
-            animate={{ width: `${Math.min(100, detoxProgress)}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
-      </div>
-
-      {/* Challenges: 2x2 matrix (2 rows × 2 cols per system) */}
-      <div className="mb-3">
+      {/* Training breakdown: 2x2 matrix */}
+      <div className="mb-4">
         <div className="flex items-center gap-1.5 mb-2">
           <Dumbbell className="w-3 h-3 text-muted-foreground" />
           <span className="text-[10px] text-muted-foreground font-medium">Training</span>
@@ -447,10 +385,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           <CategoryCompleteBadge show={gamesComplete} />
         </div>
         
-        {/* 2x2 Matrix: S1 has focus+creativity, S2 has reasoning+creativity */}
-        {/* Column headers per row since each system has different areas */}
-        
-        {/* S1 row: focus + creativity (2 columns) */}
+        {/* S1 row */}
         <div className="grid grid-cols-[40px_1fr_1fr] gap-1 mb-1">
           <div className="flex items-center gap-0.5">
             <Zap className="w-2 h-2 text-amber-400" />
@@ -494,7 +429,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           })}
         </div>
         
-        {/* S2 row: reasoning + creativity (2 columns) */}
+        {/* S2 row */}
         <div className="grid grid-cols-[40px_1fr_1fr] gap-1">
           <div className="flex items-center gap-0.5">
             <Timer className="w-2 h-2 text-violet-400" />
@@ -539,8 +474,34 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
       </div>
 
+      {/* Recovery Budget Section - Separate from Training */}
+      <div className="pt-3 border-t border-border/30 mb-3">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="flex items-center gap-0.5">
+            <Leaf className="w-3 h-3 text-teal-400" />
+            <Footprints className="w-2.5 h-2.5 text-teal-400" />
+          </div>
+          <span className="text-[10px] text-muted-foreground font-medium">Recovery Budget</span>
+          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
+            {formatRecoveryTime(recoveryMinutesEarned)}/{formatRecoveryTime(recoveryMinutesTarget)}
+          </span>
+          <CategoryCompleteBadge show={recoveryComplete} />
+        </div>
+        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${recoveryComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+            initial={false}
+            animate={{ width: `${Math.min(100, recoveryProgress)}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          />
+        </div>
+        <p className="text-[9px] text-muted-foreground/60 mt-1">
+          Detox + Walking restore cognitive capacity
+        </p>
+      </div>
+
       <p className="text-[10px] text-muted-foreground">
-        {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, totalXPTarget)}
+        {WEEKLY_GOAL_MESSAGES.getProgressMessage(xpRemaining, gamesXPTarget)}
       </p>
 
       {/* Weekly completion celebration with report popup */}
