@@ -56,28 +56,55 @@ export function NeuralGrowthAnimation({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
 
-  // Phase-based status and description (gym tone)
-  const getPhaseInfo = (score: number) => {
-    if (score >= 80) return { 
-      phase: "Peak",
+  // Scientific band classification for Neural Strength
+  const getScoreBand = (score: number): {
+    band: string;
+    range: string;
+    color: string;
+    bgColor: string;
+    description: string;
+  } => {
+    if (score >= 80) return {
+      band: "Elite",
+      range: "80-100",
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-500/20",
       description: "Your cognitive network is powerful and resilient."
     };
-    if (score >= 65) return { 
-      phase: "Strong",
+    if (score >= 65) return {
+      band: "High",
+      range: "65-79",
+      color: "text-primary",
+      bgColor: "bg-primary/20",
       description: "Your neural pathways are well-trained and responsive."
     };
-    if (score >= 50) return { 
-      phase: "Progressing",
+    if (score >= 50) return {
+      band: "Moderate",
+      range: "50-64",
+      color: "text-blue-400",
+      bgColor: "bg-blue-500/20",
       description: "Your reasoning and intuition are developing solid foundations."
     };
-    if (score >= 35) return { 
-      phase: "Building",
+    if (score >= 35) return {
+      band: "Developing",
+      range: "35-49",
+      color: "text-amber-400",
+      bgColor: "bg-amber-500/20",
       description: "Your neural connections are getting stronger. Stay consistent."
     };
-    return { 
-      phase: "Warming up",
+    return {
+      band: "Early",
+      range: "0-34",
+      color: "text-muted-foreground",
+      bgColor: "bg-muted/20",
       description: "Your neurons are starting to activate. Keep showing up."
     };
+  };
+
+  // Phase-based status (for backwards compatibility)
+  const getPhaseInfo = (score: number) => {
+    const band = getScoreBand(score);
+    return { phase: band.band, description: band.description };
   };
 
   // Get Thinking Scores status (from cognitive metrics - Fast + Slow average)
@@ -102,6 +129,7 @@ export function NeuralGrowthAnimation({
     return { label: "Low", color: "text-muted-foreground/60" };
   };
 
+  const scoreBand = getScoreBand(overallCognitiveScore);
   const phaseInfo = getPhaseInfo(overallCognitiveScore);
   const statusText = customStatusText || phaseInfo.phase;
   
@@ -331,10 +359,19 @@ export function NeuralGrowthAnimation({
           <span className="text-2xl font-bold text-primary">{overallCognitiveScore}</span>
           <span className="text-[10px] text-muted-foreground/60 uppercase">/ 100</span>
         </div>
-        <p className="text-[11px] text-primary font-medium">{statusText}</p>
+        
+        {/* Scientific Band Badge */}
+        <div className="flex items-center justify-center gap-2 mb-1.5">
+          <span className={`text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded ${scoreBand.bgColor} ${scoreBand.color}`}>
+            {scoreBand.band}
+          </span>
+          <span className="text-[9px] text-muted-foreground/50">
+            ({scoreBand.range})
+          </span>
+        </div>
         
         {/* Phase Description */}
-        <p className="text-[10px] text-muted-foreground mt-1.5 px-4 leading-relaxed">
+        <p className="text-[10px] text-muted-foreground mt-1 px-4 leading-relaxed">
           {phaseInfo.description}
         </p>
         
