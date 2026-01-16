@@ -89,6 +89,35 @@ const EXPERT_AUDIENCE_TAGS: Record<string, string> = {
   "Sustained engagement": "Sustained focus",
 };
 
+// Superhuman plan session copy refinements
+const SUPERHUMAN_SESSION_COPY: Record<string, { title: string; subtitle: string; microcopy: string; badge: string }> = {
+  "heavy-slow": {
+    title: "Deep Reasoning",
+    subtitle: "Sustained analytical work (System 2)",
+    microcopy: "Requires elevated recovery and readiness.",
+    badge: "S2",
+  },
+  "dual-stress": {
+    title: "Integration",
+    subtitle: "Cross-system consolidation under load",
+    microcopy: "Available selectively to prevent overload.",
+    badge: "S1 + S2",
+  },
+  "reflection": {
+    title: "Fast Precision",
+    subtitle: "Maximum clarity and control (System 1)",
+    microcopy: "Enabled only in high-stability states.",
+    badge: "S2",
+  },
+};
+
+// Superhuman plan audience tag refinements
+const SUPERHUMAN_AUDIENCE_TAGS: Record<string, string> = {
+  "High tolerance": "Peak cognitive load",
+  "Consistent availability": "Strict regulation",
+  "Maximum structure": "Temporary configuration",
+};
+
 interface TrainingPlanSelectorProps {
   selectedPlan: TrainingPlanId;
   onSelectPlan: (plan: TrainingPlanId) => void;
@@ -409,145 +438,164 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
     </div>
   );
 
-  // Render default plan expanded details (Superhuman)
-  const renderDefaultPlanDetails = (plan: TrainingPlan) => (
-    <div className="pt-3 space-y-3">
-      {/* Weekly Load Summary */}
+  // Render Superhuman plan expanded details (refined copy)
+  const renderSuperhumanPlanDetails = (plan: TrainingPlan, colors: typeof PLAN_COLORS.superhuman) => (
+    <div className="pt-3 space-y-4">
+      {/* Superhuman Cognitive Configuration */}
       <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly Cognitive Load</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Superhuman Cognitive Configuration</p>
+        <p className="text-[9px] text-muted-foreground/70 mb-2.5 italic">
+          High-intensity cognitive work under strict system safeguards.
+        </p>
         <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded bg-purple-500/15 flex items-center justify-center shrink-0">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Content Availability */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-purple-500/15 flex items-center justify-center mx-auto mb-1">
                 <BookOpen className="w-3 h-3 text-purple-400" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-purple-400">{plan.contentPerWeek}</p>
-                <p className="text-[9px] text-muted-foreground">Content</p>
-              </div>
+              <p className="text-[10px] font-medium text-purple-400">Limited</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Aligned with capacity
+              </p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded bg-green-500/15 flex items-center justify-center shrink-0">
+            {/* Recovery Requirement */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-green-500/15 flex items-center justify-center mx-auto mb-1">
                 <Smartphone className="w-3 h-3 text-green-400" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-green-400">{Math.round(plan.detox.weeklyMinutes / 60)}h</p>
-                <p className="text-[9px] text-muted-foreground">Recovery</p>
-              </div>
+              <p className="text-[10px] font-medium text-green-400">Elevated</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Non-negotiable
+              </p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center shrink-0">
-                <Dumbbell className="w-3 h-3 text-blue-400" />
+            {/* Sessions */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-amber-500/15 flex items-center justify-center mx-auto mb-1">
+                <Dumbbell className="w-3 h-3 text-amber-400" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-blue-400">{plan.sessionsPerWeek}</p>
-                <p className="text-[9px] text-muted-foreground">Sessions</p>
-              </div>
+              <p className="text-[10px] font-medium text-amber-400">Selective</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                High cognitive cost
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Suitable For */}
+      {/* Designed For */}
       <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Configuration For</p>
-        <div className="flex flex-wrap gap-1.5">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Designed For</p>
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {plan.targetAudience.map((audience, i) => (
-            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-              {audience}
+            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/90">
+              {SUPERHUMAN_AUDIENCE_TAGS[audience] || audience}
             </span>
           ))}
         </div>
+        <p className="text-[9px] text-muted-foreground/70 italic">
+          Recommended only for short, focused periods.
+        </p>
+        <p className="text-[9px] text-muted-foreground/50 italic mt-0.5">
+          Not intended for continuous use.
+        </p>
       </div>
 
-      {/* Weekly Schedule */}
+      {/* Session Templates */}
       <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Weekly Schedule</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Session Templates</p>
+        <p className="text-[9px] text-muted-foreground/70 mb-2 italic">
+          Sessions are enabled only when recovery and readiness are optimal.
+        </p>
         <div className="space-y-2">
-          {plan.sessions.map((session, i) => (
-            <div
-              key={session.id}
-              className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium">Session {i + 1}: {session.name}</span>
-                <span className="text-[9px] text-muted-foreground">{session.duration}</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground mb-1.5">{session.description}</p>
-              
-              <div className="flex items-center gap-2">
-                {/* Thinking Systems */}
-                <div className="flex items-center gap-1">
-                  {session.thinkingSystems.map((sys) => (
-                    <span
-                      key={sys}
-                      className={cn(
-                        "text-[8px] px-1.5 py-0.5 rounded font-medium",
-                        sys === "S1" ? "bg-amber-500/20 text-amber-400" : "bg-teal-500/20 text-teal-400"
-                      )}
-                    >
-                      {sys}
-                    </span>
-                  ))}
+          {plan.sessions.map((session) => {
+            const copy = SUPERHUMAN_SESSION_COPY[session.id];
+            if (!copy) return null;
+            
+            return (
+              <div
+                key={session.id}
+                className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
+              >
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[11px] font-medium">{copy.title}</span>
+                  <span className="text-[9px] text-muted-foreground">{session.duration}</span>
                 </div>
-
-                {/* Content */}
-                {session.content && (
-                  <span className={cn(
-                    "text-[9px] px-1.5 py-0.5 rounded",
-                    session.content.required 
-                      ? "bg-primary/20 text-primary" 
-                      : "bg-muted/30 text-muted-foreground"
-                  )}>
-                    {session.content.required ? "📖 Required" : "📖 Optional"}
+                <p className="text-[10px] text-muted-foreground mb-1.5">{copy.subtitle}</p>
+                
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[8px] px-1.5 py-0.5 rounded font-medium bg-amber-500/15 text-amber-400">
+                    {copy.badge}
                   </span>
-                )}
+                  {session.content && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">
+                      Content highly selective
+                    </span>
+                  )}
+                </div>
+                
+                <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
+                  {copy.microcopy}
+                </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Content Types Allowed */}
+      {/* Eligible Content */}
       <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Content Types</p>
-        <div className="flex flex-wrap gap-1.5">
-          {plan.contentTypes.map((type) => (
-            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">
+          Eligible Content <span className="font-normal">(rarely enabled)</span>
+        </p>
+        <div className="flex flex-wrap gap-1.5 mb-1.5">
+          {plan.contentTypes.filter(t => t !== "none").map((type) => (
+            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
               {type === "podcast" && "🎧 Podcast"}
               {type === "reading" && "📄 Reading"}
               {type === "book-extract" && "📚 Book"}
             </span>
           ))}
         </div>
+        <p className="text-[8px] text-muted-foreground/60 italic">
+          Content is enabled only when it supports performance without increasing cognitive strain.
+        </p>
       </div>
 
-      {/* Recovery Allocation */}
-      {plan.detox && (
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Allocation</p>
-          <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
-                <Smartphone className="w-3 h-3 text-green-400" />
-              </div>
-              <span className="text-[11px] font-semibold text-green-400">
-                {Math.round(plan.detox.weeklyMinutes / 60)}h / week
-              </span>
+      {/* Recovery Requirement */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Requirement</p>
+        <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
+              <Smartphone className="w-3 h-3 text-green-400" />
             </div>
-            <div className="grid grid-cols-2 gap-2 text-[10px]">
-              <div>
-                <span className="text-muted-foreground">Min session:</span>
-                <span className="ml-1 text-foreground">{plan.detox.minSessionMinutes} min</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Walking:</span>
-                <span className="ml-1 text-foreground">{plan.detox.walkingMinMinutes} min</span>
-              </div>
-            </div>
+            <span className="text-[11px] font-semibold text-green-400">
+              {Math.round(plan.detox.weeklyMinutes / 60)}h / week
+            </span>
           </div>
+          <div className="space-y-1 text-[10px] text-muted-foreground mb-2">
+            <p>Minimum session: {plan.detox.minSessionMinutes} min</p>
+            <p>Walking: {plan.detox.walkingMinMinutes} min minimum</p>
+          </div>
+          <p className="text-[9px] text-muted-foreground/60 italic leading-snug mb-1">
+            Insufficient recovery will immediately reduce availability.
+          </p>
+          <p className="text-[8px] text-muted-foreground/50 italic leading-snug">
+            System protection overrides user preference at this level.
+          </p>
         </div>
-      )}
+      </div>
+
+      {/* Closing Statement */}
+      <div className="pt-2 border-t border-border/20">
+        <p className="text-[10px] text-muted-foreground/50 text-center italic">
+          Superhuman Training is a temporary mode for controlled peak performance.
+        </p>
+        <p className="text-[8px] text-muted-foreground/40 text-center italic mt-1">
+          Returning to Expert or Light is a valid and expected outcome.
+        </p>
+      </div>
     </div>
   );
 
@@ -651,7 +699,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
               >
                 {planId === "light" && renderLightPlanDetails(plan, colors)}
                 {planId === "expert" && renderExpertPlanDetails(plan, colors)}
-                {planId === "superhuman" && renderDefaultPlanDetails(plan)}
+                {planId === "superhuman" && renderSuperhumanPlanDetails(plan, colors)}
               </motion.div>
             )}
           </motion.div>
