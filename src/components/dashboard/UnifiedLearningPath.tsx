@@ -104,12 +104,8 @@ export function UnifiedLearningPath({
         );
         const contentConfig = CONTENT_CONFIG[contentType] || CONTENT_CONFIG["reading"];
         
-        // Get correct XP based on content type
-        const contentXP = contentType === "podcast" 
-          ? XP_VALUES.podcastComplete 
-          : contentType === "book" 
-            ? XP_VALUES.bookChapterComplete 
-            : XP_VALUES.readingComplete;
+        // v1.3: Tasks don't give XP - they are cognitive inputs
+        const contentXP = 0;
 
         pathNodes.push({
           id: matchingContent?.id || `content-${idx}`,

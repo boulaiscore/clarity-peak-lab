@@ -251,14 +251,10 @@ function useTasksHistory(days: number = 14) {
   });
 }
 
-// Content XP values aligned with training plans
+// v1.3: Tasks NO LONGER give XP - they are cognitive inputs, not rewards
+// This function is kept for backward compatibility but returns 0
 function calculateXP(type: InputType): number {
-  switch (type) {
-    case "podcast": return XP_VALUES.podcastComplete;
-    case "article": return XP_VALUES.readingComplete;
-    case "book": return XP_VALUES.bookChapterComplete;
-    default: return 8;
-  }
+  return 0; // v1.3: Tasks don't give XP
 }
 
 function getCurrentWeekStart(): string {
@@ -314,9 +310,10 @@ function TaskCard({ task, isCompleted, onComplete, isToggling }: TaskCardProps) 
   const handleConfirm = () => {
     onComplete();
     setShowConfirm(false);
+    // v1.3: No XP toast - tasks are cognitive inputs, not rewards
     toast({
-      title: `+${xp} XP Earned!`,
-      description: `"${task.title}" completed.`,
+      title: "Task Completed",
+      description: `"${task.title}" marked as complete.`,
     });
   };
 
@@ -566,10 +563,13 @@ export function TrainingTasks() {
     })
     .filter((t): t is CognitiveInput => t !== null);
   
-  // Use plan's explicit contentXPTarget for tasks progress
-  const planTasksXPTarget = plan?.contentXPTarget || 24;
-  const earnedXP = weeklyTasksXPEarned;
-  const completionPercent = planTasksXPTarget > 0 ? Math.min(100, Math.round((earnedXP / planTasksXPTarget) * 100)) : 0;
+  // v1.3: Tasks use count-based "Protocol Adherence" - NOT XP
+  const planContentTarget = plan?.contentPerWeek || 2;
+  const completedCount = completedTasks.length;
+  const completionPercent = planContentTarget > 0 
+    ? Math.min(100, Math.round((completedCount / planContentTarget) * 100)) 
+    : 0;
+    
   if (isLoading) {
     return (
       <div className="p-4 rounded-xl bg-card/40 border border-border/30">
@@ -588,16 +588,16 @@ export function TrainingTasks() {
       transition={{ duration: 0.4 }}
       className="space-y-4"
     >
-      {/* Tasks Progress */}
+      {/* v1.3: Protocol Adherence (count-based, not XP) */}
       <div className="p-4 rounded-xl bg-card/40 border border-border/30">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-[13px] font-semibold">Tasks Progress</h3>
+            <h3 className="text-[13px] font-semibold">Protocol Adherence</h3>
           </div>
           <div className="text-right">
-            <span className="text-lg font-bold text-foreground">{earnedXP}</span>
-            <span className="text-[10px] text-muted-foreground">/{planTasksXPTarget} XP</span>
+            <span className="text-lg font-bold text-foreground">{completedCount}</span>
+            <span className="text-[10px] text-muted-foreground">/{planContentTarget} tasks</span>
           </div>
         </div>
         
@@ -624,12 +624,12 @@ export function TrainingTasks() {
         </div>
       </div>
 
-      {/* 14-Day Trend Chart */}
+      {/* 14-Day Trend Chart - v1.3: Shows completions, not XP */}
       <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
-          <span className="text-[9px] text-muted-foreground ml-auto">XP / day</span>
+          <span className="text-[9px] text-muted-foreground ml-auto">completions / day</span>
         </div>
         {tasksHistoryData && tasksHistoryData.some(d => d.xp > 0) ? (
           <div className="h-40">
@@ -671,7 +671,7 @@ export function TrainingTasks() {
                       book: '📖 Book',
                       article: '📄 Reading'
                     };
-                    return [`${value} XP`, labels[name] || name];
+                    return [value > 0 ? '✓ completed' : '-', labels[name] || name];
                   }}
                   cursor={false}
                 />
@@ -751,18 +751,12 @@ export function TrainingTasks() {
         </div>
       )}
 
-      {/* Metrics Impact */}
-      {earnedXP > 0 && (
+      {/* v1.3: Cognitive Input Impact (tasks don't give XP) */}
+      {completedCount > 0 && (
         <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-violet-500/5 border border-primary/20">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Cognitive Input Impact</p>
           
           {(() => {
-            // Tasks Engagement = min(100, weeklyTasksXP / tasksTarget × 100)
-            // This contributes to Behavioral Engagement (30% of SCI) with weight 30%
-            // So Tasks → SCI contribution = 0.30 × 0.30 × TasksEngagement = 0.09 × TasksEngagement
-            const tasksEngagement = planTasksXPTarget > 0 ? Math.min(100, (earnedXP / planTasksXPTarget) * 100) : 0;
-            const sciContribution = Math.round(0.09 * tasksEngagement);
-            
             // Count S1 vs S2 content
             const s1Content = completedTasks.filter(t => t.thinkingSystem === "S1").length;
             const s2Content = completedTasks.filter(t => t.thinkingSystem === "S2" || t.thinkingSystem === "S1+S2").length;
@@ -771,30 +765,23 @@ export function TrainingTasks() {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-2 rounded-lg bg-muted/20">
-                    <p className="text-[8px] text-muted-foreground mb-1">Tasks Engagement</p>
-                    <p className="text-sm font-bold text-violet-400">{Math.round(tasksEngagement)}%</p>
-                    <p className="text-[7px] text-muted-foreground">of weekly target</p>
+                    <p className="text-[8px] text-muted-foreground mb-1">Protocol Adherence</p>
+                    <p className="text-sm font-bold text-violet-400">{completionPercent}%</p>
+                    <p className="text-[7px] text-muted-foreground">{completedCount}/{planContentTarget} tasks</p>
                   </div>
                   <div className="p-2 rounded-lg bg-muted/20">
-                    <p className="text-[8px] text-muted-foreground mb-1">SCI Contribution</p>
-                    <p className="text-sm font-bold text-emerald-400">+{sciContribution}</p>
-                    <p className="text-[7px] text-muted-foreground">pts to Network Score</p>
-                  </div>
-                </div>
-                
-                <div className="p-2 rounded-lg bg-muted/20">
-                  <div className="flex items-center justify-between text-[9px]">
-                    <span className="text-muted-foreground">Content Type Balance</span>
-                    <span className="text-foreground">{s1Content} S1 · {s2Content} S2</span>
+                    <p className="text-[8px] text-muted-foreground mb-1">Content Type Balance</p>
+                    <p className="text-sm font-bold text-foreground">{s1Content} S1 · {s2Content} S2</p>
+                    <p className="text-[7px] text-muted-foreground">thinking systems</p>
                   </div>
                 </div>
                 
                 <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
-                  <p className="text-[8px] text-muted-foreground mb-1">How Tasks Improve Cognition</p>
+                  <p className="text-[8px] text-muted-foreground mb-1">Why Tasks Matter</p>
                   <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
-                    Quality content builds cognitive reserve (Stern 2002). Podcasts, readings, 
-                    and books prime System 2 thinking, improving Reasoning Accuracy, 
-                    Critical Thinking, and Conceptual Depth.
+                    Quality content builds cognitive reserve. Podcasts, readings, 
+                    and books prime System 2 thinking, improving Reasoning Accuracy 
+                    and Conceptual Depth. Tasks are cognitive inputs, not rewards.
                   </p>
                 </div>
               </div>
@@ -804,11 +791,11 @@ export function TrainingTasks() {
       )}
 
       {/* Goal reached state */}
-      {earnedXP >= planTasksXPTarget && planTasksXPTarget > 0 && (
+      {completedCount >= planContentTarget && planContentTarget > 0 && (
         <div className="text-center py-4">
           <CheckCircle2 className="h-8 w-8 text-green-500/60 mx-auto mb-2" />
           <p className="text-sm font-medium text-green-500">All tasks completed!</p>
-          <p className="text-[10px] text-muted-foreground">You earned {earnedXP} XP this week</p>
+          <p className="text-[10px] text-muted-foreground">{completedCount} tasks completed this week</p>
         </div>
       )}
     </motion.div>

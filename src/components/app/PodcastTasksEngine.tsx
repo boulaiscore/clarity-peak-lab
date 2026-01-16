@@ -96,9 +96,9 @@ function EnabledPodcastCard({ eligibility, s2Capacity, s1Buffer, onOpenDetails }
             <DemandBadge demand={podcast.demand} />
           </div>
           
-          {/* Status line - enabled */}
-          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-            Enabled: S2={s2Capacity}, S1={s1Buffer} supports {podcast.demand} load.
+          {/* v1.3: Status line - ENABLED TODAY (not "recommended") */}
+          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium uppercase tracking-wide">
+            Enabled today
           </p>
           
           {/* Intent */}
@@ -146,9 +146,9 @@ function WithheldPodcastCard({ eligibility, onTap, canOverride }: WithheldCardPr
             <DemandBadge demand={podcast.demand} />
           </div>
           
-          {/* Status line - withheld */}
-          <p className="text-[10px] text-muted-foreground/70">
-            {withheldReason}
+          {/* v1.3: Status line - WITHHELD */}
+          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium uppercase tracking-wide">
+            Withheld
           </p>
         </div>
         
@@ -177,11 +177,11 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
         </div>
         
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1">
-            Stimulation withheld today
+          <h4 className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1 uppercase tracking-wide">
+            System Protection
           </h4>
           <p className="text-[11px] text-muted-foreground">
-            Recovery is low. Today the system prioritizes restoration over cognitive input.
+            Recovery is low. System prioritizes restoration over cognitive input.
           </p>
           
           {/* Override unavailable explanation */}
