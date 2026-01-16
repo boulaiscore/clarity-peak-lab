@@ -297,7 +297,7 @@ const Account = () => {
               </TabsTrigger>
               <TabsTrigger value="subscription" className="text-xs gap-1.5">
                 <CreditCard className="w-3.5 h-3.5" />
-                Plan
+                Subscription
               </TabsTrigger>
             </TabsList>
 
@@ -534,7 +534,11 @@ const Account = () => {
             <TabsContent value="subscription" className="space-y-4">
               {/* Current Plan */}
               <div className="p-5 rounded-xl bg-card border border-border shadow-card">
-                <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                  <Shield className="w-4 h-4 text-primary" />
+                  Current Plan
+                </h3>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/50">
                   <div className="flex items-center gap-3">
                     {isPremium ? (
                       <>
@@ -542,8 +546,8 @@ const Account = () => {
                           <Crown className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-semibold">Premium Plan</p>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">BETA ACCESS</p>
+                          <p className="font-semibold">Premium</p>
+                          <p className="text-[10px] text-muted-foreground">BETA ACCESS</p>
                         </div>
                       </>
                     ) : (
@@ -552,8 +556,8 @@ const Account = () => {
                           <User className="w-5 h-5 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="font-semibold">Free Plan</p>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">LIMITED</p>
+                          <p className="font-semibold">Free</p>
+                          <p className="text-[10px] text-muted-foreground">LIMITED ACCESS</p>
                         </div>
                       </>
                     )}
@@ -564,17 +568,6 @@ const Account = () => {
                   )}>
                     {isPremium ? "Active" : "Limited"}
                   </span>
-                </div>
-
-                <div className="space-y-1.5 text-sm border-t border-border/30 pt-3">
-                  <div className="flex justify-between py-1">
-                    <span className="text-muted-foreground text-xs">Billing</span>
-                    <span className="font-medium text-xs">{isPremium ? "Free during beta" : "—"}</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-muted-foreground text-xs">Price</span>
-                    <span className="font-medium text-xs">$0.00/mo</span>
-                  </div>
                 </div>
               </div>
 
@@ -594,15 +587,123 @@ const Account = () => {
                 </div>
               )}
 
-              {/* Upgrade CTA */}
-              {!isPremium && (
-                <Button asChild variant="hero" className="w-full">
-                  <Link to="/app/premium">
-                    <Zap className="w-4 h-4 mr-2" />
-                    Upgrade to Premium
-                  </Link>
-                </Button>
-              )}
+              {/* Available Plans */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-4 flex items-center gap-2 text-sm">
+                  <Zap className="w-4 h-4 text-primary" />
+                  Available Plans
+                </h3>
+                <div className="space-y-3">
+                  {/* Free Plan */}
+                  <div className={cn(
+                    "p-4 rounded-lg border transition-all",
+                    !isPremium ? "border-primary/30 bg-primary/5" : "border-border/50 bg-muted/10"
+                  )}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">Free</span>
+                        {!isPremium && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-primary/15 text-primary">
+                            CURRENT
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-bold">$0<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                    </div>
+                    <ul className="space-y-1.5 text-xs text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+                        Basic cognitive training
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+                        Limited daily sessions
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+                        Core metrics tracking
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Premium Plan */}
+                  <div className={cn(
+                    "p-4 rounded-lg border transition-all",
+                    isPremium ? "border-primary/30 bg-primary/5" : "border-border/50 bg-muted/10"
+                  )}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Crown className="w-4 h-4 text-amber-400" />
+                        <span className="font-semibold">Premium</span>
+                        {isPremium && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-primary/15 text-primary">
+                            CURRENT
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-bold">$9.99<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                    </div>
+                    <ul className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-amber-400" />
+                        Unlimited training sessions
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-amber-400" />
+                        Full games & drills library
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-amber-400" />
+                        On-demand Cognitive Reports
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-amber-400" />
+                        Advanced analytics & insights
+                      </li>
+                    </ul>
+                    {!isPremium && (
+                      <Button asChild variant="hero" size="sm" className="w-full">
+                        <Link to="/app/premium">
+                          <Zap className="w-4 h-4" />
+                          Upgrade to Premium
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Pro Plan */}
+                  <div className="p-4 rounded-lg border border-border/50 bg-muted/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Rocket className="w-4 h-4 text-purple-400" />
+                        <span className="font-semibold">Pro</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-purple-500/15 text-purple-400">
+                          COMING SOON
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold">$19.99<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                    </div>
+                    <ul className="space-y-1.5 text-xs text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-purple-400" />
+                        Everything in Premium
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-purple-400" />
+                        AI-powered coaching
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-purple-400" />
+                        Wearable integrations
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-purple-400" />
+                        Priority support
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
 
