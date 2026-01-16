@@ -66,7 +66,7 @@ export default function QuickBaselineCalibration() {
     setStep(nextSteps[drillType]);
   }, []);
 
-  const handleSaveAndComplete = async () => {
+  const handleSaveAndEnter = async () => {
     if (!user?.id || !results.AE || !results.RA || !results.CT || !results.IN) {
       toast.error("Calibration incomplete");
       return;
@@ -120,16 +120,14 @@ export default function QuickBaselineCalibration() {
 
       toast.success("Calibration complete");
       
+      // Navigate AFTER save is complete
+      navigate("/app");
+      
     } catch (error) {
       console.error("Error saving calibration:", error);
       toast.error("Failed to save calibration");
-    } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleEnterApp = () => {
-    navigate("/app");
   };
 
   const finalScores = results.AE && results.RA && results.CT && results.IN ? {
@@ -223,8 +221,7 @@ export default function QuickBaselineCalibration() {
           >
             <CalibrationResults 
               scores={finalScores}
-              onSave={handleSaveAndComplete}
-              onEnter={handleEnterApp}
+              onSaveAndEnter={handleSaveAndEnter}
               isSaving={isSaving}
             />
           </motion.div>

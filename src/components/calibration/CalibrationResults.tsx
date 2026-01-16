@@ -15,8 +15,7 @@ interface CalibrationResultsProps {
     CT: number;
     IN: number;
   };
-  onSave: () => void;
-  onEnter: () => void;
+  onSaveAndEnter: () => Promise<void>;
   isSaving: boolean;
 }
 
@@ -68,8 +67,7 @@ function getScoreLabel(score: number): string {
 
 export function CalibrationResults({ 
   scores, 
-  onSave, 
-  onEnter,
+  onSaveAndEnter,
   isSaving 
 }: CalibrationResultsProps) {
   const S1 = (scores.AE + scores.RA) / 2;
@@ -164,10 +162,7 @@ export function CalibrationResults({
           transition={{ delay: 0.6 }}
         >
           <Button
-            onClick={() => {
-              onSave();
-              setTimeout(onEnter, 500);
-            }}
+            onClick={onSaveAndEnter}
             disabled={isSaving}
             className="w-full py-6 text-sm font-semibold"
             size="lg"
