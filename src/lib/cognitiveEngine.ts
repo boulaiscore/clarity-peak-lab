@@ -151,14 +151,16 @@ export function calculateRecovery(input: RecoveryInput): number {
 // ============================================
 // SHARPNESS (PRIMARY TODAY METRIC)
 // Formula:
-//   Sharpness_base = 0.50 × S1 + 0.30 × AE + 0.20 × S2
-//   Sharpness = Sharpness_base × (0.75 + 0.25 × REC / 100)
+//   S1 = (AE + RA) / 2
+//   S2 = (CT + IN) / 2
+//   Sharpness_base = 0.6 × S1 + 0.4 × S2
+//   Sharpness_today = Sharpness_base × (0.75 + 0.25 × REC / 100)
 // ============================================
 
 export function calculateSharpness(states: CognitiveStates, recovery: number): number {
   const { S1, S2 } = calculateSystemScores(states);
   
-  const base = 0.50 * S1 + 0.30 * states.AE + 0.20 * S2;
+  const base = 0.6 * S1 + 0.4 * S2;
   const modulated = base * (0.75 + 0.25 * recovery / 100);
   
   return clamp(Math.round(modulated * 10) / 10, 0, 100);

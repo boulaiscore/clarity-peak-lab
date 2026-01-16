@@ -17,7 +17,7 @@
  * - NEVER from per-session game data (accuracy, reaction time, score)
  * - NEVER from baseline session records
  * 
- * SHARPNESS = 0.50×S1 + 0.30×AE + 0.20×S2, modulated by Recovery
+ * SHARPNESS = 0.6×S1 + 0.4×S2, modulated by Recovery (0.75 + 0.25×REC/100)
  * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable) - decay
  * RECOVERY = min(100, (detox_min + 0.5×walk_min) / target × 100)
  * 
