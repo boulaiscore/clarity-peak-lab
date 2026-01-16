@@ -42,6 +42,9 @@ export interface GamesCaps {
   s2DailyMax: number;
   insightWeeklyUsed: number;
   insightWeeklyMax: number;
+  // Weekly S2 total cap (optional, computed from insightWeeklyMax + CT cap)
+  s2WeeklyUsed?: number;
+  s2WeeklyMax?: number;
 }
 
 export interface TrainingPlanModifiers {
@@ -186,6 +189,14 @@ export function checkGameAvailability(
       if (caps.s2DailyUsed >= caps.s2DailyMax) {
         enabled = false;
         withheldReason = `S2 daily limit reached (${caps.s2DailyUsed}/${caps.s2DailyMax})`;
+      }
+      
+      // Check weekly S2 cap
+      if (caps.s2WeeklyUsed !== undefined && caps.s2WeeklyMax !== undefined) {
+        if (caps.s2WeeklyUsed >= caps.s2WeeklyMax) {
+          enabled = false;
+          withheldReason = `S2 weekly limit reached (${caps.s2WeeklyUsed}/${caps.s2WeeklyMax})`;
+        }
       }
       break;
     }

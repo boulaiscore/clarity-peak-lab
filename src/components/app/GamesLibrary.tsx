@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Zap, Timer,
-  Play
+  Play, Lock, ShieldAlert, AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
@@ -11,6 +11,9 @@ import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
+import { useGamesGating, GameGatingResult, GatingStatus } from "@/hooks/useGamesGating";
+import { GameType, getGameTypeFromArea } from "@/lib/gamesGating";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
   focus: Target,
@@ -19,20 +22,50 @@ const AREA_ICONS: Record<string, React.ElementType> = {
 };
 
 // Areas available per thinking system (2x2 matrix)
-const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] = [
-  { areaId: "focus", name: "Attentional Efficiency", tagline: "Speed & Precision" },
-  { areaId: "creativity", name: "Rapid Association", tagline: "Intuitive Links" },
+const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string; gameType: GameType }[] = [
+  { areaId: "focus", name: "Attentional Efficiency", tagline: "Speed & Precision", gameType: "S1-AE" },
+  { areaId: "creativity", name: "Rapid Association", tagline: "Intuitive Links", gameType: "S1-RA" },
 ];
 
-const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; tagline: string }[] = [
-  { areaId: "reasoning", name: "Critical Thinking", tagline: "Deep Analysis" },
-  { areaId: "creativity", name: "Insight", tagline: "Mindful Connections" },
+const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; tagline: string; gameType: GameType }[] = [
+  { areaId: "reasoning", name: "Critical Thinking", tagline: "Deep Analysis", gameType: "S2-CT" },
+  { areaId: "creativity", name: "Insight", tagline: "Mindful Connections", gameType: "S2-IN" },
 ];
 
 type ThinkingSystem = "fast" | "slow";
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
+}
+
+// Helper to get human-readable reason
+function getWithholdReason(result: GameGatingResult): string {
+  if (!result.reasonCode) return "Unavailable";
+  
+  switch (result.reasonCode) {
+    case "RECOVERY_TOO_LOW":
+      return `Recovery too low (${result.details?.currentValue ?? 0}/${result.details?.requiredValue ?? 50})`;
+    case "SHARPNESS_TOO_LOW":
+      return `Sharpness too low (${result.details?.currentValue ?? 0}/${result.details?.requiredValue ?? 65})`;
+    case "SHARPNESS_TOO_HIGH":
+      return "Sharpness already high — S1-AE not needed";
+    case "READINESS_TOO_LOW":
+      return `Readiness too low (${result.details?.currentValue ?? 0}/${result.details?.requiredValue ?? 50})`;
+    case "READINESS_OUT_OF_RANGE":
+      return "Readiness out of optimal range for Insight";
+    case "CAP_REACHED_DAILY_S1":
+      return "S1 daily limit reached (3/day)";
+    case "CAP_REACHED_DAILY_S2":
+      return "S2 daily limit reached (1/day)";
+    case "CAP_REACHED_WEEKLY_S2":
+      return "S2 weekly limit reached";
+    case "CAP_REACHED_WEEKLY_IN":
+      return "Insight weekly limit reached";
+    case "SUPERHUMAN_REC_REQUIRED":
+      return "Recovery ≥55 required for Superhuman S2";
+    default:
+      return "Temporarily unavailable";
+  }
 }
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
@@ -46,8 +79,17 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   
   const { gamesComplete } = useCappedWeeklyProgress();
+  const { games, caps, isLoading: gatingLoading } = useGamesGating();
 
-  const handleGameTypeClick = (areaId: NeuroLabArea, mode: ThinkingSystem) => {
+  const handleGameTypeClick = (areaId: NeuroLabArea, mode: ThinkingSystem, gameType: GameType) => {
+    // Check gating status first
+    const gatingResult = games[gameType];
+    
+    if (gatingResult && gatingResult.status !== "ENABLED") {
+      // Game is gated - don't allow starting
+      return;
+    }
+    
     if (gamesComplete) {
       setPendingGame({ areaId, mode });
       setShowTargetExceededDialog(true);
@@ -139,39 +181,79 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 <div className="grid grid-cols-2 gap-2">
                   {areas.map((area) => {
                     const Icon = AREA_ICONS[area.areaId] || Brain;
+                    const gatingResult = games[area.gameType];
+                    const isEnabled = !gatingResult || gatingResult.status === "ENABLED";
+                    const isProtection = gatingResult?.status === "PROTECTION";
+                    const isWithheld = gatingResult?.status === "WITHHELD";
                     
                     return (
-                      <button
-                        key={`${area.areaId}-${system}`}
-                        onClick={() => handleGameTypeClick(area.areaId, system)}
-                        className={cn(
-                          "group relative p-3 rounded-lg border transition-all text-left",
-                          "bg-background/50 hover:bg-background border-border/50",
-                          "hover:border-primary/30 active:scale-[0.98]"
-                        )}
-                      >
-                        <div className="flex items-start gap-2.5">
-                          <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                            system === "fast" ? "bg-amber-500/10" : "bg-violet-500/10"
-                          )}>
-                            <Icon className={cn("w-4 h-4", iconColor)} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-[11px] font-medium text-foreground leading-tight mb-0.5">
-                              {area.name}
-                            </h4>
-                            <p className="text-[9px] text-muted-foreground">
-                              {area.tagline}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {/* Play indicator */}
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Play className={cn("w-3.5 h-3.5", iconColor)} />
-                        </div>
-                      </button>
+                      <TooltipProvider key={`${area.areaId}-${system}`}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
+                              disabled={!isEnabled}
+                              className={cn(
+                                "group relative p-3 rounded-lg border transition-all text-left",
+                                isEnabled 
+                                  ? "bg-background/50 hover:bg-background border-border/50 hover:border-primary/30 active:scale-[0.98]"
+                                  : isProtection
+                                    ? "bg-muted/30 border-amber-500/30 opacity-70 cursor-not-allowed"
+                                    : "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
+                              )}
+                            >
+                              <div className="flex items-start gap-2.5">
+                                <div className={cn(
+                                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                                  isEnabled
+                                    ? system === "fast" ? "bg-amber-500/10" : "bg-violet-500/10"
+                                    : "bg-muted/50"
+                                )}>
+                                  {isProtection ? (
+                                    <ShieldAlert className="w-4 h-4 text-amber-500" />
+                                  ) : isWithheld ? (
+                                    <Lock className="w-4 h-4 text-muted-foreground" />
+                                  ) : (
+                                    <Icon className={cn("w-4 h-4", iconColor)} />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className={cn(
+                                    "text-[11px] font-medium leading-tight mb-0.5",
+                                    isEnabled ? "text-foreground" : "text-muted-foreground"
+                                  )}>
+                                    {area.name}
+                                  </h4>
+                                  <p className="text-[9px] text-muted-foreground">
+                                    {isEnabled ? area.tagline : (
+                                      <span className={isProtection ? "text-amber-500/70" : ""}>
+                                        {isProtection ? "Protection" : "Withheld"}
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              {/* Play indicator - only for enabled games */}
+                              {isEnabled && (
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Play className={cn("w-3.5 h-3.5", iconColor)} />
+                                </div>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          {!isEnabled && gatingResult && (
+                            <TooltipContent side="bottom" className="max-w-[200px]">
+                              <p className="text-xs">{getWithholdReason(gatingResult)}</p>
+                              {gatingResult.unlockActions.length > 0 && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                  Try: {gatingResult.unlockActions[0]}
+                                </p>
+                              )}
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     );
                   })}
                 </div>

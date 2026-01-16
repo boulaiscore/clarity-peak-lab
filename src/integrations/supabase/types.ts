@@ -191,6 +191,48 @@ export type Database = {
         }
         Relationships: []
       }
+      game_sessions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          game_type: string
+          gym_area: string
+          id: string
+          score: number
+          skill_routed: string
+          system_type: string
+          thinking_mode: string
+          user_id: string
+          xp_awarded: number
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          game_type: string
+          gym_area: string
+          id?: string
+          score?: number
+          skill_routed: string
+          system_type: string
+          thinking_mode: string
+          user_id: string
+          xp_awarded?: number
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          game_type?: string
+          gym_area?: string
+          id?: string
+          score?: number
+          skill_routed?: string
+          system_type?: string
+          thinking_mode?: string
+          user_id?: string
+          xp_awarded?: number
+        }
+        Relationships: []
+      }
       monthly_content_assignments: {
         Row: {
           completed_at: string | null
