@@ -60,6 +60,35 @@ const LIGHT_AUDIENCE_TAGS: Record<string, string> = {
   "Entry configuration": "Low-friction entry",
 };
 
+// Expert plan session copy refinements
+const EXPERT_SESSION_COPY: Record<string, { title: string; subtitle: string; microcopy: string; badge: string }> = {
+  "fast-control": {
+    title: "Fast Control",
+    subtitle: "Precision, inhibition, and speed (System 1)",
+    microcopy: "Maintains clarity under load.",
+    badge: "S1",
+  },
+  "slow-reasoning": {
+    title: "Structured Reasoning",
+    subtitle: "Deliberate analysis and logic (System 2)",
+    microcopy: "Enabled when readiness is high.",
+    badge: "S2",
+  },
+  "dual-process": {
+    title: "Integration",
+    subtitle: "Connecting fast and slow thinking",
+    microcopy: "Supports transfer across systems.",
+    badge: "S1 + S2",
+  },
+};
+
+// Expert plan audience tag refinements
+const EXPERT_AUDIENCE_TAGS: Record<string, string> = {
+  "Regular practice": "Deliberate progression",
+  "Structured depth": "Balanced cognitive load",
+  "Sustained engagement": "Sustained focus",
+};
+
 interface TrainingPlanSelectorProps {
   selectedPlan: TrainingPlanId;
   onSelectPlan: (plan: TrainingPlanId) => void;
@@ -222,7 +251,165 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
     </div>
   );
 
-  // Render default plan expanded details (Expert/Superhuman)
+  // Render Expert plan expanded details (refined copy)
+  const renderExpertPlanDetails = (plan: TrainingPlan, colors: typeof PLAN_COLORS.expert) => (
+    <div className="pt-3 space-y-4">
+      {/* Expert Cognitive Configuration */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Expert Cognitive Configuration</p>
+        <p className="text-[9px] text-muted-foreground/70 mb-2.5 italic">
+          Designed for deliberate cognitive progression.
+        </p>
+        <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Content Availability */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-purple-500/15 flex items-center justify-center mx-auto mb-1">
+                <BookOpen className="w-3 h-3 text-purple-400" />
+              </div>
+              <p className="text-[10px] font-medium text-purple-400">Moderate</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Enabled selectively
+              </p>
+            </div>
+            {/* Recovery Target */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-green-500/15 flex items-center justify-center mx-auto mb-1">
+                <Smartphone className="w-3 h-3 text-green-400" />
+              </div>
+              <p className="text-[10px] font-medium text-green-400">Target: {Math.round(plan.detox.weeklyMinutes / 60)}h</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Required for load
+              </p>
+            </div>
+            {/* Sessions */}
+            <div className="text-center">
+              <div className="w-6 h-6 rounded bg-blue-500/15 flex items-center justify-center mx-auto mb-1">
+                <Dumbbell className="w-3 h-3 text-blue-400" />
+              </div>
+              <p className="text-[10px] font-medium text-blue-400">Up to {plan.sessionsPerWeek}</p>
+              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
+                Balanced S1 & S2
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Designed For */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Designed For</p>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {plan.targetAudience.map((audience, i) => (
+            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400/90">
+              {EXPERT_AUDIENCE_TAGS[audience] || audience}
+            </span>
+          ))}
+        </div>
+        <p className="text-[9px] text-muted-foreground/70 italic">
+          Recommended when stability is established.
+        </p>
+        <p className="text-[9px] text-muted-foreground/50 italic mt-0.5">
+          Automatically adapts to your recovery and readiness.
+        </p>
+      </div>
+
+      {/* Session Templates */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Session Templates</p>
+        <p className="text-[9px] text-muted-foreground/70 mb-2 italic">
+          Sessions are available when cognitive capacity supports depth.
+        </p>
+        <div className="space-y-2">
+          {plan.sessions.map((session) => {
+            const copy = EXPERT_SESSION_COPY[session.id];
+            if (!copy) return null;
+            
+            return (
+              <div
+                key={session.id}
+                className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
+              >
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[11px] font-medium">{copy.title}</span>
+                  <span className="text-[9px] text-muted-foreground">{session.duration}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mb-1.5">{copy.subtitle}</p>
+                
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[8px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400">
+                    {copy.badge}
+                  </span>
+                  {session.content && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">
+                      Content optional
+                    </span>
+                  )}
+                </div>
+                
+                <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
+                  {copy.microcopy}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Eligible Content */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">
+          Eligible Content <span className="font-normal">(when appropriate)</span>
+        </p>
+        <div className="flex flex-wrap gap-1.5 mb-1.5">
+          {plan.contentTypes.filter(t => t !== "none").map((type) => (
+            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
+              {type === "podcast" && "🎧 Podcast"}
+              {type === "reading" && "📄 Reading"}
+              {type === "book-extract" && "📚 Book"}
+            </span>
+          ))}
+        </div>
+        <p className="text-[8px] text-muted-foreground/60 italic">
+          Content is enabled only when it supports current cognitive goals.
+        </p>
+      </div>
+
+      {/* Recovery Requirement */}
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Requirement</p>
+        <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
+              <Smartphone className="w-3 h-3 text-green-400" />
+            </div>
+            <span className="text-[11px] font-semibold text-green-400">
+              {Math.round(plan.detox.weeklyMinutes / 60)}h / week
+            </span>
+          </div>
+          <div className="space-y-1 text-[10px] text-muted-foreground mb-2">
+            <p>Minimum session: {plan.detox.minSessionMinutes} min</p>
+            <p>Walking: {plan.detox.walkingMinMinutes} min minimum</p>
+          </div>
+          <p className="text-[9px] text-muted-foreground/60 italic leading-snug mb-1">
+            Recovery is required to maintain quality at this level.
+          </p>
+          <p className="text-[8px] text-muted-foreground/50 italic leading-snug">
+            Insufficient recovery will reduce session availability.
+          </p>
+        </div>
+      </div>
+
+      {/* Closing Statement */}
+      <div className="pt-2 border-t border-border/20">
+        <p className="text-[10px] text-muted-foreground/50 text-center italic">
+          Expert Training favors quality and intention over volume.
+        </p>
+      </div>
+    </div>
+  );
+
+  // Render default plan expanded details (Superhuman)
   const renderDefaultPlanDetails = (plan: TrainingPlan) => (
     <div className="pt-3 space-y-3">
       {/* Weekly Load Summary */}
@@ -372,7 +559,6 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
         const colors = PLAN_COLORS[planId];
         const isSelected = selectedPlan === planId;
         const isExpanded = expandedPlan === planId;
-        const isLight = planId === "light";
 
         return (
           <motion.div
@@ -420,7 +606,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                       <Dumbbell className="w-3 h-3" />
-                      <span>{isLight ? `up to ${plan.sessionsPerWeek}` : `${plan.sessionsPerWeek}×`}/week</span>
+                      <span>{planId === "light" || planId === "expert" ? `up to ${plan.sessionsPerWeek}` : `${plan.sessionsPerWeek}×`}/week</span>
                     </div>
                   </div>
                 </div>
@@ -463,10 +649,9 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
                 exit={{ height: 0, opacity: 0 }}
                 className="px-4 pb-4 border-t border-border/20"
               >
-                {isLight 
-                  ? renderLightPlanDetails(plan, colors)
-                  : renderDefaultPlanDetails(plan)
-                }
+                {planId === "light" && renderLightPlanDetails(plan, colors)}
+                {planId === "expert" && renderExpertPlanDetails(plan, colors)}
+                {planId === "superhuman" && renderDefaultPlanDetails(plan)}
               </motion.div>
             )}
           </motion.div>
