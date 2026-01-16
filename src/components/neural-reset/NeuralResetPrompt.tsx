@@ -53,7 +53,7 @@ export function NeuralResetPrompt({ className }: NeuralResetPromptProps) {
             </span>
           )}
           <span className="text-[9px] text-muted-foreground/50 ml-auto">
-            {isRecommended ? "Activity high" : "Not needed"}
+            {isRecommended ? "Activity high" : "Not needed now"}
           </span>
         </div>
       </button>
