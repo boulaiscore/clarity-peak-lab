@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 
@@ -96,6 +97,9 @@ const Home = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { sessionsCompleted, weeklyXPTarget, plan } = useWeeklyProgress();
+  
+  // Baseline calibration status - gates Games and Tasks
+  const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
 
   // Stable (no-flicker) weekly load totals
   const stableCognitiveLoad = useStableCognitiveLoad();
@@ -184,6 +188,37 @@ const Home = () => {
   };
 
   const insight = getInsight();
+
+  // Baseline calibration not completed - show CTA to complete it
+  if (!baselineLoading && !isCalibrated) {
+    return (
+      <AppShell>
+        <main className="flex flex-col items-center justify-center min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-sm"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+              <Brain className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-xl font-semibold mb-2">Complete Calibration</h1>
+            <p className="text-sm text-muted-foreground/70 mb-8 leading-relaxed">
+              A 2-minute cognitive baseline is required before training begins. 
+              This establishes your personalized skill references.
+            </p>
+            <button
+              onClick={() => navigate("/app/calibration")}
+              className="inline-flex items-center px-6 py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+            >
+              Begin Calibration
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </button>
+          </motion.div>
+        </main>
+      </AppShell>
+    );
+  }
 
   // No protocol configured
   if (!hasProtocol) {

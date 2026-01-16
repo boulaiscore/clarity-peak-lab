@@ -5,6 +5,32 @@
  * 
  * Technical Manual v1.3 Aligned
  * 
+ * ⚠️ CRITICAL METRIC INTEGRITY RULES ⚠️
+ * 
+ * 1. BASELINE DRILLS:
+ *    - Used ONLY to initialize skill values (AE0, RA0, CT0, IN0)
+ *    - MUST NOT affect daily metrics (Sharpness, Readiness, Recovery)
+ *    - Do NOT award XP
+ * 
+ * 2. GAMES (TRAINING):
+ *    - Award XP according to difficulty
+ *    - Route XP to ONE skill only: Δskill = XP × 0.5
+ *    - Raw performance (accuracy, reaction time) is for feedback ONLY
+ *    - Performance MUST NOT directly affect Sharpness/Readiness/SCI/CognitiveAge
+ * 
+ * 3. METRICS (SINGLE SOURCE OF TRUTH):
+ *    - Computed ONLY from persistent skill values: AE, RA, CT, IN
+ *    - Derived aggregates: S1, S2
+ *    - Recovery from Detox/Walk only
+ *    - NEVER read from per-session data (game scores, baseline sessions)
+ * 
+ * 4. DAILY COMPUTATION ORDER (MANDATORY):
+ *    1. Load persistent skills: AE, RA, CT, IN
+ *    2. Compute aggregates: S1 = (AE+RA)/2, S2 = (CT+IN)/2
+ *    3. Compute Recovery: REC = min(100, (detox + 0.5×walk) / target × 100)
+ *    4. Compute states: Sharpness, Readiness
+ *    5. Compute dashboard metrics: Cognitive Age, SCI, Dual-Process
+ * 
  * COGNITIVE STATES (BASE VARIABLES):
  * - AE = Attentional Efficiency (0-100) – mapped from focus_stability
  * - RA = Rapid Association (0-100) – mapped from fast_thinking
