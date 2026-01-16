@@ -6,6 +6,9 @@
  * - S1, S2 (derived system scores)
  * - Baseline values for Cognitive Age calculation
  * 
+ * v1.4: Now includes decay adjustments for skill inactivity.
+ * Skills decay if no XP received for 30+ consecutive days.
+ * 
  * DATA SOURCE: user_cognitive_metrics table
  * 
  * COLUMN MAPPING:
@@ -16,21 +19,35 @@
  */
 
 import { useMemo, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
+import { format, startOfWeek, parseISO, differenceInDays } from "date-fns";
 import {
   CognitiveStates,
   CognitiveAgeBaseline,
   mapDatabaseToCognitiveStates,
   mapDatabaseToBaseline,
   calculateSystemScores,
+  calculateSkillDecay,
+  clamp,
 } from "@/lib/cognitiveEngine";
 
 export interface UseCognitiveStatesResult {
-  // Base states (0-100)
+  // Base states (0-100) - WITH decay applied
   states: CognitiveStates;
+  
+  // Raw states without decay (for baseline comparison)
+  rawStates: CognitiveStates;
+  
+  // Decay amounts
+  skillDecay: {
+    aeDecay: number;
+    raDecay: number;
+    ctDecay: number;
+    inDecay: number;
+  };
   
   // Derived system scores
   S1: number;
@@ -98,16 +115,13 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
   }, [user?.id, isLoading, rawMetrics]);
   
   const result = useMemo(() => {
-    // Map database columns to cognitive states
-    const states = mapDatabaseToCognitiveStates(rawMetrics ? {
+    // Map database columns to cognitive states (raw, no decay)
+    const rawStates = mapDatabaseToCognitiveStates(rawMetrics ? {
       focus_stability: rawMetrics.focus_stability,
       fast_thinking: rawMetrics.fast_thinking,
       reasoning_accuracy: rawMetrics.reasoning_accuracy,
       slow_thinking: rawMetrics.slow_thinking,
     } : null);
-    
-    // Calculate derived system scores
-    const { S1, S2 } = calculateSystemScores(states);
     
     // Get baseline for Cognitive Age
     const chronologicalAge = user?.age ?? 35;
@@ -119,7 +133,71 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
       baseline_cognitive_age: rawMetrics.baseline_cognitive_age,
     } : null, chronologicalAge);
     
-    return { states, S1, S2, baseline };
+    // Calculate skill decay based on last XP dates
+    const today = new Date();
+    
+    const parseXpDate = (dateStr: string | null | undefined): Date | null => {
+      if (!dateStr) return null;
+      try {
+        return parseISO(dateStr);
+      } catch {
+        return null;
+      }
+    };
+    
+    // Get last XP dates from rawMetrics (new columns)
+    const lastAeXpDate = parseXpDate((rawMetrics as any)?.last_ae_xp_date);
+    const lastRaXpDate = parseXpDate((rawMetrics as any)?.last_ra_xp_date);
+    const lastCtXpDate = parseXpDate((rawMetrics as any)?.last_ct_xp_date);
+    const lastInXpDate = parseXpDate((rawMetrics as any)?.last_in_xp_date);
+    
+    const aeDecay = calculateSkillDecay({
+      lastXpDate: lastAeXpDate,
+      currentValue: rawStates.AE,
+      baselineValue: baseline.baselineAE,
+      today,
+    });
+    
+    const raDecay = calculateSkillDecay({
+      lastXpDate: lastRaXpDate,
+      currentValue: rawStates.RA,
+      baselineValue: baseline.baselineRA,
+      today,
+    });
+    
+    const ctDecay = calculateSkillDecay({
+      lastXpDate: lastCtXpDate,
+      currentValue: rawStates.CT,
+      baselineValue: baseline.baselineCT,
+      today,
+    });
+    
+    const inDecay = calculateSkillDecay({
+      lastXpDate: lastInXpDate,
+      currentValue: rawStates.IN,
+      baselineValue: baseline.baselineIN,
+      today,
+    });
+    
+    // Apply decay to states
+    const states: CognitiveStates = {
+      AE: clamp(rawStates.AE - aeDecay, 0, 100),
+      RA: clamp(rawStates.RA - raDecay, 0, 100),
+      CT: clamp(rawStates.CT - ctDecay, 0, 100),
+      IN: clamp(rawStates.IN - inDecay, 0, 100),
+    };
+    
+    // Calculate derived system scores from decayed states
+    const { S1, S2 } = calculateSystemScores(states);
+    
+    return { 
+      states, 
+      rawStates,
+      skillDecay: { aeDecay, raDecay, ctDecay, inDecay },
+      S1, 
+      S2, 
+      baseline 
+    };
   }, [rawMetrics, user?.age]);
   
   return {

@@ -463,3 +463,227 @@ export function calculateStateUpdate(currentValue: number, earnedXP: number): nu
   const delta = earnedXP * 0.5;
   return clamp(currentValue + delta, 0, 100);
 }
+
+// ============================================
+// DECAY CALCULATION FUNCTIONS
+// ============================================
+
+import {
+  SKILL_DECAY_THRESHOLD_DAYS,
+  SKILL_DECAY_INTERVAL_DAYS,
+  SKILL_DECAY_BASE_POINTS,
+  SKILL_DECAY_INTERVAL_POINTS,
+  SKILL_DECAY_MAX_POINTS,
+  LOW_RECOVERY_THRESHOLD,
+  READINESS_DECAY_TRIGGER_DAYS,
+  READINESS_DECAY_INITIAL_POINTS,
+  READINESS_DECAY_PER_DAY_POINTS,
+  READINESS_DECAY_MAX_WEEKLY,
+  SCI_LOW_RECOVERY_DECAY,
+  SCI_NO_TRAINING_THRESHOLD_DAYS,
+  SCI_NO_TRAINING_DECAY,
+  SCI_DECAY_MAX_WEEKLY,
+  DUAL_PROCESS_IMBALANCE_RATIO,
+  DUAL_PROCESS_IMBALANCE_DECAY,
+  DUAL_PROCESS_DECAY_MAX_WEEKLY,
+  COGNITIVE_AGE_PERFORMANCE_DROP_THRESHOLD,
+  COGNITIVE_AGE_DROP_DAYS_THRESHOLD,
+  COGNITIVE_AGE_MAX_INCREASE_PER_MONTH,
+} from "@/lib/decayConstants";
+
+// ============================================
+// TYPES FOR DECAY CALCULATIONS
+// ============================================
+
+export interface SkillDecayInput {
+  lastXpDate: Date | null;
+  currentValue: number;
+  baselineValue: number;
+  today: Date;
+}
+
+export interface ReadinessDecayInput {
+  consecutiveLowRecDays: number;
+  currentDecayApplied: number;
+}
+
+export interface SCIDecayInput {
+  recovery: number;
+  daysSinceLastTraining: number;
+  currentDecayApplied: number;
+}
+
+export interface DualProcessDecayInput {
+  weeklyS1XP: number;
+  weeklyS2XP: number;
+  currentDecayApplied: number;
+}
+
+export interface CognitiveAgeRegressionInput {
+  currentPerformanceAvg: number;
+  windowStartPerformanceAvg: number | null;
+  consecutiveDropDays: number;
+}
+
+// ============================================
+// SKILL INACTIVITY DECAY
+// Decay if no XP for 30+ consecutive days
+// -1 pt initially, then -1 pt per 15 additional days
+// Max -3 pts per 90 days. Never decay below baseline.
+// ============================================
+
+export function calculateSkillDecay(input: SkillDecayInput): number {
+  const { lastXpDate, currentValue, baselineValue, today } = input;
+  
+  // No decay if no XP ever received (new user)
+  if (!lastXpDate) return 0;
+  
+  const diffMs = today.getTime() - lastXpDate.getTime();
+  const daysSinceXP = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  // No decay under threshold days
+  if (daysSinceXP < SKILL_DECAY_THRESHOLD_DAYS) return 0;
+  
+  // Base decay at threshold
+  let decay = SKILL_DECAY_BASE_POINTS;
+  
+  // Additional decay per interval after threshold
+  const additionalDays = daysSinceXP - SKILL_DECAY_THRESHOLD_DAYS;
+  decay += Math.floor(additionalDays / SKILL_DECAY_INTERVAL_DAYS) * SKILL_DECAY_INTERVAL_POINTS;
+  
+  // Cap at max
+  decay = Math.min(decay, SKILL_DECAY_MAX_POINTS);
+  
+  // Never decay below baseline
+  const maxDecay = Math.max(0, currentValue - baselineValue);
+  
+  return Math.min(decay, maxDecay);
+}
+
+// ============================================
+// READINESS DECAY
+// Decays if REC < 40 for 3+ consecutive days
+// -5 pts initially, then -2 pts/day
+// Max -15 pts/week
+// ============================================
+
+export function calculateReadinessDecay(input: ReadinessDecayInput): number {
+  const { consecutiveLowRecDays, currentDecayApplied } = input;
+  
+  const remainingDecay = READINESS_DECAY_MAX_WEEKLY - currentDecayApplied;
+  
+  if (remainingDecay <= 0) return 0;
+  if (consecutiveLowRecDays < READINESS_DECAY_TRIGGER_DAYS) return 0;
+  
+  let totalDecay = 0;
+  
+  if (consecutiveLowRecDays >= READINESS_DECAY_TRIGGER_DAYS) {
+    // Initial decay on trigger day
+    totalDecay = READINESS_DECAY_INITIAL_POINTS;
+    
+    // Additional decay for days beyond trigger
+    const additionalDays = consecutiveLowRecDays - READINESS_DECAY_TRIGGER_DAYS;
+    totalDecay += additionalDays * READINESS_DECAY_PER_DAY_POINTS;
+  }
+  
+  // Cap at weekly max minus already applied
+  return Math.min(totalDecay, remainingDecay);
+}
+
+// ============================================
+// SCI (COGNITIVE NETWORK) DECAY
+// -5 pts/week if REC < 40
+// -5 pts/week if no training for 7 days
+// Decays stack, max -10 pts/week
+// ============================================
+
+export function calculateSCIDecay(input: SCIDecayInput): number {
+  const { recovery, daysSinceLastTraining, currentDecayApplied } = input;
+  
+  const remainingDecay = SCI_DECAY_MAX_WEEKLY - currentDecayApplied;
+  if (remainingDecay <= 0) return 0;
+  
+  let decay = 0;
+  
+  // Low recovery penalty
+  if (recovery < LOW_RECOVERY_THRESHOLD) {
+    decay += SCI_LOW_RECOVERY_DECAY;
+  }
+  
+  // No training penalty
+  if (daysSinceLastTraining >= SCI_NO_TRAINING_THRESHOLD_DAYS) {
+    decay += SCI_NO_TRAINING_DECAY;
+  }
+  
+  return Math.min(decay, remainingDecay);
+}
+
+// ============================================
+// DUAL-PROCESS BALANCE DECAY
+// -5 pts if S1 XP ≥ 2x S2 XP (or vice versa) over 7 days
+// Max -10 pts/week
+// ============================================
+
+export function calculateDualProcessDecay(input: DualProcessDecayInput): number {
+  const { weeklyS1XP, weeklyS2XP, currentDecayApplied } = input;
+  
+  const remainingDecay = DUAL_PROCESS_DECAY_MAX_WEEKLY - currentDecayApplied;
+  if (remainingDecay <= 0) return 0;
+  
+  // Handle zero cases
+  if (weeklyS1XP === 0 && weeklyS2XP === 0) return 0;
+  
+  // If one is zero and other is not, that's an imbalance
+  if (weeklyS1XP === 0 && weeklyS2XP > 0) {
+    return Math.min(DUAL_PROCESS_IMBALANCE_DECAY, remainingDecay);
+  }
+  if (weeklyS2XP === 0 && weeklyS1XP > 0) {
+    return Math.min(DUAL_PROCESS_IMBALANCE_DECAY, remainingDecay);
+  }
+  
+  const ratio = weeklyS1XP / weeklyS2XP;
+  
+  // S1 dominates (≥2x S2)
+  if (ratio >= DUAL_PROCESS_IMBALANCE_RATIO) {
+    return Math.min(DUAL_PROCESS_IMBALANCE_DECAY, remainingDecay);
+  }
+  
+  // S2 dominates (S1 ≤ 0.5x S2)
+  if (ratio <= 1 / DUAL_PROCESS_IMBALANCE_RATIO) {
+    return Math.min(DUAL_PROCESS_IMBALANCE_DECAY, remainingDecay);
+  }
+  
+  return 0; // Balanced
+}
+
+// ============================================
+// COGNITIVE AGE REGRESSION
+// +1 year if PerformanceAvg decreases by ≥10 pts for ≥21 consecutive days
+// Max +1 year per 30 days
+// ============================================
+
+export function calculateCognitiveAgeRegression(input: CognitiveAgeRegressionInput): number {
+  const { currentPerformanceAvg, windowStartPerformanceAvg, consecutiveDropDays } = input;
+  
+  // If no baseline window established, no regression
+  if (windowStartPerformanceAvg === null) return 0;
+  
+  const performanceDrop = windowStartPerformanceAvg - currentPerformanceAvg;
+  
+  // Check if drop exceeds threshold
+  if (performanceDrop < COGNITIVE_AGE_PERFORMANCE_DROP_THRESHOLD) return 0;
+  
+  // Check if sustained long enough
+  if (consecutiveDropDays < COGNITIVE_AGE_DROP_DAYS_THRESHOLD) return 0;
+  
+  // Apply age increase (capped at max per month)
+  return COGNITIVE_AGE_MAX_INCREASE_PER_MONTH;
+}
+
+// ============================================
+// HELPER: Check if recovery is low
+// ============================================
+
+export function isRecoveryLow(recovery: number): boolean {
+  return recovery < LOW_RECOVERY_THRESHOLD;
+}
