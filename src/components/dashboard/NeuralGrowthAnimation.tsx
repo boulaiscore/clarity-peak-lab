@@ -377,11 +377,11 @@ export function NeuralGrowthAnimation({
         
         {/* Status Breakdown - What's shaping your strength */}
         {sciBreakdown && (
-          <div className="mt-3 pt-3 border-t border-border/20">
-            <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-2">
+          <div className="mt-2 pt-2 border-t border-border/20">
+            <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-1.5">
               What's shaping your strength
             </p>
-            <div className="space-y-2 text-left px-3 pb-2">
+            <div className="space-y-1 text-left px-3 pb-3">
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-3 h-3 text-primary/60" />
