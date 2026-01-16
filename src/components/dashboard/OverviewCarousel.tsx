@@ -4,8 +4,9 @@ import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
+import { SCIExplanation } from "./SCIExplanation";
 import { Button } from "@/components/ui/button";
-import { BookOpen, FileText, Sparkles, ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
+import { FileText, Sparkles, ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -14,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
 interface OverviewCarouselProps {
@@ -139,10 +141,13 @@ export function OverviewCarousel({
               <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
                 <div className="flex items-center gap-2 mb-1.5">
                   <Network className="w-4 h-4 text-cyan-400" />
-                  <span className="font-medium text-foreground">Cognitive Network (SCI)</span>
+                  <span className="font-medium text-foreground">Cognitive Network</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Synthesized Cognitive Index measuring overall brain connectivity and performance across cognitive, behavioral, and recovery dimensions.
+                  How your cognitive abilities, consistency, and recovery integrate over time.
+                </p>
+                <p className="text-[10px] text-muted-foreground/70 mt-1.5">
+                  Tap "Learn More" on the Cognitive Network card for full details.
                 </p>
               </div>
               
