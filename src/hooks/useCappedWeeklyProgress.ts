@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 import { useGamesXPBreakdown } from "@/hooks/useGamesXPBreakdown";
+import { useWeeklyContentCount } from "@/hooks/useWeeklyContentCount";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -130,6 +131,11 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     isLoading: breakdownLoading,
     isFetched: breakdownFetched,
   } = useGamesXPBreakdown();
+
+  const {
+    data: weeklyContentCount = 0,
+    isLoading: contentCountLoading,
+  } = useWeeklyContentCount();
 
   const weeklyDetoxXP = detoxData?.totalXP ?? 0;
 
@@ -281,8 +287,8 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       gamesSubTargets: systemSubTargets, // Alias
       gamesBreakdown: breakdown,
       
-      // Content completions (count only in v1.3)
-      contentCompletionsCount: breakdown.completionsCount,
+      // Content completions (count only in v1.3) - from dedicated hook, NOT games count
+      contentCompletionsCount: weeklyContentCount,
       
       // NEW v1.4: Recovery metrics (time-based)
       recoveryMinutesTarget,
@@ -291,7 +297,7 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       recoveryComplete,
       
       // Loading states
-      isLoading: progressLoading || detoxLoading || breakdownLoading,
+      isLoading: progressLoading || detoxLoading || breakdownLoading || contentCountLoading,
       isFetched: progressFetched && breakdownFetched,
       isSyncing,
     };
@@ -299,11 +305,13 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     weeklyGamesXP,
     weeklyDetoxXP,
     gamesBreakdown,
+    weeklyContentCount,
     plan,
     weeklyXPTarget,
     progressLoading,
     detoxLoading,
     breakdownLoading,
+    contentCountLoading,
     progressFetched,
     breakdownFetched,
     isSyncing,
