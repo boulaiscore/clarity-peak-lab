@@ -30,11 +30,15 @@ import { REC_TARGET } from "@/lib/decayConstants";
 // Recovery impact percentages based on canonical formula:
 // REC% = (weekly_detox_minutes + 0.5 × weekly_walk_minutes) / REC_TARGET × 100
 // With REC_TARGET = 840 min (14 hrs/week):
-// - Detox 30 min = 30/840 × 100 = 3.57% → rounds to 4%
-// - Walk 30 min = (30/840 × 100) × 0.5 = 1.79% → rounds to 2%
+// - Base rate per 30 min = 30/840 × 100 ≈ 3.57%
+// To ensure proportional consistency across durations, we calculate based on 30-min units
 const getRecoveryImpact = (minutes: number, mode: "detox" | "walk"): number => {
-  const baseImpact = Math.round((minutes / REC_TARGET) * 100);
-  return mode === "detox" ? baseImpact : Math.round(baseImpact * 0.5);
+  // Calculate exact percentage
+  const exactPercent = (minutes / REC_TARGET) * 100;
+  // For walk, apply 0.5 multiplier before rounding
+  const modeAdjusted = mode === "detox" ? exactPercent : exactPercent * 0.5;
+  // Round to nearest integer for display
+  return Math.round(modeAdjusted);
 };
 
 type RecoveryMode = "detox" | "walk";
