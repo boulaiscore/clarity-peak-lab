@@ -76,22 +76,22 @@ export function NeuralGrowthAnimation({
     };
   };
 
-  // Get Intensity status (from cognitive performance)
-  const getIntensityStatus = (score: number) => {
+  // Get Performance status (from cognitive metrics average)
+  const getPerformanceStatus = (score: number) => {
     if (score >= 70) return { label: "High", color: "text-emerald-500" };
-    if (score >= 40) return { label: "Increasing", color: "text-primary" };
+    if (score >= 40) return { label: "Building", color: "text-primary" };
     if (score >= 10) return { label: "Active", color: "text-amber-400" };
     return { label: "Low", color: "text-muted-foreground/60" };
   };
 
-  // Get Consistency status (from behavioral engagement)
-  const getConsistencyStatus = (score: number) => {
-    if (score >= 70) return { label: "Stable", color: "text-emerald-500" };
+  // Get Training Load status (from weekly games XP)
+  const getTrainingLoadStatus = (score: number) => {
+    if (score >= 70) return { label: "On target", color: "text-emerald-500" };
     if (score >= 40) return { label: "Building", color: "text-amber-400" };
     return { label: "Low", color: "text-muted-foreground/60" };
   };
 
-  // Get Recovery status (from recovery factor)
+  // Get Recovery status (from detox + walking minutes)
   const getRecoveryStatus = (score: number) => {
     if (score >= 70) return { label: "High", color: "text-emerald-500" };
     if (score >= 40) return { label: "Moderate", color: "text-amber-400" };
@@ -101,8 +101,8 @@ export function NeuralGrowthAnimation({
   const phaseInfo = getPhaseInfo(overallCognitiveScore);
   const statusText = customStatusText || phaseInfo.phase;
   
-  const intensityStatus = sciBreakdown ? getIntensityStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
-  const consistencyStatus = sciBreakdown ? getConsistencyStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
+  const performanceStatus = sciBreakdown ? getPerformanceStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
+  const trainingLoadStatus = sciBreakdown ? getTrainingLoadStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
   const recoveryStatus = sciBreakdown ? getRecoveryStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
 
   // Map metrics to visual intensity
@@ -344,16 +344,16 @@ export function NeuralGrowthAnimation({
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-3 h-3 text-primary/60" />
-                  <span className="text-muted-foreground">Intensity</span>
+                  <span className="text-muted-foreground">Performance</span>
                 </div>
-                <span className={intensityStatus.color}>{intensityStatus.label}</span>
+                <span className={performanceStatus.color}>{performanceStatus.label}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
                   <Target className="w-3 h-3 text-blue-400/60" />
-                  <span className="text-muted-foreground">Consistency</span>
+                  <span className="text-muted-foreground">Training Load</span>
                 </div>
-                <span className={consistencyStatus.color}>{consistencyStatus.label}</span>
+                <span className={trainingLoadStatus.color}>{trainingLoadStatus.label}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
@@ -371,19 +371,19 @@ export function NeuralGrowthAnimation({
           <div className="mt-3 pt-3 border-t border-border/20">
             <div className="grid grid-cols-3 gap-2 text-[9px]">
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Intensity</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Performance</div>
                 <div className="font-semibold text-primary">{sciBreakdown.cognitivePerformance.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Neural stimulation</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Cognitive metrics</div>
               </div>
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Consistency</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Training</div>
                 <div className="font-semibold text-blue-400">{sciBreakdown.behavioralEngagement.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Training regularity</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Weekly XP %</div>
               </div>
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Recovery</div>
                 <div className="font-semibold text-purple-400">{sciBreakdown.recoveryFactor.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Absorption & rest</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Detox + Walk %</div>
               </div>
             </div>
           </div>
