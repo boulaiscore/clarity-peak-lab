@@ -354,6 +354,7 @@ export type Database = {
           report_credits: number
           session_duration: string | null
           subscription_status: string | null
+          timezone: string | null
           training_goals: string[] | null
           training_plan: string | null
           updated_at: string
@@ -384,6 +385,7 @@ export type Database = {
           report_credits?: number
           session_duration?: string | null
           subscription_status?: string | null
+          timezone?: string | null
           training_goals?: string[] | null
           training_plan?: string | null
           updated_at?: string
@@ -414,6 +416,7 @@ export type Database = {
           report_credits?: number
           session_duration?: string | null
           subscription_status?: string | null
+          timezone?: string | null
           training_goals?: string[] | null
           training_plan?: string | null
           updated_at?: string
