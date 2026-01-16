@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Brain, Target, Lightbulb, Zap, Timer,
-  Play, Lock, ShieldAlert, AlertCircle
+  Play, Lock, ShieldAlert, AlertCircle, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
@@ -14,6 +14,7 @@ import { TargetExceededDialog } from "./TargetExceededDialog";
 import { useGamesGating, GameGatingResult, GatingStatus } from "@/hooks/useGamesGating";
 import { GameType, getGameTypeFromArea } from "@/lib/gamesGating";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
   focus: Target,
@@ -79,7 +80,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   
   const { gamesComplete } = useCappedWeeklyProgress();
-  const { games, caps, isLoading: gatingLoading } = useGamesGating();
+  const { games, caps, safetyRuleActive, isLoading: gatingLoading } = useGamesGating();
 
   const handleGameTypeClick = (areaId: NeuroLabArea, mode: ThinkingSystem, gameType: GameType) => {
     // Check gating status first
@@ -118,6 +119,16 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
+      {/* Post-Baseline Safety Banner */}
+      {safetyRuleActive && (
+        <Alert className="border-amber-500/30 bg-amber-500/5">
+          <Info className="h-4 w-4 text-amber-500" />
+          <AlertDescription className="text-xs text-amber-200/90">
+            System stabilizing after calibration. Start with a short focus session or build recovery to unlock more options.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {/* System Cards - Stacked Layout */}
       {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
         const isActive = activeSystem === system;

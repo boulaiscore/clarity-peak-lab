@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – GAMES GATING SYSTEM v1.3
+ * NEUROLOOP PRO – GAMES GATING SYSTEM v1.4
  * ============================================
  * 
  * Games are gated by cognitive metrics. NO override allowed for games.
@@ -11,10 +11,15 @@
  * - S2-CT: System 2 Critical Thinking (Reasoning Slow)
  * - S2-IN: System 2 Insight (Creativity Slow)
  * 
+ * CRITICAL v1.4 FIXES:
+ * - S1 games do NOT depend on Recovery
+ * - Post-baseline safety rule: at least one S1 game always enabled
+ * - S2 hard block when Recovery < 45
+ * 
  * DAILY/WEEKLY CAPS:
  * - S1 total: ≤3/day
  * - S2 total: ≤1/day
- * - Insight (S2-IN): ≤3/week
+ * - Insight (S2-IN): ≤3/week (plan-dependent)
  */
 
 import type { CognitiveStates } from "./cognitiveEngine";
@@ -53,19 +58,25 @@ export interface TrainingPlanModifiers {
   insightMaxPerWeek: number; // 2 for Light, 3 for Expert, 4 for Superhuman
 }
 
-// Default thresholds from Technical Manual v1.3 Section 10
-const DEFAULT_THRESHOLDS = {
+// ============================================
+// THRESHOLDS v1.4 - CORRECTED
+// ============================================
+// S1 games: NO Recovery dependency
+// S2 games: Hard block when Recovery < 45
+
+const S1_THRESHOLDS = {
   "S1-AE": {
-    // enabled IF (REC >= 45) AND (Sharpness <= 75)
-    // Note: Sharpness <= 75 means "not already sharp enough" to trigger S1 use
-    minREC: 45,
-    maxSharpness: 75, // S1-AE is for when you need to BUILD sharpness
+    // S1-AE enabled if: Sharpness >= 40
+    minSharpness: 40,
   },
   "S1-RA": {
-    // enabled IF (REC >= 50) AND (Readiness >= 45)
-    minREC: 50,
-    minReadiness: 45,
+    // S1-RA enabled if: Sharpness >= 45 AND Readiness >= 35
+    minSharpness: 45,
+    minReadiness: 35,
   },
+};
+
+const S2_THRESHOLDS = {
   "S2-CT": {
     // enabled IF (Sharpness >= 65) AND (Readiness >= 60) AND (REC >= 50)
     minSharpness: 65,
@@ -80,6 +91,9 @@ const DEFAULT_THRESHOLDS = {
     maxReadiness: 70,
   },
 };
+
+// S2 hard block threshold
+const S2_HARD_BLOCK_RECOVERY = 45;
 
 // Caps from Technical Manual v1.3
 const DEFAULT_CAPS = {
@@ -108,21 +122,17 @@ export function checkGameAvailability(
   const requireRecForS2 = planModifiers?.requireRecForS2 ?? 50;
 
   switch (gameType) {
+    // ============================================
+    // S1 GAMES - NO RECOVERY DEPENDENCY
+    // ============================================
     case "S1-AE": {
-      const config = DEFAULT_THRESHOLDS["S1-AE"];
+      const config = S1_THRESHOLDS["S1-AE"];
       
-      // Check REC >= 45
-      if (recovery < config.minREC) {
+      // Check Sharpness >= 40
+      if (sharpness < config.minSharpness) {
         enabled = false;
-        thresholds.push({ metric: "Recovery", current: recovery, required: config.minREC });
-        unlockActions.push("Complete a detox session", "Take a walk");
-      }
-      
-      // Check Sharpness <= 75 (S1-AE is for building sharpness, not when already sharp)
-      if (sharpness > config.maxSharpness) {
-        enabled = false;
-        thresholds.push({ metric: "Sharpness", current: sharpness, required: config.maxSharpness });
-        withheldReason = "Sharpness already high — S1-AE not needed";
+        thresholds.push({ metric: "Sharpness", current: sharpness, required: config.minSharpness });
+        unlockActions.push("Light warm-up activity", "Brief rest");
       }
       
       // Check daily cap
@@ -134,20 +144,20 @@ export function checkGameAvailability(
     }
 
     case "S1-RA": {
-      const config = DEFAULT_THRESHOLDS["S1-RA"];
+      const config = S1_THRESHOLDS["S1-RA"];
       
-      // Check REC >= 50
-      if (recovery < config.minREC) {
+      // Check Sharpness >= 45
+      if (sharpness < config.minSharpness) {
         enabled = false;
-        thresholds.push({ metric: "Recovery", current: recovery, required: config.minREC });
-        unlockActions.push("Complete a detox session", "Take a walk");
+        thresholds.push({ metric: "Sharpness", current: sharpness, required: config.minSharpness });
+        unlockActions.push("Light focus activity", "S1-AE session first");
       }
       
-      // Check Readiness >= 45
+      // Check Readiness >= 35
       if (readiness < config.minReadiness) {
         enabled = false;
         thresholds.push({ metric: "Readiness", current: readiness, required: config.minReadiness });
-        unlockActions.push("Delay by 2-4 hours", "Short rest");
+        unlockActions.push("Short rest", "Delay by 1-2 hours");
       }
       
       // Check daily cap
@@ -158,11 +168,23 @@ export function checkGameAvailability(
       break;
     }
 
+    // ============================================
+    // S2 GAMES - RECOVERY HARD BLOCK AT 45
+    // ============================================
     case "S2-CT": {
-      const config = DEFAULT_THRESHOLDS["S2-CT"];
+      const config = S2_THRESHOLDS["S2-CT"];
       const minSharpness = config.minSharpness + s2Modifier;
       const minReadiness = config.minReadiness + s2Modifier;
       const minREC = Math.max(config.minREC, requireRecForS2);
+      
+      // S2 HARD BLOCK: Recovery < 45
+      if (recovery < S2_HARD_BLOCK_RECOVERY) {
+        enabled = false;
+        thresholds.push({ metric: "Recovery", current: recovery, required: S2_HARD_BLOCK_RECOVERY });
+        unlockActions.push("Complete a detox session", "Take a walk", "Rest without screens");
+        withheldReason = "Recovery too low";
+        break; // Skip other checks
+      }
       
       // Check Sharpness >= 65 (+modifier)
       if (sharpness < minSharpness) {
@@ -202,10 +224,19 @@ export function checkGameAvailability(
     }
 
     case "S2-IN": {
-      const config = DEFAULT_THRESHOLDS["S2-IN"];
+      const config = S2_THRESHOLDS["S2-IN"];
       const insightMax = planModifiers?.insightMaxPerWeek ?? DEFAULT_CAPS.insightWeeklyMax;
       const minSharpness = config.minSharpness + s2Modifier;
       const minREC = Math.max(config.minREC, requireRecForS2);
+      
+      // S2 HARD BLOCK: Recovery < 45
+      if (recovery < S2_HARD_BLOCK_RECOVERY) {
+        enabled = false;
+        thresholds.push({ metric: "Recovery", current: recovery, required: S2_HARD_BLOCK_RECOVERY });
+        unlockActions.push("Complete a detox session", "Take a walk", "Rest without screens");
+        withheldReason = "Recovery too low";
+        break; // Skip other checks
+      }
       
       // Check Sharpness >= 60 (+modifier)
       if (sharpness < minSharpness) {
@@ -250,8 +281,8 @@ export function checkGameAvailability(
 
   // Build withheld reason from thresholds if not already set
   if (!enabled && !withheldReason && thresholds.length > 0) {
-    const missing = thresholds.map(t => `${t.metric}: ${t.current} < ${t.required}`).join(", ");
-    withheldReason = `Insufficient metrics: ${missing}`;
+    const t = thresholds[0];
+    withheldReason = `${t.metric} below threshold`;
   }
 
   return {
@@ -264,21 +295,79 @@ export function checkGameAvailability(
 }
 
 /**
- * Get all game availabilities at once
+ * Get all game availabilities with POST-BASELINE SAFETY RULE
+ * 
+ * SAFETY RULE: If baseline completed and Recovery < 20,
+ * at least one S1 game MUST be enabled (priority: S1-AE, then S1-RA)
  */
 export function getAllGamesAvailability(
   sharpness: number,
   readiness: number,
   recovery: number,
   caps: GamesCaps,
-  planModifiers?: TrainingPlanModifiers
+  planModifiers?: TrainingPlanModifiers,
+  isCalibrated?: boolean
 ): Record<GameType, GameAvailability> {
-  return {
+  // First compute standard availability
+  const result: Record<GameType, GameAvailability> = {
     "S1-AE": checkGameAvailability("S1-AE", sharpness, readiness, recovery, caps, planModifiers),
     "S1-RA": checkGameAvailability("S1-RA", sharpness, readiness, recovery, caps, planModifiers),
     "S2-CT": checkGameAvailability("S2-CT", sharpness, readiness, recovery, caps, planModifiers),
     "S2-IN": checkGameAvailability("S2-IN", sharpness, readiness, recovery, caps, planModifiers),
   };
+
+  // ============================================
+  // POST-BASELINE SAFETY RULE
+  // ============================================
+  // If calibrated AND Recovery < 20 AND no S1 games enabled
+  // Force-enable at least one S1 game to prevent deadlock
+  const safetyThreshold = 20;
+  const shouldApplySafetyRule = isCalibrated && recovery < safetyThreshold;
+  
+  if (shouldApplySafetyRule) {
+    const s1AE = result["S1-AE"];
+    const s1RA = result["S1-RA"];
+    
+    // Check if all S1 games are withheld
+    const allS1Withheld = !s1AE.enabled && !s1RA.enabled;
+    
+    if (allS1Withheld) {
+      // Check if withheld due to daily cap - cannot override cap
+      const s1AECapped = caps.s1DailyUsed >= caps.s1DailyMax;
+      
+      if (!s1AECapped) {
+        // Force-enable S1-AE (priority 1)
+        result["S1-AE"] = {
+          type: "S1-AE",
+          enabled: true,
+          withheldReason: null,
+          thresholds: [],
+          unlockActions: [],
+        };
+      } else {
+        // S1-AE capped, nothing we can do - caps are absolute
+        // User must wait until next day
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Check if post-baseline safety rule is currently active
+ */
+export function isSafetyRuleActive(
+  recovery: number,
+  isCalibrated: boolean,
+  gamesAvailability: Record<GameType, GameAvailability>
+): boolean {
+  const safetyThreshold = 20;
+  if (!isCalibrated || recovery >= safetyThreshold) return false;
+  
+  // Check if S1-AE was force-enabled (would have been withheld without safety rule)
+  // This is a heuristic: if recovery < 20 and S1-AE is enabled, safety rule helped
+  return recovery < safetyThreshold && gamesAvailability["S1-AE"].enabled;
 }
 
 /**
