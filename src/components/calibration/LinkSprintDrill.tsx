@@ -166,7 +166,7 @@ export function LinkSprintDrill({ onComplete }: LinkSprintDrillProps) {
     }, AUTO_ADVANCE_MS);
   };
 
-  const currentItemData = items[currentItem];
+  const currentItemData = items[currentItem] ?? { anchor: "", candidate: "", isRelated: false };
 
   return (
     <div className="h-full flex flex-col items-center justify-center px-6">
