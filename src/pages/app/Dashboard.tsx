@@ -98,7 +98,7 @@ const Dashboard = () => {
   }, [metrics]);
   
   // Synthesized Cognitive Index (SCI) for neural animation
-  const { sci, statusText: sciStatusText, isLoading: sciLoading } = useCognitiveNetworkScore();
+  const { sci, statusText: sciStatusText, bottleneck, isLoading: sciLoading } = useCognitiveNetworkScore();
 
   if (metricsLoading) {
     return (
@@ -150,6 +150,7 @@ const Dashboard = () => {
             sciStatusText={sciStatusText}
             thinkingScores={thinkingScores}
             isPremium={isPremium}
+            bottleneck={bottleneck}
           />
 
         ) : (

@@ -8,16 +8,19 @@ import {
   getSCIStatusText, 
   getSCILevel,
   getTargetsForPlan,
+  identifyBottleneck,
   type SCIBreakdown,
   type CognitiveMetricsInput,
   type BehavioralEngagementInput,
   type RecoveryInput,
+  type BottleneckResult,
 } from "@/lib/cognitiveNetworkScore";
 
 interface UseCognitiveNetworkScoreResult {
   sci: SCIBreakdown | null;
   statusText: string;
   level: "elite" | "high" | "moderate" | "developing" | "early";
+  bottleneck: BottleneckResult | null;
   isLoading: boolean;
 }
 
@@ -51,6 +54,7 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
         sci: null,
         statusText: "Loading...",
         level: "early" as const,
+        bottleneck: null,
       };
     }
 
@@ -82,8 +86,9 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     const sci = calculateSCI(cognitiveInput, behavioralInput, recoveryInput);
     const statusText = getSCIStatusText(sci.total);
     const level = getSCILevel(sci.total);
+    const bottleneck = identifyBottleneck(sci);
 
-    return { sci, statusText, level };
+    return { sci, statusText, level, bottleneck };
   }, [metrics, weeklyGamesXP, detoxData, user?.trainingPlan]);
 
   return {

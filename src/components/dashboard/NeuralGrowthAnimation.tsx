@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { Info, Zap, Target, Moon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Info, Zap, Target, Moon, ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,13 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SCIExplanation } from "./SCIExplanation";
-import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
+import type { SCIBreakdown, BottleneckResult } from "@/lib/cognitiveNetworkScore";
 
 interface NeuralGrowthAnimationProps {
   cognitiveAgeDelta: number;
   overallCognitiveScore: number;
   sciBreakdown?: SCIBreakdown | null;
   statusText?: string;
+  bottleneck?: BottleneckResult | null;
 }
 
 interface Node {
@@ -48,9 +50,11 @@ export function NeuralGrowthAnimation({
   cognitiveAgeDelta, 
   overallCognitiveScore, 
   sciBreakdown,
-  statusText: customStatusText 
+  statusText: customStatusText,
+  bottleneck
 }: NeuralGrowthAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const navigate = useNavigate();
 
   // Phase-based status and description (gym tone)
   const getPhaseInfo = (score: number) => {
@@ -361,6 +365,55 @@ export function NeuralGrowthAnimation({
                   <span className="text-muted-foreground">Recovery</span>
                 </div>
                 <span className={recoveryStatus.color}>{recoveryStatus.label}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Bottleneck - Biggest Lever */}
+        {bottleneck && bottleneck.potentialGain > 0 && (
+          <div className="mt-3 pt-3 border-t border-border/20">
+            <div 
+              className={`mx-2 p-2.5 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${
+                bottleneck.variable === "thinking" 
+                  ? "bg-primary/5 border-primary/20 hover:border-primary/40" 
+                  : bottleneck.variable === "training"
+                    ? "bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40"
+                    : "bg-purple-500/5 border-purple-500/20 hover:border-purple-500/40"
+              }`}
+              onClick={() => {
+                if (bottleneck.variable === "thinking" || bottleneck.variable === "training") {
+                  navigate("/app/neuro-lab");
+                } else {
+                  navigate("/app/detox");
+                }
+              }}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  {bottleneck.variable === "thinking" && <Zap className="w-3.5 h-3.5 text-primary" />}
+                  {bottleneck.variable === "training" && <Target className="w-3.5 h-3.5 text-blue-400" />}
+                  {bottleneck.variable === "recovery" && <Moon className="w-3.5 h-3.5 text-purple-400" />}
+                  <span className="text-[10px] font-medium text-foreground/80 uppercase tracking-wide">
+                    Biggest Lever
+                  </span>
+                </div>
+                <span className={`text-[11px] font-bold ${
+                  bottleneck.variable === "thinking" 
+                    ? "text-primary" 
+                    : bottleneck.variable === "training"
+                      ? "text-blue-400"
+                      : "text-purple-400"
+                }`}>
+                  +{bottleneck.potentialGain} pts
+                </span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                {bottleneck.actionDescription}
+              </p>
+              <div className="flex items-center gap-1 mt-1.5 text-[9px] text-muted-foreground/70">
+                <span>{bottleneck.actionLabel}</span>
+                <ArrowRight className="w-3 h-3" />
               </div>
             </div>
           </div>
