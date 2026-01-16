@@ -25,10 +25,10 @@ interface SignalLockDrillProps {
 }
 
 const TOTAL_TRIALS = 20;
-const STIMULUS_DURATION = 300;
-const INTER_TRIAL_DELAY = 450;
-const T_FAST = 280;
-const T_SLOW = 850;
+const STIMULUS_DURATION = 800;  // Increased from 300ms to give users time to tap
+const INTER_TRIAL_DELAY = 400;  // Slightly reduced for better pacing
+const T_FAST = 250;
+const T_SLOW = 700;
 
 type StimulusType = "target" | "distractor";
 
