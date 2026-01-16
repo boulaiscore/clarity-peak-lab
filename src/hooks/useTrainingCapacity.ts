@@ -27,12 +27,16 @@ import {
 } from "@/lib/decayConstants";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 
+export type TCTrend = "up" | "down" | "stable";
+
 export interface UseTrainingCapacityResult {
   trainingCapacity: number;
   optimalRange: DynamicOptimalRange;
   planCap: number;
   shouldSuggestUpgrade: boolean;
   isLoading: boolean;
+  tcTrend: TCTrend;
+  tcDelta: number;
 }
 
 function getCurrentWeekStart(): string {
@@ -61,7 +65,7 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
       
       const { data, error } = await supabase
         .from("user_cognitive_metrics")
-        .select("training_capacity, tc_last_updated_at, last_xp_at")
+        .select("training_capacity, tc_last_updated_at, last_xp_at, tc_previous_value")
         .eq("user_id", userId)
         .maybeSingle();
       
@@ -71,6 +75,7 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
         training_capacity: number | null;
         tc_last_updated_at: string | null;
         last_xp_at: string | null;
+        tc_previous_value: number | null;
       } | null;
     },
     enabled: !!userId,
@@ -156,9 +161,9 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
     },
   });
   
-  // Mutation to update TC
+  // Mutation to update TC (stores previous value for trend calculation)
   const updateTCMutation = useMutation({
-    mutationFn: async (newTC: number) => {
+    mutationFn: async ({ newTC, previousTC }: { newTC: number; previousTC: number }) => {
       if (!userId) return;
       
       const { error } = await supabase
@@ -166,6 +171,7 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
         .update({
           training_capacity: newTC,
           tc_last_updated_at: new Date().toISOString(),
+          tc_previous_value: previousTC,
         })
         .eq("user_id", userId);
       
@@ -220,10 +226,10 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
     
     // Only update if TC changed significantly
     if (Math.abs(newTC - currentTC) >= 0.1) {
-      updateTCMutation.mutate(newTC);
+      updateTCMutation.mutate({ newTC, previousTC: currentTC });
     } else {
-      // Just update the timestamp
-      updateTCMutation.mutate(currentTC);
+      // Just update the timestamp (keep previous value as-is for stable trend)
+      updateTCMutation.mutate({ newTC: currentTC, previousTC: tcData?.tc_previous_value ?? currentTC });
     }
   }, [
     userId,
@@ -239,13 +245,23 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
     recLoading,
   ]);
   
-  // Compute final values
+  // Compute final values including trend
   const result = useMemo((): UseTrainingCapacityResult => {
     const tc = tcData?.training_capacity ?? TC_FLOOR;
+    const previousTC = tcData?.tc_previous_value ?? tc;
     const optimalRange = getDynamicOptimalRange(tc, planCap);
     
     // Show upgrade hint if optMax >= 90% of planCap
     const shouldSuggestUpgrade = optimalRange.max >= planCap * TC_UPGRADE_HINT_THRESHOLD;
+    
+    // Calculate trend
+    const tcDelta = tc - previousTC;
+    let tcTrend: TCTrend = "stable";
+    if (tcDelta > 0.5) {
+      tcTrend = "up";
+    } else if (tcDelta < -0.5) {
+      tcTrend = "down";
+    }
     
     return {
       trainingCapacity: tc,
@@ -253,6 +269,8 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
       planCap,
       shouldSuggestUpgrade,
       isLoading: tcLoading || statesLoading,
+      tcTrend,
+      tcDelta,
     };
   }, [tcData, planCap, tcLoading, statesLoading]);
   

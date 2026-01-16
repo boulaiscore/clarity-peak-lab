@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, Activity, TrendingUp } from "lucide-react";
+import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, Activity, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
@@ -130,7 +130,9 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
     optimalRange: optimalRangeXP, 
     planCap,
     shouldSuggestUpgrade,
-    isLoading: tcLoading 
+    isLoading: tcLoading,
+    tcTrend,
+    tcDelta
   } = useTrainingCapacity();
   
   const data = useStableCognitiveLoad();
@@ -286,12 +288,18 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </div>
             </div>
             
-            {/* Your Capacity indicator */}
+            {/* Your Capacity indicator with trend arrow */}
             <div className="flex items-center gap-1 mb-2">
               <TrendingUp className="w-2.5 h-2.5 text-muted-foreground/50" />
               <span className="text-[8px] text-muted-foreground/50">
                 Your Capacity: {Math.round(trainingCapacity)} XP
               </span>
+              {tcTrend === "up" && (
+                <ArrowUp className="w-2.5 h-2.5 text-teal-400" />
+              )}
+              {tcTrend === "down" && (
+                <ArrowDown className="w-2.5 h-2.5 text-amber-400" />
+              )}
             </div>
             
             {/* Status Label - Clear actionable message */}
@@ -518,12 +526,18 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
       </div>
       
-      {/* Your Capacity indicator */}
+      {/* Your Capacity indicator with trend arrow */}
       <div className="flex items-center gap-1.5 mb-3">
         <TrendingUp className="w-3 h-3 text-muted-foreground/50" />
         <span className="text-[10px] text-muted-foreground/60">
           Your Capacity: {Math.round(trainingCapacity)} XP
         </span>
+        {tcTrend === "up" && (
+          <ArrowUp className="w-3 h-3 text-teal-400" />
+        )}
+        {tcTrend === "down" && (
+          <ArrowDown className="w-3 h-3 text-amber-400" />
+        )}
       </div>
       
       {/* Status Label - Clear actionable message */}
