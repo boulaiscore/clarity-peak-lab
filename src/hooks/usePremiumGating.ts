@@ -74,9 +74,7 @@ export function usePremiumGating() {
     return FREE_DURATIONS.includes(duration as NeuroLabDuration);
   };
 
-  const canAccessNeuroActivation = (): boolean => {
-    return isPremium;
-  };
+  // Neural Reset is always accessible (no premium gating)
 
   const canAccessTraining = (): boolean => {
     // Training now accessible to all users
@@ -101,7 +99,6 @@ export function usePremiumGating() {
     isPro: user?.subscriptionStatus === "pro",
     canAccessArea,
     canUseDuration,
-    canAccessNeuroActivation,
     canAccessTraining,
     canStartSession,
     isAreaLocked,

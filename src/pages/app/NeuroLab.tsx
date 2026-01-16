@@ -7,8 +7,8 @@ import { CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { PodcastTasksEngine } from "@/components/app/PodcastTasksEngine";
 import { ReadingTasksEngine } from "@/components/app/ReadingTasksEngine";
 import { 
-  Zap, ChevronRight, Crown, Dumbbell,
-  BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban,
+  ChevronRight, Dumbbell,
+  BookMarked, CheckCircle2, Library, Smartphone, Ban,
   Headphones, BookOpen, FileText, Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,9 +25,9 @@ import { TrainingPlanId } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
-import { TrainHeader } from "@/components/app/TrainHeader";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
+import { NeuralResetPrompt } from "@/components/neural-reset/NeuralResetPrompt";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -133,7 +133,7 @@ export default function NeuroLab() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
+  const { isPremium, isAreaLocked, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
   const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
   const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
   const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPTarget } = useWeeklyProgress();
@@ -142,7 +142,7 @@ export default function NeuroLab() {
   const weeklyLoadXP = cappedTotalXP;
   
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallFeature, setPaywallFeature] = useState<"area" | "neuro-activation" | "session-limit">("area");
+  const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
@@ -222,15 +222,6 @@ export default function NeuroLab() {
     }
   };
 
-  const handleNeuroActivation = () => {
-    if (!canAccessNeuroActivation()) {
-      setPaywallFeature("neuro-activation");
-      setPaywallFeatureName("Neuro Activation™");
-      setShowPaywall(true);
-      return;
-    }
-    navigate("/neuro-lab/neuro-activation");
-  };
 
   const handleStartRecommended = () => {
     if (nextSession && recommendedAreas.length > 0) {
@@ -292,35 +283,8 @@ export default function NeuroLab() {
           </motion.div>
         )}
 
-        {/* Neuro Activation - Compact */}
-        <button
-          onClick={handleNeuroActivation}
-          className={cn(
-            "w-full p-3 rounded-xl border transition-all duration-200 mb-4",
-            "bg-gradient-to-r from-primary/8 to-transparent",
-            "border-primary/20 hover:border-primary/35 active:scale-[0.99]",
-            !canAccessNeuroActivation() && "opacity-85"
-          )}
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-primary/12 flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 text-primary" />
-            </div>
-            <div className="flex-1 text-left">
-              <h3 className="font-semibold text-[13px]">Neuro Activation</h3>
-              <p className="text-[10px] text-muted-foreground">5-min warm-up protocol</p>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {!canAccessNeuroActivation() && (
-                <span className="flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 bg-primary/12 rounded text-primary font-medium">
-                  <Crown className="w-2.5 h-2.5" />
-                  PRO
-                </span>
-              )}
-              <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
-            </div>
-          </div>
-        </button>
+        {/* Neural Reset Prompt - contextual, not mandatory */}
+        <NeuralResetPrompt className="mb-4" />
 
         {/* Weekly Goal - Compact */}
         <WeeklyGoalCard compact />
