@@ -1,8 +1,11 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
+import { supabase } from "@/integrations/supabase/client";
+import { startOfWeek, format } from "date-fns";
 import { 
   calculateSCI, 
   getSCIStatusText, 
@@ -24,15 +27,21 @@ interface UseCognitiveNetworkScoreResult {
   isLoading: boolean;
 }
 
+function getCurrentWeekStart(): string {
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  return format(weekStart, "yyyy-MM-dd");
+}
+
 /**
  * Hook to calculate the Synthesized Cognitive Index (SCI)
- * v1.3: Aggregates data from:
+ * v1.4: Aggregates data from:
  * - user_cognitive_metrics (raw cognitive scores)
  * - weekly XP tracking (games only - tasks don't contribute)
- * - weekly detox data (recovery factor)
+ * - weekly detox + walking data (recovery factor)
  */
 export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
   const { user } = useAuth();
+  const weekStart = getCurrentWeekStart();
   
   // Fetch cognitive metrics
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
@@ -45,8 +54,30 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
   
   // Fetch weekly detox data
   const { data: detoxData, isLoading: detoxLoading } = useWeeklyDetoxXP();
+  
+  // Fetch weekly walking minutes for correct REC formula
+  const { data: walkingData, isLoading: walkingLoading } = useQuery({
+    queryKey: ["weekly-walking-minutes-sci", user?.id, weekStart],
+    queryFn: async () => {
+      if (!user?.id) return { totalMinutes: 0 };
+      
+      const { data, error } = await supabase
+        .from("walking_sessions")
+        .select("duration_minutes, status, completed_at")
+        .eq("user_id", user.id)
+        .eq("status", "completed")
+        .gte("completed_at", `${weekStart}T00:00:00`);
+      
+      if (error) throw error;
+      
+      const totalMinutes = (data || []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+      return { totalMinutes };
+    },
+    enabled: !!user?.id,
+    staleTime: 60_000,
+  });
 
-  const isLoading = metricsLoading || progressLoading || detoxLoading;
+  const isLoading = metricsLoading || progressLoading || detoxLoading || walkingLoading;
 
   const result = useMemo(() => {
     if (!metrics) {
@@ -76,9 +107,10 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
       xpTargetWeek: targets.xpTargetWeek,
     };
 
-    // Prepare recovery input
+    // Prepare recovery input (v1.4: includes walking)
     const recoveryInput: RecoveryInput = {
       weeklyDetoxMinutes: detoxData?.totalMinutes ?? 0,
+      weeklyWalkMinutes: walkingData?.totalMinutes ?? 0,
       detoxTarget: targets.detoxMinutes,
     };
 
@@ -89,7 +121,7 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     const bottleneck = identifyBottleneck(sci);
 
     return { sci, statusText, level, bottleneck };
-  }, [metrics, weeklyGamesXP, detoxData, user?.trainingPlan]);
+  }, [metrics, weeklyGamesXP, detoxData, walkingData, user?.trainingPlan]);
 
   return {
     ...result,
