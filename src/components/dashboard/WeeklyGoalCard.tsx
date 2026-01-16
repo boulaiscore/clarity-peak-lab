@@ -26,23 +26,12 @@ interface StatusCopy {
 // Returns simple, actionable messaging per user spec
 function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo & { copy: StatusCopy } {
   if (currentXP < optimalRange.min) {
-    const xpNeeded = optimalRange.min - currentXP;
-    
-    let description: string;
-    if (xpNeeded <= 15) {
-      description = `Ancora ${Math.round(xpNeeded)} XP per la zona ottimale.`;
-    } else if (xpNeeded <= 40) {
-      description = `2-3 esercizi per raggiungere la zona ottimale.`;
-    } else {
-      description = `Continua ad allenarti per raggiungere la zona ottimale.`;
-    }
-    
     return {
       status: "below",
       label: "Below optimal zone",
       copy: {
         label: "Below optimal zone",
-        description
+        description: ""
       }
     };
   }
