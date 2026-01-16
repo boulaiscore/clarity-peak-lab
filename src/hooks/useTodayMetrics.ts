@@ -2,6 +2,10 @@
  * Hook that computes Today's metrics (Sharpness, Readiness, Recovery)
  * using the new cognitive engine formulas.
  * 
+ * v1.5: Added stability mechanism to prevent metrics flicker on refresh.
+ * Uses useRef to cache the last valid computed values and only updates
+ * when ALL data sources are loaded.
+ * 
  * v1.4: Now includes Readiness decay adjustment.
  * Readiness decays if REC < 40 for 3+ consecutive days.
  * 
@@ -28,7 +32,7 @@
  * - Wearable Data: from wearable_snapshots table
  */
 
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
@@ -75,6 +79,13 @@ export interface UseTodayMetricsResult {
 function getCurrentWeekStart(): string {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   return format(weekStart, "yyyy-MM-dd");
+}
+
+// Module-level cache to prevent flicker across re-renders
+const metricsCache = new Map<string, UseTodayMetricsResult>();
+
+function getCacheKey(userId: string | undefined, weekStart: string): string {
+  return `${userId || 'anon'}:${weekStart}`;
 }
 
 export function useTodayMetrics(): UseTodayMetricsResult {
@@ -186,7 +197,13 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   const plan = TRAINING_PLANS[planId];
   const detoxTarget = plan?.detox?.weeklyMinutes ?? 60;
   
-  const result = useMemo(() => {
+  // Check if all data sources are loaded
+  const allLoaded = !statesLoading && !detoxLoading && !walkingLoading && !wearableLoading && !decayLoading;
+  
+  const cacheKey = getCacheKey(userId, weekStart);
+  const cachedResult = metricsCache.get(cacheKey);
+  
+  const freshResult = useMemo(() => {
     // Calculate Recovery (REC)
     const recovery = calculateRecovery({
       weeklyDetoxMinutes,
@@ -231,20 +248,34 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       readinessDecay,
       consecutiveLowRecDays,
       hasWearableData: !!wearableSnapshot,
+      AE: states.AE,
+      RA: states.RA,
+      CT: states.CT,
+      IN: states.IN,
+      S1,
+      S2,
+      weeklyDetoxMinutes,
+      weeklyWalkMinutes,
+      detoxTarget,
+      isLoading: !allLoaded,
     };
-  }, [states, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot, decayData, weekStart]);
+  }, [states, S1, S2, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot, decayData, weekStart, allLoaded]);
   
-  return {
-    ...result,
-    AE: states.AE,
-    RA: states.RA,
-    CT: states.CT,
-    IN: states.IN,
-    S1,
-    S2,
-    weeklyDetoxMinutes,
-    weeklyWalkMinutes,
-    detoxTarget,
-    isLoading: statesLoading || detoxLoading || walkingLoading || wearableLoading || decayLoading,
-  };
+  // Update cache only when ALL data is loaded and metrics are meaningful
+  useEffect(() => {
+    if (allLoaded && userId) {
+      metricsCache.set(cacheKey, freshResult);
+    }
+  }, [allLoaded, userId, cacheKey, freshResult]);
+  
+  // STABILITY: Return cached result while loading to prevent flicker
+  // Only use fresh result when all data sources are fully loaded
+  if (!allLoaded && cachedResult) {
+    return {
+      ...cachedResult,
+      isLoading: true, // Indicate we're still refreshing
+    };
+  }
+  
+  return freshResult;
 }
