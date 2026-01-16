@@ -44,7 +44,7 @@ function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: 
       label: "Below adaptive range",
       copy: {
         label: "Below adaptive range",
-        description: "Training input this week is too low to drive adaptation."
+        description: "Training input this week is currently too low to drive adaptation."
       }
     };
   }
@@ -54,7 +54,7 @@ function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: 
       label: "Within adaptive range",
       copy: {
         label: "Within adaptive range",
-        description: "This level of training supports cognitive adaptation."
+        description: "Current training supports cognitive adaptation."
       }
     };
   }
@@ -63,7 +63,7 @@ function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: 
     label: "Beyond adaptive range",
     copy: {
       label: "Beyond adaptive range",
-      description: "Additional training is unlikely to be effective without recovery."
+      description: "Additional training requires recovery to translate into gains."
     }
   };
 }
@@ -299,7 +299,10 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             {/* Range Labels */}
             <div className="flex justify-between mt-1">
               <span className="text-[8px] text-muted-foreground/50">0</span>
-              <span className="text-[8px] text-emerald-400/70">Optimal Range</span>
+              <div className="flex flex-col items-center">
+                <span className="text-[8px] text-emerald-400/70">Optimal Range</span>
+                <span className="text-[7px] text-muted-foreground/50 text-center max-w-[140px]">This range represents sufficient training to drive cognitive adaptation.</span>
+              </div>
               <span className="text-[8px] text-muted-foreground/50">{optimalRangeXP.cap}</span>
             </div>
           </CollapsibleTrigger>
@@ -522,9 +525,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       </div>
       
       {/* Range Labels */}
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between items-start mb-4">
         <span className="text-[9px] text-muted-foreground/50">0 XP</span>
-        <span className="text-[9px] text-emerald-400/80 font-medium">Optimal Range</span>
+        <div className="flex flex-col items-center">
+          <span className="text-[9px] text-emerald-400/80 font-medium">Optimal Range</span>
+          <span className="text-[8px] text-muted-foreground/50 text-center max-w-[180px]">This range represents sufficient training to drive cognitive adaptation.</span>
+        </div>
         <span className="text-[9px] text-muted-foreground/50">{optimalRangeXP.cap} XP</span>
       </div>
       
