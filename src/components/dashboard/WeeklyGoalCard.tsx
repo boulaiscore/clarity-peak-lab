@@ -15,17 +15,18 @@ interface AdaptiveStatusInfo {
   label: string;
 }
 
-// Optimal range percentages per training plan
-function getOptimalRange(planId: TrainingPlanId): { min: number; max: number } {
+// Fixed XP ranges per training plan (not percentages)
+// Light: 40–80 XP (cap 120), Expert: 120–160 XP (cap 200), Superhuman: 220–260 XP (cap 300)
+function getOptimalRangeXP(planId: TrainingPlanId): { min: number; max: number; cap: number } {
   switch (planId) {
     case "light":
-      return { min: 40, max: 70 };
+      return { min: 40, max: 80, cap: 120 };
     case "expert":
-      return { min: 60, max: 85 };
+      return { min: 120, max: 160, cap: 200 };
     case "superhuman":
-      return { min: 75, max: 95 };
+      return { min: 220, max: 260, cap: 300 };
     default:
-      return { min: 60, max: 85 };
+      return { min: 120, max: 160, cap: 200 };
   }
 }
 
@@ -35,34 +36,34 @@ interface StatusCopy {
   description: string;
 }
 
-// Helper to determine adaptive status based on progress and optimal range
-function getAdaptiveStatus(progress: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo & { copy: StatusCopy } {
-  if (progress < optimalRange.min) {
+// Helper to determine adaptive status based on current XP and optimal range
+function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo & { copy: StatusCopy } {
+  if (currentXP < optimalRange.min) {
     return {
       status: "below",
-      label: "Below effective range",
+      label: "Below adaptive range",
       copy: {
-        label: "Below effective range",
-        description: "Light training maintains function, but may not drive improvement yet."
+        label: "Below adaptive range",
+        description: "Training input this week is too low to drive adaptation."
       }
     };
   }
-  if (progress <= optimalRange.max) {
+  if (currentXP <= optimalRange.max) {
     return {
       status: "within",
-      label: "Within optimal range",
+      label: "Within adaptive range",
       copy: {
-        label: "Within optimal range",
-        description: "This level of training supports cognitive adaptation without overload."
+        label: "Within adaptive range",
+        description: "This level of training supports cognitive adaptation."
       }
     };
   }
   return {
     status: "above",
-    label: "Beyond effective range",
+    label: "Beyond adaptive range",
     copy: {
-      label: "Beyond effective range",
-      description: "Additional training requires recovery to translate into gains."
+      label: "Beyond adaptive range",
+      description: "Additional training is unlikely to be effective without recovery."
     }
   };
 }
@@ -135,7 +136,7 @@ interface WeeklyGoalCardProps {
 export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   const { user } = useAuth();
   const planId = (user?.trainingPlan || "expert") as TrainingPlanId;
-  const optimalRange = useMemo(() => getOptimalRange(planId), [planId]);
+  const optimalRangeXP = useMemo(() => getOptimalRangeXP(planId), [planId]);
   
   const data = useStableCognitiveLoad();
   
@@ -167,8 +168,20 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
 
   const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
   
-  // Calculate adaptive status
-  const adaptiveStatus = useMemo(() => getAdaptiveStatus(gamesProgress, optimalRange), [gamesProgress, optimalRange]);
+  // Calculate adaptive status based on actual XP, not percentage
+  const adaptiveStatus = useMemo(() => getAdaptiveStatus(rawGamesXP, optimalRangeXP), [rawGamesXP, optimalRangeXP]);
+  
+  // Calculate bar percentages for optimal range visualization
+  const optimalRangePercent = useMemo(() => ({
+    min: (optimalRangeXP.min / optimalRangeXP.cap) * 100,
+    max: (optimalRangeXP.max / optimalRangeXP.cap) * 100
+  }), [optimalRangeXP]);
+  
+  // Current progress as percentage of cap
+  const progressPercent = useMemo(() => 
+    Math.min(100, (rawGamesXP / optimalRangeXP.cap) * 100), 
+    [rawGamesXP, optimalRangeXP.cap]
+  );
 
   useEffect(() => {
     // Only trigger celebration once per week, when goal transitions from not-reached to reached
@@ -227,11 +240,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           className="p-3 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
         >
           <CollapsibleTrigger className="w-full">
-            {/* Header - Training Capacity */}
+            {/* Header - Training Load (Weekly) */}
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <Activity className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[11px] font-semibold">Training Capacity (Weekly)</span>
+                <span className="text-[11px] font-semibold">Training Load (Weekly)</span>
               </div>
               <div className="flex items-center gap-2">
                 <motion.div
@@ -245,9 +258,9 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             
             {/* Sub-label */}
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[9px] text-muted-foreground/70">Maximum effective cognitive load for this week</p>
+              <p className="text-[9px] text-muted-foreground/70">XP accumulated from training games (last 7 days)</p>
               <span className="text-[9px] text-muted-foreground/50 tabular-nums">
-                {Math.round(gamesXPTarget)} XP max
+                {Math.round(rawGamesXP)} / {optimalRangeXP.cap} XP
               </span>
             </div>
             
@@ -258,17 +271,19 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </span>
             </div>
 
-            {/* Main Progress Bar with Optimal Range */}
+            {/* Main Progress Bar with Optimal Range - 3 zones */}
             <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden">
-              {/* Optimal Range Band - Highlighted */}
+              {/* Below Range zone (implicit - left of optimal) */}
+              {/* Optimal Range Band - Highlighted and Dominant */}
               <div 
-                className="absolute h-full bg-emerald-400/20 border-l border-r border-emerald-400/50"
+                className="absolute h-full bg-emerald-400/25 border-l-2 border-r-2 border-emerald-400/60"
                 style={{ 
-                  left: `${optimalRange.min}%`, 
-                  width: `${optimalRange.max - optimalRange.min}%` 
+                  left: `${optimalRangePercent.min}%`, 
+                  width: `${optimalRangePercent.max - optimalRangePercent.min}%` 
                 }}
               />
-              {/* Current Progress */}
+              {/* Above Range zone (implicit - right of optimal) */}
+              {/* Current Progress - fills only from games XP */}
               <motion.div
                 className={`absolute h-full rounded-full ${
                   adaptiveStatus.status === "within" 
@@ -276,7 +291,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                     : "bg-muted-foreground/50"
                 }`}
                 initial={false}
-                animate={{ width: `${Math.min(100, gamesProgress)}%` }}
+                animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
@@ -285,7 +300,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             <div className="flex justify-between mt-1">
               <span className="text-[8px] text-muted-foreground/50">0</span>
               <span className="text-[8px] text-emerald-400/70">Optimal Range</span>
-              <span className="text-[8px] text-muted-foreground/50">max</span>
+              <span className="text-[8px] text-muted-foreground/50">{optimalRangeXP.cap}</span>
             </div>
           </CollapsibleTrigger>
 
@@ -302,8 +317,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               
               {/* Explanatory Micro-copy */}
               <p className="text-[8px] text-muted-foreground/60 mb-3 leading-relaxed">
-                Training beyond this range does not increase benefit unless supported by recovery.
-                Detox and walking restore capacity and enable consolidation.
+                Training increases skills. Recovery determines whether training translates into lasting gains.
               </p>
               
               {/* Training breakdown: S1/S2 */}
@@ -430,9 +444,8 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
-                <p className="text-[8px] text-muted-foreground/60 mt-1">
-                  Recovery restores training capacity and affects availability.
-                  It does not provide XP.
+                <p className="text-[8px] text-muted-foreground/60 mt-1 leading-relaxed">
+                  Recovery does not add XP. It restores readiness and enables consolidation.
                 </p>
               </div>
             </motion.div>
@@ -456,24 +469,21 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       aria-busy={isSyncing}
       className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
     >
-      {/* Header - Training Capacity */}
+      {/* Header - Training Load (Weekly) */}
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-primary" />
-          <span className="text-[12px] font-semibold">Training Capacity (Weekly)</span>
+          <span className="text-[12px] font-semibold">Training Load (Weekly)</span>
         </div>
         <div className="text-[10px] text-muted-foreground/50 tabular-nums">
-          {Math.round(gamesXPTarget)} XP max
+          {Math.round(rawGamesXP)} / {optimalRangeXP.cap} XP
           {isSyncing && <span className="ml-1 text-[8px]">•</span>}
         </div>
       </div>
       
       {/* Sub-label */}
-      <p className="text-[10px] text-muted-foreground/70 mb-1">
-        Maximum effective cognitive load for this week.
-      </p>
-      <p className="text-[9px] text-muted-foreground/60 mb-4">
-        Training within the optimal range drives adaptation and clarity.
+      <p className="text-[10px] text-muted-foreground/70 mb-4">
+        XP accumulated from training games (last 7 days)
       </p>
       
       {/* Status Label - Neutral and prominent */}
@@ -486,17 +496,19 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         {adaptiveStatus.copy.description}
       </p>
 
-      {/* Main Progress Bar with Optimal Range Band */}
+      {/* Main Progress Bar with Optimal Range Band - 3 zones */}
       <div className="relative h-4 bg-muted/30 rounded-full overflow-hidden mb-2">
+        {/* Below Range zone (implicit - left of optimal) */}
         {/* Optimal Range Band - Visually Dominant */}
         <div 
           className="absolute h-full bg-emerald-400/25 border-l-2 border-r-2 border-emerald-400/60"
           style={{ 
-            left: `${optimalRange.min}%`, 
-            width: `${optimalRange.max - optimalRange.min}%` 
+            left: `${optimalRangePercent.min}%`, 
+            width: `${optimalRangePercent.max - optimalRangePercent.min}%` 
           }}
         />
-        {/* Current Progress */}
+        {/* Above Range zone (implicit - right of optimal) */}
+        {/* Current Progress - fills only from games XP */}
         <motion.div
           className={`absolute h-full rounded-full ${
             adaptiveStatus.status === "within" 
@@ -504,7 +516,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               : "bg-muted-foreground/40"
           }`}
           initial={false}
-          animate={{ width: `${Math.min(100, gamesProgress)}%` }}
+          animate={{ width: `${progressPercent}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
@@ -513,13 +525,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       <div className="flex justify-between mb-4">
         <span className="text-[9px] text-muted-foreground/50">0 XP</span>
         <span className="text-[9px] text-emerald-400/80 font-medium">Optimal Range</span>
-        <span className="text-[9px] text-muted-foreground/50">{Math.round(gamesXPTarget)} XP</span>
+        <span className="text-[9px] text-muted-foreground/50">{optimalRangeXP.cap} XP</span>
       </div>
       
       {/* Explanatory Micro-copy - Always visible */}
       <p className="text-[9px] text-muted-foreground/60 mb-4 leading-relaxed">
-        Training beyond this range does not increase benefit unless supported by recovery.
-        Detox and walking restore capacity and enable consolidation.
+        Training increases skills. Recovery determines whether training translates into lasting gains.
       </p>
 
       {/* Load Distribution: S1/S2 breakdown */}
@@ -641,8 +652,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           />
         </div>
         <p className="text-[9px] text-muted-foreground/60 mt-1.5 leading-relaxed">
-          Recovery restores training capacity and affects availability.
-          It does not provide XP.
+          Recovery does not add XP. It restores readiness and enables consolidation.
         </p>
       </div>
 
