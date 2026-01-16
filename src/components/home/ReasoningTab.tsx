@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Brain, Battery, Target, ChevronDown, Play } from "lucide-react";
+import { Brain, Battery, Focus, ChevronDown, Play } from "lucide-react";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -173,7 +173,7 @@ export function ReasoningTab() {
           
           {/* Focus Stability (AE) */}
           <DriverCard
-            icon={<Target className="w-4 h-4" />}
+            icon={<Focus className="w-4 h-4" />}
             title="Focus Stability"
             description="Reflects how well you can maintain attention without mental fatigue."
             status={focusStatus}
