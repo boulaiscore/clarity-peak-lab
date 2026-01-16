@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Clock, Play, Pause, Check, Sparkles, Info, Loader2, Bell, BellOff, 
-  Leaf, Footprints
+  Leaf, Footprints, ChevronDown, Zap, Brain, Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,16 @@ import { scheduleDetoxReminder, cancelDetoxReminder, getNotificationState, reque
 import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+// Recovery impact percentages per 30 min based on existing formula:
+// REC_input = weekly_detox_minutes + 0.5 × weekly_walk_minutes
+// With 420 min target = 100%, each 30 min detox = ~7% (we show 6% for conservative UX)
+// Walk = 50% of detox impact
+const getRecoveryImpact = (minutes: number, mode: "detox" | "walk"): number => {
+  const baseImpact = Math.round((minutes / 420) * 100); // 420 min = 7 hours weekly target
+  return mode === "detox" ? baseImpact : Math.round(baseImpact * 0.5);
+};
 
 type RecoveryMode = "detox" | "walk";
 
@@ -403,37 +413,32 @@ export function DetoxChallengeTab() {
             </p>
           </div>
 
-          {/* CTA */}
-          <Button 
-            onClick={handleStart}
-            className="w-full gap-2"
-            size="lg"
-          >
-            <Play className="w-5 h-5 fill-current" />
-            Start {selectedMode === "detox" ? "Detox" : "Walk"} ({selectedDuration} min)
-          </Button>
+          {/* Impact on Your System Block */}
+          <ImpactBlock mode={selectedMode} duration={selectedDuration} />
 
-          {/* How Recovery Works */}
-          <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
-            <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" />
-              How recovery works
-            </h4>
-            <ul className="space-y-1.5 text-[11px] text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">•</span>
-                <span>Detox contributes more to recovery than walking.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">•</span>
-                <span>Both reduce decision fatigue and restore clarity.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">•</span>
-                <span>Recovery affects availability of training sessions and tasks.</span>
-              </li>
-            </ul>
+          {/* CTA Context */}
+          <div className="text-center">
+            <p className="text-[11px] text-muted-foreground/80 mb-2">
+              {selectedMode === "detox" 
+                ? "Best before high-focus or deep reasoning sessions."
+                : "Best when recovery is low but movement feels manageable."
+              }
+            </p>
+            <Button 
+              onClick={handleStart}
+              className="w-full gap-2"
+              size="lg"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              Start {selectedMode === "detox" ? "Detox" : "Walk"} ({selectedDuration} min)
+            </Button>
           </div>
+
+          {/* What This Unlocks - Expandable */}
+          <WhatThisUnlocksSection />
+
+          {/* How Recovery Works - Science-based */}
+          <HowRecoveryWorksSection />
 
           {/* Reminder Info */}
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-1">
@@ -459,6 +464,142 @@ export function DetoxChallengeTab() {
         onConfirm={proceedWithStart}
         categoryName="Walk & Detox"
       />
+    </div>
+  );
+}
+
+// Impact Block Component
+function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: number }) {
+  const recoveryImpact = getRecoveryImpact(duration, mode);
+  
+  return (
+    <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+      <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
+        <Zap className="w-3.5 h-3.5 text-primary" />
+        Impact on your system
+      </h4>
+      
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-400" />
+            Recovery
+          </span>
+          <span className="text-sm font-semibold text-emerald-400">+{recoveryImpact}%</span>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-amber-400" />
+            Sharpness
+          </span>
+          <span className="text-[11px] text-muted-foreground/80">indirect boost</span>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-blue-400" />
+            Readiness
+          </span>
+          <span className="text-[11px] text-muted-foreground/80">
+            {mode === "detox" ? "improves next-day focus" : "light improvement"}
+          </span>
+        </div>
+      </div>
+      
+      {/* Indirect Effect Explanation */}
+      <p className="text-[10px] text-muted-foreground/70 mt-3 pt-3 border-t border-border/30 leading-relaxed">
+        Recovery does not train skills directly. It determines how effective cognitive input can be.
+      </p>
+    </div>
+  );
+}
+
+// What This Unlocks Section
+function WhatThisUnlocksSection() {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className="w-full p-3 rounded-xl bg-card/50 border border-border/50 flex items-center justify-between hover:bg-card/80 transition-colors">
+        <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
+          <Target className="w-3.5 h-3.5 text-primary" />
+          What this unlocks
+        </span>
+        <ChevronDown className={cn(
+          "w-4 h-4 text-muted-foreground transition-transform",
+          isOpen && "rotate-180"
+        )} />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="px-3 py-3 text-[11px] text-muted-foreground leading-relaxed">
+          <p className="mb-2">As recovery increases, the system progressively unlocks:</p>
+          <ul className="space-y-1">
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-0.5">•</span>
+              <span>cognitive tasks</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-0.5">•</span>
+              <span>deeper training sessions</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary mt-0.5">•</span>
+              <span>higher daily cognitive load</span>
+            </li>
+          </ul>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+// How Recovery Works Section
+function HowRecoveryWorksSection() {
+  const [isWalkScienceOpen, setIsWalkScienceOpen] = useState(false);
+  
+  return (
+    <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
+      <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
+        <Brain className="w-3.5 h-3.5 text-primary" />
+        How recovery works
+      </h4>
+      
+      <ul className="space-y-1.5 text-[11px] text-muted-foreground">
+        <li className="flex items-start gap-2">
+          <span className="text-primary mt-0.5">•</span>
+          <span>Detox restores recovery faster by removing cognitive input</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-primary mt-0.5">•</span>
+          <span>Walking supports recovery through movement and circulation</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-primary mt-0.5">•</span>
+          <span>Recovery determines when training and content are effective</span>
+        </li>
+      </ul>
+      
+      {/* Closing line */}
+      <p className="text-[10px] text-muted-foreground/60 mt-3 pt-2 border-t border-border/20 italic">
+        Recovery prepares the system. Training improves it.
+      </p>
+      
+      {/* Why Walking Helps - Expandable */}
+      <Collapsible open={isWalkScienceOpen} onOpenChange={setIsWalkScienceOpen} className="mt-3">
+        <CollapsibleTrigger className="text-[10px] text-primary/80 hover:text-primary flex items-center gap-1 transition-colors">
+          <span>Why walking helps cognition</span>
+          <ChevronDown className={cn(
+            "w-3 h-3 transition-transform",
+            isWalkScienceOpen && "rotate-180"
+          )} />
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed">
+            Light walking increases blood flow and supports neurochemical balance linked to attention and memory, making cognitive effort more effective later.
+          </p>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
