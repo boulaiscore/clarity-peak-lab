@@ -112,13 +112,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   light: {
     id: "light",
     name: "Light Training",
-    tagline: "Maintain & Regulate",
-    description: "Sustainable cognitive load. Structure without overexertion.",
-    philosophy: "Matches current capacity without accumulating cognitive debt.",
+    tagline: "Stability-first cognitive training",
+    description: "Conservative load window with low pressure on recovery. Prioritizes continuity over intensity.",
+    philosophy: "Maintains cognitive function within a narrow effective range, minimizing recovery dependency.",
     targetAudience: [
-      "Maintenance focus",
-      "Variable schedules",
-      "Entry configuration"
+      "Conservative load preference",
+      "Variable availability",
+      "Recovery-limited capacity"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "15-18 min",
@@ -127,7 +127,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "low",
     color: "emerald",
     icon: "leaf",
-    // v1.3: XP target is only from games (120 XP/week)
+    // Weekly capacity: up to 120 XP | Adaptive range: 40–80 XP
     xpTargetWeek: 120,
     weeklyXPTarget: 120, // Alias
     contentXPTarget: 0, // v1.3: tasks don't give XP
@@ -190,13 +190,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   expert: {
     id: "expert",
     name: "Expert Training",
-    tagline: "Build Depth & Control",
-    description: "Moderate cognitive load. Balances intensity with sustainability.",
-    philosophy: "Structured progression with deliberate recovery periods.",
+    tagline: "Balanced adaptive training",
+    description: "Wider effective load window with stable recovery requirements. Supports deeper cognitive adaptation.",
+    philosophy: "Balances training intensity with recovery capacity for sustained adaptation.",
     targetAudience: [
-      "Regular practice",
-      "Structured depth",
-      "Sustained engagement"
+      "Consistent availability",
+      "Stable recovery baseline",
+      "Structured depth preference"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "22-25 min",
@@ -205,7 +205,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "medium",
     color: "blue",
     icon: "target",
-    // v1.3: XP target is only from games (200 XP/week)
+    // Weekly capacity: up to 200 XP | Adaptive range: 120–160 XP
     xpTargetWeek: 200,
     // Backward compatibility aliases
     weeklyXPTarget: 200,
@@ -269,13 +269,13 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   superhuman: {
     id: "superhuman",
     name: "Superhuman Training",
-    tagline: "High Cognitive Load",
-    description: "Maximum load configuration. Content integrated into protocols.",
-    philosophy: "For sustained high-intensity cognitive engagement.",
+    tagline: "High-capacity cognitive training",
+    description: "High load tolerance with strong recovery dependency. Emphasis on self-regulation and sustained intensity.",
+    philosophy: "Maximizes cognitive throughput for users with established recovery discipline.",
     targetAudience: [
-      "High tolerance",
-      "Consistent availability",
-      "Maximum structure"
+      "High load tolerance",
+      "Strong recovery baseline",
+      "Self-regulation capacity"
     ],
     sessionsPerWeek: 3,
     sessionDuration: "30-35 min",
@@ -284,7 +284,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "high",
     color: "red",
     icon: "flame",
-    // v1.3: XP target is only from games (300 XP/week)
+    // Weekly capacity: up to 300 XP | Adaptive range: 220–260 XP
     xpTargetWeek: 300,
     // Backward compatibility aliases
     weeklyXPTarget: 300,
