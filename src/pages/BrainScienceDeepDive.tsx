@@ -635,18 +635,20 @@ export default function BrainScienceDeepDive() {
                       
                       <div className="p-3 rounded-lg bg-muted/30 border border-border/50 font-mono text-xs">
                         <p className="text-foreground font-semibold mb-2">Formula:</p>
-                        <p className="mb-2">Sharpness_base = <strong className="text-amber-400">0.50</strong> × S1 + <strong className="text-primary">0.30</strong> × AE + <strong className="text-primary">0.20</strong> × S2</p>
-                        <p className="text-primary">Sharpness = Sharpness_base × (0.75 + 0.25 × REC / 100)</p>
+                        <p className="mb-1">S1 = (AE + RA) / 2</p>
+                        <p className="mb-1">S2 = (CT + IN) / 2</p>
+                        <p className="mb-2">Sharpness_base = <strong className="text-amber-400">0.6</strong> × S1 + <strong className="text-primary">0.4</strong> × S2</p>
+                        <p className="text-primary">Sharpness_today = Sharpness_base × (0.75 + 0.25 × REC / 100)</p>
                       </div>
                       
                       <div className="space-y-2 text-xs">
                         <p className="flex items-start gap-2">
                           <Info className="w-3 h-3 mt-1 text-primary flex-shrink-0" />
-                          <span><strong>Base Weights:</strong> 50% System 1, 30% Attentional Efficiency, 20% System 2.</span>
+                          <span><strong>Base Weights:</strong> 60% System 1 (fast intuitive), 40% System 2 (reasoned deliberate).</span>
                         </p>
                         <p className="flex items-start gap-2">
                           <Info className="w-3 h-3 mt-1 text-primary flex-shrink-0" />
-                          <span><strong>Recovery Modulation:</strong> Recovery provides 0–25% boost.</span>
+                          <span><strong>Recovery Modulation:</strong> Recovery provides 0–25% boost on top of your base.</span>
                         </p>
                       </div>
                     </div>
