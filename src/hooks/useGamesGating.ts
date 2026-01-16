@@ -392,26 +392,31 @@ export function useRecordGameSession() {
       throw error;
     }
     
-    // Atomically update XP timestamps in user_cognitive_metrics
-    // Build the update object for the specific skill
-    const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as 
-      "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
-    
-    const xpTrackingUpdate: Record<string, string> = {
-      last_xp_at: nowUtc,
-      [skillXpColumn]: nowUtc,
-    };
-    
-    const { error: updateError } = await supabase
-      .from("user_cognitive_metrics")
-      .update(xpTrackingUpdate)
-      .eq("user_id", user.id);
-    
-    if (updateError) {
-      // Log but don't throw - game session was recorded successfully
-      console.error("[GameSession] Failed to update XP timestamps:", updateError);
+    // Only update XP timestamps when XP was actually awarded
+    if (params.xpAwarded > 0) {
+      // Atomically update XP timestamps in user_cognitive_metrics
+      // Build the update object for the specific skill
+      const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as 
+        "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
+      
+      const xpTrackingUpdate: Record<string, string> = {
+        last_xp_at: nowUtc,
+        [skillXpColumn]: nowUtc,
+      };
+      
+      const { error: updateError } = await supabase
+        .from("user_cognitive_metrics")
+        .update(xpTrackingUpdate)
+        .eq("user_id", user.id);
+      
+      if (updateError) {
+        // Log but don't throw - game session was recorded successfully
+        console.error("[GameSession] Failed to update XP timestamps:", updateError);
+      } else {
+        console.log(`[GameSession] Updated last_xp_at and ${skillXpColumn} to ${nowUtc}`);
+      }
     } else {
-      console.log(`[GameSession] Updated last_xp_at and ${skillXpColumn} to ${nowUtc}`);
+      console.log("[GameSession] No XP awarded, skipping timestamp update");
     }
     
     console.log("[GameSession] Recorded:", data);

@@ -43,6 +43,46 @@ function getUserLocalDate(): string {
 }
 
 /**
+ * Calculate the difference in days between two YYYY-MM-DD date strings.
+ * Returns the number of days from `fromDate` to `toDate`.
+ */
+function getDayDiff(fromDate: string, toDate: string): number {
+  const from = new Date(fromDate + "T00:00:00");
+  const to = new Date(toDate + "T00:00:00");
+  const diffMs = to.getTime() - from.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Calculate the new low-REC streak based on:
+ * - dayDiff == 1: consecutive day, continue streak
+ * - dayDiff > 1: gap in days, reset streak
+ * - no previous snapshot: first snapshot
+ * 
+ * @param isLowRecovery - Whether current REC < 40
+ * @param dayDiff - Days since last snapshot (null if no previous)
+ * @param currentStreak - Current streak value
+ */
+function calculateNewStreak(
+  isLowRecovery: boolean,
+  dayDiff: number | null,
+  currentStreak: number
+): number {
+  // Case 1: No previous snapshot (first time)
+  if (dayDiff === null) {
+    return isLowRecovery ? 1 : 0;
+  }
+  
+  // Case 2: Consecutive day (yesterday)
+  if (dayDiff === 1) {
+    return isLowRecovery ? currentStreak + 1 : 0;
+  }
+  
+  // Case 3: Gap > 1 day - streak breaks, start fresh
+  return isLowRecovery ? 1 : 0;
+}
+
+/**
  * Hook to read and update the daily recovery snapshot.
  * Ensures idempotent updates - running multiple times on the same day
  * will not change the streak.
@@ -96,13 +136,15 @@ export function useDailyRecoverySnapshot() {
         };
       }
       
-      // Calculate new streak
+      // Calculate day difference for consecutive detection
       const isLowRecovery = recovery < LOW_RECOVERY_THRESHOLD;
       const currentStreak = snapshotData?.low_rec_streak_days ?? 0;
+      const dayDiff = currentSnapshotDate 
+        ? getDayDiff(currentSnapshotDate, todayLocal) 
+        : null;
       
-      // If REC >= 40, reset streak to 0
-      // If REC < 40, increment streak by 1
-      const newStreak = isLowRecovery ? currentStreak + 1 : 0;
+      // Apply proper consecutive-day logic
+      const newStreak = calculateNewStreak(isLowRecovery, dayDiff, currentStreak);
       
       // Update the snapshot
       const { error } = await supabase
@@ -121,7 +163,7 @@ export function useDailyRecoverySnapshot() {
       
       console.log(
         `[RecoverySnapshot] Updated: date=${todayLocal}, REC=${recovery.toFixed(1)}, ` +
-        `lowRec=${isLowRecovery}, streak=${newStreak}`
+        `dayDiff=${dayDiff ?? 'null'}, lowRec=${isLowRecovery}, streak=${newStreak}`
       );
       
       return { updated: true, streakDays: newStreak };
