@@ -7,16 +7,16 @@ interface CognitiveAgeSphereProps {
   chronologicalAge?: number;
 }
 
-interface Particle {
+interface Node {
   x: number;
   y: number;
   vx: number;
   vy: number;
-  size: number;
-  alpha: number;
-  baseAlpha: number;
-  pulseOffset: number;
-  targetRadius?: number;
+  radius: number;
+  pulsePhase: number;
+  connections: number[];
+  baseX: number;
+  baseY: number;
 }
 
 export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: CognitiveAgeSphereProps) {
@@ -39,7 +39,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     requestAnimationFrame(animate);
   }, [cognitiveAge]);
 
-  // Dense particle animation with organic pulsing border like WHOOP
+  // Neural network animation
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -48,165 +48,163 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     if (!ctx) return;
 
     const isDarkMode = theme === "dark";
-    
-    // Primary color (teal/green) to match app theme
-    const particleColor = isDarkMode 
-      ? { h: 165, s: 82, l: 55 }
-      : { h: 165, s: 82, l: 45 };
-
-    const particles: Particle[] = [];
-    const particleCount = 200; // Much denser like WHOOP
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const baseRadius = 90;
+    const sphereRadius = 85;
 
-    // Initialize particles - concentrate near the border, leave center empty
-    for (let i = 0; i < particleCount; i++) {
+    // Primary color for the network
+    const primaryColor = { h: 165, s: 82, l: isDarkMode ? 55 : 45 };
+    // Accent glow color (warmer for node centers)
+    const glowColor = { h: 45, s: 100, l: 70 };
+
+    // Create nodes arranged in a spherical pattern
+    const nodes: Node[] = [];
+    const nodeCount = 25;
+    
+    // Create nodes distributed around a sphere
+    for (let i = 0; i < nodeCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      // Use a distribution that favors the outer ring (50%-95% of radius)
-      const minRadius = baseRadius * 0.5;
-      const maxRadius = baseRadius * 0.95;
-      const r = minRadius + Math.random() * (maxRadius - minRadius);
-      const baseAlpha = isDarkMode 
-        ? (Math.random() * 0.6 + 0.2) 
-        : (Math.random() * 0.8 + 0.3);
+      const radiusVariation = 0.5 + Math.random() * 0.5;
+      const r = sphereRadius * radiusVariation;
+      const x = centerX + Math.cos(angle) * r;
+      const y = centerY + Math.sin(angle) * r;
       
-      particles.push({
-        x: centerX + Math.cos(angle) * r,
-        y: centerY + Math.sin(angle) * r,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        size: Math.random() * 2.5 + 0.8,
-        alpha: baseAlpha,
-        baseAlpha,
-        pulseOffset: Math.random() * Math.PI * 2,
-        targetRadius: r, // Store target radius to keep particles in their ring
+      nodes.push({
+        x,
+        y,
+        baseX: x,
+        baseY: y,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        radius: 2 + Math.random() * 3,
+        pulsePhase: Math.random() * Math.PI * 2,
+        connections: [],
       });
     }
 
-    // Organic border particles
-    const borderParticles: Particle[] = [];
-    const borderCount = 80;
-    for (let i = 0; i < borderCount; i++) {
-      const angle = (i / borderCount) * Math.PI * 2;
-      const baseAlpha = isDarkMode ? 0.7 : 0.8;
-      borderParticles.push({
-        x: centerX + Math.cos(angle) * baseRadius,
-        y: centerY + Math.sin(angle) * baseRadius,
-        vx: 0,
-        vy: 0,
-        size: Math.random() * 2 + 1.5,
-        alpha: baseAlpha,
-        baseAlpha,
-        pulseOffset: angle,
+    // Create connections between nearby nodes
+    const connectionDistance = 60;
+    nodes.forEach((node, i) => {
+      nodes.forEach((other, j) => {
+        if (i >= j) return;
+        const dx = node.x - other.x;
+        const dy = node.y - other.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < connectionDistance && Math.random() < 0.6) {
+          node.connections.push(j);
+        }
       });
-    }
+    });
 
     let animationId: number;
     let time = 0;
 
     const draw = () => {
-      time += 0.02;
+      time += 0.015;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw organic pulsing border
-      const pulseRadius = baseRadius + Math.sin(time * 0.3) * 3;
-      
-      // Draw border glow - subtle fade on all edges
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, pulseRadius + 8, 0, Math.PI * 2);
-      const glowGradient = ctx.createRadialGradient(
-        centerX, centerY, pulseRadius - 10,
-        centerX, centerY, pulseRadius + 20
-      );
-      glowGradient.addColorStop(0, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, 0)`);
-      glowGradient.addColorStop(0.4, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${isDarkMode ? 0.08 : 0.06})`);
-      glowGradient.addColorStop(0.7, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${isDarkMode ? 0.04 : 0.03})`);
-      glowGradient.addColorStop(1, `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, 0)`);
-      ctx.fillStyle = glowGradient;
-      ctx.fill();
+      // Update node positions with gentle floating
+      nodes.forEach((node) => {
+        node.x += node.vx;
+        node.y += node.vy;
 
-      // Draw organic border with varying thickness and edge fade
-      borderParticles.forEach((p, i) => {
-        const angle = (i / borderCount) * Math.PI * 2;
-        const wobble = Math.sin(time * 0.5 + p.pulseOffset * 3) * 4;
-        const radiusVariation = pulseRadius + wobble;
-        
-        p.x = centerX + Math.cos(angle + Math.sin(time * 0.2) * 0.02) * radiusVariation;
-        p.y = centerY + Math.sin(angle + Math.sin(time * 0.2) * 0.02) * radiusVariation;
-        
-        // Fade at top and bottom of the circle for smooth blend
-        const verticalPos = Math.abs(Math.cos(angle));
-        const edgeFade = 0.3 + (1 - verticalPos) * 0.7; // Sides visible, top/bottom faded
-        
-        const pulseFactor = 0.5 + Math.sin(time * 0.6 + p.pulseOffset) * 0.3;
-        p.alpha = p.baseAlpha * pulseFactor * edgeFade;
-        
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (0.8 + Math.sin(time * 0.4 + p.pulseOffset) * 0.3), 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha})`;
-        ctx.fill();
-        
-        // Glow for border particles
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * 0.15})`;
-        ctx.fill();
+        // Pull back towards base position
+        const dx = node.baseX - node.x;
+        const dy = node.baseY - node.y;
+        node.vx += dx * 0.01;
+        node.vy += dy * 0.01;
+
+        // Damping
+        node.vx *= 0.98;
+        node.vy *= 0.98;
       });
 
-      // Draw inner particles
-      particles.forEach((p) => {
-        // Move particle with slight drift
-        p.x += p.vx;
-        p.y += p.vy;
+      // Draw connections first (behind nodes)
+      nodes.forEach((node, i) => {
+        node.connections.forEach((j) => {
+          const other = nodes[j];
+          const dx = other.x - node.x;
+          const dy = other.y - node.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          // Pulsing opacity on connections
+          const pulse = 0.15 + Math.sin(time * 2 + node.pulsePhase) * 0.1;
+          const opacity = Math.max(0, pulse * (1 - dist / connectionDistance));
+          
+          // Draw connection line
+          ctx.beginPath();
+          ctx.moveTo(node.x, node.y);
+          ctx.lineTo(other.x, other.y);
+          ctx.strokeStyle = `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l}%, ${opacity})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
 
-        // Gentle randomization of velocity
-        p.vx += (Math.random() - 0.5) * 0.05;
-        p.vy += (Math.random() - 0.5) * 0.05;
-        p.vx *= 0.98;
-        p.vy *= 0.98;
+          // Add traveling pulse effect along some connections
+          if (Math.random() < 0.02) {
+            const pulsePos = (time * 0.5 + i * 0.1) % 1;
+            const px = node.x + dx * pulsePos;
+            const py = node.y + dy * pulsePos;
+            
+            const pulseGradient = ctx.createRadialGradient(px, py, 0, px, py, 4);
+            pulseGradient.addColorStop(0, `hsla(${glowColor.h}, ${glowColor.s}%, ${glowColor.l}%, 0.6)`);
+            pulseGradient.addColorStop(1, `hsla(${glowColor.h}, ${glowColor.s}%, ${glowColor.l}%, 0)`);
+            ctx.beginPath();
+            ctx.arc(px, py, 4, 0, Math.PI * 2);
+            ctx.fillStyle = pulseGradient;
+            ctx.fill();
+          }
+        });
+      });
 
-        // Keep particles in their ring zone (near border, away from center)
-        const dx = p.x - centerX;
-        const dy = p.y - centerY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const minDist = baseRadius * 0.45; // Inner boundary - keep center empty
-        const maxDist = pulseRadius - 5;
-        
-        // Push back if too close to center
-        if (dist < minDist) {
-          const angle = Math.atan2(dy, dx);
-          const pushOut = (minDist - dist) * 0.15;
-          p.x += Math.cos(angle) * pushOut;
-          p.y += Math.sin(angle) * pushOut;
-          p.vx *= 0.5;
-          p.vy *= 0.5;
-        }
-        
-        // Push back if too close to border
-        if (dist > maxDist * 0.92) {
-          const angle = Math.atan2(dy, dx);
-          const pushBack = (dist - maxDist * 0.85) * 0.1;
-          p.x -= Math.cos(angle) * pushBack;
-          p.y -= Math.sin(angle) * pushBack;
-          p.vx *= 0.5;
-          p.vy *= 0.5;
-        }
+      // Draw nodes (neurons)
+      nodes.forEach((node) => {
+        const pulse = Math.sin(time * 2 + node.pulsePhase);
+        const currentRadius = node.radius * (0.8 + pulse * 0.3);
+        const glowIntensity = 0.5 + pulse * 0.3;
 
-        // Pulsing alpha
-        const pulseFactor = 0.7 + Math.sin(time * 1.5 + p.pulseOffset) * 0.3;
-        p.alpha = p.baseAlpha * pulseFactor;
-
-        // Draw particle
+        // Outer glow (large, soft)
+        const outerGlow = ctx.createRadialGradient(
+          node.x, node.y, 0,
+          node.x, node.y, currentRadius * 8
+        );
+        outerGlow.addColorStop(0, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l}%, ${0.2 * glowIntensity})`);
+        outerGlow.addColorStop(0.3, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l}%, ${0.1 * glowIntensity})`);
+        outerGlow.addColorStop(1, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha})`;
+        ctx.arc(node.x, node.y, currentRadius * 8, 0, Math.PI * 2);
+        ctx.fillStyle = outerGlow;
         ctx.fill();
 
-        // Subtle glow
+        // Middle glow (medium, brighter)
+        const middleGlow = ctx.createRadialGradient(
+          node.x, node.y, 0,
+          node.x, node.y, currentRadius * 4
+        );
+        middleGlow.addColorStop(0, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l + 10}%, ${0.5 * glowIntensity})`);
+        middleGlow.addColorStop(0.5, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l}%, ${0.2 * glowIntensity})`);
+        middleGlow.addColorStop(1, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particleColor.h}, ${particleColor.s}%, ${particleColor.l}%, ${p.alpha * 0.15})`;
+        ctx.arc(node.x, node.y, currentRadius * 4, 0, Math.PI * 2);
+        ctx.fillStyle = middleGlow;
+        ctx.fill();
+
+        // Inner bright core
+        const coreGlow = ctx.createRadialGradient(
+          node.x, node.y, 0,
+          node.x, node.y, currentRadius * 1.5
+        );
+        coreGlow.addColorStop(0, `hsla(${primaryColor.h}, ${primaryColor.s - 20}%, ${Math.min(95, primaryColor.l + 30)}%, ${0.9 * glowIntensity})`);
+        coreGlow.addColorStop(0.4, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l + 15}%, ${0.7 * glowIntensity})`);
+        coreGlow.addColorStop(1, `hsla(${primaryColor.h}, ${primaryColor.s}%, ${primaryColor.l}%, 0)`);
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, currentRadius * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = coreGlow;
+        ctx.fill();
+
+        // White hot center
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, currentRadius * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${primaryColor.h}, 30%, 95%, ${0.8 * glowIntensity})`;
         ctx.fill();
       });
 
@@ -218,10 +216,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     return () => cancelAnimationFrame(animationId);
   }, [theme]);
 
-  const isImproved = delta < 0;
+  // Calculate delta text
   const deltaYears = Math.abs(delta);
-  
-  const deltaText = isImproved
+  const deltaText = delta < 0
     ? `${deltaYears.toFixed(0)}y younger than baseline`
     : delta > 0
     ? `${deltaYears.toFixed(0)}y older than baseline`
@@ -234,9 +231,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       <div className="relative flex flex-col items-center justify-center">
         {/* Main sphere container */}
         <div className="relative">
-          {/* Outer ambient glow removed for seamless background integration */}
-
-          {/* Canvas for particles and organic border */}
+          {/* Canvas for neural network */}
           <canvas
             ref={canvasRef}
             width={220}
