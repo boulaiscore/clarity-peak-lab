@@ -14,34 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-interface SCIBreakdown {
-  total: number;
-  cognitivePerformance: {
-    score: number;
-    weighted: number;
-    components: {
-      reasoning: number;
-      focus: number;
-      decisionQuality: number;
-      creativity: number;
-      dualProcessBalance: number;
-    };
-  };
-  behavioralEngagement: {
-    score: number;
-    weighted: number;
-    components: {
-      gamesEngagement: number;
-      tasksEngagement: number;
-      sessionConsistency: number;
-    };
-  };
-  recoveryFactor: {
-    score: number;
-    weighted: number;
-  };
-}
+import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
 interface OverviewCarouselProps {
   cognitiveAgeData: {
