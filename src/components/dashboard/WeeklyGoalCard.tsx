@@ -15,19 +15,17 @@ interface AdaptiveStatusInfo {
   label: string;
 }
 
-// Fixed XP ranges per training plan (not percentages)
-// Light: 40–80 XP (cap 120), Expert: 120–160 XP (cap 200), Superhuman: 220–260 XP (cap 300)
+// OPTIMAL RANGE RULE (GLOBAL)
+// OptimalRange_min = 25% of weekly XP cap
+// OptimalRange_max = 60% of weekly XP cap
+// Applies uniformly to Light, Expert, Superhuman
 function getOptimalRangeXP(planId: TrainingPlanId): { min: number; max: number; cap: number } {
-  switch (planId) {
-    case "light":
-      return { min: 40, max: 80, cap: 120 };
-    case "expert":
-      return { min: 120, max: 160, cap: 200 };
-    case "superhuman":
-      return { min: 220, max: 260, cap: 300 };
-    default:
-      return { min: 120, max: 160, cap: 200 };
-  }
+  const plan = TRAINING_PLANS[planId];
+  const cap = plan?.xpTargetWeek ?? 200;
+  // 25% and 60% of cap, rounded to integers
+  const min = Math.round(cap * 0.25);
+  const max = Math.round(cap * 0.60);
+  return { min, max, cap };
 }
 
 // Status info with label and description - SIMPLE & CLEAR
