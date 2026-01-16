@@ -9,6 +9,14 @@ import {
   SkillTarget,
 } from "@/lib/cognitiveEngine";
 
+// Map skill target to timestamp column for decay tracking
+const SKILL_TO_TIMESTAMP_COLUMN: Record<SkillTarget, string> = {
+  AE: "last_ae_xp_at",
+  RA: "last_ra_xp_at",
+  CT: "last_ct_xp_at",
+  IN: "last_in_xp_at",
+};
+
 export interface ExerciseCompletion {
   id: string;
   user_id: string;
@@ -137,8 +145,12 @@ export function useRecordExerciseCompletion() {
         // Apply state update formula: Δstate = XP × 0.5
         const newValue = calculateStateUpdate(currentValue, scaledXP);
         
-        const updates: Record<string, number> = {
+        // Update skill value AND timestamp for decay tracking
+        const timestampColumn = SKILL_TO_TIMESTAMP_COLUMN[routing.skill];
+        const updates: Record<string, number | string> = {
           [targetColumn]: Math.round(newValue * 10) / 10,
+          [timestampColumn]: new Date().toISOString(),
+          last_xp_at: new Date().toISOString(), // Also update global last XP timestamp
         };
 
         console.log("[XP Routing]", {
@@ -157,14 +169,21 @@ export function useRecordExerciseCompletion() {
           .update(updates)
           .eq("user_id", user.id);
       } else {
-        // Create new metrics record if none exists
+        // Create new metrics record if none exists - initialize ALL skills to 50
         const initialValue = calculateStateUpdate(50, xpEarned * (score / 100));
+        const timestampColumn = SKILL_TO_TIMESTAMP_COLUMN[routing.skill];
+        const now = new Date().toISOString();
         
         await supabase
           .from("user_cognitive_metrics")
           .insert({
             user_id: user.id,
-            [targetColumn]: Math.round(initialValue * 10) / 10,
+            focus_stability: routing.skill === "AE" ? Math.round(initialValue * 10) / 10 : 50,
+            fast_thinking: routing.skill === "RA" ? Math.round(initialValue * 10) / 10 : 50,
+            reasoning_accuracy: routing.skill === "CT" ? Math.round(initialValue * 10) / 10 : 50,
+            slow_thinking: routing.skill === "IN" ? Math.round(initialValue * 10) / 10 : 50,
+            [timestampColumn]: now,
+            last_xp_at: now,
           });
       }
 
