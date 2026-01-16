@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Drill components
 import { CalibrationIntro } from "@/components/calibration/CalibrationIntro";
@@ -43,6 +44,7 @@ interface CalibrationState {
 export default function QuickBaselineCalibration() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<CalibrationStep>("intro");
   const [results, setResults] = useState<CalibrationState>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -118,6 +120,10 @@ export default function QuickBaselineCalibration() {
         .eq("user_id", user.id);
 
       if (profileError) throw profileError;
+
+      // CRITICAL: Invalidate baseline-status cache to prevent redirect loop
+      await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"] });
 
       toast.success("Calibration complete");
       
