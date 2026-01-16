@@ -18,7 +18,7 @@
  * - IN (Insight) ← slow_thinking
  */
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -114,24 +114,58 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
     }
   }, [user?.id, isLoading, rawMetrics]);
   
+  // Use ref to cache last valid result (prevents flicker during refetch/loading)
+  const cachedResultRef = useRef<{
+    states: CognitiveStates;
+    rawStates: CognitiveStates;
+    skillDecay: { aeDecay: number; raDecay: number; ctDecay: number; inDecay: number };
+    S1: number;
+    S2: number;
+    baseline: CognitiveAgeBaseline;
+  } | null>(null);
+  
   const result = useMemo(() => {
+    // If still loading and no rawMetrics, return cached or stable defaults
+    if (!rawMetrics) {
+      if (cachedResultRef.current) {
+        return cachedResultRef.current;
+      }
+      // Return stable defaults only if no cache exists
+      const defaultStates: CognitiveStates = { AE: 50, RA: 50, CT: 50, IN: 50 };
+      const defaultBaseline: CognitiveAgeBaseline = {
+        baselineCognitiveAge: user?.age ?? 35,
+        baselineAE: 50,
+        baselineRA: 50,
+        baselineCT: 50,
+        baselineIN: 50,
+      };
+      return {
+        states: defaultStates,
+        rawStates: defaultStates,
+        skillDecay: { aeDecay: 0, raDecay: 0, ctDecay: 0, inDecay: 0 },
+        S1: 50,
+        S2: 50,
+        baseline: defaultBaseline,
+      };
+    }
+    
     // Map database columns to cognitive states (raw, no decay)
-    const rawStates = mapDatabaseToCognitiveStates(rawMetrics ? {
+    const rawStates = mapDatabaseToCognitiveStates({
       focus_stability: rawMetrics.focus_stability,
       fast_thinking: rawMetrics.fast_thinking,
       reasoning_accuracy: rawMetrics.reasoning_accuracy,
       slow_thinking: rawMetrics.slow_thinking,
-    } : null);
+    });
     
     // Get baseline for Cognitive Age
     const chronologicalAge = user?.age ?? 35;
-    const baseline = mapDatabaseToBaseline(rawMetrics ? {
+    const baseline = mapDatabaseToBaseline({
       baseline_focus: rawMetrics.baseline_focus,
       baseline_fast_thinking: rawMetrics.baseline_fast_thinking,
       baseline_reasoning: rawMetrics.baseline_reasoning,
       baseline_slow_thinking: rawMetrics.baseline_slow_thinking,
       baseline_cognitive_age: rawMetrics.baseline_cognitive_age,
-    } : null, chronologicalAge);
+    }, chronologicalAge);
     
     // Calculate skill decay based on last XP dates
     const today = new Date();
@@ -190,7 +224,7 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
     // Calculate derived system scores from decayed states
     const { S1, S2 } = calculateSystemScores(states);
     
-    return { 
+    const computedResult = { 
       states, 
       rawStates,
       skillDecay: { aeDecay, raDecay, ctDecay, inDecay },
@@ -198,6 +232,11 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
       S2, 
       baseline 
     };
+    
+    // Cache this valid result
+    cachedResultRef.current = computedResult;
+    
+    return computedResult;
   }, [rawMetrics, user?.age]);
   
   return {
