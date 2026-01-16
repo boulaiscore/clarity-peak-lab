@@ -328,7 +328,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                       <span className="text-[8px] text-amber-400 font-medium">Fast (S1)</span>
                     </div>
                     <span className="text-[7px] text-amber-400/70 tabular-nums">
-                      {Math.round(gamesSubTargets[0]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)}
+                      {Math.round(gamesSubTargets[0]?.earned ?? 0)} XP
                     </span>
                   </div>
                   {s1Areas.map((area) => {
@@ -378,7 +378,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                       <span className="text-[8px] text-violet-400 font-medium">Reasoned (S2)</span>
                     </div>
                     <span className="text-[7px] text-violet-400/70 tabular-nums">
-                      {Math.round(gamesSubTargets[1]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)}
+                      {Math.round(gamesSubTargets[1]?.earned ?? 0)} XP
                     </span>
                   </div>
                   {s2Areas.map((area) => {
@@ -547,7 +547,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               <span className="text-[9px] text-amber-400 font-medium">Fast (S1)</span>
             </div>
             <span className="text-[8px] text-amber-400/70 tabular-nums">
-              {Math.round(gamesSubTargets[0]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)} XP
+              {Math.round(gamesSubTargets[0]?.earned ?? 0)} XP
             </span>
           </div>
           {s1Areas.map((area) => {
@@ -595,7 +595,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               <span className="text-[9px] text-violet-400 font-medium">Reasoned (S2)</span>
             </div>
             <span className="text-[8px] text-violet-400/70 tabular-nums">
-              {Math.round(gamesSubTargets[1]?.earned ?? 0)}/{Math.round(optimalRangeXP.cap / 2)} XP
+              {Math.round(gamesSubTargets[1]?.earned ?? 0)} XP
             </span>
           </div>
           {s2Areas.map((area) => {
