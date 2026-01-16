@@ -25,13 +25,15 @@ import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { REC_TARGET } from "@/lib/decayConstants";
 
-// Recovery impact percentages per 30 min based on existing formula:
-// REC_input = weekly_detox_minutes + 0.5 × weekly_walk_minutes
-// With 420 min target = 100%, each 30 min detox = ~7% (we show 6% for conservative UX)
-// Walk = 50% of detox impact
+// Recovery impact percentages based on canonical formula:
+// REC% = (weekly_detox_minutes + 0.5 × weekly_walk_minutes) / REC_TARGET × 100
+// With REC_TARGET = 840 min (14 hrs/week):
+// - Detox 30 min = 30/840 × 100 = 3.57% → rounds to 4%
+// - Walk 30 min = (30/840 × 100) × 0.5 = 1.79% → rounds to 2%
 const getRecoveryImpact = (minutes: number, mode: "detox" | "walk"): number => {
-  const baseImpact = Math.round((minutes / 420) * 100); // 420 min = 7 hours weekly target
+  const baseImpact = Math.round((minutes / REC_TARGET) * 100);
   return mode === "detox" ? baseImpact : Math.round(baseImpact * 0.5);
 };
 

@@ -50,6 +50,8 @@
  * NOTE: Tasks do NOT give XP. They are cognitive inputs, not training rewards.
  */
 
+import { REC_TARGET } from "@/lib/decayConstants";
+
 // ============================================
 // TYPES
 // ============================================
@@ -69,7 +71,7 @@ export interface DerivedSystemScores {
 export interface RecoveryInput {
   weeklyDetoxMinutes: number;
   weeklyWalkMinutes: number;
-  detoxTarget?: number; // Default: 60
+  detoxTarget?: number; // Default: REC_TARGET (840 min)
 }
 
 export interface ReadinessPhysioData {
@@ -131,11 +133,12 @@ export function calculateSystemScores(states: CognitiveStates): DerivedSystemSco
 
 // ============================================
 // RECOVERY (REC)
-// Formula: min(100, (weekly_detox_minutes + 0.5 × weekly_walk_minutes) / detox_target × 100)
+// Formula: min(100, (weekly_detox_minutes + 0.5 × weekly_walk_minutes) / REC_TARGET × 100)
+// REC_TARGET = 840 min (canonical weekly target from decayConstants)
 // ============================================
 
 export function calculateRecovery(input: RecoveryInput): number {
-  const { weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget = 60 } = input;
+  const { weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget = REC_TARGET } = input;
   
   if (detoxTarget <= 0) return 0;
   
