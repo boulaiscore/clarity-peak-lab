@@ -1,51 +1,51 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, TrendingDown, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Dumbbell, Brain, Trophy, Target, Lightbulb, ChevronDown, Zap, Timer, Leaf, Footprints, Activity } from "lucide-react";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuth } from "@/contexts/AuthContext";
+import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
-// Training status types
-type TrainingStatus = "low" | "ok" | "high";
+// Adaptive range status types
+type AdaptiveStatus = "below" | "within" | "above";
 
-interface TrainingStatusInfo {
-  status: TrainingStatus;
+interface AdaptiveStatusInfo {
+  status: AdaptiveStatus;
   label: string;
-  subtitle: string;
-  footerMessage: string;
-  color: string;
-  icon: React.ElementType;
 }
 
-// Helper to determine training status based on progress
-function getTrainingStatus(progress: number): TrainingStatusInfo {
-  if (progress < 40) {
+// Optimal range percentages per training plan
+function getOptimalRange(planId: TrainingPlanId): { min: number; max: number } {
+  switch (planId) {
+    case "light":
+      return { min: 40, max: 70 };
+    case "expert":
+      return { min: 60, max: 85 };
+    case "superhuman":
+      return { min: 75, max: 95 };
+    default:
+      return { min: 60, max: 85 };
+  }
+}
+
+// Helper to determine adaptive status based on progress and optimal range
+function getAdaptiveStatus(progress: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo {
+  if (progress < optimalRange.min) {
     return {
-      status: "low",
-      label: "Too little training",
-      subtitle: "You're not training enough to improve.",
-      footerMessage: "Train more this week to reach an effective level.",
-      color: "text-amber-400",
-      icon: TrendingDown,
+      status: "below",
+      label: "Below adaptive range",
     };
   }
-  if (progress <= 100) {
+  if (progress <= optimalRange.max) {
     return {
-      status: "ok",
-      label: "Training at the right level",
-      subtitle: "This amount of training is effective.",
-      footerMessage: "Keep this rhythm to improve.",
-      color: "text-emerald-400",
-      icon: CheckCircle2,
+      status: "within",
+      label: "Within adaptive range",
     };
   }
   return {
-    status: "high",
-    label: "Too much training",
-    subtitle: "More training won't help right now.",
-    footerMessage: "Recovery is required before more training.",
-    color: "text-orange-400",
-    icon: AlertTriangle,
+    status: "above",
+    label: "Above adaptive range",
   };
 }
 
@@ -115,6 +115,10 @@ interface WeeklyGoalCardProps {
 }
 
 export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
+  const { user } = useAuth();
+  const planId = (user?.trainingPlan || "expert") as TrainingPlanId;
+  const optimalRange = useMemo(() => getOptimalRange(planId), [planId]);
+  
   const data = useStableCognitiveLoad();
   
   const {
@@ -145,8 +149,8 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
 
   const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
   
-  // Calculate training status
-  const trainingStatus = useMemo(() => getTrainingStatus(gamesProgress), [gamesProgress]);
+  // Calculate adaptive status
+  const adaptiveStatus = useMemo(() => getAdaptiveStatus(gamesProgress, optimalRange), [gamesProgress, optimalRange]);
 
   useEffect(() => {
     // Only trigger celebration once per week, when goal transitions from not-reached to reached
@@ -184,6 +188,15 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
     );
   }
 
+  // Status indicator color
+  const getStatusColor = (status: AdaptiveStatus) => {
+    switch (status) {
+      case "below": return "text-muted-foreground";
+      case "within": return "text-emerald-400";
+      case "above": return "text-muted-foreground";
+    }
+  };
+
   // Compact version for NeuroLab
   if (compact) {
     return (
@@ -196,16 +209,13 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           className="p-3 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
         >
           <CollapsibleTrigger className="w-full">
-            {/* Compact Header - Training Load */}
-            <div className="flex items-center justify-between mb-2">
+            {/* Header - Training Capacity */}
+            <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
-                <Dumbbell className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[11px] font-semibold">Training Load</span>
+                <Activity className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[11px] font-semibold">Training Capacity (Weekly)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="text-[10px] font-medium text-muted-foreground tabular-nums">
-                  {Math.round(cappedGames)}/{Math.round(gamesXPTarget)} XP
-                </div>
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -215,23 +225,49 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </div>
             </div>
             
-            {/* Training Status - Most prominent element */}
-            <div className="flex items-center gap-2 mb-2">
-              <trainingStatus.icon className={`w-4 h-4 ${trainingStatus.color}`} />
-              <div>
-                <p className={`text-[12px] font-bold ${trainingStatus.color}`}>{trainingStatus.label}</p>
-                <p className="text-[9px] text-muted-foreground">{trainingStatus.subtitle}</p>
-              </div>
+            {/* Sub-label */}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[9px] text-muted-foreground/70">Maximum tolerable cognitive load</p>
+              <span className="text-[9px] text-muted-foreground/50 tabular-nums">
+                {Math.round(gamesXPTarget)} XP max
+              </span>
+            </div>
+            
+            {/* Status Label */}
+            <div className="mb-2">
+              <span className={`text-[10px] font-medium ${getStatusColor(adaptiveStatus.status)}`}>
+                {adaptiveStatus.label}
+              </span>
             </div>
 
-            {/* Training Progress Bar - Always visible */}
-            <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
+            {/* Main Progress Bar with Optimal Range */}
+            <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden">
+              {/* Optimal Range Band - Highlighted */}
+              <div 
+                className="absolute h-full bg-emerald-400/20 border-l border-r border-emerald-400/50"
+                style={{ 
+                  left: `${optimalRange.min}%`, 
+                  width: `${optimalRange.max - optimalRange.min}%` 
+                }}
+              />
+              {/* Current Progress */}
               <motion.div
-                className={`h-full rounded-full ${gamesComplete ? "bg-emerald-400" : "bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400"}`}
+                className={`absolute h-full rounded-full ${
+                  adaptiveStatus.status === "within" 
+                    ? "bg-emerald-400" 
+                    : "bg-muted-foreground/50"
+                }`}
                 initial={false}
                 animate={{ width: `${Math.min(100, gamesProgress)}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
+            </div>
+            
+            {/* Range Labels */}
+            <div className="flex justify-between mt-1">
+              <span className="text-[8px] text-muted-foreground/50">0</span>
+              <span className="text-[8px] text-emerald-400/70">Optimal Range</span>
+              <span className="text-[8px] text-muted-foreground/50">max</span>
             </div>
           </CollapsibleTrigger>
 
@@ -241,15 +277,17 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               animate={{ opacity: 1 }}
               className="mt-3 pt-3 border-t border-border/30"
             >
-              {/* Training breakdown: 2x2 grid */}
+              {/* Explanatory Micro-copy */}
+              <p className="text-[9px] text-muted-foreground/70 mb-3 leading-relaxed">
+                Optimal training drives cognitive adaptation without overload.
+                Training beyond this range does not increase benefit.
+              </p>
+              
+              {/* Training breakdown: S1/S2 */}
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Dumbbell className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Training</span>
-                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-                    {Math.round(cappedGames)}/{Math.round(gamesXPTarget)}
-                  </span>
-                  <CategoryCompleteBadge show={gamesComplete} />
+                  <span className="text-[10px] text-muted-foreground font-medium">Load Distribution</span>
                 </div>
                 
                 {/* S1 row - Fast skills */}
@@ -273,13 +311,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                           <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
                           <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                             <motion.div
-                              className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
+                              className="h-full rounded-full bg-amber-400/60"
                               initial={false}
                               animate={{ width: `${Math.min(100, area.progress)}%` }}
                               transition={{ duration: 0.4, ease: "easeOut" }}
                             />
                           </div>
-                          {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                         </div>
                         <AnimatePresence>
                           {expandedCell === `s1-${area.area}` && (
@@ -288,7 +325,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="text-[7px] text-amber-300 tabular-nums text-center mt-0.5"
+                              className="text-[7px] text-amber-300/70 tabular-nums text-center mt-0.5"
                             >
                               {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
                             </motion.div>
@@ -320,13 +357,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                           <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
                           <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                             <motion.div
-                              className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
+                              className="h-full rounded-full bg-violet-400/60"
                               initial={false}
                               animate={{ width: `${Math.min(100, area.progress)}%` }}
                               transition={{ duration: 0.4, ease: "easeOut" }}
                             />
                           </div>
-                          {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                         </div>
                         <AnimatePresence>
                           {expandedCell === `s2-${area.area}` && (
@@ -335,7 +371,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="text-[7px] text-violet-300 tabular-nums text-center mt-0.5"
+                              className="text-[7px] text-violet-300/70 tabular-nums text-center mt-0.5"
                             >
                               {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
                             </motion.div>
@@ -347,7 +383,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </div>
               </div>
 
-              {/* Recovery Budget Section - Separate from Training */}
+              {/* Recovery Budget Section */}
               <div className="pt-3 border-t border-border/30">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <div className="flex items-center gap-0.5">
@@ -369,13 +405,10 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   />
                 </div>
                 <p className="text-[8px] text-muted-foreground/60 mt-1">
-                  Restores training capacity
+                  Recovery restores training capacity and affects availability.
+                  It does not provide XP.
                 </p>
               </div>
-
-              <p className="text-[9px] text-muted-foreground mt-3">
-                {trainingStatus.footerMessage}
-              </p>
             </motion.div>
           </CollapsibleContent>
         </motion.div>
@@ -397,46 +430,71 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       aria-busy={isSyncing}
       className="p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
     >
-      {/* Header - Training Load Only */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Header - Training Capacity */}
+      <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <Dumbbell className="w-4 h-4 text-primary" />
-          <span className="text-[12px] font-semibold">Training Load</span>
+          <Activity className="w-4 h-4 text-primary" />
+          <span className="text-[12px] font-semibold">Training Capacity (Weekly)</span>
         </div>
-        <div className="text-[10px] text-muted-foreground/80 tabular-nums">
-          {Math.round(cappedGames)}/{Math.round(gamesXPTarget)} XP
-          {isSyncing && <span className="ml-1 text-[8px] text-muted-foreground/50">•</span>}
+        <div className="text-[10px] text-muted-foreground/50 tabular-nums">
+          {Math.round(gamesXPTarget)} XP max
+          {isSyncing && <span className="ml-1 text-[8px]">•</span>}
         </div>
       </div>
       
-      {/* Training Status - Most prominent element */}
-      <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted/30 border border-border/30">
-        <trainingStatus.icon className={`w-6 h-6 ${trainingStatus.color}`} />
-        <div>
-          <p className={`text-[14px] font-bold ${trainingStatus.color}`}>{trainingStatus.label}</p>
-          <p className="text-[10px] text-muted-foreground">{trainingStatus.subtitle}</p>
-        </div>
+      {/* Sub-label */}
+      <p className="text-[10px] text-muted-foreground/70 mb-4">
+        Maximum tolerable cognitive load
+      </p>
+      
+      {/* Status Label - Neutral and prominent */}
+      <div className="mb-3">
+        <span className={`text-[13px] font-medium ${getStatusColor(adaptiveStatus.status)}`}>
+          {adaptiveStatus.label}
+        </span>
       </div>
 
-      {/* Training Progress Bar */}
-      <div className="h-2 bg-muted/50 rounded-full overflow-hidden mb-4">
+      {/* Main Progress Bar with Optimal Range Band */}
+      <div className="relative h-4 bg-muted/30 rounded-full overflow-hidden mb-2">
+        {/* Optimal Range Band - Visually Dominant */}
+        <div 
+          className="absolute h-full bg-emerald-400/25 border-l-2 border-r-2 border-emerald-400/60"
+          style={{ 
+            left: `${optimalRange.min}%`, 
+            width: `${optimalRange.max - optimalRange.min}%` 
+          }}
+        />
+        {/* Current Progress */}
         <motion.div
-          className={`h-full rounded-full ${gamesComplete ? "bg-emerald-400" : "bg-gradient-to-r from-amber-400 via-violet-400 to-teal-400"}`}
+          className={`absolute h-full rounded-full ${
+            adaptiveStatus.status === "within" 
+              ? "bg-emerald-400" 
+              : "bg-muted-foreground/40"
+          }`}
           initial={false}
           animate={{ width: `${Math.min(100, gamesProgress)}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
+      
+      {/* Range Labels */}
+      <div className="flex justify-between mb-4">
+        <span className="text-[9px] text-muted-foreground/50">0 XP</span>
+        <span className="text-[9px] text-emerald-400/80 font-medium">Optimal Range</span>
+        <span className="text-[9px] text-muted-foreground/50">{Math.round(gamesXPTarget)} XP</span>
+      </div>
+      
+      {/* Explanatory Micro-copy - Always visible */}
+      <p className="text-[10px] text-muted-foreground/70 mb-4 leading-relaxed">
+        Optimal training drives cognitive adaptation without overload.
+        Training beyond this range does not increase benefit.
+      </p>
 
-      {/* Training breakdown: 2x2 matrix */}
+      {/* Load Distribution: S1/S2 breakdown */}
       <div className="mb-4">
         <div className="flex items-center gap-1.5 mb-2">
           <Dumbbell className="w-3 h-3 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground font-medium">Training</span>
-          <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-            {Math.round(cappedGames)}/{Math.round(gamesXPTarget)}
-          </span>
-          <CategoryCompleteBadge show={gamesComplete} />
+          <span className="text-[10px] text-muted-foreground font-medium">Load Distribution</span>
         </div>
         
         {/* S1 row - Fast skills */}
@@ -457,13 +515,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
                   <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                     <motion.div
-                      className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-amber-400"}`}
+                      className="h-full rounded-full bg-amber-400/60"
                       initial={false}
                       animate={{ width: `${Math.min(100, area.progress)}%` }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
                     />
                   </div>
-                  {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                 </div>
                 <AnimatePresence>
                   {expandedCell === `s1-${area.area}` && (
@@ -472,7 +529,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="text-[7px] text-amber-300 tabular-nums text-center mt-0.5"
+                      className="text-[7px] text-amber-300/70 tabular-nums text-center mt-0.5"
                     >
                       {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
                     </motion.div>
@@ -501,13 +558,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
                   <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                     <motion.div
-                      className={`h-full rounded-full ${area.complete ? "bg-emerald-400" : "bg-violet-400"}`}
+                      className="h-full rounded-full bg-violet-400/60"
                       initial={false}
                       animate={{ width: `${Math.min(100, area.progress)}%` }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
                     />
                   </div>
-                  {area.complete && <Trophy className="w-2 h-2 text-emerald-400 ml-0.5" />}
                 </div>
                 <AnimatePresence>
                   {expandedCell === `s2-${area.area}` && (
@@ -516,7 +572,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="text-[7px] text-violet-300 tabular-nums text-center mt-0.5"
+                      className="text-[7px] text-violet-300/70 tabular-nums text-center mt-0.5"
                     >
                       {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
                     </motion.div>
@@ -528,7 +584,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
       </div>
 
-      {/* Recovery Budget Section - Separate from Training */}
+      {/* Recovery Budget Section */}
       <div className="pt-3 border-t border-border/30 mb-3">
         <div className="flex items-center gap-1.5 mb-1.5">
           <div className="flex items-center gap-0.5">
@@ -549,14 +605,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
-        <p className="text-[9px] text-muted-foreground/60 mt-1">
-          Restores training capacity
+        <p className="text-[9px] text-muted-foreground/60 mt-1.5 leading-relaxed">
+          Recovery restores training capacity and affects availability.
+          It does not provide XP.
         </p>
       </div>
-
-      <p className="text-[10px] text-muted-foreground">
-        {trainingStatus.footerMessage}
-      </p>
 
       {/* Weekly completion celebration with report popup */}
       <WeeklyCompleteCelebration 
