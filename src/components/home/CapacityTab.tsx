@@ -78,21 +78,21 @@ export function CapacityTab() {
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
           <Leaf className="w-5 h-5 text-amber-400 mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Allocation</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {recovery >= 100 
-            ? "Weekly recovery target met. Attentional capacity restored." 
+            ? "Weekly recovery target met. Cognitive capacity fully restored." 
             : recovery >= 50 
-              ? `${Math.round(100 - recovery)}% remaining to meet weekly recovery allocation.`
-              : "Recovery below threshold. Prioritize detox and walking to restore capacity."}
+              ? `${Math.round(100 - recovery)}% remaining to meet weekly recovery target.`
+              : "Recovery is low. Build recovery through Detox or Walk to restore capacity."}
         </p>
       </div>
 
-      {/* Recovery Breakdown - ONLY Detox and Walk (per spec) */}
+      {/* Recovery Actions - Detox and Walk build Recovery */}
       <div className="space-y-3 px-2">
         <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span>Recovery Inputs</span>
+          <span>Recovery Actions</span>
           <span className="text-[10px]">target: {detoxTarget} min</span>
         </div>
         
@@ -102,14 +102,14 @@ export function CapacityTab() {
             label="Digital Detox"
             minutes={weeklyDetoxMinutes}
             contribution="100%"
-            description="Full contribution to recovery"
+            description="Stopping digital input builds recovery"
           />
           <RecoveryRow 
             icon={<Footprints className="w-4 h-4 text-emerald-400" />}
             label="Walking"
             minutes={weeklyWalkMinutes}
             contribution="50%"
-            description="Half contribution to recovery"
+            description="Light movement builds partial recovery"
           />
         </div>
         

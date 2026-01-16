@@ -88,7 +88,7 @@ function checkEligibility(
   if (globalMode === "RECOVERY_MODE") {
     return {
       enabled: false,
-      reason: "Withheld: system prioritizes restoration over cognitive input.",
+      reason: "Content requires recovery to be effective. Build recovery through Detox or Walk.",
     };
   }
   
@@ -97,7 +97,7 @@ function checkEligibility(
     if (podcast.demand === "HIGH" || podcast.demand === "VERY_HIGH") {
       return {
         enabled: false,
-        reason: `Withheld: today's capacity does not support ${podcast.demand} load.`,
+        reason: `Deep work capacity limited for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
       };
     }
   }
@@ -108,14 +108,14 @@ function checkEligibility(
   if (s1Buffer < thresholds.s1Buffer) {
     return {
       enabled: false,
-      reason: `Withheld: today's capacity does not support ${podcast.demand} load.`,
+      reason: `Recovery too low for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
     };
   }
   
   if (s2Capacity < thresholds.s2Capacity) {
     return {
       enabled: false,
-      reason: `Withheld: today's capacity does not support ${podcast.demand} load.`,
+      reason: `Deep work capacity limited for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
     };
   }
   
@@ -124,7 +124,7 @@ function checkEligibility(
     if (sharpness < thresholds.sharpness) {
       return {
         enabled: false,
-        reason: `Withheld: today's capacity does not support ${podcast.demand} load.`,
+        reason: `Sharpness too low for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
       };
     }
   }

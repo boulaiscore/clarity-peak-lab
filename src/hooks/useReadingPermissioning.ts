@@ -178,7 +178,7 @@ function checkEligibility(
     if (s1Buffer < 50) {
       return {
         enabled: false,
-        reason: "Withheld: recovery too low for any stimulation.",
+        reason: "Content requires recovery to be effective. Build recovery through Detox or Walk.",
       };
     }
     return { enabled: true, reason: null };
@@ -203,14 +203,14 @@ function checkEligibility(
     if (s1Buffer < thresholds.s1Buffer) {
       return {
         enabled: false,
-        reason: `Withheld: today's capacity does not support ${demand} load.`,
+        reason: `Recovery too low for ${demand} content. Build recovery through Detox or Walk.`,
       };
     }
     
     if (s2Capacity < thresholds.s2Capacity) {
       return {
         enabled: false,
-        reason: `Withheld: insufficient S2 capacity for ${demand} load.`,
+        reason: `Deep work capacity limited for ${demand} content.`,
       };
     }
     

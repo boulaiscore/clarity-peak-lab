@@ -181,8 +181,8 @@ export function checkGameAvailability(
       if (recovery < S2_HARD_BLOCK_RECOVERY) {
         enabled = false;
         thresholds.push({ metric: "Recovery", current: recovery, required: S2_HARD_BLOCK_RECOVERY });
-        unlockActions.push("Complete a detox session", "Take a walk", "Rest without screens");
-        withheldReason = "Recovery too low";
+        unlockActions.push("Complete a Detox session", "Take a Walk", "Rest without screens");
+        withheldReason = "Recovery is low";
         break; // Skip other checks
       }
       
