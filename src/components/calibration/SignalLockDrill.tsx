@@ -1,9 +1,9 @@
 /**
  * Signal Lock Drill (AE - Attentional Efficiency)
- * 
+ *
  * Fast drill (~20s): 20 trials, tap only on target
  * Stimulus: 300ms, inter-trial: 450ms
- * 
+ *
  * Measures: accuracy + reaction speed
  */
 
@@ -25,8 +25,8 @@ interface SignalLockDrillProps {
 }
 
 const TOTAL_TRIALS = 20;
-const STIMULUS_DURATION = 800;  // Increased from 300ms to give users time to tap
-const INTER_TRIAL_DELAY = 400;  // Slightly reduced for better pacing
+const STIMULUS_DURATION = 600; // Increased from 300ms to give users time to tap
+const INTER_TRIAL_DELAY = 400; // Slightly reduced for better pacing
 const T_FAST = 250;
 const T_SLOW = 700;
 
@@ -41,7 +41,7 @@ interface Trial {
 function generateTrials(): Trial[] {
   const trials: Trial[] = [];
   const targetCount = Math.floor(TOTAL_TRIALS * 0.4); // 40% targets
-  
+
   for (let i = 0; i < TOTAL_TRIALS; i++) {
     const isTarget = i < targetCount;
     trials.push({
@@ -50,13 +50,13 @@ function generateTrials(): Trial[] {
       color: isTarget ? "bg-primary" : "bg-muted-foreground/30",
     });
   }
-  
+
   // Shuffle
   for (let i = trials.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [trials[i], trials[j]] = [trials[j], trials[i]];
   }
-  
+
   return trials;
 }
 
@@ -66,7 +66,7 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
   const [currentTrial, setCurrentTrial] = useState(0);
   const [showStimulus, setShowStimulus] = useState(false);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
-  
+
   const startedAt = useRef<string>("");
   const trialStartTime = useRef<number>(0);
   const correctCount = useRef(0);
@@ -75,17 +75,16 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
 
   const processResult = useCallback(() => {
     const finishedAt = new Date().toISOString();
-    const avgReactionMs = reactionTimes.current.length > 0
-      ? reactionTimes.current.reduce((a, b) => a + b, 0) / reactionTimes.current.length
-      : T_SLOW;
-    
+    const avgReactionMs =
+      reactionTimes.current.length > 0
+        ? reactionTimes.current.reduce((a, b) => a + b, 0) / reactionTimes.current.length
+        : T_SLOW;
+
     // Calculate scores
     const accScore = (correctCount.current / TOTAL_TRIALS) * 100;
-    const speedScore = Math.max(0, Math.min(100, 
-      ((T_SLOW - avgReactionMs) / (T_SLOW - T_FAST)) * 100
-    ));
-    const sessionScore = Math.round(0.60 * accScore + 0.40 * speedScore);
-    
+    const speedScore = Math.max(0, Math.min(100, ((T_SLOW - avgReactionMs) / (T_SLOW - T_FAST)) * 100));
+    const sessionScore = Math.round(0.6 * accScore + 0.4 * speedScore);
+
     onComplete({
       correct: correctCount.current,
       total: TOTAL_TRIALS,
@@ -102,12 +101,12 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
       processResult();
       return;
     }
-    
-    setCurrentTrial(prev => prev + 1);
+
+    setCurrentTrial((prev) => prev + 1);
     setShowStimulus(false);
     setFeedback(null);
     hasResponded.current = false;
-    
+
     // Show next stimulus after delay
     setTimeout(() => {
       setShowStimulus(true);
@@ -117,11 +116,11 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
 
   const handleTap = useCallback(() => {
     if (phase !== "running" || !showStimulus || hasResponded.current) return;
-    
+
     hasResponded.current = true;
     const reactionTime = performance.now() - trialStartTime.current;
     const trial = trials[currentTrial];
-    
+
     if (trial.type === "target") {
       correctCount.current++;
       reactionTimes.current.push(reactionTime);
@@ -129,14 +128,14 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
     } else {
       setFeedback("wrong");
     }
-    
+
     setTimeout(nextTrial, 200);
   }, [phase, showStimulus, trials, currentTrial, nextTrial]);
 
   // Handle missed targets
   useEffect(() => {
     if (phase !== "running" || !showStimulus) return;
-    
+
     const timer = setTimeout(() => {
       if (!hasResponded.current) {
         // Missed - if it was a target, don't count as correct
@@ -148,7 +147,7 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
         nextTrial();
       }
     }, STIMULUS_DURATION);
-    
+
     return () => clearTimeout(timer);
   }, [phase, showStimulus, currentTrial, trials, nextTrial]);
 
@@ -156,7 +155,7 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
   const handleStart = () => {
     startedAt.current = new Date().toISOString();
     setPhase("running");
-    
+
     setTimeout(() => {
       setShowStimulus(true);
       trialStartTime.current = performance.now();
@@ -166,7 +165,7 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
   const currentTrialData = trials[currentTrial];
 
   return (
-    <div 
+    <div
       className="h-full flex flex-col items-center justify-center px-6"
       onClick={phase === "running" ? handleTap : undefined}
     >
@@ -174,9 +173,7 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
       <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <div className="w-2 h-2 rounded-full bg-amber-500" />
-          <span className="text-xs uppercase tracking-widest text-muted-foreground/60">
-            Attentional Efficiency
-          </span>
+          <span className="text-xs uppercase tracking-widest text-muted-foreground/60">Attentional Efficiency</span>
         </div>
         <h2 className="text-lg font-semibold text-foreground">Signal Lock</h2>
       </div>
@@ -184,18 +181,12 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
       {/* Main area */}
       <div className="relative flex items-center justify-center w-full max-w-sm aspect-square">
         {phase === "ready" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
             <Target className="w-16 h-16 text-primary/30 mx-auto mb-6" />
             <p className="text-sm text-muted-foreground mb-2">
               Tap only when you see a <span className="text-primary font-medium">circle</span>
             </p>
-            <p className="text-xs text-muted-foreground/60 mb-8">
-              Ignore squares and diamonds
-            </p>
+            <p className="text-xs text-muted-foreground/60 mb-8">Ignore squares and diamonds</p>
             <button
               onClick={handleStart}
               className="px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm"
@@ -229,11 +220,7 @@ export function SignalLockDrill({ onComplete }: SignalLockDrillProps) {
         )}
 
         {phase === "complete" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
               <Target className="w-6 h-6 text-emerald-500" />
             </div>
