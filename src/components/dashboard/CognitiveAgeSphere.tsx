@@ -49,10 +49,10 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
     const isDarkMode = theme === "dark";
     
-    // Vibrant bright blue color palette
+    // Primary color (teal/green) to match app theme
     const particleColor = isDarkMode 
-      ? { h: 215, s: 100, l: 65 }
-      : { h: 215, s: 85, l: 55 };
+      ? { h: 165, s: 82, l: 55 }
+      : { h: 165, s: 82, l: 45 };
 
     const particles: Particle[] = [];
     const particleCount = 200; // Much denser like WHOOP
