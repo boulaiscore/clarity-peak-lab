@@ -17,6 +17,7 @@ import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { 
   GameType, 
@@ -25,6 +26,7 @@ import {
   TrainingPlanModifiers,
   getAllGamesAvailability,
   getGameTypeFromArea,
+  isSafetyRuleActive,
 } from "@/lib/gamesGating";
 import { startOfDay, subDays, format } from "date-fns";
 
@@ -77,6 +79,10 @@ export interface UseGamesGatingResult {
     recovery: number;
   };
   
+  // Post-baseline safety rule
+  safetyRuleActive: boolean;
+  isCalibrated: boolean;
+  
   // Helper function
   checkGame: (gymArea: string, thinkingMode: string) => GameGatingResult;
   
@@ -90,6 +96,9 @@ export function useGamesGating(): UseGamesGatingResult {
   
   // Get today's cognitive metrics
   const { sharpness, readiness, recovery, isLoading: metricsLoading } = useTodayMetrics();
+  
+  // Get baseline status for safety rule
+  const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
   
   // Get plan configuration
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
@@ -177,16 +186,22 @@ export function useGamesGating(): UseGamesGatingResult {
     insightMaxPerWeek: gatingModifiers.insightMaxPerWeek,
   }), [gatingModifiers]);
   
-  // Compute game availability
+  // Compute game availability with safety rule
   const gamesAvailability = useMemo(() => {
     return getAllGamesAvailability(
       sharpness,
       readiness,
       recovery,
       caps,
-      planModifiers
+      planModifiers,
+      isCalibrated // Pass calibration status for safety rule
     );
-  }, [sharpness, readiness, recovery, caps, planModifiers]);
+  }, [sharpness, readiness, recovery, caps, planModifiers, isCalibrated]);
+  
+  // Check if safety rule is active
+  const safetyRuleActive = useMemo(() => {
+    return isSafetyRuleActive(recovery, isCalibrated, gamesAvailability);
+  }, [recovery, isCalibrated, gamesAvailability]);
   
   // Transform to GameGatingResult format with reason codes
   const games = useMemo(() => {
@@ -255,8 +270,10 @@ export function useGamesGating(): UseGamesGatingResult {
       readiness,
       recovery,
     },
+    safetyRuleActive,
+    isCalibrated,
     checkGame,
-    isLoading: metricsLoading || todayLoading || weeklyLoading,
+    isLoading: metricsLoading || todayLoading || weeklyLoading || baselineLoading,
   };
 }
 
