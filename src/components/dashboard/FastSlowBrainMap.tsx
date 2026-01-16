@@ -610,49 +610,8 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
         );
       })()}
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 gap-3 mt-3">
-        {/* Fast Thinking Card */}
-        <div className="p-3 rounded-lg bg-muted/20">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-5 h-5 rounded-md bg-amber-500/10 flex items-center justify-center">
-              <Zap className="w-3 h-3 text-amber-400" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-              System 1
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <DeltaIndicator delta={fastDelta} />
-            <span className="text-[10px]">
-              <DeltaText delta={fastDelta} />
-              <span className="text-muted-foreground/60 ml-0.5">vs last</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Slow Thinking Card */}
-        <div className="p-3 rounded-lg bg-muted/20">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-5 h-5 rounded-md bg-cyan-500/10 flex items-center justify-center">
-              <Brain className="w-3 h-3 text-cyan-400" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-              System 2
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <DeltaIndicator delta={slowDelta} />
-            <span className="text-[10px]">
-              <DeltaText delta={slowDelta} />
-              <span className="text-muted-foreground/60 ml-0.5">vs last</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Scientific disclaimer */}
-      <p className="text-[8px] text-muted-foreground/60 text-center leading-relaxed mt-3">
+      <p className="text-[8px] text-muted-foreground/60 text-center leading-relaxed mt-2">
         Functional cognitive systems based on Kahneman's dual-process theory.
       </p>
     </div>
