@@ -33,6 +33,7 @@ import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,14 @@ function AppRoutes() {
         element={
           <OnboardingRoute>
             <Onboarding />
+          </OnboardingRoute>
+        }
+      />
+      <Route
+        path="/app/calibration"
+        element={
+          <OnboardingRoute>
+            <QuickBaselineCalibration />
           </OnboardingRoute>
         }
       />
