@@ -391,14 +391,14 @@ export function DetoxChallengeTab() {
 
           {/* Session Duration */}
           <div className="p-4 rounded-xl bg-card border border-border">
-            <Label className="text-xs text-muted-foreground mb-3 block">Session duration</Label>
-            <div className="flex flex-wrap gap-2">
+            <Label className="text-xs text-muted-foreground mb-3 block text-center">Session duration</Label>
+            <div className="grid grid-cols-4 gap-2">
               {DETOX_SLOT_OPTIONS.map((slot) => (
                 <button
                   key={slot.value}
                   onClick={() => setSelectedDuration(slot.value)}
                   className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                    "px-2 py-2 rounded-lg text-xs font-medium transition-all text-center",
                     selectedDuration === slot.value
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted/50 text-muted-foreground hover:bg-muted"
@@ -408,7 +408,7 @@ export function DetoxChallengeTab() {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-2">
+            <p className="text-[10px] text-muted-foreground mt-2 text-center">
               Minimum session: 30 min for measurable impact
             </p>
           </div>
