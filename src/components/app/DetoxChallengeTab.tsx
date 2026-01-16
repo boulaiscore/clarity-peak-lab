@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  Smartphone, Clock, 
-  Play, Pause, Check, Sparkles, Target, Ban, Settings, Shield, Info, Loader2, Bell, BellOff, Leaf
+  Clock, Play, Pause, Check, Sparkles, Info, Loader2, Bell, BellOff, 
+  Leaf, Footprints
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,36 +18,39 @@ import {
 import { useDetoxSession } from "@/hooks/useDetoxSession";
 import { useAppBlocker } from "@/hooks/useAppBlocker";
 import { toast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { DetoxBlockerSettings } from "./DetoxBlockerSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { scheduleDetoxReminder, cancelDetoxReminder, getNotificationState, requestNotificationPermission } from "@/lib/notifications";
 import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
 
+type RecoveryMode = "detox" | "walk";
+
+const RECOVERY_MODES = {
+  detox: {
+    id: "detox" as RecoveryMode,
+    label: "Detox (Digital Off)",
+    description: "Complete stop from digital input. Rest, sit, or disengage.",
+    impact: "High recovery impact",
+    icon: Leaf,
+  },
+  walk: {
+    id: "walk" as RecoveryMode,
+    label: "Walk (Active Recovery)",
+    description: "Light walking with minimal stimulation.",
+    constraints: "No podcasts, no calls, no scrolling.",
+    impact: "Moderate recovery impact",
+    icon: Footprints,
+  },
+};
+
 export function DetoxChallengeTab() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [showSettings, setShowSettings] = useState(false);
-  const [showGoalSettings, setShowGoalSettings] = useState(false);
   const [selectedAppsToBlock, setSelectedAppsToBlock] = useState<string[]>([]);
   const [selectedDuration, setSelectedDuration] = useState(30);
+  const [selectedMode, setSelectedMode] = useState<RecoveryMode>("detox");
   const [displaySeconds, setDisplaySeconds] = useState(0);
   const [justCompleted, setJustCompleted] = useState(false);
   const [lastSessionSeconds, setLastSessionSeconds] = useState(0);
@@ -144,11 +147,12 @@ export function DetoxChallengeTab() {
 
   const proceedWithStart = () => {
     setShowTargetExceededDialog(false);
-    // Navigate to full-screen detox session page
+    // Navigate to full-screen detox session page with mode
     navigate("/detox-session", { 
       state: { 
         duration: selectedDuration, 
-        blockedApps: selectedAppsToBlock 
+        blockedApps: selectedAppsToBlock,
+        mode: selectedMode,
       } 
     });
   };
@@ -208,14 +212,6 @@ export function DetoxChallengeTab() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const formatMinutesToHours = (minutes: number) => {
-    const hrs = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hrs === 0) return `${mins} min`;
-    if (mins === 0) return `${hrs}h`;
-    return `${hrs}h ${mins}m`;
-  };
-
   if (sessionLoading || settingsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -223,6 +219,8 @@ export function DetoxChallengeTab() {
       </div>
     );
   }
+
+  const currentModeConfig = RECOVERY_MODES[selectedMode];
 
   return (
     <div className="space-y-5">
@@ -318,81 +316,138 @@ export function DetoxChallengeTab() {
         </motion.div>
       ) : (
         <>
-          {/* Start Session Card */}
-          <div className="p-6 rounded-2xl bg-card border border-border text-center">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-              <div className="relative">
-                <Leaf className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-            
-            <h3 className="text-base font-semibold text-foreground mb-2">
-              {DETOX_COGNITIVE_MESSAGES.preSession.headline}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-1">
-              {DETOX_COGNITIVE_MESSAGES.preSession.subtitle}
-            </p>
-            <p className="text-xs text-primary mb-4">
-              {DETOX_COGNITIVE_MESSAGES.preSession.benefit}
-            </p>
-
-            {/* Duration Selector */}
-            <div className="mb-4">
-              <Label className="text-xs text-muted-foreground mb-2 block">Session duration</Label>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {DETOX_SLOT_OPTIONS.map((slot) => (
-                  <button
-                    key={slot.value}
-                    onClick={() => setSelectedDuration(slot.value)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-                      selectedDuration === slot.value
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    {slot.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleStart}
-              className="w-full gap-2"
-              size="lg"
-            >
-              <Play className="w-5 h-5 fill-current" />
-              Start Detox ({selectedDuration} min)
-            </Button>
+          {/* Header */}
+          <div className="text-center mb-2">
+            <h2 className="text-lg font-semibold text-foreground">Recover Mental Clarity</h2>
+            <p className="text-sm text-muted-foreground">Choose the recovery mode that fits your situation.</p>
           </div>
 
-          {/* Info Card */}
+          {/* Recovery Mode Selector */}
+          <div className="grid grid-cols-2 gap-3">
+            {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
+              const Icon = mode.icon;
+              const isSelected = selectedMode === mode.id;
+              
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => setSelectedMode(mode.id)}
+                  className={cn(
+                    "p-4 rounded-xl border text-left transition-all",
+                    isSelected
+                      ? "bg-primary/10 border-primary/40 ring-1 ring-primary/20"
+                      : "bg-card/50 border-border/50 hover:border-border"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
+                    isSelected ? "bg-primary/20" : "bg-muted/50"
+                  )}>
+                    <Icon className={cn(
+                      "w-5 h-5",
+                      isSelected ? "text-primary" : "text-muted-foreground"
+                    )} />
+                  </div>
+                  
+                  <h4 className={cn(
+                    "text-sm font-medium mb-1",
+                    isSelected ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {mode.label}
+                  </h4>
+                  
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
+                    {mode.description}
+                  </p>
+                  
+                  {"constraints" in mode && (
+                    <p className="text-[10px] text-amber-500/80 mb-2">
+                      {mode.constraints}
+                    </p>
+                  )}
+                  
+                  <span className={cn(
+                    "inline-block text-[10px] font-medium px-2 py-0.5 rounded-full",
+                    isSelected 
+                      ? "bg-primary/20 text-primary" 
+                      : "bg-muted/50 text-muted-foreground"
+                  )}>
+                    {mode.impact}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Session Duration */}
+          <div className="p-4 rounded-xl bg-card border border-border">
+            <Label className="text-xs text-muted-foreground mb-3 block">Session duration</Label>
+            <div className="flex flex-wrap gap-2">
+              {DETOX_SLOT_OPTIONS.map((slot) => (
+                <button
+                  key={slot.value}
+                  onClick={() => setSelectedDuration(slot.value)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                    selectedDuration === slot.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  {slot.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Minimum session: 30 min for measurable impact
+            </p>
+          </div>
+
+          {/* CTA */}
+          <Button 
+            onClick={handleStart}
+            className="w-full gap-2"
+            size="lg"
+          >
+            <Play className="w-5 h-5 fill-current" />
+            Start {selectedMode === "detox" ? "Detox" : "Walk"} ({selectedDuration} min)
+          </Button>
+
+          {/* How Recovery Works */}
           <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
             <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5" />
-              How mental recovery works
+              How recovery works
             </h4>
             <ul className="space-y-1.5 text-[11px] text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-primary" />
-                <span>Minimum session: <strong>30 min</strong> for measurable impact</span>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span>Detox contributes more to recovery than walking.</span>
               </li>
-              <li className="flex items-center gap-2">
-                <Leaf className="w-3 h-3 text-primary" />
-                <span>Reduces decision fatigue and restores clarity</span>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span>Both reduce decision fatigue and restore clarity.</span>
               </li>
-              <li className="flex items-center gap-2">
-                {dailySettings?.reminderEnabled ? (
-                  <Bell className="w-3 h-3 text-primary" />
-                ) : (
-                  <BellOff className="w-3 h-3 text-muted-foreground" />
-                )}
-                <span>
-                  Reminder: <strong>{dailySettings?.reminderEnabled ? `at ${dailySettings.reminderTime}` : "disabled"}</strong>
-                </span>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span>Recovery affects availability of training sessions and tasks.</span>
               </li>
             </ul>
+          </div>
+
+          {/* Reminder Info */}
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-1">
+            {dailySettings?.reminderEnabled ? (
+              <>
+                <Bell className="w-3 h-3 text-primary" />
+                <span>Reminder at <strong>{dailySettings.reminderTime}</strong></span>
+              </>
+            ) : (
+              <>
+                <BellOff className="w-3 h-3" />
+                <span>Reminder disabled</span>
+              </>
+            )}
           </div>
         </>
       )}
