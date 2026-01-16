@@ -89,3 +89,14 @@ export const COGNITIVE_AGE_MAX_INCREASE_PER_MONTH = 1;
 
 /** Days in age regression tracking period */
 export const COGNITIVE_AGE_TRACKING_PERIOD_DAYS = 30;
+
+// ============================================
+// RECOVERY TARGET
+// ============================================
+
+/**
+ * Canonical weekly recovery target in minutes (rolling 7-day window).
+ * Used for calculating Recovery% = (detox + 0.5×walk) / REC_TARGET × 100
+ * 840 min = 14 hours/week = 2 hours/day average
+ */
+export const REC_TARGET = 840;
