@@ -1,4 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Info } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { SCIExplanation } from "./SCIExplanation";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
 interface NeuralGrowthAnimationProps {
@@ -267,32 +277,46 @@ export function NeuralGrowthAnimation({
         </div>
         <p className="text-[11px] text-primary font-medium">{statusText}</p>
         
-        {/* SCI Component Breakdown */}
+        {/* SCI Component Breakdown - compact 3-column grid */}
         {sciBreakdown && (
           <div className="mt-3 pt-3 border-t border-border/20">
             <div className="grid grid-cols-3 gap-2 text-[9px]">
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Performance</div>
-                <div className="font-semibold text-foreground">{sciBreakdown.cognitivePerformance.score}</div>
+                <div className="font-semibold text-primary">{sciBreakdown.cognitivePerformance.score}</div>
                 <div className="text-muted-foreground/40">50%</div>
               </div>
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Engagement</div>
-                <div className="font-semibold text-foreground">{sciBreakdown.behavioralEngagement.score}</div>
+                <div className="font-semibold text-blue-400">{sciBreakdown.behavioralEngagement.score}</div>
                 <div className="text-muted-foreground/40">30%</div>
               </div>
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Recovery</div>
-                <div className="font-semibold text-foreground">{sciBreakdown.recoveryFactor.score}</div>
+                <div className="font-semibold text-purple-400">{sciBreakdown.recoveryFactor.score}</div>
                 <div className="text-muted-foreground/40">20%</div>
               </div>
             </div>
           </div>
         )}
         
-        <p className="text-[9px] text-muted-foreground/60 mt-3 leading-relaxed">
-          Synthesized Cognitive Index. Integrates cognitive abilities, training engagement, and recovery.
-        </p>
+        {/* Learn More button opens detailed explanation */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <button className="mt-3 inline-flex items-center gap-1 text-[10px] text-muted-foreground/70 hover:text-primary transition-colors">
+              <Info className="w-3 h-3" />
+              Learn more
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm max-h-[85vh]">
+            <DialogHeader>
+              <DialogTitle className="text-base">Cognitive Network</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[calc(85vh-80px)] pr-2">
+              <SCIExplanation sciBreakdown={sciBreakdown} />
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
