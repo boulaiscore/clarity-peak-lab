@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
+import type { SCIBreakdown, BottleneckResult } from "@/lib/cognitiveNetworkScore";
 
 interface OverviewCarouselProps {
   cognitiveAgeData: {
@@ -35,6 +35,7 @@ interface OverviewCarouselProps {
     baselineSlow: number;
   };
   isPremium: boolean;
+  bottleneck?: BottleneckResult | null;
 }
 
 const CARDS = ["cognitive-age", "cognitive-network", "dual-process"] as const;
@@ -51,7 +52,8 @@ export function OverviewCarousel({
   sci,
   sciStatusText,
   thinkingScores,
-  isPremium
+  isPremium,
+  bottleneck
 }: OverviewCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -234,6 +236,7 @@ export function OverviewCarousel({
                 overallCognitiveScore={sci?.total ?? 50}
                 sciBreakdown={sci}
                 statusText={sciStatusText}
+                bottleneck={bottleneck}
               />
             )}
             

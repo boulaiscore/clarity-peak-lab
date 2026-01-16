@@ -16,12 +16,21 @@
  * NOTE: Tasks do NOT contribute to XP or BE in v1.3
  */
 
-// Component weights
-const WEIGHTS = {
-  COGNITIVE_PERFORMANCE: 0.50,
-  BEHAVIORAL_ENGAGEMENT: 0.30,
-  RECOVERY_FACTOR: 0.20,
+// Component weights (exported for bottleneck calculation)
+export const WEIGHTS = {
+  cognitivePerformance: 0.50,
+  behavioralEngagement: 0.30,
+  recoveryFactor: 0.20,
 };
+
+export interface BottleneckResult {
+  variable: "thinking" | "training" | "recovery";
+  potentialGain: number;
+  currentScore: number;
+  weight: number;
+  actionLabel: string;
+  actionDescription: string;
+}
 
 export interface CognitiveMetricsInput {
   // Raw cognitive states (AE, RA, CT, IN mapped from DB)
@@ -137,9 +146,9 @@ export function calculateSCI(
   const beResult = calculateBehavioralEngagement(behavioral);
   const rfScore = calculateRecoveryFactor(recovery);
 
-  const cpWeighted = WEIGHTS.COGNITIVE_PERFORMANCE * cpResult.score;
-  const beWeighted = WEIGHTS.BEHAVIORAL_ENGAGEMENT * beResult.score;
-  const rfWeighted = WEIGHTS.RECOVERY_FACTOR * rfScore;
+  const cpWeighted = WEIGHTS.cognitivePerformance * cpResult.score;
+  const beWeighted = WEIGHTS.behavioralEngagement * beResult.score;
+  const rfWeighted = WEIGHTS.recoveryFactor * rfScore;
 
   const total = Math.round(cpWeighted + beWeighted + rfWeighted);
 
@@ -210,4 +219,42 @@ export function getTargetsForPlan(plan: string): typeof DEFAULT_TARGETS.expert {
   if (plan === "light") return DEFAULT_TARGETS.light;
   if (plan === "superhuman") return DEFAULT_TARGETS.superhuman;
   return DEFAULT_TARGETS.expert;
+}
+
+/**
+ * Identify which variable has the biggest potential impact on Neural Strength
+ * Calculates gap-to-100 weighted by component weight
+ */
+export function identifyBottleneck(breakdown: SCIBreakdown): BottleneckResult {
+  const gaps = [
+    {
+      variable: "thinking" as const,
+      currentScore: breakdown.cognitivePerformance.score,
+      weight: WEIGHTS.cognitivePerformance,
+      potentialGain: Math.round((100 - breakdown.cognitivePerformance.score) * WEIGHTS.cognitivePerformance),
+      actionLabel: "Train Thinking",
+      actionDescription: "Complete games in NeuroLab to improve your cognitive scores"
+    },
+    {
+      variable: "training" as const,
+      currentScore: breakdown.behavioralEngagement.score,
+      weight: WEIGHTS.behavioralEngagement,
+      potentialGain: Math.round((100 - breakdown.behavioralEngagement.score) * WEIGHTS.behavioralEngagement),
+      actionLabel: "Earn XP",
+      actionDescription: "Play more games this week to hit your XP target"
+    },
+    {
+      variable: "recovery" as const,
+      currentScore: breakdown.recoveryFactor.score,
+      weight: WEIGHTS.recoveryFactor,
+      potentialGain: Math.round((100 - breakdown.recoveryFactor.score) * WEIGHTS.recoveryFactor),
+      actionLabel: "Add Recovery",
+      actionDescription: "Complete Detox or Walking sessions"
+    }
+  ];
+  
+  // Sort by potential gain descending
+  gaps.sort((a, b) => b.potentialGain - a.potentialGain);
+  
+  return gaps[0];
 }
