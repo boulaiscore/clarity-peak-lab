@@ -9,8 +9,8 @@ interface SCIExplanationProps {
 
 /**
  * Neural Strength Explanation - Gym Metaphor
- * Uses Intensity, Consistency, Recovery terminology
- * Emphasizes neuronal potentiation like muscle building
+ * Uses Performance, Training Load, Recovery terminology (already familiar from NeuroLab)
+ * Emphasizes neuronal potentiation like muscle building with rigorous formulas
  */
 export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
   const [isFormulaOpen, setIsFormulaOpen] = useState(false);
@@ -32,54 +32,54 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
           Neural Strength represents how <span className="text-foreground/80">powerful</span> your reasoning and intuition are.
         </p>
         <p className="text-[10px] text-muted-foreground leading-relaxed">
-          Like muscles, neurons strengthen through: <span className="text-foreground/80">stimulus</span>, <span className="text-foreground/80">consistency</span>, and <span className="text-foreground/80">recovery</span>.
+          Like muscles, neurons strengthen through: <span className="text-foreground/80">performance</span>, <span className="text-foreground/80">training load</span>, and <span className="text-foreground/80">recovery</span>.
         </p>
       </div>
 
       {/* Component Cards */}
       {sciBreakdown && (
         <div className="space-y-2">
-          {/* Intensity (50%) */}
+          {/* Performance (50%) */}
           <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-primary/70" />
-                <span className="text-[11px] font-medium text-foreground">Intensity</span>
+                <span className="text-[11px] font-medium text-foreground">Performance</span>
                 <span className="text-[9px] text-muted-foreground/60">(50%)</span>
               </div>
               <span className="text-sm font-bold text-primary">{sciBreakdown.cognitivePerformance.score}</span>
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed mb-1.5">
-              How much you're stimulating your neurons right now.
+              Average of your cognitive metrics: focus, reasoning, intuition.
             </p>
             <div className="text-[9px] text-muted-foreground/70 space-y-0.5">
-              <p><span className="text-emerald-500">↑</span> Training games, session frequency</p>
-              <p><span className="text-red-400">↓</span> Days without training</p>
+              <p><span className="text-emerald-500">↑</span> Training games in NeuroLab</p>
+              <p><span className="text-red-400">↓</span> Days without training (metrics decay)</p>
             </div>
-            <p className="text-[9px] text-primary/70 mt-1.5 italic">
-              "Like lifting weights — more reps, more stimulation."
+            <p className="text-[9px] text-primary/70 mt-1.5 font-mono">
+              = (AE + RA + CT + IN + S2) / 5
             </p>
           </div>
 
-          {/* Consistency (30%) */}
+          {/* Training Load (30%) */}
           <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-blue-400/70" />
-                <span className="text-[11px] font-medium text-foreground">Consistency</span>
+                <span className="text-[11px] font-medium text-foreground">Training Load</span>
                 <span className="text-[9px] text-muted-foreground/60">(30%)</span>
               </div>
               <span className="text-sm font-bold text-blue-400">{sciBreakdown.behavioralEngagement.score}</span>
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed mb-1.5">
-              How regularly you're training over time.
+              Weekly XP from Games relative to your target.
             </p>
             <div className="text-[9px] text-muted-foreground/70 space-y-0.5">
-              <p><span className="text-emerald-500">↑</span> Weekly sessions, hitting targets</p>
-              <p><span className="text-red-400">↓</span> Skipped weeks, irregular training</p>
+              <p><span className="text-emerald-500">↑</span> Complete games in NeuroLab</p>
+              <p><span className="text-red-400">↓</span> Skipped sessions, not hitting XP target</p>
             </div>
-            <p className="text-[9px] text-blue-400/70 mt-1.5 italic">
-              "Like going to the gym 3x/week vs once a month."
+            <p className="text-[9px] text-blue-400/70 mt-1.5 font-mono">
+              = min(100, weekly_games_xp / xp_target × 100)
             </p>
           </div>
 
@@ -94,14 +94,14 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
               <span className="text-sm font-bold text-purple-400">{sciBreakdown.recoveryFactor.score}</span>
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed mb-1.5">
-              How well your neurons are absorbing the training.
+              Detox + Walking minutes relative to your weekly target.
             </p>
             <div className="text-[9px] text-muted-foreground/70 space-y-0.5">
-              <p><span className="text-emerald-500">↑</span> Detox, walking, rest</p>
-              <p><span className="text-red-400">↓</span> Overtraining, no downtime</p>
+              <p><span className="text-emerald-500">↑</span> Digital Detox, Walking sessions</p>
+              <p><span className="text-red-400">↓</span> No recovery time, overtraining</p>
             </div>
-            <p className="text-[9px] text-purple-400/70 mt-1.5 italic">
-              "Muscles don't grow in the gym — they grow during rest."
+            <p className="text-[9px] text-purple-400/70 mt-1.5 font-mono">
+              = min(100, recovery_minutes / target × 100)
             </p>
           </div>
         </div>
@@ -126,9 +126,9 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
                 <span className="text-[10px] font-medium text-emerald-500 uppercase">What makes it grow</span>
               </div>
               <div className="text-[9px] text-muted-foreground space-y-1">
-                <p>• Train regularly → neurons fire more</p>
-                <p>• Be consistent → connections stabilize</p>
-                <p>• Recover properly → gains consolidate</p>
+                <p>• Train in NeuroLab → metrics improve</p>
+                <p>• Hit weekly XP target → consistency builds</p>
+                <p>• Detox + Walk → gains consolidate</p>
               </div>
             </div>
 
@@ -139,8 +139,8 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
                 <span className="text-[10px] font-medium text-red-400 uppercase">What makes it decay</span>
               </div>
               <div className="text-[9px] text-muted-foreground space-y-1">
-                <p>• Stop training → connections weaken</p>
-                <p>• Skip weeks → stability drops</p>
+                <p>• Skip training days → metrics decay</p>
+                <p>• Miss XP targets → load drops</p>
                 <p>• No recovery → gains don't stick</p>
               </div>
             </div>
@@ -153,11 +153,11 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
         <p className="text-[9px] text-muted-foreground leading-relaxed text-center">
           All three work together.
           <br />
-          <span className="text-foreground/60">Intensity</span> without consistency → unstable gains.
+          <span className="text-foreground/60">Performance</span> without training load → unstable gains.
           <br />
-          <span className="text-foreground/60">Consistency</span> without recovery → burnout.
+          <span className="text-foreground/60">Training</span> without recovery → burnout.
           <br />
-          <span className="text-foreground/60">Recovery</span> without intensity → nothing to absorb.
+          <span className="text-foreground/60">Recovery</span> without training → nothing to absorb.
         </p>
         <p className="text-[9px] text-primary/70 text-center mt-1.5 font-medium">
           Neural strength grows when all three progress together.
@@ -167,7 +167,7 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
       {/* Formula Disclosure - Collapsible */}
       <Collapsible open={isFormulaOpen} onOpenChange={setIsFormulaOpen}>
         <CollapsibleTrigger className="flex items-center justify-center gap-1.5 w-full text-[9px] text-muted-foreground/60 hover:text-muted-foreground transition-colors py-1">
-          How this is calculated
+          Full formula
           {isFormulaOpen ? (
             <ChevronUp className="w-3 h-3" />
           ) : (
@@ -175,10 +175,22 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
           )}
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="mt-2 p-2.5 rounded-lg bg-muted/30 border border-border/20">
+          <div className="mt-2 p-2.5 rounded-lg bg-muted/30 border border-border/20 space-y-2">
             <p className="text-[10px] font-mono text-muted-foreground text-center">
-              Strength = 0.50 × Intensity + 0.30 × Consistency + 0.20 × Recovery
+              Strength = 0.50×P + 0.30×T + 0.20×R
             </p>
+            <div className="text-[9px] text-muted-foreground/70 space-y-1 font-mono">
+              <p>P = (AE + RA + CT + IN + S2) / 5</p>
+              <p>T = min(100, games_xp / target × 100)</p>
+              <p>R = min(100, recovery_min / target × 100)</p>
+            </div>
+            <div className="text-[8px] text-muted-foreground/50 pt-1 border-t border-border/20">
+              <p>AE = Attentional Efficiency (focus_stability)</p>
+              <p>RA = Reactive Adaptation (fast_thinking)</p>
+              <p>CT = Critical Thinking (reasoning_accuracy)</p>
+              <p>IN = Intuitive Navigation (slow_thinking)</p>
+              <p>S2 = (CT + IN) / 2</p>
+            </div>
           </div>
         </CollapsibleContent>
       </Collapsible>
