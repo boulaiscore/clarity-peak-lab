@@ -31,7 +31,7 @@ function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: 
       label: "Below optimal zone",
       copy: {
         label: "Below optimal zone",
-        description: ""
+        description: "Your optimal zone adapts to your capacity — shaped by training consistency and recovery."
       }
     };
   }
