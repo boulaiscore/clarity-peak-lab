@@ -40,29 +40,29 @@ function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: 
   if (currentXP < optimalRange.min) {
     return {
       status: "below",
-      label: "Train a bit more",
+      label: "Add one optimal zone",
       copy: {
-        label: "Train a bit more",
-        description: "This week's training is still too low to drive improvement."
+        label: "Add one optimal zone",
+        description: "Add one short training session this week."
       }
     };
   }
   if (currentXP <= optimalRange.max) {
     return {
       status: "within",
-      label: "You're on track",
+      label: "Inside optimal zone",
       copy: {
-        label: "You're on track",
-        description: "This amount of training is enough for progress."
+        label: "Inside optimal zone",
+        description: "You're in the optimal training zone."
       }
     };
   }
   return {
     status: "above",
-    label: "You've done enough this week",
+    label: "Above optimal zone",
     copy: {
-      label: "You've done enough this week",
-      description: "More training won't add extra benefits."
+      label: "Above optimal zone",
+      description: "More training won't add benefits right now."
     }
   };
 }
@@ -218,14 +218,46 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
     );
   }
 
-  // Status indicator color - clear visual states
+  // Status indicator color - matches reference image
   const getStatusColor = (status: AdaptiveStatus) => {
     switch (status) {
       case "below": return "text-amber-400"; // Yellow = train more
-      case "within": return "text-emerald-400"; // Green = on track
-      case "above": return "text-sky-400"; // Blue = done enough
+      case "within": return "text-teal-400"; // Teal = optimal zone
+      case "above": return "text-amber-400"; // Amber = above optimal
     }
   };
+  
+  // Get marker/bar colors based on status
+  const getBarStyles = (status: AdaptiveStatus) => {
+    switch (status) {
+      case "below": 
+        return {
+          trackBg: "bg-slate-600/40",
+          optimalZoneBg: "bg-teal-500/30",
+          optimalZoneBorder: "border-teal-400/50",
+          markerBg: "bg-white",
+          markerBorder: "border-white/50"
+        };
+      case "within":
+        return {
+          trackBg: "bg-slate-600/40",
+          optimalZoneBg: "bg-teal-500/40",
+          optimalZoneBorder: "border-teal-400/60",
+          markerBg: "bg-teal-400",
+          markerBorder: "border-teal-300/80"
+        };
+      case "above":
+        return {
+          trackBg: "bg-amber-900/30",
+          optimalZoneBg: "bg-slate-600/20",
+          optimalZoneBorder: "border-slate-500/30",
+          markerBg: "bg-amber-400",
+          markerBorder: "border-amber-300/80"
+        };
+    }
+  };
+  
+  const barStyles = getBarStyles(adaptiveStatus.status);
 
   // Compact version for NeuroLab
   if (compact) {
@@ -270,36 +302,30 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </p>
             </div>
 
-            {/* Main Progress Bar with Optimal Range - 3 zones */}
-            <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden">
-              {/* Below Range zone (implicit - left of optimal) */}
-              {/* Optimal Range Band - Highlighted and Dominant */}
+            {/* Main Progress Bar with Optimal Range - marker style like reference */}
+            <div className={`relative h-2.5 ${barStyles.trackBg} rounded-full`}>
+              {/* Optimal Range Band - highlighted zone */}
               <div 
-                className="absolute h-full bg-emerald-400/25 border-l-2 border-r-2 border-emerald-400/60"
+                className={`absolute h-full ${barStyles.optimalZoneBg} border-l border-r ${barStyles.optimalZoneBorder} rounded-sm`}
                 style={{ 
                   left: `${optimalRangePercent.min}%`, 
                   width: `${optimalRangePercent.max - optimalRangePercent.min}%` 
                 }}
               />
-              {/* Above Range zone (implicit - right of optimal) */}
-              {/* Current Progress - fills only from games XP */}
+              {/* Current Position Marker - circular dot */}
               <motion.div
-                className={`absolute h-full rounded-full ${
-                  adaptiveStatus.status === "within" 
-                    ? "bg-emerald-400" 
-                    : "bg-muted-foreground/50"
-                }`}
+                className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full ${barStyles.markerBg} border-2 ${barStyles.markerBorder} shadow-lg`}
+                style={{ left: `calc(${progressPercent}% - 8px)` }}
                 initial={false}
-                animate={{ width: `${progressPercent}%` }}
+                animate={{ left: `calc(${progressPercent}% - 8px)` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
             
-            {/* Range Labels - Explicit XP values */}
-            <div className="flex justify-between mt-1">
-              <span className="text-[8px] text-muted-foreground/50">0 XP</span>
-              <span className="text-[8px] text-emerald-400/70">Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
-              <span className="text-[8px] text-muted-foreground/50">{optimalRangeXP.cap} XP</span>
+            {/* Range Labels - Too little / Too much */}
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[8px] text-muted-foreground/60">Too little</span>
+              <span className="text-[8px] text-muted-foreground/60">Too much</span>
             </div>
           </CollapsibleTrigger>
 
@@ -495,36 +521,30 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </p>
       </div>
 
-      {/* Main Progress Bar with Optimal Range Band - 3 zones */}
-      <div className="relative h-4 bg-muted/30 rounded-full overflow-hidden mb-2">
-        {/* Below Range zone (implicit - left of optimal) */}
-        {/* Optimal Range Band - Visually Dominant */}
+      {/* Main Progress Bar with Optimal Range Band - marker style */}
+      <div className={`relative h-3 ${barStyles.trackBg} rounded-full mb-2`}>
+        {/* Optimal Range Band - highlighted zone */}
         <div 
-          className="absolute h-full bg-emerald-400/25 border-l-2 border-r-2 border-emerald-400/60"
+          className={`absolute h-full ${barStyles.optimalZoneBg} border-l border-r ${barStyles.optimalZoneBorder} rounded-sm`}
           style={{ 
             left: `${optimalRangePercent.min}%`, 
             width: `${optimalRangePercent.max - optimalRangePercent.min}%` 
           }}
         />
-        {/* Above Range zone (implicit - right of optimal) */}
-        {/* Current Progress - fills only from games XP */}
+        {/* Current Position Marker - circular dot */}
         <motion.div
-          className={`absolute h-full rounded-full ${
-            adaptiveStatus.status === "within" 
-              ? "bg-emerald-400" 
-              : "bg-muted-foreground/40"
-          }`}
+          className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full ${barStyles.markerBg} border-2 ${barStyles.markerBorder} shadow-lg`}
+          style={{ left: `calc(${progressPercent}% - 10px)` }}
           initial={false}
-          animate={{ width: `${progressPercent}%` }}
+          animate={{ left: `calc(${progressPercent}% - 10px)` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         />
       </div>
       
-      {/* Range Labels - Explicit XP values */}
+      {/* Range Labels - Too little / Too much */}
       <div className="flex justify-between mb-3">
-        <span className="text-[9px] text-muted-foreground/50">0 XP</span>
-        <span className="text-[9px] text-emerald-400/80 font-medium">Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
-        <span className="text-[9px] text-muted-foreground/50">{optimalRangeXP.cap} XP</span>
+        <span className="text-[9px] text-muted-foreground/60">Too little</span>
+        <span className="text-[9px] text-muted-foreground/60">Too much</span>
       </div>
       
       {/* XP explanation - minimal */}
