@@ -64,7 +64,16 @@ export function useWeeklyExerciseXP() {
   });
 }
 
-// Record a completed exercise AND update cognitive metrics using NEW cognitive engine
+/**
+ * Record a completed exercise AND update cognitive metrics.
+ * 
+ * ⚠️ CRITICAL (Section B - Games Training):
+ * - Each game session awards XP according to difficulty
+ * - XP routes to ONE AND ONLY ONE skill
+ * - Skill update rule: Δskill = XP × 0.5
+ * - Raw game performance (accuracy, reaction time, score) is for feedback ONLY
+ * - Performance MUST NOT directly affect Sharpness/Readiness/SCI/CognitiveAge
+ */
 export function useRecordExerciseCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

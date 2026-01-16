@@ -2,6 +2,17 @@
  * Hook that computes Today's metrics (Sharpness, Readiness, Recovery)
  * using the new cognitive engine formulas.
  * 
+ * ⚠️ CRITICAL: This hook follows the MANDATORY computation order (Section D):
+ * 
+ * 1. Load persistent skills: AE, RA, CT, IN (from useCognitiveStates)
+ * 2. Compute aggregates: S1 = (AE+RA)/2, S2 = (CT+IN)/2 (from useCognitiveStates)
+ * 3. Compute Recovery: REC = min(100, (detox + 0.5×walk) / target × 100)
+ * 4. Compute Sharpness and Readiness from skill values and Recovery
+ * 
+ * METRICS READ ONLY FROM PERSISTENT SKILL STATE:
+ * - NEVER from per-session game data (accuracy, reaction time, score)
+ * - NEVER from baseline session records
+ * 
  * SHARPNESS = 0.50×S1 + 0.30×AE + 0.20×S2, modulated by Recovery
  * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable)
  * RECOVERY = min(100, (detox_min + 0.5×walk_min) / target × 100)

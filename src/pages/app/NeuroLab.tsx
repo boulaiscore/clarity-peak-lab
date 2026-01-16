@@ -9,11 +9,12 @@ import { ReadingTasksEngine } from "@/components/app/ReadingTasksEngine";
 import { 
   Zap, ChevronRight, Crown, Dumbbell,
   BookMarked, Play, CheckCircle2, Library, Star, Smartphone, Ban,
-  Headphones, BookOpen, FileText
+  Headphones, BookOpen, FileText, Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
+import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { DailyTrainingConfirmDialog } from "@/components/app/DailyTrainingConfirmDialog";
 import { useDailyTraining } from "@/hooks/useDailyTraining";
@@ -133,6 +134,7 @@ export default function NeuroLab() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { isPremium, isAreaLocked, canAccessNeuroActivation, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
+  const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
   const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
   const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPTarget } = useWeeklyProgress();
   // Use capped progress for the Weekly Load total (excess beyond category targets doesn't count)
@@ -235,6 +237,35 @@ export default function NeuroLab() {
       setShowSessionPicker(true);
     }
   };
+
+  // SANITY CHECK: Block Games and Tasks if baseline not completed
+  if (!baselineLoading && !isCalibrated) {
+    return (
+      <AppShell>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+              <Brain className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="text-lg font-semibold mb-2">Calibration Required</h2>
+            <p className="text-sm text-muted-foreground/70 mb-6 max-w-xs">
+              Complete your baseline calibration before accessing training and tasks.
+            </p>
+            <button
+              onClick={() => navigate("/app/calibration")}
+              className="inline-flex items-center px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
+            >
+              Begin Calibration
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </button>
+          </motion.div>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
