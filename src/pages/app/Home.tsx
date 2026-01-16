@@ -131,16 +131,11 @@ const Home = () => {
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
   
-  // Dynamic colors matching status tab rings
-  const getScoreColor = (value: number) => {
-    if (value >= 70) return "hsl(142, 71%, 45%)"; // Green
-    if (value >= 40) return "hsl(45, 85%, 50%)";  // Yellow/Amber
-    return "hsl(0, 70%, 50%)";                     // Red
-  };
-
-  const sharpnessColor = getScoreColor(sharpness);
-  const readinessColor = getScoreColor(readiness);
-  const recoveryColor = getScoreColor(recovery);
+  // Premium functional color system - fixed colors per metric
+  // Low values are communicated by arc length and copy, not color
+  const sharpnessColor = "hsl(210, 100%, 60%)";   // Electric blue
+  const readinessColor = "hsl(245, 58%, 65%)";    // Soft indigo
+  const recoveryColor = "hsl(174, 72%, 45%)";     // Teal
 
   const handleStartSession = () => {
     navigate("/neuro-lab");
