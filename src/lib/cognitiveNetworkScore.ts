@@ -115,6 +115,7 @@ export interface BehavioralEngagementInput {
 
 export interface RecoveryInput {
   weeklyDetoxMinutes: number;
+  weeklyWalkMinutes: number; // Added for correct REC formula
   detoxTarget: number;
 }
 
@@ -190,12 +191,14 @@ function calculateBehavioralEngagement(input: BehavioralEngagementInput): {
 
 /**
  * Calculate Recovery Factor (20% of SCI)
+ * REC = min(100, (detox + 0.5×walk) / target × 100)
  */
 function calculateRecoveryFactor(input: RecoveryInput): number {
-  const detoxProgress = input.detoxTarget > 0
-    ? Math.min(100, (input.weeklyDetoxMinutes / input.detoxTarget) * 100)
+  const recInput = input.weeklyDetoxMinutes + 0.5 * (input.weeklyWalkMinutes || 0);
+  const recoveryProgress = input.detoxTarget > 0
+    ? Math.min(100, (recInput / input.detoxTarget) * 100)
     : 0;
-  return Math.round(detoxProgress);
+  return Math.round(recoveryProgress);
 }
 
 /**
