@@ -16,6 +16,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -266,591 +267,351 @@ const Account = () => {
 
   return (
     <AppShell>
-      <div className="container px-6 py-10 sm:py-16">
-        <div className="max-w-lg mx-auto">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <User className="w-10 h-10 text-primary" />
+      <div className="container px-6 py-8 sm:py-12">
+        <div className="max-w-2xl mx-auto">
+          {/* Compact Header */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+              <User className="w-7 h-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-semibold mb-1">{user?.name || "User"}</h1>
-            <p className="text-muted-foreground text-sm">{user?.email}</p>
-          </div>
-
-          {/* Account Information */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-primary" />
-              Account Information
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5" />
-                  Email
-                </span>
-                <span className="text-sm font-medium">{user?.email || "—"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Member since
-                </span>
-                <span className="text-sm font-medium">{memberSince}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <User className="w-3.5 h-3.5" />
-                  Account ID
-                </span>
-                <span className="text-sm font-medium font-mono">{maskedAccountId}</span>
-              </div>
+            <div>
+              <h1 className="text-xl font-semibold">{user?.name || "User"}</h1>
+              <p className="text-muted-foreground text-sm">{user?.email}</p>
             </div>
           </div>
 
-          {/* Demographics */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" />
-              Demographics
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Birth Date
-                </span>
-                <span className="text-sm font-medium">
-                  {user?.birthDate ? format(new Date(user.birthDate), "MMMM d, yyyy") : "—"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <User className="w-3.5 h-3.5" />
-                  Gender
-                </span>
-                <span className="text-sm font-medium capitalize">
-                  {user?.gender || "—"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  Education
-                </span>
-                <span className="text-sm font-medium">
-                  {user?.educationLevel ? educationLevelLabels[user.educationLevel] || user.educationLevel : "—"}
-                  {user?.degreeDiscipline && ` · ${disciplineLabels[user.degreeDiscipline] || user.degreeDiscipline}`}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Briefcase className="w-3.5 h-3.5" />
-                  Work Type
-                </span>
-                <span className="text-sm font-medium capitalize">
-                  {user?.workType ? user.workType.replace(/_/g, " ") : "—"}
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Tabbed Navigation */}
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsTrigger value="profile" className="text-xs">Profile</TabsTrigger>
+              <TabsTrigger value="training" className="text-xs">Training</TabsTrigger>
+              <TabsTrigger value="preferences" className="text-xs">Settings</TabsTrigger>
+              <TabsTrigger value="subscription" className="text-xs">Plan</TabsTrigger>
+            </TabsList>
 
-          {/* Pricing & Subscription Settings */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-primary" />
-              Pricing & Subscription
-            </h3>
-            
-            {/* Current Plan Overview */}
-            <div className="p-4 rounded-lg bg-muted/20 border border-border/50 mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  {isPremium ? (
-                    <>
-                      <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                        <Crown className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm">Premium Plan</p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">BETA ACCESS</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm">Free Plan</p>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">LIMITED ACCESS</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <span className={cn(
-                  "px-2 py-1 rounded-full text-[10px] font-semibold uppercase",
-                  isPremium 
-                    ? "bg-emerald-500/15 text-emerald-400" 
-                    : "bg-amber-500/15 text-amber-400"
-                )}>
-                  {isPremium ? "Active" : "Limited"}
-                </span>
-              </div>
-              
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between py-1.5 border-b border-border/30">
-                  <span className="text-muted-foreground">Plan Type</span>
-                  <span className="font-medium">{isPremium ? "Premium (Beta)" : "Free"}</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5 border-b border-border/30">
-                  <span className="text-muted-foreground">Billing Cycle</span>
-                  <span className="font-medium">{isPremium ? "Free during beta" : "—"}</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5 border-b border-border/30">
-                  <span className="text-muted-foreground">Next Renewal</span>
-                  <span className="font-medium">{isPremium ? "N/A (Beta)" : "—"}</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5">
-                  <span className="text-muted-foreground">Price</span>
-                  <span className="font-medium">{isPremium ? "$0.00/mo" : "$0.00/mo"}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Beta Version Info */}
-            {isPremium && (
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                    <Rocket className="w-4 h-4 text-primary" />
+            {/* ==================== PROFILE TAB ==================== */}
+            <TabsContent value="profile" className="space-y-4">
+              {/* Account Information */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                  <Shield className="w-4 h-4 text-primary" />
+                  Account
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between py-1.5 border-b border-border/30">
+                    <span className="text-xs text-muted-foreground">Email</span>
+                    <span className="text-sm font-medium">{user?.email || "—"}</span>
                   </div>
-                  <div>
-                    <p className="font-semibold text-sm mb-1">Beta Tester Status</p>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      You're part of our exclusive beta program. Premium features are free until the official launch.
+                  <div className="flex items-center justify-between py-1.5 border-b border-border/30">
+                    <span className="text-xs text-muted-foreground">Member since</span>
+                    <span className="text-sm font-medium">{memberSince}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-xs text-muted-foreground">Account ID</span>
+                    <span className="text-sm font-medium font-mono">{maskedAccountId}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Name Input */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <label className="text-sm font-medium mb-2 block">Display Name</label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="h-11" />
+              </div>
+
+              {/* Demographics */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                  <Users className="w-4 h-4 text-primary" />
+                  Demographics
+                </h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div className="py-1.5">
+                    <span className="text-xs text-muted-foreground block">Birth Date</span>
+                    <span className="font-medium">{user?.birthDate ? format(new Date(user.birthDate), "MMM d, yyyy") : "—"}</span>
+                  </div>
+                  <div className="py-1.5">
+                    <span className="text-xs text-muted-foreground block">Gender</span>
+                    <span className="font-medium capitalize">{user?.gender || "—"}</span>
+                  </div>
+                  <div className="py-1.5">
+                    <span className="text-xs text-muted-foreground block">Education</span>
+                    <span className="font-medium">{user?.educationLevel ? educationLevelLabels[user.educationLevel] : "—"}</span>
+                  </div>
+                  <div className="py-1.5">
+                    <span className="text-xs text-muted-foreground block">Work Type</span>
+                    <span className="font-medium capitalize">{user?.workType ? user.workType.replace(/_/g, " ") : "—"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cognitive Baseline */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                  <Brain className="w-4 h-4 text-primary" />
+                  Cognitive Baseline
+                </h3>
+                {hasCompletedAssessment === false ? (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Take the initial assessment for personalized baseline metrics.
                     </p>
-                    <div className="flex items-center gap-4 text-xs">
-                      <div>
-                        <span className="text-muted-foreground">Version:</span>
-                        <span className="ml-1 font-mono font-medium">v0.9.2-beta</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Joined:</span>
-                        <span className="ml-1 font-medium">{memberSince}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                    <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/onboarding?step=assessment")}>
+                      <Brain className="w-4 h-4" />
+                      Take Assessment
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Reset to establish new baseline metrics.
+                    </p>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full" disabled={isResetting}>
+                          <RotateCcw className="w-4 h-4" />
+                          {isResetting ? "Resetting..." : "Reset Assessment"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-card border-border">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Reset Initial Assessment?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will clear your baseline metrics. Training history will be preserved.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleResetAssessment}>Reset & Retake</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                )}
               </div>
-            )}
+            </TabsContent>
 
-            {/* Available Plans */}
-            <div className="mb-4">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                Subscription Plans
-              </h4>
-              <div className="space-y-3">
-                {/* Free Plan */}
-                <div className={cn(
-                  "p-4 rounded-lg border transition-all",
-                  !isPremium 
-                    ? "border-primary/30 bg-primary/5" 
-                    : "border-border/50 bg-muted/10"
-                )}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">Free</span>
-                      {!isPremium && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-primary/15 text-primary">
-                          CURRENT
-                        </span>
-                      )}
-                    </div>
-                    <span className="font-semibold">$0/mo</span>
-                  </div>
-                  <ul className="space-y-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      2 daily cognitive sessions
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      Introductory System 1 & System 2 access
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      Limited Neuro Lab protocols
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      Basic progress tracking
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                      Standard accuracy modeling
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Premium Plan */}
-                <div className={cn(
-                  "p-4 rounded-lg border transition-all",
-                  isPremium 
-                    ? "border-primary/30 bg-primary/5" 
-                    : "border-border/50 bg-muted/10"
-                )}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">Premium</span>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/15 text-emerald-400">
-                        BEST VALUE
-                      </span>
-                      {isPremium && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-primary/15 text-primary">
-                          CURRENT
-                        </span>
-                      )}
-                    </div>
-                    <span className="font-semibold">$11.99/mo</span>
-                  </div>
-                  <ul className="space-y-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">Unlimited daily sessions</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">Full System 1 & System 2 protocols</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">Full Neuro Lab access</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">Enhanced cognitive accuracy</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-primary" />
-                      <span className="text-foreground">Monthly Cognitive Report</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Pro Plan */}
-                <div className="p-4 rounded-lg border border-border/50 bg-muted/10">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">Pro</span>
-                    </div>
-                    <span className="font-semibold">$16.99/mo</span>
-                  </div>
-                  <ul className="space-y-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">Everything in Premium</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">On-demand Cognitive Reports</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">Advanced analytics & trend insights</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">Priority support</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-amber-400" />
-                      <span className="text-foreground">Early access to experimental features</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Method */}
-            <div className="mb-4">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                Payment Method
-              </h4>
-              <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-6 rounded bg-gradient-to-r from-blue-600 to-blue-500 flex items-center justify-center">
-                      <span className="text-white text-[8px] font-bold">VISA</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">•••• •••• •••• 4242</p>
-                      <p className="text-[10px] text-muted-foreground">Expires 12/26</p>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-xs h-7" disabled={!isPremium}>
-                    Update
-                  </Button>
-                </div>
-              </div>
-              {!isPremium && (
-                <p className="text-[10px] text-muted-foreground mt-2">
-                  Payment method will be added when you upgrade to a paid plan.
-                </p>
-              )}
-            </div>
-
-            {/* Manage Subscription CTA */}
-            {!isPremium ? (
-              <Button asChild variant="hero" className="w-full">
-                <Link to="/app/premium">
-                  <Zap className="w-4 h-4 mr-2" />
-                  Upgrade to Premium
-                </Link>
-              </Button>
-            ) : (
-              <div className="flex gap-3">
-                <Button asChild variant="outline" className="flex-1" size="sm">
-                  <Link to="/app/premium">
-                    View Plans
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
-                  Cancel Plan
-                </Button>
-              </div>
-            )}
-          </div>
-
-
-          {/* Name */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <label className="text-sm font-medium mb-3 block">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="h-12" />
-          </div>
-
-          {/* Training Plan */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Dumbbell className="w-4 h-4 text-primary" />
-              Training Plan
-            </h3>
-            <TrainingPlanSelector 
-              selectedPlan={trainingPlan} 
-              onSelectPlan={setTrainingPlan}
-              showDetails={true}
-            />
-          </div>
-
-          {/* Daily Reminder */}
-          {isSupported && (
-            <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Bell className="w-4 h-4 text-primary" />
-                Daily Reminder
-              </h3>
-              
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-sm font-medium">Enable daily training reminder</p>
-                  <p className="text-xs text-muted-foreground">Get notified when it's time to train</p>
-                </div>
-                <Switch 
-                  checked={reminderEnabled} 
-                  onCheckedChange={handleReminderToggle}
+            {/* ==================== TRAINING TAB ==================== */}
+            <TabsContent value="training" className="space-y-4">
+              {/* Training Plan */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-4 flex items-center gap-2 text-sm">
+                  <Dumbbell className="w-4 h-4 text-primary" />
+                  Training Plan
+                </h3>
+                <TrainingPlanSelector 
+                  selectedPlan={trainingPlan} 
+                  onSelectPlan={setTrainingPlan}
+                  showDetails={true}
                 />
               </div>
-              
-              {reminderEnabled && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-muted-foreground mb-2 block">Reminder time</label>
-                    <Input 
-                      type="time" 
-                      value={reminderTime} 
-                      onChange={(e) => handleReminderTimeChange(e.target.value)}
-                      className="h-12"
-                    />
-                  </div>
-                  
-                  <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                    <div className="flex items-center gap-2 text-sm">
-                      <BellRing className="w-4 h-4 text-primary" />
-                      <span>
-                        Daily training reminder at{" "}
-                        <span className="font-semibold">{reminderTime}</span>
-                      </span>
+
+              {/* Daily Reminder */}
+              {isSupported && (
+                <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                    <Bell className="w-4 h-4 text-primary" />
+                    Daily Reminder
+                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-medium">Training reminder</p>
+                      <p className="text-xs text-muted-foreground">Daily notification</p>
                     </div>
-                    {scheduledAt && (
-                      <p className="text-xs text-muted-foreground mt-1 ml-6">
-                        Next: {format(scheduledAt, "MMM d, h:mm a")}
-                      </p>
-                    )}
+                    <Switch checked={reminderEnabled} onCheckedChange={handleReminderToggle} />
                   </div>
-                  
-                  {permission !== "granted" && (
-                    <p className="text-xs text-amber-400 flex items-center gap-1">
-                      ⚠️ Enable browser notifications to receive reminders
-                    </p>
+                  {reminderEnabled && (
+                    <div className="space-y-3">
+                      <Input 
+                        type="time" 
+                        value={reminderTime} 
+                        onChange={(e) => handleReminderTimeChange(e.target.value)}
+                        className="h-11"
+                      />
+                      <div className="p-2 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-2 text-xs">
+                        <BellRing className="w-3.5 h-3.5 text-primary" />
+                        <span>Reminder at <span className="font-semibold">{reminderTime}</span></span>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
-            </div>
-          )}
+            </TabsContent>
 
-          {/* Theme Toggle */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              {theme === "dark" ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
-              Appearance
-            </h3>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Light Mode</p>
-                <p className="text-xs text-muted-foreground">Switch to light theme</p>
+            {/* ==================== PREFERENCES TAB ==================== */}
+            <TabsContent value="preferences" className="space-y-4">
+              {/* Appearance */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                  {theme === "dark" ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
+                  Appearance
+                </h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Light Mode</p>
+                    <p className="text-xs text-muted-foreground">Switch theme</p>
+                  </div>
+                  <Switch checked={theme === "light"} onCheckedChange={toggleTheme} />
+                </div>
               </div>
-              <Switch 
-                checked={theme === "light"} 
-                onCheckedChange={toggleTheme}
-              />
-            </div>
-          </div>
 
-          {/* Timezone */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-primary" />
-              Timezone
-            </h3>
-            
-            <div className="space-y-3">
-              <p className="text-xs text-muted-foreground">
-                Used for day boundary calculations (streak tracking, daily resets).
-              </p>
-              <Select value={timezone} onValueChange={handleTimezoneChange}>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select timezone" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="Pacific/Honolulu">Hawaii (UTC-10)</SelectItem>
-                  <SelectItem value="America/Anchorage">Alaska (UTC-9)</SelectItem>
-                  <SelectItem value="America/Los_Angeles">Pacific Time (UTC-8)</SelectItem>
-                  <SelectItem value="America/Denver">Mountain Time (UTC-7)</SelectItem>
-                  <SelectItem value="America/Chicago">Central Time (UTC-6)</SelectItem>
-                  <SelectItem value="America/New_York">Eastern Time (UTC-5)</SelectItem>
-                  <SelectItem value="America/Sao_Paulo">São Paulo (UTC-3)</SelectItem>
-                  <SelectItem value="UTC">UTC (UTC+0)</SelectItem>
-                  <SelectItem value="Europe/London">London (UTC+0/+1)</SelectItem>
-                  <SelectItem value="Europe/Paris">Paris / Berlin (UTC+1/+2)</SelectItem>
-                  <SelectItem value="Europe/Helsinki">Helsinki (UTC+2/+3)</SelectItem>
-                  <SelectItem value="Europe/Moscow">Moscow (UTC+3)</SelectItem>
-                  <SelectItem value="Asia/Dubai">Dubai (UTC+4)</SelectItem>
-                  <SelectItem value="Asia/Kolkata">India (UTC+5:30)</SelectItem>
-                  <SelectItem value="Asia/Bangkok">Bangkok (UTC+7)</SelectItem>
-                  <SelectItem value="Asia/Singapore">Singapore (UTC+8)</SelectItem>
-                  <SelectItem value="Asia/Tokyo">Tokyo (UTC+9)</SelectItem>
-                  <SelectItem value="Australia/Sydney">Sydney (UTC+10/+11)</SelectItem>
-                  <SelectItem value="Pacific/Auckland">Auckland (UTC+12/+13)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-[10px] text-muted-foreground/60">
-                Current device timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
-              </p>
-            </div>
-          </div>
-
-
-          {/* Cognitive Baseline */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Brain className="w-4 h-4 text-primary" />
-              Cognitive Baseline
-            </h3>
-            
-            {hasCompletedAssessment === false ? (
-              <>
-                <p className="text-xs text-muted-foreground mb-4">
-                  You skipped the initial assessment. Take it now to get personalized baseline metrics.
+              {/* Timezone */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                  <Globe className="w-4 h-4 text-primary" />
+                  Timezone
+                </h3>
+                <p className="text-xs text-muted-foreground mb-2">
+                  For day boundary calculations (streak tracking, daily resets).
                 </p>
-                <Button 
-                  variant="hero" 
-                  className="w-full rounded-xl" 
-                  onClick={() => navigate("/onboarding?step=assessment")}
+                <Select value={timezone} onValueChange={handleTimezoneChange}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select timezone" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    <SelectItem value="Pacific/Honolulu">Hawaii (UTC-10)</SelectItem>
+                    <SelectItem value="America/Anchorage">Alaska (UTC-9)</SelectItem>
+                    <SelectItem value="America/Los_Angeles">Pacific Time (UTC-8)</SelectItem>
+                    <SelectItem value="America/Denver">Mountain Time (UTC-7)</SelectItem>
+                    <SelectItem value="America/Chicago">Central Time (UTC-6)</SelectItem>
+                    <SelectItem value="America/New_York">Eastern Time (UTC-5)</SelectItem>
+                    <SelectItem value="America/Sao_Paulo">São Paulo (UTC-3)</SelectItem>
+                    <SelectItem value="UTC">UTC (UTC+0)</SelectItem>
+                    <SelectItem value="Europe/London">London (UTC+0/+1)</SelectItem>
+                    <SelectItem value="Europe/Paris">Paris / Berlin (UTC+1/+2)</SelectItem>
+                    <SelectItem value="Europe/Rome">Rome (UTC+1/+2)</SelectItem>
+                    <SelectItem value="Europe/Helsinki">Helsinki (UTC+2/+3)</SelectItem>
+                    <SelectItem value="Europe/Moscow">Moscow (UTC+3)</SelectItem>
+                    <SelectItem value="Asia/Dubai">Dubai (UTC+4)</SelectItem>
+                    <SelectItem value="Asia/Kolkata">India (UTC+5:30)</SelectItem>
+                    <SelectItem value="Asia/Bangkok">Bangkok (UTC+7)</SelectItem>
+                    <SelectItem value="Asia/Singapore">Singapore (UTC+8)</SelectItem>
+                    <SelectItem value="Asia/Tokyo">Tokyo (UTC+9)</SelectItem>
+                    <SelectItem value="Australia/Sydney">Sydney (UTC+10/+11)</SelectItem>
+                    <SelectItem value="Pacific/Auckland">Auckland (UTC+12/+13)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground/60 mt-2">
+                  Device: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                </p>
+              </div>
+
+              {/* Help & Support */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                  <HelpCircle className="w-4 h-4 text-primary" />
+                  Help & Support
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Need assistance? Our team is here to help.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => window.open("mailto:support@superhuman-labs.com", "_blank")}
                 >
-                  <Brain className="w-4 h-4" />
-                  Take Assessment
+                  <Mail className="w-4 h-4" />
+                  Contact Support
+                  <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
                 </Button>
-              </>
-            ) : (
-              <>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Reset your initial assessment to establish new baseline metrics for Fast/Slow thinking scores.
-                </p>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" className="w-full rounded-xl" disabled={isResetting}>
-                      <RotateCcw className="w-4 h-4" />
-                      {isResetting ? "Resetting..." : "Reset Assessment"}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-card border-border">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reset Initial Assessment?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will clear your current baseline cognitive metrics and redirect you to retake the initial
-                        assessment. Your training history will be preserved.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleResetAssessment}>Reset & Retake</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </>
-            )}
-          </div>
+              </div>
+            </TabsContent>
 
-          {/* Help & Support */}
-          <div className="p-6 rounded-xl bg-card border border-border mb-6 shadow-card">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-primary" />
-              Help & Support
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Need help with your account or subscription? Our team is here to assist you.
-            </p>
-            <Button
-              variant="outline"
-              className="w-full rounded-xl"
-              onClick={() => window.open("mailto:support@superhuman-labs.com", "_blank")}
-            >
-              <Mail className="w-4 h-4" />
-              Contact Support
-              <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
-            </Button>
-          </div>
+            {/* ==================== SUBSCRIPTION TAB ==================== */}
+            <TabsContent value="subscription" className="space-y-4">
+              {/* Current Plan */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    {isPremium ? (
+                      <>
+                        <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                          <Crown className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">Premium Plan</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">BETA ACCESS</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                          <User className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">Free Plan</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">LIMITED</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <span className={cn(
+                    "px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase",
+                    isPremium ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"
+                  )}>
+                    {isPremium ? "Active" : "Limited"}
+                  </span>
+                </div>
 
-          {/* Actions */}
-          <div className="space-y-3">
-            <Button onClick={handleSave} variant="hero" className="w-full min-h-[52px] rounded-xl" disabled={isSaving}>
+                <div className="space-y-1.5 text-sm border-t border-border/30 pt-3">
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground text-xs">Billing</span>
+                    <span className="font-medium text-xs">{isPremium ? "Free during beta" : "—"}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground text-xs">Price</span>
+                    <span className="font-medium text-xs">$0.00/mo</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Beta Info */}
+              {isPremium && (
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                  <div className="flex items-start gap-3">
+                    <Rocket className="w-5 h-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-sm mb-1">Beta Tester</p>
+                      <p className="text-xs text-muted-foreground">
+                        Premium features free until official launch.
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/60 mt-1 font-mono">v0.9.2-beta</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Upgrade CTA */}
+              {!isPremium && (
+                <Button asChild variant="hero" className="w-full">
+                  <Link to="/app/premium">
+                    <Zap className="w-4 h-4 mr-2" />
+                    Upgrade to Premium
+                  </Link>
+                </Button>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          {/* Action Buttons */}
+          <div className="mt-8 space-y-3">
+            <Button onClick={handleSave} variant="hero" className="w-full min-h-[48px] rounded-xl" disabled={isSaving}>
               <Save className="w-4 h-4" />
               {isSaving ? "Saving..." : "Save Changes"}
             </Button>
-            <Button onClick={logout} variant="outline" className="w-full min-h-[52px] rounded-xl">
+            <Button onClick={logout} variant="outline" className="w-full min-h-[48px] rounded-xl">
               <LogOut className="w-4 h-4" />
               Sign Out
             </Button>
           </div>
 
-          {/* SuperHuman Labs Footer */}
-          <div className="mt-12 pt-6 border-t border-border/50 text-center">
-            <div className="flex items-center justify-center gap-1.5 text-muted-foreground/60 hover:text-muted-foreground/80 transition-colors">
+          {/* Footer */}
+          <div className="mt-10 pt-4 border-t border-border/30 text-center">
+            <div className="flex items-center justify-center gap-1.5 text-muted-foreground/50">
               <Zap className="w-3 h-3" />
-              <span className="text-xs font-medium tracking-wide">SuperHuman Labs</span>
+              <span className="text-[10px] font-medium tracking-wide">SuperHuman Labs</span>
             </div>
-            <p className="text-[10px] text-muted-foreground/40 mt-1">Cognitive Performance Engineering</p>
           </div>
         </div>
       </div>
