@@ -262,19 +262,19 @@ export default function NeuroLab() {
     <AppShell>
       <div className="px-4 py-4 max-w-md mx-auto space-y-0">
 
-        {/* Week Complete Banner - Compact */}
+        {/* Week Complete Banner - Muted styling */}
         {isWeekComplete && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-3 rounded-xl bg-success/8 border border-success/25"
+            className="mb-3 p-3 rounded-xl bg-muted/30 border border-border/50"
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-success/15 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4 text-success" />
+              <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-foreground/60" />
               </div>
               <div>
-                <h3 className="text-[12px] font-semibold text-success">Week Complete!</h3>
+                <h3 className="text-[12px] font-semibold text-foreground/80">Week Complete</h3>
                 <p className="text-[10px] text-muted-foreground">
                   {sessionsRequired} sessions done • Free training unlocked
                 </p>
