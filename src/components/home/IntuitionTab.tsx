@@ -51,22 +51,18 @@ export function IntuitionTab() {
     return "Low recovery is currently limiting your sharpness.";
   };
   
-  // Ring color based on status
-  const getRingColor = () => {
-    if (sharpness >= 70) return "hsl(142, 71%, 45%)";
-    if (sharpness >= 45) return "hsl(80, 60%, 50%)";
-    return "hsl(45, 85%, 50%)";
-  };
+  // Premium functional color - Electric Blue for Sharpness (fixed, not status-based)
+  const ringColor = "hsl(210, 100%, 60%)";
   
-  // Status badge styling
+  // Status badge styling - neutral tones, no alarm colors
   const getStatusStyle = (status: "low" | "moderate" | "good") => {
     switch (status) {
       case "good":
-        return "bg-green-500/15 text-green-400 border-green-500/30";
+        return "bg-primary/15 text-primary border-primary/30";
       case "moderate":
-        return "bg-yellow-500/15 text-yellow-400 border-yellow-500/30";
+        return "bg-muted/30 text-muted-foreground border-muted-foreground/30";
       case "low":
-        return "bg-orange-500/15 text-orange-400 border-orange-500/30";
+        return "bg-muted/20 text-muted-foreground/70 border-muted-foreground/20";
     }
   };
   
@@ -124,7 +120,7 @@ export function IntuitionTab() {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke={getRingColor()}
+              stroke={ringColor}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}

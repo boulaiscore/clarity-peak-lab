@@ -16,14 +16,8 @@ export function CapacityTab() {
   const progress = Math.min(recovery / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
   
-  // Dynamic color based on progress
-  const ringColor = recovery >= 90 
-    ? "hsl(142, 71%, 45%)" 
-    : recovery >= 60 
-      ? "hsl(80, 60%, 50%)" 
-      : recovery >= 30 
-        ? "hsl(45, 85%, 50%)" 
-        : "hsl(25, 90%, 50%)";
+  // Premium functional color - Teal for Recovery (fixed, not status-based)
+  const ringColor = "hsl(174, 72%, 45%)";
 
   // Status text based on recovery level
   const getRecoveryLabel = () => {
@@ -80,7 +74,7 @@ export function CapacityTab() {
       {/* Recovery Status Card */}
       <div className="px-2">
         <div className="flex items-start gap-3 mb-2">
-          <Leaf className="w-5 h-5 text-amber-400 mt-0.5" />
+          <Leaf className="w-5 h-5 text-teal-400 mt-0.5" />
           <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
