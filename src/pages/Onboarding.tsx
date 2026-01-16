@@ -6,25 +6,27 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth, TrainingGoal, Gender, WorkType, EducationLevel, DegreeDiscipline } from "@/contexts/AuthContext";
-import { useUpdateUserMetrics } from "@/hooks/useExercises";
 import { cn } from "@/lib/utils";
 import { Zap, Brain, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap, Bell, Leaf, Target, Flame } from "lucide-react";
-import { InitialAssessment } from "@/components/onboarding/InitialAssessment";
-import { useSaveBaseline } from "@/hooks/useBadges";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { updateUser, user } = useAuth();
-  const updateMetrics = useUpdateUserMetrics();
-  const saveBaseline = useSaveBaseline();
   
-  // Check if coming from reset assessment
+  // Check if coming from reset assessment - redirect to calibration directly
   const isResetAssessment = searchParams.get("step") === "assessment";
-  const [step, setStep] = useState<Step>(isResetAssessment ? 8 : 1);
+  
+  // Redirect to calibration if reset assessment
+  if (isResetAssessment) {
+    navigate("/app/calibration");
+    return null;
+  }
+  
+  const [step, setStep] = useState<Step>(1);
   
   // Personal data
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
@@ -44,133 +46,34 @@ const Onboarding = () => {
     ? differenceInYears(new Date(), birthDate) 
     : (isResetAssessment && user?.age ? user.age : undefined);
 
-  const handleNext = () => {
-    if (step < 8) {
+  const handleNext = async () => {
+    if (step < 7) {
       setStep((s) => (s + 1) as Step);
+    } else if (step === 7) {
+      // Save user data before navigating to calibration wizard
+      try {
+        await updateUser({
+          age: calculatedAge,
+          birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
+          gender,
+          workType,
+          educationLevel,
+          degreeDiscipline,
+          trainingGoals,
+          sessionDuration: "2min",
+          trainingPlan,
+          reminderEnabled: true,
+          reminderTime,
+          onboardingCompleted: false, // Will be marked true after calibration
+        });
+        // Navigate to the new Quick Baseline Calibration wizard
+        navigate("/app/calibration");
+      } catch (err) {
+        console.error("[Onboarding] Failed to save user data", err);
+      }
     }
   };
 
-  const handleAssessmentComplete = async (
-    results: {
-      // NEW COGNITIVE STATES
-      AE: number;  // Attentional Efficiency
-      RA: number;  // Rapid Association
-      CT: number;  // Critical Thinking
-      IN: number;  // Insight
-      S1: number;  // System 1 score
-      S2: number;  // System 2 score
-      cognitiveAge: number;
-    },
-    skipped: boolean = false
-  ) => {
-    try {
-      if (user?.id && !skipped) {
-        // Save cognitive states to database
-        // AE → focus_stability, RA → fast_thinking, CT → reasoning_accuracy, IN → slow_thinking
-        await updateMetrics.mutateAsync({
-          userId: user.id,
-          metricUpdates: {
-            focus_stability: results.AE,       // AE
-            fast_thinking: results.RA,         // RA
-            reasoning_accuracy: results.CT,    // CT
-            slow_thinking: results.IN,         // IN
-          },
-          isBaseline: true, // Flag to save values directly without training formula
-        });
-        
-        // Save baseline columns for Cognitive Age calculation
-        await saveBaseline.mutateAsync({
-          userId: user.id,
-          focus: results.AE,          // baseline_focus → AE
-          fastThinking: results.RA,   // baseline_fast_thinking → RA
-          reasoning: results.CT,      // baseline_reasoning → CT
-          slowThinking: results.IN,   // baseline_slow_thinking → IN
-          creativity: 50,             // Legacy, not used in new engine
-          cognitiveAge: results.cognitiveAge,
-        });
-      }
-  
-      if (isResetAssessment) {
-        navigate("/app/dashboard");
-        return;
-      }
-  
-      await updateUser({
-        age: calculatedAge,
-        birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
-        gender,
-        workType,
-        educationLevel,
-        degreeDiscipline,
-        trainingGoals,
-        sessionDuration: "2min",
-        trainingPlan,
-        reminderEnabled: true,
-        reminderTime,
-        onboardingCompleted: true,
-      });
-  
-      navigate("/app");
-    } catch (err) {
-      console.error("[Onboarding] handleAssessmentComplete FAILED", err);
-    }
-  };
-
-  const handleAssessmentSkipped = async () => {
-    try {
-      // Even when skipped, initialize cognitive states with defaults
-      if (user?.id) {
-        const defaultAge = calculatedAge ?? 35;
-        
-        // Create metrics record with default values
-        await updateMetrics.mutateAsync({
-          userId: user.id,
-          metricUpdates: {
-            focus_stability: 50,      // AE
-            fast_thinking: 50,        // RA
-            reasoning_accuracy: 50,   // CT
-            slow_thinking: 50,        // IN
-          },
-          isBaseline: true,
-        });
-        
-        // Save baseline values so Cognitive Age can be calculated
-        await saveBaseline.mutateAsync({
-          userId: user.id,
-          focus: 50,           // baseline_focus
-          fastThinking: 50,    // baseline_fast_thinking
-          reasoning: 50,       // baseline_reasoning
-          slowThinking: 50,    // baseline_slow_thinking
-          creativity: 50,      // Legacy
-          cognitiveAge: defaultAge,
-        });
-      }
-      
-      if (isResetAssessment) {
-        navigate("/app/dashboard");
-        return;
-      }
-  
-      await updateUser({
-        age: calculatedAge,
-        birthDate: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
-        gender,
-        workType,
-        educationLevel,
-        degreeDiscipline,
-        trainingGoals,
-        sessionDuration: "2min",
-        trainingPlan,
-        reminderEnabled: true,
-        reminderTime,
-        onboardingCompleted: true,
-      });
-  
-      navigate("/app");
-    } catch (err) {
-      console.error("[Onboarding] handleAssessmentSkipped FAILED", err);
-    }
-  };
 
 
   const handleComplete = async () => {
@@ -631,31 +534,23 @@ const Onboarding = () => {
                 💡 You can train at any time during the day — this is just your preferred reminder time.
               </p>
 
+
               <Button
-                onClick={() => setStep(8)}
+                onClick={handleNext}
                 variant="hero"
                 className="w-full h-[52px] text-[15px] font-medium"
                 disabled={!reminderTime}
               >
-                Continue to Assessment
+                Continue to Calibration
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
-          )}
-
-          {/* Step 8: Initial Cognitive Assessment */}
-          {step === 8 && calculatedAge && (
-            <InitialAssessment 
-              userAge={calculatedAge} 
-              onComplete={handleAssessmentComplete}
-              onSkip={handleAssessmentSkipped}
-            />
           )}
         </div>
       </div>
 
       {/* Tagline */}
-      {step !== 8 && (
+      {step !== 7 && (
         <div className="py-4 text-center">
           <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
             Strategic Cognitive Performance System
