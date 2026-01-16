@@ -616,6 +616,7 @@ export type Database = {
           slow_thinking: number
           spatial_reasoning: number
           tc_last_updated_at: string | null
+          tc_previous_value: number | null
           total_sessions: number
           training_capacity: number | null
           updated_at: string
@@ -671,6 +672,7 @@ export type Database = {
           slow_thinking?: number
           spatial_reasoning?: number
           tc_last_updated_at?: string | null
+          tc_previous_value?: number | null
           total_sessions?: number
           training_capacity?: number | null
           updated_at?: string
@@ -726,6 +728,7 @@ export type Database = {
           slow_thinking?: number
           spatial_reasoning?: number
           tc_last_updated_at?: string | null
+          tc_previous_value?: number | null
           total_sessions?: number
           training_capacity?: number | null
           updated_at?: string
