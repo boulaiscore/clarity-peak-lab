@@ -76,8 +76,8 @@ export function NeuralGrowthAnimation({
     };
   };
 
-  // Get Performance status (from cognitive metrics average)
-  const getPerformanceStatus = (score: number) => {
+  // Get Thinking Scores status (from cognitive metrics - Fast + Slow average)
+  const getThinkingStatus = (score: number) => {
     if (score >= 70) return { label: "High", color: "text-emerald-500" };
     if (score >= 40) return { label: "Building", color: "text-primary" };
     if (score >= 10) return { label: "Active", color: "text-amber-400" };
@@ -101,7 +101,7 @@ export function NeuralGrowthAnimation({
   const phaseInfo = getPhaseInfo(overallCognitiveScore);
   const statusText = customStatusText || phaseInfo.phase;
   
-  const performanceStatus = sciBreakdown ? getPerformanceStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
+  const thinkingStatus = sciBreakdown ? getThinkingStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
   const trainingLoadStatus = sciBreakdown ? getTrainingLoadStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
   const recoveryStatus = sciBreakdown ? getRecoveryStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
 
@@ -344,9 +344,9 @@ export function NeuralGrowthAnimation({
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-3 h-3 text-primary/60" />
-                  <span className="text-muted-foreground">Performance</span>
+                  <span className="text-muted-foreground">Fast + Slow Thinking</span>
                 </div>
-                <span className={performanceStatus.color}>{performanceStatus.label}</span>
+                <span className={thinkingStatus.color}>{thinkingStatus.label}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
@@ -371,9 +371,9 @@ export function NeuralGrowthAnimation({
           <div className="mt-3 pt-3 border-t border-border/20">
             <div className="grid grid-cols-3 gap-2 text-[9px]">
               <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Performance</div>
+                <div className="text-muted-foreground/60 uppercase mb-0.5">Thinking</div>
                 <div className="font-semibold text-primary">{sciBreakdown.cognitivePerformance.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Cognitive metrics</div>
+                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Fast + Slow avg</div>
               </div>
               <div className="text-center">
                 <div className="text-muted-foreground/60 uppercase mb-0.5">Training</div>
