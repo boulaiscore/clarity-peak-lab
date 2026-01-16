@@ -234,15 +234,12 @@ export function LearningPathMap({
                     </p>
                   </div>
                   
-                  {/* XP Badge */}
-                  <div className={cn(
-                    "shrink-0 text-[10px] font-medium px-2 py-1 rounded-lg",
-                    status === "completed" 
-                      ? "bg-primary/10 text-primary" 
-                      : "bg-muted/30 text-muted-foreground"
-                  )}>
-                    +{node.xpReward} XP
-                  </div>
+                  {/* v1.3: Tasks don't give XP, show status indicator only */}
+                  {status === "completed" && (
+                    <div className="shrink-0 text-[10px] font-medium px-2 py-1 rounded-lg bg-primary/10 text-primary">
+                      Done
+                    </div>
+                  )}
                   
                   {/* Play icon for current */}
                   {status === "current" && (

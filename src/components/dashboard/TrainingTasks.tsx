@@ -364,13 +364,8 @@ function TaskCard({ task, isCompleted, onComplete, isToggling }: TaskCardProps) 
             </div>
           </div>
 
-          {/* Right side - XP and thinking system */}
+          {/* Right side - thinking system */}
           <div className="flex flex-col items-end gap-1 shrink-0">
-            {!isCompleted && (
-              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-5 bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 font-semibold">
-                +{xp} XP
-              </Badge>
-            )}
             <ThinkingSystemBadge system={task.thinkingSystem} />
           </div>
 
@@ -392,13 +387,13 @@ function TaskCard({ task, isCompleted, onComplete, isToggling }: TaskCardProps) 
           <AlertDialogHeader>
             <AlertDialogTitle>Mark as Completed?</AlertDialogTitle>
             <AlertDialogDescription>
-              You'll earn <span className="text-amber-500 font-semibold">+{xp} XP</span> for completing "{task.title}".
+              Confirm completion of "{task.title}". This counts toward protocol adherence.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirm}>
-              Complete (+{xp} XP)
+              Complete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
