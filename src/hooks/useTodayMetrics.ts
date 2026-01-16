@@ -32,7 +32,7 @@
  * - Wearable Data: from wearable_snapshots table
  */
 
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
@@ -79,13 +79,6 @@ export interface UseTodayMetricsResult {
 function getCurrentWeekStart(): string {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   return format(weekStart, "yyyy-MM-dd");
-}
-
-// Module-level cache to prevent flicker across re-renders
-const metricsCache = new Map<string, UseTodayMetricsResult>();
-
-function getCacheKey(userId: string | undefined, weekStart: string): string {
-  return `${userId || 'anon'}:${weekStart}`;
 }
 
 export function useTodayMetrics(): UseTodayMetricsResult {
@@ -200,10 +193,10 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   // Check if all data sources are loaded
   const allLoaded = !statesLoading && !detoxLoading && !walkingLoading && !wearableLoading && !decayLoading;
   
-  const cacheKey = getCacheKey(userId, weekStart);
-  const cachedResult = metricsCache.get(cacheKey);
+  // Use ref to cache last valid result (prevents flicker during refetch)
+  const cachedResultRef = useRef<UseTodayMetricsResult | null>(null);
   
-  const freshResult = useMemo(() => {
+  const freshResult = useMemo((): UseTodayMetricsResult => {
     // Calculate Recovery (REC)
     const recovery = calculateRecovery({
       weeklyDetoxMinutes,
@@ -261,19 +254,16 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     };
   }, [states, S1, S2, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot, decayData, weekStart, allLoaded]);
   
-  // Update cache only when ALL data is loaded and metrics are meaningful
-  useEffect(() => {
-    if (allLoaded && userId) {
-      metricsCache.set(cacheKey, freshResult);
-    }
-  }, [allLoaded, userId, cacheKey, freshResult]);
+  // Update cached result only when all data is loaded
+  if (allLoaded) {
+    cachedResultRef.current = freshResult;
+  }
   
   // STABILITY: Return cached result while loading to prevent flicker
-  // Only use fresh result when all data sources are fully loaded
-  if (!allLoaded && cachedResult) {
+  if (!allLoaded && cachedResultRef.current) {
     return {
-      ...cachedResult,
-      isLoading: true, // Indicate we're still refreshing
+      ...cachedResultRef.current,
+      isLoading: true,
     };
   }
   
