@@ -381,7 +381,7 @@ export function NeuralGrowthAnimation({
             <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-2">
               What's shaping your strength
             </p>
-            <div className="space-y-1.5 text-left px-3 pb-1">
+            <div className="space-y-2 text-left px-3 pb-2">
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-3 h-3 text-primary/60" />

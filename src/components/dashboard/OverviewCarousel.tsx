@@ -276,34 +276,34 @@ export function OverviewCarousel({
             
             <div className="relative z-10">
               {/* Header with icon */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 shadow-inner">
-                  <FileText className="w-5 h-5 text-primary" />
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 shadow-inner flex-shrink-0">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-[15px] font-semibold text-foreground tracking-tight">Cognitive Intelligence Report</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Cognitive Intelligence Report</h3>
                     {!isPremium && (
-                      <span className="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-amber-400/10 text-amber-400 border border-amber-500/30">
+                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-amber-400/10 text-amber-400 border border-amber-500/30">
                         Premium
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                  <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 leading-relaxed">
                     Deep analysis of your cognitive architecture
                   </p>
                 </div>
               </div>
               
               {/* Feature highlights */}
-              <div className="flex items-center gap-4 mb-4 px-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:gap-4 mb-4 px-1">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-1 rounded-full bg-primary/60" />
-                  <span className="text-[10px] text-muted-foreground">Performance Metrics</span>
+                  <span className="text-[9px] sm:text-[10px] text-muted-foreground">Performance Metrics</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-1 rounded-full bg-primary/60" />
-                  <span className="text-[10px] text-muted-foreground">Actionable Insights</span>
+                  <span className="text-[9px] sm:text-[10px] text-muted-foreground">Actionable Insights</span>
                 </div>
               </div>
               
