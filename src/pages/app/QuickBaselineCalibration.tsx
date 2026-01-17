@@ -150,7 +150,11 @@ export default function QuickBaselineCalibration() {
           >
             <CalibrationIntro 
               onBegin={handleIntroComplete}
-              onSkip={() => navigate("/app")}
+              onSkip={async () => {
+                // Mark onboarding complete even when skipping calibration
+                await updateUser({ onboardingCompleted: true });
+                navigate("/app");
+              }}
             />
           </motion.div>
         )}
