@@ -413,9 +413,17 @@ export function NeuralGrowthAnimation({
           </div>
         )}
         
-        {/* Bottleneck - Biggest Lever with Scientific Classification */}
+        {/* Bottleneck - Your Biggest Growth Opportunity */}
         {bottleneck && bottleneck.potentialGain > 0 && (
           <div className="-mt-1 pt-2 border-t border-border/20">
+            {/* Section Header - Explains what this box means */}
+            <div className="flex items-center gap-1.5 mb-2 px-2">
+              <Zap className="w-3 h-3 text-muted-foreground/60" />
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+                Your Biggest Growth Opportunity
+              </span>
+            </div>
+            
             <TooltipProvider>
               <div 
                 className={`mx-2 p-2.5 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${
@@ -431,7 +439,8 @@ export function NeuralGrowthAnimation({
                   if (bottleneck.variable === "thinking" || bottleneck.variable === "training") {
                     navigate("/app/neuro-lab");
                   } else {
-                    navigate("/app/detox");
+                    // Navigate to Home with detox tab
+                    navigate("/app/home?tab=detox");
                   }
                 }}
               >
@@ -451,14 +460,14 @@ export function NeuralGrowthAnimation({
                   <Tooltip>
                     <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-1 text-[9px] text-muted-foreground/60 cursor-help">
-                        <span>{bottleneck.impact.normalizedImpact}% margine non sfruttato</span>
+                        <span>{bottleneck.impact.normalizedImpact}% untapped potential</span>
                         <HelpCircle className="w-3 h-3" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[200px] text-[10px]">
-                      <p className="font-medium mb-1">% del potenziale inutilizzato</p>
+                      <p className="font-medium mb-1">% of unused potential</p>
                       <p className="text-muted-foreground">
-                        Formula: guadagno ÷ (peso × 100) × 100
+                        Formula: gain ÷ (weight × 100) × 100
                       </p>
                       <p className="text-muted-foreground mt-1">
                         = {bottleneck.potentialGain} ÷ {bottleneck.weight * 100} × 100 = {bottleneck.impact.normalizedImpact}%
@@ -469,7 +478,7 @@ export function NeuralGrowthAnimation({
                 
                 {/* Current Score Display */}
                 <div className="flex items-center justify-center gap-2 mb-1.5 py-1 px-2 rounded bg-background/50">
-                  <span className="text-[9px] text-muted-foreground/70">Punteggio attuale:</span>
+                  <span className="text-[9px] text-muted-foreground/70">Current score:</span>
                   <span className={`text-[11px] font-semibold ${
                     bottleneck.variable === "thinking"
                       ? "text-primary"
@@ -506,21 +515,21 @@ export function NeuralGrowthAnimation({
                                   ? "text-blue-400"
                                   : "text-purple-400"
                         }`}>
-                          +{bottleneck.potentialGain} punti SCI
+                          +{bottleneck.potentialGain} pts
                         </span>
                         <HelpCircle className="w-3 h-3 text-muted-foreground/60" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[220px] text-[10px]">
-                      <p className="font-medium mb-1">Aumento massimo teorico</p>
+                      <p className="font-medium mb-1">Maximum theoretical increase</p>
                       <p className="text-muted-foreground">
-                        Formula: (100 − punteggio) × peso
+                        Formula: (100 − score) × weight
                       </p>
                       <p className="text-muted-foreground mt-1">
                         = (100 − {bottleneck.currentScore}) × {bottleneck.weight} = {bottleneck.potentialGain}
                       </p>
                       <p className="text-muted-foreground/70 mt-1.5 italic text-[9px]">
-                        Se questa leva arrivasse a 100, il tuo Neural Strength aumenterebbe di {bottleneck.potentialGain} punti.
+                        If this lever reached 100, your Neural Strength would increase by {bottleneck.potentialGain} points.
                       </p>
                     </TooltipContent>
                   </Tooltip>
