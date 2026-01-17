@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { sendPasswordResetEmail } from "@/lib/emailService";
-import { getPasswordResetRedirectUrl } from "@/lib/platformUtils";
+import { getPasswordResetRedirectUrl, isIOS } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
+import { toast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,6 +22,8 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const showAppleSignIn = isAppleAuthAvailable();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -96,6 +100,27 @@ const Auth = () => {
       setError("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsAppleLoading(true);
+    setError("");
+    
+    try {
+      const result = await signInWithApple();
+      if (!result.success && result.error) {
+        setError(result.error);
+        toast({
+          title: "Sign in failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      setError("Sign in with Apple failed");
+    } finally {
+      setIsAppleLoading(false);
     }
   };
 
@@ -326,6 +351,37 @@ const Auth = () => {
             <Button type="submit" variant="hero" className="w-full min-h-[52px] rounded-xl" disabled={isLoading}>
               {isLoading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
             </Button>
+
+            {/* Sign in with Apple - iOS only */}
+            {showAppleSignIn && (
+              <>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">or</span>
+                  </div>
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full min-h-[52px] rounded-xl bg-black text-white hover:bg-black/90 border-0"
+                  onClick={handleAppleSignIn}
+                  disabled={isAppleLoading}
+                >
+                  {isAppleLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                    </svg>
+                  )}
+                  {isAppleLoading ? "Signing in..." : "Sign in with Apple"}
+                </Button>
+              </>
+            )}
           </form>
 
           <div className="mt-6 text-center">
