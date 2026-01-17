@@ -360,3 +360,95 @@ export function initializeDailyReminder(
     cancelDailyReminder();
   }
 }
+
+// ============================================
+// DECAY WARNING NOTIFICATIONS
+// ============================================
+
+/**
+ * Show recovery warning notification (pre-decay).
+ * Triggered when REC < 40% for 2 consecutive days (before decay starts).
+ */
+export function showRecoveryWarningNotification(streakDays: number, currentRec: number): void {
+  showLocalNotification("⚠️ Recovery in calo", {
+    body: `REC al ${currentRec}% da ${streakDays} giorni. Previeni il decay con 30 min di detox.`,
+    data: { url: "/app/home" },
+    tag: "neuroloop-recovery-warning",
+    requireInteraction: true,
+  });
+}
+
+/**
+ * Show recovery critical notification (decay active).
+ * Triggered when REC < 40% for 3+ consecutive days (decay is happening).
+ */
+export function showRecoveryCriticalNotification(streakDays: number, decayPoints: number): void {
+  showLocalNotification("🚨 Readiness Decay Attivo", {
+    body: `${streakDays} giorni con REC < 40%. La tua Readiness sta calando di -${decayPoints} punti. Completa 45 min di recovery.`,
+    data: { url: "/app/home" },
+    tag: "neuroloop-recovery-critical",
+    requireInteraction: true,
+  });
+}
+
+/**
+ * Show soft inactivity nudge notification.
+ * Triggered when user hasn't earned XP for several days (before SCI decay).
+ */
+export function showInactivitySoftNotification(daysSinceXP: number): void {
+  showLocalNotification("💡 Cognitivamente idle", {
+    body: `${daysSinceXP} giorni senza training. Una sessione di 10 min mantiene il tuo SCI stabile.`,
+    data: { url: "/neuro-lab" },
+    tag: "neuroloop-inactivity-soft",
+    requireInteraction: false,
+  });
+}
+
+/**
+ * Show critical inactivity warning notification.
+ * Triggered when SCI decay is imminent (7+ days without XP).
+ */
+export function showInactivityCriticalNotification(daysSinceXP: number): void {
+  showLocalNotification("📉 SCI Decay Imminente", {
+    body: `${daysSinceXP} giorni senza XP. Il tuo Neural Strength inizierà a calare. Sessione rapida disponibile.`,
+    data: { url: "/neuro-lab" },
+    tag: "neuroloop-inactivity-critical",
+    requireInteraction: true,
+  });
+}
+
+/**
+ * Show weekly progress notification.
+ * Triggered on plan-specific days (e.g., Wednesday, Sunday).
+ */
+export function showWeeklyProgressNotification(
+  planName: string,
+  xp: number,
+  target: number,
+  percent: number,
+  recovery: number
+): void {
+  showLocalNotification("📊 Check Settimanale", {
+    body: `${planName}: ${xp}/${target} XP (${percent}%) | REC: ${recovery}%`,
+    data: { url: "/app/dashboard" },
+    tag: "neuroloop-weekly-progress",
+    requireInteraction: false,
+  });
+}
+
+/**
+ * Show weekend summary notification.
+ * Triggered on Sundays to recap the week.
+ */
+export function showWeekendSummaryNotification(
+  xp: number,
+  sessions: number,
+  avgRecovery: number
+): void {
+  showLocalNotification("📈 Riepilogo Settimanale", {
+    body: `Settimana completata: ${xp} XP | ${sessions} sessioni | REC media: ${avgRecovery}%`,
+    data: { url: "/app/dashboard" },
+    tag: "neuroloop-weekend-summary",
+    requireInteraction: false,
+  });
+}
