@@ -170,15 +170,15 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl border border-recovery/40 bg-muted/10"
+      className="p-4 rounded-xl border border-area-fast/40 bg-muted/10"
     >
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-lg bg-muted/20 flex items-center justify-center shrink-0">
-          <Battery className="w-5 h-5 text-recovery/70" />
+          <Battery className="w-5 h-5 text-area-fast/70" />
         </div>
         
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-recovery mb-1 uppercase tracking-wide">
+          <h4 className="text-sm font-medium text-area-fast mb-1 uppercase tracking-wide">
             System Prioritizing Recovery
           </h4>
           <p className="text-[11px] text-muted-foreground/80">
@@ -315,7 +315,7 @@ function MetricsBar({
       : "Full Capacity";
   
   const modeColor = globalMode === "RECOVERY_MODE"
-    ? "text-recovery"
+    ? "text-area-fast"
     : globalMode === "LOW_BANDWIDTH_MODE"
       ? "text-primary"
       : "text-emerald-500";
