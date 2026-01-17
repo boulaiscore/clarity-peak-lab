@@ -170,7 +170,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         node.vy *= 0.985;
       });
 
-      // Draw connections - curved blue filaments
+      // Draw connections - sharp crisp lines
       ctx.lineCap = 'round';
       nodes.forEach((node, i) => {
         node.connections.forEach((j) => {
@@ -179,80 +179,56 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           const dy = other.y - node.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          const pulse = 0.12 + Math.sin(time * 0.7 + node.pulsePhase) * 0.08;
+          const pulse = 0.2 + Math.sin(time * 0.7 + node.pulsePhase) * 0.1;
           const opacity = Math.max(0, pulse * (1 - dist / connectionDistance));
           
           const midX = (node.x + other.x) / 2;
           const midY = (node.y + other.y) / 2;
           const perpX = -dy / dist;
           const perpY = dx / dist;
-          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 12) + (Math.sin(time * 0.25 + i) * 4);
+          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 10) + (Math.sin(time * 0.25 + i) * 3);
           const ctrlX = midX + perpX * curveIntensity;
           const ctrlY = midY + perpY * curveIntensity;
           
-          // Main connection
+          // Single sharp connection line
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.quadraticCurveTo(ctrlX, ctrlY, other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${opacity * 0.4})`;
-          ctx.lineWidth = 0.6;
-          ctx.stroke();
-          
-          // Glow layer
-          ctx.beginPath();
-          ctx.moveTo(node.x, node.y);
-          ctx.quadraticCurveTo(ctrlX, ctrlY, other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${opacity * 0.15})`;
-          ctx.lineWidth = 2;
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${opacity * 0.7})`;
+          ctx.lineWidth = 0.8;
           ctx.stroke();
 
-          // Traveling pulse
-          if (Math.random() < 0.2) {
+          // Traveling pulse - smaller and sharper
+          if (Math.random() < 0.15) {
             const pulsePos = (time * 0.2 + i * 0.12) % 1;
             const t = pulsePos;
             const px = (1-t)*(1-t)*node.x + 2*(1-t)*t*ctrlX + t*t*other.x;
             const py = (1-t)*(1-t)*node.y + 2*(1-t)*t*ctrlY + t*t*other.y;
             
-            const pulseGradient = ctx.createRadialGradient(px, py, 0, px, py, 2.5);
-            pulseGradient.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${opacity * 0.6})`);
-            pulseGradient.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
             ctx.beginPath();
-            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = pulseGradient;
+            ctx.arc(px, py, 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20}%, ${opacity * 0.9})`;
             ctx.fill();
           }
         });
       });
 
-      // Draw nodes - sharp, defined dots
+      // Draw nodes - crisp defined dots
       nodes.forEach((node) => {
         const pulse = Math.sin(time * 0.7 + node.pulsePhase);
-        const currentRadius = node.radius * (0.9 + pulse * 0.15);
-        const glowIntensity = 0.7 + pulse * 0.3;
+        const currentRadius = node.radius * (0.95 + pulse * 0.1);
+        const glowIntensity = 0.8 + pulse * 0.2;
 
-        // Small subtle glow (reduced)
-        const smallGlow = ctx.createRadialGradient(
-          node.x, node.y, 0,
-          node.x, node.y, currentRadius * 2
-        );
-        smallGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.3 * glowIntensity})`);
-        smallGlow.addColorStop(0.6, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.1 * glowIntensity})`);
-        smallGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
+        // Sharp bright dot
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 2, 0, Math.PI * 2);
-        ctx.fillStyle = smallGlow;
-        ctx.fill();
-
-        // Sharp bright core
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20}%, ${0.9 * glowIntensity})`;
+        ctx.arc(node.x, node.y, currentRadius * 0.9, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 15}%, ${0.95 * glowIntensity})`;
         ctx.fill();
 
         // White hot center point
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.4, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(50, 100%, 95%, ${0.95 * glowIntensity})`;
+        ctx.arc(node.x, node.y, currentRadius * 0.45, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(50, 100%, 96%, ${0.98 * glowIntensity})`;
         ctx.fill();
       });
 
