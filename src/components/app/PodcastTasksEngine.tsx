@@ -170,7 +170,7 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl border border-border/20 bg-muted/10"
+      className="p-4 rounded-xl border border-border/50 bg-muted/10"
     >
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-lg bg-muted/20 flex items-center justify-center shrink-0">
