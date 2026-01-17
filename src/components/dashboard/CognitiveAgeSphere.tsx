@@ -50,24 +50,20 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const isDarkMode = theme === "dark";
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const sphereRadius = 95; // Increased radius
+    const baseRadius = 90;
 
-    // Colors matching the reference image
-    // Blue for connections
+    // Colors matching the current design
     const connectionColor = { h: 210, s: 90, l: isDarkMode ? 55 : 45 };
-    // Warm orange/amber for node cores
     const nodeColor = { h: 35, s: 100, l: 60 };
 
-    // Create nodes arranged around the perimeter (center stays empty)
+    // Create nodes arranged around the perimeter
     const nodes: Node[] = [];
-    const nodeCount = 80;
+    const nodeCount = 85;
     
-    // Create nodes distributed around the outer ring only
     for (let i = 0; i < nodeCount; i++) {
       const angle = (i / nodeCount) * Math.PI * 2 + Math.random() * 0.3;
-      // Keep nodes in outer ring area (60-100% of radius)
-      const radiusVariation = 0.6 + Math.random() * 0.4;
-      const r = sphereRadius * radiusVariation;
+      const radiusVariation = 0.55 + Math.random() * 0.45;
+      const r = baseRadius * radiusVariation;
       const x = centerX + Math.cos(angle) * r;
       const y = centerY + Math.sin(angle) * r;
       
@@ -76,23 +72,23 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         y,
         baseX: x,
         baseY: y,
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15,
-        radius: 1.5 + Math.random() * 2,
+        vx: (Math.random() - 0.5) * 0.12,
+        vy: (Math.random() - 0.5) * 0.12,
+        radius: 1.2 + Math.random() * 1.8,
         pulsePhase: Math.random() * Math.PI * 2,
         connections: [],
       });
     }
 
-    // Create many connections between nodes - dense neural network
-    const connectionDistance = 90;
+    // Create connections between nodes
+    const connectionDistance = 85;
     nodes.forEach((node, i) => {
       nodes.forEach((other, j) => {
         if (i >= j) return;
         const dx = node.x - other.x;
         const dy = node.y - other.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < connectionDistance && Math.random() < 0.85) {
+        if (dist < connectionDistance && Math.random() < 0.8) {
           node.connections.push(j);
         }
       });
@@ -101,88 +97,118 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     let animationId: number;
     let time = 0;
 
+    // Generate organic blob shape points
+    const blobPoints = 8;
+    const blobSeeds = Array.from({ length: blobPoints }, () => ({
+      amplitude: 8 + Math.random() * 12,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.3 + Math.random() * 0.4,
+    }));
+
+    const getBlobRadius = (angle: number, t: number) => {
+      let wobble = 0;
+      blobSeeds.forEach((seed, i) => {
+        wobble += Math.sin(angle * (i + 2) + t * seed.speed + seed.phase) * seed.amplitude;
+      });
+      // Add slow breathing pulse
+      const breathe = Math.sin(t * 0.4) * 4;
+      return baseRadius + wobble * 0.3 + breathe;
+    };
+
     const draw = () => {
-      time += 0.015;
+      time += 0.012;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw irregular organic sphere border
-      const segments = 60;
-      
-      // Outer glow with subtle irregular shape
+      const segments = 120;
+
+      // Layer 1: Outermost diffuse glow
       ctx.beginPath();
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
-        // Subtle organic wobble using sine waves
-        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 2;
-        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 1;
-        const pulseWobble = Math.sin(time * 0.5) * 1.5;
-        const r = sphereRadius + wobble1 + wobble2 + pulseWobble;
-        
-        const x = centerX + Math.cos(angle) * (r + 15);
-        const y = centerY + Math.sin(angle) * (r + 15);
-        
+        const r = getBlobRadius(angle, time) + 25;
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.closePath();
       
-      // Outer glow gradient
       const outerGlow = ctx.createRadialGradient(
-        centerX, centerY, sphereRadius - 15,
-        centerX, centerY, sphereRadius + 30
+        centerX, centerY, baseRadius * 0.3,
+        centerX, centerY, baseRadius + 45
       );
       outerGlow.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      outerGlow.addColorStop(0.4, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.12 : 0.08})`);
-      outerGlow.addColorStop(0.7, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.06 : 0.04})`);
+      outerGlow.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.03 : 0.02})`);
+      outerGlow.addColorStop(0.75, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`);
       outerGlow.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
       ctx.fillStyle = outerGlow;
       ctx.fill();
 
-      // Irregular sphere border ring
+      // Layer 2: Mid glow ring
       ctx.beginPath();
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
-        // Same subtle wobble for consistency
-        const wobble1 = Math.sin(angle * 3 + time * 0.5) * 2;
-        const wobble2 = Math.sin(angle * 5 + time * 0.3) * 1;
-        const pulseWobble = Math.sin(time * 0.5) * 1.5;
-        const r = sphereRadius + wobble1 + wobble2 + pulseWobble;
-        
+        const r = getBlobRadius(angle, time) + 12;
         const x = centerX + Math.cos(angle) * r;
         const y = centerY + Math.sin(angle) * r;
-        
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.15 : 0.1})`;
-      ctx.lineWidth = 4;
-      ctx.filter = 'blur(3px)';
-      ctx.stroke();
-      
-      // Second softer pass
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`;
-      ctx.lineWidth = 8;
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.15 : 0.1})`;
+      ctx.lineWidth = 18;
+      ctx.filter = 'blur(8px)';
       ctx.stroke();
       ctx.filter = 'none';
 
-      // Update node positions with gentle floating
+      // Layer 3: Primary glowing edge
+      ctx.beginPath();
+      for (let i = 0; i <= segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        const r = getBlobRadius(angle, time);
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      
+      // Bright edge glow
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.35 : 0.25})`;
+      ctx.lineWidth = 8;
+      ctx.filter = 'blur(4px)';
+      ctx.stroke();
+      ctx.filter = 'none';
+
+      // Sharp inner edge
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.25 : 0.18})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Inner fill gradient (subtle)
+      const innerFill = ctx.createRadialGradient(
+        centerX, centerY, 0,
+        centerX, centerY, baseRadius
+      );
+      innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
+      innerFill.addColorStop(0.7, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.02 : 0.01})`);
+      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.05 : 0.03})`);
+      ctx.fillStyle = innerFill;
+      ctx.fill();
+
+      // Update node positions
       nodes.forEach((node) => {
         node.x += node.vx;
         node.y += node.vy;
-
-        // Pull back towards base position
         const dx = node.baseX - node.x;
         const dy = node.baseY - node.y;
-        node.vx += dx * 0.008;
-        node.vy += dy * 0.008;
-
-        // Damping
-        node.vx *= 0.98;
-        node.vy *= 0.98;
+        node.vx += dx * 0.006;
+        node.vy += dy * 0.006;
+        node.vx *= 0.985;
+        node.vy *= 0.985;
       });
 
-      // Draw connections first (behind nodes) - curved blue filaments
+      // Draw connections - curved blue filaments
       ctx.lineCap = 'round';
       nodes.forEach((node, i) => {
         node.connections.forEach((j) => {
@@ -191,104 +217,100 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           const dy = other.y - node.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          // Pulsing opacity on connections
-          const pulse = 0.15 + Math.sin(time * 0.8 + node.pulsePhase) * 0.1;
+          const pulse = 0.12 + Math.sin(time * 0.7 + node.pulsePhase) * 0.08;
           const opacity = Math.max(0, pulse * (1 - dist / connectionDistance));
           
-          // Calculate control point for curved line (perpendicular offset)
           const midX = (node.x + other.x) / 2;
           const midY = (node.y + other.y) / 2;
           const perpX = -dy / dist;
           const perpY = dx / dist;
-          // Add some variation to curve direction and intensity
-          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 15) + (Math.sin(time * 0.3 + i) * 5);
+          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 12) + (Math.sin(time * 0.25 + i) * 4);
           const ctrlX = midX + perpX * curveIntensity;
           const ctrlY = midY + perpY * curveIntensity;
           
-          // Draw curved connection line
+          // Main connection
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.quadraticCurveTo(ctrlX, ctrlY, other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${opacity * 0.5})`;
-          ctx.lineWidth = 0.5;
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${opacity * 0.4})`;
+          ctx.lineWidth = 0.6;
           ctx.stroke();
           
-          // Add second layer for glow effect
+          // Glow layer
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.quadraticCurveTo(ctrlX, ctrlY, other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${opacity * 0.2})`;
-          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${opacity * 0.15})`;
+          ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Add traveling pulse effect along some connections
-          if (Math.random() < 0.25) {
-            const pulsePos = (time * 0.25 + i * 0.15) % 1;
-            // Calculate point along quadratic curve
+          // Traveling pulse
+          if (Math.random() < 0.2) {
+            const pulsePos = (time * 0.2 + i * 0.12) % 1;
             const t = pulsePos;
             const px = (1-t)*(1-t)*node.x + 2*(1-t)*t*ctrlX + t*t*other.x;
             const py = (1-t)*(1-t)*node.y + 2*(1-t)*t*ctrlY + t*t*other.y;
             
-            const pulseGradient = ctx.createRadialGradient(px, py, 0, px, py, 2);
-            pulseGradient.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${opacity * 0.5})`);
+            const pulseGradient = ctx.createRadialGradient(px, py, 0, px, py, 2.5);
+            pulseGradient.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${opacity * 0.6})`);
             pulseGradient.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
             ctx.beginPath();
-            ctx.arc(px, py, 2, 0, Math.PI * 2);
+            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
             ctx.fillStyle = pulseGradient;
             ctx.fill();
           }
         });
       });
 
-      // Draw nodes (neurons) - warm orange/amber glow with slower pulse
+      // Draw nodes - warm orange/amber glow
       nodes.forEach((node) => {
-        const pulse = Math.sin(time * 0.8 + node.pulsePhase);
-        const currentRadius = node.radius * (0.8 + pulse * 0.3);
-        const glowIntensity = 0.5 + pulse * 0.4;
+        const pulse = Math.sin(time * 0.7 + node.pulsePhase);
+        const currentRadius = node.radius * (0.85 + pulse * 0.25);
+        const glowIntensity = 0.55 + pulse * 0.35;
 
-        // Outer glow (large, soft) - orange tint
+        // Outer glow
         const outerNodeGlow = ctx.createRadialGradient(
           node.x, node.y, 0,
-          node.x, node.y, currentRadius * 5
+          node.x, node.y, currentRadius * 4.5
         );
-        outerNodeGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.2 * glowIntensity})`);
-        outerNodeGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l - 10}%, ${0.08 * glowIntensity})`);
+        outerNodeGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.18 * glowIntensity})`);
+        outerNodeGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l - 10}%, ${0.06 * glowIntensity})`);
         outerNodeGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 5, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, currentRadius * 4.5, 0, Math.PI * 2);
         ctx.fillStyle = outerNodeGlow;
         ctx.fill();
 
         // Middle glow
         const middleGlow = ctx.createRadialGradient(
           node.x, node.y, 0,
-          node.x, node.y, currentRadius * 2.5
+          node.x, node.y, currentRadius * 2.2
         );
-        middleGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 15}%, ${0.5 * glowIntensity})`);
-        middleGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.25 * glowIntensity})`);
+        middleGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 15}%, ${0.45 * glowIntensity})`);
+        middleGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.2 * glowIntensity})`);
         middleGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 2.5, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, currentRadius * 2.2, 0, Math.PI * 2);
         ctx.fillStyle = middleGlow;
         ctx.fill();
 
-        // Inner bright core - white/yellow hot
+        // Core
         const coreGlow = ctx.createRadialGradient(
           node.x, node.y, 0,
           node.x, node.y, currentRadius
         );
-        coreGlow.addColorStop(0, `hsla(45, 100%, 95%, ${0.9 * glowIntensity})`);
-        coreGlow.addColorStop(0.4, `hsla(${nodeColor.h}, 100%, 75%, ${0.7 * glowIntensity})`);
+        coreGlow.addColorStop(0, `hsla(45, 100%, 95%, ${0.85 * glowIntensity})`);
+        coreGlow.addColorStop(0.4, `hsla(${nodeColor.h}, 100%, 75%, ${0.65 * glowIntensity})`);
         coreGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
         ctx.beginPath();
         ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
         ctx.fillStyle = coreGlow;
         ctx.fill();
 
-        // White hot center point
+        // White hot center
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.3, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(50, 100%, 98%, ${0.85 * glowIntensity})`;
+        ctx.arc(node.x, node.y, currentRadius * 0.25, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(50, 100%, 98%, ${0.8 * glowIntensity})`;
         ctx.fill();
       });
 
