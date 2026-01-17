@@ -503,6 +503,15 @@ export function NeuralGrowthAnimation({
                 </div>
               </div>
               
+              {/* Effort hint - how much to gain 1 point */}
+              <p className="text-[9px] text-muted-foreground/60 text-center mb-3 italic">
+                {bottleneck.variable === "recovery"
+                  ? "~10 min of Detox or Walking ≈ +1 Neural Strength"
+                  : bottleneck.variable === "training"
+                    ? "~200 XP this week ≈ +1 Neural Strength"
+                    : "1 training session ≈ +1 Neural Strength"}
+              </p>
+              
               {/* CTA Button */}
               <div className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[11px] font-medium transition-colors ${
                 bottleneck.variable === "recovery"
@@ -513,9 +522,7 @@ export function NeuralGrowthAnimation({
               }`}>
                 {bottleneck.variable === "recovery" 
                   ? "Start Detox Session"
-                  : bottleneck.variable === "training"
-                    ? "Go to NeuroLab"
-                    : "Train Your Mind"}
+                  : "Go to Lab"}
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </div>
