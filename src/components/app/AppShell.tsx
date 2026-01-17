@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Home, LayoutDashboard, User, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
+import { useDecayNotificationInit } from "@/hooks/useDecayNotificationInit";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface AppShellProps {
@@ -28,6 +29,9 @@ export function AppShell({ children }: AppShellProps) {
   const { permission, isSupported, checkReminders } = useNotifications();
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  
+  // Initialize decay notifications on app load
+  useDecayNotificationInit();
   
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
