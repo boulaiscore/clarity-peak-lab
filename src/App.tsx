@@ -38,10 +38,15 @@ import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 
 const queryClient = new QueryClient();
 
-// Component that handles auto-seeding, notification initialization, and deep links
+// Component that handles auto-seeding and notification initialization (outside Router)
 function AppInitProvider({ children }: { children: React.ReactNode }) {
   useAutoSeedExercises();
   useNotificationInit();
+  return <>{children}</>;
+}
+
+// Component that handles deep links (inside Router)
+function DeepLinkHandler({ children }: { children: React.ReactNode }) {
   useDeepLinks();
   return <>{children}</>;
 }
@@ -291,7 +296,9 @@ const App = () => (
             <Toaster />
             <Sonner />
             <HashRouter>
-              <AppRoutes />
+              <DeepLinkHandler>
+                <AppRoutes />
+              </DeepLinkHandler>
             </HashRouter>
           </TooltipProvider>
         </AppInitProvider>
