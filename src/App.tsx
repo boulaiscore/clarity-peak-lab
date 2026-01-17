@@ -36,6 +36,13 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUserDetail from "./pages/admin/AdminUserDetail";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import { AdminRoute } from "./components/admin/AdminRoute";
+
 const queryClient = new QueryClient();
 
 // Component that handles auto-seeding and notification initialization (outside Router)
@@ -282,6 +289,13 @@ function AppRoutes() {
         }
       />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+      <Route path="/admin/users/:userId" element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
+      <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
