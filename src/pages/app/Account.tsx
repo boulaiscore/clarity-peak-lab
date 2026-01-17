@@ -14,14 +14,14 @@ import { useAuth, SessionDuration } from "@/contexts/AuthContext";
 import { usePremiumGating, MAX_DAILY_SESSIONS_FREE } from "@/hooks/usePremiumGating";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
+import { usePurchases } from "@/hooks/usePurchases";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2, Watch } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2, Watch, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sendPremiumUpgradeEmail } from "@/lib/emailService";
-import { getStripeRedirectUrls, isNative } from "@/lib/platformUtils";
-import { Browser } from "@capacitor/browser";
+import { isIOS } from "@/lib/platformUtils";
 
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
@@ -76,6 +76,14 @@ const Account = () => {
   const { isPremium, dailySessionsUsed, remainingSessions } = usePremiumGating();
   const { permission, isSupported, requestPermission, setDailyReminder, scheduledAt } = useNotifications();
   const { theme, toggleTheme } = useTheme();
+  const { 
+    purchasePremium, 
+    purchasePro, 
+    restoreAllPurchases, 
+    isRestoring, 
+    isPurchasing,
+    useNativeIAP 
+  } = usePurchases();
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
   
@@ -174,55 +182,30 @@ const Account = () => {
     }
   };
 
-  const handleStripeCheckout = async (tier: 'premium' | 'pro') => {
-    if (!user?.id || !session) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to subscribe.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  // Handle subscription purchase (uses native IAP on iOS, Stripe on web)
+  const handleSubscribe = async (tier: 'premium' | 'pro') => {
     setIsUpgrading(true);
     setSelectedTier(tier);
 
     try {
-      const { successUrl, cancelUrl } = getStripeRedirectUrls(
-        '/app/account?success=true',
-        '/app/account?canceled=true'
-      );
-      
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: {
-          userId: user.id,
-          userEmail: user.email,
-          tier: tier,
-          successUrl,
-          cancelUrl,
-        },
-      });
+      const result = tier === 'premium' 
+        ? await purchasePremium() 
+        : await purchasePro();
 
-      if (error) throw error;
-      if (data?.url) {
-        // On native, use in-app browser for better UX
-        if (isNative()) {
-          await Browser.open({ url: data.url });
-        } else {
-          window.location.href = data.url;
+      if (result.success) {
+        if (user?.email) {
+          sendPremiumUpgradeEmail(user.email, user.name || undefined).catch(console.error);
         }
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start checkout. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setIsUpgrading(false);
       setSelectedTier(null);
     }
+  };
+
+  // Handle restore purchases (iOS only)
+  const handleRestorePurchases = async () => {
+    await restoreAllPurchases();
   };
 
   // Load settings from database
@@ -827,11 +810,11 @@ const Account = () => {
                 </ul>
                 {!isPremium && (
                   <Button 
-                    onClick={() => handleStripeCheckout('premium')} 
+                    onClick={() => handleSubscribe('premium')} 
                     variant="outline" 
                     size="sm"
                     className="w-full"
-                    disabled={isUpgrading}
+                    disabled={isUpgrading || isPurchasing}
                   >
                     {isUpgrading && selectedTier === 'premium' ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -874,17 +857,35 @@ const Account = () => {
                   </li>
                 </ul>
                 <Button 
-                  onClick={() => handleStripeCheckout('pro')} 
+                  onClick={() => handleSubscribe('pro')} 
                   variant="hero" 
                   size="sm"
                   className="w-full"
-                  disabled={isUpgrading}
+                  disabled={isUpgrading || isPurchasing}
                 >
                   {isUpgrading && selectedTier === 'pro' ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : null}
                   Start 7-Day Free Trial
                 </Button>
+
+                {/* Restore Purchases - iOS only */}
+                {useNativeIAP && (
+                  <Button 
+                    onClick={handleRestorePurchases} 
+                    variant="ghost" 
+                    size="sm"
+                    className="w-full mt-2 text-xs"
+                    disabled={isRestoring}
+                  >
+                    {isRestoring ? (
+                      <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                    ) : (
+                      <RotateCw className="w-3 h-3 mr-1.5" />
+                    )}
+                    Restore Purchases
+                  </Button>
+                )}
               </div>
 
               {/* Free Plan */}
