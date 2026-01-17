@@ -415,7 +415,7 @@ export function NeuralGrowthAnimation({
         
         {/* Bottleneck - Biggest Lever with Scientific Classification */}
         {bottleneck && bottleneck.potentialGain > 0 && (
-          <div className="mt-3 pt-3 border-t border-border/20">
+          <div className="mt-1 pt-2 border-t border-border/20">
             <TooltipProvider>
               <div 
                 className={`mx-2 p-2.5 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${
