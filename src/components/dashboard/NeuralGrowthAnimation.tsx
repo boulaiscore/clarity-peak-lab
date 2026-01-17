@@ -413,143 +413,112 @@ export function NeuralGrowthAnimation({
           </div>
         )}
         
-        {/* Bottleneck - Your Biggest Growth Opportunity */}
+        {/* Bottleneck - Focus Here to Grow Faster */}
         {bottleneck && bottleneck.potentialGain > 0 && (
           <div className="-mt-1 pt-2 border-t border-border/20">
-            {/* Section Header - Explains what this box means */}
+            {/* Section Header */}
             <div className="flex items-center gap-1.5 mb-2 px-2">
-              <Zap className="w-3 h-3 text-muted-foreground/60" />
-              <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-medium">
-                Your Biggest Growth Opportunity
+              <Zap className="w-3 h-3 text-amber-400" />
+              <span className="text-[9px] uppercase tracking-wider text-amber-400/90 font-semibold">
+                Focus here to grow faster
               </span>
             </div>
             
-            <TooltipProvider>
-              <div 
-                className={`mx-2 p-2.5 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${
-                  bottleneck.impact.level === "critical"
-                    ? "bg-red-500/5 border-red-500/30 hover:border-red-500/50"
-                    : bottleneck.impact.level === "high"
-                      ? "bg-amber-500/5 border-amber-500/30 hover:border-amber-500/50"
-                      : bottleneck.impact.level === "moderate"
-                        ? "bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40"
-                        : "bg-muted/5 border-muted/20 hover:border-muted/40"
-                }`}
-                onClick={() => {
-                  if (bottleneck.variable === "thinking" || bottleneck.variable === "training") {
-                    navigate("/app/neuro-lab");
-                  } else {
-                    // Navigate to Home with detox tab
-                    navigate("/app/home?tab=detox");
-                  }
-                }}
-              >
-                {/* Impact Level Badge with Tooltip */}
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className={`text-[8px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${
-                    bottleneck.impact.level === "critical"
-                      ? "bg-red-500/20 text-red-400"
-                      : bottleneck.impact.level === "high"
-                        ? "bg-amber-500/20 text-amber-400"
-                        : bottleneck.impact.level === "moderate"
-                          ? "bg-blue-500/20 text-blue-400"
-                          : "bg-muted/20 text-muted-foreground"
-                  }`}>
-                    {bottleneck.impact.label}
-                  </span>
-                  <Tooltip>
-                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1 text-[9px] text-muted-foreground/60 cursor-help">
-                        <span>{bottleneck.impact.normalizedImpact}% untapped potential</span>
-                        <HelpCircle className="w-3 h-3" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[200px] text-[10px]">
-                      <p className="font-medium mb-1">% of unused potential</p>
-                      <p className="text-muted-foreground">
-                        Formula: gain ÷ (weight × 100) × 100
-                      </p>
-                      <p className="text-muted-foreground mt-1">
-                        = {bottleneck.potentialGain} ÷ {bottleneck.weight * 100} × 100 = {bottleneck.impact.normalizedImpact}%
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+            <div 
+              className={`mx-2 p-3 rounded-lg border cursor-pointer transition-all hover:scale-[1.01] ${
+                bottleneck.variable === "recovery"
+                  ? "bg-purple-500/5 border-purple-500/30 hover:border-purple-500/50"
+                  : bottleneck.variable === "training"
+                    ? "bg-blue-500/5 border-blue-500/30 hover:border-blue-500/50"
+                    : "bg-primary/5 border-primary/30 hover:border-primary/50"
+              }`}
+              onClick={() => {
+                if (bottleneck.variable === "thinking" || bottleneck.variable === "training") {
+                  navigate("/app/neuro-lab");
+                } else {
+                  navigate("/app/home?tab=detox");
+                }
+              }}
+            >
+              {/* Clear Message - What's weak and what to do */}
+              <div className="flex items-start gap-2 mb-3">
+                <div className={`p-1.5 rounded-full ${
+                  bottleneck.variable === "recovery"
+                    ? "bg-purple-500/20"
+                    : bottleneck.variable === "training"
+                      ? "bg-blue-500/20"
+                      : "bg-primary/20"
+                }`}>
+                  {bottleneck.variable === "thinking" && <Zap className="w-4 h-4 text-primary" />}
+                  {bottleneck.variable === "training" && <Target className="w-4 h-4 text-blue-400" />}
+                  {bottleneck.variable === "recovery" && <Moon className="w-4 h-4 text-purple-400" />}
                 </div>
-                
-                {/* Current Score Display */}
-                <div className="flex items-center justify-center gap-2 mb-1.5 py-1 px-2 rounded bg-background/50">
-                  <span className="text-[9px] text-muted-foreground/70">Current score:</span>
-                  <span className={`text-[11px] font-semibold ${
-                    bottleneck.variable === "thinking"
-                      ? "text-primary"
+                <div className="flex-1">
+                  <p className="text-[11px] font-medium text-foreground leading-snug">
+                    {bottleneck.variable === "recovery" 
+                      ? "Your Recovery is your weakest link."
                       : bottleneck.variable === "training"
-                        ? "text-blue-400"
-                        : "text-purple-400"
-                  }`}>
-                    {bottleneck.currentScore}/100
-                  </span>
-                </div>
-                
-                {/* Variable and Points with Tooltip */}
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    {bottleneck.variable === "thinking" && <Zap className="w-3.5 h-3.5 text-primary" />}
-                    {bottleneck.variable === "training" && <Target className="w-3.5 h-3.5 text-blue-400" />}
-                    {bottleneck.variable === "recovery" && <Moon className="w-3.5 h-3.5 text-purple-400" />}
-                    <span className="text-[10px] font-medium text-foreground/80">
-                      {bottleneck.variable === "thinking" ? "Thinking Scores" : 
-                       bottleneck.variable === "training" ? "Training Load" : "Recovery"}
-                    </span>
-                  </div>
-                  <Tooltip>
-                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1 cursor-help">
-                        <span className={`text-[12px] font-bold ${
-                          bottleneck.impact.level === "critical"
-                            ? "text-red-400"
-                            : bottleneck.impact.level === "high"
-                              ? "text-amber-400"
-                              : bottleneck.variable === "thinking"
-                                ? "text-primary"
-                                : bottleneck.variable === "training"
-                                  ? "text-blue-400"
-                                  : "text-purple-400"
-                        }`}>
-                          +{bottleneck.potentialGain} pts
-                        </span>
-                        <HelpCircle className="w-3 h-3 text-muted-foreground/60" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[220px] text-[10px]">
-                      <p className="font-medium mb-1">Maximum theoretical increase</p>
-                      <p className="text-muted-foreground">
-                        Formula: (100 − score) × weight
-                      </p>
-                      <p className="text-muted-foreground mt-1">
-                        = (100 − {bottleneck.currentScore}) × {bottleneck.weight} = {bottleneck.potentialGain}
-                      </p>
-                      <p className="text-muted-foreground/70 mt-1.5 italic text-[9px]">
-                        If this lever reached 100, your Neural Strength would increase by {bottleneck.potentialGain} points.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                
-                {/* Scientific Description */}
-                <p className="text-[9px] text-muted-foreground/70 italic mb-1">
-                  {bottleneck.impact.description}
-                </p>
-                
-                {/* Action */}
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  {bottleneck.actionDescription}
-                </p>
-                <div className="flex items-center gap-1 mt-1.5 text-[9px] text-muted-foreground/70">
-                  <span>{bottleneck.actionLabel}</span>
-                  <ArrowRight className="w-3 h-3" />
+                        ? "You're not training enough this week."
+                        : "Your cognitive scores need improvement."}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {bottleneck.variable === "recovery"
+                      ? "Complete Detox or Walking sessions to boost it."
+                      : bottleneck.variable === "training"
+                        ? "Play more games to earn XP and level up."
+                        : "Train in NeuroLab to sharpen your thinking."}
+                  </p>
                 </div>
               </div>
-            </TooltipProvider>
+              
+              {/* Progress Bar - Current vs Target */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between text-[9px] mb-1">
+                  <span className="text-muted-foreground">Current</span>
+                  <span className="text-muted-foreground">Target: 100</span>
+                </div>
+                <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all ${
+                      bottleneck.variable === "recovery"
+                        ? "bg-purple-400"
+                        : bottleneck.variable === "training"
+                          ? "bg-blue-400"
+                          : "bg-primary"
+                    }`}
+                    style={{ width: `${Math.min(100, bottleneck.currentScore)}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className={`text-[11px] font-bold ${
+                    bottleneck.variable === "recovery"
+                      ? "text-purple-400"
+                      : bottleneck.variable === "training"
+                        ? "text-blue-400"
+                        : "text-primary"
+                  }`}>
+                    {bottleneck.currentScore}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground/60">100</span>
+                </div>
+              </div>
+              
+              {/* CTA Button */}
+              <div className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[11px] font-medium transition-colors ${
+                bottleneck.variable === "recovery"
+                  ? "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30"
+                  : bottleneck.variable === "training"
+                    ? "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
+                    : "bg-primary/20 text-primary hover:bg-primary/30"
+              }`}>
+                {bottleneck.variable === "recovery" 
+                  ? "Start Detox Session"
+                  : bottleneck.variable === "training"
+                    ? "Go to NeuroLab"
+                    : "Train Your Mind"}
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
           </div>
         )}
         
