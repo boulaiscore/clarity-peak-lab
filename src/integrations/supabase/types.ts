@@ -349,6 +349,7 @@ export type Database = {
           monthly_report_reset_at: string | null
           name: string | null
           onboarding_completed: boolean | null
+          primary_device: string | null
           reminder_enabled: boolean | null
           reminder_time: string | null
           report_credits: number
@@ -380,6 +381,7 @@ export type Database = {
           monthly_report_reset_at?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
+          primary_device?: string | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           report_credits?: number
@@ -411,6 +413,7 @@ export type Database = {
           monthly_report_reset_at?: string | null
           name?: string | null
           onboarding_completed?: boolean | null
+          primary_device?: string | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           report_credits?: number
