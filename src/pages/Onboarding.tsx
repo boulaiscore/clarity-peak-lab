@@ -90,7 +90,7 @@ const Onboarding = () => {
   ];
 
   const workTypeOptions: { value: WorkType; label: string; description: string }[] = [
-    { value: "knowledge", label: "Knowledge Work", description: "Research, analysis, consulting" },
+    { value: "knowledge", label: "Consulting, Analyst", description: "Research, analysis, consulting" },
     { value: "creative", label: "Creative", description: "Design, writing, art" },
     { value: "technical", label: "Technical", description: "Engineering, development" },
     { value: "management", label: "Leadership", description: "Strategy, management, C-suite" },
@@ -366,19 +366,16 @@ const Onboarding = () => {
           {/* Step 5: Work Type */}
           {step === 5 && (
             <div className="animate-fade-in">
-              <div className="text-center mb-6">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+              <div className="text-center mb-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
                   <Briefcase className="w-5 h-5 text-primary" />
                 </div>
-                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                <h1 className="text-xl font-semibold tracking-tight">
                   Your work
                 </h1>
-                <p className="text-muted-foreground text-[13px]">
-                  How you apply strategic thinking
-                </p>
               </div>
               
-              <div className="space-y-2 mb-6">
+              <div className="space-y-1.5 mb-4">
                 {workTypeOptions.map((option) => (
                   <button
                     key={option.value}
