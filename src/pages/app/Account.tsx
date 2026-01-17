@@ -17,7 +17,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2 } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2, Watch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sendPremiumUpgradeEmail } from "@/lib/emailService";
 
@@ -55,6 +55,15 @@ const disciplineLabels: Record<string, string> = {
   health: "Health & Medicine",
   law: "Law",
   arts: "Arts & Design",
+  other: "Other",
+};
+
+// Device labels mapping
+const DEVICE_LABELS: Record<string, string> = {
+  apple_health: "Apple Watch / Apple Health",
+  whoop: "Whoop",
+  oura: "Oura Ring",
+  garmin: "Garmin",
   other: "Other",
 };
 
@@ -632,6 +641,29 @@ const Account = () => {
                 <p className="text-[10px] text-muted-foreground/60 mt-2">
                   Device: {Intl.DateTimeFormat().resolvedOptions().timeZone}
                 </p>
+              </div>
+
+              {/* Health Device */}
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                  <Watch className="w-4 h-4 text-primary" />
+                  Health Device
+                </h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {user?.primaryDevice ? DEVICE_LABELS[user.primaryDevice] : "Not selected"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {user?.primaryDevice ? "Wearable integration" : "Select your primary device"}
+                    </p>
+                  </div>
+                  <Link to="/app/health">
+                    <Button variant="outline" size="sm">
+                      {user?.primaryDevice ? "Change" : "Select"}
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
               {/* Help & Support */}
