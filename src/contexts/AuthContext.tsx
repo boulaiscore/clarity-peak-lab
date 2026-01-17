@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { sendWelcomeEmail } from "@/lib/emailService";
+import { getAuthRedirectUrl } from "@/lib/platformUtils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 
 export type TrainingGoal = "fast_thinking" | "slow_thinking";
@@ -224,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: "Password must be at least 6 characters" };
     }
 
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = getAuthRedirectUrl();
 
     const { error } = await supabase.auth.signUp({
       email,

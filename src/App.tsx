@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
+import { useDeepLinks } from "@/hooks/useDeepLinks";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -37,10 +38,11 @@ import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 
 const queryClient = new QueryClient();
 
-// Component that handles auto-seeding and notification initialization
+// Component that handles auto-seeding, notification initialization, and deep links
 function AppInitProvider({ children }: { children: React.ReactNode }) {
   useAutoSeedExercises();
   useNotificationInit();
+  useDeepLinks();
   return <>{children}</>;
 }
 
