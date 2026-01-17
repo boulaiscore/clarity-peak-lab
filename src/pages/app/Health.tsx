@@ -1,9 +1,19 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { Watch, Moon, Footprints, Heart, Activity, Flame, Info, Check, Clock } from "lucide-react";
+import { Watch, Moon, Footprints, Heart, Activity, Flame, Info, Check, Clock, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, PrimaryDevice } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DeviceOption {
   id: PrimaryDevice;
@@ -70,6 +80,8 @@ const Health = () => {
   const { user, updateUser } = useAuth();
   const [selectedDevice, setSelectedDevice] = useState<PrimaryDevice | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingDevice, setPendingDevice] = useState<PrimaryDevice | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Load initial device from user profile
   useEffect(() => {
@@ -78,22 +90,43 @@ const Health = () => {
     }
   }, [user?.primaryDevice]);
 
-  const handleDeviceSelect = async (deviceId: PrimaryDevice) => {
-    setSelectedDevice(deviceId);
+  const handleDeviceClick = (deviceId: PrimaryDevice) => {
+    // If already selected, do nothing
+    if (selectedDevice === deviceId) return;
+    
+    // Show confirmation dialog
+    setPendingDevice(deviceId);
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmWaitlist = async () => {
+    if (!pendingDevice) return;
+    
     setIsSaving(true);
+    setShowConfirmDialog(false);
 
     try {
-      await updateUser({ primaryDevice: deviceId });
-      toast.success("Device preference saved");
+      await updateUser({ primaryDevice: pendingDevice });
+      setSelectedDevice(pendingDevice);
+      toast.success("You've been added to the waiting list!", {
+        description: "We'll notify you when the integration is ready."
+      });
     } catch (error) {
       console.error("Failed to save device preference:", error);
       toast.error("Failed to save preference");
     } finally {
       setIsSaving(false);
+      setPendingDevice(null);
     }
   };
 
+  const handleCancelWaitlist = () => {
+    setShowConfirmDialog(false);
+    setPendingDevice(null);
+  };
+
   const selectedDeviceData = DEVICES.find((d) => d.id === selectedDevice);
+  const pendingDeviceData = DEVICES.find((d) => d.id === pendingDevice);
 
   return (
     <AppShell>
@@ -104,9 +137,9 @@ const Health = () => {
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Watch className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-semibold mb-2">Your primary health device</h1>
+            <h1 className="text-2xl font-semibold mb-2">Enhance your cognitive metrics</h1>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-              Select the device you currently use. We'll notify you when support is available.
+              Connect your wearable to unlock deeper insights. Your physiological data refines NeuroLoop's readiness calculations and personalizes training recommendations.
             </p>
           </div>
 
@@ -116,12 +149,13 @@ const Health = () => {
               const Icon = device.icon;
               const isSelected = selectedDevice === device.id;
               const isAvailable = device.status === "available";
+              const isPending = pendingDevice === device.id;
 
               return (
                 <button
                   key={device.id}
-                  onClick={() => handleDeviceSelect(device.id)}
-                  disabled={isSaving}
+                  onClick={() => handleDeviceClick(device.id)}
+                  disabled={isSaving || isSelected}
                   className={cn(
                     "w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 text-left",
                     isSelected
@@ -240,12 +274,42 @@ const Health = () => {
             <div className="flex items-start gap-3">
               <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                NeuroLoop does not provide medical insights or diagnoses. Health data is used solely to enhance cognitive readiness calculations.
+                NeuroLoop does not provide medical insights or diagnoses. Health data is used solely to enhance cognitive readiness calculations and personalize your training experience.
               </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
+              <Bell className="w-6 h-6 text-primary" />
+            </div>
+            <AlertDialogTitle className="text-center">
+              Join the waiting list?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              {pendingDeviceData && (
+                <>
+                  You'll be notified when <span className="font-medium text-foreground">{pendingDeviceData.name}</span> integration is ready. 
+                  Your physiological data will help NeuroLoop deliver more accurate cognitive insights.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-2">
+            <AlertDialogCancel onClick={handleCancelWaitlist}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmWaitlist}>
+              Notify me
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 };
