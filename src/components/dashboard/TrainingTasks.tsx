@@ -583,41 +583,7 @@ export function TrainingTasks() {
       transition={{ duration: 0.4 }}
       className="space-y-4"
     >
-      {/* v1.3: Protocol Adherence (count-based, not XP) */}
-      <div className="p-4 rounded-xl bg-card/40 border border-border/30">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-[13px] font-semibold">Protocol Adherence</h3>
-          </div>
-          <div className="text-right">
-            <span className="text-lg font-bold text-foreground">{completedCount}</span>
-            <span className="text-[10px] text-muted-foreground">/{planContentTarget} tasks</span>
-          </div>
-        </div>
-        
-        {/* Progress bar */}
-        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${completionPercent}%` }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="h-full bg-foreground/70 rounded-full"
-          />
-        </div>
-        
-        {/* S1/S2 Legend */}
-        <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/20">
-          <div className="flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-[10px] text-muted-foreground">S1 · Fast</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Timer className="h-3.5 w-3.5 text-violet-400" />
-            <span className="text-[10px] text-muted-foreground">S2 · Slow</span>
-          </div>
-        </div>
-      </div>
+      {/* Protocol Adherence removed in v1.3 - tasks are cognitive inputs, not tracked metrics */}
 
       {/* 14-Day Trend Chart - v1.3: Shows completions, not XP */}
       <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
