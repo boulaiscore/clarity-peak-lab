@@ -35,21 +35,21 @@ interface UnifiedLearningPathProps {
 }
 
 const SESSION_CONFIG: Record<string, { icon: typeof Zap; color: string; bg: string }> = {
-  "fast-focus": { icon: Zap, color: "text-amber-400", bg: "bg-amber-500/20" },
-  "mixed": { icon: Brain, color: "text-blue-400", bg: "bg-blue-500/20" },
+  "fast-focus": { icon: Zap, color: "text-area-fast", bg: "bg-area-fast/20" },
+  "mixed": { icon: Brain, color: "text-primary", bg: "bg-primary/20" },
   "consolidation": { icon: Target, color: "text-emerald-400", bg: "bg-emerald-500/20" },
-  "fast-control": { icon: Zap, color: "text-orange-400", bg: "bg-orange-500/20" },
-  "slow-reasoning": { icon: Brain, color: "text-teal-400", bg: "bg-teal-500/20" },
-  "dual-process": { icon: Target, color: "text-violet-400", bg: "bg-violet-500/20" },
-  "heavy-slow": { icon: Brain, color: "text-rose-400", bg: "bg-rose-500/20" },
-  "dual-stress": { icon: Zap, color: "text-red-400", bg: "bg-red-500/20" },
-  "reflection": { icon: Star, color: "text-cyan-400", bg: "bg-cyan-500/20" },
+  "fast-control": { icon: Zap, color: "text-area-fast", bg: "bg-area-fast/20" },
+  "slow-reasoning": { icon: Brain, color: "text-recovery", bg: "bg-recovery/20" },
+  "dual-process": { icon: Target, color: "text-area-slow", bg: "bg-area-slow/20" },
+  "heavy-slow": { icon: Brain, color: "text-area-slow", bg: "bg-area-slow/20" },
+  "dual-stress": { icon: Zap, color: "text-muted-foreground", bg: "bg-muted/20" },
+  "reflection": { icon: Star, color: "text-recovery", bg: "bg-recovery/20" },
 };
 
 const CONTENT_CONFIG: Record<string, { icon: typeof Zap; color: string; bg: string }> = {
-  "podcast": { icon: Headphones, color: "text-violet-400", bg: "bg-violet-500/20" },
-  "reading": { icon: FileText, color: "text-cyan-400", bg: "bg-cyan-500/20" },
-  "book": { icon: Book, color: "text-amber-400", bg: "bg-amber-500/20" },
+  "podcast": { icon: Headphones, color: "text-area-slow", bg: "bg-area-slow/20" },
+  "reading": { icon: FileText, color: "text-recovery", bg: "bg-recovery/20" },
+  "book": { icon: Book, color: "text-area-fast", bg: "bg-area-fast/20" },
 };
 
 export function UnifiedLearningPath({

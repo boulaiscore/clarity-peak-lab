@@ -1455,18 +1455,18 @@ export function CognitiveLibrary() {
 
       {/* Content Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="p-3 rounded-xl bg-violet-500/5 border border-violet-500/20 text-center">
-          <Headphones className="h-4 w-4 text-violet-500 mx-auto mb-1" />
+        <div className="p-3 rounded-xl bg-area-slow/5 border border-area-slow/20 text-center">
+          <Headphones className="h-4 w-4 text-area-slow mx-auto mb-1" />
           <p className="text-lg font-semibold">{podcastsCompleted.length}</p>
           <p className="text-[10px] text-muted-foreground">Podcasts</p>
         </div>
-        <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center">
-          <BookOpen className="h-4 w-4 text-amber-500 mx-auto mb-1" />
+        <div className="p-3 rounded-xl bg-area-fast/5 border border-area-fast/20 text-center">
+          <BookOpen className="h-4 w-4 text-area-fast mx-auto mb-1" />
           <p className="text-lg font-semibold">{booksCompleted.length}</p>
           <p className="text-[10px] text-muted-foreground">Books</p>
         </div>
-        <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 text-center">
-          <FileText className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+          <FileText className="h-4 w-4 text-primary mx-auto mb-1" />
           <p className="text-lg font-semibold">{articlesCompleted.length}</p>
           <p className="text-[10px] text-muted-foreground">Articles</p>
         </div>

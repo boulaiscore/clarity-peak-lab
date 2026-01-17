@@ -409,9 +409,9 @@ export default function NeuroLabSessionRunner() {
         </p>
         
         {/* XP Earned */}
-        <div className="flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20">
-          <Star className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-medium text-amber-400">+{earnedXP} XP</span>
+        <div className="flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-area-fast/10 border border-area-fast/20">
+          <Star className="w-4 h-4 text-area-fast" />
+          <span className="text-sm font-medium text-area-fast">+{earnedXP} XP</span>
         </div>
 
         {/* New Badges - Redesigned */}

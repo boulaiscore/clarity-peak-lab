@@ -139,16 +139,16 @@ export function RuleSwitchDrill({ config, timeLimit, onComplete }: RuleSwitchDri
       {/* Rule Display */}
       <div className={cn(
         "mb-6 px-6 py-3 rounded-lg transition-all duration-300",
-        ruleJustChanged ? "bg-amber-500/20 border border-amber-500/50" : "bg-primary/20 border border-primary/30"
+        ruleJustChanged ? "bg-area-fast/20 border border-area-fast/50" : "bg-primary/20 border border-primary/30"
       )}>
         <span className={cn(
           "text-lg font-semibold",
-          ruleJustChanged ? "text-amber-400" : "text-primary"
+          ruleJustChanged ? "text-area-fast" : "text-primary"
         )}>
           {RULE_LABELS[currentRule]}
         </span>
         {ruleJustChanged && (
-          <span className="ml-2 text-xs text-amber-400">(RULE CHANGED!)</span>
+          <span className="ml-2 text-xs text-area-fast">(RULE CHANGED!)</span>
         )}
       </div>
 

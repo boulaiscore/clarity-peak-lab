@@ -32,12 +32,12 @@ const getSessionColor = (session: SessionConfig, isCompleted: boolean) => {
     return "from-emerald-500/30 to-emerald-600/30 border-emerald-500/50";
   }
   if (session.thinkingSystems.length === 2) {
-    return "from-violet-500/20 to-amber-500/20 border-violet-500/30";
+    return "from-area-slow/20 to-area-fast/20 border-area-slow/30";
   }
   if (session.thinkingSystems.includes("S1")) {
-    return "from-amber-500/20 to-amber-600/20 border-amber-500/30";
+    return "from-area-fast/20 to-area-fast/25 border-area-fast/30";
   }
-  return "from-violet-500/20 to-violet-600/20 border-violet-500/30";
+  return "from-area-slow/20 to-area-slow/25 border-area-slow/30";
 };
 
 export function WeeklySchedule({ 

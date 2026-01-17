@@ -36,8 +36,9 @@
     --success: 160 30% 38%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 42 65% 48%;
-    --warning-foreground: 0 0% 0%;
+    /* Warning - muted sage/teal for protection states, not alerts */
+    --warning: 174 25% 42%;
+    --warning-foreground: 0 0% 100%;
 
     --border: 220 10% 18%;
     --input: 220 10% 14%;
@@ -45,19 +46,26 @@
 
     --radius: 1rem;
 
-    /* Chart palette - blue tones */
-    --chart-1: 210 50% 50%;
-    --chart-2: 260 28% 52%;
-    --chart-3: 42 45% 48%;
-    --chart-4: 195 35% 45%;
-    --chart-5: 0 38% 48%;
+    /* Chart palette - muted sophisticated tones */
+    --chart-1: 210 35% 48%;
+    --chart-2: 226 28% 52%;
+    --chart-3: 40 30% 52%;
+    --chart-4: 174 25% 45%;
+    --chart-5: 0 25% 48%;
 
-    /* Area colors - muted */
-    --area-focus: 210 35% 50%;
-    --area-reasoning: 260 28% 52%;
-    --area-creativity: 42 40% 50%;
-    --area-fast: 42 40% 50%;
-    --area-slow: 195 30% 48%;
+    /* System 1 (Fast/Intuitive) - Muted amber/gold */
+    --area-fast: 40 35% 52%;
+    /* System 2 (Slow/Deliberate) - Muted indigo/blue-violet */
+    --area-slow: 226 30% 52%;
+    
+    /* Area colors - premium muted tones */
+    --area-focus: 210 30% 48%;
+    --area-reasoning: 226 28% 50%;
+    --area-creativity: 40 30% 50%;
+    
+    /* Recovery/Protection - muted teal/sage */
+    --recovery: 174 28% 45%;
+    --protection: 174 25% 42%;
 
     /* Brand tokens - Metallic steel blue */
     --bg-primary: 220 15% 6%;
@@ -116,29 +124,37 @@
     --destructive: 0 65% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 40% 30%;
+    --success: 160 35% 32%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 42 75% 42%;
-    --warning-foreground: 0 0% 0%;
+    /* Warning - muted sage/teal for protection states */
+    --warning: 174 22% 38%;
+    --warning-foreground: 0 0% 100%;
 
     --border: 220 14% 78%;
     --input: 220 12% 82%;
     --ring: 220 45% 45%;
 
-    /* Chart palette - blue tones */
-    --chart-1: 210 55% 40%;
-    --chart-2: 260 35% 42%;
-    --chart-3: 42 55% 40%;
-    --chart-4: 195 42% 38%;
-    --chart-5: 0 45% 42%;
+    /* Chart palette - muted sophisticated tones */
+    --chart-1: 210 30% 42%;
+    --chart-2: 226 25% 45%;
+    --chart-3: 40 28% 45%;
+    --chart-4: 174 22% 40%;
+    --chart-5: 0 22% 45%;
 
-    /* Area colors - deeper for light mode */
-    --area-focus: 210 45% 38%;
-    --area-reasoning: 260 35% 42%;
-    --area-creativity: 42 50% 42%;
-    --area-fast: 42 50% 42%;
-    --area-slow: 195 38% 38%;
+    /* System 1 (Fast/Intuitive) - Muted amber/gold */
+    --area-fast: 40 32% 48%;
+    /* System 2 (Slow/Deliberate) - Muted indigo/blue-violet */
+    --area-slow: 226 28% 48%;
+    
+    /* Area colors - premium muted tones */
+    --area-focus: 210 28% 42%;
+    --area-reasoning: 226 25% 45%;
+    --area-creativity: 40 28% 45%;
+    
+    /* Recovery/Protection - muted teal/sage */
+    --recovery: 174 25% 40%;
+    --protection: 174 22% 38%;
 
     /* Brand tokens - Premium blue Light */
     --bg-primary: 220 14% 94%;
