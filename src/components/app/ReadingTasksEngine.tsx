@@ -195,14 +195,14 @@ function WithheldReadingCard({ eligibility, onTap, canOverride }: WithheldCardPr
           </div>
           
           {/* v1.3: Status line - WITHHELD */}
-          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium uppercase tracking-wide">
+          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
             Withheld
           </p>
         </div>
         
         {/* Override hint - more visible */}
         {canOverride && (
-          <div className="flex items-center gap-1 text-[10px] text-amber-500 shrink-0 self-center">
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0 self-center">
             <span className="font-medium">Tap to override</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </div>
@@ -217,30 +217,30 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl border border-amber-500/15 bg-amber-500/5"
+      className="p-4 rounded-xl border border-border/20 bg-muted/10"
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-amber-500/8 flex items-center justify-center shrink-0">
-          <Battery className="w-5 h-5 text-amber-400/70" />
+        <div className="w-10 h-10 rounded-lg bg-muted/20 flex items-center justify-center shrink-0">
+          <Battery className="w-5 h-5 text-muted-foreground/60" />
         </div>
         
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-amber-500/80 mb-1 uppercase tracking-wide">
+          <h4 className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wide">
             System Prioritizing Recovery
           </h4>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground/80">
             Recovery is currently low. The system limits cognitive input to protect clarity.
           </p>
           
           {/* Recovery CTA */}
-          <div className="mt-2 pt-2 border-t border-amber-500/10">
-            <p className="text-[10px] text-muted-foreground/70 flex items-center gap-1.5 mb-2">
+          <div className="mt-2 pt-2 border-t border-border/10">
+            <p className="text-[10px] text-muted-foreground/60 flex items-center gap-1.5 mb-2">
               <AlertCircle className="w-3 h-3" />
               Content requires recovery to be effective.
             </p>
             <Link 
               to="/neuro-lab?tab=detox" 
-              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-amber-400/70 hover:text-amber-400 transition-colors"
+              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-primary/70 hover:text-primary transition-colors"
             >
               Build recovery through Detox or Walk →
             </Link>
