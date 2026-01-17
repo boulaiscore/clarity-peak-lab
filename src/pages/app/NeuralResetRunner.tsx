@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Activity } from "lucide-react";
@@ -36,11 +36,29 @@ export default function NeuralResetRunner() {
   const navigate = useNavigate();
   const [currentPhase, setCurrentPhase] = useState<Phase>("intro");
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [totalTimeLeft, setTotalTimeLeft] = useState(NEURAL_RESET_CONFIG.defaultDuration);
   const startTimeRef = useRef<number | null>(null);
   
   const { mutate: completeSession } = useCompleteNeuralReset();
   
   const phases = getNeuralResetPhases(NEURAL_RESET_CONFIG.defaultDuration);
+  
+  // Total countdown timer
+  useEffect(() => {
+    if (currentPhase === "intro" || currentPhase === "complete") return;
+    
+    const timer = setInterval(() => {
+      setTotalTimeLeft(t => Math.max(0, t - 1));
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [currentPhase]);
+  
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
   
   const handleExitClick = useCallback(() => {
     if (currentPhase === "intro" || currentPhase === "complete") {
@@ -122,6 +140,16 @@ export default function NeuralResetRunner() {
           {renderPhase()}
         </motion.div>
       </AnimatePresence>
+      
+      {/* Total session countdown - shown during active phases */}
+      {currentPhase !== "intro" && currentPhase !== "complete" && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+          <span className="text-2xl font-mono text-white/60 tabular-nums">
+            {formatTime(totalTimeLeft)}
+          </span>
+          <span className="text-[10px] text-white/30 uppercase tracking-widest">remaining</span>
+        </div>
+      )}
       
       {/* Exit Confirmation Dialog */}
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
