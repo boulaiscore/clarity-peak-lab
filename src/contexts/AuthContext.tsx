@@ -12,6 +12,8 @@ export type WorkType = "knowledge" | "creative" | "technical" | "management" | "
 export type EducationLevel = "high_school" | "bachelor" | "master" | "phd" | "other";
 export type DegreeDiscipline = "stem" | "humanities" | "business" | "health" | "arts" | "social_sciences" | "law" | "other";
 
+export type PrimaryDevice = "apple_health" | "whoop" | "oura" | "garmin" | "other";
+
 export interface UserProfile {
   id: string;
   user_id: string;
@@ -30,6 +32,7 @@ export interface UserProfile {
   onboarding_completed: boolean;
   reminder_enabled: boolean | null;
   reminder_time: string | null;
+  primary_device: PrimaryDevice | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,6 +61,9 @@ export interface User {
   // Reminder settings
   reminderEnabled?: boolean;
   reminderTime?: string;
+  
+  // Health device
+  primaryDevice?: PrimaryDevice;
   
   // Onboarding completed
   onboardingCompleted?: boolean;
@@ -95,6 +101,7 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     trainingPlan: (profile?.training_plan as TrainingPlanId) || "light",
     reminderEnabled: profile?.reminder_enabled ?? false,
     reminderTime: profile?.reminder_time || undefined,
+    primaryDevice: profile?.primary_device || undefined,
     onboardingCompleted: profile?.onboarding_completed || false,
   };
 }
@@ -268,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.subscriptionStatus !== undefined) profileUpdates.subscription_status = updates.subscriptionStatus;
     if (updates.reminderEnabled !== undefined) profileUpdates.reminder_enabled = updates.reminderEnabled;
     if (updates.reminderTime !== undefined) profileUpdates.reminder_time = updates.reminderTime;
+    if (updates.primaryDevice !== undefined) profileUpdates.primary_device = updates.primaryDevice;
     if (updates.onboardingCompleted !== undefined) profileUpdates.onboarding_completed = updates.onboardingCompleted;
 
     // Use upsert to create profile if missing (e.g., if trigger didn't fire)
