@@ -193,7 +193,7 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
             </p>
             <Link 
               to="/neuro-lab?tab=detox" 
-              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-primary/70 hover:text-primary transition-colors"
+              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-area-fast/80 hover:text-area-fast transition-colors"
             >
               Build recovery through Detox or Walk →
             </Link>
