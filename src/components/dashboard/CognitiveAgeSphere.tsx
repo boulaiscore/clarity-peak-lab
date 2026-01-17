@@ -97,12 +97,12 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     let animationId: number;
     let time = 0;
 
-    // Generate organic blob shape points
-    const blobPoints = 8;
+    // Generate organic blob shape points - subtle variation
+    const blobPoints = 6;
     const blobSeeds = Array.from({ length: blobPoints }, () => ({
-      amplitude: 8 + Math.random() * 12,
+      amplitude: 2 + Math.random() * 3,
       phase: Math.random() * Math.PI * 2,
-      speed: 0.3 + Math.random() * 0.4,
+      speed: 0.2 + Math.random() * 0.2,
     }));
 
     const getBlobRadius = (angle: number, t: number) => {
@@ -111,8 +111,8 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         wobble += Math.sin(angle * (i + 2) + t * seed.speed + seed.phase) * seed.amplitude;
       });
       // Add slow breathing pulse
-      const breathe = Math.sin(t * 0.4) * 4;
-      return baseRadius + wobble * 0.3 + breathe;
+      const breathe = Math.sin(t * 0.4) * 2;
+      return baseRadius + wobble * 0.4 + breathe;
     };
 
     const draw = () => {
@@ -121,47 +121,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
       const segments = 120;
 
-      // Layer 1: Outermost diffuse glow
-      ctx.beginPath();
-      for (let i = 0; i <= segments; i++) {
-        const angle = (i / segments) * Math.PI * 2;
-        const r = getBlobRadius(angle, time) + 25;
-        const x = centerX + Math.cos(angle) * r;
-        const y = centerY + Math.sin(angle) * r;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      
-      const outerGlow = ctx.createRadialGradient(
-        centerX, centerY, baseRadius * 0.3,
-        centerX, centerY, baseRadius + 45
-      );
-      outerGlow.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      outerGlow.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.03 : 0.02})`);
-      outerGlow.addColorStop(0.75, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`);
-      outerGlow.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      ctx.fillStyle = outerGlow;
-      ctx.fill();
-
-      // Layer 2: Mid glow ring
-      ctx.beginPath();
-      for (let i = 0; i <= segments; i++) {
-        const angle = (i / segments) * Math.PI * 2;
-        const r = getBlobRadius(angle, time) + 12;
-        const x = centerX + Math.cos(angle) * r;
-        const y = centerY + Math.sin(angle) * r;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.15 : 0.1})`;
-      ctx.lineWidth = 18;
-      ctx.filter = 'blur(8px)';
-      ctx.stroke();
-      ctx.filter = 'none';
-
-      // Layer 3: Primary glowing edge
+      // Primary glowing edge - single clean border
       ctx.beginPath();
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
@@ -173,26 +133,26 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       }
       ctx.closePath();
       
-      // Bright edge glow
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.35 : 0.25})`;
-      ctx.lineWidth = 8;
-      ctx.filter = 'blur(4px)';
+      // Soft glow on edge
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.25 : 0.18})`;
+      ctx.lineWidth = 6;
+      ctx.filter = 'blur(3px)';
       ctx.stroke();
       ctx.filter = 'none';
 
       // Sharp inner edge
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.25 : 0.18})`;
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.3 : 0.22})`;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Inner fill gradient (subtle)
+      // Inner fill gradient (very subtle)
       const innerFill = ctx.createRadialGradient(
         centerX, centerY, 0,
         centerX, centerY, baseRadius
       );
       innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      innerFill.addColorStop(0.7, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.02 : 0.01})`);
-      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.05 : 0.03})`);
+      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.015 : 0.01})`);
+      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.04 : 0.025})`);
       ctx.fillStyle = innerFill;
       ctx.fill();
 
