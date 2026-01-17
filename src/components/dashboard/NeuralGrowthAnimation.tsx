@@ -75,35 +75,35 @@ export function NeuralGrowthAnimation({
       range: "80-100",
       color: "text-emerald-400",
       bgColor: "bg-emerald-500/20",
-      description: "Your cognitive network is powerful and resilient."
+      description: "Peak cognitive performance. Maintain through balanced training and recovery."
     };
     if (score >= 65) return {
       band: "High",
       range: "65-79",
       color: "text-primary",
       bgColor: "bg-primary/20",
-      description: "Your neural pathways are well-trained and responsive."
+      description: "Strong cognitive capacity. Push toward elite with targeted practice."
     };
     if (score >= 50) return {
       band: "Moderate",
       range: "50-64",
       color: "text-blue-400",
       bgColor: "bg-blue-500/20",
-      description: "Your reasoning and intuition are developing solid foundations."
+      description: "Solid foundation. Consistency and variety will accelerate growth."
     };
     if (score >= 35) return {
       band: "Developing",
       range: "35-49",
       color: "text-amber-400",
       bgColor: "bg-amber-500/20",
-      description: "Your neural connections are getting stronger. Stay consistent."
+      description: "Building core capacity. Daily effort compounds quickly at this stage."
     };
     return {
       band: "Early",
       range: "0-34",
       color: "text-muted-foreground",
       bgColor: "bg-muted/20",
-      description: "Your neurons are starting to activate. Keep showing up."
+      description: "You are building the foundations of cognitive performance. Early gains come from consistency."
     };
   };
 
