@@ -721,7 +721,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         </div>
         <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
           <motion.div
-            className={`h-full rounded-full ${recoveryComplete ? "bg-emerald-400" : "bg-teal-400"}`}
+            className={`h-full rounded-full ${recoveryComplete ? "bg-emerald-400" : "bg-recovery"}`}
             initial={false}
             animate={{ width: `${Math.min(100, recoveryProgress)}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}

@@ -124,8 +124,10 @@ export function getReadinessColor(classification: ReadinessClassification): {
     case "HIGH":
       return { bg: "bg-emerald-500/20", text: "text-emerald-400", border: "border-emerald-500/40" };
     case "MEDIUM":
-      return { bg: "bg-amber-500/20", text: "text-amber-400", border: "border-amber-500/40" };
+      // Muted sage/teal for moderate - not alarming
+      return { bg: "bg-recovery/20", text: "text-recovery", border: "border-recovery/40" };
     case "LOW":
-      return { bg: "bg-red-500/20", text: "text-red-400", border: "border-red-500/40" };
+      // Muted tone, not bright red
+      return { bg: "bg-muted/30", text: "text-muted-foreground", border: "border-muted-foreground/40" };
   }
 }

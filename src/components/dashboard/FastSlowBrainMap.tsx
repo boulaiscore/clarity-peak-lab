@@ -564,11 +564,11 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
               initial={{ opacity: 0, x: -5 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="p-2 rounded-lg bg-amber-500/5 border border-amber-500/15"
+              className="p-2 rounded-lg bg-area-fast/5 border border-area-fast/15"
             >
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <Zap className="w-3 h-3 text-amber-400/70" />
+                  <Zap className="w-3 h-3 text-area-fast/70" />
                   <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 1</span>
                 </div>
                 <span className={cn("text-[10px] font-semibold", fastBand.color)}>{fastBand.band}</span>
@@ -581,11 +581,11 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
               initial={{ opacity: 0, x: 5 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-2 rounded-lg bg-violet-500/5 border border-violet-500/15"
+              className="p-2 rounded-lg bg-area-slow/5 border border-area-slow/15"
             >
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <Timer className="w-3 h-3 text-violet-400/70" />
+                  <Timer className="w-3 h-3 text-area-slow/70" />
                   <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 2</span>
                 </div>
                 <span className={cn("text-[10px] font-semibold", slowBand.color)}>{slowBand.band}</span>

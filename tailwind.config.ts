@@ -87,6 +87,9 @@ export default {
         "area-creativity": "hsl(var(--area-creativity))",
         "area-fast": "hsl(var(--area-fast))",
         "area-slow": "hsl(var(--area-slow))",
+        // Recovery/Protection colors
+        "recovery": "hsl(var(--recovery))",
+        "protection": "hsl(var(--protection))",
       },
       borderRadius: {
         lg: "var(--radius)",

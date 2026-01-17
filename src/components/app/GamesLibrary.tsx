@@ -136,11 +136,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         const systemLabel = system === "fast" ? "System 1" : "System 2";
         const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
         const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
-        // Vibrant colored styling per system
+        // Muted colored styling per system - premium tones
         const accentClass = system === "fast" 
-          ? "border-amber-500/30 bg-amber-500/5" 
-          : "border-violet-500/30 bg-violet-500/5";
-        const iconColor = system === "fast" ? "text-amber-500" : "text-violet-500";
+          ? "border-area-fast/30 bg-area-fast/5" 
+          : "border-area-slow/30 bg-area-slow/5";
+        const iconColor = system === "fast" ? "text-area-fast" : "text-area-slow";
         
         return (
           <div
@@ -156,15 +156,15 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               className="w-full p-3 flex items-center gap-3 text-left"
             >
               <div className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                system === "fast" ? "bg-amber-500/15" : "bg-violet-500/15"
-              )}>
+                  "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                  system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
+                )}>
                 <SystemIcon className={cn("w-4.5 h-4.5", iconColor)} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs font-semibold", iconColor)}>{systemLabel}</span>
-                  <span className={cn("text-[10px]", system === "fast" ? "text-amber-500/60" : "text-violet-500/60")}>• {systemDesc}</span>
+                  <span className={cn("text-[10px]", system === "fast" ? "text-area-fast/60" : "text-area-slow/60")}>• {systemDesc}</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">
                   {system === "fast" ? "Rapid pattern recognition & intuitive processing" : "Structured analysis & deliberate reasoning"}
@@ -210,7 +210,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                                 isEnabled 
                                   ? "bg-background/50 hover:bg-background border-border/50 hover:border-primary/30 active:scale-[0.98]"
                                   : isProtection
-                                    ? "bg-muted/30 border-amber-500/30 opacity-70 cursor-not-allowed"
+                                    ? "bg-muted/30 border-protection/30 opacity-70 cursor-not-allowed"
                                     : "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
                               )}
                             >
@@ -218,11 +218,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                               <div className={cn(
                                   "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
                                   isEnabled
-                                    ? system === "fast" ? "bg-amber-500/15" : "bg-violet-500/15"
+                                    ? system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
                                     : "bg-muted/30"
                                 )}>
                                   {isProtection ? (
-                                    <ShieldAlert className="w-4 h-4 text-amber-500" />
+                                    <ShieldAlert className="w-4 h-4 text-protection" />
                                   ) : isWithheld ? (
                                     <Lock className="w-4 h-4 text-muted-foreground" />
                                   ) : (
@@ -238,7 +238,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                                   </h4>
                                   <p className="text-[9px] text-muted-foreground">
                                     {isEnabled ? area.tagline : (
-                                      <span className={isProtection ? "text-amber-500/70" : ""}>
+                                      <span className={isProtection ? "text-protection/70" : ""}>
                                         {isProtection ? "Prioritizing Recovery" : "Requires Recovery"}
                                       </span>
                                     )}

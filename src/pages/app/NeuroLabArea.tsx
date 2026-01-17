@@ -260,7 +260,7 @@ export default function NeuroLabArea() {
           <div className={cn(
             "p-3 rounded-lg mb-4 text-sm",
             gatingResult.status === "PROTECTION" 
-              ? "bg-amber-500/10 border border-amber-500/30 text-amber-400"
+              ? "bg-protection/10 border border-protection/30 text-protection"
               : "bg-muted/50 border border-border/50 text-muted-foreground"
           )}>
             <div className="flex items-start gap-2">

@@ -8,10 +8,10 @@ import { Dumbbell, Zap, Brain, Target, Lightbulb, CheckCircle2, TrendingUp, Cloc
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
-// System colors matching WeeklyGoalCard
+// System colors - muted premium tones
 const SYSTEM_COLORS = {
-  s1: "#f59e0b", // amber-500
-  s2: "#8b5cf6", // violet-500
+  s1: "#C6A86D", // muted amber/gold
+  s2: "#5C6FA8", // muted indigo/blue-violet
 };
 
 // Area labels for tooltip

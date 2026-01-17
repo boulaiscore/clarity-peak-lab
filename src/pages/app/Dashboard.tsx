@@ -296,7 +296,7 @@ const Dashboard = () => {
                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Cognitive Intelligence Report</h3>
                         {!isPremium && (
-                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-amber-400/10 text-amber-400 border border-amber-500/30">
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-area-fast/20 to-area-fast/10 text-area-fast border border-area-fast/30">
                             Premium
                           </span>
                         )}

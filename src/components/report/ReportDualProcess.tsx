@@ -109,8 +109,8 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
       <div className="dual-process-comparison">
         {/* System 1 */}
         <div className="system-card system1" style={{ borderColor: fastClass.color }}>
-          <div className="system-header" style={{ background: "#fff3e0" }}>
-            <Zap size={24} color="#ff9800" />
+          <div className="system-header" style={{ background: "#f5f0e6" }}>
+            <Zap size={24} color="#C6A86D" />
             <div>
               <h3>SYSTEM 1 — Fast Thinking</h3>
               <span className="system-subtitle">Intuitive, Automatic Processing</span>
@@ -118,7 +118,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
           </div>
           
           <div className="system-score-section">
-            <div className="system-big-score" style={{ color: "#ff9800" }}>
+            <div className="system-big-score" style={{ color: "#C6A86D" }}>
               {Math.round(fast)}
               <span className="score-max">/100</span>
               {fastDelta !== null && (
@@ -133,7 +133,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
           </div>
 
           <div className="system-bar">
-            <div className="bar-fill" style={{ width: `${fast}%`, background: "linear-gradient(90deg, #ff9800, #ffb74d)" }} />
+            <div className="bar-fill" style={{ width: `${fast}%`, background: "linear-gradient(90deg, #C6A86D, #D4BC8A)" }} />
           </div>
 
           <div className="system-description">
@@ -153,7 +153,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
                 </div>
                 <div className="subcomp-score">
                   <div className="mini-bar">
-                    <div className="mini-fill" style={{ width: `${comp.value}%`, background: "#ff9800" }} />
+                    <div className="mini-fill" style={{ width: `${comp.value}%`, background: "#C6A86D" }} />
                   </div>
                   <span>{comp.value}</span>
                 </div>
@@ -164,8 +164,8 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
 
         {/* System 2 */}
         <div className="system-card system2" style={{ borderColor: slowClass.color }}>
-          <div className="system-header" style={{ background: "#e3f2fd" }}>
-            <Brain size={24} color="#1976d2" />
+          <div className="system-header" style={{ background: "#eef2f9" }}>
+            <Brain size={24} color="#5C6FA8" />
             <div>
               <h3>SYSTEM 2 — Slow Thinking</h3>
               <span className="system-subtitle">Deliberate, Analytical Processing</span>
@@ -173,7 +173,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
           </div>
           
           <div className="system-score-section">
-            <div className="system-big-score" style={{ color: "#1976d2" }}>
+            <div className="system-big-score" style={{ color: "#5C6FA8" }}>
               {Math.round(slow)}
               <span className="score-max">/100</span>
               {slowDelta !== null && (
@@ -188,7 +188,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
           </div>
 
           <div className="system-bar">
-            <div className="bar-fill" style={{ width: `${slow}%`, background: "linear-gradient(90deg, #1976d2, #64b5f6)" }} />
+            <div className="bar-fill" style={{ width: `${slow}%`, background: "linear-gradient(90deg, #5C6FA8, #7A8DC0)" }} />
           </div>
 
           <div className="system-description">
@@ -208,7 +208,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
                 </div>
                 <div className="subcomp-score">
                   <div className="mini-bar">
-                    <div className="mini-fill" style={{ width: `${comp.value}%`, background: "#1976d2" }} />
+                    <div className="mini-fill" style={{ width: `${comp.value}%`, background: "#5C6FA8" }} />
                   </div>
                   <span>{comp.value}</span>
                 </div>
