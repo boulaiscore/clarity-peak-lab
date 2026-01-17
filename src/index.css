@@ -55,12 +55,12 @@
 
     /* System 1 (Fast/Intuitive) - Muted amber/gold */
     --area-fast: 40 35% 52%;
-    /* System 2 (Slow/Deliberate) - Muted indigo/blue-violet */
-    --area-slow: 226 30% 52%;
+    /* System 2 (Slow/Deliberate) - Muted light violet */
+    --area-slow: 248 32% 58%;
     
     /* Area colors - premium muted tones */
     --area-focus: 210 30% 48%;
-    --area-reasoning: 226 28% 50%;
+    --area-reasoning: 248 30% 56%;
     --area-creativity: 40 30% 50%;
     
     /* Recovery/Protection - muted teal/sage */
@@ -137,19 +137,19 @@
 
     /* Chart palette - muted sophisticated tones */
     --chart-1: 210 30% 42%;
-    --chart-2: 226 25% 45%;
+    --chart-2: 248 25% 50%;
     --chart-3: 40 28% 45%;
     --chart-4: 174 22% 40%;
     --chart-5: 0 22% 45%;
 
     /* System 1 (Fast/Intuitive) - Muted amber/gold */
     --area-fast: 40 32% 48%;
-    /* System 2 (Slow/Deliberate) - Muted indigo/blue-violet */
-    --area-slow: 226 28% 48%;
+    /* System 2 (Slow/Deliberate) - Muted light violet */
+    --area-slow: 248 30% 52%;
     
     /* Area colors - premium muted tones */
     --area-focus: 210 28% 42%;
-    --area-reasoning: 226 25% 45%;
+    --area-reasoning: 248 28% 50%;
     --area-creativity: 40 28% 45%;
     
     /* Recovery/Protection - muted teal/sage */
