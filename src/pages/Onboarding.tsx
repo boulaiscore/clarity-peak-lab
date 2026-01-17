@@ -169,7 +169,7 @@ const Onboarding = () => {
                 Welcome to NeuroLoop
               </h1>
               <p className="text-[15px] text-muted-foreground mb-2 leading-relaxed">
-                Train CEO-level strategic thinking.
+                Unlock elite reasoning.
               </p>
               <p className="text-sm text-muted-foreground/70 mb-10">
                 Your cognitive edge in an age of AI and distraction.
