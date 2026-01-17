@@ -401,15 +401,6 @@ const Home = () => {
           );
         })()}
 
-        {/* Distraction Load Card - Collapsible */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-          className="mb-4"
-        >
-          <DistractionLoadCard />
-        </motion.section>
 
 
         {/* Quick Status Cards - Protocol as cause */}
