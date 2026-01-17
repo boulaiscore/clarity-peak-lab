@@ -18,7 +18,7 @@ const DEVICES: DeviceOption[] = [
     id: "apple_health",
     name: "Apple Watch / Apple Health",
     icon: Watch,
-    status: "available",
+    status: "coming_soon",
     metrics: ["Sleep Analysis", "Step Count", "Heart Rate", "HRV", "Active Energy"],
   },
   {
