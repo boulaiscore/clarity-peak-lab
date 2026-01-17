@@ -58,7 +58,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
     // Create nodes arranged around the perimeter
     const nodes: Node[] = [];
-    const nodeCount = 85;
+    const nodeCount = 130;
     
     for (let i = 0; i < nodeCount; i++) {
       const angle = (i / nodeCount) * Math.PI * 2 + Math.random() * 0.3;
@@ -224,55 +224,35 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         });
       });
 
-      // Draw nodes - warm orange/amber glow
+      // Draw nodes - sharp, defined dots
       nodes.forEach((node) => {
         const pulse = Math.sin(time * 0.7 + node.pulsePhase);
-        const currentRadius = node.radius * (0.85 + pulse * 0.25);
-        const glowIntensity = 0.55 + pulse * 0.35;
+        const currentRadius = node.radius * (0.9 + pulse * 0.15);
+        const glowIntensity = 0.7 + pulse * 0.3;
 
-        // Outer glow
-        const outerNodeGlow = ctx.createRadialGradient(
+        // Small subtle glow (reduced)
+        const smallGlow = ctx.createRadialGradient(
           node.x, node.y, 0,
-          node.x, node.y, currentRadius * 4.5
+          node.x, node.y, currentRadius * 2
         );
-        outerNodeGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.18 * glowIntensity})`);
-        outerNodeGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l - 10}%, ${0.06 * glowIntensity})`);
-        outerNodeGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
+        smallGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.3 * glowIntensity})`);
+        smallGlow.addColorStop(0.6, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.1 * glowIntensity})`);
+        smallGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = outerNodeGlow;
+        ctx.arc(node.x, node.y, currentRadius * 2, 0, Math.PI * 2);
+        ctx.fillStyle = smallGlow;
         ctx.fill();
 
-        // Middle glow
-        const middleGlow = ctx.createRadialGradient(
-          node.x, node.y, 0,
-          node.x, node.y, currentRadius * 2.2
-        );
-        middleGlow.addColorStop(0, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 15}%, ${0.45 * glowIntensity})`);
-        middleGlow.addColorStop(0.5, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, ${0.2 * glowIntensity})`);
-        middleGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
+        // Sharp bright core
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = middleGlow;
+        ctx.arc(node.x, node.y, currentRadius * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20}%, ${0.9 * glowIntensity})`;
         ctx.fill();
 
-        // Core
-        const coreGlow = ctx.createRadialGradient(
-          node.x, node.y, 0,
-          node.x, node.y, currentRadius
-        );
-        coreGlow.addColorStop(0, `hsla(45, 100%, 95%, ${0.85 * glowIntensity})`);
-        coreGlow.addColorStop(0.4, `hsla(${nodeColor.h}, 100%, 75%, ${0.65 * glowIntensity})`);
-        coreGlow.addColorStop(1, `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l}%, 0)`);
+        // White hot center point
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
-        ctx.fillStyle = coreGlow;
-        ctx.fill();
-
-        // White hot center
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.25, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(50, 100%, 98%, ${0.8 * glowIntensity})`;
+        ctx.arc(node.x, node.y, currentRadius * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(50, 100%, 95%, ${0.95 * glowIntensity})`;
         ctx.fill();
       });
 
