@@ -73,14 +73,14 @@ export function DetoxBlockerSettings({
             App Blocking
           </CardTitle>
           <CardDescription>
-            Disponibile solo su Android nativo
+            Disponibile solo su Android
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
             <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
             <p className="text-sm text-muted-foreground">
-              Per bloccare le app durante il detox, installa NeuroLoop Pro come app Android nativa.
+              Il blocco delle app è disponibile solo su Android. Su iOS, usa il Focus Mode di sistema per limitare le app durante il detox.
             </p>
           </div>
         </CardContent>

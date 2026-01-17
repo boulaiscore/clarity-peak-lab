@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { sendPasswordResetEmail } from "@/lib/emailService";
+import { getPasswordResetRedirectUrl } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 
 const Auth = () => {
@@ -76,7 +77,7 @@ const Auth = () => {
         return;
       }
 
-      const redirectUrl = `${window.location.origin}/auth?reset=true`;
+      const redirectUrl = getPasswordResetRedirectUrl();
       
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,

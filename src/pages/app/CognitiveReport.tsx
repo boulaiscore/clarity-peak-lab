@@ -6,6 +6,8 @@ import { useReportData } from "@/hooks/useReportData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getStripeRedirectUrls, isNative } from "@/lib/platformUtils";
+import { Browser } from "@capacitor/browser";
 import html2pdf from "html2pdf.js";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -99,19 +101,29 @@ export default function CognitiveReport() {
     
     setProcessingPayment(true);
     try {
+      const { successUrl, cancelUrl } = getStripeRedirectUrls(
+        '/app/report?payment=success',
+        '/app/report?payment=canceled'
+      );
+      
       const { data, error } = await supabase.functions.invoke('create-report-credits-checkout', {
         body: {
           userId: user.id,
           userEmail: user.email,
           packageType: selectedPackage,
-          successUrl: `${window.location.origin}/#/app/report?payment=success`,
-          cancelUrl: `${window.location.origin}/#/app/report?payment=canceled`,
+          successUrl,
+          cancelUrl,
         },
       });
 
       if (error) throw error;
       if (data?.url) {
-        window.location.href = data.url;
+        // On native, use in-app browser for better UX
+        if (isNative()) {
+          await Browser.open({ url: data.url });
+        } else {
+          window.location.href = data.url;
+        }
       }
     } catch (err) {
       console.error('Error creating checkout:', err);

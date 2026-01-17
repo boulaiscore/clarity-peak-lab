@@ -20,6 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2, Watch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sendPremiumUpgradeEmail } from "@/lib/emailService";
+import { getStripeRedirectUrls, isNative } from "@/lib/platformUtils";
+import { Browser } from "@capacitor/browser";
 
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
@@ -186,19 +188,29 @@ const Account = () => {
     setSelectedTier(tier);
 
     try {
+      const { successUrl, cancelUrl } = getStripeRedirectUrls(
+        '/app/account?success=true',
+        '/app/account?canceled=true'
+      );
+      
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: {
           userId: user.id,
           userEmail: user.email,
           tier: tier,
-          successUrl: `${window.location.origin}/app/account?success=true`,
-          cancelUrl: `${window.location.origin}/app/account?canceled=true`,
+          successUrl,
+          cancelUrl,
         },
       });
 
       if (error) throw error;
       if (data?.url) {
-        window.location.href = data.url;
+        // On native, use in-app browser for better UX
+        if (isNative()) {
+          await Browser.open({ url: data.url });
+        } else {
+          window.location.href = data.url;
+        }
       }
     } catch (error) {
       console.error('Checkout error:', error);
