@@ -50,7 +50,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const isDarkMode = theme === "dark";
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const baseRadius = 90;
+    const baseRadius = 105;
 
     // Colors matching the current design
     const connectionColor = { h: 210, s: 90, l: isDarkMode ? 55 : 45 };
@@ -145,14 +145,16 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Inner fill gradient (very subtle)
+      // Inner fill gradient - stronger glow near edges like Whoop
       const innerFill = ctx.createRadialGradient(
         centerX, centerY, 0,
-        centerX, centerY, baseRadius
+        centerX, centerY, baseRadius + 5
       );
       innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.015 : 0.01})`);
-      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.04 : 0.025})`);
+      innerFill.addColorStop(0.4, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.02 : 0.01})`);
+      innerFill.addColorStop(0.7, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.06 : 0.04})`);
+      innerFill.addColorStop(0.85, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.12 : 0.08})`);
+      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.18 : 0.12})`);
       ctx.fillStyle = innerFill;
       ctx.fill();
 
@@ -300,9 +302,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           {/* Canvas for neural network */}
           <canvas
             ref={canvasRef}
-            width={220}
-            height={220}
-            className="absolute -inset-[10px]"
+            width={250}
+            height={250}
+            className="absolute -inset-[25px]"
           />
 
           {/* Content overlay */}
