@@ -888,7 +888,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_user_overview: {
+        Row: {
+          age: number | null
+          cognitive_level: number | null
+          created_at: string | null
+          creativity: number | null
+          degree_discipline: string | null
+          education_level: string | null
+          experience_points: number | null
+          fast_thinking: number | null
+          focus_stability: number | null
+          gender: string | null
+          name: string | null
+          onboarding_completed: boolean | null
+          reasoning_accuracy: number | null
+          report_credits: number | null
+          slow_thinking: number | null
+          subscription_status: string | null
+          total_exercises: number | null
+          total_sessions: number | null
+          training_capacity: number | null
+          training_plan: string | null
+          user_id: string | null
+          work_type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
