@@ -164,8 +164,8 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
 
         {/* System 2 */}
         <div className="system-card system2" style={{ borderColor: slowClass.color }}>
-          <div className="system-header" style={{ background: "#eef2f9" }}>
-            <Brain size={24} color="#5C6FA8" />
+          <div className="system-header" style={{ background: "#f0eef6" }}>
+            <Brain size={24} color="#7B6FA8" />
             <div>
               <h3>SYSTEM 2 — Slow Thinking</h3>
               <span className="system-subtitle">Deliberate, Analytical Processing</span>
@@ -173,7 +173,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
           </div>
           
           <div className="system-score-section">
-            <div className="system-big-score" style={{ color: "#5C6FA8" }}>
+            <div className="system-big-score" style={{ color: "#7B6FA8" }}>
               {Math.round(slow)}
               <span className="score-max">/100</span>
               {slowDelta !== null && (
@@ -188,7 +188,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
           </div>
 
           <div className="system-bar">
-            <div className="bar-fill" style={{ width: `${slow}%`, background: "linear-gradient(90deg, #5C6FA8, #7A8DC0)" }} />
+            <div className="bar-fill" style={{ width: `${slow}%`, background: "linear-gradient(90deg, #7B6FA8, #9A8FC0)" }} />
           </div>
 
           <div className="system-description">
@@ -208,7 +208,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
                 </div>
                 <div className="subcomp-score">
                   <div className="mini-bar">
-                    <div className="mini-fill" style={{ width: `${comp.value}%`, background: "#5C6FA8" }} />
+                    <div className="mini-fill" style={{ width: `${comp.value}%`, background: "#7B6FA8" }} />
                   </div>
                   <span>{comp.value}</span>
                 </div>

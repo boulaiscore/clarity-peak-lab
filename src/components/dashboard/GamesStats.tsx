@@ -11,7 +11,7 @@ import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 // System colors - muted premium tones
 const SYSTEM_COLORS = {
   s1: "#C6A86D", // muted amber/gold
-  s2: "#5C6FA8", // muted indigo/blue-violet
+  s2: "#7B6FA8", // muted light violet
 };
 
 // Area labels for tooltip
