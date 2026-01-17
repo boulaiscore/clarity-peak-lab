@@ -415,7 +415,7 @@ export function NeuralGrowthAnimation({
         
         {/* Bottleneck - Biggest Lever with Scientific Classification */}
         {bottleneck && bottleneck.potentialGain > 0 && (
-          <div className="mt-1 pt-2 border-t border-border/20">
+          <div className="-mt-1 pt-2 border-t border-border/20">
             <TooltipProvider>
               <div 
                 className={`mx-2 p-2.5 rounded-lg border cursor-pointer transition-all hover:scale-[1.02] ${
@@ -544,28 +544,6 @@ export function NeuralGrowthAnimation({
           </div>
         )}
         
-        {/* Current Components - 3-column grid */}
-        {sciBreakdown && (
-          <div className="mt-3 pt-3 border-t border-border/20">
-            <div className="grid grid-cols-3 gap-2 text-[9px]">
-              <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Thinking</div>
-                <div className="font-semibold text-primary">{sciBreakdown.cognitivePerformance.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Fast + Slow avg</div>
-              </div>
-              <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Training</div>
-                <div className="font-semibold text-blue-400">{sciBreakdown.behavioralEngagement.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Weekly XP %</div>
-              </div>
-              <div className="text-center">
-                <div className="text-muted-foreground/60 uppercase mb-0.5">Recovery</div>
-                <div className="font-semibold text-purple-400">{sciBreakdown.recoveryFactor.score}</div>
-                <div className="text-muted-foreground/50 text-[8px] mt-0.5">Detox + Walk %</div>
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Footer - gym metaphor */}
         <p className="text-[9px] text-muted-foreground/50 mt-4 px-4 italic">
