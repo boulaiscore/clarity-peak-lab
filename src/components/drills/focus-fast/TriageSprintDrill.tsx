@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { TriageSprintResults } from './TriageSprintResults';
-import { Check, X, Pause } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 
 // ============ TYPES ============
 interface TriageCard {
   id: number;
   source: 'Verified' | 'Unverified';
   signal: 'Green' | 'Yellow' | 'Red';
-  confidence: 'Low' | 'Medium' | 'High';
   urgent: boolean;
   load: number;
   isTarget: boolean;
@@ -17,7 +16,8 @@ interface TriageCard {
 
 interface TrialResult {
   cardId: number;
-  action: 'approve' | 'reject' | 'hold' | 'timeout';
+  roundIndex: number;
+  action: 'approve' | 'reject' | 'timeout';
   correct: boolean;
   rtMs: number;
   isLure: boolean;
@@ -54,46 +54,43 @@ interface TriageSprintDrillProps {
 }
 
 // ============ CONFIGURATION ============
+// 3 rounds with progression
+const TOTAL_ROUNDS = 3;
+const ROUND_TRANSITION_MS = 2000;
+
+// Round-specific configs
+const ROUND_CONFIG = {
+  1: { durationMs: 20000, label: 'LOCK THE RULE', urgentMultiplier: 0.5, lureMultiplier: 0.5, paceMultiplier: 1.0 },
+  2: { durationMs: 25000, label: 'IGNORE THE NOISE', urgentMultiplier: 1.2, lureMultiplier: 1.0, paceMultiplier: 0.9 },
+  3: { durationMs: 30000, label: 'DECIDE UNDER PRESSURE', urgentMultiplier: 1.5, lureMultiplier: 1.2, paceMultiplier: 0.8, rushFinal: true },
+} as const;
+
 const DIFFICULTY_CONFIG = {
   easy: {
-    cardsPerRound: 12,
     cardPaceMs: 900,
     responseWindowMs: 900,
     lureRate: 0.15,
     urgentRate: 0.25,
     targetPrevalence: 0.18,
-    rushSpike: false,
-    holdEnabled: false,
     xpPerRound: 3,
   },
   medium: {
-    cardsPerRound: 14,
     cardPaceMs: 750,
     responseWindowMs: 750,
     lureRate: 0.22,
     urgentRate: 0.35,
     targetPrevalence: 0.14,
-    rushSpike: true,
-    rushSpeedMultiplier: 0.85,
-    holdEnabled: false,
     xpPerRound: 5,
   },
   hard: {
-    cardsPerRound: 17,
     cardPaceMs: 600,
     responseWindowMs: 600,
     lureRate: 0.30,
     urgentRate: 0.45,
     targetPrevalence: 0.10,
-    rushSpike: true,
-    rushSpeedMultiplier: 0.85,
-    holdEnabled: true,
     xpPerRound: 8,
   },
 };
-
-const TOTAL_ROUNDS = 5;
-const ROUND_TRANSITION_MS = 1000;
 
 // ============ SCORING ============
 const SCORE_HIT = 10;
@@ -111,7 +108,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
   const config = DIFFICULTY_CONFIG[difficulty];
   
   // Phase management
-  const [phase, setPhase] = useState<'instruction' | 'playing' | 'transition' | 'results'>('instruction');
+  const [phase, setPhase] = useState<'instruction' | 'playing' | 'round_complete' | 'transition' | 'results'>('instruction');
   const [currentRound, setCurrentRound] = useState(1);
   
   // Card state
@@ -119,8 +116,10 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
   const [cardIndex, setCardIndex] = useState(0);
   const [canRespond, setCanRespond] = useState(true);
   const [feedback, setFeedback] = useState<'hit' | 'reject' | 'miss' | 'false' | null>(null);
-  const [isHolding, setIsHolding] = useState(false);
-  const [holdsUsedThisRound, setHoldsUsedThisRound] = useState(0);
+  
+  // Round timing
+  const [roundTimeRemaining, setRoundTimeRemaining] = useState(0);
+  const [isRushPhase, setIsRushPhase] = useState(false);
   
   // Stats
   const [allRoundStats, setAllRoundStats] = useState<RoundStats[]>([]);
@@ -129,21 +128,27 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     streak: 0, maxStreak: 0, score: 0, trials: []
   });
   
-  // Timing
+  // Timing refs
   const cardShownTime = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const roundTimeRef = useRef(0);
+  const roundTimerRef = useRef<NodeJS.Timeout | null>(null);
   const roundStartTime = useRef(0);
+  const cardCounter = useRef(0);
+
+  // Get current round config
+  const roundConfig = ROUND_CONFIG[currentRound as 1 | 2 | 3];
 
   // ============ CARD GENERATION ============
-  const generateCard = useCallback((index: number): TriageCard => {
+  const generateCard = useCallback((): TriageCard => {
     const rand = Math.random();
+    const lureRate = config.lureRate * roundConfig.lureMultiplier;
+    const urgentRate = config.urgentRate * roundConfig.urgentMultiplier;
     
-    // Determine if target (Verified + Green)
-    const isTarget = rand < config.targetPrevalence;
+    // In rush phase (final 8-10s of round 3), reduce target prevalence
+    const targetPrevalence = isRushPhase ? config.targetPrevalence * 0.5 : config.targetPrevalence;
     
-    // Determine if lure
-    const isLure = !isTarget && rand < config.targetPrevalence + config.lureRate;
+    const isTarget = rand < targetPrevalence;
+    const isLure = !isTarget && rand < targetPrevalence + lureRate;
     
     let source: 'Verified' | 'Unverified';
     let signal: 'Green' | 'Yellow' | 'Red';
@@ -152,91 +157,146 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
       source = 'Verified';
       signal = 'Green';
     } else if (isLure) {
-      // Lure: Almost-approve cases
       if (Math.random() > 0.5) {
         source = 'Verified';
-        signal = 'Yellow'; // Verified + Yellow (almost but not green)
+        signal = 'Yellow';
       } else {
         source = 'Unverified';
-        signal = 'Green'; // Green but unverified
+        signal = 'Green';
       }
     } else {
-      // Non-target, non-lure - never Green+Verified
       source = Math.random() > 0.5 ? 'Verified' : 'Unverified';
-      // Only Yellow or Red for non-targets
       signal = Math.random() > 0.5 ? 'Yellow' : 'Red';
     }
     
+    cardCounter.current++;
+    
     return {
-      id: index,
+      id: cardCounter.current,
       source,
       signal,
-      confidence: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)] as 'Low' | 'Medium' | 'High',
-      urgent: Math.random() < config.urgentRate,
+      urgent: Math.random() < Math.min(urgentRate, 0.6),
       load: Math.floor(Math.random() * 100),
       isTarget,
       isLure,
     };
-  }, [config]);
+  }, [config, roundConfig, isRushPhase]);
 
-  // ============ ROUND MANAGEMENT ============
+  // ============ PACE CALCULATION ============
   const getCurrentPace = useCallback(() => {
-    if (!config.rushSpike) return config.cardPaceMs;
+    let pace = config.cardPaceMs * roundConfig.paceMultiplier;
     
-    const elapsed = Date.now() - roundStartTime.current;
-    const roundDuration = config.cardsPerRound * config.cardPaceMs;
-    const remainingTime = roundDuration - elapsed;
-    
-    // Rush spike in last 5 seconds
-    if (remainingTime < 5000 && 'rushSpeedMultiplier' in config) {
-      return config.cardPaceMs * (config.rushSpeedMultiplier as number);
+    // Rush phase in round 3 - 15% faster
+    if (isRushPhase && currentRound === 3) {
+      pace *= 0.85;
     }
-    return config.cardPaceMs;
-  }, [config]);
+    
+    return Math.max(400, pace); // Minimum 400ms
+  }, [config.cardPaceMs, roundConfig.paceMultiplier, isRushPhase, currentRound]);
 
-  const showNextCard = useCallback(() => {
-    if (cardIndex >= config.cardsPerRound) {
-      // Round complete
-      setAllRoundStats(prev => [...prev, { ...currentRoundStats.current }]);
+  // ============ ROUND TIMER ============
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    
+    const duration = roundConfig.durationMs;
+    roundStartTime.current = Date.now();
+    setRoundTimeRemaining(duration);
+    setIsRushPhase(false);
+    
+    // Update timer every 100ms
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - roundStartTime.current;
+      const remaining = Math.max(0, duration - elapsed);
+      setRoundTimeRemaining(remaining);
       
-      if (currentRound < TOTAL_ROUNDS) {
-        setPhase('transition');
-        setCurrentCard(null);
-        setTimeout(() => {
-          setCurrentRound(r => r + 1);
-          setCardIndex(0);
-          setHoldsUsedThisRound(0);
-          currentRoundStats.current = {
-            hits: 0, correctRejects: 0, misses: 0, falseAlarms: 0, noResponses: 0,
-            streak: 0, maxStreak: 0, score: 0, trials: []
-          };
-          roundStartTime.current = Date.now();
-          setPhase('playing');
-        }, ROUND_TRANSITION_MS);
-      } else {
-        setPhase('results');
+      // Check for rush phase (last 8-10s of round 3)
+      if (currentRound === 3 && remaining < 10000 && !isRushPhase) {
+        setIsRushPhase(true);
       }
-      return;
+      
+      // Round complete
+      if (remaining <= 0) {
+        clearInterval(interval);
+        endRound();
+      }
+    }, 100);
+    
+    roundTimerRef.current = interval as unknown as NodeJS.Timeout;
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [phase, currentRound, roundConfig.durationMs]);
+
+  // ============ END ROUND ============
+  const endRound = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
+    // Save round stats
+    const stats = { ...currentRoundStats.current };
+    
+    // Stability bonus for round 3 if no degradation
+    if (currentRound === 3 && allRoundStats.length >= 1) {
+      const round1Accuracy = allRoundStats[0].trials.filter(t => t.correct).length / Math.max(1, allRoundStats[0].trials.length);
+      const round3Accuracy = stats.trials.filter(t => t.correct).length / Math.max(1, stats.trials.length);
+      if (round3Accuracy >= round1Accuracy * 0.9) {
+        stats.score += STABILITY_BONUS;
+      }
     }
     
-    const card = generateCard(cardIndex);
+    setAllRoundStats(prev => [...prev, stats]);
+    setCurrentCard(null);
+    setPhase('round_complete');
+  }, [currentRound, allRoundStats]);
+
+  // ============ NEXT ROUND / RESULTS ============
+  const proceedFromRoundComplete = useCallback(() => {
+    if (currentRound < TOTAL_ROUNDS) {
+      setPhase('transition');
+      setTimeout(() => {
+        setCurrentRound(r => r + 1);
+        setCardIndex(0);
+        currentRoundStats.current = {
+          hits: 0, correctRejects: 0, misses: 0, falseAlarms: 0, noResponses: 0,
+          streak: 0, maxStreak: 0, score: 0, trials: []
+        };
+        setPhase('playing');
+      }, ROUND_TRANSITION_MS);
+    } else {
+      setPhase('results');
+    }
+  }, [currentRound]);
+
+  // Auto-proceed from round_complete after showing message
+  useEffect(() => {
+    if (phase === 'round_complete') {
+      const timer = setTimeout(proceedFromRoundComplete, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, proceedFromRoundComplete]);
+
+  // ============ SHOW NEXT CARD ============
+  const showNextCard = useCallback(() => {
+    // Check if round time has ended
+    if (roundTimeRemaining <= 0) return;
+    
+    const card = generateCard();
     setCurrentCard(card);
     setCanRespond(true);
     setFeedback(null);
     cardShownTime.current = Date.now();
+    setCardIndex(i => i + 1);
     
     // Set timeout for no response
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    const responseWindow = config.responseWindowMs * roundConfig.paceMultiplier;
     timeoutRef.current = setTimeout(() => {
-      if (canRespond) {
-        handleTimeout(card);
-      }
-    }, config.responseWindowMs);
-    
-    setCardIndex(i => i + 1);
-  }, [cardIndex, config, currentRound, generateCard, canRespond]);
+      handleTimeout(card);
+    }, responseWindow);
+  }, [generateCard, config.responseWindowMs, roundConfig.paceMultiplier, roundTimeRemaining]);
 
   const handleTimeout = useCallback((card: TriageCard) => {
+    if (!canRespond) return;
     setCanRespond(false);
     
     const stats = currentRoundStats.current;
@@ -252,6 +312,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     
     stats.trials.push({
       cardId: card.id,
+      roundIndex: currentRound,
       action: 'timeout',
       correct: !card.isTarget,
       rtMs: config.responseWindowMs,
@@ -261,12 +322,14 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     
     setTimeout(() => {
       setFeedback(null);
-      showNextCard();
-    }, 200);
-  }, [config.responseWindowMs, showNextCard]);
+      if (roundTimeRemaining > 0) {
+        showNextCard();
+      }
+    }, 150);
+  }, [canRespond, config.responseWindowMs, currentRound, roundTimeRemaining, showNextCard]);
 
   // ============ USER ACTIONS ============
-  const handleAction = useCallback((action: 'approve' | 'reject' | 'hold') => {
+  const handleAction = useCallback((action: 'approve' | 'reject') => {
     if (!currentCard || !canRespond) return;
     
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -275,35 +338,10 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     const rt = Date.now() - cardShownTime.current;
     const stats = currentRoundStats.current;
     
-    // Handle HOLD (Hard mode only)
-    if (action === 'hold') {
-      if (!config.holdEnabled || holdsUsedThisRound >= 1) return;
-      
-      setIsHolding(true);
-      setHoldsUsedThisRound(h => h + 1);
-      
-      stats.trials.push({
-        cardId: currentCard.id,
-        action: 'hold',
-        correct: true, // Hold is always neutral
-        rtMs: rt,
-        isLure: currentCard.isLure,
-        isTarget: currentCard.isTarget,
-      });
-      
-      // Pause for 900ms then resume
-      setTimeout(() => {
-        setIsHolding(false);
-        showNextCard();
-      }, 900);
-      return;
-    }
-    
     const isApprove = action === 'approve';
     const isCorrect = isApprove === currentCard.isTarget;
     
     if (isApprove && currentCard.isTarget) {
-      // Hit
       stats.hits++;
       stats.score += SCORE_HIT;
       stats.streak++;
@@ -313,7 +351,6 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
       }
       setFeedback('hit');
     } else if (!isApprove && !currentCard.isTarget) {
-      // Correct reject
       stats.correctRejects++;
       stats.score += SCORE_CORRECT_REJECT;
       stats.streak++;
@@ -323,13 +360,11 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
       }
       setFeedback('reject');
     } else if (!isApprove && currentCard.isTarget) {
-      // Miss
       stats.misses++;
       stats.score += SCORE_MISS;
       stats.streak = 0;
       setFeedback('miss');
     } else {
-      // False alarm
       stats.falseAlarms++;
       stats.score += SCORE_FALSE_ALARM;
       stats.streak = 0;
@@ -338,6 +373,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     
     stats.trials.push({
       cardId: currentCard.id,
+      roundIndex: currentRound,
       action,
       correct: isCorrect,
       rtMs: rt,
@@ -347,12 +383,14 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     
     setTimeout(() => {
       setFeedback(null);
-      showNextCard();
-    }, getCurrentPace() * 0.3);
-  }, [currentCard, canRespond, config.holdEnabled, holdsUsedThisRound, showNextCard, getCurrentPace]);
+      if (roundTimeRemaining > 0) {
+        showNextCard();
+      }
+    }, getCurrentPace() * 0.25);
+  }, [currentCard, canRespond, currentRound, roundTimeRemaining, showNextCard, getCurrentPace]);
 
   // ============ SWIPE HANDLING ============
-  const handleDragEnd = useCallback((_: any, info: PanInfo) => {
+  const handleDragEnd = useCallback((_: unknown, info: PanInfo) => {
     const threshold = 80;
     if (info.offset.x > threshold) {
       handleAction('approve');
@@ -364,8 +402,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
   // ============ GAME START ============
   useEffect(() => {
     if (phase === 'playing' && cardIndex === 0 && currentCard === null) {
-      roundStartTime.current = Date.now();
-      showNextCard();
+      setTimeout(() => showNextCard(), 300);
     }
   }, [phase, cardIndex, currentCard, showNextCard]);
 
@@ -373,6 +410,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (roundTimerRef.current) clearInterval(roundTimerRef.current as unknown as number);
     };
   }, []);
 
@@ -388,7 +426,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     const totalScore = allRoundStats.reduce((s, r) => s + r.score, 0);
     
     // RT calculations
-    const validRTs = allTrials.filter(t => t.action !== 'timeout' && t.action !== 'hold').map(t => t.rtMs);
+    const validRTs = allTrials.filter(t => t.action !== 'timeout').map(t => t.rtMs);
     const sortedRTs = [...validRTs].sort((a, b) => a - b);
     const rtMean = validRTs.length > 0 ? validRTs.reduce((a, b) => a + b, 0) / validRTs.length : 0;
     const rtP50 = sortedRTs.length > 0 ? sortedRTs[Math.floor(sortedRTs.length * 0.5)] : 0;
@@ -405,13 +443,12 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     const lureErrors = lureTrials.filter(t => t.action === 'approve' && !t.isTarget).length;
     const lureErrorRate = lureTrials.length > 0 ? lureErrors / lureTrials.length : 0;
     
-    // Degradation slope (first half vs second half performance)
-    const halfIndex = Math.floor(allTrials.length / 2);
-    const firstHalf = allTrials.slice(0, halfIndex);
-    const secondHalf = allTrials.slice(halfIndex);
-    const firstHalfAccuracy = firstHalf.filter(t => t.correct).length / Math.max(1, firstHalf.length);
-    const secondHalfAccuracy = secondHalf.filter(t => t.correct).length / Math.max(1, secondHalf.length);
-    const degradationSlope = firstHalfAccuracy - secondHalfAccuracy;
+    // Degradation slope (Round 1 vs Round 3)
+    const round1Trials = allRoundStats[0]?.trials || [];
+    const round3Trials = allRoundStats[2]?.trials || [];
+    const round1Accuracy = round1Trials.filter(t => t.correct).length / Math.max(1, round1Trials.length);
+    const round3Accuracy = round3Trials.filter(t => t.correct).length / Math.max(1, round3Trials.length);
+    const degradationSlope = round1Accuracy - round3Accuracy;
     
     // XP calculation
     const baseXp = TOTAL_ROUNDS * config.xpPerRound;
@@ -450,7 +487,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
         
         <h2 className="text-2xl font-bold text-foreground mb-3">Triage Sprint</h2>
         <p className="text-muted-foreground mb-6 max-w-sm">
-          Make fast decisions on incoming cards. <strong>Swipe right to APPROVE</strong> only when: 
+          3 rounds of rapid decisions. <strong>Swipe right to APPROVE</strong> only when: 
         </p>
         
         <div className="bg-muted/30 rounded-xl p-4 mb-6 border border-border/50">
@@ -465,13 +502,20 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
           </div>
         </div>
         
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="text-sm text-muted-foreground mb-4">
           Ignore the <span className="text-amber-500 font-medium">URGENT</span> badge — it's a distractor!
         </p>
         
-        <div className="flex gap-4 text-xs text-muted-foreground mb-8">
-          <span>← Swipe Left: <span className="text-red-400">Reject</span></span>
-          <span>Swipe Right: <span className="text-green-400">Approve</span> →</span>
+        <div className="flex gap-6 text-xs text-muted-foreground mb-6">
+          <span>← <span className="text-red-400">Reject</span></span>
+          <span><span className="text-green-400">Approve</span> →</span>
+        </div>
+        
+        {/* Round preview */}
+        <div className="flex gap-2 mb-8">
+          {[1, 2, 3].map((r) => (
+            <div key={r} className="w-16 h-1.5 rounded-full bg-muted/30" />
+          ))}
         </div>
         
         <motion.button
@@ -485,8 +529,46 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     );
   }
 
+  // ============ RENDER: ROUND COMPLETE ============
+  if (phase === 'round_complete') {
+    return (
+      <motion.div
+        className="flex flex-col items-center justify-center min-h-[500px]"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+      >
+        <motion.div
+          className="text-center"
+          initial={{ y: 20 }}
+          animate={{ y: 0 }}
+        >
+          <p className="text-xl font-bold text-primary mb-2">ROUND COMPLETE</p>
+          <p className="text-muted-foreground text-sm">
+            {currentRound < 3 ? 'Get ready for the next round...' : 'Calculating results...'}
+          </p>
+        </motion.div>
+        
+        {/* Progress bar */}
+        <div className="flex gap-2 mt-8">
+          {[1, 2, 3].map((r) => (
+            <motion.div 
+              key={r} 
+              className={`w-16 h-2 rounded-full ${r <= currentRound ? 'bg-primary' : 'bg-muted/30'}`}
+              initial={r === currentRound ? { scaleX: 0 } : {}}
+              animate={r === currentRound ? { scaleX: 1 } : {}}
+              transition={{ duration: 0.4 }}
+            />
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
   // ============ RENDER: TRANSITION ============
   if (phase === 'transition') {
+    const nextRound = currentRound + 1;
+    const nextLabel = ROUND_CONFIG[nextRound as 1 | 2 | 3]?.label || '';
+    
     return (
       <motion.div
         className="flex flex-col items-center justify-center min-h-[500px]"
@@ -494,9 +576,20 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <p className="text-3xl font-bold text-foreground">
-          Round {currentRound + 1} / {TOTAL_ROUNDS}
+        <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
+          {nextRound === 3 ? 'FINAL ROUND' : `ROUND ${nextRound} / 3`}
         </p>
+        <p className="text-2xl font-bold text-foreground mb-4">{nextLabel}</p>
+        
+        {/* Progress bar */}
+        <div className="flex gap-2">
+          {[1, 2, 3].map((r) => (
+            <div 
+              key={r} 
+              className={`w-16 h-2 rounded-full ${r < nextRound ? 'bg-primary' : 'bg-muted/30'}`}
+            />
+          ))}
+        </div>
       </motion.div>
     );
   }
@@ -513,56 +606,67 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
   }
 
   // ============ RENDER: PLAYING ============
+  const timeProgress = 1 - (roundTimeRemaining / roundConfig.durationMs);
+  
   return (
     <div className="flex flex-col items-center p-4 min-h-[550px]">
       {/* Header */}
-      <div className="w-full flex justify-between items-center mb-4">
-        <div className="text-sm font-medium">
-          <span className="text-primary">Round {currentRound}</span>
-          <span className="text-muted-foreground">/{TOTAL_ROUNDS}</span>
-        </div>
-        
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-green-500">{currentRoundStats.current.hits} ✓</span>
-          <span className="text-red-500">{currentRoundStats.current.falseAlarms} ✗</span>
-        </div>
-        
-        {config.holdEnabled && (
-          <div className="flex items-center gap-1 text-sm">
-            <Pause className="w-3 h-3" />
-            <span className={holdsUsedThisRound > 0 ? 'text-muted-foreground' : 'text-primary'}>
-              {1 - holdsUsedThisRound}
+      <div className="w-full mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <div className="text-sm">
+            <span className="text-muted-foreground">
+              {currentRound === 3 ? 'FINAL ROUND' : `ROUND ${currentRound} / 3`}
             </span>
           </div>
+          
+          <div className="text-xs text-muted-foreground uppercase tracking-wide">
+            {roundConfig.label}
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-green-500 font-medium">{currentRoundStats.current.hits}</span>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-red-500 font-medium">{currentRoundStats.current.falseAlarms}</span>
+          </div>
+        </div>
+        
+        {/* Round progress bar */}
+        <div className="w-full h-1.5 bg-muted/30 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full ${isRushPhase ? 'bg-amber-500' : 'bg-primary'}`}
+            style={{ width: `${timeProgress * 100}%` }}
+            transition={{ duration: 0.1 }}
+          />
+        </div>
+        
+        {/* Rush indicator */}
+        {isRushPhase && (
+          <motion.p 
+            className="text-xs text-amber-500 text-center mt-1 font-medium"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            RUSH MODE
+          </motion.p>
         )}
       </div>
       
-      {/* Progress bar */}
-      <div className="w-full h-1.5 bg-muted/30 rounded-full mb-8 overflow-hidden">
-        <motion.div
-          className="h-full bg-primary"
-          initial={{ width: 0 }}
-          animate={{ width: `${(cardIndex / config.cardsPerRound) * 100}%` }}
-          transition={{ duration: 0.2 }}
-        />
+      {/* Round progress dots */}
+      <div className="flex gap-2 mb-6">
+        {[1, 2, 3].map((r) => (
+          <div 
+            key={r} 
+            className={`w-3 h-3 rounded-full ${
+              r < currentRound ? 'bg-primary' : 
+              r === currentRound ? 'bg-primary/50 ring-2 ring-primary/30' : 
+              'bg-muted/30'
+            }`}
+          />
+        ))}
       </div>
       
       {/* Card Area */}
-      <div className="relative w-full max-w-xs h-80 flex items-center justify-center">
-        {/* Hold overlay */}
-        <AnimatePresence>
-          {isHolding && (
-            <motion.div
-              className="absolute inset-0 bg-primary/20 rounded-2xl flex items-center justify-center z-20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <Pause className="w-12 h-12 text-primary animate-pulse" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
+      <div className="relative w-full max-w-xs h-72 flex items-center justify-center">
         {/* Swipe indicators */}
         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 opacity-30">
           <X className="w-8 h-8 text-red-500" />
@@ -573,11 +677,11 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
         
         {/* Card */}
         <AnimatePresence mode="wait">
-          {currentCard && !isHolding && (
+          {currentCard && (
             <motion.div
               key={currentCard.id}
               className={`
-                w-full h-64 rounded-2xl p-5 cursor-grab active:cursor-grabbing
+                w-full h-56 rounded-2xl p-5 cursor-grab active:cursor-grabbing
                 bg-card/80 backdrop-blur-sm border-2 shadow-2xl
                 ${feedback === 'hit' ? 'border-green-500 bg-green-500/10' :
                   feedback === 'reject' ? 'border-blue-500/50' :
@@ -634,10 +738,11 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
                   </div>
                 </div>
                 
-                {/* Bottom row: Confidence and Load */}
-                <div className="flex justify-between items-center text-xs text-muted-foreground">
-                  <span>Confidence: {currentCard.confidence}</span>
-                  <span className="font-mono opacity-50">Load: {currentCard.load}</span>
+                {/* Load number (noise) */}
+                <div className="text-right">
+                  <span className="font-mono text-xs text-muted-foreground/40">
+                    #{currentCard.load.toString().padStart(3, '0')}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -665,44 +770,29 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
         </AnimatePresence>
       </div>
       
-      {/* Action buttons (for accessibility / non-swipe) */}
-      <div className="flex gap-6 mt-8">
+      {/* Action buttons */}
+      <div className="flex gap-8 mt-6">
         <motion.button
           className="w-14 h-14 rounded-full bg-red-500/20 border border-red-500/50 flex items-center justify-center"
           whileTap={{ scale: 0.9 }}
           onClick={() => handleAction('reject')}
-          disabled={!canRespond || isHolding}
+          disabled={!canRespond}
         >
           <X className="w-6 h-6 text-red-400" />
         </motion.button>
-        
-        {config.holdEnabled && (
-          <motion.button
-            className={`w-14 h-14 rounded-full flex items-center justify-center ${
-              holdsUsedThisRound > 0 
-                ? 'bg-muted/20 border border-muted/30' 
-                : 'bg-primary/20 border border-primary/50'
-            }`}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => handleAction('hold')}
-            disabled={!canRespond || holdsUsedThisRound > 0 || isHolding}
-          >
-            <Pause className={`w-5 h-5 ${holdsUsedThisRound > 0 ? 'text-muted-foreground' : 'text-primary'}`} />
-          </motion.button>
-        )}
         
         <motion.button
           className="w-14 h-14 rounded-full bg-green-500/20 border border-green-500/50 flex items-center justify-center"
           whileTap={{ scale: 0.9 }}
           onClick={() => handleAction('approve')}
-          disabled={!canRespond || isHolding}
+          disabled={!canRespond}
         >
           <Check className="w-6 h-6 text-green-400" />
         </motion.button>
       </div>
       
-      <p className="text-xs text-muted-foreground mt-6">
-        Swipe or tap • Verified + Green = Approve
+      <p className="text-xs text-muted-foreground mt-4">
+        Verified + Green = Approve
       </p>
     </div>
   );
