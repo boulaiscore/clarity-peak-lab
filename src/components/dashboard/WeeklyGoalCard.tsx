@@ -317,7 +317,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <Activity className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[11px] font-semibold">Training Load (Weekly)</span>
+                <span className="text-[11px] font-semibold">Cognitive Load (Weekly)</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] text-muted-foreground/70 tabular-nums">
@@ -572,7 +572,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-primary" />
-          <span className="text-[12px] font-semibold">Training Load (Weekly)</span>
+          <span className="text-[12px] font-semibold">Cognitive Load (Weekly)</span>
         </div>
         <div className="text-[10px] text-muted-foreground/50 tabular-nums">
           {Math.round(rawGamesXP)} / {planCap} XP
