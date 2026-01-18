@@ -486,29 +486,6 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* Primary CTA with consequence framing */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="pt-2"
-        >
-          <button
-            onClick={handleStartSession}
-            className={cn(
-              "w-full py-4 rounded-xl",
-              "bg-primary text-primary-foreground",
-              "text-base font-semibold",
-              "shadow-button",
-              "active:scale-[0.98] transition-transform"
-            )}
-          >
-            Go To Lab
-          </button>
-          <p className="text-center text-[10px] text-muted-foreground/60 mt-3">
-            Train intuition and critical reasoning.
-          </p>
-        </motion.div>
           </>
         )}
 
