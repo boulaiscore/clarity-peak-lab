@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Clock, Play, Pause, Check, Sparkles, Info, Loader2, Bell, BellOff, 
-  Leaf, Footprints, ChevronDown, Zap, Brain, Target
+  Leaf, Footprints, ChevronDown, Zap, Brain, Target, Moon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,15 @@ import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { REC_TARGET } from "@/lib/decayConstants";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Recovery impact percentages based on canonical formula:
 // REC% = (weekly_detox_minutes + 0.5 × weekly_walk_minutes) / REC_TARGET × 100
@@ -71,7 +80,14 @@ export function DetoxChallengeTab() {
   const [justCompleted, setJustCompleted] = useState(false);
   const [lastSessionSeconds, setLastSessionSeconds] = useState(0);
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
+  const [showNightTimeDialog, setShowNightTimeDialog] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check if current time is in "sleep hours" (11 PM to 7 AM)
+  const isNightTime = (): boolean => {
+    const hour = new Date().getHours();
+    return hour >= 23 || hour < 7;
+  };
 
   // Cloud-persisted session hook
   const { 
@@ -152,6 +168,12 @@ export function DetoxChallengeTab() {
   }, []);
 
   const handleStart = async () => {
+    // Check if it's night time (11 PM - 7 AM)
+    if (isNightTime()) {
+      setShowNightTimeDialog(true);
+      return;
+    }
+    
     // Check if detox target is already reached
     if (detoxComplete) {
       setShowTargetExceededDialog(true);
@@ -480,6 +502,35 @@ export function DetoxChallengeTab() {
         onConfirm={proceedWithStart}
         categoryName="Walk & Detox"
       />
+
+      {/* Night Time Warning Dialog */}
+      <AlertDialog open={showNightTimeDialog} onOpenChange={setShowNightTimeDialog}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Moon className="w-5 h-5 text-primary" />
+              </div>
+              <AlertDialogTitle className="text-lg">Sleep Time</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-sm text-muted-foreground leading-relaxed space-y-3">
+              <p>
+                Recovery sessions are not available between <span className="text-foreground font-medium">11 PM and 7 AM</span>.
+              </p>
+              <p>
+                These hours are dedicated to <span className="text-foreground font-medium">sleep</span> — the most important form of cognitive recovery. 
+                Active recovery (detox and walking) is designed for daytime use.
+              </p>
+              <p className="text-xs text-muted-foreground/70 pt-1">
+                Get quality rest now. Start your recovery session tomorrow after 7 AM.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="w-full">Understood</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
