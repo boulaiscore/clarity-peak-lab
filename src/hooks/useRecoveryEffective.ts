@@ -78,10 +78,11 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         return null;
       }
       
+      console.log("[useRecoveryEffective] RRI data from DB:", data);
       return data as { rri_value: number | null; rri_set_at: string | null } | null;
     },
     enabled: !!userId,
-    staleTime: 5 * 60_000, // 5 minutes
+    staleTime: 60_000, // 1 minute
   });
   
   const isLoading = metricsLoading || rriLoading;
@@ -96,8 +97,18 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     const rriSetAt = rriData?.rri_set_at ?? null;
     const rriValid = rriValue !== null && isRRIValid(rriSetAt);
     
+    console.log("[useRecoveryEffective] Computing:", {
+      hasRealRecoveryData,
+      rriValue,
+      rriValid,
+      recoveryRaw,
+      weeklyDetoxMinutes,
+      weeklyWalkMinutes,
+    });
+    
     // Rule: If real recovery data exists, use it
     if (hasRealRecoveryData) {
+      console.log("[useRecoveryEffective] Using REC_raw:", recoveryRaw);
       return {
         recoveryEffective: recoveryRaw,
         isUsingRRI: false,
@@ -109,6 +120,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     
     // No real data - use RRI if valid
     if (rriValid && rriValue !== null) {
+      console.log("[useRecoveryEffective] Using RRI:", rriValue);
       return {
         recoveryEffective: rriValue,
         isUsingRRI: true,
@@ -119,6 +131,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     }
     
     // No RRI either - default to recoveryRaw (which will be 0)
+    console.log("[useRecoveryEffective] No RRI, using raw:", recoveryRaw);
     return {
       recoveryEffective: recoveryRaw,
       isUsingRRI: false,
@@ -126,7 +139,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       rriValue,
       hasRealRecoveryData: false,
     };
-  }, [recoveryRaw, hasRealRecoveryData, rriData]);
+  }, [recoveryRaw, hasRealRecoveryData, rriData, weeklyDetoxMinutes, weeklyWalkMinutes]);
   
   return {
     ...result,

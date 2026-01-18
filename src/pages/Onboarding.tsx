@@ -11,7 +11,7 @@ import { Zap, Brain, Calendar as CalendarIcon, ArrowRight, User, Briefcase, Grad
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { computeRRI, RRI_SLEEP_OPTIONS, RRI_DETOX_OPTIONS, RRI_MENTAL_STATE_OPTIONS } from "@/lib/recoveryReadinessInit";
 
-// Steps: 1=Welcome, 2=Personal, 3=Sleep(RRI), 4=Detox(RRI), 5=MentalState(RRI), 6=Education, 7=Discipline, 8=Work, 9=Plan, 10=Reminder
+// Steps: 1=Welcome, 2=Personal, 3=Education, 4=Discipline, 5=Work, 6=Sleep(RRI), 7=Detox(RRI), 8=MentalState(RRI), 9=Plan, 10=Reminder
 type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 const Onboarding = () => {
@@ -294,8 +294,139 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 3: RRI - Sleep (last 2 days) */}
+          {/* Step 3: Education Level */}
           {step === 3 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Education
+                </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  Highest level achieved
+                </p>
+              </div>
+              
+              <div className="space-y-2 mb-6">
+                {educationOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setEducationLevel(option.value)}
+                    className={cn(
+                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
+                      educationLevel === option.value
+                        ? "border-primary bg-primary/10"
+                        : "border-border/60 bg-card/50 hover:border-primary/40"
+                    )}
+                  >
+                    <span className="font-medium text-[14px] block">{option.label}</span>
+                    <span className="text-[12px] text-muted-foreground">{option.description}</span>
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!educationLevel}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 4: Degree Discipline */}
+          {step === 4 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Field of Study
+                </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  Your primary discipline
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 mb-6">
+                {disciplineOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setDegreeDiscipline(option.value)}
+                    className={cn(
+                      "py-3 px-3 rounded-xl border text-[12px] font-medium transition-all text-left",
+                      degreeDiscipline === option.value
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border/60 bg-card/50 text-muted-foreground hover:border-primary/40"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!degreeDiscipline}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 5: Work Type */}
+          {step === 5 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                  <Briefcase className="w-5 h-5 text-primary" />
+                </div>
+                <h1 className="text-xl font-semibold tracking-tight">
+                  Your work
+                </h1>
+              </div>
+              
+              <div className="space-y-1.5 mb-4">
+                {workTypeOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setWorkType(option.value)}
+                    className={cn(
+                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
+                      workType === option.value
+                        ? "border-primary bg-primary/10"
+                        : "border-border/60 bg-card/50 hover:border-primary/40"
+                    )}
+                  >
+                    <span className="font-medium text-[14px] block">{option.label}</span>
+                    <span className="text-[12px] text-muted-foreground">{option.description}</span>
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!workType}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 6: RRI - Sleep (last 2 days) */}
+          {step === 6 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-teal-500/15 flex items-center justify-center mx-auto mb-3">
@@ -338,8 +469,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 4: RRI - Mental Detox (last 2 days) */}
-          {step === 4 && (
+          {/* Step 7: RRI - Mental Detox (last 2 days) */}
+          {step === 7 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-teal-500/15 flex items-center justify-center mx-auto mb-3">
@@ -386,8 +517,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 5: RRI - Current Mental State */}
-          {step === 5 && (
+          {/* Step 8: RRI - Current Mental State */}
+          {step === 8 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-teal-500/15 flex items-center justify-center mx-auto mb-3">
@@ -423,137 +554,6 @@ const Onboarding = () => {
                 variant="hero" 
                 className="w-full h-[52px] text-[15px] font-medium"
                 disabled={!rriMentalState}
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 6: Education Level */}
-          {step === 6 && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-6">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <GraduationCap className="w-5 h-5 text-primary" />
-                </div>
-                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Education
-                </h1>
-                <p className="text-muted-foreground text-[13px]">
-                  Highest level achieved
-                </p>
-              </div>
-              
-              <div className="space-y-2 mb-6">
-                {educationOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setEducationLevel(option.value)}
-                    className={cn(
-                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
-                      educationLevel === option.value
-                        ? "border-primary bg-primary/10"
-                        : "border-border/60 bg-card/50 hover:border-primary/40"
-                    )}
-                  >
-                    <span className="font-medium text-[14px] block">{option.label}</span>
-                    <span className="text-[12px] text-muted-foreground">{option.description}</span>
-                  </button>
-                ))}
-              </div>
-
-              <Button 
-                onClick={handleNext} 
-                variant="hero" 
-                className="w-full h-[52px] text-[15px] font-medium"
-                disabled={!educationLevel}
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 7: Degree Discipline */}
-          {step === 7 && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-6">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <GraduationCap className="w-5 h-5 text-primary" />
-                </div>
-                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
-                  Field of Study
-                </h1>
-                <p className="text-muted-foreground text-[13px]">
-                  Your primary discipline
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mb-6">
-                {disciplineOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setDegreeDiscipline(option.value)}
-                    className={cn(
-                      "py-3 px-3 rounded-xl border text-[12px] font-medium transition-all text-left",
-                      degreeDiscipline === option.value
-                        ? "border-primary bg-primary/10 text-foreground"
-                        : "border-border/60 bg-card/50 text-muted-foreground hover:border-primary/40"
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-
-              <Button 
-                onClick={handleNext} 
-                variant="hero" 
-                className="w-full h-[52px] text-[15px] font-medium"
-                disabled={!degreeDiscipline}
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 8: Work Type */}
-          {step === 8 && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                  <Briefcase className="w-5 h-5 text-primary" />
-                </div>
-                <h1 className="text-xl font-semibold tracking-tight">
-                  Your work
-                </h1>
-              </div>
-              
-              <div className="space-y-1.5 mb-4">
-                {workTypeOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setWorkType(option.value)}
-                    className={cn(
-                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
-                      workType === option.value
-                        ? "border-primary bg-primary/10"
-                        : "border-border/60 bg-card/50 hover:border-primary/40"
-                    )}
-                  >
-                    <span className="font-medium text-[14px] block">{option.label}</span>
-                    <span className="text-[12px] text-muted-foreground">{option.description}</span>
-                  </button>
-                ))}
-              </div>
-
-              <Button 
-                onClick={handleNext} 
-                variant="hero" 
-                className="w-full h-[52px] text-[15px] font-medium"
-                disabled={!workType}
               >
                 Continue
                 <ArrowRight className="w-4 h-4 ml-1" />
