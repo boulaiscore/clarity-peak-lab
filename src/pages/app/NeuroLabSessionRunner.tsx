@@ -23,6 +23,7 @@ import {
 import { SessionType } from "@/lib/trainingPlans";
 import { CognitiveExercise, getMetricUpdates } from "@/lib/exercises";
 import { getGameTypeFromArea, GameType } from "@/lib/gamesGating";
+import { getDrillTypeForExercise } from "@/lib/drillMapping";
 import { toast } from "sonner";
 import { DrillRenderer } from "@/components/drills/DrillRenderer";
 import { useQueryClient } from "@tanstack/react-query";
@@ -62,6 +63,17 @@ export default function NeuroLabSessionRunner() {
   const exerciseId = searchParams.get("exerciseId"); // Single exercise mode
   const isDailyTraining = searchParams.get("daily") === "true" && !isDailyCompleted;
   const sessionTypeParam = searchParams.get("sessionType") as SessionType | null;
+  const difficultyParam = (searchParams.get("difficulty") as "easy" | "medium" | "hard" | null) || "medium";
+
+  // TS_*/FF_*/FA_FAST_* are game-style drills (e.g., Triage Sprint) and are NOT DB exercises.
+  // If someone navigates here with those IDs, hard-redirect to the dedicated runner.
+  useEffect(() => {
+    if (!exerciseId) return;
+    const drillType = getDrillTypeForExercise(exerciseId);
+    if (drillType === "triage_sprint") {
+      navigate(`/neuro-lab/triage-sprint?difficulty=${difficultyParam}`, { replace: true });
+    }
+  }, [exerciseId, difficultyParam, navigate]);
   
   const { data: allExercises, isLoading: exercisesLoading } = useExercises();
   const { data: completedExerciseIds, isLoading: completedLoading } = useCompletedExerciseIds(user?.id);
