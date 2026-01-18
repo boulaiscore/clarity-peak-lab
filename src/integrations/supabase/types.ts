@@ -197,6 +197,7 @@ export type Database = {
           created_at: string
           degradation_slope: number | null
           difficulty: string | null
+          difficulty_override: boolean | null
           false_alarm_rate: number | null
           game_name: string | null
           game_type: string
@@ -221,6 +222,7 @@ export type Database = {
           created_at?: string
           degradation_slope?: number | null
           difficulty?: string | null
+          difficulty_override?: boolean | null
           false_alarm_rate?: number | null
           game_name?: string | null
           game_type: string
@@ -245,6 +247,7 @@ export type Database = {
           created_at?: string
           degradation_slope?: number | null
           difficulty?: string | null
+          difficulty_override?: boolean | null
           false_alarm_rate?: number | null
           game_name?: string | null
           game_type?: string

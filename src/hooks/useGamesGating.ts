@@ -369,7 +369,7 @@ export function useRecordGameSession() {
     xpAwarded: number;
     score: number;
     // AE Guidance Engine metrics (optional)
-    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch";
+    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch" | "flash_connect";
     falseAlarmRate?: number | null;
     hitRate?: number | null;
     rtVariability?: number | null;
@@ -379,6 +379,8 @@ export function useRecordGameSession() {
     switchLatencyAvg?: number | null;
     perseverationRate?: number | null;
     postSwitchErrorRate?: number | null;
+    // Difficulty override tracking (v1.4)
+    difficultyOverride?: boolean;
   }) => {
     if (!user?.id) {
       console.error("[GameSession] No user ID, cannot record session");
@@ -417,6 +419,8 @@ export function useRecordGameSession() {
         switch_latency_avg: params.switchLatencyAvg ?? null,
         perseveration_rate: params.perseverationRate ?? null,
         post_switch_error_rate: params.postSwitchErrorRate ?? null,
+        // Difficulty override tracking
+        difficulty_override: params.difficultyOverride ?? false,
       })
       .select()
       .single();
