@@ -604,14 +604,28 @@ export type Database = {
       }
       user_cognitive_metrics: {
         Row: {
+          baseline_cal_fast_thinking: number | null
+          baseline_cal_focus: number | null
+          baseline_cal_reasoning: number | null
+          baseline_cal_slow_thinking: number | null
           baseline_captured_at: string | null
           baseline_cognitive_age: number | null
           baseline_creativity: number | null
+          baseline_demo_fast_thinking: number | null
+          baseline_demo_focus: number | null
+          baseline_demo_reasoning: number | null
+          baseline_demo_slow_thinking: number | null
+          baseline_eff_fast_thinking: number | null
+          baseline_eff_focus: number | null
+          baseline_eff_reasoning: number | null
+          baseline_eff_slow_thinking: number | null
           baseline_fast_thinking: number | null
           baseline_focus: number | null
+          baseline_is_estimated: boolean | null
           baseline_reasoning: number | null
           baseline_slow_thinking: number | null
           bias_resistance: number
+          calibration_status: string | null
           clarity_score: number
           cognitive_level: number | null
           cognitive_performance_score: number | null
@@ -660,14 +674,28 @@ export type Database = {
           visual_processing: number
         }
         Insert: {
+          baseline_cal_fast_thinking?: number | null
+          baseline_cal_focus?: number | null
+          baseline_cal_reasoning?: number | null
+          baseline_cal_slow_thinking?: number | null
           baseline_captured_at?: string | null
           baseline_cognitive_age?: number | null
           baseline_creativity?: number | null
+          baseline_demo_fast_thinking?: number | null
+          baseline_demo_focus?: number | null
+          baseline_demo_reasoning?: number | null
+          baseline_demo_slow_thinking?: number | null
+          baseline_eff_fast_thinking?: number | null
+          baseline_eff_focus?: number | null
+          baseline_eff_reasoning?: number | null
+          baseline_eff_slow_thinking?: number | null
           baseline_fast_thinking?: number | null
           baseline_focus?: number | null
+          baseline_is_estimated?: boolean | null
           baseline_reasoning?: number | null
           baseline_slow_thinking?: number | null
           bias_resistance?: number
+          calibration_status?: string | null
           clarity_score?: number
           cognitive_level?: number | null
           cognitive_performance_score?: number | null
@@ -716,14 +744,28 @@ export type Database = {
           visual_processing?: number
         }
         Update: {
+          baseline_cal_fast_thinking?: number | null
+          baseline_cal_focus?: number | null
+          baseline_cal_reasoning?: number | null
+          baseline_cal_slow_thinking?: number | null
           baseline_captured_at?: string | null
           baseline_cognitive_age?: number | null
           baseline_creativity?: number | null
+          baseline_demo_fast_thinking?: number | null
+          baseline_demo_focus?: number | null
+          baseline_demo_reasoning?: number | null
+          baseline_demo_slow_thinking?: number | null
+          baseline_eff_fast_thinking?: number | null
+          baseline_eff_focus?: number | null
+          baseline_eff_reasoning?: number | null
+          baseline_eff_slow_thinking?: number | null
           baseline_fast_thinking?: number | null
           baseline_focus?: number | null
+          baseline_is_estimated?: boolean | null
           baseline_reasoning?: number | null
           baseline_slow_thinking?: number | null
           bias_resistance?: number
+          calibration_status?: string | null
           clarity_score?: number
           cognitive_level?: number | null
           cognitive_performance_score?: number | null
