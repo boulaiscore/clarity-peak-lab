@@ -195,39 +195,57 @@ export type Database = {
         Row: {
           completed_at: string
           created_at: string
+          degradation_slope: number | null
+          false_alarm_rate: number | null
+          game_name: string | null
           game_type: string
           gym_area: string
+          hit_rate: number | null
           id: string
+          rt_variability: number | null
           score: number
           skill_routed: string
           system_type: string
           thinking_mode: string
+          time_in_band_pct: number | null
           user_id: string
           xp_awarded: number
         }
         Insert: {
           completed_at?: string
           created_at?: string
+          degradation_slope?: number | null
+          false_alarm_rate?: number | null
+          game_name?: string | null
           game_type: string
           gym_area: string
+          hit_rate?: number | null
           id?: string
+          rt_variability?: number | null
           score?: number
           skill_routed: string
           system_type: string
           thinking_mode: string
+          time_in_band_pct?: number | null
           user_id: string
           xp_awarded?: number
         }
         Update: {
           completed_at?: string
           created_at?: string
+          degradation_slope?: number | null
+          false_alarm_rate?: number | null
+          game_name?: string | null
           game_type?: string
           gym_area?: string
+          hit_rate?: number | null
           id?: string
+          rt_variability?: number | null
           score?: number
           skill_routed?: string
           system_type?: string
           thinking_mode?: string
+          time_in_band_pct?: number | null
           user_id?: string
           xp_awarded?: number
         }

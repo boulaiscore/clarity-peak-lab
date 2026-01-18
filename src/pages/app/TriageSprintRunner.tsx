@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TriageSprintDrill } from "@/components/drills/focus-fast/TriageSprintDrill";
 import { ArrowLeft } from "lucide-react";
@@ -13,7 +12,6 @@ export default function TriageSprintRunner() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const recordGameSession = useRecordGameSession();
-  const queryClient = useQueryClient();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const [isComplete, setIsComplete] = useState(false);
@@ -33,7 +31,10 @@ export default function TriageSprintRunner() {
   }) => {
     setIsComplete(true);
     
-    // Record game session for caps and XP routing
+    // Calculate RT variability from rtP90 - rtP50 (approximate)
+    const rtVariability = results.rtP90 - results.rtP50;
+    
+    // Record game session for caps, XP routing, and AE Guidance metrics
     if (user?.id) {
       try {
         await recordGameSession({
@@ -42,14 +43,21 @@ export default function TriageSprintRunner() {
           thinkingMode: "fast",
           xpAwarded: results.xpAwarded,
           score: results.score,
+          // AE Guidance metrics
+          gameName: "triage_sprint",
+          falseAlarmRate: results.falseAlarmRate,
+          hitRate: results.hitRate,
+          rtVariability: rtVariability,
+          degradationSlope: results.degradationSlope,
+          // Triage Sprint doesn't have time_in_band
+          timeInBandPct: null,
         });
         
-        // Invalidate queries to refresh caps
-        queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
-        queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
-        queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
-        
         toast.success(`+${results.xpAwarded} XP earned!`, { icon: "⭐" });
+        
+        if (results.isPerfect) {
+          toast.success("Perfect Session! 🌟", { duration: 3000 });
+        }
       } catch (error) {
         console.error("Failed to record game session:", error);
       }
@@ -59,7 +67,7 @@ export default function TriageSprintRunner() {
     setTimeout(() => {
       navigate("/neuro-lab");
     }, 500);
-  }, [user?.id, recordGameSession, queryClient, navigate]);
+  }, [user?.id, recordGameSession, navigate]);
 
   const handleBack = () => {
     navigate("/neuro-lab");
