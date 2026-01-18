@@ -90,22 +90,44 @@ export default function NeuroLabSessionRunner() {
   const hasCompletedRef = useRef(false);
   // Track which exercises have already been recorded to prevent duplicates
   const recordedExercisesRef = useRef<Set<string>>(new Set());
+  
+  // Track previous route params to detect actual changes (not initial mount)
+  const prevParamsRef = useRef<{ area: string | null; duration: string | null; thinkingMode: string | null; exerciseId: string | null } | null>(null);
 
-  // Reset runner state when route params change (query-string navigation does not unmount)
+  // Reset runner state when route params CHANGE (not on initial mount)
   useEffect(() => {
-    setSessionExercises([]);
-    setCurrentIndex(0);
-    setResponses(new Map());
-    responsesRef.current = new Map();
-    setIsComplete(false);
-    setSessionScore({ score: 0, correctAnswers: 0, totalQuestions: 0 });
-    setEarnedXP(0);
-    setNewBadges([]);
-    setShowPaywall(false);
-    setIsSaving(false);
-    setSessionStarted(false);
-    hasCompletedRef.current = false;
-    recordedExercisesRef.current = new Set();
+    const currentParams = { area, duration, thinkingMode, exerciseId };
+    
+    // Skip reset on initial mount
+    if (prevParamsRef.current === null) {
+      prevParamsRef.current = currentParams;
+      return;
+    }
+    
+    // Check if params actually changed
+    const paramsChanged = 
+      prevParamsRef.current.area !== area ||
+      prevParamsRef.current.duration !== duration ||
+      prevParamsRef.current.thinkingMode !== thinkingMode ||
+      prevParamsRef.current.exerciseId !== exerciseId;
+    
+    if (paramsChanged) {
+      console.log('[NeuroLabSessionRunner] Route params changed, resetting session');
+      setSessionExercises([]);
+      setCurrentIndex(0);
+      setResponses(new Map());
+      responsesRef.current = new Map();
+      setIsComplete(false);
+      setSessionScore({ score: 0, correctAnswers: 0, totalQuestions: 0 });
+      setEarnedXP(0);
+      setNewBadges([]);
+      setShowPaywall(false);
+      setIsSaving(false);
+      setSessionStarted(false);
+      hasCompletedRef.current = false;
+      recordedExercisesRef.current = new Set();
+      prevParamsRef.current = currentParams;
+    }
   }, [area, duration, thinkingMode, exerciseId]);
 
   // Check session limit and generate exercises
