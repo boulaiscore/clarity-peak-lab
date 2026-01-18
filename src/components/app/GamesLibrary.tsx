@@ -76,6 +76,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
   const [pickerMode, setPickerMode] = useState<ThinkingSystem>("fast");
+  const [activeSystem, setActiveSystem] = useState<ThinkingSystem>("fast");
   
   const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: ThinkingSystem } | null>(null);
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
@@ -144,130 +145,151 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         </Alert>
       )}
       
-      {/* Dual-Hemisphere Layout - Side by side, premium minimal */}
-      <div className="grid grid-cols-2 gap-3">
-        {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
-          const SystemIcon = system === "fast" ? Zap : Timer;
-          const systemLabel = system === "fast" ? "S1" : "S2";
-          const systemFull = system === "fast" ? "Fast" : "Slow";
-          const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
-          const iconColor = system === "fast" ? "text-area-fast" : "text-area-slow";
-          const bgGradient = system === "fast" 
-            ? "from-area-fast/8 to-transparent" 
-            : "from-area-slow/8 to-transparent";
-          
-          return (
-            <div
-              key={system}
-              className="flex flex-col"
+      {/* System Cards - Stacked Layout */}
+      {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
+        const isActive = activeSystem === system;
+        const SystemIcon = system === "fast" ? Zap : Timer;
+        const systemLabel = system === "fast" ? "System 1" : "System 2";
+        const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
+        const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
+        // Muted colored styling per system - premium tones
+        const accentClass = system === "fast" 
+          ? "border-area-fast/30 bg-area-fast/5" 
+          : "border-area-slow/30 bg-area-slow/5";
+        const iconColor = system === "fast" ? "text-area-fast" : "text-area-slow";
+        
+        return (
+          <div
+            key={system}
+            className={cn(
+              "rounded-xl border transition-all overflow-hidden",
+              isActive ? accentClass : "border-border/50 bg-card/30"
+            )}
+          >
+            {/* System Header - Clickable to expand/collapse */}
+            <button
+              onClick={() => setActiveSystem(system)}
+              className="w-full p-3 flex items-center gap-3 text-left"
             >
-              {/* Hemisphere Header - Minimal, premium */}
-              <div className="flex items-center gap-2 mb-2.5 px-1">
-                <div className={cn(
-                  "w-6 h-6 rounded-md flex items-center justify-center",
-                  system === "fast" ? "bg-area-fast/12" : "bg-area-slow/12"
-                )}>
-                  <SystemIcon className={cn("w-3 h-3", iconColor)} />
-                </div>
-                <div>
-                  <span className={cn("text-[11px] font-semibold tracking-tight", iconColor)}>
-                    {systemLabel}
-                  </span>
-                  <span className="text-[9px] text-muted-foreground/60 ml-1">
-                    {systemFull}
-                  </span>
-                </div>
-              </div>
-
-              {/* Skill Cards - Stacked within hemisphere */}
               <div className={cn(
-                "flex-1 rounded-xl p-2 space-y-2 bg-gradient-to-b",
-                bgGradient
-              )}>
-                {areas.map((area) => {
-                  const Icon = AREA_ICONS[area.areaId] || Brain;
-                  const gatingResult = games[area.gameType];
-                  const isEnabled = !gatingResult || gatingResult.status === "ENABLED";
-                  const isProtection = gatingResult?.status === "PROTECTION";
-                  const isWithheld = gatingResult?.status === "WITHHELD";
-                  
-                  return (
-                    <TooltipProvider key={`${area.areaId}-${system}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
-                            disabled={!isEnabled}
-                            className={cn(
-                              "group w-full p-2.5 rounded-lg transition-all text-left",
-                              isEnabled 
-                                ? "bg-card/60 hover:bg-card border border-border/30 hover:border-border/50 active:scale-[0.98]"
-                                : isProtection
-                                  ? "bg-muted/20 border border-protection/20 opacity-60 cursor-not-allowed"
-                                  : "bg-muted/10 border border-border/20 opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <div className="flex items-center gap-2">
+                  "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                  system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
+                )}>
+                <SystemIcon className={cn("w-4.5 h-4.5", iconColor)} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={cn("text-xs font-semibold", iconColor)}>{systemLabel}</span>
+                  <span className={cn("text-[10px]", system === "fast" ? "text-area-fast/60" : "text-area-slow/60")}>• {systemDesc}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {system === "fast" ? "Rapid pattern recognition & intuitive processing" : "Structured analysis & deliberate reasoning"}
+                </p>
+              </div>
+              <motion.div
+                animate={{ rotate: isActive ? 0 : -90 }}
+                transition={{ duration: 0.2 }}
+                className="text-muted-foreground/50"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.div>
+            </button>
+
+            {/* Expanded Area Cards */}
+            {isActive && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="px-3 pb-3"
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  {areas.map((area) => {
+                    const Icon = AREA_ICONS[area.areaId] || Brain;
+                    const gatingResult = games[area.gameType];
+                    const isEnabled = !gatingResult || gatingResult.status === "ENABLED";
+                    const isProtection = gatingResult?.status === "PROTECTION";
+                    const isWithheld = gatingResult?.status === "WITHHELD";
+                    
+                    return (
+                      <TooltipProvider key={`${area.areaId}-${system}`}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
+                              disabled={!isEnabled}
+                              className={cn(
+                                "group relative p-3 rounded-lg border transition-all text-left",
+                                isEnabled 
+                                  ? "bg-background/50 hover:bg-background border-border/50 hover:border-primary/30 active:scale-[0.98]"
+                                  : isProtection
+                                    ? "bg-muted/30 border-protection/30 opacity-70 cursor-not-allowed"
+                                    : "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
+                              )}
+                            >
+                              <div className="flex items-start gap-2.5">
                               <div className={cn(
-                                "w-7 h-7 rounded-md flex items-center justify-center shrink-0",
-                                isEnabled
-                                  ? system === "fast" ? "bg-area-fast/10" : "bg-area-slow/10"
-                                  : "bg-muted/30"
-                              )}>
-                                {isProtection ? (
-                                  <ShieldAlert className="w-3.5 h-3.5 text-protection/70" />
-                                ) : isWithheld ? (
-                                  <Lock className="w-3.5 h-3.5 text-muted-foreground/50" />
-                                ) : (
-                                  <Icon className={cn("w-3.5 h-3.5", isEnabled ? iconColor : "text-muted-foreground/50")} />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className={cn(
-                                  "text-[10px] font-medium leading-tight",
-                                  isEnabled ? "text-foreground/90" : "text-muted-foreground/60"
+                                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                                  isEnabled
+                                    ? system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
+                                    : "bg-muted/30"
                                 )}>
-                                  {area.name}
-                                </h4>
-                                <p className={cn(
-                                  "text-[8px] leading-tight mt-0.5",
-                                  isEnabled ? "text-muted-foreground/70" : "text-muted-foreground/40"
-                                )}>
-                                  {isEnabled ? area.tagline : (
-                                    isProtection ? "Recovery" : "Locked"
+                                  {isProtection ? (
+                                    <ShieldAlert className="w-4 h-4 text-protection" />
+                                  ) : isWithheld ? (
+                                    <Lock className="w-4 h-4 text-muted-foreground" />
+                                  ) : (
+                                    <Icon className={cn("w-4 h-4", iconColor)} />
                                   )}
-                                </p>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className={cn(
+                                    "text-[11px] font-medium leading-tight mb-0.5",
+                                    isEnabled ? "text-foreground" : "text-muted-foreground"
+                                  )}>
+                                    {area.name}
+                                  </h4>
+                                  <p className="text-[9px] text-muted-foreground">
+                                    {isEnabled ? area.tagline : (
+                                      <span className={isProtection ? "text-protection/70" : ""}>
+                                        {isProtection ? "Prioritizing Recovery" : "Requires Recovery"}
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
                               </div>
                               
-                              {/* Play indicator */}
+                              {/* Play indicator - only for enabled games */}
                               {isEnabled && (
-                                <Play className={cn(
-                                  "w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity",
-                                  iconColor
-                                )} />
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Play className={cn("w-3.5 h-3.5", iconColor)} />
+                                </div>
                               )}
-                            </div>
-                          </button>
-                        </TooltipTrigger>
-                        {!isEnabled && gatingResult && (
-                          <TooltipContent side="bottom" className="max-w-[180px]">
-                            <p className="text-[10px]">{getWithholdReason(gatingResult)}</p>
-                            {gatingResult.unlockActions.length > 0 && (
-                              <p className="text-[9px] text-muted-foreground mt-1">
-                                {gatingResult.unlockActions[0]}
-                              </p>
-                            )}
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                            </button>
+                          </TooltipTrigger>
+                          {!isEnabled && gatingResult && (
+                            <TooltipContent side="bottom" className="max-w-[200px]">
+                              <p className="text-xs">{getWithholdReason(gatingResult)}</p>
+                              {gatingResult.unlockActions.length > 0 && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                  Try: {gatingResult.unlockActions[0]}
+                                </p>
+                              )}
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        );
+      })}
 
       {/* Exercise Picker Sheet (for non-S1-AE games) */}
       <ExercisePickerSheet
