@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Brain, Sparkles, AlertTriangle, MapPin, Footprints, CheckCircle2 } from "lucide-react";
@@ -31,6 +31,7 @@ export default function DetoxSessionRunner() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const completingRef = useRef(false); // Ref to prevent double-complete
 
   const {
     activeSession,
@@ -85,11 +86,7 @@ export default function DetoxSessionRunner() {
         // Clamp remaining to [0, totalDurationSeconds] to avoid showing more than set duration
         const remaining = Math.max(0, Math.min(totalDurationSeconds - elapsed, totalDurationSeconds));
         setDisplaySeconds(remaining);
-        
-        // Auto-complete when countdown reaches 0
-        if (remaining === 0 && !showSuccess) {
-          handleComplete();
-        }
+        // Auto-complete is handled by the separate useEffect that watches canComplete
       };
 
       updateTimer();
@@ -102,7 +99,7 @@ export default function DetoxSessionRunner() {
       // Initialize with full duration before session starts
       setDisplaySeconds(duration * 60);
     }
-  }, [isActive, activeSession, timerResetAt, duration, showSuccess]);
+  }, [isActive, activeSession, timerResetAt, duration]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -133,24 +130,33 @@ export default function DetoxSessionRunner() {
     navigate("/neuro-lab");
   };
 
-  const handleComplete = async () => {
-    // Prevent double-completion
-    if (isCompleting || showSuccess) return;
+  const handleComplete = useCallback(async () => {
+    // Prevent double-completion using ref (works across re-renders)
+    if (completingRef.current) {
+      console.log('[DetoxSessionRunner] Already completing, ignoring duplicate call');
+      return;
+    }
+    completingRef.current = true;
     setIsCompleting(true);
+
+    console.log('[DetoxSessionRunner] handleComplete called');
 
     // Stop walking tracker and get final progress
     const finalWalking = await stopWalking();
     
     const success = await completeSession(finalWalking?.durationMinutes || 0);
+    console.log('[DetoxSessionRunner] completeSession result:', success);
+    
     if (success) {
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/neuro-lab");
       }, 2500);
     } else {
+      completingRef.current = false;
       setIsCompleting(false);
     }
-  };
+  }, [stopWalking, completeSession, navigate]);
 
   // Calculate elapsed seconds for completion check
   const elapsedSeconds = duration * 60 - displaySeconds;
@@ -160,10 +166,11 @@ export default function DetoxSessionRunner() {
 
   // Auto-complete when 30 minutes is reached
   useEffect(() => {
-    if (canComplete && isActive && !showSuccess && !isCompleting) {
+    if (canComplete && isActive && !showSuccess && !isCompleting && !completingRef.current) {
+      console.log('[DetoxSessionRunner] Auto-completing session at 30 minutes');
       handleComplete();
     }
-  }, [canComplete, isActive, showSuccess, isCompleting]);
+  }, [canComplete, isActive, showSuccess, isCompleting, handleComplete]);
 
   return (
     <div className="min-h-screen bg-[#06070A] text-white flex flex-col">
