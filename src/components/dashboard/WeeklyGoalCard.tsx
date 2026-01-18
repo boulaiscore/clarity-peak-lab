@@ -10,48 +10,91 @@ import { useAuth } from "@/contexts/AuthContext";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 
 // Adaptive range status types
-type AdaptiveStatus = "below" | "within" | "above";
+type AdaptiveStatus = "building" | "within" | "above";
 
 interface AdaptiveStatusInfo {
   status: AdaptiveStatus;
   label: string;
 }
 
-// Status info with label and description - SIMPLE & CLEAR
+// Status info with label and description - PREMIUM TONE
 interface StatusCopy {
   label: string;
   description: string;
 }
 
-// Helper to determine adaptive status based on current XP and optimal range
-// Returns simple, actionable messaging per user spec
-function getAdaptiveStatus(currentXP: number, optimalRange: { min: number; max: number }): AdaptiveStatusInfo & { copy: StatusCopy } {
-  if (currentXP < optimalRange.min) {
+/**
+ * MIN_MEANINGFUL_XP = 0.35 × planXP_target
+ * 
+ * This prevents "Optimal zone" from showing too early in onboarding.
+ * Users must train enough before they can reach "Optimal zone" status.
+ */
+function getMinMeaningfulXP(planXP: number): number {
+  return Math.round(0.35 * planXP);
+}
+
+/**
+ * Determine Training Load status based on:
+ * 1. MIN_MEANINGFUL_XP threshold (must be met to show "Optimal zone")
+ * 2. Whether current XP is in optimal range [optMin, optMax]
+ * 3. Whether current XP exceeds optimal max (overtraining)
+ * 
+ * Status priority:
+ * - IF weeklyXP < MIN_MEANINGFUL_XP → "Building capacity" (even if in optimal range)
+ * - ELSE IF weeklyXP in [optMin, optMax] → "Optimal zone"
+ * - ELSE IF weeklyXP > optMax → "Overtraining risk"
+ * - ELSE → "Building capacity" (below optMin)
+ */
+function getAdaptiveStatus(
+  currentXP: number, 
+  optimalRange: { min: number; max: number },
+  planXP: number
+): AdaptiveStatusInfo & { copy: StatusCopy } {
+  const minMeaningfulXP = getMinMeaningfulXP(planXP);
+  
+  // Gate 1: Must have trained enough to show "Optimal zone"
+  if (currentXP < minMeaningfulXP) {
     return {
-      status: "below",
-      label: "Below optimal zone",
+      status: "building",
+      label: "Building capacity",
       copy: {
-        label: "Below optimal zone",
-        description: "Your optimal zone adapts to your capacity — shaped by training consistency and recovery."
+        label: "Building capacity",
+        description: "You're training within your current capacity. Keep going to reach your optimal zone."
       }
     };
   }
-  if (currentXP <= optimalRange.max) {
+  
+  // Gate 2: Check if above optimal range (overtraining)
+  if (currentXP > optimalRange.max) {
+    return {
+      status: "above",
+      label: "Overtraining risk",
+      copy: {
+        label: "Overtraining risk",
+        description: "You're exceeding your optimal load. Recovery will limit your gains."
+      }
+    };
+  }
+  
+  // Gate 3: In optimal range (and past minimum meaningful threshold)
+  if (currentXP >= optimalRange.min) {
     return {
       status: "within",
       label: "Optimal zone",
       copy: {
         label: "Optimal zone",
-        description: "You're in the optimal training zone."
+        description: "You're training at the right level for real cognitive gains."
       }
     };
   }
+  
+  // Default: Below optimal range (but past minimum meaningful)
   return {
-    status: "above",
-    label: "Above optimal zone",
+    status: "building",
+    label: "Building capacity",
     copy: {
-      label: "Above optimal zone",
-      description: "More isn't better this week — consolidate with recovery."
+      label: "Building capacity",
+      description: "You're training within your current capacity. Keep going to reach your optimal zone."
     }
   };
 }
@@ -166,8 +209,8 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
 
   const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
   
-  // Calculate adaptive status based on actual XP and dynamic optimal range
-  const adaptiveStatus = useMemo(() => getAdaptiveStatus(rawGamesXP, optimalRangeXP), [rawGamesXP, optimalRangeXP]);
+  // Calculate adaptive status based on actual XP, optimal range, and minimum meaningful threshold
+  const adaptiveStatus = useMemo(() => getAdaptiveStatus(rawGamesXP, optimalRangeXP, planCap), [rawGamesXP, optimalRangeXP, planCap]);
   
   // Calculate bar percentages for optimal range visualization (scale 0 → planCap)
   const optimalRangePercent = useMemo(() => ({
@@ -220,16 +263,16 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   // Status indicator color - matches reference image
   const getStatusColor = (status: AdaptiveStatus) => {
     switch (status) {
-      case "below": return "text-amber-400"; // Yellow = train more
+      case "building": return "text-amber-400"; // Yellow = building capacity
       case "within": return "text-teal-400"; // Teal = optimal zone
-      case "above": return "text-amber-400"; // Amber = above optimal
+      case "above": return "text-amber-400"; // Amber = overtraining risk
     }
   };
   
   // Get marker/bar colors based on status
   const getBarStyles = (status: AdaptiveStatus) => {
     switch (status) {
-      case "below": 
+      case "building": 
         return {
           trackBg: "bg-slate-600/40",
           optimalZoneBg: "bg-teal-500/30",
