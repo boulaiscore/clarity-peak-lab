@@ -10,6 +10,7 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 
@@ -20,6 +21,7 @@ import { HomeTabs, HomeTabId } from "@/components/home/HomeTabs";
 import { IntuitionTab } from "@/components/home/IntuitionTab";
 import { ReasoningTab } from "@/components/home/ReasoningTab";
 import { CapacityTab } from "@/components/home/CapacityTab";
+import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCard";
 
 // Circular progress ring component
 interface RingProps {
@@ -117,6 +119,16 @@ const Home = () => {
     isUsingRRI,
     isLoading: recoveryEffectiveLoading,
   } = useRecoveryEffective();
+  
+  // Reasoning Quality metric
+  const {
+    rq,
+    s2Core,
+    s2Consistency,
+    taskPriming,
+    isDecaying: rqIsDecaying,
+    isLoading: rqLoading,
+  } = useReasoningQuality();
   
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const { persistDailySnapshot, isSnapshotCurrentToday } = useDailyRecoverySnapshot();
@@ -317,9 +329,19 @@ const Home = () => {
               </div>
               
               {/* Explanatory line below rings */}
-              <p className="text-center text-xs text-muted-foreground leading-relaxed px-4">
+              <p className="text-center text-xs text-muted-foreground leading-relaxed px-4 mb-4">
                 Today's cognitive state based on training and recovery inputs.
               </p>
+              
+              {/* Reasoning Quality Card */}
+              <ReasoningQualityCard
+                rq={rq}
+                s2Core={s2Core}
+                s2Consistency={s2Consistency}
+                taskPriming={taskPriming}
+                isDecaying={rqIsDecaying}
+                isLoading={rqLoading}
+              />
             </motion.section>
 
         {/* Detox Engagement Card - Whoop-style motivation */}
