@@ -60,9 +60,10 @@ export function ReasoningQualityCard({
                 <PopoverContent 
                   side="top" 
                   sideOffset={8}
-                  className="max-w-[220px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50 p-2"
+                  className="max-w-[240px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50 p-3"
                 >
-                  <p>How deeply you process and structure your thinking.</p>
+                  <p className="font-medium mb-1.5">Depth of thought elaboration</p>
+                  <p className="text-muted-foreground">Improve through S2 games, readings, and podcasts.</p>
                 </PopoverContent>
               </Popover>
               {isDecaying && (
