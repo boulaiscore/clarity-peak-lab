@@ -319,11 +319,16 @@ export function getSCIStatusText(score: number): string {
 
 // ============================================
 // COGNITIVE AGE
-// Formula:
+// Formula (v1.4 with RQ modulation):
 //   PerformanceAvg = (AE + RA + CT + IN + S2) / 5
 //   Improvement = PerformanceAvg − BaselinePerformanceAvg
-//   CognitiveAge = BaselineCognitiveAge − (Improvement / 10)
+//   RQ_Multiplier = 0.85 + 0.15 × (RQ / 100)  // Range: [0.85, 1.00]
+//   CognitiveAge = BaselineCognitiveAge − (Improvement / 10) × RQ_Multiplier
 // Cap: ±15 years from baseline
+//
+// RQ (Reasoning Quality) modulates the effectiveness of improvement:
+// - Higher RQ = up to 15% more effective improvement
+// - If RQ unavailable, use conservative multiplier (0.85)
 // ============================================
 
 export interface CognitiveAgeBaseline {
@@ -334,9 +339,31 @@ export interface CognitiveAgeBaseline {
   baselineIN: number;
 }
 
+export interface CognitiveAgeInput {
+  states: CognitiveStates;
+  baseline: CognitiveAgeBaseline;
+  rq?: number | null; // Reasoning Quality (0-100), optional
+}
+
+/**
+ * Calculate the RQ multiplier for Cognitive Age improvement.
+ * Multiplier = 0.85 + 0.15 × (RQ / 100)
+ * Range: [0.85, 1.00]
+ * If RQ unavailable: 0.85 (conservative)
+ */
+export function calculateRQMultiplier(rq: number | null | undefined): number {
+  if (rq === null || rq === undefined) {
+    return 0.85;
+  }
+  
+  const multiplier = 0.85 + 0.15 * (rq / 100);
+  return clamp(multiplier, 0.85, 1.0);
+}
+
 export function calculateCognitiveAge(
   states: CognitiveStates,
-  baseline: CognitiveAgeBaseline
+  baseline: CognitiveAgeBaseline,
+  rq?: number | null
 ): CognitiveAgeResult {
   const { S2 } = calculateSystemScores(states);
   
@@ -356,8 +383,11 @@ export function calculateCognitiveAge(
   // Improvement
   const improvement = performanceAvg - baselinePerformanceAvg;
   
-  // Cognitive Age with cap
-  const rawCognitiveAge = baseline.baselineCognitiveAge - (improvement / 10);
+  // RQ Multiplier for improvement effectiveness
+  const rqMultiplier = calculateRQMultiplier(rq);
+  
+  // Cognitive Age with RQ modulation and cap
+  const rawCognitiveAge = baseline.baselineCognitiveAge - (improvement / 10) * rqMultiplier;
   const cognitiveAge = clamp(
     rawCognitiveAge,
     baseline.baselineCognitiveAge - 15,

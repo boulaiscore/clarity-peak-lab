@@ -2,9 +2,14 @@
  * Hook for advanced cognitive metrics:
  * - Dual-Process Integration
  * - Cognitive Network (SCI)
- * - Cognitive Age
+ * - Cognitive Age (with RQ modulation)
+ * - Reasoning Quality (RQ)
  * 
- * v1.4: Now includes decay adjustments:
+ * v1.5: Added Reasoning Quality integration:
+ * - RQ modulates Cognitive Age improvement effectiveness
+ * - Formula: CognitiveAge = BaselineAge - (Improvement/10) × (0.85 + 0.15×RQ/100)
+ * 
+ * v1.4: Decay adjustments:
  * - SCI decays if REC < 40 or no training for 7 days
  * - Dual-Process decays if S1/S2 XP imbalance
  * - Cognitive Age regresses if performance drops ≥10 pts for 21+ days
@@ -16,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useAuth } from "@/contexts/AuthContext";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { startOfWeek, format, differenceInDays, parseISO } from "date-fns";
@@ -46,9 +52,13 @@ export interface UseAdvancedMetricsResult {
   sciStatusText: string;
   sciDecay: number;
   
-  // Cognitive Age - with regression
+  // Cognitive Age - with regression and RQ modulation
   cognitiveAge: CognitiveAgeResult;
   cognitiveAgeRegression: number;
+  
+  // Reasoning Quality (RQ)
+  rq: number;
+  rqIsDecaying: boolean;
   
   // Tracking data
   daysSinceLastTraining: number;
@@ -73,6 +83,9 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
     weeklyGamesXP, 
     isLoading: progressLoading 
   } = useWeeklyProgress();
+  
+  // Reasoning Quality for Cognitive Age modulation
+  const { rq, isDecaying: rqIsDecaying, isLoading: rqLoading } = useReasoningQuality();
   
   // Get targets from training plan
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
@@ -227,8 +240,8 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
     const sciLevel = getSCILevel(sci.total);
     const sciStatusText = getSCIStatusText(sci.total);
     
-    // Calculate base Cognitive Age
-    const baseCognitiveAge = calculateCognitiveAge(states, baseline);
+    // Calculate base Cognitive Age with RQ modulation
+    const baseCognitiveAge = calculateCognitiveAge(states, baseline, rq);
     
     // Calculate cognitive age regression
     const cognitiveAgeRegression = calculateCognitiveAgeRegression({
@@ -256,12 +269,14 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
       sciDecay,
       cognitiveAge,
       cognitiveAgeRegression,
+      rq,
+      rqIsDecaying,
       daysSinceLastTraining,
     };
-  }, [states, S1, S2, baseline, recovery, weeklyGamesXP, plan, lastTrainingData, weeklyXPData, decayData, weekStart]);
+  }, [states, S1, S2, baseline, recovery, weeklyGamesXP, plan, lastTrainingData, weeklyXPData, decayData, weekStart, rq, rqIsDecaying]);
   
   return {
     ...result,
-    isLoading: statesLoading || metricsLoading || progressLoading || trainingLoading || xpLoading || decayLoading,
+    isLoading: statesLoading || metricsLoading || progressLoading || trainingLoading || xpLoading || decayLoading || rqLoading,
   };
 }
