@@ -91,6 +91,23 @@ export default function NeuroLabSessionRunner() {
   // Track which exercises have already been recorded to prevent duplicates
   const recordedExercisesRef = useRef<Set<string>>(new Set());
 
+  // Reset runner state when route params change (query-string navigation does not unmount)
+  useEffect(() => {
+    setSessionExercises([]);
+    setCurrentIndex(0);
+    setResponses(new Map());
+    responsesRef.current = new Map();
+    setIsComplete(false);
+    setSessionScore({ score: 0, correctAnswers: 0, totalQuestions: 0 });
+    setEarnedXP(0);
+    setNewBadges([]);
+    setShowPaywall(false);
+    setIsSaving(false);
+    setSessionStarted(false);
+    hasCompletedRef.current = false;
+    recordedExercisesRef.current = new Set();
+  }, [area, duration, thinkingMode, exerciseId]);
+
   // Check session limit and generate exercises
   useEffect(() => {
     if (!canStartSession() && !sessionStarted) {
