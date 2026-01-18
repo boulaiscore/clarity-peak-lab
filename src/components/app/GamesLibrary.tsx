@@ -135,12 +135,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Recovery Low Banner - muted neutral */}
+      {/* Safe Mode Banner - shown when no-deadlock rule is active */}
       {safetyRuleActive && (
-        <Alert className="border-muted-foreground/15 bg-muted/20">
-          <Info className="h-4 w-4 text-muted-foreground/60" />
-          <AlertDescription className="text-xs text-muted-foreground/70">
-            <span className="font-medium">Light focus available.</span> Build recovery through Detox or Walk to unlock more options.
+        <Alert className="border-primary/20 bg-primary/5">
+          <Info className="h-4 w-4 text-primary/60" />
+          <AlertDescription className="text-xs text-muted-foreground">
+            <span className="font-medium text-primary/80">Safe mode training available</span> while recovery data is building.
           </AlertDescription>
         </Alert>
       )}
