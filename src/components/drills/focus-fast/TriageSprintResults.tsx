@@ -72,6 +72,15 @@ export const TriageSprintResults: React.FC<TriageSprintResultsProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
+      {/* Session complete header */}
+      <motion.p 
+        className="text-xs text-muted-foreground uppercase tracking-widest mb-4"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        SESSION COMPLETE
+      </motion.p>
+      
       {/* Performance badge */}
       <motion.div
         className="flex flex-col items-center mb-6"
