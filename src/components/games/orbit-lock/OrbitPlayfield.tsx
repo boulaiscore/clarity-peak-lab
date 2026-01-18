@@ -1,5 +1,5 @@
 import { useRef, useEffect, useMemo } from "react";
-import { motion, useSpring, useMotionValue } from "framer-motion";
+import { motion, useSpring, useMotionValue, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface OrbitPlayfieldProps {
@@ -34,23 +34,22 @@ export function OrbitPlayfield({
 }: OrbitPlayfieldProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Convert signal position to angle on ellipse
-  const signalAngle = useMotionValue(0);
-  const smoothAngle = useSpring(signalAngle, { stiffness: 100, damping: 20 });
-  
   // Orbit parameters
   const orbitRx = 130; // horizontal radius
   const orbitRy = 100; // vertical radius (elliptical)
   const centerX = 160;
   const centerY = 160;
   
-  // Update signal angle continuously
+  // Convert signal position to angle on ellipse - continuous rotation
+  const signalAngle = useMotionValue(0);
+  
+  // Update signal angle continuously for orbiting effect
   useEffect(() => {
     let frame: number;
     let currentAngle = signalAngle.get();
     
     const animate = () => {
-      currentAngle += 0.015 * orbitSpeedMultiplier; // Base rotation speed
+      currentAngle += 0.02 * orbitSpeedMultiplier; // Base rotation speed
       if (currentAngle > Math.PI * 2) currentAngle -= Math.PI * 2;
       signalAngle.set(currentAngle);
       frame = requestAnimationFrame(animate);
@@ -59,6 +58,21 @@ export function OrbitPlayfield({
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
   }, [orbitSpeedMultiplier, signalAngle]);
+  
+  // Signal offset from orbit (based on drift from band center)
+  const signalOffset = (signalPosition - 0.5) * 50; // pixels offset from orbit
+  
+  // Use useTransform to derive x/y from the angle - this updates reactively!
+  const signalX = useTransform(signalAngle, (angle) => 
+    centerX + (orbitRx + signalOffset) * Math.cos(angle)
+  );
+  const signalY = useTransform(signalAngle, (angle) => 
+    centerY + (orbitRy + signalOffset * 0.77) * Math.sin(angle)
+  );
+  
+  // Smooth springs for the signal position
+  const smoothX = useSpring(signalX, { stiffness: 200, damping: 25 });
+  const smoothY = useSpring(signalY, { stiffness: 200, damping: 25 });
   
   // Calculate band arc path
   const bandPath = useMemo(() => {
@@ -74,9 +88,6 @@ export function OrbitPlayfield({
     
     return `M ${startX} ${startY} A ${orbitRx} ${orbitRy} 0 ${largeArc} 1 ${endX} ${endY}`;
   }, [bandStart, bandEnd]);
-  
-  // Signal particle position based on angle + offset from signalPosition
-  const signalOffset = (signalPosition - 0.5) * 30; // pixels offset from orbit
   
   return (
     <div 
@@ -143,7 +154,7 @@ export function OrbitPlayfield({
           
           {/* Glow filter for signal */}
           <filter id="signalGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="4" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -180,8 +191,9 @@ export function OrbitPlayfield({
           rx={orbitRx}
           ry={orbitRy}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.1)"
-          strokeWidth="1"
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth="2"
+          strokeDasharray="8 4"
         />
         
         {/* Target band highlight */}
@@ -189,9 +201,9 @@ export function OrbitPlayfield({
           d={bandPath}
           fill="none"
           stroke="url(#bandGradient)"
-          strokeWidth="24"
+          strokeWidth="28"
           strokeLinecap="round"
-          className="opacity-60"
+          className="opacity-70"
         />
         
         {/* Target band inner edge glow when signal is in band */}
@@ -199,52 +211,51 @@ export function OrbitPlayfield({
           <path
             d={bandPath}
             fill="none"
-            stroke="rgba(34, 211, 238, 0.6)"
-            strokeWidth="2"
+            stroke="rgba(34, 211, 238, 0.8)"
+            strokeWidth="3"
             strokeLinecap="round"
             className="animate-pulse"
           />
         )}
-        
-        {/* Signal particle */}
-        <motion.g filter="url(#signalGlow)">
-          <motion.circle
-            cx={0}
-            cy={0}
-            r="8"
-            fill={inBand ? "rgb(34, 211, 238)" : "rgb(251, 146, 60)"}
-            style={{
-              x: useSpring(
-                useMotionValue(centerX + (orbitRx + signalOffset) * Math.cos(smoothAngle.get())),
-                { stiffness: 200, damping: 25 }
-              ),
-              y: useSpring(
-                useMotionValue(centerY + (orbitRy + signalOffset * 0.77) * Math.sin(smoothAngle.get())),
-                { stiffness: 200, damping: 25 }
-              ),
-            }}
-          />
-          {/* Signal particle trail */}
-          <motion.circle
-            cx={0}
-            cy={0}
-            r="12"
-            fill="none"
-            stroke={inBand ? "rgba(34, 211, 238, 0.3)" : "rgba(251, 146, 60, 0.3)"}
-            strokeWidth="2"
-            style={{
-              x: useSpring(
-                useMotionValue(centerX + (orbitRx + signalOffset) * Math.cos(smoothAngle.get())),
-                { stiffness: 150, damping: 20 }
-              ),
-              y: useSpring(
-                useMotionValue(centerY + (orbitRy + signalOffset * 0.77) * Math.sin(smoothAngle.get())),
-                { stiffness: 150, damping: 20 }
-              ),
-            }}
-          />
-        </motion.g>
       </svg>
+      
+      {/* Signal particle - rendered outside SVG for proper Framer Motion transforms */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{
+          x: smoothX,
+          y: smoothY,
+          translateX: "-50%",
+          translateY: "-50%",
+          filter: "drop-shadow(0 0 8px rgba(34, 211, 238, 0.6))",
+        }}
+      >
+        {/* Outer glow ring */}
+        <motion.div
+          className={cn(
+            "absolute w-8 h-8 rounded-full -translate-x-1/2 -translate-y-1/2",
+            inBand ? "bg-cyan-400/20" : "bg-orange-400/20"
+          )}
+          animate={{ scale: [1, 1.3, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Main signal dot */}
+        <div
+          className={cn(
+            "absolute w-5 h-5 rounded-full -translate-x-1/2 -translate-y-1/2 shadow-lg",
+            inBand 
+              ? "bg-cyan-400 shadow-cyan-400/50" 
+              : "bg-orange-400 shadow-orange-400/50"
+          )}
+        />
+        {/* Inner highlight */}
+        <div
+          className={cn(
+            "absolute w-2 h-2 rounded-full -translate-x-1/2 -translate-y-1/2",
+            inBand ? "bg-cyan-200" : "bg-orange-200"
+          )}
+        />
+      </motion.div>
       
       {/* Act progress indicator (top) */}
       <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -259,6 +270,16 @@ export function OrbitPlayfield({
           className="h-full bg-gradient-to-r from-cyan-400 to-violet-400"
           style={{ width: `${actProgress * 100}%` }}
         />
+      </div>
+      
+      {/* Drift direction indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
+        <span className={cn(
+          "text-[10px] font-medium transition-colors",
+          inBand ? "text-cyan-400/70" : "text-orange-400/70"
+        )}>
+          {inBand ? "● LOCKED" : "○ DRIFTING"}
+        </span>
       </div>
     </div>
   );

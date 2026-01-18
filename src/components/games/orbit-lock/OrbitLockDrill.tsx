@@ -350,27 +350,45 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
           
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">Orbit Lock</h2>
-            <p className="text-sm text-muted-foreground">
-              Keep the signal within the target band using the thumb dial. 
-              Smooth, minimal corrections work best.
+            <p className="text-sm text-muted-foreground mb-4">
+              Un pallino luminoso orbita attorno al nucleo. Il tuo obiettivo è mantenerlo nella banda target (zona evidenziata).
             </p>
+          </div>
+          
+          {/* How to play */}
+          <div className="bg-muted/30 rounded-xl p-4 text-left space-y-3">
+            <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Come giocare</h3>
+            <ul className="text-xs text-muted-foreground space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-cyan-400 font-bold">1.</span>
+                <span>Il segnale <span className="text-cyan-400">deriva naturalmente</span> dall'orbita</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-cyan-400 font-bold">2.</span>
+                <span>Usa la <span className="text-foreground font-medium">rotella a destra</span> per contrastare la deriva</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-cyan-400 font-bold">3.</span>
+                <span>Movimenti <span className="text-foreground font-medium">piccoli e fluidi</span> funzionano meglio!</span>
+              </li>
+            </ul>
           </div>
           
           <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-cyan-400" />
-              <span>In Band</span>
+              <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50" />
+              <span>In banda</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-orange-400" />
-              <span>Drifting</span>
+              <div className="w-3 h-3 rounded-full bg-orange-400 shadow-lg shadow-orange-400/50" />
+              <span>Fuori banda</span>
             </div>
           </div>
           
           <div className="grid grid-cols-3 gap-2 text-[10px]">
             {ACT_CONFIGS.map((act, i) => (
               <div key={i} className="p-2 rounded-lg bg-muted/30 border border-border/50">
-                <div className="font-medium text-foreground">Act {i + 1}</div>
+                <div className="font-medium text-foreground">Fase {i + 1}</div>
                 <div className="text-muted-foreground">{act.label}</div>
               </div>
             ))}
@@ -380,7 +398,7 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
             onClick={handleStart}
             className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-semibold text-sm hover:opacity-90 transition-opacity"
           >
-            Begin Session
+            Inizia Sessione
           </button>
         </motion.div>
       </div>
