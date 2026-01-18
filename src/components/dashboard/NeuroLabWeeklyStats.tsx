@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNeuroLabWeeklyStats } from "@/hooks/useNeuroLab";
-import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap, Gamepad2 } from "lucide-react";
+import { Target, Brain, Sliders, Lightbulb, Sparkles, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AREA_CONFIG = [
@@ -9,7 +9,6 @@ const AREA_CONFIG = [
   { id: "control", label: "Control", icon: Sliders },
   { id: "reasoning", label: "Reasoning", icon: Lightbulb },
   { id: "creativity", label: "Creativity", icon: Sparkles },
-  { id: "visual", label: "Visual", icon: Gamepad2 },
   { id: "neuro-activation", label: "Activation", icon: Zap },
 ] as const;
 
