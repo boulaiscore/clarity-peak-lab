@@ -365,7 +365,8 @@ export default function NeuroLabSessionRunner() {
     );
   }
 
-  if (!exercisesLoading && sessionExercises.length === 0) {
+  // Only show "no exercises" after session has been attempted to start
+  if (!exercisesLoading && sessionStarted && sessionExercises.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
@@ -379,6 +380,18 @@ export default function NeuroLabSessionRunner() {
           <Button onClick={() => navigate("/neuro-lab")} className="w-full">
             Back to Neuro Lab
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading while waiting for session to initialize
+  if (!sessionStarted && !showPaywall) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground">Preparing session...</p>
         </div>
       </div>
     );
