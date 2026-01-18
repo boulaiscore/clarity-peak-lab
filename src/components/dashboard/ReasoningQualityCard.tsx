@@ -51,23 +51,35 @@ export function ReasoningQualityCard({
         <div>
           <div className="flex items-center gap-1.5">
             <h3 className="text-sm font-semibold">Reasoning Quality</h3>
-              <TooltipProvider>
+              <TooltipProvider delayDuration={0}>
                 <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  <TooltipTrigger asChild>
+                    <button type="button" className="touch-manipulation">
+                      <Info className="w-3.5 h-3.5 text-muted-foreground/50" />
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-[220px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50">
+                  <TooltipContent 
+                    side="top" 
+                    sideOffset={8}
+                    className="max-w-[220px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50"
+                  >
                     <p>Training builds capacity. Reading and reflection refine it.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
               {isDecaying && (
-                <TooltipProvider>
+                <TooltipProvider delayDuration={0}>
                   <Tooltip>
-                    <TooltipTrigger>
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                    <TooltipTrigger asChild>
+                      <button type="button" className="touch-manipulation">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent className="text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50">
+                    <TooltipContent 
+                      side="top"
+                      sideOffset={8}
+                      className="text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50"
+                    >
                       Decaying due to inactivity
                     </TooltipContent>
                   </Tooltip>
