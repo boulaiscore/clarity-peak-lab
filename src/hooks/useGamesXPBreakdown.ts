@@ -4,13 +4,15 @@
  * - Focus Fast, Focus Slow
  * - Reasoning Fast, Reasoning Slow
  * - Creativity Fast, Creativity Slow
+ * 
+ * v2.0: Uses rolling 7-day window instead of calendar week.
  */
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { startOfWeek, format } from "date-fns";
 import { useRef } from "react";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 
 export type GymArea = "focus" | "reasoning" | "creativity";
 export type ThinkingMode = "fast" | "slow";
@@ -54,15 +56,14 @@ const EMPTY_BREAKDOWN: GamesXPBreakdown = {
   completionsCount: 0,
 };
 
-function getCurrentWeekStart(): string {
-  const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  return format(weekStart, "yyyy-MM-dd");
+// v2.0: Use rolling 7-day window instead of calendar week
+function getRollingPeriodStart(): string {
+  return getMediumPeriodStartDate();
 }
 
 export function useGamesXPBreakdown() {
   const { user, session } = useAuth();
-  const weekStart = getCurrentWeekStart();
+  const rollingStart = getRollingPeriodStart();
 
   // Keep a stable userId across route changes
   const lastUserIdRef = useRef<string | undefined>(undefined);
@@ -71,16 +72,17 @@ export function useGamesXPBreakdown() {
   const userId = computedUserId ?? lastUserIdRef.current;
 
   return useQuery({
-    queryKey: ["games-xp-breakdown", userId, weekStart],
+    queryKey: ["games-xp-breakdown", userId, rollingStart],
     queryFn: async (): Promise<GamesXPBreakdown> => {
       if (!userId) return EMPTY_BREAKDOWN;
 
-      // Fetch exercise_completions for games (exclude content- prefix)
+      // v2.0: Use rolling 7-day window - query by completed_at instead of week_start
+      const rollingStartDate = getMediumPeriodStart();
       const { data, error } = await supabase
         .from("exercise_completions")
         .select("exercise_id, xp_earned, gym_area, thinking_mode")
         .eq("user_id", userId)
-        .eq("week_start", weekStart);
+        .gte("completed_at", rollingStartDate.toISOString());
 
       if (error) throw error;
 

@@ -38,7 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useAuth } from "@/contexts/AuthContext";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-import { startOfWeek, format } from "date-fns";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import {
   calculateSharpness,
   calculateReadiness,
@@ -76,30 +76,33 @@ export interface UseTodayMetricsResult {
   isLoading: boolean;
 }
 
-function getCurrentWeekStart(): string {
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  return format(weekStart, "yyyy-MM-dd");
+// v2.0: Use rolling 7-day window instead of calendar week
+function getRollingPeriodStart(): string {
+  return getMediumPeriodStartDate();
 }
 
 export function useTodayMetrics(): UseTodayMetricsResult {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
-  const weekStart = getCurrentWeekStart();
+  // v2.0: Use rolling 7-day window
+  const rollingStart = getRollingPeriodStart();
   const today = new Date().toISOString().split("T")[0];
   
   const { states, S1, S2, isLoading: statesLoading } = useCognitiveStates();
   
-  // Fetch weekly detox minutes from detox_completions
+  // Fetch weekly detox minutes from detox_completions - v2.0: rolling window
   const { data: detoxData, isLoading: detoxLoading } = useQuery({
-    queryKey: ["weekly-detox-minutes", userId, weekStart],
+    queryKey: ["weekly-detox-minutes", userId, rollingStart],
     queryFn: async () => {
       if (!userId) return { totalMinutes: 0 };
       
+      // v2.0: Use rolling 7-day window - query by completed_at
+      const rollingStartDate = getMediumPeriodStart();
       const { data, error } = await supabase
         .from("detox_completions")
         .select("duration_minutes")
         .eq("user_id", userId)
-        .eq("week_start", weekStart);
+        .gte("completed_at", rollingStartDate.toISOString());
       
       if (error) throw error;
       
@@ -110,18 +113,20 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     staleTime: 60_000,
   });
   
-  // Fetch weekly walking minutes from walking_sessions
+  // Fetch weekly walking minutes from walking_sessions - v2.0: rolling window
   const { data: walkingData, isLoading: walkingLoading } = useQuery({
-    queryKey: ["weekly-walking-minutes", userId, weekStart],
+    queryKey: ["weekly-walking-minutes", userId, rollingStart],
     queryFn: async () => {
       if (!userId) return { totalMinutes: 0 };
       
+      // v2.0: Use rolling 7-day window - query by completed_at
+      const rollingStartDate = getMediumPeriodStart();
       const { data, error } = await supabase
         .from("walking_sessions")
         .select("duration_minutes, status, completed_at")
         .eq("user_id", userId)
         .eq("status", "completed")
-        .gte("completed_at", `${weekStart}T00:00:00`);
+        .gte("completed_at", rollingStartDate.toISOString());
       
       if (error) throw error;
       
@@ -155,7 +160,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   // Fetch readiness decay tracking data
   // NOTE: Using type cast because these columns are new and types.ts may not be updated yet
   const { data: decayData, isLoading: decayLoading } = useQuery({
-    queryKey: ["readiness-decay-tracking", userId, weekStart],
+    queryKey: ["readiness-decay-tracking", userId, rollingStart],
     queryFn: async () => {
       if (!userId) return null;
       
@@ -219,10 +224,11 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     const baseReadiness = calculateReadiness(states, recovery, physioComponent);
     
     // Calculate Readiness decay (using low_rec_streak_days from daily snapshot)
+    // v2.0: Compare against rolling period instead of calendar week
     const consecutiveLowRecDays = decayData?.low_rec_streak_days ?? 0;
     const readinessDecayWeekStart = decayData?.readiness_decay_week_start;
     const currentDecayApplied = 
-      readinessDecayWeekStart === weekStart 
+      readinessDecayWeekStart === rollingStart 
         ? (decayData?.readiness_decay_applied ?? 0) 
         : 0;
     
@@ -252,7 +258,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       detoxTarget,
       isLoading: !allLoaded,
     };
-  }, [states, S1, S2, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot, decayData, weekStart, allLoaded]);
+  }, [states, S1, S2, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot, decayData, rollingStart, allLoaded]);
   
   // Update cached result only when all data is loaded
   if (allLoaded) {
