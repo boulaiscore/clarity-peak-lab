@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { TriageSprintResults } from './TriageSprintResults';
-import { Check, X, Pause, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Check, X, Pause } from 'lucide-react';
 
 // ============ TYPES ============
 interface TriageCard {
@@ -56,9 +56,9 @@ interface TriageSprintDrillProps {
 // ============ CONFIGURATION ============
 const DIFFICULTY_CONFIG = {
   easy: {
-    cardsPerRound: 10,
-    cardPaceMs: 1500,
-    responseWindowMs: 1800,
+    cardsPerRound: 12,
+    cardPaceMs: 900,
+    responseWindowMs: 900,
     lureRate: 0.15,
     urgentRate: 0.25,
     targetPrevalence: 0.18,
@@ -67,9 +67,9 @@ const DIFFICULTY_CONFIG = {
     xpPerRound: 3,
   },
   medium: {
-    cardsPerRound: 12,
-    cardPaceMs: 1100,
-    responseWindowMs: 1300,
+    cardsPerRound: 14,
+    cardPaceMs: 750,
+    responseWindowMs: 750,
     lureRate: 0.22,
     urgentRate: 0.35,
     targetPrevalence: 0.14,
@@ -79,9 +79,9 @@ const DIFFICULTY_CONFIG = {
     xpPerRound: 5,
   },
   hard: {
-    cardsPerRound: 14,
-    cardPaceMs: 850,
-    responseWindowMs: 1000,
+    cardsPerRound: 17,
+    cardPaceMs: 600,
+    responseWindowMs: 600,
     lureRate: 0.30,
     urgentRate: 0.45,
     targetPrevalence: 0.10,
@@ -111,8 +111,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
   const config = DIFFICULTY_CONFIG[difficulty];
   
   // Phase management
-  const [phase, setPhase] = useState<'tutorial' | 'instruction' | 'playing' | 'transition' | 'results'>('tutorial');
-  const [tutorialStep, setTutorialStep] = useState(0);
+  const [phase, setPhase] = useState<'instruction' | 'playing' | 'transition' | 'results'>('instruction');
   const [currentRound, setCurrentRound] = useState(1);
   
   // Card state
@@ -437,227 +436,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     };
   }, [phase, allRoundStats, config.xpPerRound]);
 
-  // ============ TUTORIAL STEPS ============
-  const tutorialSteps = [
-    {
-      title: "Il Tuo Obiettivo",
-      content: "Valuta rapidamente le carte in arrivo. Devi decidere: APPROVA o RIFIUTA.",
-      visual: (
-        <div className="flex gap-8 items-center justify-center my-6">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-14 h-14 rounded-full bg-green-500/20 border-2 border-green-500/50 flex items-center justify-center">
-              <Check className="w-7 h-7 text-green-400" />
-            </div>
-            <span className="text-xs text-green-400">Approva →</span>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-14 h-14 rounded-full bg-red-500/20 border-2 border-red-500/50 flex items-center justify-center">
-              <X className="w-7 h-7 text-red-400" />
-            </div>
-            <span className="text-xs text-red-400">← Rifiuta</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "La Regola d'Oro",
-      content: "APPROVA solo se ENTRAMBE le condizioni sono vere:",
-      visual: (
-        <div className="bg-muted/30 rounded-xl p-5 my-6 border border-green-500/30">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 font-bold">1</div>
-              <div className="text-left">
-                <p className="font-medium text-foreground">Source = <span className="text-green-400">Verified</span></p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 font-bold">2</div>
-              <div className="text-left">
-                <p className="font-medium text-foreground">Signal = <span className="text-green-400">Green</span></p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 pt-4 border-t border-border/30">
-            <p className="text-sm text-muted-foreground">Tutto il resto → <span className="text-red-400 font-medium">RIFIUTA</span></p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Esempi Pratici",
-      content: "Vediamo alcuni esempi:",
-      visual: (
-        <div className="space-y-3 my-6">
-          {/* Example 1: Approve */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-green-500/10 border border-green-500/30">
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-green-400 text-sm">✓ Verified</span>
-              <span className="text-muted-foreground">+</span>
-              <span className="px-2 py-0.5 rounded bg-green-500/30 text-green-400 text-sm">Green</span>
-            </div>
-            <Check className="w-5 h-5 text-green-400" />
-          </div>
-          {/* Example 2: Reject */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/30">
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Unverified</span>
-              <span className="text-muted-foreground">+</span>
-              <span className="px-2 py-0.5 rounded bg-green-500/30 text-green-400 text-sm">Green</span>
-            </div>
-            <X className="w-5 h-5 text-red-400" />
-          </div>
-          {/* Example 3: Reject */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/30">
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-green-400 text-sm">✓ Verified</span>
-              <span className="text-muted-foreground">+</span>
-              <span className="px-2 py-0.5 rounded bg-yellow-500/30 text-yellow-400 text-sm">Yellow</span>
-            </div>
-            <X className="w-5 h-5 text-red-400" />
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Attenzione ai Distrattori!",
-      content: "Il badge URGENT è una trappola. Ignoralo completamente!",
-      visual: (
-        <div className="my-6 space-y-4">
-          <motion.div 
-            className="inline-flex px-4 py-2 rounded-full bg-amber-500 text-amber-950 font-bold"
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 0.8, repeat: Infinity }}
-          >
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            URGENT
-          </motion.div>
-          <p className="text-sm text-muted-foreground">
-            Questo badge appare per distrarti.<br />
-            <span className="text-foreground font-medium">Segui SOLO la regola: Verified + Green</span>
-          </p>
-        </div>
-      ),
-    },
-    {
-      title: "Come Giocare",
-      content: "Scorri le carte o usa i pulsanti:",
-      visual: (
-        <div className="my-6 space-y-4">
-          <div className="flex items-center justify-center gap-6">
-            <div className="flex flex-col items-center gap-2">
-              <motion.div 
-                className="w-16 h-24 rounded-xl bg-card border-2 border-border/50 flex items-center justify-center"
-                animate={{ x: [-30, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
-              >
-                <X className="w-6 h-6 text-red-400" />
-              </motion.div>
-              <span className="text-xs text-muted-foreground">← Swipe Left</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <motion.div 
-                className="w-16 h-24 rounded-xl bg-card border-2 border-border/50 flex items-center justify-center"
-                animate={{ x: [0, 30] }}
-                transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
-              >
-                <Check className="w-6 h-6 text-green-400" />
-              </motion.div>
-              <span className="text-xs text-muted-foreground">Swipe Right →</span>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Oppure usa i pulsanti in basso
-          </p>
-        </div>
-      ),
-    },
-  ];
-
-  // ============ RENDER: TUTORIAL ============
-  if (phase === 'tutorial') {
-    const currentStep = tutorialSteps[tutorialStep];
-    const isLastStep = tutorialStep === tutorialSteps.length - 1;
-    
-    return (
-      <motion.div
-        className="flex flex-col items-center justify-between min-h-[550px] p-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        {/* Progress dots */}
-        <div className="flex gap-2 mb-4">
-          {tutorialSteps.map((_, i) => (
-            <div 
-              key={i}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === tutorialStep ? 'bg-primary' : 'bg-muted/50'
-              }`}
-            />
-          ))}
-        </div>
-        
-        {/* Content */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tutorialStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="w-full max-w-sm"
-            >
-              <h2 className="text-2xl font-bold text-foreground mb-3">{currentStep.title}</h2>
-              <p className="text-muted-foreground">{currentStep.content}</p>
-              {currentStep.visual}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        
-        {/* Navigation */}
-        <div className="flex gap-4 w-full max-w-xs">
-          {tutorialStep > 0 && (
-            <motion.button
-              className="flex-1 py-3 px-6 rounded-full border border-border/50 text-muted-foreground font-medium"
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setTutorialStep(s => s - 1)}
-            >
-              Indietro
-            </motion.button>
-          )}
-          <motion.button
-            className={`flex-1 py-3 px-6 rounded-full font-semibold flex items-center justify-center gap-2 ${
-              isLastStep 
-                ? 'bg-primary text-primary-foreground' 
-                : 'bg-muted/30 text-foreground border border-border/50'
-            }`}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              if (isLastStep) {
-                setPhase('playing');
-              } else {
-                setTutorialStep(s => s + 1);
-              }
-            }}
-          >
-            {isLastStep ? 'Inizia!' : 'Avanti'}
-            <ChevronRight className="w-4 h-4" />
-          </motion.button>
-        </div>
-        
-        {/* Skip option */}
-        <button 
-          className="mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          onClick={() => setPhase('playing')}
-        >
-          Salta tutorial
-        </button>
-      </motion.div>
-    );
-  }
-
-  // ============ RENDER: INSTRUCTION (kept as fallback) ============
+  // ============ RENDER: INSTRUCTION ============
   if (phase === 'instruction') {
     return (
       <motion.div
@@ -665,6 +444,36 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
+        <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-6">
+          <Check className="w-8 h-8 text-primary" />
+        </div>
+        
+        <h2 className="text-2xl font-bold text-foreground mb-3">Triage Sprint</h2>
+        <p className="text-muted-foreground mb-6 max-w-sm">
+          Make fast decisions on incoming cards. <strong>Swipe right to APPROVE</strong> only when: 
+        </p>
+        
+        <div className="bg-muted/30 rounded-xl p-4 mb-6 border border-border/50">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+              <Check className="w-5 h-5 text-green-500" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Source = Verified</p>
+              <p className="text-sm text-muted-foreground">AND Signal = Green</p>
+            </div>
+          </div>
+        </div>
+        
+        <p className="text-sm text-muted-foreground mb-6">
+          Ignore the <span className="text-amber-500 font-medium">URGENT</span> badge — it's a distractor!
+        </p>
+        
+        <div className="flex gap-4 text-xs text-muted-foreground mb-8">
+          <span>← Swipe Left: <span className="text-red-400">Reject</span></span>
+          <span>Swipe Right: <span className="text-green-400">Approve</span> →</span>
+        </div>
+        
         <motion.button
           className="px-10 py-4 bg-primary text-primary-foreground rounded-full font-semibold text-lg"
           whileTap={{ scale: 0.95 }}
