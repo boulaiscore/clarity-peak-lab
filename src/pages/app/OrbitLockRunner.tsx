@@ -2,19 +2,16 @@ import { useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { OrbitLockDrill, OrbitLockFinalResults } from "@/components/games/orbit-lock";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function OrbitLockRunner() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const recordGameSession = useRecordGameSession();
-  const queryClient = useQueryClient();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const [isComplete, setIsComplete] = useState(false);
@@ -23,6 +20,7 @@ export default function OrbitLockRunner() {
     setIsComplete(true);
     
     // Record game session for caps and XP routing
+    // Note: recordGameSession now handles all query invalidations internally
     if (user?.id) {
       try {
         await recordGameSession({
@@ -32,16 +30,6 @@ export default function OrbitLockRunner() {
           xpAwarded: results.xpAwarded,
           score: results.score,
         });
-        
-        // Also log detailed session data to game_sessions table
-        // (the recordGameSession already does basic insert, but we want extended data)
-        // For now, the recordGameSession handles core fields
-        // Extended analytics can be added via a dedicated orbit_lock_sessions table later
-        
-        // Invalidate queries to refresh caps
-        queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
-        queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
-        queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
         
         toast.success(`+${results.xpAwarded} XP earned!`, { icon: "⭐" });
         
@@ -57,7 +45,7 @@ export default function OrbitLockRunner() {
     setTimeout(() => {
       navigate("/neuro-lab");
     }, 500);
-  }, [user?.id, recordGameSession, queryClient, navigate]);
+  }, [user?.id, recordGameSession, navigate]);
 
   const handleBack = () => {
     navigate("/neuro-lab");
