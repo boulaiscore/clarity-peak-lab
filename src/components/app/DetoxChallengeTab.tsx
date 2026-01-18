@@ -332,99 +332,149 @@ export function DetoxChallengeTab() {
         </motion.div>
       ) : (
         <>
-          {/* Header */}
-          <div className="text-center mb-2">
-            <h2 className="text-lg font-semibold text-foreground">Recover Mental Clarity</h2>
-            <p className="text-sm text-muted-foreground">Choose the recovery mode that fits your situation.</p>
-          </div>
+          {/* Header with subtle animation */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-6"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-recovery/10 border border-recovery/20 mb-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-recovery animate-pulse" />
+              <span className="text-[10px] font-medium text-recovery uppercase tracking-wider">Recovery Mode</span>
+            </div>
+            <h2 className="text-xl font-semibold text-foreground tracking-tight">Recover Mental Clarity</h2>
+            <p className="text-sm text-muted-foreground mt-1">Choose the recovery mode that fits your situation.</p>
+          </motion.div>
 
-          {/* Recovery Mode Selector */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
+          {/* Recovery Mode Selector - Premium Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode, index) => {
               const Icon = mode.icon;
               const isSelected = selectedMode === mode.id;
               
               return (
-                <button
+                <motion.button
                   key={mode.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                   onClick={() => setSelectedMode(mode.id)}
                   className={cn(
-                    "p-4 rounded-xl border text-left transition-all",
+                    "relative p-5 rounded-2xl text-left transition-all duration-300 overflow-hidden group",
                     isSelected
-                      ? "bg-primary/10 border-primary/40 ring-1 ring-primary/20"
-                      : "bg-card/50 border-border/50 hover:border-border"
+                      ? "bg-gradient-to-br from-recovery/15 via-recovery/10 to-transparent border-2 border-recovery/40 shadow-[0_0_30px_-10px_hsl(var(--recovery)/0.3)]"
+                      : "bg-card/80 border border-border/60 hover:border-border hover:bg-card"
                   )}
                 >
+                  {/* Subtle gradient overlay on hover */}
                   <div className={cn(
-                    "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
-                    isSelected ? "bg-primary/20" : "bg-muted/50"
-                  )}>
-                    <Icon className={cn(
-                      "w-5 h-5",
-                      isSelected ? "text-primary" : "text-muted-foreground"
-                    )} />
+                    "absolute inset-0 bg-gradient-to-br from-recovery/5 to-transparent opacity-0 transition-opacity duration-300",
+                    !isSelected && "group-hover:opacity-100"
+                  )} />
+                  
+                  <div className="relative z-10">
+                    {/* Icon with glow effect when selected */}
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300",
+                      isSelected 
+                        ? "bg-recovery/20 shadow-[0_0_20px_-5px_hsl(var(--recovery)/0.4)]" 
+                        : "bg-muted/50 group-hover:bg-muted/70"
+                    )}>
+                      <Icon className={cn(
+                        "w-6 h-6 transition-colors duration-300",
+                        isSelected ? "text-recovery" : "text-muted-foreground group-hover:text-foreground/70"
+                      )} />
+                    </div>
+                    
+                    <h4 className={cn(
+                      "text-base font-semibold mb-1.5 transition-colors duration-300",
+                      isSelected ? "text-foreground" : "text-foreground/80"
+                    )}>
+                      {mode.id === "detox" ? "Digital Detox" : "Active Walk"}
+                    </h4>
+                    
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                      {mode.description}
+                    </p>
+                    
+                    {"constraints" in mode && (
+                      <p className="text-[10px] text-amber-500/70 mb-3 flex items-center gap-1.5">
+                        <Info className="w-3 h-3" />
+                        {mode.constraints}
+                      </p>
+                    )}
+                    
+                    <div className={cn(
+                      "inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-all duration-300",
+                      isSelected 
+                        ? "bg-recovery/20 text-recovery" 
+                        : "bg-muted/50 text-muted-foreground"
+                    )}>
+                      <Sparkles className="w-3 h-3" />
+                      {mode.impact}
+                    </div>
                   </div>
                   
-                  <h4 className={cn(
-                    "text-sm font-medium mb-1",
-                    isSelected ? "text-foreground" : "text-muted-foreground"
-                  )}>
-                    {mode.label}
-                  </h4>
-                  
-                  <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
-                    {mode.description}
-                  </p>
-                  
-                  {"constraints" in mode && (
-                    <p className="text-[10px] text-amber-500/80 mb-2">
-                      {mode.constraints}
-                    </p>
+                  {/* Selection indicator */}
+                  {isSelected && (
+                    <motion.div 
+                      layoutId="selected-mode"
+                      className="absolute top-3 right-3 w-5 h-5 rounded-full bg-recovery flex items-center justify-center"
+                    >
+                      <Check className="w-3 h-3 text-background" />
+                    </motion.div>
                   )}
-                  
-                  <span className={cn(
-                    "inline-block text-[10px] font-medium px-2 py-0.5 rounded-full",
-                    isSelected 
-                      ? "bg-primary/20 text-primary" 
-                      : "bg-muted/50 text-muted-foreground"
-                  )}>
-                    {mode.impact}
-                  </span>
-                </button>
+                </motion.button>
               );
             })}
           </div>
 
-          {/* Session Duration */}
-          <div className="p-4 rounded-xl bg-card border border-border">
-            <Label className="text-xs text-muted-foreground mb-3 block text-center">Session duration</Label>
-            <div className="grid grid-cols-4 gap-2">
-              {DETOX_SLOT_OPTIONS.map((slot) => (
-                <button
-                  key={slot.value}
-                  onClick={() => setSelectedDuration(slot.value)}
-                  className={cn(
-                    "px-2 py-2 rounded-lg text-xs font-medium transition-all text-center",
-                    selectedDuration === slot.value
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  {slot.label}
-                </button>
-              ))}
+          {/* Session Duration - Premium Style */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="p-5 rounded-2xl bg-card/80 border border-border/60"
+          >
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Clock className="w-4 h-4 text-primary" />
+              <Label className="text-xs font-medium text-foreground">Session Duration</Label>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-2 text-center">
-              Minimum session: 30 min for measurable impact
+            <div className="grid grid-cols-4 gap-2">
+              {DETOX_SLOT_OPTIONS.map((slot) => {
+                const isSelected = selectedDuration === slot.value;
+                return (
+                  <button
+                    key={slot.value}
+                    onClick={() => setSelectedDuration(slot.value)}
+                    className={cn(
+                      "relative py-3 rounded-xl text-sm font-semibold transition-all duration-200",
+                      isSelected
+                        ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-[0_0_20px_-5px_hsl(var(--primary)/0.4)]"
+                        : "bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                    )}
+                  >
+                    {slot.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-muted-foreground/70 mt-3 text-center">
+              Minimum 30 min for measurable cognitive impact
             </p>
-          </div>
+          </motion.div>
 
           {/* Impact on Your System Block */}
           <ImpactBlock mode={selectedMode} duration={selectedDuration} />
 
-          {/* CTA Context */}
-          <div className="text-center">
-            <p className="text-[11px] text-muted-foreground/80 mb-2">
+          {/* CTA - Premium Style */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-center space-y-3"
+          >
+            <p className="text-xs text-muted-foreground/80">
               {selectedMode === "detox" 
                 ? "Best before high-focus or deep reasoning sessions."
                 : "Best when recovery is low but movement feels manageable."
@@ -432,26 +482,27 @@ export function DetoxChallengeTab() {
             </p>
             <Button 
               onClick={handleStart}
-              className="w-full gap-2"
+              variant="hero"
+              className="w-full min-h-[56px] gap-3 text-base font-semibold"
               size="lg"
             >
               <Play className="w-5 h-5 fill-current" />
-              Start {selectedMode === "detox" ? "Detox" : "Walk"} ({selectedDuration} min)
+              Start {selectedMode === "detox" ? "Detox" : "Walk"} • {selectedDuration} min
             </Button>
+          </motion.div>
+
+          {/* Expandable Sections */}
+          <div className="space-y-3 pt-2">
+            <WhatThisUnlocksSection />
+            <HowRecoveryWorksSection />
           </div>
 
-          {/* What This Unlocks - Expandable */}
-          <WhatThisUnlocksSection />
-
-          {/* How Recovery Works - Science-based */}
-          <HowRecoveryWorksSection />
-
-          {/* Reminder Info */}
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-1">
+          {/* Reminder Info - Subtle footer */}
+          <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/60 pt-2">
             {dailySettings?.reminderEnabled ? (
               <>
-                <Bell className="w-3 h-3 text-primary" />
-                <span>Reminder at <strong>{dailySettings.reminderTime}</strong></span>
+                <Bell className="w-3 h-3 text-primary/60" />
+                <span>Daily reminder at <span className="text-muted-foreground">{dailySettings.reminderTime}</span></span>
               </>
             ) : (
               <>
@@ -474,141 +525,145 @@ export function DetoxChallengeTab() {
   );
 }
 
-// Impact Block Component
+// Impact Block Component - Premium Style
 function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: number }) {
   const recoveryImpact = getRecoveryImpact(duration, mode);
   
   return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
-      <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-        <Zap className="w-3.5 h-3.5 text-primary" />
-        Impact on your system
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25 }}
+      className="p-5 rounded-2xl bg-gradient-to-br from-recovery/8 via-recovery/4 to-transparent border border-recovery/20"
+    >
+      <h4 className="text-xs font-semibold text-foreground mb-4 flex items-center gap-2">
+        <div className="w-6 h-6 rounded-lg bg-recovery/20 flex items-center justify-center">
+          <Zap className="w-3.5 h-3.5 text-recovery" />
+        </div>
+        Estimated Impact
       </h4>
       
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-400" />
+      <div className="space-y-3">
+        {/* Recovery - Primary metric */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+          <span className="text-xs text-foreground flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-recovery" />
             Recovery
           </span>
-          <span className="text-sm font-semibold text-emerald-400">+{recoveryImpact}%</span>
+          <span className="text-lg font-bold text-recovery">+{recoveryImpact}%</span>
         </div>
         
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-amber-400" />
-            Sharpness
-          </span>
-          <span className="text-[11px] text-muted-foreground/80">indirect boost</span>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-blue-400" />
-            Readiness
-          </span>
-          <span className="text-[11px] text-muted-foreground/80">
-            {mode === "detox" ? "improves next-day focus" : "light improvement"}
-          </span>
+        {/* Secondary effects */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-2.5 rounded-xl bg-background/30 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400/70" />
+              <span className="text-[10px] font-medium text-muted-foreground">Sharpness</span>
+            </div>
+            <span className="text-[11px] text-foreground/70">Indirect boost</span>
+          </div>
+          
+          <div className="p-2.5 rounded-xl bg-background/30 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-400/70" />
+              <span className="text-[10px] font-medium text-muted-foreground">Readiness</span>
+            </div>
+            <span className="text-[11px] text-foreground/70">
+              {mode === "detox" ? "Next-day focus" : "Light boost"}
+            </span>
+          </div>
         </div>
       </div>
       
-      {/* Indirect Effect Explanation */}
-      <p className="text-[10px] text-muted-foreground/70 mt-3 pt-3 border-t border-border/30 leading-relaxed">
-        Recovery does not train skills directly. It determines how effective cognitive input can be.
-        <span className="block mt-1 text-muted-foreground/50">
-          Impact increases with duration but is not strictly linear.
-        </span>
+      {/* Subtle explanation */}
+      <p className="text-[10px] text-muted-foreground/60 mt-4 leading-relaxed text-center">
+        Recovery determines how effective your cognitive training can be.
       </p>
-    </div>
+    </motion.div>
   );
 }
 
-// What This Unlocks Section
+// What This Unlocks Section - Premium Style
 function WhatThisUnlocksSection() {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger className="w-full p-3 rounded-xl bg-card/50 border border-border/50 flex items-center justify-between hover:bg-card/80 transition-colors">
-        <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
-          <Target className="w-3.5 h-3.5 text-primary" />
+      <CollapsibleTrigger className="w-full p-4 rounded-xl bg-card/60 border border-border/40 flex items-center justify-between hover:bg-card/80 transition-all duration-200 group">
+        <span className="text-xs font-medium text-foreground flex items-center gap-2">
+          <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+            <Target className="w-3 h-3 text-primary" />
+          </div>
           What this unlocks
         </span>
         <ChevronDown className={cn(
-          "w-4 h-4 text-muted-foreground transition-transform",
+          "w-4 h-4 text-muted-foreground transition-transform duration-200",
           isOpen && "rotate-180"
         )} />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="px-3 py-3 text-[11px] text-muted-foreground leading-relaxed">
-          <p className="mb-2">As recovery increases, the system progressively unlocks:</p>
-          <ul className="space-y-1">
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>cognitive tasks</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>deeper training sessions</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>higher daily cognitive load</span>
-            </li>
-          </ul>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="px-4 py-4 text-xs text-muted-foreground leading-relaxed"
+        >
+          <p className="mb-3 text-foreground/80">As recovery increases, the system unlocks:</p>
+          <div className="space-y-2">
+            {["Cognitive tasks", "Deeper training sessions", "Higher daily cognitive load"].map((item, i) => (
+              <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
-// How Recovery Works Section
+// How Recovery Works Section - Premium Style
 function HowRecoveryWorksSection() {
   const [isWalkScienceOpen, setIsWalkScienceOpen] = useState(false);
   
   return (
-    <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
-      <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-        <Brain className="w-3.5 h-3.5 text-primary" />
-        How recovery works
-      </h4>
-      
-      <ul className="space-y-1.5 text-[11px] text-muted-foreground">
-        <li className="flex items-start gap-2">
-          <span className="text-primary mt-0.5">•</span>
-          <span>Detox restores recovery faster by removing cognitive input</span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-primary mt-0.5">•</span>
-          <span>Walking supports recovery through movement and circulation</span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-primary mt-0.5">•</span>
-          <span>Recovery determines when training and content are effective</span>
-        </li>
-      </ul>
-      
-      {/* Closing line */}
-      <p className="text-[10px] text-muted-foreground/60 mt-3 pt-2 border-t border-border/20 italic">
-        Recovery prepares the system. Training improves it.
-      </p>
-      
-      {/* Why Walking Helps - Expandable */}
-      <Collapsible open={isWalkScienceOpen} onOpenChange={setIsWalkScienceOpen} className="mt-3">
-        <CollapsibleTrigger className="text-[10px] text-primary/80 hover:text-primary flex items-center gap-1 transition-colors">
-          <span>Why walking helps cognition</span>
-          <ChevronDown className={cn(
-            "w-3 h-3 transition-transform",
-            isWalkScienceOpen && "rotate-180"
-          )} />
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed">
-            Light walking increases blood flow and supports neurochemical balance linked to attention and memory, making cognitive effort more effective later.
+    <Collapsible open={isWalkScienceOpen} onOpenChange={setIsWalkScienceOpen}>
+      <CollapsibleTrigger className="w-full p-4 rounded-xl bg-card/60 border border-border/40 flex items-center justify-between hover:bg-card/80 transition-all duration-200 group">
+        <span className="text-xs font-medium text-foreground flex items-center gap-2">
+          <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+            <Brain className="w-3 h-3 text-primary" />
+          </div>
+          How recovery works
+        </span>
+        <ChevronDown className={cn(
+          "w-4 h-4 text-muted-foreground transition-transform duration-200",
+          isWalkScienceOpen && "rotate-180"
+        )} />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="px-4 py-4 space-y-3"
+        >
+          <div className="space-y-2">
+            {[
+              { icon: Leaf, text: "Detox restores recovery faster by removing cognitive input" },
+              { icon: Footprints, text: "Walking supports recovery through movement and circulation" },
+              { icon: Zap, text: "Recovery determines when training and content are effective" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/30">
+                <item.icon className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                <span className="text-xs text-muted-foreground">{item.text}</span>
+              </div>
+            ))}
+          </div>
+          
+          <p className="text-[10px] text-muted-foreground/50 text-center pt-2 italic">
+            Recovery prepares the system. Training improves it.
           </p>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+        </motion.div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
