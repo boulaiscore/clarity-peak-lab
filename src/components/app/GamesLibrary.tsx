@@ -71,36 +71,6 @@ function getWithholdReason(result: GameGatingResult): string {
   }
 }
 
-// Short reason for inline display
-function getShortReason(reasonCode?: string): string {
-  if (!reasonCode) return "Locked";
-  
-  switch (reasonCode) {
-    case "RECOVERY_TOO_LOW":
-      return "Low recovery";
-    case "SHARPNESS_TOO_LOW":
-      return "Low sharpness";
-    case "SHARPNESS_TOO_HIGH":
-      return "Already sharp";
-    case "READINESS_TOO_LOW":
-      return "Low readiness";
-    case "READINESS_OUT_OF_RANGE":
-      return "Readiness off";
-    case "CAP_REACHED_DAILY_S1":
-      return "Daily limit";
-    case "CAP_REACHED_DAILY_S2":
-      return "Daily limit";
-    case "CAP_REACHED_WEEKLY_S2":
-      return "Weekly limit";
-    case "CAP_REACHED_WEEKLY_IN":
-      return "Weekly limit";
-    case "SUPERHUMAN_REC_REQUIRED":
-      return "Need 55% REC";
-    default:
-      return "Unavailable";
-  }
-}
-
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -261,8 +231,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                                 </h4>
                                 <p className="text-[8px] text-muted-foreground leading-tight">
                                   {isEnabled ? area.tagline : (
-                                    <span className={isProtection ? "text-protection/70" : "text-muted-foreground/70"}>
-                                      {gatingResult ? getShortReason(gatingResult.reasonCode) : "Locked"}
+                                    <span className={isProtection ? "text-protection/70" : ""}>
+                                      {isProtection ? "Recovery" : "Locked"}
                                     </span>
                                   )}
                                 </p>
