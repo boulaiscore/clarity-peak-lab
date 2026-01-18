@@ -21,9 +21,9 @@ export function ParticleWave({ className = "" }: ParticleWaveProps) {
         x,
         baseY,
         size: 2 + Math.random() * 3,
-        delay: i * 0.05, // Slower stagger
-        amplitude: 6 + Math.random() * 8, // Reduced amplitude
-        duration: 4 + Math.random() * 2, // Much slower: 4-6 seconds
+        delay: i * 0.08, // Much slower stagger
+        amplitude: 4 + Math.random() * 6, // Further reduced amplitude
+        duration: 6 + Math.random() * 4, // Very slow: 6-10 seconds
       });
     }
     
@@ -79,10 +79,10 @@ export function ParticleWave({ className = "" }: ParticleWaveProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.2, 0.5, 0.2] }}
             transition={{
-              duration: 6, // Much slower
+              duration: 10, // Very slow
               repeat: Infinity,
               ease: "easeInOut",
-              delay: conn.id * 0.1,
+              delay: conn.id * 0.15,
             }}
           />
         ))}
