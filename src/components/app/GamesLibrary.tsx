@@ -158,25 +158,22 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
             : "border-area-slow/30 bg-area-slow/5";
           const iconColor = system === "fast" ? "text-area-fast" : "text-area-slow";
           
-          // Half-brain shape: S1 curves on left, S2 curves on right
-          const brainShapeClass = system === "fast"
-            ? "rounded-l-[40%] rounded-r-xl" // Left hemisphere shape
-            : "rounded-r-[40%] rounded-l-xl"; // Right hemisphere shape
+          // Brain hemisphere clip-path styles
+          const brainClipStyle = system === "fast"
+            ? { clipPath: "polygon(0% 20%, 5% 10%, 15% 3%, 30% 0%, 50% 0%, 70% 2%, 85% 8%, 95% 15%, 100% 25%, 100% 75%, 95% 85%, 85% 92%, 70% 98%, 50% 100%, 30% 100%, 15% 97%, 5% 90%, 0% 80%)" }
+            : { clipPath: "polygon(100% 20%, 95% 10%, 85% 3%, 70% 0%, 50% 0%, 30% 2%, 15% 8%, 5% 15%, 0% 25%, 0% 75%, 5% 85%, 15% 92%, 30% 98%, 50% 100%, 70% 100%, 85% 97%, 95% 90%, 100% 80%)" };
           
           return (
             <div
               key={system}
               className={cn(
-                "border transition-all overflow-hidden",
-                brainShapeClass,
+                "border transition-all overflow-hidden rounded-2xl",
                 accentClass
               )}
+              style={brainClipStyle}
             >
               {/* System Header */}
-              <div className={cn(
-                "p-2.5 flex items-center gap-2 border-b border-border/30",
-                system === "fast" ? "rounded-tl-[40%]" : "rounded-tr-[40%]"
-              )}>
+              <div className="p-2.5 flex items-center gap-2 border-b border-border/30">
                 <div className={cn(
                     "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
                     system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
