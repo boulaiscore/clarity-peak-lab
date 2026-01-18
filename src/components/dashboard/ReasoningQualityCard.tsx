@@ -93,7 +93,7 @@ export function ReasoningQualityCard({
         
         {/* Score */}
         <div className="text-right">
-          <div className="text-2xl font-bold tabular-nums text-cyan-500">
+          <div className="text-2xl font-bold tabular-nums">
             {Math.round(rq)}%
           </div>
           <span className="text-[11px] text-muted-foreground">
@@ -103,9 +103,9 @@ export function ReasoningQualityCard({
       </div>
       
       {/* Progress bar */}
-      <div className="h-2 bg-cyan-500/20 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
         <motion.div 
-          className="h-full bg-cyan-500 rounded-full"
+          className="h-full bg-foreground/20 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${rq}%` }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
