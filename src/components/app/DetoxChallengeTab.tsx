@@ -396,16 +396,11 @@ export function DetoxChallengeTab() {
             })}
           </div>
 
-          {/* Session Duration - Premium Style */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="p-5 rounded-2xl bg-card/80 border border-border/60"
-          >
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Clock className="w-4 h-4 text-primary" />
-              <Label className="text-xs font-medium text-foreground">Session Duration</Label>
+          {/* Session Duration - Compact */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Duration</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {DETOX_SLOT_OPTIONS.map((slot) => {
@@ -415,10 +410,10 @@ export function DetoxChallengeTab() {
                     key={slot.value}
                     onClick={() => setSelectedDuration(slot.value)}
                     className={cn(
-                      "relative py-3 rounded-xl text-sm font-semibold transition-all duration-200",
+                      "py-2 rounded-lg text-sm font-medium transition-all",
                       isSelected
-                        ? "bg-primary/90 text-primary-foreground"
-                        : "bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                        ? "bg-foreground/10 text-foreground border border-foreground/20"
+                        : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
                     )}
                   >
                     {slot.label}
@@ -426,10 +421,7 @@ export function DetoxChallengeTab() {
                 );
               })}
             </div>
-            <p className="text-[10px] text-muted-foreground/70 mt-3 text-center">
-              Minimum 30 min for measurable cognitive impact
-            </p>
-          </motion.div>
+          </div>
 
           {/* Impact on Your System Block */}
           <ImpactBlock mode={selectedMode} duration={selectedDuration} />
