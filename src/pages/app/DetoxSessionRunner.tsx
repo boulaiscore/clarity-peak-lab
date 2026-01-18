@@ -80,8 +80,10 @@ export default function DetoxSessionRunner() {
       const totalDurationSeconds = duration * 60;
 
       const updateTimer = () => {
-        const elapsed = Math.floor((Date.now() - effectiveStart) / 1000);
-        const remaining = Math.max(totalDurationSeconds - elapsed, 0);
+        const now = Date.now();
+        const elapsed = Math.floor((now - effectiveStart) / 1000);
+        // Clamp remaining to [0, totalDurationSeconds] to avoid showing more than set duration
+        const remaining = Math.max(0, Math.min(totalDurationSeconds - elapsed, totalDurationSeconds));
         setDisplaySeconds(remaining);
         
         // Auto-complete when countdown reaches 0
