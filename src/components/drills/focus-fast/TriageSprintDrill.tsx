@@ -56,9 +56,9 @@ interface TriageSprintDrillProps {
 // ============ CONFIGURATION ============
 const DIFFICULTY_CONFIG = {
   easy: {
-    cardsPerRound: 12,
-    cardPaceMs: 900,
-    responseWindowMs: 900,
+    cardsPerRound: 10,
+    cardPaceMs: 1500,
+    responseWindowMs: 1800,
     lureRate: 0.15,
     urgentRate: 0.25,
     targetPrevalence: 0.18,
@@ -67,9 +67,9 @@ const DIFFICULTY_CONFIG = {
     xpPerRound: 3,
   },
   medium: {
-    cardsPerRound: 14,
-    cardPaceMs: 750,
-    responseWindowMs: 750,
+    cardsPerRound: 12,
+    cardPaceMs: 1100,
+    responseWindowMs: 1300,
     lureRate: 0.22,
     urgentRate: 0.35,
     targetPrevalence: 0.14,
@@ -79,9 +79,9 @@ const DIFFICULTY_CONFIG = {
     xpPerRound: 5,
   },
   hard: {
-    cardsPerRound: 17,
-    cardPaceMs: 600,
-    responseWindowMs: 600,
+    cardsPerRound: 14,
+    cardPaceMs: 850,
+    responseWindowMs: 1000,
     lureRate: 0.30,
     urgentRate: 0.45,
     targetPrevalence: 0.10,
