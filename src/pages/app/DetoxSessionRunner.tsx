@@ -319,12 +319,14 @@ export default function DetoxSessionRunner() {
             </div>
           )}
 
-          {/* XP warning if not walking */}
+          {/* Recovery message if not walking minimum */}
           {!walkingMeetsMinimum && elapsedSeconds > 60 && (
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
-              <AlertTriangle className="w-3 h-3 text-amber-400" />
-              <span className="text-xs text-amber-300">
-                Without walking: 50% XP only
+            <div className="flex flex-col gap-0.5 px-4 py-2 rounded-xl bg-teal-500/10 border border-teal-500/20">
+              <span className="text-xs font-medium text-teal-300">
+                You're recovering. Good.
+              </span>
+              <span className="text-[11px] text-teal-400/70">
+                Detox drives recovery. Add a 30-min walk to unlock full XP.
               </span>
             </div>
           )}
