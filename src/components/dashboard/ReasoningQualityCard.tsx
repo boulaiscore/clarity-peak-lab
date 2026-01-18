@@ -5,7 +5,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Brain, Info, AlertTriangle } from "lucide-react";
+import { Info, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -47,15 +47,10 @@ export function ReasoningQualityCard({
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="p-5 rounded-2xl bg-card border border-border/40"
     >
-      {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
-            <Brain className="w-5 h-5 text-foreground/70" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-sm font-semibold">Reasoning Quality</h3>
+        <div>
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold">Reasoning Quality</h3>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -79,10 +74,9 @@ export function ReasoningQualityCard({
                 </TooltipProvider>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              How clearly and effectively you think
-            </p>
-          </div>
+          <p className="text-[11px] text-muted-foreground">
+            How clearly and effectively you think
+          </p>
         </div>
         
         {/* Score */}
