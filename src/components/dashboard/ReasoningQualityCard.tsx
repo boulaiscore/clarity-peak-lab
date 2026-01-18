@@ -102,7 +102,7 @@ export function ReasoningQualityCard({
       {/* Main Score */}
       <div className="flex items-baseline gap-2 mb-4">
         <span className="text-3xl font-bold tabular-nums">
-          {Math.round(rq)}
+          {Math.round(rq)}%
         </span>
         <span className={cn("text-sm font-medium", quality.color)}>
           {quality.label}
