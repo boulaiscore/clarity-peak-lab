@@ -666,6 +666,8 @@ export type Database = {
           last_in_xp_at: string | null
           last_low_rec_check_date: string | null
           last_ra_xp_at: string | null
+          last_s2_game_at: string | null
+          last_task_at: string | null
           last_xp_at: string | null
           low_rec_streak_days: number | null
           performance_avg_window_start_date: string | null
@@ -677,8 +679,10 @@ export type Database = {
           readiness_decay_applied: number | null
           readiness_decay_week_start: string | null
           reasoning_accuracy: number
+          reasoning_quality: number | null
           rec_snapshot_date: string | null
           rec_snapshot_value: number | null
+          rq_last_updated_at: string | null
           sci_decay_applied: number | null
           sci_decay_week_start: string | null
           slow_thinking: number
@@ -736,6 +740,8 @@ export type Database = {
           last_in_xp_at?: string | null
           last_low_rec_check_date?: string | null
           last_ra_xp_at?: string | null
+          last_s2_game_at?: string | null
+          last_task_at?: string | null
           last_xp_at?: string | null
           low_rec_streak_days?: number | null
           performance_avg_window_start_date?: string | null
@@ -747,8 +753,10 @@ export type Database = {
           readiness_decay_applied?: number | null
           readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
+          reasoning_quality?: number | null
           rec_snapshot_date?: string | null
           rec_snapshot_value?: number | null
+          rq_last_updated_at?: string | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
           slow_thinking?: number
@@ -806,6 +814,8 @@ export type Database = {
           last_in_xp_at?: string | null
           last_low_rec_check_date?: string | null
           last_ra_xp_at?: string | null
+          last_s2_game_at?: string | null
+          last_task_at?: string | null
           last_xp_at?: string | null
           low_rec_streak_days?: number | null
           performance_avg_window_start_date?: string | null
@@ -817,8 +827,10 @@ export type Database = {
           readiness_decay_applied?: number | null
           readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
+          reasoning_quality?: number | null
           rec_snapshot_date?: string | null
           rec_snapshot_value?: number | null
+          rq_last_updated_at?: string | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
           slow_thinking?: number
