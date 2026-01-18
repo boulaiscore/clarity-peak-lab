@@ -1,10 +1,13 @@
 /**
  * ============================================
- * NEUROLOOP PRO – AE GUIDANCE ENGINE v1.3
+ * NEUROLOOP PRO – AE GUIDANCE ENGINE v1.4
  * ============================================
  * 
  * Implements deterministic, interpretable algorithm for:
- * 1) Suggesting which S1-AE game to play (Orbit Lock vs Triage Sprint)
+ * 1) Suggesting which S1-AE game to play:
+ *    - Orbit Lock (Stability)
+ *    - Triage Sprint (Precision)
+ *    - Focus Switch (Flexibility)
  * 2) Forcing difficulty level based on Plan, TC, Recovery, and Performance
  * 
  * CRITICAL RULES:
@@ -19,9 +22,9 @@ import { TrainingPlanId } from "@/lib/trainingPlans";
 // TYPES
 // =============================================================================
 
-export type AEGameName = "orbit_lock" | "triage_sprint";
+export type AEGameName = "orbit_lock" | "triage_sprint" | "focus_switch";
 export type Difficulty = "easy" | "medium" | "hard";
-export type SuggestionReason = "Stability" | "Precision";
+export type SuggestionReason = "Stability" | "Precision" | "Flexibility";
 export type DifficultyReason = "Plan" | "Capacity" | "Recovery" | "Performance";
 
 export interface AEGuidanceResult {
@@ -34,6 +37,7 @@ export interface AEGuidanceResult {
   _debug?: {
     pdi: number;
     sdi: number;
+    fdi: number;
     tcLoadRatio: number;
     tcTarget: Difficulty;
     sessionsInWindow: number;
@@ -42,11 +46,18 @@ export interface AEGuidanceResult {
 }
 
 export interface SessionAggregates {
+  // Triage Sprint metrics
   falseAlarmRateAvg: number | null;
   hitRateAvg: number | null;
   rtVariabilityAvgNorm: number | null;
-  degradationSlopeAvgNorm: number | null;
+  // Orbit Lock metrics
   timeInBandPctAvg: number | null;
+  // Focus Switch metrics
+  switchLatencyAvgNorm: number | null;
+  perseverationRateAvg: number | null;
+  // Shared metrics
+  degradationSlopeAvgNorm: number | null;
+  // Session counts
   sessionCount: number;
   lastGamePlayed: AEGameName | null;
   sessionsAtCurrentDifficulty: number;
@@ -84,6 +95,7 @@ const DIFFICULTY_ORDER: Difficulty[] = ["easy", "medium", "hard"];
 // Normalization ranges for metrics
 const RT_VARIABILITY_MAX = 500; // ms, for normalization
 const DEGRADATION_MAX = 1.0; // slope range
+const SWITCH_LATENCY_MAX = 2000; // ms, for normalization
 
 // =============================================================================
 // DEFICIT INDEX CALCULATIONS
@@ -125,6 +137,17 @@ export function calculateSDI(aggregates: SessionAggregates): number {
   }
 }
 
+/**
+ * Flexibility Deficit Index (FDI)
+ * Higher = more flexibility training needed → suggests Focus Switch
+ */
+export function calculateFDI(aggregates: SessionAggregates): number {
+  const switchLatency = aggregates.switchLatencyAvgNorm ?? 0.5;
+  const perseveration = aggregates.perseverationRateAvg ?? 0.5;
+  
+  return 0.5 * switchLatency + 0.5 * perseveration;
+}
+
 // =============================================================================
 // GAME SUGGESTION
 // =============================================================================
@@ -138,21 +161,32 @@ function suggestGame(
       return { game: "triage_sprint", reason: "Precision" };
     }
     if (aggregates.lastGamePlayed === "triage_sprint") {
+      return { game: "focus_switch", reason: "Flexibility" };
+    }
+    if (aggregates.lastGamePlayed === "focus_switch") {
       return { game: "orbit_lock", reason: "Stability" };
     }
     // No games played → default to Orbit Lock
     return { game: "orbit_lock", reason: "Stability" };
   }
   
-  // Calculate deficit indices
+  // Calculate all three deficit indices
   const pdi = calculatePDI(aggregates);
   const sdi = calculateSDI(aggregates);
+  const fdi = calculateFDI(aggregates);
   
-  // Apply epsilon buffer
+  // Find the highest deficit with epsilon buffer
+  // FDI > max(PDI, SDI) + epsilon → Focus Switch
+  if (fdi > Math.max(pdi, sdi) + EPSILON) {
+    return { game: "focus_switch", reason: "Flexibility" };
+  }
+  
+  // SDI > PDI + epsilon → Orbit Lock
   if (sdi > pdi + EPSILON) {
     return { game: "orbit_lock", reason: "Stability" };
   }
   
+  // Default → Triage Sprint
   return { game: "triage_sprint", reason: "Precision" };
 }
 
@@ -287,6 +321,7 @@ export function computeAEGuidance(input: GuidanceInput): AEGuidanceResult {
   // Calculate debug info
   const pdi = calculatePDI(input.aggregates);
   const sdi = calculateSDI(input.aggregates);
+  const fdi = calculateFDI(input.aggregates);
   const planCap = PLAN_TC_CAPS[input.trainingPlan];
   
   return {
@@ -298,6 +333,7 @@ export function computeAEGuidance(input: GuidanceInput): AEGuidanceResult {
     _debug: {
       pdi,
       sdi,
+      fdi,
       tcLoadRatio: input.trainingCapacity / planCap,
       tcTarget,
       sessionsInWindow: input.aggregates.sessionCount,
@@ -335,4 +371,12 @@ export function normalizeDegradationSlope(slope: number): number {
  */
 export function normalizeTimeInBand(pct: number): number {
   return Math.min(1, Math.max(0, pct / 100));
+}
+
+/**
+ * Normalize switch latency to 0-1 range
+ * Higher = slower (worse)
+ */
+export function normalizeSwitchLatency(latencyMs: number): number {
+  return Math.min(1, Math.max(0, latencyMs / SWITCH_LATENCY_MAX));
 }

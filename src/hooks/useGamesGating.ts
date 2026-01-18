@@ -369,12 +369,16 @@ export function useRecordGameSession() {
     xpAwarded: number;
     score: number;
     // AE Guidance Engine metrics (optional)
-    gameName?: "orbit_lock" | "triage_sprint";
+    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch";
     falseAlarmRate?: number | null;
     hitRate?: number | null;
     rtVariability?: number | null;
     degradationSlope?: number | null;
     timeInBandPct?: number | null;
+    // Focus Switch specific metrics
+    switchLatencyAvg?: number | null;
+    perseverationRate?: number | null;
+    postSwitchErrorRate?: number | null;
   }) => {
     if (!user?.id) {
       console.error("[GameSession] No user ID, cannot record session");
@@ -400,13 +404,19 @@ export function useRecordGameSession() {
         xp_awarded: params.xpAwarded,
         score: params.score,
         completed_at: nowUtc,
-        // AE Guidance metrics
+        // AE Guidance metrics (shared)
         game_name: params.gameName ?? null,
+        degradation_slope: params.degradationSlope ?? null,
+        // Triage Sprint metrics
         false_alarm_rate: params.falseAlarmRate ?? null,
         hit_rate: params.hitRate ?? null,
         rt_variability: params.rtVariability ?? null,
-        degradation_slope: params.degradationSlope ?? null,
+        // Orbit Lock metrics
         time_in_band_pct: params.timeInBandPct ?? null,
+        // Focus Switch metrics
+        switch_latency_avg: params.switchLatencyAvg ?? null,
+        perseveration_rate: params.perseverationRate ?? null,
+        post_switch_error_rate: params.postSwitchErrorRate ?? null,
       })
       .select()
       .single();
