@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import { Brain, Battery, Focus, ChevronDown, Play } from "lucide-react";
+import { Brain, Battery, Focus, ChevronDown, Zap } from "lucide-react";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export function ReasoningTab() {
   const { readiness, recovery, S2, AE, isLoading } = useTodayMetrics();
@@ -68,18 +68,34 @@ export function ReasoningTab() {
     }
   };
 
-  // CTA logic
-  const getCTA = () => {
-    if (recovery < 45) {
-      return { label: "Prioritize Recovery", link: "/app/detox", icon: Battery };
+  // Bottleneck detection for Readiness based on formula:
+  // Readiness = 0.35×REC + 0.35×S2 + 0.30×AE
+  const cta = useMemo(() => {
+    // Calculate potential gains for each lever
+    const recPotential = 0.35 * (100 - recovery);
+    const s2Potential = 0.35 * (100 - S2);
+    const aePotential = 0.30 * (100 - AE);
+    
+    // Find the bottleneck (highest potential gain)
+    const potentials = [
+      { key: "recovery", value: recPotential },
+      { key: "S2", value: s2Potential },
+      { key: "AE", value: aePotential },
+    ];
+    
+    const bottleneck = potentials.reduce((a, b) => a.value > b.value ? a : b).key;
+    
+    switch (bottleneck) {
+      case "recovery":
+        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
+      case "S2":
+        return { label: "Train Reasoning", link: "/app/neuro-lab?area=reasoning&mode=slow", icon: Brain };
+      case "AE":
+        return { label: "Train Focus", link: "/app/neuro-lab?area=focus&mode=fast", icon: Zap };
+      default:
+        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
     }
-    if (readiness >= 70) {
-      return { label: "Deep Work Session", link: "/app/neuro-lab", icon: Play };
-    }
-    return { label: "Light Cognitive Work", link: "/app/neuro-lab", icon: Play };
-  };
-
-  const cta = getCTA();
+  }, [recovery, S2, AE]);
 
   if (isLoading) {
     return (

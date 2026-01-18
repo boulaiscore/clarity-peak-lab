@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import { Zap, Brain, Battery, ChevronDown, Play } from "lucide-react";
+import { Zap, Brain, Battery, ChevronDown } from "lucide-react";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export function IntuitionTab() {
   const { 
@@ -74,18 +74,39 @@ export function IntuitionTab() {
     }
   };
   
-  // CTA logic
-  const getCTA = () => {
-    if (recovery < 45) {
-      return { label: "Start Recovery", link: "/detox-session", icon: Battery };
+  // Bottleneck detection for Sharpness based on formula:
+  // Sharpness = (0.6×S1 + 0.4×S2) × recoveryMod
+  const cta = useMemo(() => {
+    // Calculate recovery modifier (0.7 to 1.0 based on recovery 0-100)
+    const recoveryMod = 0.7 + (recovery / 100) * 0.3;
+    
+    // Calculate potential gains for each lever
+    const s1Potential = 0.6 * (100 - S1) * recoveryMod;
+    const s2Potential = 0.4 * (100 - S2) * recoveryMod;
+    // Recovery potential: how much sharpness would increase if recovery went to 100
+    const currentBase = 0.6 * S1 + 0.4 * S2;
+    const recoveryPotential = currentBase * (1.0 - recoveryMod);
+    
+    // Find the bottleneck (highest potential gain)
+    const potentials = [
+      { key: "recovery", value: recoveryPotential },
+      { key: "S1", value: s1Potential },
+      { key: "S2", value: s2Potential },
+    ];
+    
+    const bottleneck = potentials.reduce((a, b) => a.value > b.value ? a : b).key;
+    
+    switch (bottleneck) {
+      case "recovery":
+        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
+      case "S1":
+        return { label: "Train Fast Thinking", link: "/app/neuro-lab?area=focus&mode=fast", icon: Zap };
+      case "S2":
+        return { label: "Train Reasoning", link: "/app/neuro-lab?area=reasoning&mode=slow", icon: Brain };
+      default:
+        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
     }
-    if (sharpness >= 70) {
-      return { label: "Deep Focus Session", link: "/neuro-lab", icon: Play };
-    }
-    return { label: "Light Focus Session", link: "/neuro-lab", icon: Play };
-  };
-  
-  const cta = getCTA();
+  }, [S1, S2, recovery]);
 
   return (
     <motion.div

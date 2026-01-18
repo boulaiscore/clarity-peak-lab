@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { Leaf, Smartphone, Footprints } from "lucide-react";
+import { Leaf, Smartphone, Footprints, Battery } from "lucide-react";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export function CapacityTab() {
   const { 
@@ -116,6 +118,16 @@ export function CapacityTab() {
             </span>
           </p>
         </div>
+      </div>
+
+      {/* CTA Button */}
+      <div className="pt-2 px-2">
+        <Link to="/app/detox">
+          <Button variant="premium" className="w-full h-12 text-sm gap-2">
+            <Battery className="w-4 h-4" />
+            Start Recovery
+          </Button>
+        </Link>
       </div>
     </motion.div>
   );
