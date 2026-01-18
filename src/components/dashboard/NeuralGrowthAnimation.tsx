@@ -398,7 +398,7 @@ export function NeuralGrowthAnimation({
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
                   <Target className="w-3 h-3 text-blue-400/60" />
-                  <span className="text-muted-foreground">Training Load</span>
+                  <span className="text-muted-foreground">Cognitive Load</span>
                 </div>
                 <span className={trainingLoadStatus.color}>{trainingLoadStatus.label}</span>
               </div>

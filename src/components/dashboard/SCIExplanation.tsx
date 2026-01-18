@@ -34,7 +34,7 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
           Neural Strength represents how <span className="text-foreground/80">powerful</span> your reasoning and intuition are.
         </p>
         <p className="text-[10px] text-muted-foreground leading-relaxed">
-          It combines your <span className="text-foreground/80">thinking scores</span>, <span className="text-foreground/80">training load</span>, and <span className="text-foreground/80">recovery</span>.
+          It combines your <span className="text-foreground/80">thinking scores</span>, <span className="text-foreground/80">cognitive load</span>, and <span className="text-foreground/80">recovery</span>.
         </p>
       </div>
 
@@ -65,7 +65,7 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-blue-400/70" />
-                <span className="text-[11px] font-medium text-foreground">Training Load</span>
+                <span className="text-[11px] font-medium text-foreground">Cognitive Load</span>
                 <span className="text-[9px] text-muted-foreground/60">(30%)</span>
               </div>
               <span className="text-sm font-bold text-blue-400">{sciBreakdown.behavioralEngagement.score}</span>
@@ -120,7 +120,7 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
               </div>
               <div className="text-[9px] text-muted-foreground space-y-1">
                 <p>• Train in NeuroLab → thinking scores improve</p>
-                <p>• Hit weekly XP target → training load stays high</p>
+                <p>• Hit weekly XP target → cognitive load stays high</p>
                 <p>• Detox + Walk → recovery consolidates gains</p>
               </div>
             </div>
@@ -133,7 +133,7 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
               </div>
               <div className="text-[9px] text-muted-foreground space-y-1">
                 <p>• Skip training days → thinking scores decay</p>
-                <p>• Miss XP targets → training load drops</p>
+                <p>• Miss XP targets → cognitive load drops</p>
                 <p>• No recovery → gains don't consolidate</p>
               </div>
             </div>
@@ -179,7 +179,7 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
             </div>
             <div className="text-[8px] text-muted-foreground/50 pt-1 border-t border-border/20">
               <p>T = Thinking scores from NeuroLab sessions</p>
-              <p>L = Training Load (Games XP this week)</p>
+              <p>L = Cognitive Load (Games XP this week)</p>
               <p>R = Recovery (Detox + Walking minutes)</p>
             </div>
           </div>
