@@ -338,9 +338,9 @@ export function DetoxChallengeTab() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-6"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-recovery/10 border border-recovery/20 mb-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-recovery animate-pulse" />
-              <span className="text-[10px] font-medium text-recovery uppercase tracking-wider">Recovery Mode</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/15 mb-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
+              <span className="text-[10px] font-medium text-primary/70 uppercase tracking-wider">Recovery Mode</span>
             </div>
             <h2 className="text-xl font-semibold text-foreground tracking-tight">Recover Mental Clarity</h2>
             <p className="text-sm text-muted-foreground mt-1">Choose the recovery mode that fits your situation.</p>
@@ -362,27 +362,27 @@ export function DetoxChallengeTab() {
                   className={cn(
                     "relative p-5 rounded-2xl text-left transition-all duration-300 overflow-hidden group",
                     isSelected
-                      ? "bg-gradient-to-br from-recovery/15 via-recovery/10 to-transparent border-2 border-recovery/40 shadow-[0_0_30px_-10px_hsl(var(--recovery)/0.3)]"
+                      ? "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/30"
                       : "bg-card/80 border border-border/60 hover:border-border hover:bg-card"
                   )}
                 >
                   {/* Subtle gradient overlay on hover */}
                   <div className={cn(
-                    "absolute inset-0 bg-gradient-to-br from-recovery/5 to-transparent opacity-0 transition-opacity duration-300",
+                    "absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300",
                     !isSelected && "group-hover:opacity-100"
                   )} />
                   
                   <div className="relative z-10">
-                    {/* Icon with glow effect when selected */}
+                    {/* Icon with subtle effect when selected */}
                     <div className={cn(
                       "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300",
                       isSelected 
-                        ? "bg-recovery/20 shadow-[0_0_20px_-5px_hsl(var(--recovery)/0.4)]" 
+                        ? "bg-primary/15" 
                         : "bg-muted/50 group-hover:bg-muted/70"
                     )}>
                       <Icon className={cn(
                         "w-6 h-6 transition-colors duration-300",
-                        isSelected ? "text-recovery" : "text-muted-foreground group-hover:text-foreground/70"
+                        isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground/70"
                       )} />
                     </div>
                     
@@ -407,7 +407,7 @@ export function DetoxChallengeTab() {
                     <div className={cn(
                       "inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-all duration-300",
                       isSelected 
-                        ? "bg-recovery/20 text-recovery" 
+                        ? "bg-primary/15 text-primary/80" 
                         : "bg-muted/50 text-muted-foreground"
                     )}>
                       <Sparkles className="w-3 h-3" />
@@ -419,7 +419,7 @@ export function DetoxChallengeTab() {
                   {isSelected && (
                     <motion.div 
                       layoutId="selected-mode"
-                      className="absolute top-3 right-3 w-5 h-5 rounded-full bg-recovery flex items-center justify-center"
+                      className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary/80 flex items-center justify-center"
                     >
                       <Check className="w-3 h-3 text-background" />
                     </motion.div>
@@ -450,7 +450,7 @@ export function DetoxChallengeTab() {
                     className={cn(
                       "relative py-3 rounded-xl text-sm font-semibold transition-all duration-200",
                       isSelected
-                        ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-[0_0_20px_-5px_hsl(var(--primary)/0.4)]"
+                        ? "bg-primary/90 text-primary-foreground"
                         : "bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                     )}
                   >
@@ -525,7 +525,7 @@ export function DetoxChallengeTab() {
   );
 }
 
-// Impact Block Component - Premium Style
+// Impact Block Component - Subtle Blue Style
 function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: number }) {
   const recoveryImpact = getRecoveryImpact(duration, mode);
   
@@ -534,11 +534,11 @@ function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: num
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="p-5 rounded-2xl bg-gradient-to-br from-recovery/8 via-recovery/4 to-transparent border border-recovery/20"
+      className="p-5 rounded-2xl bg-gradient-to-br from-primary/6 via-primary/3 to-transparent border border-primary/15"
     >
       <h4 className="text-xs font-semibold text-foreground mb-4 flex items-center gap-2">
-        <div className="w-6 h-6 rounded-lg bg-recovery/20 flex items-center justify-center">
-          <Zap className="w-3.5 h-3.5 text-recovery" />
+        <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Zap className="w-3.5 h-3.5 text-primary/70" />
         </div>
         Estimated Impact
       </h4>
@@ -547,10 +547,10 @@ function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: num
         {/* Recovery - Primary metric */}
         <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
           <span className="text-xs text-foreground flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-recovery" />
+            <div className="w-2.5 h-2.5 rounded-full bg-primary/60" />
             Recovery
           </span>
-          <span className="text-lg font-bold text-recovery">+{recoveryImpact}%</span>
+          <span className="text-lg font-bold text-primary">+{recoveryImpact}%</span>
         </div>
         
         {/* Secondary effects */}
