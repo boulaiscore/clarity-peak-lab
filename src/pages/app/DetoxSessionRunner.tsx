@@ -301,7 +301,7 @@ export default function DetoxSessionRunner() {
               ) : walkingPermissionDenied ? (
                 'Location access denied'
               ) : (
-                'Walk 30 min for full XP'
+                'Tracking walking...'
               )}
             </span>
             {isWalkingTracking && !walkingMeetsMinimum && (
