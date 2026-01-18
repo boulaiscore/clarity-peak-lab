@@ -61,33 +61,33 @@ const ROUND_TRANSITION_MS = 2000;
 // Round-specific configs
 const ROUND_CONFIG = {
   1: { durationMs: 20000, label: 'LOCK THE RULE', urgentMultiplier: 0.5, lureMultiplier: 0.5, paceMultiplier: 1.0 },
-  2: { durationMs: 25000, label: 'IGNORE THE NOISE', urgentMultiplier: 1.2, lureMultiplier: 1.0, paceMultiplier: 0.9 },
-  3: { durationMs: 30000, label: 'DECIDE UNDER PRESSURE', urgentMultiplier: 1.5, lureMultiplier: 1.2, paceMultiplier: 0.8, rushFinal: true },
+  2: { durationMs: 25000, label: 'IGNORE THE NOISE', urgentMultiplier: 1.2, lureMultiplier: 1.0, paceMultiplier: 0.95 },
+  3: { durationMs: 30000, label: 'DECIDE UNDER PRESSURE', urgentMultiplier: 1.5, lureMultiplier: 1.2, paceMultiplier: 0.90, rushFinal: true },
 } as const;
 
 const DIFFICULTY_CONFIG = {
   easy: {
-    cardPaceMs: 900,
-    responseWindowMs: 900,
+    cardPaceMs: 1500,
+    responseWindowMs: 2000,
     lureRate: 0.15,
     urgentRate: 0.25,
-    targetPrevalence: 0.18,
+    targetPrevalence: 0.30,
     xpPerRound: 3,
   },
   medium: {
-    cardPaceMs: 750,
-    responseWindowMs: 750,
+    cardPaceMs: 1200,
+    responseWindowMs: 1500,
     lureRate: 0.22,
     urgentRate: 0.35,
-    targetPrevalence: 0.14,
+    targetPrevalence: 0.25,
     xpPerRound: 5,
   },
   hard: {
-    cardPaceMs: 600,
-    responseWindowMs: 600,
+    cardPaceMs: 900,
+    responseWindowMs: 1200,
     lureRate: 0.30,
     urgentRate: 0.45,
-    targetPrevalence: 0.10,
+    targetPrevalence: 0.20,
     xpPerRound: 8,
   },
 };
@@ -144,8 +144,8 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     const lureRate = config.lureRate * roundConfig.lureMultiplier;
     const urgentRate = config.urgentRate * roundConfig.urgentMultiplier;
     
-    // In rush phase (final 8-10s of round 3), reduce target prevalence
-    const targetPrevalence = isRushPhase ? config.targetPrevalence * 0.5 : config.targetPrevalence;
+    // In rush phase (final 8-10s of round 3), slightly reduce target prevalence
+    const targetPrevalence = isRushPhase ? config.targetPrevalence * 0.8 : config.targetPrevalence;
     
     const isTarget = rand < targetPrevalence;
     const isLure = !isTarget && rand < targetPrevalence + lureRate;
@@ -301,14 +301,18 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     
     const stats = currentRoundStats.current;
     if (card.isTarget) {
+      // Missing a target is always penalized
       stats.misses++;
       stats.score += SCORE_MISS;
+      stats.streak = 0;
       setFeedback('miss');
     } else {
+      // Non-target timeout: no penalty in Round 1, light penalty in Round 2-3
       stats.noResponses++;
-      stats.score += SCORE_NO_RESPONSE;
+      const timeoutPenalty = currentRound === 1 ? 0 : -2;
+      stats.score += timeoutPenalty;
+      // Don't break streak for non-target timeout, don't show negative feedback
     }
-    stats.streak = 0;
     
     stats.trials.push({
       cardId: card.id,
