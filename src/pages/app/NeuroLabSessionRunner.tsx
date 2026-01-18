@@ -98,7 +98,10 @@ export default function NeuroLabSessionRunner() {
       return;
     }
     
-    if (allExercises && allExercises.length > 0 && area && !sessionStarted && !completedLoading) {
+    // NOTE: don't block session start on completedLoading.
+    // For single-exercise launches, completedExerciseIds are irrelevant.
+    // For normal sessions, we can start immediately and simply skip the "completed" filter until it loads.
+    if (allExercises && allExercises.length > 0 && area && !sessionStarted) {
       let exercises: CognitiveExercise[] = [];
       
       // Single exercise mode - when exerciseId is provided
@@ -108,20 +111,18 @@ export default function NeuroLabSessionRunner() {
         if (singleExercise) {
           exercises = [singleExercise];
         } else {
-          // Exercise not found - log available exercise IDs for debugging
           console.warn('[NeuroLabSessionRunner] Exercise not found. Available IDs:', allExercises.slice(0, 20).map(e => e.id));
-          // Don't set sessionStarted to true if exercise not found - wait for data
           return;
         }
       } else {
         // Normal session mode - generate multiple exercises
         exercises = generateNeuroLabSession(
-          area, 
-          duration || "2min", 
+          area,
+          duration || "2min",
           allExercises,
           user?.trainingGoals,
           thinkingMode || undefined,
-          completedExerciseIds
+          completedLoading ? undefined : completedExerciseIds
         );
       }
       
