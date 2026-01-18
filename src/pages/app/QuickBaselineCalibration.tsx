@@ -151,8 +151,32 @@ export default function QuickBaselineCalibration() {
             <CalibrationIntro 
               onBegin={handleIntroComplete}
               onSkip={async () => {
-                // Mark onboarding complete even when skipping calibration
+                if (!user?.id) return;
+                
+                // Mark baseline as captured (skipped) so Home doesn't redirect back
+                // Set all baseline values to 50 (neutral starting point)
+                await supabase
+                  .from("user_cognitive_metrics")
+                  .upsert({
+                    user_id: user.id,
+                    baseline_captured_at: new Date().toISOString(),
+                    baseline_focus: 50,
+                    baseline_fast_thinking: 50,
+                    baseline_reasoning: 50,
+                    baseline_slow_thinking: 50,
+                    focus_stability: 50,
+                    fast_thinking: 50,
+                    reasoning_accuracy: 50,
+                    slow_thinking: 50,
+                    updated_at: new Date().toISOString(),
+                  }, { onConflict: "user_id" });
+                
+                // Mark onboarding complete
                 await updateUser({ onboardingCompleted: true });
+                
+                // Invalidate cache so Home sees calibration as done
+                await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
+                
                 navigate("/app");
               }}
             />
