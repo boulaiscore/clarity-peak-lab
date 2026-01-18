@@ -9,6 +9,7 @@ import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
+import { S1RAGameSelector } from "./S1RAGameSelector";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
@@ -80,6 +81,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: ThinkingSystem } | null>(null);
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   const [showS1AESelector, setShowS1AESelector] = useState(false);
+  const [showS1RASelector, setShowS1RASelector] = useState(false);
   
   const { gamesComplete } = useCappedWeeklyProgress();
   const { games, caps, safetyRuleActive, isLoading: gatingLoading } = useGamesGating();
@@ -102,6 +104,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     // S1-AE has its own game selector with Triage Sprint and Orbit Lock
     if (gameType === "S1-AE") {
       setShowS1AESelector(true);
+      return;
+    }
+    
+    // S1-RA has its own game selector with Flash Connect
+    if (gameType === "S1-RA") {
+      setShowS1RASelector(true);
       return;
     }
     
@@ -292,10 +300,16 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         onStartExercise={handleStartExercise}
       />
 
-      {/* S1-AE Game Selector (Triage Sprint / Orbit Lock) */}
+      {/* S1-AE Game Selector (Triage Sprint / Orbit Lock / Focus Switch) */}
       <S1AEGameSelector
         open={showS1AESelector}
         onOpenChange={setShowS1AESelector}
+      />
+
+      {/* S1-RA Game Selector (Flash Connect) */}
+      <S1RAGameSelector
+        open={showS1RASelector}
+        onOpenChange={setShowS1RASelector}
       />
 
       {/* Target Exceeded Warning Dialog */}
