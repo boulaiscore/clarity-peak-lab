@@ -77,6 +77,11 @@ export function IntuitionTab() {
   // Bottleneck detection for Sharpness based on formula:
   // Sharpness = (0.6×S1 + 0.4×S2) × recoveryMod
   const cta = useMemo(() => {
+    // Priority: if recovery is low (<45), it's always the bottleneck
+    if (recovery < 45) {
+      return { label: "Start Recovery", link: "/detox-session", icon: Battery };
+    }
+    
     // Calculate recovery modifier (0.7 to 1.0 based on recovery 0-100)
     const recoveryMod = 0.7 + (recovery / 100) * 0.3;
     
@@ -98,13 +103,13 @@ export function IntuitionTab() {
     
     switch (bottleneck) {
       case "recovery":
-        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
+        return { label: "Start Recovery", link: "/detox-session", icon: Battery };
       case "S1":
-        return { label: "Train Fast Thinking", link: "/app/neuro-lab?area=focus&mode=fast", icon: Zap };
+        return { label: "Train Fast Thinking", link: "/neuro-lab/focus", icon: Zap };
       case "S2":
-        return { label: "Train Reasoning", link: "/app/neuro-lab?area=reasoning&mode=slow", icon: Brain };
+        return { label: "Train Reasoning", link: "/neuro-lab/reasoning", icon: Brain };
       default:
-        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
+        return { label: "Start Recovery", link: "/detox-session", icon: Battery };
     }
   }, [S1, S2, recovery]);
 
