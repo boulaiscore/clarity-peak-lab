@@ -23,6 +23,7 @@ export default function FlashConnectRunner() {
   const recordGameSession = useRecordGameSession();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
+  const isOverride = searchParams.get("override") === "true";
   const [isComplete, setIsComplete] = useState(false);
 
   const handleComplete = useCallback(async (results: FlashConnectFinalResults) => {
@@ -40,6 +41,7 @@ export default function FlashConnectRunner() {
           score: results.score,
           // Flash Connect specific metrics
           gameName: "flash_connect" as any,
+          difficultyOverride: isOverride,
           // No AE guidance metrics for this game
           falseAlarmRate: null,
           hitRate: results.connectionRate,
