@@ -21,6 +21,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { XP_VALUES } from "@/lib/trainingPlans";
 import { startOfWeek, addDays, format, subDays, parseISO } from "date-fns";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
@@ -118,21 +119,20 @@ function getContentInfo(contentId: string): CognitiveInput | null {
   return CONTENT_LIBRARY[contentId] || null;
 }
 
-// Hook to get completed content for THIS WEEK only
+// Hook to get completed content for rolling 7-day window
 // Source of truth can be either:
 // - monthly_content_assignments (Library-driven)
 // - exercise_completions (legacy/other flows that award XP directly)
 // We merge both so Training Details never shows 0 when XP exists.
+// v2.0: Uses rolling 7-day window instead of calendar week.
 function useWeeklyCompletedContent(userId: string | undefined) {
-  const weekStartStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const rollingStart = getMediumPeriodStart();
+  const rollingStartStr = getMediumPeriodStartDate();
 
   return useQuery({
-    queryKey: ["weekly-content-completions", userId, weekStartStr],
+    queryKey: ["rolling-content-completions", userId, rollingStartStr],
     queryFn: async () => {
       if (!userId) return [] as { contentId: string; xpEarned: number }[];
-
-      const weekStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const weekEndDate = addDays(weekStartDate, 7);
 
       const [assignmentsRes, completionsRes] = await Promise.all([
         supabase
@@ -140,14 +140,14 @@ function useWeeklyCompletedContent(userId: string | undefined) {
           .select("content_id, content_type, completed_at, status")
           .eq("user_id", userId)
           .eq("status", "completed")
-          .gte("completed_at", weekStartDate.toISOString())
-          .lt("completed_at", weekEndDate.toISOString()),
+          .gte("completed_at", rollingStart.toISOString()),
 
+        // v2.0: Query by completed_at instead of week_start
         supabase
           .from("exercise_completions")
-          .select("exercise_id, xp_earned, week_start")
+          .select("exercise_id, xp_earned, completed_at")
           .eq("user_id", userId)
-          .eq("week_start", weekStartStr)
+          .gte("completed_at", rollingStart.toISOString())
           .like("exercise_id", "content-%"),
       ]);
 
