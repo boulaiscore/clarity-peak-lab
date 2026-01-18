@@ -26,6 +26,7 @@ import {
   normalizeRTVariability,
   normalizeDegradationSlope,
   normalizeTimeInBand,
+  normalizeSwitchLatency,
 } from "@/lib/aeGuidanceEngine";
 
 export interface UseAEGuidanceResult extends AEGuidanceResult {
@@ -43,6 +44,8 @@ interface RawSessionRow {
   rt_variability: number | null;
   degradation_slope: number | null;
   time_in_band_pct: number | null;
+  switch_latency_avg: number | null;
+  perseveration_rate: number | null;
 }
 
 export function useAEGuidance(): UseAEGuidanceResult {
@@ -73,7 +76,9 @@ export function useAEGuidance(): UseAEGuidanceResult {
           hit_rate,
           rt_variability,
           degradation_slope,
-          time_in_band_pct
+          time_in_band_pct,
+          switch_latency_avg,
+          perseveration_rate
         `)
         .eq("user_id", userId)
         .eq("game_type", "S1-AE")
@@ -98,6 +103,8 @@ export function useAEGuidance(): UseAEGuidanceResult {
         rtVariabilityAvgNorm: null,
         degradationSlopeAvgNorm: null,
         timeInBandPctAvg: null,
+        switchLatencyAvgNorm: null,
+        perseverationRateAvg: null,
         sessionCount: 0,
         lastGamePlayed: null,
         sessionsAtCurrentDifficulty: 0,
@@ -111,6 +118,8 @@ export function useAEGuidance(): UseAEGuidanceResult {
     const validRTVar = sessions.filter(s => s.rt_variability !== null);
     const validDegradation = sessions.filter(s => s.degradation_slope !== null);
     const validTimeInBand = sessions.filter(s => s.time_in_band_pct !== null);
+    const validSwitchLatency = sessions.filter(s => s.switch_latency_avg !== null);
+    const validPerseveration = sessions.filter(s => s.perseveration_rate !== null);
     
     const falseAlarmRateAvg = validFalseAlarm.length > 0
       ? validFalseAlarm.reduce((sum, s) => sum + s.false_alarm_rate!, 0) / validFalseAlarm.length
@@ -132,6 +141,14 @@ export function useAEGuidance(): UseAEGuidanceResult {
       ? validTimeInBand.reduce((sum, s) => sum + s.time_in_band_pct!, 0) / validTimeInBand.length
       : null;
     
+    const switchLatencyAvg = validSwitchLatency.length > 0
+      ? validSwitchLatency.reduce((sum, s) => sum + s.switch_latency_avg!, 0) / validSwitchLatency.length
+      : null;
+    
+    const perseverationRateAvg = validPerseveration.length > 0
+      ? validPerseveration.reduce((sum, s) => sum + s.perseveration_rate!, 0) / validPerseveration.length
+      : null;
+    
     // Determine last game played
     const lastSession = sessions[0];
     const lastGamePlayed: AEGameName | null = lastSession?.game_name 
@@ -148,6 +165,8 @@ export function useAEGuidance(): UseAEGuidanceResult {
       rtVariabilityAvgNorm: rtVariabilityAvg !== null ? normalizeRTVariability(rtVariabilityAvg) : null,
       degradationSlopeAvgNorm: degradationSlopeAvg !== null ? normalizeDegradationSlope(degradationSlopeAvg) : null,
       timeInBandPctAvg: timeInBandPctAvg !== null ? normalizeTimeInBand(timeInBandPctAvg) : null,
+      switchLatencyAvgNorm: switchLatencyAvg !== null ? normalizeSwitchLatency(switchLatencyAvg) : null,
+      perseverationRateAvg,
       sessionCount: sessions.length,
       lastGamePlayed,
       sessionsAtCurrentDifficulty,
