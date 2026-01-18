@@ -169,9 +169,6 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Baseline Status Card */}
-        <BaselineStatusCard />
-
         {/* Tab Content */}
         {activeTab === "overview" ? (
           <OverviewCarousel 
@@ -275,8 +272,10 @@ const Dashboard = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="space-y-4"
+            className="space-y-3"
           >
+            {/* Baseline Status - compact inline */}
+            <BaselineStatusCard />
             {/* Report CTA */}
             <Link to="/app/report" className="block group">
               <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
