@@ -116,7 +116,43 @@ export default function QuickBaselineCalibration() {
       };
       
       const baselinePayload = prepareBaselineDbPayload(baselineResult);
-      const skillsPayload = prepareInitialSkillsPayload(effective);
+      
+      // CRITICAL FIX: Check current skill values first - preserve training progress
+      // Only set skills to baseline if they're currently BELOW the new baseline
+      const { data: currentMetrics } = await supabase
+        .from("user_cognitive_metrics")
+        .select("focus_stability, fast_thinking, reasoning_accuracy, slow_thinking")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      // Calculate skill updates - use MAX of current value and new effective baseline
+      // This preserves any training gains the user made while using estimated baseline
+      const skillsPayload: Record<string, number> = {};
+      
+      if (currentMetrics) {
+        skillsPayload.focus_stability = Math.max(
+          currentMetrics.focus_stability ?? 50,
+          effective.AE
+        );
+        skillsPayload.fast_thinking = Math.max(
+          currentMetrics.fast_thinking ?? 50,
+          effective.RA
+        );
+        skillsPayload.reasoning_accuracy = Math.max(
+          currentMetrics.reasoning_accuracy ?? 50,
+          effective.CT
+        );
+        skillsPayload.slow_thinking = Math.max(
+          currentMetrics.slow_thinking ?? 50,
+          effective.IN
+        );
+      } else {
+        // No existing metrics, use effective baseline
+        skillsPayload.focus_stability = effective.AE;
+        skillsPayload.fast_thinking = effective.RA;
+        skillsPayload.reasoning_accuracy = effective.CT;
+        skillsPayload.slow_thinking = effective.IN;
+      }
       
       // Compute derived values
       const S2_0 = (effective.CT + effective.IN) / 2;
@@ -128,7 +164,7 @@ export default function QuickBaselineCalibration() {
         .from("user_cognitive_metrics")
         .upsert({
           user_id: user.id,
-          // Current skills = effective baseline
+          // Current skills = MAX of existing progress and new baseline (preserves training)
           ...skillsPayload,
           // All baseline columns
           ...baselinePayload,
