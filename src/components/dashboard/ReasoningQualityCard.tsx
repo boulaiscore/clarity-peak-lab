@@ -63,7 +63,7 @@ export function ReasoningQualityCard({
                   className="max-w-[240px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50 p-3"
                 >
                   <p className="font-medium mb-1.5">Depth of thought elaboration</p>
-                  <p className="text-muted-foreground">Improve through S2 games, readings, and podcasts.</p>
+                  <p className="text-muted-foreground">Improve through System 2 thinking games, books, readings, and podcasts.</p>
                 </PopoverContent>
               </Popover>
               {isDecaying && (
