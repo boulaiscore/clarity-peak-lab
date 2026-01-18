@@ -166,13 +166,36 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 accentClass
               )}
             >
-              {/* System Header */}
+              {/* System Header with Half Brain */}
               <div className="p-2.5 flex items-center gap-2 border-b border-border/30">
                 <div className={cn(
-                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden",
                     system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
                   )}>
-                  <SystemIcon className={cn("w-3.5 h-3.5", iconColor)} />
+                  {/* Stylized Half Brain SVG */}
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className={cn("w-5 h-5", iconColor)}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    {system === "fast" ? (
+                      /* Left hemisphere - S1 Fast/Intuitive */
+                      <path 
+                        d="M12 3C7 3 4 7 4 12c0 5 3 9 8 9V3z M8 8c-1 1-1.5 2.5-1 4 M7 14c0.5 1 1.5 2 3 2.5 M9 6c-1 0.5-2 1.5-2.5 3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    ) : (
+                      /* Right hemisphere - S2 Slow/Deliberate */
+                      <path 
+                        d="M12 3c5 0 8 4 8 9 0 5-3 9-8 9V3z M16 8c1 1 1.5 2.5 1 4 M17 14c-0.5 1-1.5 2-3 2.5 M15 6c1 0.5 2 1.5 2.5 3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    )}
+                  </svg>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
