@@ -346,85 +346,61 @@ export function DetoxChallengeTab() {
             <p className="text-sm text-muted-foreground mt-1">Choose the recovery mode that fits your situation.</p>
           </motion.div>
 
-          {/* Recovery Mode Selector - Premium Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode, index) => {
+          {/* Recovery Mode Selector - Minimal Side-by-Side */}
+          <div className="grid grid-cols-2 gap-3">
+            {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
               const Icon = mode.icon;
               const isSelected = selectedMode === mode.id;
               
               return (
-                <motion.button
+                <button
                   key={mode.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
                   onClick={() => setSelectedMode(mode.id)}
                   className={cn(
-                    "relative p-5 rounded-2xl text-left transition-all duration-300 overflow-hidden group",
+                    "relative p-4 rounded-xl text-left transition-all duration-200",
                     isSelected
-                      ? "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/30"
-                      : "bg-card/80 border border-border/60 hover:border-border hover:bg-card"
+                      ? "bg-card border-2 border-foreground/20"
+                      : "bg-card/60 border border-border/40 hover:border-border"
                   )}
                 >
-                  {/* Subtle gradient overlay on hover */}
-                  <div className={cn(
-                    "absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300",
-                    !isSelected && "group-hover:opacity-100"
-                  )} />
-                  
-                  <div className="relative z-10">
-                    {/* Icon with subtle effect when selected */}
+                  <div className="flex items-center gap-3 mb-2">
                     <div className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300",
-                      isSelected 
-                        ? "bg-primary/15" 
-                        : "bg-muted/50 group-hover:bg-muted/70"
+                      "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                      isSelected ? "bg-foreground/10" : "bg-muted/40"
                     )}>
                       <Icon className={cn(
-                        "w-6 h-6 transition-colors duration-300",
-                        isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground/70"
+                        "w-4.5 h-4.5",
+                        isSelected ? "text-foreground" : "text-muted-foreground"
                       )} />
                     </div>
-                    
-                    <h4 className={cn(
-                      "text-base font-semibold mb-1.5 transition-colors duration-300",
-                      isSelected ? "text-foreground" : "text-foreground/80"
-                    )}>
-                      {mode.id === "detox" ? "Digital Detox" : "Active Walk"}
-                    </h4>
-                    
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                      {mode.description}
-                    </p>
-                    
-                    {"constraints" in mode && (
-                      <p className="text-[10px] text-amber-500/70 mb-3 flex items-center gap-1.5">
-                        <Info className="w-3 h-3" />
-                        {mode.constraints}
-                      </p>
+                    {isSelected && (
+                      <div className="ml-auto w-4 h-4 rounded-full bg-foreground/80 flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-background" />
+                      </div>
                     )}
-                    
-                    <div className={cn(
-                      "inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-all duration-300",
-                      isSelected 
-                        ? "bg-primary/15 text-primary/80" 
-                        : "bg-muted/50 text-muted-foreground"
-                    )}>
-                      <Sparkles className="w-3 h-3" />
-                      {mode.impact}
-                    </div>
                   </div>
                   
-                  {/* Selection indicator */}
-                  {isSelected && (
-                    <motion.div 
-                      layoutId="selected-mode"
-                      className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary/80 flex items-center justify-center"
-                    >
-                      <Check className="w-3 h-3 text-background" />
-                    </motion.div>
-                  )}
-                </motion.button>
+                  <h4 className={cn(
+                    "text-sm font-semibold mb-1",
+                    isSelected ? "text-foreground" : "text-foreground/70"
+                  )}>
+                    {mode.id === "detox" ? "Digital Detox" : "Active Walk"}
+                  </h4>
+                  
+                  <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">
+                    {mode.id === "detox" 
+                      ? "Full digital pause" 
+                      : "Light movement, no devices"
+                    }
+                  </p>
+                  
+                  <div className={cn(
+                    "mt-2 text-[10px] font-medium",
+                    isSelected ? "text-foreground/60" : "text-muted-foreground/60"
+                  )}>
+                    {mode.id === "detox" ? "100% impact" : "50% impact"}
+                  </div>
+                </button>
               );
             })}
           </div>
