@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
+import { S1AEGameSelector } from "./S1AEGameSelector";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
@@ -78,6 +79,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   
   const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: ThinkingSystem } | null>(null);
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
+  const [showS1AESelector, setShowS1AESelector] = useState(false);
   
   const { gamesComplete } = useCappedWeeklyProgress();
   const { games, caps, safetyRuleActive, isLoading: gatingLoading } = useGamesGating();
@@ -94,6 +96,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     if (gamesComplete) {
       setPendingGame({ areaId, mode });
       setShowTargetExceededDialog(true);
+      return;
+    }
+    
+    // S1-AE has its own game selector with Triage Sprint and Orbit Lock
+    if (gameType === "S1-AE") {
+      setShowS1AESelector(true);
       return;
     }
     
@@ -114,13 +122,6 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   const handleStartExercise = (exercise: CognitiveExercise) => {
     setPickerOpen(false);
-    // S1-AE games now route to dedicated runners
-    if (pickerMode === "fast" && pickerArea === "focus") {
-      // Randomly pick between Triage Sprint and Orbit Lock, or use exercise hint
-      const gameChoice = Math.random() > 0.5 ? "orbit-lock" : "triage-sprint";
-      navigate(`/neuro-lab/${gameChoice}?difficulty=medium`);
-      return;
-    }
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
@@ -282,13 +283,19 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         );
       })}
 
-      {/* Exercise Picker Sheet */}
+      {/* Exercise Picker Sheet (for non-S1-AE games) */}
       <ExercisePickerSheet
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         area={pickerArea}
         thinkingMode={pickerMode}
         onStartExercise={handleStartExercise}
+      />
+
+      {/* S1-AE Game Selector (Triage Sprint / Orbit Lock) */}
+      <S1AEGameSelector
+        open={showS1AESelector}
+        onOpenChange={setShowS1AESelector}
       />
 
       {/* Target Exceeded Warning Dialog */}
