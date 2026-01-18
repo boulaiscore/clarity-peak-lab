@@ -9,7 +9,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, Crosshair, Zap, Star, ChevronLeft, ChevronRight, Sparkles, Lock, Info } from "lucide-react";
+import { Target, Crosshair, Zap, Star, ChevronLeft, ChevronRight, Sparkles, Lock, Info, RefreshCcw } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -57,6 +57,16 @@ const GAMES: GameOption[] = [
     route: "/neuro-lab/orbit-lock",
     xpByDifficulty: { easy: 9, medium: 15, hard: 34 },
     accentColor: "violet",
+  },
+  {
+    id: "focus_switch",
+    name: "Focus Switch",
+    tagline: "Rapid Re-orienting",
+    description: "Track and respond only to the active lane as focus shifts unpredictably. Trains attentional flexibility and recovery speed.",
+    icon: RefreshCcw,
+    route: "/neuro-lab/focus-switch",
+    xpByDifficulty: { easy: 9, medium: 15, hard: 24 },
+    accentColor: "emerald",
   },
 ];
 
@@ -188,9 +198,25 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                 ) : (
                   sortedGames.map((game, index) => {
                     const Icon = game.icon;
-                    const isViolet = game.accentColor === "violet";
                     const isSuggested = game.id === suggestedGame;
                     const xp = getXPForGame(game);
+                    
+                    // Get accent color classes
+                    const accentBg = game.accentColor === "violet" 
+                      ? "bg-violet-500/15" 
+                      : game.accentColor === "emerald" 
+                        ? "bg-emerald-500/15" 
+                        : "bg-cyan-500/15";
+                    const accentText = game.accentColor === "violet" 
+                      ? "text-violet-400" 
+                      : game.accentColor === "emerald" 
+                        ? "text-emerald-400" 
+                        : "text-cyan-400";
+                    const accentBadgeBg = game.accentColor === "violet" 
+                      ? "bg-violet-500/10 text-violet-400" 
+                      : game.accentColor === "emerald" 
+                        ? "bg-emerald-500/10 text-emerald-400" 
+                        : "bg-cyan-500/10 text-cyan-400";
                     
                     return (
                       <motion.button
@@ -222,12 +248,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                         <div className="flex items-start gap-3">
                           <div className={cn(
                             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                            isViolet ? "bg-violet-500/15" : "bg-cyan-500/15"
+                            accentBg
                           )}>
-                            <Icon className={cn(
-                              "w-5 h-5",
-                              isViolet ? "text-violet-400" : "text-cyan-400"
-                            )} />
+                            <Icon className={cn("w-5 h-5", accentText)} />
                           </div>
                           
                           <div className="flex-1 min-w-0">
@@ -237,9 +260,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                               </h4>
                               <span className={cn(
                                 "text-[10px] px-1.5 py-0.5 rounded-full",
-                                isViolet 
-                                  ? "bg-violet-500/10 text-violet-400" 
-                                  : "bg-cyan-500/10 text-cyan-400"
+                                accentBadgeBg
                               )}>
                                 {game.tagline}
                               </span>
@@ -287,11 +308,19 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                   </button>
                   <div className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center",
-                    selectedGame.accentColor === "violet" ? "bg-violet-500/15" : "bg-cyan-500/15"
+                    selectedGame.accentColor === "violet" 
+                      ? "bg-violet-500/15" 
+                      : selectedGame.accentColor === "emerald" 
+                        ? "bg-emerald-500/15" 
+                        : "bg-cyan-500/15"
                   )}>
                     <selectedGame.icon className={cn(
                       "w-4 h-4",
-                      selectedGame.accentColor === "violet" ? "text-violet-400" : "text-cyan-400"
+                      selectedGame.accentColor === "violet" 
+                        ? "text-violet-400" 
+                        : selectedGame.accentColor === "emerald" 
+                          ? "text-emerald-400" 
+                          : "text-cyan-400"
                     )} />
                   </div>
                   <span className="text-foreground">{selectedGame.name}</span>
@@ -352,7 +381,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                     "bg-gradient-to-r text-black",
                     selectedGame.accentColor === "violet"
                       ? "from-violet-500 to-violet-400"
-                      : "from-cyan-500 to-cyan-400"
+                      : selectedGame.accentColor === "emerald"
+                        ? "from-emerald-500 to-emerald-400"
+                        : "from-cyan-500 to-cyan-400"
                   )}
                 >
                   Start Session
