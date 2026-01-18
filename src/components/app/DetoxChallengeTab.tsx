@@ -332,19 +332,10 @@ export function DetoxChallengeTab() {
         </motion.div>
       ) : (
         <>
-          {/* Header with subtle animation */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-6"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/15 mb-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
-              <span className="text-[10px] font-medium text-primary/70 uppercase tracking-wider">Recovery Mode</span>
-            </div>
-            <h2 className="text-xl font-semibold text-foreground tracking-tight">Recover Mental Clarity</h2>
-            <p className="text-sm text-muted-foreground mt-1">Choose the recovery mode that fits your situation.</p>
-          </motion.div>
+          {/* Header - Minimal */}
+          <div className="text-center mb-5">
+            <p className="text-sm text-muted-foreground">Choose the recovery mode that fits your situation.</p>
+          </div>
 
           {/* Recovery Mode Selector - Minimal Side-by-Side */}
           <div className="grid grid-cols-2 gap-3">
