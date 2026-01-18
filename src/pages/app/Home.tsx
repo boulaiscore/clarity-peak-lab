@@ -344,6 +344,41 @@ const Home = () => {
               />
             </motion.section>
 
+        {/* Task Suggestion when Recovery is Low - Official NeuroLoop Rule */}
+        {recoveryEffective < 45 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="mb-4"
+          >
+            <button
+              onClick={() => navigate("/neuro-lab?tab=tasks")}
+              className="w-full p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 hover:border-emerald-500/40 transition-all active:scale-[0.98] text-left"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+                  <BookMarked className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-1">
+                    Today is for understanding, not effort
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Light reading improves how you'll reason tomorrow. Training is paused — reflection isn't.
+                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[10px] font-medium text-emerald-500 uppercase tracking-wide">
+                      Explore Tasks
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-emerald-500/60" />
+                  </div>
+                </div>
+              </div>
+            </button>
+          </motion.section>
+        )}
+
         {/* Detox Engagement Card - Whoop-style motivation */}
         {!detoxComplete && (() => {
           const detoxRemaining = Math.max(0, detoxXPTarget - rawDetoxXP);

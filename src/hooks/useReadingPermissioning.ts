@@ -1,21 +1,20 @@
 /**
- * Reading Cognitive Permissioning Engine v1.3
+ * Reading Cognitive Permissioning Engine v2.0
  * 
- * Extends the podcast permissioning logic to Books and Articles.
- * 
- * NeuroLoop principle: "If it requires understanding, it consumes cognitive resources."
+ * OFFICIAL NEUROLOOP RULES:
+ * - Passive Tasks (Reading) are ALWAYS accessible
+ * - RECOVERY_SAFE is ALWAYS enabled without any threshold
+ * - Recovery and cognitive state govern SUGGESTION, not BLOCKING
+ * - Tasks are cognitive support, not training
  * 
  * CATEGORIES:
- * - RECOVERY_SAFE: Only needs S1Buffer >= 50, can have low sharpness
- * - NON_FICTION: Requires S2 + S1 + Sharpness >= 60
- * - BOOK: Highest thresholds + Readiness >= 55 + Sharpness >= 65
+ * - RECOVERY_SAFE: ALWAYS enabled, no threshold required
+ * - NON_FICTION: ALWAYS accessible, suggested based on cognitive state
+ * - BOOK: ALWAYS accessible, suggested based on cognitive state
  * 
- * HARD LIMITS (v1.3 Anti-Catalog):
+ * ANTI-CATALOG LIMITS (still apply):
  * - Max 1 reading item per day (across all types)
  * - Max 3 book sessions per week
- * - LOW_BANDWIDTH_MODE: No readings, no books (only podcasts LOW/MEDIUM)
- * 
- * IMPORTANT: Tasks do NOT give XP in v1.3 - they are cognitive inputs, not rewards
  */
 
 import { useMemo, useState, useEffect } from "react";
@@ -35,8 +34,9 @@ export type GlobalMode = "RECOVERY_MODE" | "LOW_BANDWIDTH_MODE" | "FULL_CAPACITY
 
 export interface ReadingEligibility {
   reading: Reading;
-  enabled: boolean;
-  withheldReason: string | null;
+  enabled: boolean;        // v2.0: ALWAYS true for passive tasks
+  suggested: boolean;      // v2.0: Based on cognitive state
+  withheldReason: string | null;  // Now: suggestion reason, not block reason
   fitScore: number;
 }
 
@@ -94,10 +94,10 @@ export interface ReadingPermissioningResult {
   // Final enabled list (max 1 per day in v1.3)
   enabledReadings: ReadingEligibility[];
   
-  // All withheld readings
+  // All withheld readings (now: not-suggested but still accessible)
   withheldReadings: ReadingEligibility[];
   
-  // Whether we're in recovery mode (show special card)
+  // Whether we're in recovery mode (show supportive messaging)
   isRecoveryMode: boolean;
   
   // v1.3: Anti-catalog limits
@@ -112,7 +112,6 @@ export interface ReadingPermissioningResult {
 
 /**
  * Determine the global mode based on cognitive indices
- * v1.3: LOW_BANDWIDTH_MODE means NO readings (only podcasts LOW/MEDIUM allowed)
  */
 function determineGlobalMode(s1Buffer: number, s2Capacity: number): GlobalMode {
   if (s1Buffer < 45) {
@@ -125,10 +124,11 @@ function determineGlobalMode(s1Buffer: number, s2Capacity: number): GlobalMode {
 }
 
 /**
- * Check if a reading is eligible based on its type and demand thresholds
- * v1.3: LOW_BANDWIDTH_MODE now withholds ALL readings (not just books)
+ * v2.0: Check if a reading is SUGGESTED (not blocked) based on cognitive state
+ * All readings are ALWAYS accessible - this only determines suggestion priority
+ * RECOVERY_SAFE is ALWAYS suggested regardless of cognitive state
  */
-function checkEligibility(
+function checkSuggestion(
   reading: Reading,
   s1Buffer: number,
   s2Capacity: number,
@@ -137,146 +137,159 @@ function checkEligibility(
   globalMode: GlobalMode,
   maxDailyReached: boolean,
   maxWeeklyBooksReached: boolean
-): { enabled: boolean; reason: string | null } {
-  // In RECOVERY_MODE, withhold EVERYTHING
-  if (globalMode === "RECOVERY_MODE") {
-    return {
-      enabled: false,
-      reason: "Withheld: recovery is low. Even structured reading would add invisible load today.",
-    };
-  }
-  
-  // v1.3: LOW_BANDWIDTH_MODE withholds ALL readings (only podcasts LOW/MEDIUM allowed)
-  if (globalMode === "LOW_BANDWIDTH_MODE") {
-    return {
-      enabled: false,
-      reason: "Withheld: low bandwidth mode. Only light podcasts enabled today.",
-    };
-  }
-  
-  // v1.3 Anti-catalog: Max 1 reading per day
-  if (maxDailyReached) {
-    return {
-      enabled: false,
-      reason: "Withheld: daily reading limit reached. Cognitive load managed.",
-    };
-  }
-  
-  // v1.3 Anti-catalog: Max 3 book sessions per week
-  if (reading.readingType === "BOOK" && maxWeeklyBooksReached) {
-    return {
-      enabled: false,
-      reason: "Withheld: weekly book session limit reached (3/week).",
-    };
-  }
+): { suggested: boolean; reason: string | null } {
   
   const { readingType, demand } = reading;
   
   // === RECOVERY_SAFE READING ===
+  // v2.0: ALWAYS suggested, no threshold required (official rule)
   if (readingType === "RECOVERY_SAFE") {
-    // Recovery-safe only needs S1Buffer >= 50
-    if (s1Buffer < 50) {
+    if (maxDailyReached) {
       return {
-        enabled: false,
-        reason: "Content requires recovery to be effective. Build recovery through Detox or Walk.",
+        suggested: false,
+        reason: "Daily reading limit reached. Available tomorrow.",
       };
     }
-    return { enabled: true, reason: null };
+    return { 
+      suggested: true, 
+      reason: "Recovery reading is always available for decompression." 
+    };
+  }
+  
+  // v2.0 Anti-catalog: Max 1 reading per day affects suggestion
+  if (maxDailyReached) {
+    return {
+      suggested: false,
+      reason: "Daily reading limit reached. Cognitive load managed.",
+    };
+  }
+  
+  // v2.0 Anti-catalog: Max 3 book sessions per week
+  if (readingType === "BOOK" && maxWeeklyBooksReached) {
+    return {
+      suggested: false,
+      reason: "Weekly book session limit reached (3/week).",
+    };
   }
   
   // === NON_FICTION READING ===
   if (readingType === "NON_FICTION") {
-    // Global override: Sharpness < 60 → withhold ALL non-fiction
-    if (sharpness < GLOBAL_READING_OVERRIDES.NON_FICTION_MIN_SHARPNESS) {
+    // In RECOVERY_MODE or LOW_BANDWIDTH_MODE, not suggested but accessible
+    if (globalMode === "RECOVERY_MODE") {
       return {
-        enabled: false,
-        reason: "Withheld: sharpness too low for analytical reading.",
+        suggested: false,
+        reason: "Available but not suggested during recovery. Light reading preferred today.",
+      };
+    }
+    if (globalMode === "LOW_BANDWIDTH_MODE") {
+      return {
+        suggested: false,
+        reason: "Available but cognitive bandwidth limited today.",
       };
     }
     
-    // Get thresholds for this demand level
+    // FULL_CAPACITY: Check thresholds for suggestion
+    if (sharpness < GLOBAL_READING_OVERRIDES.NON_FICTION_MIN_SHARPNESS) {
+      return {
+        suggested: false,
+        reason: "Available but sharpness below optimal for analytical reading.",
+      };
+    }
+    
     const thresholds = READING_THRESHOLDS.NON_FICTION[demand as keyof typeof READING_THRESHOLDS.NON_FICTION];
     if (!thresholds) {
-      return { enabled: false, reason: "Withheld: invalid demand level." };
+      return { suggested: false, reason: "Available." };
     }
     
     if (s1Buffer < thresholds.s1Buffer) {
       return {
-        enabled: false,
-        reason: `Recovery too low for ${demand} content. Build recovery through Detox or Walk.`,
+        suggested: false,
+        reason: `Available but recovery below optimal for ${demand} content.`,
       };
     }
     
     if (s2Capacity < thresholds.s2Capacity) {
       return {
-        enabled: false,
-        reason: `Deep work capacity limited for ${demand} content.`,
+        suggested: false,
+        reason: `Available but deep work capacity limited for ${demand} content.`,
       };
     }
     
     if (sharpness < thresholds.sharpness) {
       return {
-        enabled: false,
-        reason: `Withheld: sharpness too low for ${demand} analytical reading.`,
+        suggested: false,
+        reason: `Available but sharpness below optimal for ${demand} analytical reading.`,
       };
     }
     
-    return { enabled: true, reason: null };
+    return { suggested: true, reason: null };
   }
   
   // === BOOK (Long-form) ===
   if (readingType === "BOOK") {
-    // Global override: Readiness < 55 → withhold ALL books
+    // In RECOVERY_MODE or LOW_BANDWIDTH_MODE, not suggested but accessible
+    if (globalMode === "RECOVERY_MODE") {
+      return {
+        suggested: false,
+        reason: "Available but not suggested during recovery. Light reading preferred today.",
+      };
+    }
+    if (globalMode === "LOW_BANDWIDTH_MODE") {
+      return {
+        suggested: false,
+        reason: "Available but cognitive bandwidth limited for sustained reading today.",
+      };
+    }
+    
+    // FULL_CAPACITY: Check thresholds for suggestion
     if (readiness < GLOBAL_READING_OVERRIDES.BOOK_MIN_READINESS) {
       return {
-        enabled: false,
-        reason: "Withheld: readiness too low for sustained reading.",
+        suggested: false,
+        reason: "Available but readiness below optimal for sustained reading.",
       };
     }
     
-    // Global override: Sharpness < 65 → withhold ALL books
     if (sharpness < GLOBAL_READING_OVERRIDES.BOOK_MIN_SHARPNESS) {
       return {
-        enabled: false,
-        reason: "Withheld: sharpness too low for long-form reading.",
+        suggested: false,
+        reason: "Available but sharpness below optimal for long-form reading.",
       };
     }
     
-    // Get thresholds for this demand level
     const thresholds = READING_THRESHOLDS.BOOK[demand as keyof typeof READING_THRESHOLDS.BOOK];
     if (!thresholds) {
-      return { enabled: false, reason: "Withheld: invalid demand level for books." };
+      return { suggested: false, reason: "Available." };
     }
     
     if (s1Buffer < thresholds.s1Buffer) {
       return {
-        enabled: false,
-        reason: `Withheld: today's capacity does not support ${demand} book.`,
+        suggested: false,
+        reason: `Available but today's capacity below optimal for ${demand} book.`,
       };
     }
     
     if (s2Capacity < thresholds.s2Capacity) {
       return {
-        enabled: false,
-        reason: `Withheld: insufficient S2 capacity for ${demand} book.`,
+        suggested: false,
+        reason: `Available but S2 capacity below optimal for ${demand} book.`,
       };
     }
     
     if (sharpness < thresholds.sharpness) {
       return {
-        enabled: false,
-        reason: `Withheld: sharpness too low for ${demand} book.`,
+        suggested: false,
+        reason: `Available but sharpness below optimal for ${demand} book.`,
       };
     }
     
-    return { enabled: true, reason: null };
+    return { suggested: true, reason: null };
   }
   
-  return { enabled: false, reason: "Withheld: unknown reading type." };
+  return { suggested: false, reason: "Available." };
 }
 
 /**
- * Calculate fit score for ranking enabled readings
+ * Calculate fit score for ranking readings
  * fitScore = (S2Capacity - penaltyDemand) + 0.35 * (S1Buffer - 50)
  */
 function calculateFitScore(
@@ -315,8 +328,9 @@ export function useReadingPermissioning(): ReadingPermissioningResult {
     const globalMode = determineGlobalMode(s1Buffer, s2Capacity);
     
     // Process all readings with anti-catalog limits
+    // v2.0: ALL readings are enabled, suggested determines priority
     const allEligibility: ReadingEligibility[] = READINGS.map((reading) => {
-      const { enabled, reason } = checkEligibility(
+      const { suggested, reason } = checkSuggestion(
         reading,
         s1Buffer,
         s2Capacity,
@@ -331,27 +345,28 @@ export function useReadingPermissioning(): ReadingPermissioningResult {
       
       return {
         reading,
-        enabled,
+        enabled: true,  // v2.0: ALWAYS true for passive tasks
+        suggested,
         withheldReason: reason,
         fitScore,
       };
     });
     
-    // Separate by category
+    // Separate by category - all are enabled, filter by suggested for display
     const enabledRecoverySafe = allEligibility
-      .filter(e => e.enabled && e.reading.readingType === "RECOVERY_SAFE")
+      .filter(e => e.suggested && e.reading.readingType === "RECOVERY_SAFE")
       .sort((a, b) => b.fitScore - a.fitScore)
-      .slice(0, 1); // Max 1 recovery-safe
+      .slice(0, 1);
     
     const enabledNonFiction = allEligibility
-      .filter(e => e.enabled && e.reading.readingType === "NON_FICTION")
+      .filter(e => e.suggested && e.reading.readingType === "NON_FICTION")
       .sort((a, b) => b.fitScore - a.fitScore)
-      .slice(0, 1); // Max 1 non-fiction
+      .slice(0, 1);
     
     const enabledBooks = allEligibility
-      .filter(e => e.enabled && e.reading.readingType === "BOOK")
+      .filter(e => e.suggested && e.reading.readingType === "BOOK")
       .sort((a, b) => b.fitScore - a.fitScore)
-      .slice(0, 1); // Max 1 book shown
+      .slice(0, 1);
     
     // v1.3: Only 1 reading per day, prioritize books > non-fiction > recovery-safe
     const enabledReadings: ReadingEligibility[] = [];
@@ -367,8 +382,8 @@ export function useReadingPermissioning(): ReadingPermissioningResult {
     // v1.3: Limit to 1 reading per day
     const finalEnabledReadings = enabledReadings.slice(0, 1);
     
-    // All withheld readings
-    const withheldReadings = allEligibility.filter(e => !e.enabled);
+    // Non-suggested readings (still accessible, just not optimal)
+    const withheldReadings = allEligibility.filter(e => !e.suggested);
     
     return {
       s2Capacity,

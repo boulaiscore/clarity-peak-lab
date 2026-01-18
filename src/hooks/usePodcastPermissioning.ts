@@ -1,23 +1,15 @@
 /**
- * Podcast Tasks Permissioning Engine
+ * Podcast Tasks Permissioning Engine v2.0
  * 
- * This hook implements cognitive-based permissioning for podcast content.
- * The value is: "today this is enabled because your cognitive state supports it"
- * and "today this is withheld because it would overload you."
+ * OFFICIAL NEUROLOOP RULES:
+ * - Passive Tasks (Podcasts) are ALWAYS accessible
+ * - Recovery and cognitive state govern SUGGESTION, not BLOCKING
+ * - Tasks are cognitive support, not training
  * 
- * METRICS USED:
- * - Sharpness (0-100): immediate cognitive performance
- * - Readiness (0-100): overall readiness for cognitive work
- * - Recovery (0-100): S1 buffer / stability
- * 
- * DERIVED INDICES:
- * - S2Capacity = round(0.6 * Sharpness + 0.4 * Readiness)
- * - S1Buffer = Recovery
- * 
- * GLOBAL MODES:
- * - RECOVERY_MODE: S1Buffer < 45 → withhold everything
- * - LOW_BANDWIDTH_MODE: S1Buffer >= 45 AND S2Capacity < 55 → only LOW/MEDIUM
- * - FULL_CAPACITY_MODE: normal eligibility rules
+ * MODES determine what is SUGGESTED, not what is BLOCKED:
+ * - RECOVERY_MODE: S1Buffer < 45 → suggest LOW only, but all are accessible
+ * - LOW_BANDWIDTH_MODE: S1Buffer >= 45 AND S2Capacity < 55 → suggest LOW/MEDIUM
+ * - FULL_CAPACITY_MODE: suggest all based on fit score
  */
 
 import { useMemo } from "react";
@@ -34,8 +26,9 @@ export type GlobalMode = "RECOVERY_MODE" | "LOW_BANDWIDTH_MODE" | "FULL_CAPACITY
 
 export interface PodcastEligibility {
   podcast: Podcast;
-  enabled: boolean;
-  withheldReason: string | null;
+  enabled: boolean;        // v2.0: ALWAYS true for passive tasks
+  suggested: boolean;      // v2.0: Based on cognitive state
+  withheldReason: string | null;  // Now: suggestion reason, not block reason
   fitScore: number;
 }
 
@@ -48,13 +41,19 @@ export interface PodcastPermissioningResult {
   // Global mode
   globalMode: GlobalMode;
   
-  // Eligible podcasts (max 3, sorted by fitScore)
+  // v2.0: Suggested podcasts (cognitive state supports these best)
+  suggestedPodcasts: PodcastEligibility[];
+  
+  // v2.0: All podcasts (always enabled, sorted by fit)
   enabledPodcasts: PodcastEligibility[];
   
-  // All withheld podcasts
+  // v2.0: Non-suggested podcasts (accessible but not optimal today)
+  notSuggestedPodcasts: PodcastEligibility[];
+  
+  // Legacy: withheldPodcasts for backwards compatibility
   withheldPodcasts: PodcastEligibility[];
   
-  // Whether we're in recovery mode (show special card)
+  // Whether we're in recovery mode (show supportive messaging)
   isRecoveryMode: boolean;
   
   // Loading state
@@ -75,68 +74,80 @@ function determineGlobalMode(s1Buffer: number, s2Capacity: number): GlobalMode {
 }
 
 /**
- * Check if a podcast is eligible based on demand thresholds
+ * v2.0: Check if a podcast is SUGGESTED (not blocked) based on cognitive state
+ * All podcasts are ALWAYS accessible - this only determines suggestion priority
  */
-function checkEligibility(
+function checkSuggestion(
   podcast: Podcast,
   s1Buffer: number,
   s2Capacity: number,
   sharpness: number,
   globalMode: GlobalMode
-): { enabled: boolean; reason: string | null } {
-  // In RECOVERY_MODE, everything is withheld
+): { suggested: boolean; reason: string | null } {
+  // In RECOVERY_MODE, suggest only LOW demand podcasts
+  // But all are still ACCESSIBLE (enabled = true always)
   if (globalMode === "RECOVERY_MODE") {
+    if (podcast.demand === "LOW") {
+      return {
+        suggested: true,
+        reason: "Suggested: light content supports recovery without adding load.",
+      };
+    }
     return {
-      enabled: false,
-      reason: "Content requires recovery to be effective. Build recovery through Detox or Walk.",
+      suggested: false,
+      reason: "Available but not suggested during recovery. Light content preferred today.",
     };
   }
   
-  // In LOW_BANDWIDTH_MODE, only LOW and MEDIUM are allowed
+  // In LOW_BANDWIDTH_MODE, suggest LOW and MEDIUM only
   if (globalMode === "LOW_BANDWIDTH_MODE") {
-    if (podcast.demand === "HIGH" || podcast.demand === "VERY_HIGH") {
+    if (podcast.demand === "LOW" || podcast.demand === "MEDIUM") {
       return {
-        enabled: false,
-        reason: `Deep work capacity limited for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
+        suggested: true,
+        reason: null,
       };
     }
+    return {
+      suggested: false,
+      reason: "Available but cognitive bandwidth limited for high-demand content today.",
+    };
   }
   
-  // Check demand-specific thresholds
+  // FULL_CAPACITY_MODE: check demand-specific thresholds for suggestion
   const thresholds = DEMAND_THRESHOLDS[podcast.demand];
   
   if (s1Buffer < thresholds.s1Buffer) {
     return {
-      enabled: false,
-      reason: `Recovery too low for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
+      suggested: false,
+      reason: `Available but recovery is below optimal for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
     };
   }
   
   if (s2Capacity < thresholds.s2Capacity) {
     return {
-      enabled: false,
-      reason: `Deep work capacity limited for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
+      suggested: false,
+      reason: `Available but deep work capacity limited for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
     };
   }
   
-  // VERY_HIGH also requires sharpness check
+  // VERY_HIGH also checks sharpness for suggestion
   if (podcast.demand === "VERY_HIGH" && thresholds.sharpness) {
     if (sharpness < thresholds.sharpness) {
       return {
-        enabled: false,
-        reason: `Sharpness too low for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
+        suggested: false,
+        reason: `Available but sharpness below optimal for ${podcast.demand.toLowerCase().replace('_', ' ')} content.`,
       };
     }
   }
   
   return {
-    enabled: true,
+    suggested: true,
     reason: null,
   };
 }
 
 /**
- * Calculate fit score for ranking enabled podcasts
+ * Calculate fit score for ranking podcasts
  * fitScore = (S2Capacity - penaltyDemand) + 0.35 * (S1Buffer - 50)
  */
 function calculateFitScore(
@@ -159,9 +170,9 @@ export function usePodcastPermissioning(): PodcastPermissioningResult {
     // Determine global mode
     const globalMode = determineGlobalMode(s1Buffer, s2Capacity);
     
-    // Process all podcasts
+    // Process all podcasts - ALL are enabled (v2.0 rule)
     const allEligibility: PodcastEligibility[] = PODCASTS.map((podcast) => {
-      const { enabled, reason } = checkEligibility(
+      const { suggested, reason } = checkSuggestion(
         podcast,
         s1Buffer,
         s2Capacity,
@@ -173,29 +184,37 @@ export function usePodcastPermissioning(): PodcastPermissioningResult {
       
       return {
         podcast,
-        enabled,
-        withheldReason: reason,
+        enabled: true,  // v2.0: ALWAYS true for passive tasks
+        suggested,
+        withheldReason: reason,  // Now used for suggestion reason
         fitScore,
       };
     });
     
-    // Separate enabled and withheld
-    const enabledAll = allEligibility
-      .filter((e) => e.enabled)
+    // Separate suggested and not-suggested
+    const suggestedAll = allEligibility
+      .filter((e) => e.suggested)
       .sort((a, b) => b.fitScore - a.fitScore);
     
-    const withheldAll = allEligibility.filter((e) => !e.enabled);
+    const notSuggestedAll = allEligibility
+      .filter((e) => !e.suggested)
+      .sort((a, b) => b.fitScore - a.fitScore);
     
-    // Only show top 3 enabled (to avoid "catalog" effect)
-    const enabledTop3 = enabledAll.slice(0, 3);
+    // Show top 3 suggested as "enabled" for display
+    const suggestedTop3 = suggestedAll.slice(0, 3);
     
     return {
       s2Capacity,
       s1Buffer,
       sharpness,
       globalMode,
-      enabledPodcasts: enabledTop3,
-      withheldPodcasts: withheldAll,
+      // v2.0: New fields
+      suggestedPodcasts: suggestedTop3,
+      // v2.0: All podcasts are enabled
+      enabledPodcasts: suggestedTop3,  // For backwards compatibility
+      notSuggestedPodcasts: notSuggestedAll,
+      // Legacy backwards compatibility: treat non-suggested as "withheld" for UI
+      withheldPodcasts: notSuggestedAll,
       isRecoveryMode: globalMode === "RECOVERY_MODE",
     };
   }, [sharpness, readiness, recovery]);
