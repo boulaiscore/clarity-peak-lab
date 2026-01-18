@@ -120,9 +120,15 @@ export default function NeuroLabSessionRunner() {
       
       // Single exercise mode - when exerciseId is provided
       if (exerciseId) {
-        const singleExercise = allExercises.find(e => e.id === exerciseId);
+        // Case-insensitive search for safety
+        const singleExercise = allExercises.find(
+          e => e.id.toLowerCase() === exerciseId.toLowerCase()
+        );
         if (singleExercise) {
           exercises = [singleExercise];
+        } else {
+          console.warn('[NeuroLabSessionRunner] Exercise not found:', exerciseId, 
+            'Available IDs sample:', allExercises.slice(0, 10).map(e => e.id));
         }
       } else {
         // Normal session mode - generate multiple exercises
@@ -136,11 +142,17 @@ export default function NeuroLabSessionRunner() {
         );
       }
       
-      setSessionExercises(exercises);
-      setSessionStarted(true);
-      
-      // Increment session counter for free users
-      incrementSession.mutate();
+      // Only start session if we found exercises
+      if (exercises.length > 0) {
+        setSessionExercises(exercises);
+        setSessionStarted(true);
+        // Increment session counter for free users
+        incrementSession.mutate();
+      } else if (exerciseId) {
+        // Exercise ID was provided but not found - show error state
+        console.error('[NeuroLabSessionRunner] Failed to load exercise:', exerciseId);
+        setSessionStarted(true); // Allow error UI to show
+      }
     }
   }, [allExercises, area, duration, user?.trainingGoals, thinkingMode, canStartSession, sessionStarted, completedExerciseIds, completedLoading, exerciseId]);
 
@@ -390,9 +402,14 @@ export default function NeuroLabSessionRunner() {
           <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
             <Brain className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h2 className="text-lg font-semibold mb-2">No Exercises Available</h2>
+          <h2 className="text-lg font-semibold mb-2">
+            {exerciseId ? "Exercise Not Found" : "No Exercises Available"}
+          </h2>
           <p className="text-muted-foreground text-sm mb-6">
-            This training area doesn't have exercises yet. Check back soon!
+            {exerciseId 
+              ? `Could not load exercise "${exerciseId}". It may have been removed or is temporarily unavailable.`
+              : "This training area doesn't have exercises yet. Check back soon!"
+            }
           </p>
           <Button onClick={() => navigate("/neuro-lab")} className="w-full">
             Back to Neuro Lab
