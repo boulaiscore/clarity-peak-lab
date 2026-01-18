@@ -217,33 +217,27 @@ function RecoveryModeCard({ s1Buffer }: { s1Buffer: number }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl border border-area-fast/40 bg-muted/10"
+      className="p-4 rounded-xl border border-primary/30 bg-primary/5"
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-muted/20 flex items-center justify-center shrink-0">
-          <Battery className="w-5 h-5 text-area-fast/70" />
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <BookOpen className="w-5 h-5 text-primary" />
         </div>
         
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-area-fast mb-1 uppercase tracking-wide">
-            System Prioritizing Recovery
+          <h4 className="text-sm font-medium text-foreground mb-1">
+            Your brain needs recovery
           </h4>
           <p className="text-[11px] text-muted-foreground/80">
-            Recovery is currently low. The system limits cognitive input to protect clarity.
+            Training is paused — reflection isn't. Light reading supports how you'll reason tomorrow.
           </p>
           
-          {/* Recovery CTA */}
+          {/* Supportive CTA */}
           <div className="mt-2 pt-2 border-t border-border/10">
-            <p className="text-[10px] text-muted-foreground/60 flex items-center gap-1.5 mb-2">
-              <AlertCircle className="w-3 h-3" />
-              Content requires recovery to be effective.
+            <p className="text-[10px] text-primary/70 flex items-center gap-1.5">
+              <Zap className="w-3 h-3" />
+              Recovery reading is always available.
             </p>
-            <Link 
-              to="/neuro-lab?tab=detox" 
-              className="inline-flex items-center gap-1.5 text-[10px] font-medium text-area-fast/80 hover:text-area-fast transition-colors"
-            >
-              Build recovery through Detox or Walk →
-            </Link>
           </div>
         </div>
       </div>
@@ -497,86 +491,87 @@ export function ReadingTasksEngine({ type }: ReadingTasksEngineProps) {
         globalMode={globalMode}
       />
       
-      {/* Recovery mode - single card */}
-      {isRecoveryMode ? (
-        <RecoveryModeCard s1Buffer={s1Buffer} />
-      ) : (
+      {/* v2.0: Always show enabled readings, add recovery messaging if needed */}
+      {filteredEnabled.length > 0 ? (
         <>
           {/* Enabled readings */}
-          {filteredEnabled.length > 0 ? (
-            <div className="space-y-2">
-              <AnimatePresence mode="popLayout">
-                {filteredEnabled.map((eligibility) => (
-                  <EnabledReadingCard
-                    key={eligibility.reading.id}
-                    eligibility={eligibility}
-                    s2Capacity={s2Capacity}
-                    s1Buffer={s1Buffer}
-                    onOpenDetails={() => setSelectedReading(eligibility)}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          ) : (
-            /* No enabled readings - show withheld message */
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-xl border border-border/30 bg-muted/20"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-muted/30 flex items-center justify-center shrink-0">
-                  <AlertCircle className="w-5 h-5 text-muted-foreground" />
-                </div>
-                
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                    No {type === "book" ? "books" : "readings"} enabled today
-                  </h4>
-                  <p className="text-[11px] text-muted-foreground/70">
-                    Current cognitive capacity (S2={s2Capacity}, S1={s1Buffer}) does not support available {type === "book" ? "book" : "reading"} loads.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
+          <div className="space-y-2">
+            <AnimatePresence mode="popLayout">
+              {filteredEnabled.map((eligibility) => (
+                <EnabledReadingCard
+                  key={eligibility.reading.id}
+                  eligibility={eligibility}
+                  s2Capacity={s2Capacity}
+                  s1Buffer={s1Buffer}
+                  onOpenDetails={() => setSelectedReading(eligibility)}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
           
-          {/* Toggle withheld view */}
-          {filteredWithheld.length > 0 && (
-            <button
-              onClick={() => setShowWithheld(!showWithheld)}
-              className="w-full flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground py-2.5 px-4 rounded-lg border border-dashed border-border/50 hover:border-border hover:bg-muted/30 transition-all"
-            >
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>
-                {showWithheld ? "Hide" : "View"} {filteredWithheld.length} withheld {filteredWithheld.length === 1 ? "item" : "items"}
-              </span>
-              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showWithheld && "rotate-180")} />
-            </button>
+          {/* Recovery mode supportive messaging */}
+          {isRecoveryMode && (
+            <RecoveryModeCard s1Buffer={s1Buffer} />
           )}
-          
-          {/* Withheld readings */}
-          <AnimatePresence>
-            {showWithheld && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-2 overflow-hidden"
-              >
-                {filteredWithheld.map((eligibility) => (
-                  <WithheldReadingCard 
-                    key={eligibility.reading.id} 
-                    eligibility={eligibility}
-                    onTap={() => setOverrideReading(eligibility)}
-                    canOverride={canOverride && !wasOverriddenToday(eligibility.reading.id)}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </>
+      ) : (
+        /* No suggested readings - recovery messaging */
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-xl border border-primary/30 bg-primary/5"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <BookOpen className="w-5 h-5 text-primary" />
+            </div>
+            
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-foreground mb-1">
+                Today is for understanding, not effort
+              </h4>
+              <p className="text-[11px] text-muted-foreground/80">
+                Light reading improves how you'll reason tomorrow.
+              </p>
+            </div>
+          </div>
+        </motion.div>
       )}
+      
+      {/* Toggle withheld view */}
+      {filteredWithheld.length > 0 && (
+        <button
+          onClick={() => setShowWithheld(!showWithheld)}
+          className="w-full flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground py-2.5 px-4 rounded-lg border border-dashed border-border/50 hover:border-border hover:bg-muted/30 transition-all"
+        >
+          <AlertCircle className="w-3.5 h-3.5" />
+          <span>
+            {showWithheld ? "Hide" : "View"} {filteredWithheld.length} not suggested {filteredWithheld.length === 1 ? "item" : "items"}
+          </span>
+          <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showWithheld && "rotate-180")} />
+        </button>
+      )}
+      
+      {/* Withheld readings */}
+      <AnimatePresence>
+        {showWithheld && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-2 overflow-hidden"
+          >
+            {filteredWithheld.map((eligibility) => (
+              <WithheldReadingCard 
+                key={eligibility.reading.id} 
+                eligibility={eligibility}
+                onTap={() => setOverrideReading(eligibility)}
+                canOverride={canOverride && !wasOverriddenToday(eligibility.reading.id)}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Details dialog */}
       <ReadingDetailsDialog
