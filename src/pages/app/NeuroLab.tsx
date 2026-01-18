@@ -3,13 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
-import { PodcastTasksEngine } from "@/components/app/PodcastTasksEngine";
-import { ReadingTasksEngine } from "@/components/app/ReadingTasksEngine";
+import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
 import { 
   ChevronRight, Dumbbell,
-  BookMarked, CheckCircle2, Library, Smartphone, Ban,
-  Headphones, BookOpen, FileText, Brain
+  BookMarked, CheckCircle2, Smartphone, Ban, Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,87 +39,8 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
   "reflection": ["reasoning", "creativity"],
 };
 
-type TaskCategory = "podcast" | "book" | "article";
-
-const TASK_CATEGORIES: { id: TaskCategory; label: string; icon: typeof Headphones }[] = [
-  { id: "podcast", label: "Podcast", icon: Headphones },
-  { id: "book", label: "Book", icon: BookOpen },
-  { id: "article", label: "Reading", icon: FileText },
-];
-
 function TasksTabContent() {
-  const [activeCategory, setActiveCategory] = useState<TaskCategory>("podcast");
-  const [viewMode, setViewMode] = useState<"active" | "library">("active");
-
-  return (
-    <div className="space-y-3">
-      {/* Compact View Mode Toggle */}
-      <div className="flex items-center gap-1 p-0.5 bg-muted/30 border border-border/40 rounded-lg">
-        <button
-          onClick={() => setViewMode("active")}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-[11px] font-medium transition-all",
-            viewMode === "active" 
-              ? "bg-background text-foreground shadow-sm" 
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <BookMarked className="w-3 h-3" />
-          Active
-        </button>
-        <button
-          onClick={() => setViewMode("library")}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-[11px] font-medium transition-all",
-            viewMode === "library" 
-              ? "bg-background text-foreground shadow-sm" 
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Library className="w-3 h-3" />
-          Library
-        </button>
-      </div>
-
-      {viewMode === "active" ? (
-        <>
-          {/* Simplified Category Tabs - Horizontal Pills */}
-          <div className="flex items-center gap-1.5">
-            {TASK_CATEGORIES.map((cat) => {
-              const Icon = cat.icon;
-              const isActive = activeCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all",
-                    isActive 
-                      ? "bg-primary/10 text-primary border border-primary/20" 
-                      : "bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
-                  )}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Selected Category Content - All use cognitive permissioning */}
-          {activeCategory === "podcast" ? (
-            <PodcastTasksEngine />
-          ) : activeCategory === "book" ? (
-            <ReadingTasksEngine type="book" />
-          ) : (
-            <ReadingTasksEngine type="article" />
-          )}
-        </>
-      ) : (
-        <CognitiveLibrary />
-      )}
-    </div>
-  );
+  return <SpotifyTasksView />;
 }
 
 export default function NeuroLab() {
