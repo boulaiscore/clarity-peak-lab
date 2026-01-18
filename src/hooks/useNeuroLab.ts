@@ -110,8 +110,8 @@ export function useNeuroLabWeeklyStats(userId: string | undefined) {
       
       if (error) throw error;
       
-      // Count sessions per area
-      const stats: Record<NeuroLabArea, number> = {
+      // Count sessions per area (all valid GymArea + neuro-activation)
+      const stats: Record<string, number> = {
         focus: 0,
         memory: 0,
         control: 0,
