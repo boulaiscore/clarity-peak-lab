@@ -97,6 +97,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       return;
     }
     
+    // S1-AE: Triage Sprint - go directly to the game (no exercise picker needed)
+    if (gameType === "S1-AE") {
+      navigate(`/neuro-lab/triage-sprint?difficulty=medium`);
+      return;
+    }
+    
     setPickerArea(areaId);
     setPickerMode(mode);
     setPickerOpen(true);
