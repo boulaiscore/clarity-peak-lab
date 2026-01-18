@@ -270,44 +270,40 @@ export default function DetoxSessionRunner() {
           transition={{ delay: 0.3 }}
           className="flex flex-col gap-3 mb-8"
         >
-          {/* Recovery status */}
+          {/* Recovery status - main instruction */}
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
             <Brain className="w-4 h-4 text-primary" />
-            <span className="text-sm text-white/70">Recovering clarity</span>
+            <span className="text-sm text-white/70">Put your phone down. Let your mind rest.</span>
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           </div>
 
-          {/* Walking tracker status */}
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
-            walkingMeetsMinimum 
-              ? 'bg-emerald-500/10 border-emerald-500/30' 
-              : isWalkingTracking 
-                ? 'bg-amber-500/10 border-amber-500/30' 
-                : 'bg-white/5 border-white/10'
-          }`}>
-            <Footprints className={`w-4 h-4 ${
-              walkingMeetsMinimum ? 'text-emerald-400' : isWalkingTracking ? 'text-amber-400' : 'text-white/40'
-            }`} />
-            <span className={`text-sm ${
-              walkingMeetsMinimum ? 'text-emerald-400' : isWalkingTracking ? 'text-amber-300' : 'text-white/50'
+          {/* Walking progress - only show if actually walking or completed */}
+          {(walkingMeetsMinimum || (isWalkingTracking && walkingProgress.durationMinutes > 0)) && (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
+              walkingMeetsMinimum 
+                ? 'bg-emerald-500/10 border-emerald-500/30' 
+                : 'bg-amber-500/10 border-amber-500/30'
             }`}>
-              {walkingMeetsMinimum ? (
-                <>
-                  <CheckCircle2 className="w-3 h-3 inline mr-1" />
-                  Walking complete ({walkingProgress.durationMinutes} min)
-                </>
-              ) : isWalkingTracking ? (
-                <>Walking: {walkingProgress.durationMinutes}/{MIN_WALKING_MINUTES} min</>
-              ) : walkingPermissionDenied ? (
-                'Location access denied'
-              ) : (
-                'Tracking walking...'
+              <Footprints className={`w-4 h-4 ${
+                walkingMeetsMinimum ? 'text-emerald-400' : 'text-amber-400'
+              }`} />
+              <span className={`text-sm ${
+                walkingMeetsMinimum ? 'text-emerald-400' : 'text-amber-300'
+              }`}>
+                {walkingMeetsMinimum ? (
+                  <>
+                    <CheckCircle2 className="w-3 h-3 inline mr-1" />
+                    Walking complete ({walkingProgress.durationMinutes} min)
+                  </>
+                ) : (
+                  <>Walking: {walkingProgress.durationMinutes}/{MIN_WALKING_MINUTES} min</>
+                )}
+              </span>
+              {isWalkingTracking && !walkingMeetsMinimum && (
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               )}
-            </span>
-            {isWalkingTracking && !walkingMeetsMinimum && (
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Distance if tracking */}
           {isWalkingTracking && walkingProgress.distanceMeters > 0 && (
@@ -319,7 +315,7 @@ export default function DetoxSessionRunner() {
             </div>
           )}
 
-          {/* Recovery message if not walking minimum */}
+          {/* Recovery message - show after 1 min if not walking */}
           {!walkingMeetsMinimum && elapsedSeconds > 60 && (
             <div className="flex flex-col gap-0.5 px-4 py-2 rounded-xl bg-teal-500/10 border border-teal-500/20">
               <span className="text-xs font-medium text-teal-300">
