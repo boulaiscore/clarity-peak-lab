@@ -13,7 +13,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
-import { startOfWeek, format, differenceInDays, parseISO } from "date-fns";
+import { startOfWeek, format, differenceInDays, parseISO, subDays } from "date-fns";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import {
   initializeTrainingCapacity,
   updateTrainingCapacity,
@@ -39,9 +40,10 @@ export interface UseTrainingCapacityResult {
   tcDelta: number;
 }
 
-function getCurrentWeekStart(): string {
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  return format(weekStart, "yyyy-MM-dd");
+// v2.0: Use rolling 7-day window instead of calendar week
+function getRolling7DayStart(): { date: Date; str: string } {
+  const date = getMediumPeriodStart();
+  return { date, str: getMediumPeriodStartDate() };
 }
 
 export function useTrainingCapacity(): UseTrainingCapacityResult {
@@ -51,7 +53,8 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
   const planCap = TC_PLAN_CAPS[planId] ?? 200;
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
-  const weekStart = getCurrentWeekStart();
+  // v2.0: Use rolling 7-day window
+  const { date: rollingStartDate, str: rollingStartStr } = getRolling7DayStart();
   const queryClient = useQueryClient();
   
   // Get cognitive states for initialization
@@ -82,9 +85,9 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
     staleTime: 60_000,
   });
   
-  // Fetch weekly XP
+  // Fetch rolling 7-day XP (v2.0: rolling instead of calendar week)
   const { data: weeklyXPData, isLoading: xpLoading } = useQuery({
-    queryKey: ["weekly-xp-for-tc", userId, weekStart],
+    queryKey: ["rolling-xp-for-tc", userId, rollingStartStr],
     queryFn: async () => {
       if (!userId) return 0;
       
@@ -92,7 +95,7 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
         .from("game_sessions")
         .select("xp_awarded")
         .eq("user_id", userId)
-        .gte("completed_at", `${weekStart}T00:00:00`);
+        .gte("completed_at", rollingStartDate.toISOString());
       
       if (error) throw error;
       
@@ -102,29 +105,29 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
     staleTime: 60_000,
   });
   
-  // Fetch weekly recovery average (from detox + walk)
+  // Fetch rolling 7-day recovery average (from detox + walk)
   const { data: weeklyRecData, isLoading: recLoading } = useQuery({
-    queryKey: ["weekly-rec-for-tc", userId, weekStart],
+    queryKey: ["rolling-rec-for-tc", userId, rollingStartStr],
     queryFn: async () => {
       if (!userId) return 50; // Default if no data
       
-      // Get weekly detox minutes
+      // Get rolling 7-day detox minutes
       const { data: detoxData, error: detoxError } = await supabase
         .from("detox_sessions")
         .select("duration_minutes")
         .eq("user_id", userId)
-        .gte("completed_at", `${weekStart}T00:00:00`);
+        .gte("completed_at", rollingStartDate.toISOString());
       
       if (detoxError) throw detoxError;
       
       const detoxMinutes = (detoxData || []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
       
-      // Get weekly walk minutes
+      // Get rolling 7-day walk minutes
       const { data: walkData, error: walkError } = await supabase
         .from("walking_sessions")
         .select("duration_minutes")
         .eq("user_id", userId)
-        .gte("completed_at", `${weekStart}T00:00:00`);
+        .gte("completed_at", rollingStartDate.toISOString());
       
       if (walkError) throw walkError;
       
