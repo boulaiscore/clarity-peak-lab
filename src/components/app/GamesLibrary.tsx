@@ -114,6 +114,13 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   const handleStartExercise = (exercise: CognitiveExercise) => {
     setPickerOpen(false);
+    // S1-AE games now route to dedicated runners
+    if (pickerMode === "fast" && pickerArea === "focus") {
+      // Randomly pick between Triage Sprint and Orbit Lock, or use exercise hint
+      const gameChoice = Math.random() > 0.5 ? "orbit-lock" : "triage-sprint";
+      navigate(`/neuro-lab/${gameChoice}?difficulty=medium`);
+      return;
+    }
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 

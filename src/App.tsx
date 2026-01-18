@@ -30,6 +30,7 @@ import Health from "./pages/app/Health";
 import NeuroLabArea from "./pages/app/NeuroLabArea";
 import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
 import TriageSprintRunner from "./pages/app/TriageSprintRunner";
+import OrbitLockRunner from "./pages/app/OrbitLockRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
@@ -246,6 +247,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <TriageSprintRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-lab/orbit-lock"
+        element={
+          <ProtectedRoute>
+            <OrbitLockRunner />
           </ProtectedRoute>
         }
       />
