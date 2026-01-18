@@ -29,34 +29,8 @@ import {
 import { 
   SocraticFocusGamifiedSession,
 } from "./focus-slow/SocraticFocusGamifiedSession";
-// NEW Fast Focus drills - Level 1
-import { 
-  TargetLockDrill, 
-  FlashCountDrill, 
-  PeripheralAlertDrill, 
-  ColorWordSnapDrill, 
-  SignalFilterDrill, 
-  OneBackFocusDrill, 
-  SpeedSortDrill,
-  // Level 2
-  DualTargetDrill,
-  FalseAlarmDrill,
-  RuleSwitchFocusDrill,
-  FocusWindowDrill,
-  DistractorBurstDrill,
-  OddPrecisionDrill,
-  RapidTrackingDrill,
-} from "./focus-fast";
-// Level 3
-import {
-  HiddenRuleDrill,
-  TemporalGateDrill,
-  MultiFeatureLockDrill,
-  CognitiveInterferenceDrill,
-  AccelerationDrill,
-  ErrorRecoveryDrill,
-  ChaosFocusDrill,
-} from "./focus-fast/level3";
+// NEW: Triage Sprint (S1-AE)
+import { TriageSprintDrill } from "./focus-fast";
 
 interface DrillRendererProps {
   exercise: CognitiveExercise;
@@ -92,6 +66,10 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
     misses?: number;
     falseAlarms?: number;
     reactionTimes?: number[];
+    xpAwarded?: number;
+    hitRate?: number;
+    falseAlarmRate?: number;
+    rtMean?: number;
   }) => {
     // Calculate score from available data
     let score = result.score ?? 0;
@@ -107,10 +85,13 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
     if (score === 0 && result.maxLevel) {
       score = result.maxLevel * 15;
     }
+    if (score === 0 && result.hitRate !== undefined) {
+      score = Math.round(result.hitRate * 100);
+    }
       
     const correct = result.correct ?? result.hits ?? result.totalCorrect ?? result.maxSpan ?? result.maxLevel ?? 0;
     
-    const avgReactionTime = result.avgReactionTime ?? 
+    const avgReactionTime = result.avgReactionTime ?? result.rtMean ??
       (result.reactionTimes && result.reactionTimes.length > 0 
         ? result.reactionTimes.reduce((a, b) => a + b, 0) / result.reactionTimes.length 
         : undefined);
@@ -119,6 +100,22 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
   };
 
   switch (drillType) {
+    // NEW: Triage Sprint (S1-AE game)
+    case "triage_sprint":
+      return (
+        <TriageSprintDrill
+          difficulty={config.difficulty}
+          onComplete={(r) => handleComplete({ 
+            score: r.score, 
+            hits: r.hits, 
+            hitRate: r.hitRate,
+            falseAlarmRate: r.falseAlarmRate,
+            rtMean: r.rtMean,
+            xpAwarded: r.xpAwarded,
+          })}
+        />
+      );
+
     case "dot_target":
       return (
         <DotTargetDrill
@@ -527,249 +524,6 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
         />
       );
     }
-
-    // NEW Fast Focus Level 1 drills
-    case "target_lock":
-      return (
-        <TargetLockDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "flash_count":
-      return (
-        <FlashCountDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "peripheral_alert":
-      return (
-        <PeripheralAlertDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "color_word_snap":
-      return (
-        <ColorWordSnapDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "signal_filter":
-      return (
-        <SignalFilterDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "one_back_focus":
-      return (
-        <OneBackFocusDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "speed_sort":
-      return (
-        <SpeedSortDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    // Level 2 drills
-    case "dual_target":
-      return (
-        <DualTargetDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "false_alarm":
-      return (
-        <FalseAlarmDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "focus_window":
-      return (
-        <FocusWindowDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "distractor_burst":
-      return (
-        <DistractorBurstDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "odd_precision":
-      return (
-        <OddPrecisionDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "rapid_tracking":
-      return (
-        <RapidTrackingDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            correct: r.correct, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    // Level 3 drills
-    case "hidden_rule":
-      return (
-        <HiddenRuleDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            accuracy: r.accuracy, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "temporal_gate":
-      return (
-        <TemporalGateDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            accuracy: r.accuracy, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "multi_feature_lock":
-      return (
-        <MultiFeatureLockDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            accuracy: r.accuracy, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "cognitive_interference":
-      return (
-        <CognitiveInterferenceDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            accuracy: r.accuracy, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "acceleration":
-      return (
-        <AccelerationDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            accuracy: r.accuracy, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "error_recovery":
-      return (
-        <ErrorRecoveryDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            accuracy: r.accuracy, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
-
-    case "chaos_focus":
-      return (
-        <ChaosFocusDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            accuracy: r.accuracy, 
-            avgReactionTime: r.avgReactionTime 
-          })}
-        />
-      );
 
     default:
       return (

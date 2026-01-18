@@ -26,27 +26,8 @@ export type DrillType =
   | "open_reflection"    // Open-ended reflection exercises
   | "critical_reasoning_slow" // Socratic/philosophical reasoning drills
   | "focus_slow" // Socratic attention/focus drills
-  // NEW Fast Focus drills
-  | "target_lock"
-  | "flash_count"
-  | "peripheral_alert"
-  | "color_word_snap"
-  | "signal_filter"
-  | "one_back_focus"
-  | "speed_sort"
-  | "dual_target"
-  | "false_alarm"
-  | "focus_window"
-  | "distractor_burst"
-  | "odd_precision"
-  | "rapid_tracking"
-  | "hidden_rule"
-  | "temporal_gate"
-  | "multi_feature_lock"
-  | "cognitive_interference"
-  | "acceleration"
-  | "error_recovery"
-  | "chaos_focus";
+  // S1-AE: Triage Sprint
+  | "triage_sprint";
 
 // Default configurations for each drill type
 export const DRILL_CONFIGS: Record<DrillType, {
@@ -77,91 +58,27 @@ export const DRILL_CONFIGS: Record<DrillType, {
   open_reflection: { timeLimit: 180, difficulty: 'medium' },
   critical_reasoning_slow: { timeLimit: 60, difficulty: 'hard' },
   focus_slow: { timeLimit: 60, difficulty: 'hard' },
-  // Fast Focus Level 1 (Easy)
-  target_lock: { timeLimit: 45, difficulty: 'easy' },
-  flash_count: { timeLimit: 45, difficulty: 'easy' },
-  peripheral_alert: { timeLimit: 45, difficulty: 'easy' },
-  color_word_snap: { timeLimit: 45, difficulty: 'easy' },
-  signal_filter: { timeLimit: 45, difficulty: 'easy' },
-  one_back_focus: { timeLimit: 45, difficulty: 'easy' },
-  speed_sort: { timeLimit: 45, difficulty: 'easy' },
-  // Fast Focus Level 2 (Medium)
-  dual_target: { timeLimit: 45, difficulty: 'medium' },
-  false_alarm: { timeLimit: 45, difficulty: 'medium' },
-  focus_window: { timeLimit: 45, difficulty: 'medium' },
-  distractor_burst: { timeLimit: 45, difficulty: 'medium' },
-  odd_precision: { timeLimit: 45, difficulty: 'medium' },
-  rapid_tracking: { timeLimit: 45, difficulty: 'medium' },
-  // Fast Focus Level 3 (Hard)
-  hidden_rule: { timeLimit: 45, difficulty: 'hard' },
-  temporal_gate: { timeLimit: 45, difficulty: 'hard' },
-  multi_feature_lock: { timeLimit: 45, difficulty: 'hard' },
-  cognitive_interference: { timeLimit: 45, difficulty: 'hard' },
-  acceleration: { timeLimit: 45, difficulty: 'hard' },
-  error_recovery: { timeLimit: 45, difficulty: 'hard' },
-  chaos_focus: { timeLimit: 45, difficulty: 'hard' },
+  // Triage Sprint - session-based, not time-limited
+  triage_sprint: { timeLimit: 110, difficulty: 'medium' },
 };
 
 // Map exercise IDs to drill types
 export function getDrillTypeForExercise(exerciseId: string): DrillType {
   const id = exerciseId.toUpperCase();
   
-  // NEW Fast Focus exercises (FF_L1_001 - FF_L3_007)
-  if (id.startsWith("FF_L1_")) {
-    const num = parseInt(id.split("_")[2], 10);
-    switch (num) {
-      case 1: return "target_lock";
-      case 2: return "flash_count";
-      case 3: return "peripheral_alert";
-      case 4: return "color_word_snap";
-      case 5: return "signal_filter";
-      case 6: return "one_back_focus";
-      case 7: return "speed_sort";
-      default: return "target_lock";
-    }
+  // S1-AE: Triage Sprint - all Focus + Fast routes here
+  if (id.startsWith("TS_") || id.startsWith("TRIAGE_")) {
+    return "triage_sprint";
   }
   
-  if (id.startsWith("FF_L2_")) {
-    const num = parseInt(id.split("_")[2], 10);
-    switch (num) {
-      case 1: return "dual_target";
-      case 2: return "false_alarm";
-      case 3: return "rule_switch";
-      case 4: return "focus_window";
-      case 5: return "distractor_burst";
-      case 6: return "odd_precision";
-      case 7: return "rapid_tracking";
-      default: return "dual_target";
-    }
+  // Any FF_ (Fast Focus) exercises now map to triage_sprint
+  if (id.startsWith("FF_")) {
+    return "triage_sprint";
   }
   
-  if (id.startsWith("FF_L3_")) {
-    const num = parseInt(id.split("_")[2], 10);
-    switch (num) {
-      case 1: return "hidden_rule";
-      case 2: return "temporal_gate";
-      case 3: return "multi_feature_lock";
-      case 4: return "cognitive_interference";
-      case 5: return "acceleration";
-      case 6: return "error_recovery";
-      case 7: return "chaos_focus";
-      default: return "hidden_rule";
-    }
-  }
-  
-  // Focus Arena Fast Thinking exercises (FA_FAST_001 - FA_FAST_050) - legacy
+  // Focus Arena Fast Thinking exercises - now route to triage_sprint
   if (id.startsWith("FA_FAST_")) {
-    const num = parseInt(id.split("_")[2], 10);
-    if (num <= 5) return "dot_target";
-    if (num <= 10) return "odd_one_out";
-    if (num <= 15) return "shape_match";
-    if (num <= 20) return "visual_search";
-    if (num <= 25) return "go_no_go";
-    if (num <= 30) return "stroop";
-    if (num <= 35) return "location_match";
-    if (num <= 40) return "category_switch";
-    if (num <= 45) return "pattern_sequence";
-    return "rule_switch";
+    return "triage_sprint";
   }
   
   // Focus Arena Slow Thinking exercises
