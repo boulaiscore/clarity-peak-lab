@@ -310,9 +310,9 @@ const Home = () => {
                   size={90}
                   strokeWidth={6}
                   color={recoveryColor}
-                  label={isUsingRRI ? "Recovery (est.)" : "Recovery"}
+                  label="Recovery"
                   displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
-                  microcopy={isUsingRRI ? "Initial estimate (until first detox)" : "Attentional restoration"}
+                  microcopy="Attentional restoration"
                 />
               </div>
               
