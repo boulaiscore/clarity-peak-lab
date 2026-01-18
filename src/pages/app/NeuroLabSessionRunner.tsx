@@ -104,8 +104,14 @@ export default function NeuroLabSessionRunner() {
       // Single exercise mode - when exerciseId is provided
       if (exerciseId) {
         const singleExercise = allExercises.find(e => e.id === exerciseId);
+        console.log('[NeuroLabSessionRunner] Looking for exerciseId:', exerciseId, 'Found:', !!singleExercise, 'Total exercises:', allExercises.length);
         if (singleExercise) {
           exercises = [singleExercise];
+        } else {
+          // Exercise not found - log available exercise IDs for debugging
+          console.warn('[NeuroLabSessionRunner] Exercise not found. Available IDs:', allExercises.slice(0, 20).map(e => e.id));
+          // Don't set sessionStarted to true if exercise not found - wait for data
+          return;
         }
       } else {
         // Normal session mode - generate multiple exercises
