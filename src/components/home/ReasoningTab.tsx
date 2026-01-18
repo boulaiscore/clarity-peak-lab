@@ -71,6 +71,11 @@ export function ReasoningTab() {
   // Bottleneck detection for Readiness based on formula:
   // Readiness = 0.35×REC + 0.35×S2 + 0.30×AE
   const cta = useMemo(() => {
+    // Priority: if recovery is low (<45), it's always the bottleneck
+    if (recovery < 45) {
+      return { label: "Start Recovery", link: "/detox-session", icon: Battery };
+    }
+    
     // Calculate potential gains for each lever
     const recPotential = 0.35 * (100 - recovery);
     const s2Potential = 0.35 * (100 - S2);
@@ -87,13 +92,13 @@ export function ReasoningTab() {
     
     switch (bottleneck) {
       case "recovery":
-        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
+        return { label: "Start Recovery", link: "/detox-session", icon: Battery };
       case "S2":
-        return { label: "Train Reasoning", link: "/app/neuro-lab?area=reasoning&mode=slow", icon: Brain };
+        return { label: "Train Reasoning", link: "/neuro-lab/reasoning", icon: Brain };
       case "AE":
-        return { label: "Train Focus", link: "/app/neuro-lab?area=focus&mode=fast", icon: Zap };
+        return { label: "Train Focus", link: "/neuro-lab/focus", icon: Zap };
       default:
-        return { label: "Start Recovery", link: "/app/detox", icon: Battery };
+        return { label: "Start Recovery", link: "/detox-session", icon: Battery };
     }
   }, [recovery, S2, AE]);
 

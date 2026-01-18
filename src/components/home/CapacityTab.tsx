@@ -122,7 +122,7 @@ export function CapacityTab() {
 
       {/* CTA Button */}
       <div className="pt-2 px-2">
-        <Link to="/app/detox">
+        <Link to="/detox-session">
           <Button variant="premium" className="w-full h-12 text-sm gap-2">
             <Battery className="w-4 h-4" />
             Start Recovery
