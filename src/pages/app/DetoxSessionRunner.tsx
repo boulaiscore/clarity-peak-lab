@@ -29,6 +29,7 @@ export default function DetoxSessionRunner() {
   const [displaySeconds, setDisplaySeconds] = useState(0);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
@@ -131,12 +132,9 @@ export default function DetoxSessionRunner() {
   };
 
   const handleComplete = async () => {
-    // Calculate elapsed time (duration minus remaining)
-    const elapsedSeconds = duration * 60 - displaySeconds;
-    const sessionMinutes = Math.floor(elapsedSeconds / 60);
-    if (sessionMinutes < 30) {
-      return; // Button should be disabled anyway
-    }
+    // Prevent double-completion
+    if (isCompleting || showSuccess) return;
+    setIsCompleting(true);
 
     // Stop walking tracker and get final progress
     const finalWalking = await stopWalking();
@@ -144,10 +142,11 @@ export default function DetoxSessionRunner() {
     const success = await completeSession(finalWalking?.durationMinutes || 0);
     if (success) {
       setShowSuccess(true);
-      const completedMinutes = Math.floor((duration * 60 - displaySeconds) / 60);
       setTimeout(() => {
         navigate("/neuro-lab");
       }, 2500);
+    } else {
+      setIsCompleting(false);
     }
   };
 
@@ -156,6 +155,13 @@ export default function DetoxSessionRunner() {
   const canComplete = elapsedSeconds >= 30 * 60; // 30 minutes minimum
   // Success message uses elapsed time
   const completedMinutes = Math.floor(elapsedSeconds / 60);
+
+  // Auto-complete when 30 minutes is reached
+  useEffect(() => {
+    if (canComplete && isActive && !showSuccess && !isCompleting) {
+      handleComplete();
+    }
+  }, [canComplete, isActive, showSuccess, isCompleting]);
 
   return (
     <div className="min-h-screen bg-[#06070A] text-white flex flex-col">
@@ -339,36 +345,26 @@ export default function DetoxSessionRunner() {
         </motion.div>
       </div>
 
-      {/* Bottom buttons - symmetric layout */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="px-4 pb-6 pt-2 grid grid-cols-2 gap-3"
-      >
-        <Button
-          onClick={handleExitClick}
-          variant="ghost"
-          className="h-14 rounded-2xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white text-sm font-semibold"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          Cancel
-        </Button>
-        <HoldToCompleteButton
-          onComplete={handleComplete}
-          disabled={!canComplete}
-        />
-      </motion.div>
-
-      {/* Min time hint */}
+      {/* Bottom section - only show cancel before 30 min */}
       {!canComplete && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center text-white/40 text-xs pb-6"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="px-4 pb-6 pt-2 flex flex-col items-center gap-4"
         >
-          Minimum 30 minutes to complete session
-        </motion.p>
+          <Button
+            onClick={handleExitClick}
+            variant="ghost"
+            className="h-12 px-8 rounded-2xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white text-sm font-semibold"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          >
+            Cancel
+          </Button>
+          <p className="text-white/40 text-xs">
+            Minimum 30 minutes to complete session
+          </p>
+        </motion.div>
       )}
 
       {/* Exit confirmation dialog */}
