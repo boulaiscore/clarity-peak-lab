@@ -215,10 +215,10 @@ export function useGamesGating(): UseGamesGatingResult {
     );
   }, [sharpness, readiness, recoveryEffective, caps, planModifiers, isCalibrated]);
   
-  // Check if safety rule is active
+  // Check if safety rule is active (pass sharpness for accurate detection)
   const safetyRuleActive = useMemo(() => {
-    return isSafetyRuleActive(recoveryEffective, isCalibrated, gamesAvailability);
-  }, [recoveryEffective, isCalibrated, gamesAvailability]);
+    return isSafetyRuleActive(recoveryEffective, isCalibrated, gamesAvailability, sharpness);
+  }, [recoveryEffective, isCalibrated, gamesAvailability, sharpness]);
   
   // Transform to GameGatingResult format with reason codes
   const games = useMemo(() => {

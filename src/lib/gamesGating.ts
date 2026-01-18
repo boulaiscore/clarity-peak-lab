@@ -295,10 +295,14 @@ export function checkGameAvailability(
 }
 
 /**
- * Get all game availabilities with POST-BASELINE SAFETY RULE
+ * Get all game availabilities with NO-DEADLOCK SAFETY RULE
  * 
- * SAFETY RULE: If baseline completed and Recovery < 20,
- * at least one S1 game MUST be enabled (priority: S1-AE, then S1-RA)
+ * SAFETY RULE (v1.5):
+ * IF availableGames.length == 0:
+ *   Force-enable S1-AE as safe mode option (unless daily cap reached)
+ * 
+ * This prevents users from being completely locked out of training
+ * due to low metrics (e.g., Sharpness = 39.8 from REC_raw = 0).
  */
 export function getAllGamesAvailability(
   sharpness: number,
@@ -317,57 +321,62 @@ export function getAllGamesAvailability(
   };
 
   // ============================================
-  // POST-BASELINE SAFETY RULE
+  // NO-DEADLOCK SAFETY RULE (v1.5)
   // ============================================
-  // If calibrated AND Recovery < 20 AND no S1 games enabled
-  // Force-enable at least one S1 game to prevent deadlock
-  const safetyThreshold = 20;
-  const shouldApplySafetyRule = isCalibrated && recovery < safetyThreshold;
+  // Check if ANY game is available
+  const availableGames = Object.values(result).filter(g => g.enabled);
   
-  if (shouldApplySafetyRule) {
-    const s1AE = result["S1-AE"];
-    const s1RA = result["S1-RA"];
+  if (availableGames.length === 0) {
+    // Check if S1-AE is capped - cannot override cap
+    const s1AECapped = caps.s1DailyUsed >= caps.s1DailyMax;
     
-    // Check if all S1 games are withheld
-    const allS1Withheld = !s1AE.enabled && !s1RA.enabled;
-    
-    if (allS1Withheld) {
-      // Check if withheld due to daily cap - cannot override cap
-      const s1AECapped = caps.s1DailyUsed >= caps.s1DailyMax;
-      
-      if (!s1AECapped) {
-        // Force-enable S1-AE (priority 1)
-        result["S1-AE"] = {
-          type: "S1-AE",
-          enabled: true,
-          withheldReason: null,
-          thresholds: [],
-          unlockActions: [],
-        };
-      } else {
-        // S1-AE capped, nothing we can do - caps are absolute
-        // User must wait until next day
-      }
+    if (!s1AECapped) {
+      // Force-enable S1-AE as safe mode training
+      result["S1-AE"] = {
+        type: "S1-AE",
+        enabled: true,
+        withheldReason: null,
+        thresholds: [],
+        unlockActions: [],
+        // Mark as safe mode (will be checked by isSafetyRuleActive)
+      };
     }
+    // If S1-AE capped, all games remain blocked - user must wait until next day
   }
 
   return result;
 }
 
 /**
- * Check if post-baseline safety rule is currently active
+ * Check if no-deadlock safety rule is currently active
+ * Returns true when S1-AE was force-enabled due to all games being blocked
  */
 export function isSafetyRuleActive(
   recovery: number,
   isCalibrated: boolean,
-  gamesAvailability: Record<GameType, GameAvailability>
+  gamesAvailability: Record<GameType, GameAvailability>,
+  sharpness?: number
 ): boolean {
-  const safetyThreshold = 20;
-  if (!isCalibrated || recovery >= safetyThreshold) return false;
+  // Safety rule active if:
+  // - S1-AE is enabled BUT
+  // - S1-AE would normally be blocked (sharpness < 40)
+  // - OR all other games are blocked
   
-  // Check if S1-AE was force-enabled (would have been withheld without safety rule)
-  // This is a heuristic: if recovery < 20 and S1-AE is enabled, safety rule helped
-  return recovery < safetyThreshold && gamesAvailability["S1-AE"].enabled;
+  const s1AE = gamesAvailability["S1-AE"];
+  const s1RA = gamesAvailability["S1-RA"];
+  const s2CT = gamesAvailability["S2-CT"];
+  const s2IN = gamesAvailability["S2-IN"];
+  
+  // Count enabled games excluding S1-AE
+  const otherGamesEnabled = [s1RA, s2CT, s2IN].filter(g => g.enabled).length;
+  
+  // Safety rule is active if S1-AE is the only enabled game
+  // and it would normally have been blocked (sharpness check failed)
+  if (s1AE.enabled && otherGamesEnabled === 0 && sharpness !== undefined && sharpness < 40) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**
