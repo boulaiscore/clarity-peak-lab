@@ -6,7 +6,7 @@
 
 import { motion } from "framer-motion";
 import { Info, AlertTriangle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 interface ReasoningQualityCardProps {
@@ -51,43 +51,39 @@ export function ReasoningQualityCard({
         <div>
           <div className="flex items-center gap-1.5">
             <h3 className="text-sm font-semibold">Reasoning Quality</h3>
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="touch-manipulation">
-                      <Info className="w-3.5 h-3.5 text-muted-foreground/50" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent 
-                    side="top" 
-                    sideOffset={8}
-                    className="max-w-[220px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50"
-                  >
-                    <p>Training builds capacity. Reading and reflection refine it.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button type="button" className="touch-manipulation">
+                    <Info className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  side="top" 
+                  sideOffset={8}
+                  className="max-w-[220px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50 p-2"
+                >
+                  <p>How deeply you process and structure your thinking.</p>
+                </PopoverContent>
+              </Popover>
               {isDecaying && (
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="touch-manipulation">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      side="top"
-                      sideOffset={8}
-                      className="text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50"
-                    >
-                      Decaying due to inactivity
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button type="button" className="touch-manipulation">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    side="top"
+                    sideOffset={8}
+                    className="text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50 p-2"
+                  >
+                    Decaying due to inactivity
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
           <p className="text-[11px] text-muted-foreground">
-            How clearly and effectively you think
+            Depth and quality of thought elaboration
           </p>
         </div>
         
@@ -114,7 +110,7 @@ export function ReasoningQualityCard({
       
       {/* Subtle footer */}
       <p className="text-[10px] text-muted-foreground/60 mt-3">
-        Built through training and curated content
+        Refined through deep reasoning practice
       </p>
     </motion.div>
   );
