@@ -7,6 +7,7 @@ import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, S
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { cn } from "@/lib/utils";
@@ -108,7 +109,14 @@ const Home = () => {
   const totalWeeklyXP = cappedTotalXP;
   
   // New cognitive engine metrics
-  const { sharpness, readiness, recovery, isLoading: metricsLoading } = useTodayMetrics();
+  const { sharpness, readiness, recovery: recoveryRaw, isLoading: metricsLoading } = useTodayMetrics();
+
+  // REC_effective for UI display (uses RRI until first real recovery activity)
+  const {
+    recoveryEffective,
+    isUsingRRI,
+    isLoading: recoveryEffectiveLoading,
+  } = useRecoveryEffective();
   
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const { persistDailySnapshot, isSnapshotCurrentToday } = useDailyRecoverySnapshot();
@@ -117,11 +125,12 @@ const Home = () => {
   useEffect(() => {
     // Only run if metrics are loaded and snapshot hasn't been taken today
     if (!metricsLoading && !isSnapshotCurrentToday()) {
-      persistDailySnapshot(recovery).catch((err) => {
+      // IMPORTANT: Snapshot must use real recovery (REC_raw), not RRI
+      persistDailySnapshot(recoveryRaw).catch((err) => {
         console.error("[Home] Failed to persist daily snapshot:", err);
       });
     }
-  }, [metricsLoading, recovery, persistDailySnapshot, isSnapshotCurrentToday]);
+  }, [metricsLoading, recoveryRaw, persistDailySnapshot, isSnapshotCurrentToday]);
   
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
@@ -296,14 +305,14 @@ const Home = () => {
                   microcopy="Capacity for deliberate work"
                 />
                 <ProgressRing
-                  value={recovery}
+                  value={recoveryEffectiveLoading ? 0 : recoveryEffective}
                   max={100}
                   size={90}
                   strokeWidth={6}
                   color={recoveryColor}
-                  label="Recovery"
-                  displayValue={`${Math.round(recovery)}%`}
-                  microcopy="Attentional restoration"
+                  label={isUsingRRI ? "Recovery (est.)" : "Recovery"}
+                  displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
+                  microcopy={isUsingRRI ? "Initial estimate (until first detox)" : "Attentional restoration"}
                 />
               </div>
               
