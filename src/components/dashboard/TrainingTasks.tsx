@@ -215,30 +215,31 @@ function useTasksHistory(days: number = 14) {
 
       if (error) throw error;
 
-      // Group by date with breakdown by type
+      // Group by date with count by type (not XP - label says "completions/day")
       const byDate: Record<string, { podcast: number; book: number; article: number }> = {};
       (data || []).forEach((row) => {
         const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
         if (!byDate[date]) byDate[date] = { podcast: 0, book: 0, article: 0 };
         
-        const xp = row.xp_earned || 0;
+        // Count completions, not XP (matches "completions/day" label)
         // exercise_id format: "content-{type}-{id}" e.g. "content-podcast-in-our-time"
         const match = (row.exercise_id || "").match(/^content-(podcast|book|article)-/);
         const contentType = (match?.[1] as "podcast" | "book" | "article" | undefined) ?? "article";
 
-        byDate[date][contentType] += xp;
+        byDate[date][contentType] += 1; // Count, not XP
       });
 
-      // Build 14-day array with dd/MM format and type breakdown
+      // Build 14-day array with dd/MM format and count breakdown
       const result = [];
       for (let i = days - 1; i >= 0; i--) {
         const date = subDays(new Date(), i);
         const dateStr = format(date, "yyyy-MM-dd");
         const dayData = byDate[dateStr] || { podcast: 0, book: 0, article: 0 };
+        const totalCount = dayData.podcast + dayData.book + dayData.article;
         result.push({
           date: dateStr,
           dateLabel: format(date, "d/M"),
-          xp: dayData.podcast + dayData.book + dayData.article,
+          count: totalCount, // Total count for the day
           podcast: dayData.podcast,
           book: dayData.book,
           article: dayData.article,
@@ -422,7 +423,7 @@ export function TrainingTasks() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const tasksTrendMax = useMemo(() => {
-    const max = Math.max(0, ...(tasksHistoryData ?? []).map((d) => Number(d.xp) || 0));
+    const max = Math.max(0, ...(tasksHistoryData ?? []).map((d) => Number(d.count) || 0));
     return Number.isFinite(max) ? max : 0;
   }, [tasksHistoryData]);
 
