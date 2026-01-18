@@ -157,13 +157,18 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
       slow_thinking: rawMetrics.slow_thinking,
     });
     
-    // Get baseline for Cognitive Age
+    // Get baseline for Cognitive Age and decay floor
+    // CRITICAL: Use effective baselines (baseline_eff_*) as decay floor
+    // Fallback to legacy baseline columns for backward compatibility
     const chronologicalAge = user?.age ?? 35;
+    const metricsAny = rawMetrics as any;
+    
     const baseline = mapDatabaseToBaseline({
-      baseline_focus: rawMetrics.baseline_focus,
-      baseline_fast_thinking: rawMetrics.baseline_fast_thinking,
-      baseline_reasoning: rawMetrics.baseline_reasoning,
-      baseline_slow_thinking: rawMetrics.baseline_slow_thinking,
+      // Prefer effective baselines, fallback to legacy
+      baseline_focus: metricsAny?.baseline_eff_focus ?? rawMetrics.baseline_focus,
+      baseline_fast_thinking: metricsAny?.baseline_eff_fast_thinking ?? rawMetrics.baseline_fast_thinking,
+      baseline_reasoning: metricsAny?.baseline_eff_reasoning ?? rawMetrics.baseline_reasoning,
+      baseline_slow_thinking: metricsAny?.baseline_eff_slow_thinking ?? rawMetrics.baseline_slow_thinking,
       baseline_cognitive_age: rawMetrics.baseline_cognitive_age,
     }, chronologicalAge);
     
@@ -213,12 +218,12 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
       today,
     });
     
-    // Apply decay to states
+    // Apply decay to states - NEVER go below effective baseline (floor)
     const states: CognitiveStates = {
-      AE: clamp(rawStates.AE - aeDecay, 0, 100),
-      RA: clamp(rawStates.RA - raDecay, 0, 100),
-      CT: clamp(rawStates.CT - ctDecay, 0, 100),
-      IN: clamp(rawStates.IN - inDecay, 0, 100),
+      AE: clamp(rawStates.AE - aeDecay, baseline.baselineAE, 100),
+      RA: clamp(rawStates.RA - raDecay, baseline.baselineRA, 100),
+      CT: clamp(rawStates.CT - ctDecay, baseline.baselineCT, 100),
+      IN: clamp(rawStates.IN - inDecay, baseline.baselineIN, 100),
     };
     
     // Calculate derived system scores from decayed states

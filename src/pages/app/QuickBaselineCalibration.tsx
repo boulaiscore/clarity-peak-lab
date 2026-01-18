@@ -23,6 +23,17 @@ import { CausalLensDrill } from "@/components/calibration/CausalLensDrill";
 import { ConstraintSolveDrill } from "@/components/calibration/ConstraintSolveDrill";
 import { CalibrationResults } from "@/components/calibration/CalibrationResults";
 
+// Baseline engine
+import {
+  computeDemographicBaseline,
+  computeEffectiveBaseline,
+  mapDrillScoresToCalibration,
+  prepareBaselineDbPayload,
+  prepareInitialSkillsPayload,
+  type CalibrationBaseline,
+  type DemographicInput,
+} from "@/lib/baselineEngine";
+
 type CalibrationStep = "intro" | "AE" | "RA" | "CT" | "IN" | "results";
 
 interface DrillResult {
@@ -75,32 +86,53 @@ export default function QuickBaselineCalibration() {
     setIsSaving(true);
 
     try {
-      const AE0 = results.AE.sessionScore;
-      const RA0 = results.RA.sessionScore;
-      const CT0 = results.CT.sessionScore;
-      const IN0 = results.IN.sessionScore;
+      // Get drill scores
+      const calibrationScores: CalibrationBaseline = mapDrillScoresToCalibration({
+        AE: results.AE.sessionScore,
+        RA: results.RA.sessionScore,
+        CT: results.CT.sessionScore,
+        IN: results.IN.sessionScore,
+      });
       
-      const S2_0 = (CT0 + IN0) / 2;
-      const baselinePerformanceAvg = (AE0 + RA0 + CT0 + IN0 + S2_0) / 5;
+      // Compute demographic baseline from user profile
+      const demographicInput: DemographicInput = {
+        birthDate: user.birthDate ?? null,
+        age: user.age ?? null,
+        educationLevel: user.educationLevel ?? null,
+        workType: user.workType ?? null,
+      };
+      
+      const demographic = computeDemographicBaseline(demographicInput);
+      
+      // Compute effective baseline: λ × calibration + (1-λ) × demographic
+      const effective = computeEffectiveBaseline(demographic, calibrationScores, "completed");
+      
+      // Prepare full baseline payload
+      const baselineResult = {
+        demographic,
+        calibration: calibrationScores,
+        effective,
+        calibrationStatus: "completed" as const,
+      };
+      
+      const baselinePayload = prepareBaselineDbPayload(baselineResult);
+      const skillsPayload = prepareInitialSkillsPayload(effective);
+      
+      // Compute derived values
+      const S2_0 = (effective.CT + effective.IN) / 2;
+      const baselinePerformanceAvg = (effective.AE + effective.RA + effective.CT + effective.IN + S2_0) / 5;
       const baselineCognitiveAge = user.age || 35;
 
-      // Update user_cognitive_metrics with baseline and current values
+      // Update user_cognitive_metrics with all baseline data
       const { error: metricsError } = await supabase
         .from("user_cognitive_metrics")
         .upsert({
           user_id: user.id,
-          // Current skills = baseline
-          focus_stability: AE0,        // AE
-          fast_thinking: RA0,          // RA
-          reasoning_accuracy: CT0,     // CT
-          slow_thinking: IN0,          // IN
-          // Baseline reference values
-          baseline_focus: AE0,         // AE0
-          baseline_fast_thinking: RA0, // RA0
-          baseline_reasoning: CT0,     // CT0
-          baseline_slow_thinking: IN0, // IN0
+          // Current skills = effective baseline
+          ...skillsPayload,
+          // All baseline columns
+          ...baselinePayload,
           baseline_cognitive_age: baselineCognitiveAge,
-          baseline_captured_at: new Date().toISOString(),
           // Derived
           cognitive_performance_score: baselinePerformanceAvg,
           updated_at: new Date().toISOString(),
@@ -111,16 +143,14 @@ export default function QuickBaselineCalibration() {
       if (metricsError) throw metricsError;
 
       // CRITICAL: Update AuthContext state to mark onboarding complete
-      // This prevents the redirect loop back to /onboarding
       await updateUser({ onboardingCompleted: true });
 
-      // Invalidate baseline-status cache
+      // Invalidate caches
       await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
 
       toast.success("Calibration complete");
-      
-      // Navigate AFTER save is complete
       navigate("/app");
       
     } catch (error) {
@@ -153,29 +183,44 @@ export default function QuickBaselineCalibration() {
               onSkip={async () => {
                 if (!user?.id) return;
                 
-                // Mark baseline as captured (skipped) so Home doesn't redirect back
-                // Set all baseline values to 50 (neutral starting point)
+                // Compute demographic-only baseline (calibration skipped)
+                const demographicInput: DemographicInput = {
+                  birthDate: user.birthDate ?? null,
+                  age: user.age ?? null,
+                  educationLevel: user.educationLevel ?? null,
+                  workType: user.workType ?? null,
+                };
+                
+                const demographic = computeDemographicBaseline(demographicInput);
+                const effective = computeEffectiveBaseline(demographic, null, "skipped");
+                
+                const baselineResult = {
+                  demographic,
+                  calibration: null,
+                  effective,
+                  calibrationStatus: "skipped" as const,
+                };
+                
+                const baselinePayload = prepareBaselineDbPayload(baselineResult);
+                const skillsPayload = prepareInitialSkillsPayload(effective);
+                
+                // Upsert with demographic-only baseline
                 await supabase
                   .from("user_cognitive_metrics")
                   .upsert({
                     user_id: user.id,
-                    baseline_captured_at: new Date().toISOString(),
-                    baseline_focus: 50,
-                    baseline_fast_thinking: 50,
-                    baseline_reasoning: 50,
-                    baseline_slow_thinking: 50,
-                    focus_stability: 50,
-                    fast_thinking: 50,
-                    reasoning_accuracy: 50,
-                    slow_thinking: 50,
+                    ...skillsPayload,
+                    ...baselinePayload,
+                    baseline_cognitive_age: user.age || 35,
                     updated_at: new Date().toISOString(),
                   }, { onConflict: "user_id" });
                 
                 // Mark onboarding complete
                 await updateUser({ onboardingCompleted: true });
                 
-                // Invalidate cache so Home sees calibration as done
+                // Invalidate caches
                 await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
+                await queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
                 
                 navigate("/app");
               }}
