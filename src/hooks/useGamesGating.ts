@@ -20,6 +20,7 @@ import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { 
@@ -75,12 +76,16 @@ export interface UseGamesGatingResult {
     insightWeekMax: number;
   };
   
-  // Metrics snapshot
+  // Metrics snapshot (uses REC_effective for gating)
   metrics: {
     sharpness: number;
     readiness: number;
-    recovery: number;
+    recovery: number; // This is REC_effective, not REC_raw
   };
+  
+  // RRI (Recovery Readiness Init) status
+  isUsingRRI: boolean;
+  recoveryRaw: number;
   
   // Post-baseline safety rule
   safetyRuleActive: boolean;
@@ -97,8 +102,16 @@ export function useGamesGating(): UseGamesGatingResult {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
   
-  // Get today's cognitive metrics
-  const { sharpness, readiness, recovery, isLoading: metricsLoading } = useTodayMetrics();
+  // Get today's cognitive metrics (sharpness, readiness use REC_raw internally)
+  const { sharpness, readiness, isLoading: metricsLoading } = useTodayMetrics();
+  
+  // Get effective recovery for gating (uses RRI until first real recovery data)
+  const { 
+    recoveryEffective, 
+    isUsingRRI, 
+    recoveryRaw,
+    isLoading: recoveryLoading 
+  } = useRecoveryEffective();
   
   // Get baseline status for safety rule
   const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
@@ -190,21 +203,22 @@ export function useGamesGating(): UseGamesGatingResult {
   }), [gatingModifiers]);
   
   // Compute game availability with safety rule
+  // IMPORTANT: Uses REC_effective (which may be RRI) for gating decisions
   const gamesAvailability = useMemo(() => {
     return getAllGamesAvailability(
       sharpness,
       readiness,
-      recovery,
+      recoveryEffective, // Use REC_effective for gating
       caps,
       planModifiers,
       isCalibrated // Pass calibration status for safety rule
     );
-  }, [sharpness, readiness, recovery, caps, planModifiers, isCalibrated]);
+  }, [sharpness, readiness, recoveryEffective, caps, planModifiers, isCalibrated]);
   
   // Check if safety rule is active
   const safetyRuleActive = useMemo(() => {
-    return isSafetyRuleActive(recovery, isCalibrated, gamesAvailability);
-  }, [recovery, isCalibrated, gamesAvailability]);
+    return isSafetyRuleActive(recoveryEffective, isCalibrated, gamesAvailability);
+  }, [recoveryEffective, isCalibrated, gamesAvailability]);
   
   // Transform to GameGatingResult format with reason codes
   const games = useMemo(() => {
@@ -217,7 +231,7 @@ export function useGamesGating(): UseGamesGatingResult {
         caps, 
         planId,
         gatingModifiers.requireRecForS2,
-        recovery
+        recoveryEffective
       );
       
       // Determine status
@@ -248,7 +262,7 @@ export function useGamesGating(): UseGamesGatingResult {
     }
     
     return result;
-  }, [gamesAvailability, caps, planId, gatingModifiers, recovery]);
+  }, [gamesAvailability, caps, planId, gatingModifiers, recoveryEffective]);
   
   // Helper function to check a specific game by area and mode
   const checkGame = (gymArea: string, thinkingMode: string): GameGatingResult => {
@@ -271,12 +285,14 @@ export function useGamesGating(): UseGamesGatingResult {
     metrics: {
       sharpness,
       readiness,
-      recovery,
+      recovery: recoveryEffective, // Return REC_effective for UI consistency
     },
+    isUsingRRI,
+    recoveryRaw,
     safetyRuleActive,
     isCalibrated,
     checkGame,
-    isLoading: metricsLoading || todayLoading || weeklyLoading || baselineLoading,
+    isLoading: metricsLoading || recoveryLoading || todayLoading || weeklyLoading || baselineLoading,
   };
 }
 

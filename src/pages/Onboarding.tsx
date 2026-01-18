@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useAuth, TrainingGoal, Gender, WorkType, EducationLevel, DegreeDiscipline } from "@/contexts/AuthContext";
+import { useAuth, TrainingGoal, Gender, WorkType, EducationLevel, DegreeDiscipline, RRISleepHours, RRIDetoxHours, RRIMentalState } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { Zap, Brain, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap, Bell, Leaf, Target, Flame } from "lucide-react";
+import { Zap, Brain, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap, Bell, Leaf, Target, Flame, Moon, Smartphone, Battery } from "lucide-react";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { computeRRI, RRI_SLEEP_OPTIONS, RRI_DETOX_OPTIONS, RRI_MENTAL_STATE_OPTIONS } from "@/lib/recoveryReadinessInit";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+// Steps: 1=Welcome, 2=Personal, 3=Sleep(RRI), 4=Detox(RRI), 5=MentalState(RRI), 6=Education, 7=Discipline, 8=Work, 9=Plan, 10=Reminder
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -35,6 +37,11 @@ const Onboarding = () => {
   const [educationLevel, setEducationLevel] = useState<EducationLevel | undefined>(undefined);
   const [degreeDiscipline, setDegreeDiscipline] = useState<DegreeDiscipline | undefined>(undefined);
   
+  // RRI (Recovery Readiness Init) questions
+  const [rriSleepHours, setRriSleepHours] = useState<RRISleepHours | undefined>(undefined);
+  const [rriDetoxHours, setRriDetoxHours] = useState<RRIDetoxHours | undefined>(undefined);
+  const [rriMentalState, setRriMentalState] = useState<RRIMentalState | undefined>(undefined);
+  
   // Default training goals: both systems (since we removed the selection step)
   const trainingGoals: TrainingGoal[] = ["fast_thinking", "slow_thinking"];
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlanId>("light");
@@ -47,9 +54,18 @@ const Onboarding = () => {
     : (isResetAssessment && user?.age ? user.age : undefined);
 
   const handleNext = async () => {
-    if (step < 7) {
+    if (step < 10) {
       setStep((s) => (s + 1) as Step);
-    } else if (step === 7) {
+    } else if (step === 10) {
+      // Compute RRI value from answers
+      const rriResult = (rriSleepHours && rriDetoxHours && rriMentalState) 
+        ? computeRRI({
+            sleepHours: rriSleepHours,
+            detoxHours: rriDetoxHours,
+            mentalState: rriMentalState,
+          })
+        : null;
+      
       // Save user data before navigating to calibration wizard
       try {
         await updateUser({
@@ -64,6 +80,12 @@ const Onboarding = () => {
           trainingPlan,
           reminderEnabled: true,
           reminderTime,
+          // RRI data
+          rriSleepHours,
+          rriDetoxHours,
+          rriMentalState,
+          rriValue: rriResult?.value,
+          rriSetAt: new Date().toISOString(),
           onboardingCompleted: false, // Will be marked true after calibration
         });
         // Navigate to the new Quick Baseline Calibration wizard
@@ -74,13 +96,10 @@ const Onboarding = () => {
     }
   };
 
-
-
   const handleComplete = async () => {
     // Move to reminder time step
-    setStep(7);
+    setStep(10);
   };
-
 
   const genderOptions: { value: Gender; label: string }[] = [
     { value: "male", label: "Male" },
@@ -117,7 +136,6 @@ const Onboarding = () => {
     { value: "other", label: "Other" },
   ];
 
-
   const planOptions = [
     { 
       id: "light" as TrainingPlanId, 
@@ -139,12 +157,14 @@ const Onboarding = () => {
     },
   ];
 
+  const totalSteps = 10;
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Progress indicator */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex gap-1.5 max-w-[280px] mx-auto">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
             <div
               key={s}
               className={cn(
@@ -274,8 +294,144 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 3: Education Level */}
+          {/* Step 3: RRI - Sleep (last 2 days) */}
           {step === 3 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-teal-500/15 flex items-center justify-center mx-auto mb-3">
+                  <Moon className="w-5 h-5 text-teal-400" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Recent Sleep
+                </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  Average sleep over the last 2 days
+                </p>
+              </div>
+              
+              <div className="space-y-2 mb-6">
+                {RRI_SLEEP_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setRriSleepHours(option.value)}
+                    className={cn(
+                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
+                      rriSleepHours === option.value
+                        ? "border-teal-400 bg-teal-500/10"
+                        : "border-border/60 bg-card/50 hover:border-teal-400/40"
+                    )}
+                  >
+                    <span className="font-medium text-[14px]">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!rriSleepHours}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 4: RRI - Mental Detox (last 2 days) */}
+          {step === 4 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-teal-500/15 flex items-center justify-center mx-auto mb-3">
+                  <Smartphone className="w-5 h-5 text-teal-400" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Mental Detox
+                </h1>
+                <p className="text-muted-foreground text-[13px] leading-relaxed">
+                  Longest continuous period intentionally offline in the last 2 days
+                </p>
+                <p className="text-muted-foreground/60 text-[11px] mt-1">
+                  No social media, email, news, or notifications. Sleeping/working doesn't count.
+                </p>
+              </div>
+              
+              <div className="space-y-2 mb-6">
+                {RRI_DETOX_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setRriDetoxHours(option.value)}
+                    className={cn(
+                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
+                      rriDetoxHours === option.value
+                        ? "border-teal-400 bg-teal-500/10"
+                        : "border-border/60 bg-card/50 hover:border-teal-400/40"
+                    )}
+                  >
+                    <span className="font-medium text-[14px] block">{option.label}</span>
+                    <span className="text-[12px] text-muted-foreground">{option.description}</span>
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!rriDetoxHours}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 5: RRI - Current Mental State */}
+          {step === 5 && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-11 h-11 rounded-xl bg-teal-500/15 flex items-center justify-center mx-auto mb-3">
+                  <Battery className="w-5 h-5 text-teal-400" />
+                </div>
+                <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
+                  Current State
+                </h1>
+                <p className="text-muted-foreground text-[13px]">
+                  How do you feel mentally right now?
+                </p>
+              </div>
+              
+              <div className="space-y-2 mb-6">
+                {RRI_MENTAL_STATE_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setRriMentalState(option.value)}
+                    className={cn(
+                      "w-full py-3 px-4 rounded-xl border text-left transition-all",
+                      rriMentalState === option.value
+                        ? "border-teal-400 bg-teal-500/10"
+                        : "border-border/60 bg-card/50 hover:border-teal-400/40"
+                    )}
+                  >
+                    <span className="font-medium text-[14px]">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleNext} 
+                variant="hero" 
+                className="w-full h-[52px] text-[15px] font-medium"
+                disabled={!rriMentalState}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 6: Education Level */}
+          {step === 6 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -319,8 +475,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 4: Degree Discipline */}
-          {step === 4 && (
+          {/* Step 7: Degree Discipline */}
+          {step === 7 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -363,8 +519,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 5: Work Type */}
-          {step === 5 && (
+          {/* Step 8: Work Type */}
+          {step === 8 && (
             <div className="animate-fade-in">
               <div className="text-center mb-4">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
@@ -405,8 +561,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 6: Training Plan Selection */}
-          {step === 6 && (
+          {/* Step 9: Training Plan Selection */}
+          {step === 9 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <h1 className="text-xl font-semibold mb-1.5 tracking-tight">
@@ -419,8 +575,6 @@ const Onboarding = () => {
               
               <div className="space-y-3 mb-6">
                 {planOptions.map((option) => {
-                  // Scale of 5 dots - effort stays low, results scale up nicely
-                  // Scale of 5 dots - effort stays low, results use half dots
                   const intensityDots = option.plan.intensity === "low" ? 1 : option.plan.intensity === "medium" ? 2 : 3;
                   const resultsDots = option.plan.intensity === "low" ? 2.5 : option.plan.intensity === "medium" ? 3.5 : 5;
                   
@@ -503,8 +657,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* Step 7: Daily Training Time */}
-          {step === 7 && (
+          {/* Step 10: Daily Training Time */}
+          {step === 10 && (
             <div className="animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -531,7 +685,6 @@ const Onboarding = () => {
                 💡 You can train at any time during the day — this is just your preferred reminder time.
               </p>
 
-
               <Button
                 onClick={handleNext}
                 variant="hero"
@@ -547,7 +700,7 @@ const Onboarding = () => {
       </div>
 
       {/* Tagline */}
-      {step !== 7 && (
+      {step !== 10 && (
         <div className="py-4 text-center">
           <p className="text-[11px] text-muted-foreground/60 tracking-wide uppercase">
             Strategic Cognitive Performance System

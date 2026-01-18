@@ -13,6 +13,11 @@ export type WorkType = "knowledge" | "creative" | "technical" | "management" | "
 export type EducationLevel = "high_school" | "bachelor" | "master" | "phd" | "other";
 export type DegreeDiscipline = "stem" | "humanities" | "business" | "health" | "arts" | "social_sciences" | "law" | "other";
 
+// RRI (Recovery Readiness Init) types
+export type RRISleepHours = '<5h' | '5-6h' | '6-7h' | '7-8h' | '>8h';
+export type RRIDetoxHours = 'almost_none' | '<30min' | '30-60min' | '1-2h' | '>2h';
+export type RRIMentalState = 'very_tired' | 'bit_tired' | 'ok' | 'clear' | 'very_clear';
+
 export type PrimaryDevice = "apple_health" | "whoop" | "oura" | "garmin" | "other";
 
 export interface UserProfile {
@@ -34,6 +39,12 @@ export interface UserProfile {
   reminder_enabled: boolean | null;
   reminder_time: string | null;
   primary_device: PrimaryDevice | null;
+  // RRI fields
+  rri_sleep_hours: RRISleepHours | null;
+  rri_detox_hours: RRIDetoxHours | null;
+  rri_mental_state: RRIMentalState | null;
+  rri_value: number | null;
+  rri_set_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +76,13 @@ export interface User {
   
   // Health device
   primaryDevice?: PrimaryDevice;
+  
+  // RRI (Recovery Readiness Init) - onboarding answers
+  rriSleepHours?: RRISleepHours;
+  rriDetoxHours?: RRIDetoxHours;
+  rriMentalState?: RRIMentalState;
+  rriValue?: number;
+  rriSetAt?: string;
   
   // Onboarding completed
   onboardingCompleted?: boolean;
@@ -103,6 +121,11 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     reminderEnabled: profile?.reminder_enabled ?? false,
     reminderTime: profile?.reminder_time || undefined,
     primaryDevice: profile?.primary_device || undefined,
+    rriSleepHours: profile?.rri_sleep_hours || undefined,
+    rriDetoxHours: profile?.rri_detox_hours || undefined,
+    rriMentalState: profile?.rri_mental_state || undefined,
+    rriValue: profile?.rri_value || undefined,
+    rriSetAt: profile?.rri_set_at || undefined,
     onboardingCompleted: profile?.onboarding_completed || false,
   };
 }
@@ -278,6 +301,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.reminderTime !== undefined) profileUpdates.reminder_time = updates.reminderTime;
     if (updates.primaryDevice !== undefined) profileUpdates.primary_device = updates.primaryDevice;
     if (updates.onboardingCompleted !== undefined) profileUpdates.onboarding_completed = updates.onboardingCompleted;
+    // RRI fields
+    if (updates.rriSleepHours !== undefined) profileUpdates.rri_sleep_hours = updates.rriSleepHours;
+    if (updates.rriDetoxHours !== undefined) profileUpdates.rri_detox_hours = updates.rriDetoxHours;
+    if (updates.rriMentalState !== undefined) profileUpdates.rri_mental_state = updates.rriMentalState;
+    if (updates.rriValue !== undefined) profileUpdates.rri_value = updates.rriValue;
+    if (updates.rriSetAt !== undefined) profileUpdates.rri_set_at = updates.rriSetAt;
 
     // Use upsert to create profile if missing (e.g., if trigger didn't fire)
     const { error } = await supabase

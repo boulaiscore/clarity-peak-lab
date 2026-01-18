@@ -389,6 +389,11 @@ export type Database = {
           reminder_enabled: boolean | null
           reminder_time: string | null
           report_credits: number
+          rri_detox_hours: string | null
+          rri_mental_state: string | null
+          rri_set_at: string | null
+          rri_sleep_hours: string | null
+          rri_value: number | null
           session_duration: string | null
           subscription_status: string | null
           timezone: string | null
@@ -421,6 +426,11 @@ export type Database = {
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           report_credits?: number
+          rri_detox_hours?: string | null
+          rri_mental_state?: string | null
+          rri_set_at?: string | null
+          rri_sleep_hours?: string | null
+          rri_value?: number | null
           session_duration?: string | null
           subscription_status?: string | null
           timezone?: string | null
@@ -453,6 +463,11 @@ export type Database = {
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           report_credits?: number
+          rri_detox_hours?: string | null
+          rri_mental_state?: string | null
+          rri_set_at?: string | null
+          rri_sleep_hours?: string | null
+          rri_value?: number | null
           session_duration?: string | null
           subscription_status?: string | null
           timezone?: string | null

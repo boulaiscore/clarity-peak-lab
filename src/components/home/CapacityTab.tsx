@@ -1,14 +1,16 @@
 import { motion } from "framer-motion";
-import { Leaf, Smartphone, Footprints, Battery } from "lucide-react";
-import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { Leaf, Smartphone, Footprints, Battery, Info } from "lucide-react";
+import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function CapacityTab() {
   const { 
-    recovery, 
+    recoveryEffective: recovery, 
+    isUsingRRI,
     isLoading 
-  } = useTodayMetrics();
+  } = useRecoveryEffective();
   
   // Ring calculations - LARGE
   const size = 240;
@@ -63,7 +65,21 @@ export function CapacityTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Recovery</p>
+            <div className="flex items-center gap-1 mb-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Recovery{isUsingRRI ? " (estimate)" : ""}
+              </p>
+              {isUsingRRI && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-3 h-3 text-muted-foreground/60" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px] text-xs">
+                    Initial estimate based on your profile. Updates with detox and walking.
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {isLoading ? "—" : `${Math.round(recovery)}`}
               <span className="text-3xl">%</span>
