@@ -99,12 +99,17 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
     onComplete({ score, correct, avgReactionTime });
   };
 
+  // For triage_sprint, use the exercise's difficulty directly
+  const triageSprintDifficulty = drillType === "triage_sprint" 
+    ? (exercise.difficulty as 'easy' | 'medium' | 'hard') 
+    : config.difficulty;
+
   switch (drillType) {
     // NEW: Triage Sprint (S1-AE game)
     case "triage_sprint":
       return (
         <TriageSprintDrill
-          difficulty={config.difficulty}
+          difficulty={triageSprintDifficulty}
           onComplete={(r) => handleComplete({ 
             score: r.score, 
             hits: r.hits, 
