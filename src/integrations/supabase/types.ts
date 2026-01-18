@@ -196,15 +196,20 @@ export type Database = {
           completed_at: string
           created_at: string
           degradation_slope: number | null
+          difficulty: string | null
           false_alarm_rate: number | null
           game_name: string | null
           game_type: string
           gym_area: string
           hit_rate: number | null
           id: string
+          perseveration_rate: number | null
+          post_switch_error_rate: number | null
+          recovery_speed_index: number | null
           rt_variability: number | null
           score: number
           skill_routed: string
+          switch_latency_avg: number | null
           system_type: string
           thinking_mode: string
           time_in_band_pct: number | null
@@ -215,15 +220,20 @@ export type Database = {
           completed_at?: string
           created_at?: string
           degradation_slope?: number | null
+          difficulty?: string | null
           false_alarm_rate?: number | null
           game_name?: string | null
           game_type: string
           gym_area: string
           hit_rate?: number | null
           id?: string
+          perseveration_rate?: number | null
+          post_switch_error_rate?: number | null
+          recovery_speed_index?: number | null
           rt_variability?: number | null
           score?: number
           skill_routed: string
+          switch_latency_avg?: number | null
           system_type: string
           thinking_mode: string
           time_in_band_pct?: number | null
@@ -234,15 +244,20 @@ export type Database = {
           completed_at?: string
           created_at?: string
           degradation_slope?: number | null
+          difficulty?: string | null
           false_alarm_rate?: number | null
           game_name?: string | null
           game_type?: string
           gym_area?: string
           hit_rate?: number | null
           id?: string
+          perseveration_rate?: number | null
+          post_switch_error_rate?: number | null
+          recovery_speed_index?: number | null
           rt_variability?: number | null
           score?: number
           skill_routed?: string
+          switch_latency_avg?: number | null
           system_type?: string
           thinking_mode?: string
           time_in_band_pct?: number | null
