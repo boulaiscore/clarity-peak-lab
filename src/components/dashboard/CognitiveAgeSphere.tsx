@@ -261,13 +261,22 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     return () => cancelAnimationFrame(animationId);
   }, [theme, delta]);
 
-  // Calculate delta text
-  const deltaYears = Math.abs(delta);
-  const deltaText = delta < 0
-    ? `${deltaYears.toFixed(0)}y younger than baseline`
-    : delta > 0
-    ? `${deltaYears.toFixed(0)}y older than baseline`
-    : "at baseline";
+  // Calculate comparison text vs real age
+  const getComparisonText = () => {
+    if (!chronologicalAge) return null;
+    const diff = chronologicalAge - cognitiveAge;
+    const absDiff = Math.abs(Math.round(diff));
+    
+    if (absDiff === 0) {
+      return { text: "Same as your real age", color: "text-muted-foreground" };
+    } else if (diff > 0) {
+      return { text: `${absDiff}y younger than your real age`, color: "text-emerald-500" };
+    } else {
+      return { text: `${absDiff}y older than your real age`, color: "text-amber-500" };
+    }
+  };
+  
+  const comparison = getComparisonText();
 
   return (
     <div className="py-2">
@@ -284,7 +293,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
             className="absolute -inset-[25px]"
           />
 
-          {/* Content overlay */}
+          {/* Content overlay - age centered */}
           <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
             <div className="flex items-baseline gap-1">
               <span className="text-3xl font-semibold text-foreground number-display">
@@ -292,11 +301,15 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
               </span>
               <span className="text-sm text-muted-foreground">years</span>
             </div>
-            <span className="text-sm font-medium mt-1 text-muted-foreground">
-              {deltaText}
-            </span>
           </div>
         </div>
+        
+        {/* Comparison text below circle */}
+        {comparison && (
+          <p className={`text-sm font-medium mt-4 ${comparison.color}`}>
+            {comparison.text}
+          </p>
+        )}
       </div>
     </div>
   );
