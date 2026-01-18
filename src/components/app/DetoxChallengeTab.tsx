@@ -551,10 +551,6 @@ function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: num
         </div>
       </div>
       
-      {/* Subtle explanation */}
-      <p className="text-[10px] text-muted-foreground/60 mt-4 leading-relaxed text-center">
-        Recovery determines how effective your cognitive training can be.
-      </p>
     </motion.div>
   );
 }
