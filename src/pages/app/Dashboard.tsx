@@ -10,6 +10,7 @@ import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressH
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
+import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 import { Button } from "@/components/ui/button";
 import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Dumbbell, BookMarked, Smartphone, Ban, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -167,6 +168,9 @@ const Dashboard = () => {
             Report
           </button>
         </div>
+
+        {/* Baseline Status Card */}
+        <BaselineStatusCard />
 
         {/* Tab Content */}
         {activeTab === "overview" ? (
