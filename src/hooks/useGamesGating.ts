@@ -368,6 +368,13 @@ export function useRecordGameSession() {
     thinkingMode: "fast" | "slow";
     xpAwarded: number;
     score: number;
+    // AE Guidance Engine metrics (optional)
+    gameName?: "orbit_lock" | "triage_sprint";
+    falseAlarmRate?: number | null;
+    hitRate?: number | null;
+    rtVariability?: number | null;
+    degradationSlope?: number | null;
+    timeInBandPct?: number | null;
   }) => {
     if (!user?.id) {
       console.error("[GameSession] No user ID, cannot record session");
@@ -380,7 +387,7 @@ export function useRecordGameSession() {
     const nowUtc = new Date().toISOString();
     const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
     
-    // 1. Insert game session (for gating/caps tracking)
+    // 1. Insert game session (for gating/caps tracking + AE guidance metrics)
     const { data, error } = await supabase
       .from("game_sessions")
       .insert({
@@ -393,6 +400,13 @@ export function useRecordGameSession() {
         xp_awarded: params.xpAwarded,
         score: params.score,
         completed_at: nowUtc,
+        // AE Guidance metrics
+        game_name: params.gameName ?? null,
+        false_alarm_rate: params.falseAlarmRate ?? null,
+        hit_rate: params.hitRate ?? null,
+        rt_variability: params.rtVariability ?? null,
+        degradation_slope: params.degradationSlope ?? null,
+        time_in_band_pct: params.timeInBandPct ?? null,
       })
       .select()
       .single();

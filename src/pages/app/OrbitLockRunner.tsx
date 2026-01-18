@@ -19,8 +19,7 @@ export default function OrbitLockRunner() {
   const handleComplete = useCallback(async (results: OrbitLockFinalResults) => {
     setIsComplete(true);
     
-    // Record game session for caps and XP routing
-    // Note: recordGameSession now handles all query invalidations internally
+    // Record game session for caps, XP routing, and AE Guidance metrics
     if (user?.id) {
       try {
         await recordGameSession({
@@ -29,6 +28,14 @@ export default function OrbitLockRunner() {
           thinkingMode: "fast",
           xpAwarded: results.xpAwarded,
           score: results.score,
+          // AE Guidance metrics
+          gameName: "orbit_lock",
+          timeInBandPct: results.totalTimeInBandPct, // Already 0-100
+          degradationSlope: results.degradationSlope,
+          // Orbit Lock doesn't have these Triage Sprint metrics
+          falseAlarmRate: null,
+          hitRate: null,
+          rtVariability: null,
         });
         
         toast.success(`+${results.xpAwarded} XP earned!`, { icon: "⭐" });
