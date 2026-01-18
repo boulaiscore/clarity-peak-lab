@@ -217,6 +217,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
       setPhase("playing");
       gameStartTime.current = Date.now();
       lastUpdateTime.current = Date.now();
+      setLastSwitchTime(Date.now()); // Initialize lastSwitchTime to prevent huge values
       nextSwitchTime.current = Date.now() + getNextSwitchInterval();
       return;
     }
