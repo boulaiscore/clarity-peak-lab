@@ -5,7 +5,7 @@ import { useUserMetrics } from "@/hooks/useExercises";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, format } from "date-fns";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import { 
   calculateSCI, 
   getSCIStatusText, 
@@ -27,9 +27,9 @@ interface UseCognitiveNetworkScoreResult {
   isLoading: boolean;
 }
 
-function getCurrentWeekStart(): string {
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  return format(weekStart, "yyyy-MM-dd");
+// v2.0: Use rolling 7-day window instead of calendar week
+function getRollingPeriodStart(): string {
+  return getMediumPeriodStartDate();
 }
 
 /**
@@ -41,7 +41,8 @@ function getCurrentWeekStart(): string {
  */
 export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
   const { user } = useAuth();
-  const weekStart = getCurrentWeekStart();
+  // v2.0: Use rolling 7-day window
+  const rollingStart = getRollingPeriodStart();
   
   // Fetch cognitive metrics
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
@@ -55,18 +56,20 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
   // Fetch weekly detox data
   const { data: detoxData, isLoading: detoxLoading } = useWeeklyDetoxXP();
   
-  // Fetch weekly walking minutes for correct REC formula
+  // Fetch weekly walking minutes for correct REC formula - v2.0: rolling window
   const { data: walkingData, isLoading: walkingLoading } = useQuery({
-    queryKey: ["weekly-walking-minutes-sci", user?.id, weekStart],
+    queryKey: ["weekly-walking-minutes-sci", user?.id, rollingStart],
     queryFn: async () => {
       if (!user?.id) return { totalMinutes: 0 };
       
+      // v2.0: Use rolling 7-day window - query by completed_at
+      const rollingStartDate = getMediumPeriodStart();
       const { data, error } = await supabase
         .from("walking_sessions")
         .select("duration_minutes, status, completed_at")
         .eq("user_id", user.id)
         .eq("status", "completed")
-        .gte("completed_at", `${weekStart}T00:00:00`);
+        .gte("completed_at", rollingStartDate.toISOString());
       
       if (error) throw error;
       

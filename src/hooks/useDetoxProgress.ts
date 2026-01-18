@@ -2,12 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRef } from "react";
-import { startOfWeek, format, subDays, parseISO, eachDayOfInterval } from "date-fns";
+import { format, subDays, parseISO, eachDayOfInterval } from "date-fns";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 
-function getCurrentWeekStart(): string {
-  const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
-  return format(weekStart, "yyyy-MM-dd");
+// v2.0: Use rolling 7-day window instead of calendar week
+function getRollingPeriodStart(): string {
+  return getMediumPeriodStartDate();
 }
 
 export interface DetoxCompletion {
@@ -55,7 +55,7 @@ const DEFAULT_DAILY_SETTINGS: DailyDetoxSettings = {
 
 export function useWeeklyDetoxXP() {
   const { user, session } = useAuth();
-  const weekStart = getCurrentWeekStart();
+  const rollingStart = getRollingPeriodStart();
 
   // Keep a stable userId across route changes (profile loads async after session)
   const lastUserIdRef = useRef<string | undefined>(undefined);
@@ -64,15 +64,17 @@ export function useWeeklyDetoxXP() {
   const userId = computedUserId ?? lastUserIdRef.current;
 
   return useQuery({
-    queryKey: ["weekly-detox-xp", userId, weekStart],
+    queryKey: ["weekly-detox-xp", userId, rollingStart],
     queryFn: async () => {
       if (!userId) return { totalXP: 0, totalMinutes: 0, completions: [] };
 
+      // v2.0: Use rolling 7-day window - query by completed_at instead of week_start
+      const rollingStartDate = getMediumPeriodStart();
       const { data, error } = await supabase
         .from("detox_completions")
         .select("*")
         .eq("user_id", userId)
-        .eq("week_start", weekStart);
+        .gte("completed_at", rollingStartDate.toISOString());
 
       if (error) throw error;
 
@@ -289,7 +291,8 @@ export function useUpdateDetoxGoal() {
 export function useRecordDetoxCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const weekStart = getCurrentWeekStart();
+  // v2.0: Use rolling start for record keeping (for backward compat with week_start field)
+  const weekStart = getRollingPeriodStart();
 
   return useMutation({
     mutationFn: async ({ durationMinutes, xpEarned }: { durationMinutes: number; xpEarned: number }) => {

@@ -1,17 +1,20 @@
 /**
  * Hook to fetch weekly content completions count (podcasts, books, articles).
  * This is separate from games completions count.
+ * 
+ * v2.0: Uses rolling 7-day window instead of calendar week.
  */
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { startOfWeek, addDays, format } from "date-fns";
 import { useRef } from "react";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 
 export function useWeeklyContentCount() {
   const { user, session } = useAuth();
-  const weekStartStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+  // v2.0: Use rolling 7-day window
+  const rollingStartStr = getMediumPeriodStartDate();
 
   // Keep a stable userId across route changes
   const lastUserIdRef = useRef<string | undefined>(undefined);
@@ -20,12 +23,12 @@ export function useWeeklyContentCount() {
   const userId = computedUserId ?? lastUserIdRef.current;
 
   return useQuery({
-    queryKey: ["weekly-content-count", userId, weekStartStr],
+    queryKey: ["weekly-content-count", userId, rollingStartStr],
     queryFn: async (): Promise<number> => {
       if (!userId) return 0;
 
-      const weekStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const weekEndDate = addDays(weekStartDate, 7);
+      // v2.0: Use rolling 7-day window instead of calendar week
+      const rollingStartDate = getMediumPeriodStart();
 
       // Query both sources and dedupe by content_id
       const [assignmentsRes, completionsRes] = await Promise.all([
@@ -34,14 +37,14 @@ export function useWeeklyContentCount() {
           .select("content_id")
           .eq("user_id", userId)
           .eq("status", "completed")
-          .gte("completed_at", weekStartDate.toISOString())
-          .lt("completed_at", weekEndDate.toISOString()),
+          .gte("completed_at", rollingStartDate.toISOString()),
 
+        // v2.0: Query by completed_at instead of week_start
         supabase
           .from("exercise_completions")
           .select("exercise_id")
           .eq("user_id", userId)
-          .eq("week_start", weekStartStr)
+          .gte("completed_at", rollingStartDate.toISOString())
           .like("exercise_id", "content-%"),
       ]);
 

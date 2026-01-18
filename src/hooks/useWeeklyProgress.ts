@@ -2,8 +2,9 @@ import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { startOfWeek, addDays, format } from "date-fns";
+import { format } from "date-fns";
 import { TrainingPlanId, TRAINING_PLANS, SessionType, XP_VALUES } from "@/lib/trainingPlans";
+import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import type { Json } from "@/integrations/supabase/types";
 
 interface SessionCompleted {
@@ -46,7 +47,11 @@ export function useWeeklyProgress() {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
 
-  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+  // v2.0: Use rolling 7-day window instead of calendar week
+  const rollingStart = getMediumPeriodStart();
+  const rollingStartStr = getMediumPeriodStartDate();
+  // Keep weekStart for backward compatibility with database field
+  const weekStart = rollingStartStr;
 
   // Keep a stable userId across route changes to prevent "reset to zero" UI.
   // We use a module-level variable as ultimate fallback to survive React Fast Refresh.
@@ -144,23 +149,24 @@ export function useWeeklyProgress() {
       console.log("[useWeeklyProgress][weekly-exercise-xp][start]", { userId, weekStart });
 
       try {
-        const weekStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
-        const weekEndDate = addDays(weekStartDate, 7);
+        // v2.0: Use rolling 7-day window instead of calendar week
+        const now = new Date();
+        const rollingStartDate = getMediumPeriodStart(now);
 
         const [exerciseRes, contentRes] = await Promise.all([
+          // Query by completed_at range (rolling window)
           supabase
             .from("exercise_completions")
             .select("exercise_id, xp_earned, week_start")
             .eq("user_id", userId)
-            .eq("week_start", weekStart),
+            .gte("completed_at", rollingStartDate.toISOString()),
 
           supabase
             .from("monthly_content_assignments")
             .select("content_type, content_id, completed_at, status")
             .eq("user_id", userId)
             .eq("status", "completed")
-            .gte("completed_at", weekStartDate.toISOString())
-            .lt("completed_at", weekEndDate.toISOString()),
+            .gte("completed_at", rollingStartDate.toISOString()),
         ]);
 
         if (exerciseRes.error) throw exerciseRes.error;
