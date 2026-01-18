@@ -56,7 +56,7 @@ export function ReasoningQualityCard({
                   <TooltipTrigger>
                     <Info className="w-3.5 h-3.5 text-muted-foreground/50" />
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-[220px] text-xs">
+                  <TooltipContent className="max-w-[220px] text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50">
                     <p>Training builds capacity. Reading and reflection refine it.</p>
                   </TooltipContent>
                 </Tooltip>
@@ -67,7 +67,7 @@ export function ReasoningQualityCard({
                     <TooltipTrigger>
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                     </TooltipTrigger>
-                    <TooltipContent className="text-xs">
+                    <TooltipContent className="text-xs bg-popover text-popover-foreground border border-border shadow-lg z-50">
                       Decaying due to inactivity
                     </TooltipContent>
                   </Tooltip>
