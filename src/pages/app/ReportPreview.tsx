@@ -2,13 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ReportMockupFull } from "@/components/report/ReportMockupFull";
+import { ClinicalReportMockup } from "@/components/report/ClinicalReportMockup";
+import "@/styles/clinical-report.css";
 
 export default function ReportPreview() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-100">
       {/* Sticky Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -28,7 +29,7 @@ export default function ReportPreview() {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                See what your personalized report will look like
+                Medical-grade cognitive performance assessment
               </p>
             </div>
           </div>
@@ -43,10 +44,10 @@ export default function ReportPreview() {
         </div>
       </div>
 
-      {/* Report Content - White background for print-style */}
+      {/* Report Content */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white text-gray-900 rounded-xl shadow-lg overflow-hidden">
-          <ReportMockupFull />
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <ClinicalReportMockup />
         </div>
 
         {/* Bottom CTA */}
@@ -58,7 +59,7 @@ export default function ReportPreview() {
                 Ready to see your real results?
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Unlock your personalized Cognitive Intelligence Report based on your actual training data.
+                Unlock your personalized Cognitive Performance Assessment based on your actual training data.
               </p>
             </div>
             <Button 
