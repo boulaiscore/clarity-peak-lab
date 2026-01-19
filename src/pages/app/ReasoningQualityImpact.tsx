@@ -354,12 +354,12 @@ export default function ReasoningQualityImpact() {
             </motion.button>
           ))}
           
-          {/* Total Row */}
+          {/* Total Row - use rq directly to ensure it matches */}
           <div className="p-4 rounded-xl bg-card border border-border/40">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
               <span className="text-lg font-bold tabular-nums">
-                {totalContribution.toFixed(1)}%
+                {Math.round(rq)}%
               </span>
             </div>
           </div>
