@@ -35,11 +35,11 @@ interface ImpactDriver {
 
 export default function ReasoningQualityImpact() {
   const navigate = useNavigate();
-  const { rq, s2Consistency, taskPriming, decay, isDecaying, taskBreakdown, isLoading } = useReasoningQuality();
+  const { rq, s2Core, s2Consistency, taskPriming, decay, isDecaying, taskBreakdown, isLoading } = useReasoningQuality();
   const { states } = useCognitiveStates();
   const [selectedDriver, setSelectedDriver] = useState<ImpactDriver | null>(null);
 
-  // Get CT and IN from cognitive states
+  // Get CT and IN from cognitive states (for display only)
   const CT = states.CT;
   const IN = states.IN;
 
@@ -52,11 +52,14 @@ export default function ReasoningQualityImpact() {
 
   const status = getStatusBadge(rq);
 
-  // Calculate actual weighted contributions to RQ
-  // RQ = 50% S2 Core (25% CT + 25% IN) + 30% S2 Consistency + 20% Task Priming - Decay
-  // S2 Core = (CT + IN) / 2, weight = 50% → CT contributes 25%, IN contributes 25%
-  const ctContribution = CT * 0.25; // CT/2 * 50% = CT * 25%
-  const inContribution = IN * 0.25; // IN/2 * 50% = IN * 25%
+  // Calculate actual weighted contributions to RQ using the SAME values as the formula
+  // RQ = 50% S2 Core + 30% S2 Consistency + 20% Task Priming - Decay
+  // S2 Core = (CT + IN) / 2, so we split the 50% contribution proportionally
+  const s2CoreContribution = s2Core * 0.50;
+  const ctProportion = CT + IN > 0 ? CT / (CT + IN) : 0.5;
+  const inProportion = CT + IN > 0 ? IN / (CT + IN) : 0.5;
+  const ctContribution = s2CoreContribution * ctProportion;
+  const inContribution = s2CoreContribution * inProportion;
   const s2ConsistencyContribution = s2Consistency * 0.30;
   
   // Task priming breakdown: podcasts, articles, books
