@@ -58,6 +58,7 @@ const Onboarding = () => {
       setStep((s) => (s + 1) as Step);
     } else if (step === 10) {
       // Compute RRI value from answers
+      // v1.1: If RRI questions were skipped, use a default value of 35 (moderate recovery)
       const rriResult = (rriSleepHours && rriDetoxHours && rriMentalState) 
         ? computeRRI({
             sleepHours: rriSleepHours,
@@ -65,6 +66,10 @@ const Onboarding = () => {
             mentalState: rriMentalState,
           })
         : null;
+      
+      // Default RRI value if not computed (prevents recovery = 0)
+      const DEFAULT_RRI_VALUE = 35;
+      const finalRriValue = rriResult?.value ?? DEFAULT_RRI_VALUE;
       
       // Save user data before navigating to calibration wizard
       try {
@@ -80,14 +85,15 @@ const Onboarding = () => {
           trainingPlan,
           reminderEnabled: true,
           reminderTime,
-          // RRI data
+          // RRI data - always set a value to prevent recovery = 0
           rriSleepHours,
           rriDetoxHours,
           rriMentalState,
-          rriValue: rriResult?.value,
+          rriValue: finalRriValue,
           rriSetAt: new Date().toISOString(),
           onboardingCompleted: false, // Will be marked true after calibration
         });
+        console.log("[Onboarding] User data saved, RRI value:", finalRriValue);
         // Navigate to the new Quick Baseline Calibration wizard
         navigate("/app/calibration");
       } catch (err) {

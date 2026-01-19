@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – GAMES GATING HOOK v1.5
+ * NEUROLOOP PRO – GAMES GATING HOOK v1.6
  * ============================================
  * 
  * Enforces game availability based on:
@@ -12,11 +12,17 @@
  * v1.5: useRecordGameSession now also inserts into exercise_completions
  *       so that weekly XP is correctly tracked by useWeeklyProgress.
  * 
+ * v1.6: Improved persistence reliability:
+ *       - Session validation before saving
+ *       - Retry logic for transient failures
+ *       - Toast feedback for save confirmation
+ *       - Detailed logging for debugging
+ * 
  * NO OVERRIDE ALLOWED FOR GAMES.
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
@@ -33,6 +39,7 @@ import {
   isSafetyRuleActive,
 } from "@/lib/gamesGating";
 import { startOfDay, startOfWeek, subDays, format } from "date-fns";
+import { toast } from "sonner";
 
 export type GatingStatus = "ENABLED" | "WITHHELD" | "PROTECTION";
 
@@ -366,6 +373,8 @@ function determineReasonCode(
  * v1.5: Now also inserts into exercise_completions so that weekly XP
  * metrics in useWeeklyProgress correctly count game XP.
  * 
+ * v1.6: Added session validation, retry logic, and toast feedback.
+ * 
  * Updates XP timestamps in user_cognitive_metrics:
  * - last_xp_at (global) - updated on every game completion
  * - last_{skill}_xp_at - updated for the routed skill only
@@ -375,17 +384,17 @@ function determineReasonCode(
  * This prevents skill decay for 30 days after training that skill.
  */
 export function useRecordGameSession() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const queryClient = useQueryClient();
   
-  return async (params: {
+  return useCallback(async (params: {
     gameType: GameType;
     gymArea: string;
     thinkingMode: "fast" | "slow";
     xpAwarded: number;
     score: number;
     // AE Guidance Engine metrics (optional)
-    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch" | "flash_connect";
+    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch" | "flash_connect" | "semantic_drift" | "constellation_snap";
     falseAlarmRate?: number | null;
     hitRate?: number | null;
     rtVariability?: number | null;
@@ -398,10 +407,23 @@ export function useRecordGameSession() {
     // Difficulty override tracking (v1.4)
     difficultyOverride?: boolean;
   }) => {
-    if (!user?.id) {
-      console.error("[GameSession] No user ID, cannot record session");
+    // v1.6: Enhanced user validation
+    const userId = user?.id;
+    if (!userId) {
+      console.error("[GameSession] No user ID available, cannot record session");
+      toast.error("Session not saved - please log in again");
       return null;
     }
+    
+    // v1.6: Validate session is still active
+    const { data: sessionCheck, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionCheck?.session) {
+      console.error("[GameSession] Session expired or invalid:", sessionError);
+      toast.error("Session expired - please log in again");
+      return null;
+    }
+    
+    console.log("[GameSession] Starting save for user:", userId, "Game:", params.gameType);
     
     // Derive system_type and skill_routed from gameType
     const systemType = params.gameType.startsWith("S1") ? "S1" : "S2";
@@ -409,149 +431,163 @@ export function useRecordGameSession() {
     const nowUtc = new Date().toISOString();
     const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
     
-    // 1. Insert game session (for gating/caps tracking + AE guidance metrics)
-    const { data, error } = await supabase
-      .from("game_sessions")
-      .insert({
-        user_id: user.id,
-        system_type: systemType,
-        skill_routed: skillRouted,
-        game_type: params.gameType,
-        gym_area: params.gymArea,
-        thinking_mode: params.thinkingMode,
-        xp_awarded: params.xpAwarded,
-        score: params.score,
-        completed_at: nowUtc,
-        // AE Guidance metrics (shared)
-        game_name: params.gameName ?? null,
-        degradation_slope: params.degradationSlope ?? null,
-        // Triage Sprint metrics
-        false_alarm_rate: params.falseAlarmRate ?? null,
-        hit_rate: params.hitRate ?? null,
-        rt_variability: params.rtVariability ?? null,
-        // Orbit Lock metrics
-        time_in_band_pct: params.timeInBandPct ?? null,
-        // Focus Switch metrics
-        switch_latency_avg: params.switchLatencyAvg ?? null,
-        perseveration_rate: params.perseverationRate ?? null,
-        post_switch_error_rate: params.postSwitchErrorRate ?? null,
-        // Difficulty override tracking
-        difficulty_override: params.difficultyOverride ?? false,
-      })
-      .select()
-      .single();
+    // v1.6: Retry logic for transient failures
+    const MAX_RETRIES = 3;
+    let lastError: Error | null = null;
     
-    if (error) {
-      console.error("[GameSession] Failed to record:", error);
-      throw error;
-    }
-    
-    // 2. Also insert into exercise_completions for weekly XP tracking
-    // This ensures useWeeklyProgress counts game XP correctly
-    const exerciseId = `game-${params.gameType}-${data.id}`;
-    const { error: completionError } = await supabase
-      .from("exercise_completions")
-      .insert({
-        user_id: user.id,
-        exercise_id: exerciseId,
-        gym_area: params.gymArea,
-        thinking_mode: params.thinkingMode,
-        difficulty: "medium", // Games don't have traditional difficulty
-        xp_earned: params.xpAwarded,
-        score: params.score,
-        week_start: weekStart,
-      });
-    
-    if (completionError) {
-      console.error("[GameSession] Failed to insert exercise_completion:", completionError);
-      // Don't throw - game session was recorded, this is secondary
-    } else {
-      console.log("[GameSession] Inserted exercise_completion:", exerciseId);
-    }
-    
-    // 3. Update skill value AND XP timestamps
-    if (params.xpAwarded > 0) {
-      // Build the update object for the specific skill
-      const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as
-        "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
-      
-      // Map skill to database column
-      const SKILL_TO_COLUMN: Record<string, string> = {
-        AE: "focus_stability",
-        RA: "fast_thinking",
-        CT: "reasoning_accuracy",
-        IN: "slow_thinking",
-      };
-      const targetColumn = SKILL_TO_COLUMN[skillRouted];
-      
-      // Get current metrics
-      const { data: currentMetrics } = await supabase
-        .from("user_cognitive_metrics")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      if (currentMetrics) {
-        const currentValue = (currentMetrics as any)[targetColumn] || 50;
-        
-        // Apply score scaling: XP = baseXP × (score / 100)
-        const scaledXP = params.xpAwarded * (params.score / 100);
-        
-        // Apply state update formula: Δstate = XP × 0.5, capped at 100
-        const delta = scaledXP * 0.5;
-        const newValue = Math.min(100, currentValue + delta);
-        
-        const xpTrackingUpdate: Record<string, string | number> = {
-          last_xp_at: nowUtc,
-          [skillXpColumn]: nowUtc,
-          [targetColumn]: Math.round(newValue * 10) / 10,
-        };
-        
-        const { error: updateError } = await supabase
-          .from("user_cognitive_metrics")
-          .update(xpTrackingUpdate)
-          .eq("user_id", user.id);
-        
-        if (updateError) {
-          console.error("[GameSession] Failed to update metrics:", updateError);
-        } else {
-          console.log(`[GameSession] Updated ${targetColumn}: ${currentValue} → ${newValue}, ${skillXpColumn} → ${nowUtc}`);
-        }
-      } else {
-        // Create new metrics record if none exists
-        const initialValue = 50 + (params.xpAwarded * (params.score / 100) * 0.5);
-        const now = new Date().toISOString();
-        
-        await supabase
-          .from("user_cognitive_metrics")
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        // 1. Insert game session (for gating/caps tracking + AE guidance metrics)
+        const { data, error } = await supabase
+          .from("game_sessions")
           .insert({
-            user_id: user.id,
-            focus_stability: skillRouted === "AE" ? Math.round(initialValue * 10) / 10 : 50,
-            fast_thinking: skillRouted === "RA" ? Math.round(initialValue * 10) / 10 : 50,
-            reasoning_accuracy: skillRouted === "CT" ? Math.round(initialValue * 10) / 10 : 50,
-            slow_thinking: skillRouted === "IN" ? Math.round(initialValue * 10) / 10 : 50,
-            [skillXpColumn]: now,
-            last_xp_at: now,
+            user_id: userId,
+            system_type: systemType,
+            skill_routed: skillRouted,
+            game_type: params.gameType,
+            gym_area: params.gymArea,
+            thinking_mode: params.thinkingMode,
+            xp_awarded: params.xpAwarded,
+            score: params.score,
+            completed_at: nowUtc,
+            // AE Guidance metrics (shared)
+            game_name: params.gameName ?? null,
+            degradation_slope: params.degradationSlope ?? null,
+            // Triage Sprint metrics
+            false_alarm_rate: params.falseAlarmRate ?? null,
+            hit_rate: params.hitRate ?? null,
+            rt_variability: params.rtVariability ?? null,
+            // Orbit Lock metrics
+            time_in_band_pct: params.timeInBandPct ?? null,
+            // Focus Switch metrics
+            switch_latency_avg: params.switchLatencyAvg ?? null,
+            perseveration_rate: params.perseverationRate ?? null,
+            post_switch_error_rate: params.postSwitchErrorRate ?? null,
+            // Difficulty override tracking
+            difficulty_override: params.difficultyOverride ?? false,
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error(`[GameSession] Attempt ${attempt}/${MAX_RETRIES} failed:`, error);
+          lastError = error;
+          if (attempt < MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+            continue;
+          }
+          throw error;
+        }
+        
+        console.log("[GameSession] Game session inserted successfully:", data.id);
+        
+        // 2. Also insert into exercise_completions for weekly XP tracking
+        const exerciseId = `game-${params.gameType}-${data.id}`;
+        const { error: completionError } = await supabase
+          .from("exercise_completions")
+          .insert({
+            user_id: userId,
+            exercise_id: exerciseId,
+            gym_area: params.gymArea,
+            thinking_mode: params.thinkingMode,
+            difficulty: "medium",
+            xp_earned: params.xpAwarded,
+            score: params.score,
+            week_start: weekStart,
           });
         
-        console.log("[GameSession] Created new metrics record with initial skill value");
+        if (completionError) {
+          console.error("[GameSession] Failed to insert exercise_completion:", completionError);
+        } else {
+          console.log("[GameSession] Inserted exercise_completion:", exerciseId);
+        }
+        
+        // 3. Update skill value AND XP timestamps
+        if (params.xpAwarded > 0) {
+          const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as
+            "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
+          
+          const SKILL_TO_COLUMN: Record<string, string> = {
+            AE: "focus_stability",
+            RA: "fast_thinking",
+            CT: "reasoning_accuracy",
+            IN: "slow_thinking",
+          };
+          const targetColumn = SKILL_TO_COLUMN[skillRouted];
+          
+          const { data: currentMetrics } = await supabase
+            .from("user_cognitive_metrics")
+            .select("*")
+            .eq("user_id", userId)
+            .maybeSingle();
+          
+          if (currentMetrics) {
+            const currentValue = (currentMetrics as any)[targetColumn] || 50;
+            const scaledXP = params.xpAwarded * (params.score / 100);
+            const delta = scaledXP * 0.5;
+            const newValue = Math.min(100, currentValue + delta);
+            
+            const xpTrackingUpdate: Record<string, string | number> = {
+              last_xp_at: nowUtc,
+              [skillXpColumn]: nowUtc,
+              [targetColumn]: Math.round(newValue * 10) / 10,
+            };
+            
+            const { error: updateError } = await supabase
+              .from("user_cognitive_metrics")
+              .update(xpTrackingUpdate)
+              .eq("user_id", userId);
+            
+            if (updateError) {
+              console.error("[GameSession] Failed to update metrics:", updateError);
+            } else {
+              console.log(`[GameSession] Updated ${targetColumn}: ${currentValue} → ${newValue}`);
+            }
+          } else {
+            const initialValue = 50 + (params.xpAwarded * (params.score / 100) * 0.5);
+            
+            await supabase
+              .from("user_cognitive_metrics")
+              .insert({
+                user_id: userId,
+                focus_stability: skillRouted === "AE" ? Math.round(initialValue * 10) / 10 : 50,
+                fast_thinking: skillRouted === "RA" ? Math.round(initialValue * 10) / 10 : 50,
+                reasoning_accuracy: skillRouted === "CT" ? Math.round(initialValue * 10) / 10 : 50,
+                slow_thinking: skillRouted === "IN" ? Math.round(initialValue * 10) / 10 : 50,
+                [skillXpColumn]: nowUtc,
+                last_xp_at: nowUtc,
+              });
+            
+            console.log("[GameSession] Created new metrics record");
+          }
+        }
+        
+        // 4. Invalidate queries for real-time UI updates
+        queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
+        queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
+        queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
+        queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
+        queryClient.invalidateQueries({ queryKey: ["games-xp-breakdown"] });
+        queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
+        queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
+        queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
+        queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
+        
+        console.log("[GameSession] ✅ Session recorded successfully:", data.id);
+        return data;
+        
+      } catch (error) {
+        console.error(`[GameSession] Attempt ${attempt}/${MAX_RETRIES} error:`, error);
+        lastError = error as Error;
+        if (attempt < MAX_RETRIES) {
+          await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+        }
       }
-    } else {
-      console.log("[GameSession] No XP awarded, skipping metric updates");
     }
     
-    // 4. Invalidate queries for real-time UI updates
-    queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
-    queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
-    queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
-    queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
-    queryClient.invalidateQueries({ queryKey: ["games-xp-breakdown"] });
-    queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
-    queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
-    queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
-    queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
-    
-    console.log("[GameSession] Recorded:", data);
-    return data;
-  };
+    // All retries failed
+    console.error("[GameSession] All retries failed:", lastError);
+    toast.error("Failed to save session - please try again");
+    throw lastError;
+  }, [user?.id, session, queryClient]);
 }
