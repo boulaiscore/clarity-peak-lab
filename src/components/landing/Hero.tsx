@@ -9,10 +9,10 @@ import landingIntellectual from "@/assets/landing-intellectual.mp4";
 import landingNatureWalk from "@/assets/landing-nature-walk.mp4";
 
 const videos = [
-  { src: landingWorking, alt: "Professional working" },
-  { src: landingReading, alt: "Reading a book" },
-  { src: landingIntellectual, alt: "Intellectual work" },
-  { src: landingNatureWalk, alt: "Walking in nature" },
+  { src: landingWorking, label: "Working with NeuroLoop" },
+  { src: landingReading, label: "Reading with NeuroLoop" },
+  { src: landingIntellectual, label: "Thinking with NeuroLoop" },
+  { src: landingNatureWalk, label: "Recovery with NeuroLoop" },
 ];
 
 export function Hero() {
@@ -30,7 +30,7 @@ export function Hero() {
     });
   }, []);
 
-  // Handle video transitions with crossfade
+  // Handle video transitions with crossfade - 10 seconds per video
   useEffect(() => {
     const interval = setInterval(() => {
       const next = (currentVideo + 1) % videos.length;
@@ -49,7 +49,7 @@ export function Hero() {
         setCurrentVideo(next);
         setIsTransitioning(false);
       }, 1500);
-    }, 8000); // 8 seconds per video
+    }, 10000); // 10 seconds per video
 
     return () => clearInterval(interval);
   }, [currentVideo]);
@@ -83,6 +83,23 @@ export function Hero() {
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/50 z-10" />
       </div>
+
+      {/* NeuroLoop Badge - WHOOP style */}
+      <motion.div
+        key={currentVideo}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+        className="absolute bottom-36 sm:bottom-40 left-6 sm:left-10 z-20"
+      >
+        <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span className="text-xs sm:text-sm text-white/80 font-medium tracking-wide">
+            {videos[currentVideo].label}
+          </span>
+        </div>
+      </motion.div>
 
       {/* Content */}
       <div className="container relative z-20 px-6 pt-24 pb-16">
