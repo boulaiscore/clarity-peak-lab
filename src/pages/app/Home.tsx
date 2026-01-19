@@ -224,26 +224,26 @@ const Home = () => {
 
 
 
-  // Get insight based on readiness - concise action-oriented
+  // Get insight based on readiness - direct actionable tone
   const getInsight = () => {
     if (readiness >= 75) {
       return {
-        title: "Peak readiness",
-        body: "Ideal for high-intensity training.",
-        action: "Train now"
+        title: "Today: train hard",
+        body: "Your readiness is high — push intensity for maximum gains.",
+        action: "Start training"
       };
     }
     if (readiness >= 55) {
       return {
-        title: "Good to train",
-        body: "Conditions support full session load.",
+        title: "Today: maintain rhythm",
+        body: "Conditions are stable — complete your session to stay on track.",
         action: "Start session"
       };
     }
     return {
-      title: "Low readiness",
-      body: "Prioritize recovery or light tasks.",
-      action: "Recover first"
+      title: "Today: recover",
+      body: "Readiness is low — do a detox or light reading instead.",
+      action: "Start recovery"
     };
   };
 
@@ -449,10 +449,10 @@ const Home = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                      Light tasks recommended
+                      Today: read or reflect
                     </h3>
                     <p className="text-[10px] text-muted-foreground">
-                      Recovery is low — reading or reflection preferred.
+                      To restore cognitive capacity for tomorrow.
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-emerald-500/60" />
@@ -470,25 +470,22 @@ const Home = () => {
           const getDetoxMessage = () => {
             if (detoxProgress === 0) {
               return {
-                headline: "Weekly detox not started",
-                body: `${minutesRemaining} min remaining`,
-                metric: `Target: ${detoxXPTarget} min`,
+                headline: "Today: start your detox",
+                body: `${minutesRemaining} min to go — to restore focus.`,
                 urgency: "high"
               };
             }
             if (detoxProgress < 50) {
               return {
-                headline: "Detox in progress",
-                body: `${minutesRemaining} min remaining`,
-                metric: `${Math.round(detoxProgress)}% done`,
+                headline: "Today: continue detox",
+                body: `${minutesRemaining} min left — to hit your weekly target.`,
                 urgency: "medium"
               };
             }
             if (detoxProgress < 100) {
               return {
-                headline: "Almost there",
-                body: `${minutesRemaining} min to complete`,
-                metric: `${Math.round(100 - detoxProgress)}% left`,
+                headline: "Today: finish detox",
+                body: `${minutesRemaining} min left — to complete recovery.`,
                 urgency: "low"
               };
             }
@@ -523,10 +520,7 @@ const Home = () => {
                           <Zap className="w-3 h-3 text-primary animate-pulse" />
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-muted-foreground">{message.body}</span>
-                        <span className="text-[10px] font-medium text-primary">{message.metric}</span>
-                      </div>
+                      <p className="text-[10px] text-muted-foreground">{message.body}</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-primary/60" />
                   </div>
