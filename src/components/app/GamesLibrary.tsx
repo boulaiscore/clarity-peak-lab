@@ -9,6 +9,7 @@ import { useState } from "react";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
 import { S1RAGameSelector } from "./S1RAGameSelector";
+import { S2CTGameSelector } from "./S2CTGameSelector";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
@@ -51,7 +52,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   const [showS1AESelector, setShowS1AESelector] = useState(false);
   const [showS1RASelector, setShowS1RASelector] = useState(false);
-  
+  const [showS2CTSelector, setShowS2CTSelector] = useState(false);
   const { gamesComplete } = useCappedWeeklyProgress();
   const { games, caps, safetyRuleActive, isLoading: gatingLoading } = useGamesGating();
 
@@ -73,8 +74,13 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       return;
     }
     
-    // For S2 games (CT/IN), if locked, don't open the picker
-    // (since ExercisePickerSheet doesn't have built-in gating UI yet)
+    // S2-CT has its own game selector with Causal Ledger
+    if (gameType === "S2-CT") {
+      setShowS2CTSelector(true);
+      return;
+    }
+    
+    // For S2-IN games, if locked, don't open the picker
     if (isLocked) {
       return;
     }
@@ -222,6 +228,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       <S1RAGameSelector
         open={showS1RASelector}
         onOpenChange={setShowS1RASelector}
+      />
+
+      {/* S2-CT Game Selector (Causal Ledger) */}
+      <S2CTGameSelector
+        open={showS2CTSelector}
+        onOpenChange={setShowS2CTSelector}
       />
 
       {/* Target Exceeded Warning Dialog */}

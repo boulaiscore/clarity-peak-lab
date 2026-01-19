@@ -35,6 +35,7 @@ import FocusSwitchRunner from "./pages/app/FocusSwitchRunner";
 import FlashConnectRunner from "./pages/app/FlashConnectRunner";
 import ConstellationSnapRunner from "./pages/app/ConstellationSnapRunner";
 import SemanticDriftRunner from "./pages/app/SemanticDriftRunner";
+import CausalLedgerRunner from "./pages/app/CausalLedgerRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
@@ -291,6 +292,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SemanticDriftRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-lab/causal-ledger"
+        element={
+          <ProtectedRoute>
+            <CausalLedgerRunner />
           </ProtectedRoute>
         }
       />
