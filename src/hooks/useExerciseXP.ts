@@ -259,6 +259,7 @@ export function useRecordContentCompletion() {
 }
 
 // Remove a content completion record (when user uncompletes)
+// Deletes ALL records for this content (across all weeks) so it fully reverts.
 export function useRemoveContentCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -273,15 +274,14 @@ export function useRemoveContentCompletion() {
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
-      const weekStart = getCurrentWeekStart();
       const exerciseId = `content-${contentType}-${contentId}`;
 
+      // Delete ALL records for this exercise_id (any week) so it fully reverts
       const { error } = await supabase
         .from("exercise_completions")
         .delete()
         .eq("user_id", user.id)
-        .eq("exercise_id", exerciseId)
-        .eq("week_start", weekStart);
+        .eq("exercise_id", exerciseId);
 
       if (error) throw error;
     },
@@ -291,6 +291,8 @@ export function useRemoveContentCompletion() {
       // Dashboard Training Details queries
       queryClient.invalidateQueries({ queryKey: ["weekly-content-completions"] });
       queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
+      // Library query
+      queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
     },
   });
 }

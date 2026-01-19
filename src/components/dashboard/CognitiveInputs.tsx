@@ -1513,6 +1513,33 @@ export function CognitiveLibrary() {
     );
   }
 
+  const removeCompletion = useRemoveContentCompletion();
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const handleRemove = async (item: CognitiveInput) => {
+    // Extract base ID from prefixed ID: content-podcast-hidden-brain → hidden-brain
+    const parts = item.id.split("-");
+    const contentType = parts[1] as "podcast" | "book" | "article";
+    const baseId = parts.slice(2).join("-");
+    
+    setRemovingId(item.id);
+    try {
+      await removeCompletion.mutateAsync({ contentId: baseId, contentType });
+      toast({
+        title: "Removed from Library",
+        description: `${item.title} is back in your task list.`,
+      });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Could not remove item. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Library Description */}
@@ -1547,6 +1574,8 @@ export function CognitiveLibrary() {
           items={podcastsCompleted}
           iconColor="text-violet-500"
           bgColor="bg-violet-500/10"
+          onRemove={handleRemove}
+          removingId={removingId}
         />
       )}
 
@@ -1558,6 +1587,8 @@ export function CognitiveLibrary() {
           items={booksCompleted}
           iconColor="text-amber-500"
           bgColor="bg-amber-500/10"
+          onRemove={handleRemove}
+          removingId={removingId}
         />
       )}
 
@@ -1569,6 +1600,8 @@ export function CognitiveLibrary() {
           items={articlesCompleted}
           iconColor="text-blue-500"
           bgColor="bg-blue-500/10"
+          onRemove={handleRemove}
+          removingId={removingId}
         />
       )}
     </div>
@@ -1581,13 +1614,17 @@ function LibrarySection({
   icon: Icon, 
   items,
   iconColor,
-  bgColor
+  bgColor,
+  onRemove,
+  removingId,
 }: { 
   title: string; 
   icon: React.ElementType;
   items: CognitiveInput[];
   iconColor: string;
   bgColor: string;
+  onRemove: (item: CognitiveInput) => void;
+  removingId: string | null;
 }) {
   return (
     <div className="space-y-2">
@@ -1600,32 +1637,60 @@ function LibrarySection({
       </div>
 
       <div className="space-y-2">
-        {items.map(item => (
-          <a
-            key={item.id}
-            href={item.primaryUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 hover:border-violet-500/30 transition-all"
-          >
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.title}</p>
-                {item.author && (
-                  <p className="text-[10px] text-muted-foreground/60">{item.author}</p>
-                )}
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[9px] text-muted-foreground/50">
-                    Difficulty: {item.difficulty}/5
-                  </span>
-                  <ThinkingSystemIcon system={item.thinkingSystem} />
+        {items.map(item => {
+          const isRemoving = removingId === item.id;
+          return (
+            <div
+              key={item.id}
+              className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 transition-all"
+            >
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <a
+                    href={item.primaryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors"
+                  >
+                    <p className="text-sm font-medium truncate">{item.title}</p>
+                  </a>
+                  {item.author && (
+                    <p className="text-[10px] text-muted-foreground/60">{item.author}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[9px] text-muted-foreground/50">
+                      Difficulty: {item.difficulty}/5
+                    </span>
+                    <ThinkingSystemIcon system={item.thinkingSystem} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <a
+                    href={item.primaryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40" />
+                  </a>
+                  <button
+                    onClick={() => onRemove(item)}
+                    disabled={isRemoving}
+                    className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground/40 hover:text-destructive disabled:opacity-50"
+                    title="Remove from Library"
+                  >
+                    {isRemoving ? (
+                      <div className="h-3.5 w-3.5 border border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <StopCircle className="h-3.5 w-3.5" />
+                    )}
+                  </button>
                 </div>
               </div>
-              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
             </div>
-          </a>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
