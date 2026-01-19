@@ -147,7 +147,7 @@ export function Hero() {
               asChild 
               className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-10 h-14 text-lg"
             >
-              <Link to="/auth">
+              <Link to="/download">
                 Start Training
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>

@@ -63,7 +63,7 @@ export function Navbar() {
               asChild 
               className="hidden lg:flex rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-6 h-10"
             >
-              <Link to="/auth">Join Now</Link>
+              <Link to="/download">Join Now</Link>
             </Button>
           </div>
         </div>
@@ -82,7 +82,7 @@ export function Navbar() {
                 </button>
               ))}
               <Link
-                to="/auth"
+                to="/download"
                 className="block w-full text-center py-3 mt-4 rounded-full bg-primary text-primary-foreground font-semibold"
                 onClick={() => setMobileMenuOpen(false)}
               >
