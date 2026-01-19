@@ -383,14 +383,37 @@ function useLoggedExposures(userId: string | undefined) {
     queryKey: ["logged-exposures", userId],
     queryFn: async () => {
       if (!userId) return [];
-      const { data, error } = await supabase
+      
+      // First check exercise_completions (new system)
+      const { data: exerciseData, error: exerciseError } = await supabase
+        .from("exercise_completions")
+        .select("exercise_id")
+        .eq("user_id", userId)
+        .like("exercise_id", "content-%");
+      
+      if (exerciseError) throw exerciseError;
+      
+      // Extract content IDs from exercise_id format: content-{type}-{id}
+      const newSystemIds = (exerciseData || []).map(row => {
+        const parts = row.exercise_id.split("-");
+        return parts.slice(2).join("-"); // Get everything after "content-{type}-"
+      });
+      
+      // Also check legacy user_listened_podcasts for backwards compatibility
+      const { data: legacyData, error: legacyError } = await supabase
         .from("user_listened_podcasts")
         .select("podcast_id")
         .eq("user_id", userId);
-      if (error) throw error;
-      return data.map((row) => row.podcast_id);
+      
+      if (legacyError) throw legacyError;
+      
+      const legacyIds = (legacyData || []).map(row => row.podcast_id);
+      
+      // Combine and deduplicate
+      return [...new Set([...newSystemIds, ...legacyIds])];
     },
     enabled: !!userId,
+    staleTime: 30_000,
   });
 }
 
