@@ -1,7 +1,7 @@
 // src/pages/app/CognitiveReport.tsx
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target, Eye } from "lucide-react";
+import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target, Eye, ZoomIn, ZoomOut } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,6 +63,10 @@ export default function CognitiveReport() {
   const [downloading, setDownloading] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [scale, setScale] = useState(0.4); // Start zoomed out on mobile
+  
+  const zoomIn = () => setScale((s) => Math.min(s + 0.15, 1));
+  const zoomOut = () => setScale((s) => Math.max(s - 0.15, 0.25));
   const [selectedPackage, setSelectedPackage] = useState('pack5');
 
   // Handle payment return
@@ -379,58 +383,87 @@ export default function CognitiveReport() {
   }
 
   return (
-    <div className="p-4 max-w-[220mm] mx-auto">
-      <div className="flex items-center justify-between gap-4 mb-3 print:hidden">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate(-1)} 
-            className="p-2 rounded-full hover:bg-muted transition-colors"
-            aria-label="Go back"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-lg font-semibold">Cognitive Intelligence Report</h1>
-            <div className="text-xs opacity-70">
-              Generated {generatedAt.toLocaleDateString("en-GB")}
+    <div className="min-h-screen bg-gray-100">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b print:hidden">
+        <div className="flex items-center justify-between px-3 py-3">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-sm font-semibold">Cognitive Report</h1>
+              <div className="text-[10px] opacity-70">
+                {generatedAt.toLocaleDateString("en-GB")}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {isPro ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-xs">
-              <Crown className="w-3.5 h-3.5 text-primary" />
-              <span className="font-medium">Unlimited</span>
+          
+          <div className="flex items-center gap-2">
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7"
+                onClick={zoomOut}
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </Button>
+              <span className="text-[10px] font-medium w-10 text-center">
+                {Math.round(scale * 100)}%
+              </span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7"
+                onClick={zoomIn}
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </Button>
             </div>
-          ) : totalCredits > 0 ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-xs">
-              <Package className="w-3.5 h-3.5 text-primary" />
-              <span className="font-medium">{totalCredits} credit{totalCredits > 1 ? 's' : ''}</span>
-            </div>
-          ) : null}
-          <Button 
-            variant={canDownloadPDF ? "default" : "outline"}
-            className="gap-2"
-            onClick={handleDownloadPDF}
-            disabled={downloading || !weeklyPlanCompleted}
-          >
-            {canDownloadPDF ? (
-              <>
-                <Download className="w-4 h-4" />
-                {downloading ? "Generating..." : "Download PDF"}
-              </>
-            ) : !weeklyPlanCompleted ? (
-              <>
-                <Target className="w-4 h-4" />
-                Complete Plan
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4" />
-                Buy Credits
-              </>
-            )}
-          </Button>
+
+            {isPro ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-[10px]">
+                <Crown className="w-3 h-3 text-primary" />
+                <span className="font-medium">Pro</span>
+              </div>
+            ) : totalCredits > 0 ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-[10px]">
+                <Package className="w-3 h-3 text-primary" />
+                <span className="font-medium">{totalCredits}</span>
+              </div>
+            ) : null}
+            
+            <Button 
+              size="sm"
+              variant={canDownloadPDF ? "default" : "outline"}
+              className="gap-1.5 h-8 text-xs"
+              onClick={handleDownloadPDF}
+              disabled={downloading || !weeklyPlanCompleted}
+            >
+              {canDownloadPDF ? (
+                <>
+                  <Download className="w-3 h-3" />
+                  {downloading ? "..." : "PDF"}
+                </>
+              ) : !weeklyPlanCompleted ? (
+                <>
+                  <Target className="w-3 h-3" />
+                  Plan
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3 h-3" />
+                  Buy
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -469,14 +502,26 @@ export default function CognitiveReport() {
         </div>
       )}
 
-      <div ref={printRef}>
-        <ClinicalReport 
-          profile={profile} 
-          metrics={metrics} 
-          aggregates={aggregates}
-          badges={badges}
-          generatedAt={generatedAt} 
-        />
+      {/* Report Content - Fixed A4, scalable */}
+      <div className="overflow-auto p-4 print:p-0 print:overflow-visible">
+        <div 
+          ref={printRef}
+          className="mx-auto bg-white shadow-lg origin-top transition-transform duration-200 print:shadow-none print:transform-none"
+          style={{
+            width: '210mm',
+            minWidth: '210mm',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+          }}
+        >
+          <ClinicalReport 
+            profile={profile} 
+            metrics={metrics} 
+            aggregates={aggregates}
+            badges={badges}
+            generatedAt={generatedAt} 
+          />
+        </div>
       </div>
 
       {/* Purchase Modal with Package Options */}
