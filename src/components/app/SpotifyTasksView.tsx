@@ -13,8 +13,8 @@
  * Spotify-inspired design: horizontal carousels, large cards, minimal UI
  */
 
-import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Headphones, 
   BookOpen, 
@@ -546,6 +546,8 @@ export function SpotifyTasksView() {
   const [selectedPodcast, setSelectedPodcast] = useState<PodcastEligibility | null>(null);
   const [selectedReading, setSelectedReading] = useState<ReadingEligibility | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [showAddedToLibrary, setShowAddedToLibrary] = useState(false);
+  const [addedContentType, setAddedContentType] = useState<"podcast" | "book" | "article" | null>(null);
   // Local state for in-progress items (persisted to localStorage)
   const [inProgressIds, setInProgressIds] = useState<string[]>(() => {
     try {
@@ -654,7 +656,11 @@ export function SpotifyTasksView() {
       setInProgressIds(newInProgressIds);
       localStorage.setItem("task-in-progress-ids", JSON.stringify(newInProgressIds));
 
-      toast.success("Added to Library!", { icon: "📚" });
+      // Show animated overlay
+      setAddedContentType(contentType);
+      setShowAddedToLibrary(true);
+      setTimeout(() => setShowAddedToLibrary(false), 2000);
+
       queryClient.invalidateQueries({ queryKey: ["completed-content-ids"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-content-count"] });
       queryClient.invalidateQueries({ queryKey: ["in-progress-content-ids"] });
@@ -725,7 +731,66 @@ export function SpotifyTasksView() {
   }
   
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 relative">
+      {/* Added to Library Animation Overlay */}
+      <AnimatePresence>
+        {showAddedToLibrary && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ y: 20 }}
+              animate={{ y: 0 }}
+              className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-card border border-border shadow-2xl"
+            >
+              {/* Animated icon */}
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
+                className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
+                >
+                  <Library className="w-8 h-8 text-primary" />
+                </motion.div>
+              </motion.div>
+              
+              {/* Text */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-center"
+              >
+                <p className="text-lg font-semibold">Added to Library!</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {addedContentType === "podcast" && "+2.4 RQ from podcast"}
+                  {addedContentType === "article" && "+3 RQ from article"}
+                  {addedContentType === "book" && "+4 RQ from book"}
+                </p>
+              </motion.div>
+              
+              {/* Checkmark animation */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+                className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center"
+              >
+                <Check className="w-5 h-5 text-green-500" />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* View Mode Toggle */}
       <div className="flex items-center gap-1 p-0.5 bg-muted/30 border border-border/40 rounded-lg">
         <button
