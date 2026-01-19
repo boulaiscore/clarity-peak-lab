@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom transition duration for video crossfade */
+.duration-1500 {
+  transition-duration: 1500ms;
+}
+
 @layer base {
   :root {
     /* Muted dark palette - crisp text contrast */

@@ -1,54 +1,91 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
-import landingDecision from "@/assets/landing-intuitive-decision.mp4";
-import landingCreative from "@/assets/landing-creative-work.mp4";
+import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import landingWorking from "@/assets/landing-working.mp4";
 import landingReading from "@/assets/landing-reading.mp4";
+import landingIntellectual from "@/assets/landing-intellectual.mp4";
+import landingNatureWalk from "@/assets/landing-nature-walk.mp4";
 
 const videos = [
-  { src: landingDecision, alt: "Intuitive decision making" },
-  { src: landingCreative, alt: "Creative work" },
-  { src: landingReading, alt: "Deep reading" },
+  { src: landingWorking, alt: "Professional working" },
+  { src: landingReading, alt: "Reading a book" },
+  { src: landingIntellectual, alt: "Intellectual work" },
+  { src: landingNatureWalk, alt: "Walking in nature" },
 ];
 
 export function Hero() {
   const [currentVideo, setCurrentVideo] = useState(0);
+  const [nextVideo, setNextVideo] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
+  // Preload all videos on mount
+  useEffect(() => {
+    videoRefs.current.forEach((video) => {
+      if (video) {
+        video.load();
+      }
+    });
+  }, []);
+
+  // Handle video transitions with crossfade
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentVideo((prev) => (prev + 1) % videos.length);
-    }, 6000);
+      const next = (currentVideo + 1) % videos.length;
+      setNextVideo(next);
+      setIsTransitioning(true);
+      
+      // Start playing next video before transition
+      const nextVideoEl = videoRefs.current[next];
+      if (nextVideoEl) {
+        nextVideoEl.currentTime = 0;
+        nextVideoEl.play();
+      }
+      
+      // Complete transition after fade
+      setTimeout(() => {
+        setCurrentVideo(next);
+        setIsTransitioning(false);
+      }, 1500);
+    }, 8000); // 8 seconds per video
+
     return () => clearInterval(interval);
-  }, []);
+  }, [currentVideo]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Video Background Carousel */}
+      {/* Video Background - All videos stacked, opacity controlled */}
       <div className="absolute inset-0 z-0">
-        <AnimatePresence mode="wait">
-          <motion.video
-            key={currentVideo}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: "easeInOut" }}
-            autoPlay
+        {videos.map((video, index) => (
+          <video
+            key={index}
+            ref={(el) => (videoRefs.current[index] = el)}
+            autoPlay={index === 0}
             muted
             loop
             playsInline
-            className="absolute inset-0 w-full h-full object-cover"
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1500 ease-in-out"
+            style={{
+              opacity: index === currentVideo 
+                ? (isTransitioning ? 0 : 0.5)
+                : index === nextVideo && isTransitioning 
+                  ? 0.5 
+                  : 0,
+              zIndex: index === currentVideo ? 1 : index === nextVideo ? 2 : 0,
+            }}
           >
-            <source src={videos[currentVideo].src} type="video/mp4" />
-          </motion.video>
-        </AnimatePresence>
+            <source src={video.src} type="video/mp4" />
+          </video>
+        ))}
         {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/50 z-10" />
       </div>
 
       {/* Content */}
-      <div className="container relative z-10 px-6 pt-24 pb-16">
+      <div className="container relative z-20 px-6 pt-24 pb-16">
         <motion.div 
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -120,11 +157,25 @@ export function Hero() {
       </div>
 
       {/* Video indicators */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-2">
         {videos.map((_, index) => (
           <button
             key={index}
-            onClick={() => setCurrentVideo(index)}
+            onClick={() => {
+              if (index !== currentVideo) {
+                setNextVideo(index);
+                setIsTransitioning(true);
+                const nextVideoEl = videoRefs.current[index];
+                if (nextVideoEl) {
+                  nextVideoEl.currentTime = 0;
+                  nextVideoEl.play();
+                }
+                setTimeout(() => {
+                  setCurrentVideo(index);
+                  setIsTransitioning(false);
+                }, 1500);
+              }
+            }}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
               index === currentVideo ? "bg-primary w-6" : "bg-white/30 hover:bg-white/50"
             }`}
@@ -137,7 +188,7 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.5 }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
