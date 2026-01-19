@@ -20,9 +20,19 @@ import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { parseISO, startOfDay, differenceInDays } from "date-fns";
 import {
   calculateRQ,
+  calculateSingleTaskRQContribution,
   RQResult,
   TaskCompletion,
 } from "@/lib/reasoningQuality";
+
+export interface TaskBreakdown {
+  podcast: number;
+  article: number;
+  book: number;
+  podcastCount: number;
+  articleCount: number;
+  bookCount: number;
+}
 
 export interface UseReasoningQualityResult {
   // Main RQ value (0-100)
@@ -32,6 +42,9 @@ export interface UseReasoningQualityResult {
   s2Core: number;
   s2Consistency: number;
   taskPriming: number;
+  
+  // Task priming breakdown by type
+  taskBreakdown: TaskBreakdown;
   
   // Decay info
   decay: number;
@@ -156,10 +169,68 @@ export function useReasoningQuality(): UseReasoningQualityResult {
   // Cached result ref to prevent flicker
   const cachedResultRef = useRef<RQResult | null>(null);
   
-  const result = useMemo(() => {
-    const isLoading = statesLoading || persistedLoading || scoresLoading || tasksLoading;
+  // Calculate task breakdown by type
+  const taskBreakdownData = useMemo((): TaskBreakdown => {
+    if (!taskCompletions || taskCompletions.length === 0) {
+      return {
+        podcast: 0,
+        article: 0,
+        book: 0,
+        podcastCount: 0,
+        articleCount: 0,
+        bookCount: 0,
+      };
+    }
     
-    if (isLoading && !cachedResultRef.current) {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    // Filter to last 7 days
+    const recentTasks = taskCompletions.filter(t => 
+      t.completedAt >= sevenDaysAgo && t.completedAt <= today
+    );
+    
+    let podcastScore = 0;
+    let articleScore = 0;
+    let bookScore = 0;
+    let podcastCount = 0;
+    let articleCount = 0;
+    let bookCount = 0;
+    
+    for (const task of recentTasks) {
+      const contribution = calculateSingleTaskRQContribution(task.type, task.completedAt, today);
+      
+      switch (task.type) {
+        case "podcast":
+          podcastScore += contribution;
+          podcastCount++;
+          break;
+        case "article":
+          articleScore += contribution;
+          articleCount++;
+          break;
+        case "book":
+          bookScore += contribution;
+          bookCount++;
+          break;
+      }
+    }
+    
+    return {
+      podcast: podcastScore,
+      article: articleScore,
+      book: bookScore,
+      podcastCount,
+      articleCount,
+      bookCount,
+    };
+  }, [taskCompletions]);
+  
+  const result = useMemo(() => {
+    const isLoadingState = statesLoading || persistedLoading || scoresLoading || tasksLoading;
+    
+    if (isLoadingState && !cachedResultRef.current) {
       return {
         rq: 50,
         s2Core: 50,
@@ -207,6 +278,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
   
   return {
     ...result,
+    taskBreakdown: taskBreakdownData,
     isPersisted,
     lastUpdatedAt: persistedData?.rq_last_updated_at 
       ? parseISO(persistedData.rq_last_updated_at) 
