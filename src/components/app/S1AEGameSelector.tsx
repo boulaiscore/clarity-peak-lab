@@ -1,18 +1,17 @@
 /**
- * S1-AE Game Selector v1.4
+ * S1-AE Game Selector v1.5
  * 
- * Updated to use unified S1DifficultySelector.
- * User can now SELECT difficulty (if not locked) instead of forced-only.
- * 
+ * Updated to show games list even when locked, with lock indicators.
  * Uses:
  * - AE Guidance Engine for game suggestion
  * - S1 Difficulty Engine for difficulty options
+ * - Games Gating for lock status
  */
 
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, Crosshair, Zap, Star, ChevronLeft, ChevronRight, Sparkles, RefreshCcw } from "lucide-react";
+import { Target, Crosshair, Zap, Star, ChevronLeft, ChevronRight, Sparkles, RefreshCcw, Lock, ShieldAlert, Info } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +25,8 @@ import { S1DifficultySelector } from "./S1DifficultySelector";
 import { AEGameName } from "@/lib/aeGuidanceEngine";
 import { Difficulty } from "@/lib/s1DifficultyEngine";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGamesGating } from "@/hooks/useGamesGating";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface S1AEGameSelectorProps {
   open: boolean;
@@ -76,11 +77,37 @@ const GAMES: GameOption[] = [
   },
 ];
 
+// Helper to get human-readable reason
+function getWithholdReason(reasonCode?: string): string {
+  if (!reasonCode) return "Unavailable";
+  
+  switch (reasonCode) {
+    case "RECOVERY_TOO_LOW":
+      return "Recovery is low — build recovery through Detox or Walk";
+    case "SHARPNESS_TOO_LOW":
+      return "Sharpness below threshold";
+    case "SHARPNESS_TOO_HIGH":
+      return "Sharpness already optimal";
+    case "READINESS_TOO_LOW":
+      return "Readiness below threshold";
+    case "CAP_REACHED_DAILY_S1":
+      return "Daily focus limit reached (3/day)";
+    default:
+      return "Temporarily unavailable";
+  }
+}
+
 export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) {
   const navigate = useNavigate();
   const [selectedGame, setSelectedGame] = useState<GameOption | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("medium");
   const [isOverride, setIsOverride] = useState(false);
+  
+  // Get gating status for S1-AE
+  const { games: gatingResults, isLoading: gatingLoading } = useGamesGating();
+  const s1aeGating = gatingResults["S1-AE"];
+  const isLocked = s1aeGating && s1aeGating.status !== "ENABLED";
+  const isProtection = s1aeGating?.status === "PROTECTION";
   
   // Get game suggestion from AE engine
   const {
@@ -99,7 +126,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
     _debug,
   } = useS1Difficulty();
   
-  const isLoading = aeLoading || difficultyLoading;
+  const isLoading = aeLoading || difficultyLoading || gatingLoading;
   
   // Sort games to show suggested first
   const sortedGames = useMemo(() => {
@@ -111,6 +138,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
   }, [suggestedGame]);
 
   const handleSelectGame = (game: GameOption) => {
+    // Don't allow selection if locked
+    if (isLocked) return;
+    
     setSelectedGame(game);
     setSelectedDifficulty(recommended);
     setIsOverride(false);
@@ -172,6 +202,24 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
               </SheetHeader>
 
               <div className="space-y-3 pb-6">
+                {/* Show lock banner if games are locked */}
+                {isLocked && (
+                  <Alert className={cn(
+                    "border",
+                    isProtection 
+                      ? "border-protection/30 bg-protection/5" 
+                      : "border-muted-foreground/20 bg-muted/30"
+                  )}>
+                    {isProtection ? (
+                      <ShieldAlert className="h-4 w-4 text-protection" />
+                    ) : (
+                      <Lock className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <AlertDescription className="text-xs text-muted-foreground">
+                      {getWithholdReason(s1aeGating?.reasonCode)}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 {isLoading ? (
                   // Loading skeleton
                   <>
@@ -181,7 +229,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                 ) : (
                   sortedGames.map((game, index) => {
                     const Icon = game.icon;
-                    const isSuggested = game.id === suggestedGame;
+                    const isSuggested = game.id === suggestedGame && !isLocked;
                     const xp = game.xpByDifficulty[recommended];
                     
                     // Get accent color classes
@@ -208,14 +256,19 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handleSelectGame(game)}
+                        disabled={isLocked}
                         className={cn(
                           "w-full p-4 rounded-xl border text-left transition-all",
-                          "bg-background/50 hover:bg-background",
-                          "hover:border-primary/30 active:scale-[0.98]",
                           "group relative",
-                          isSuggested 
-                            ? "border-primary/40 ring-1 ring-primary/20" 
-                            : "border-border/50"
+                          isLocked
+                            ? "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
+                            : cn(
+                                "bg-background/50 hover:bg-background",
+                                "hover:border-primary/30 active:scale-[0.98]",
+                                isSuggested 
+                                  ? "border-primary/40 ring-1 ring-primary/20" 
+                                  : "border-border/50"
+                              )
                         )}
                       >
                         {/* Suggested badge */}
@@ -231,9 +284,17 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                         <div className="flex items-start gap-3">
                           <div className={cn(
                             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                            accentBg
+                            isLocked ? "bg-muted/30" : accentBg
                           )}>
-                            <Icon className={cn("w-5 h-5", accentText)} />
+                            {isLocked ? (
+                              isProtection ? (
+                                <ShieldAlert className="w-5 h-5 text-protection" />
+                              ) : (
+                                <Lock className="w-5 h-5 text-muted-foreground" />
+                              )
+                            ) : (
+                              <Icon className={cn("w-5 h-5", accentText)} />
+                            )}
                           </div>
                           
                           <div className="flex-1 min-w-0">
