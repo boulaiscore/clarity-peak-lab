@@ -108,9 +108,10 @@ export function ClinicalReportMockup() {
             </ul>
           </div>
         </section>
+        <span className="clinical-page-number">Page 1 of 7</span>
       </section>
 
-      {/* Page 2: Executive Summary */}
+      {/* Page 2: Executive Summary & SCI */}
       <section className="clinical-page">
         <section className="clinical-section">
           <h2 className="clinical-section-header">2. EXECUTIVE CLINICAL SUMMARY</h2>
@@ -175,8 +176,7 @@ export function ClinicalReportMockup() {
             </p>
             <p>
               An SCI of {metrics.sci} indicates that this individual's overall cognitive performance places them 
-              in the above-average range of the reference population. This score reflects 
-              robust cognitive functioning with strong adaptive capacity.
+              in the above-average range of the reference population.
             </p>
             <p className="clinical-caveat">
               <em>Note:</em> The SCI provides a general index of cognitive performance and does not diagnose 
@@ -184,6 +184,7 @@ export function ClinicalReportMockup() {
             </p>
           </div>
         </section>
+        <span className="clinical-page-number">Page 2 of 7</span>
       </section>
 
       {/* Page 3: Cognitive Age & Dual-Process */}
@@ -207,11 +208,11 @@ export function ClinicalReportMockup() {
             <p>
               Cognitive age represents a functional indicator of processing efficiency relative to normative 
               age-based expectations. It is derived from performance patterns across speed, accuracy, and 
-              consistency metrics, adjusted for baseline individual differences.
+              consistency metrics.
             </p>
             <p>
               Current cognitive age places this individual at approximately the 85th percentile 
-              for their chronological age cohort, suggesting above-average functional capacity.
+              for their chronological age cohort.
             </p>
           </div>
         </section>
@@ -224,13 +225,11 @@ export function ClinicalReportMockup() {
               <h3 className="clinical-system-title">System 1 (Intuitive Processing)</h3>
               <div className="clinical-system-score">{metrics.s1Score}</div>
               <p className="clinical-system-desc">
-                Automatic, rapid processing characterized by pattern recognition, heuristic application, 
-                and intuitive judgment.
+                Automatic, rapid processing characterized by pattern recognition and intuitive judgment.
               </p>
               <div className="clinical-system-components">
                 <span>Processing Speed: {metrics.fast}</span>
                 <span>Attentional Efficiency: {metrics.focus}</span>
-                <span>Reaction Latency: 68</span>
               </div>
             </div>
 
@@ -238,13 +237,11 @@ export function ClinicalReportMockup() {
               <h3 className="clinical-system-title">System 2 (Analytical Processing)</h3>
               <div className="clinical-system-score">{metrics.s2Score}</div>
               <p className="clinical-system-desc">
-                Controlled, effortful processing involving deliberate reasoning, logical analysis, 
-                and systematic evaluation.
+                Controlled, effortful processing involving deliberate reasoning and logical analysis.
               </p>
               <div className="clinical-system-components">
                 <span>Deliberative Depth: {metrics.slow}</span>
                 <span>Analytical Accuracy: {metrics.reasoning}</span>
-                <span>Clarity Score: 73</span>
               </div>
             </div>
           </div>
@@ -255,12 +252,12 @@ export function ClinicalReportMockup() {
               <strong>Current Status:</strong> Balanced — Optimal dual-process integration
             </p>
             <p>
-              The relationship between System 1 and System 2 processing has direct implications for 
-              decision-making quality. The current profile suggests optimal integration, enabling 
-              flexible switching between intuitive and analytical modes as task demands require.
+              The current profile suggests optimal integration, enabling flexible switching between 
+              intuitive and analytical modes as task demands require.
             </p>
           </div>
         </section>
+        <span className="clinical-page-number">Page 3 of 7</span>
       </section>
 
       {/* Page 4: Domain Analysis */}
@@ -276,7 +273,7 @@ export function ClinicalReportMockup() {
                 class: "Above Average",
                 classType: "above-avg",
                 definition: "Capacity to maintain and shift attention as task demands require.",
-                implication: "Strong attentional regulation supports sustained performance under cognitive load.",
+                implication: "Strong attentional regulation supports sustained performance.",
                 delta: "+5",
               },
               {
@@ -284,8 +281,8 @@ export function ClinicalReportMockup() {
                 score: metrics.reasoning,
                 class: "Above Average",
                 classType: "above-avg",
-                definition: "Ability to evaluate evidence, identify logical structures, and draw valid inferences.",
-                implication: "Robust analytical capacity supports complex decision-making and problem-solving.",
+                definition: "Ability to evaluate evidence and draw valid inferences.",
+                implication: "Robust analytical capacity supports complex decision-making.",
                 delta: "+8",
               },
               {
@@ -293,8 +290,8 @@ export function ClinicalReportMockup() {
                 score: metrics.creativity,
                 class: "Average",
                 classType: "average",
-                definition: "Divergent thinking capacity and ability to generate novel solutions.",
-                implication: "Moderate creative flexibility with potential for enhanced ideation.",
+                definition: "Divergent thinking capacity and novel solution generation.",
+                implication: "Moderate creative flexibility with potential for enhancement.",
                 delta: "+3",
               },
               {
@@ -303,7 +300,7 @@ export function ClinicalReportMockup() {
                 class: "Above Average",
                 classType: "above-avg",
                 definition: "Efficiency of automatic, intuitive cognitive processing.",
-                implication: "Rapid intuitive processing supports quick pattern recognition and reaction.",
+                implication: "Rapid intuitive processing supports quick pattern recognition.",
                 delta: "+6",
               },
               {
@@ -312,7 +309,7 @@ export function ClinicalReportMockup() {
                 class: "Above Average",
                 classType: "above-avg",
                 definition: "Capacity for controlled, effortful analytical thinking.",
-                implication: "Strong deliberative capacity supports nuanced judgment and complex reasoning.",
+                implication: "Strong deliberative capacity supports nuanced judgment.",
                 delta: "+4",
               },
             ].map((domain, idx) => (
@@ -322,22 +319,23 @@ export function ClinicalReportMockup() {
                   <div className="clinical-domain-score-block">
                     <span className="clinical-domain-score">{domain.score}</span>
                     <span className={`clinical-domain-class ${domain.classType}`}>{domain.class}</span>
-                    <span className="clinical-domain-delta positive">{domain.delta} from baseline</span>
+                    <span className="clinical-domain-delta positive">{domain.delta}</span>
                   </div>
                 </div>
                 <p className="clinical-domain-definition">
                   <strong>Definition:</strong> {domain.definition}
                 </p>
                 <p className="clinical-domain-implication">
-                  <strong>Performance Implication:</strong> {domain.implication}
+                  <strong>Implication:</strong> {domain.implication}
                 </p>
               </div>
             ))}
           </div>
         </section>
+        <span className="clinical-page-number">Page 4 of 7</span>
       </section>
 
-      {/* Page 5: Training Analytics */}
+      {/* Page 5: Training Analytics & Interpretation */}
       <section className="clinical-page">
         <section className="clinical-section">
           <h2 className="clinical-section-header">7. TRAINING LOAD & ADAPTATION ANALYSIS</h2>
@@ -345,19 +343,19 @@ export function ClinicalReportMockup() {
           <div className="clinical-training-stats">
             <div className="clinical-stat-block">
               <span className="clinical-stat-value">{metrics.totalSessions}</span>
-              <span className="clinical-stat-label">Sessions Completed</span>
+              <span className="clinical-stat-label">Sessions</span>
             </div>
             <div className="clinical-stat-block">
               <span className="clinical-stat-value">{metrics.accuracy}%</span>
-              <span className="clinical-stat-label">Mean Accuracy</span>
+              <span className="clinical-stat-label">Accuracy</span>
             </div>
             <div className="clinical-stat-block">
               <span className="clinical-stat-value">{metrics.xp.toLocaleString()}</span>
-              <span className="clinical-stat-label">Experience Points</span>
+              <span className="clinical-stat-label">XP</span>
             </div>
             <div className="clinical-stat-block">
-              <span className="clinical-stat-value">Level {metrics.level}</span>
-              <span className="clinical-stat-label">Cognitive Level</span>
+              <span className="clinical-stat-value">Lv.{metrics.level}</span>
+              <span className="clinical-stat-label">Level</span>
             </div>
           </div>
 
@@ -365,10 +363,7 @@ export function ClinicalReportMockup() {
             <h3 className="clinical-subsection-header">Training Dose Interpretation</h3>
             <p>
               Session count of {metrics.totalSessions} with {metrics.accuracy}% accuracy represents 
-              substantial training volume, indicating strong engagement and commitment to cognitive development.
-            </p>
-            <p>
-              High accuracy rates indicate effective challenge calibration and strong skill acquisition.
+              substantial training volume, indicating strong engagement.
             </p>
           </div>
 
@@ -378,17 +373,17 @@ export function ClinicalReportMockup() {
               <div className="clinical-domain-bar-row">
                 <span className="clinical-bar-label">Focus Arena</span>
                 <span className="clinical-bar-sessions">18 sessions</span>
-                <span className="clinical-bar-avg">76% avg</span>
+                <span className="clinical-bar-avg">76%</span>
               </div>
               <div className="clinical-domain-bar-row">
                 <span className="clinical-bar-label">Critical Reasoning</span>
                 <span className="clinical-bar-sessions">16 sessions</span>
-                <span className="clinical-bar-avg">79% avg</span>
+                <span className="clinical-bar-avg">79%</span>
               </div>
               <div className="clinical-domain-bar-row">
                 <span className="clinical-bar-label">Creativity Hub</span>
                 <span className="clinical-bar-sessions">13 sessions</span>
-                <span className="clinical-bar-avg">72% avg</span>
+                <span className="clinical-bar-avg">72%</span>
               </div>
             </div>
           </div>
@@ -399,35 +394,29 @@ export function ClinicalReportMockup() {
           
           <div className="clinical-interpretation-grid">
             <div className="clinical-interpretation-block">
-              <h3 className="clinical-subsection-header">Identified Strengths</h3>
+              <h3 className="clinical-subsection-header">Strengths</h3>
               <ul className="clinical-list">
-                <li>
-                  <strong>Analytical Reasoning</strong> (75): Robust analytical capacity supports complex decision-making.
-                </li>
-                <li>
-                  <strong>Processing Speed</strong> (74): Rapid intuitive processing supports quick pattern recognition.
-                </li>
+                <li><strong>Analytical Reasoning</strong> (75): Robust analytical capacity.</li>
+                <li><strong>Processing Speed</strong> (74): Rapid pattern recognition.</li>
               </ul>
             </div>
 
             <div className="clinical-interpretation-block">
-              <h3 className="clinical-subsection-header">Identified Vulnerabilities</h3>
+              <h3 className="clinical-subsection-header">Vulnerabilities</h3>
               <ul className="clinical-list">
-                <li>
-                  <strong>Creative Cognition</strong> (68): Moderate creative flexibility with potential for enhanced ideation.
-                </li>
+                <li><strong>Creative Cognition</strong> (68): Potential for enhanced ideation.</li>
               </ul>
             </div>
           </div>
 
           <div className="clinical-patterns-block">
-            <h3 className="clinical-subsection-header">Adaptive vs. Non-Adaptive Patterns</h3>
+            <h3 className="clinical-subsection-header">Adaptive Patterns</h3>
             <p>
-              Current patterns reflect adaptive cognitive engagement with appropriate challenge-seeking behavior. 
-              Performance consistency suggests stable skill acquisition and effective learning transfer.
+              Current patterns reflect adaptive cognitive engagement with appropriate challenge-seeking behavior.
             </p>
           </div>
         </section>
+        <span className="clinical-page-number">Page 5 of 7</span>
       </section>
 
       {/* Page 6: Prognosis & Recommendations */}
@@ -437,16 +426,15 @@ export function ClinicalReportMockup() {
           
           <div className="clinical-prognosis-box">
             <p>
-              Based on current performance patterns, maintenance of cognitive indices is likely with continued adherence. 
-              Moderate confidence in sustained performance over the next 30-45 days. With maintained training frequency, 
+              Based on current performance patterns, maintenance of cognitive indices is likely with continued 
+              adherence. Moderate confidence in sustained performance. With maintained training frequency, 
               an increase of 3-5 SCI points is achievable.
             </p>
           </div>
 
           <div className="clinical-confidence-note">
             <p>
-              <em>Confidence Level:</em> Moderate — Prognosis reliability is directly related to available training 
-              data volume and consistency.
+              <em>Confidence Level:</em> Moderate — Reliability is related to training data volume.
             </p>
           </div>
         </section>
@@ -459,10 +447,10 @@ export function ClinicalReportMockup() {
             
             <div className="clinical-rx-grid">
               <div className="clinical-rx-item">
-                <span className="clinical-rx-label">Recommended Frequency</span>
+                <span className="clinical-rx-label">Frequency</span>
                 <span className="clinical-rx-value">5–7 sessions per week</span>
                 <span className="clinical-rx-rationale">
-                  Consistent engagement is the strongest predictor of cognitive improvement.
+                  Consistent engagement is the strongest predictor of improvement.
                 </span>
               </div>
 
@@ -470,7 +458,7 @@ export function ClinicalReportMockup() {
                 <span className="clinical-rx-label">Priority Focus</span>
                 <span className="clinical-rx-value">Creative Cognition Exercises</span>
                 <span className="clinical-rx-rationale">
-                  Addressing the lowest-performing domain provides the highest marginal improvement potential.
+                  Addressing lowest-performing domain provides highest marginal improvement.
                 </span>
               </div>
 
@@ -478,90 +466,58 @@ export function ClinicalReportMockup() {
                 <span className="clinical-rx-label">Session Structure</span>
                 <span className="clinical-rx-value">10–15 minutes focused practice</span>
                 <span className="clinical-rx-rationale">
-                  Optimal cognitive training duration balances engagement intensity with sustainability.
+                  Optimal duration balances engagement intensity with sustainability.
                 </span>
               </div>
 
               <div className="clinical-rx-item">
-                <span className="clinical-rx-label">Recovery Integration</span>
-                <span className="clinical-rx-value">Include 1–2 recovery days weekly</span>
+                <span className="clinical-rx-label">Recovery</span>
+                <span className="clinical-rx-value">1–2 recovery days weekly</span>
                 <span className="clinical-rx-rationale">
-                  Cognitive consolidation requires rest. Strategic recovery periods support long-term adaptation.
+                  Cognitive consolidation requires rest for long-term adaptation.
                 </span>
               </div>
             </div>
           </div>
         </section>
+        <span className="clinical-page-number">Page 6 of 7</span>
+      </section>
 
+      {/* Page 7: Methodology, Disclaimer & Footer */}
+      <section className="clinical-page">
         <section className="clinical-section">
           <h2 className="clinical-section-header">11. METHODOLOGICAL NOTES</h2>
           
           <div className="clinical-methodology">
             <p>
-              Metrics presented in this report are derived from behavioral performance data collected 
-              during standardized cognitive training exercises. The assessment methodology incorporates:
+              Metrics are derived from behavioral performance data during standardized cognitive exercises:
             </p>
             <ul className="clinical-list">
-              <li>
-                <strong>Aggregation:</strong> Individual session scores are aggregated using weighted 
-                averaging algorithms that account for recency, difficulty, and domain specificity.
-              </li>
-              <li>
-                <strong>Normalization:</strong> Raw scores are normalized against age-adjusted reference 
-                distributions derived from the NeuroLoop user population.
-              </li>
-              <li>
-                <strong>Longitudinal Tracking:</strong> Trend analysis incorporates historical performance 
-                data to identify patterns of improvement, stability, or decline.
-              </li>
-              <li>
-                <strong>Composite Index Calculation:</strong> The SCI integrates multiple performance 
-                dimensions using empirically-derived weightings (Cognitive: 50%, Behavioral: 30%, Recovery: 20%).
-              </li>
+              <li><strong>Aggregation:</strong> Weighted averaging for recency and domain specificity.</li>
+              <li><strong>Normalization:</strong> Age-adjusted reference distributions.</li>
+              <li><strong>Longitudinal Tracking:</strong> Historical trend analysis.</li>
+              <li><strong>Composite Index:</strong> SCI weightings (Cognitive: 50%, Behavioral: 30%, Recovery: 20%).</li>
             </ul>
           </div>
         </section>
-      </section>
 
-      {/* Page 7: Disclaimer & Footer */}
-      <section className="clinical-page">
         <section className="clinical-section">
           <h2 className="clinical-section-header">12. ETHICAL & CLINICAL DISCLAIMER</h2>
           
           <div className="clinical-disclaimer">
             <p>
               This cognitive performance assessment is provided for educational and self-improvement 
-              purposes only. It is not intended to diagnose, treat, or predict cognitive impairment, 
-              neurological conditions, or mental health disorders.
+              purposes only. It is not intended to diagnose cognitive impairment or mental health disorders.
             </p>
-            <p>
-              <strong>Important Limitations:</strong>
-            </p>
+            <p><strong>Important Limitations:</strong></p>
             <ul className="clinical-list">
-              <li>
-                This assessment does not constitute a clinical neuropsychological evaluation.
-              </li>
-              <li>
-                Results are derived from self-directed training activities and may not reflect 
-                performance under controlled clinical conditions.
-              </li>
-              <li>
-                Cognitive metrics can fluctuate based on factors including sleep, stress, motivation, 
-                and environmental conditions.
-              </li>
-              <li>
-                Normative comparisons are based on the NeuroLoop user population and may not 
-                represent general population distributions.
-              </li>
+              <li>This assessment does not constitute a clinical neuropsychological evaluation.</li>
+              <li>Results are from self-directed training and may not reflect clinical conditions.</li>
+              <li>Metrics fluctuate based on sleep, stress, motivation, and environment.</li>
+              <li>Normative comparisons are based on the NeuroLoop user population.</li>
             </ul>
             <p>
-              For concerns about cognitive functioning, please consult a qualified healthcare 
-              professional or licensed neuropsychologist.
-            </p>
-            <p>
-              <strong>NeuroLoop</strong> is positioned as a cognitive performance assessment and 
-              training platform. It provides metrics and insights to support self-directed cognitive 
-              development but does not replace professional clinical evaluation when indicated.
+              For concerns about cognitive functioning, please consult a qualified healthcare professional.
             </p>
           </div>
         </section>
@@ -574,15 +530,15 @@ export function ClinicalReportMockup() {
             </div>
             <div className="clinical-footer-meta">
               <span>Report ID: {reportId}</span>
-              <span>Generated: {generatedAt.toISOString()}</span>
+              <span>Generated: {generatedAt.toISOString().split('T')[0]}</span>
               <span>Classification: Confidential</span>
             </div>
             <p className="clinical-footer-legal">
-              © {generatedAt.getFullYear()} NeuroLoop. All rights reserved. 
-              This document contains confidential information intended solely for the named participant.
+              © {generatedAt.getFullYear()} NeuroLoop. All rights reserved.
             </p>
           </div>
         </footer>
+        <span className="clinical-page-number">Page 7 of 7</span>
       </section>
     </div>
   );

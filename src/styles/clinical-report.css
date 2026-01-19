@@ -26,20 +26,32 @@
   line-height: 1.6;
   color: var(--clinical-text);
   background: var(--clinical-bg);
-  max-width: 210mm;
-  margin: 0 auto;
+  width: 210mm;
 }
 
 .clinical-page {
   background: var(--clinical-bg);
   padding: 15mm 18mm;
-  min-height: 280mm;
+  width: 210mm;
+  height: 297mm;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
   page-break-after: always;
   page-break-inside: avoid;
 }
 
 .clinical-page:last-child {
   page-break-after: avoid;
+}
+
+/* Page number positioning */
+.clinical-page-number {
+  position: absolute;
+  bottom: 10mm;
+  right: 18mm;
+  font-size: 9pt;
+  color: var(--clinical-text-muted);
 }
 
 /* ========================================
@@ -772,7 +784,9 @@
 
   .clinical-page {
     padding: 12mm 15mm;
-    min-height: auto;
+    height: 297mm;
+    width: 210mm;
+    overflow: hidden;
   }
 
   .clinical-section {
@@ -782,6 +796,21 @@
   .clinical-domain-card,
   .clinical-rx-item {
     page-break-inside: avoid;
+  }
+  
+  .clinical-page-number {
+    display: block;
+  }
+}
+
+@media screen {
+  .clinical-page {
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .clinical-page:last-child {
+    margin-bottom: 0;
   }
 }
 
