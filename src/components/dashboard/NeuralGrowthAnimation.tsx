@@ -503,13 +503,13 @@ export function NeuralGrowthAnimation({
                 </div>
               </div>
               
-              {/* Effort hint - how much to gain 1 point */}
+              {/* Effort hint - contextual guidance */}
               <p className="text-[9px] text-muted-foreground/60 text-center mb-3 italic">
                 {bottleneck.variable === "recovery"
-                  ? "~10 min of Detox or Walking ≈ +1 Neural Strength"
+                  ? "Detox & walking contribute 20% of your total score"
                   : bottleneck.variable === "training"
-                    ? "~200 XP this week ≈ +1 Neural Strength"
-                    : "1 training session ≈ +1 Neural Strength"}
+                    ? "Games XP this week contributes 30% of your total score"
+                    : "Skill scores contribute 50% of your total score"}
               </p>
               
               {/* CTA Button */}
