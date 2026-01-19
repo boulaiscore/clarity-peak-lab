@@ -40,9 +40,12 @@ export function Navbar() {
         <div className="container px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center">
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="flex items-center"
+            >
               <span className="text-white font-bold text-lg tracking-tight">NEUROLOOP</span>
-            </Link>
+            </button>
 
             {/* Navigation Tabs */}
             <NavigationTabs onTabClick={handleTabClick} />
