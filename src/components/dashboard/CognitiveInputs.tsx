@@ -1600,40 +1600,32 @@ function LibrarySection({
       </div>
 
       <div className="space-y-2">
-        {items.map(item => {
-          const xpEarned = calculateItemRawPoints(item);
-          return (
-            <a
-              key={item.id}
-              href={item.primaryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 hover:border-violet-500/30 transition-all"
-            >
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium truncate">{item.title}</p>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-500 font-medium shrink-0">
-                      +{xpEarned} XP
-                    </span>
-                  </div>
-                  {item.author && (
-                    <p className="text-[10px] text-muted-foreground/60">{item.author}</p>
-                  )}
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[9px] text-muted-foreground/50">
-                      Difficulty: {item.difficulty}/5
-                    </span>
-                    <ThinkingSystemIcon system={item.thinkingSystem} />
-                  </div>
+        {items.map(item => (
+          <a
+            key={item.id}
+            href={item.primaryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block p-3 rounded-xl border border-border/30 bg-card/30 hover:bg-card/50 hover:border-violet-500/30 transition-all"
+          >
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{item.title}</p>
+                {item.author && (
+                  <p className="text-[10px] text-muted-foreground/60">{item.author}</p>
+                )}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[9px] text-muted-foreground/50">
+                    Difficulty: {item.difficulty}/5
+                  </span>
+                  <ThinkingSystemIcon system={item.thinkingSystem} />
                 </div>
-                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
               </div>
-            </a>
-          );
-        })}
+              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+            </div>
+          </a>
+        ))}
       </div>
     </div>
   );
