@@ -2,12 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { NavigationTabs } from "./NavigationTabs";
+import { NavigationTabs, tabs } from "./NavigationTabs";
 import { Menu, X } from "lucide-react";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -18,19 +17,22 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close panels when scrolled changes
-  useEffect(() => {
-    if (scrolled && activeTab) {
-      // Keep panel open even when scrolled
+  const handleTabClick = (tabId: string) => {
+    // Scroll to section
+    const element = document.getElementById(tabId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [scrolled, activeTab]);
+    // Close mobile menu
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
       <nav 
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          scrolled || activeTab
+          scrolled || mobileMenuOpen
             ? "bg-black/95 backdrop-blur-md" 
             : "bg-transparent"
         )}
@@ -38,12 +40,12 @@ export function Navbar() {
         <div className="container px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center" onClick={() => setActiveTab(null)}>
+            <Link to="/" className="flex items-center">
               <span className="text-white font-bold text-lg tracking-tight">NEUROLOOP</span>
             </Link>
 
             {/* Navigation Tabs */}
-            <NavigationTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            <NavigationTabs onTabClick={handleTabClick} />
 
             {/* Mobile menu button */}
             <button
@@ -67,16 +69,13 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-black/95 border-t border-white/5">
             <div className="container px-6 py-4 space-y-2">
-              {["subscriptions", "how-it-works", "assessment", "why-neuroloop", "protocols"].map((tab) => (
+              {tabs.map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => {
-                    setActiveTab(tab);
-                    setMobileMenuOpen(false);
-                  }}
+                  key={tab.id}
+                  onClick={() => handleTabClick(tab.id)}
                   className="block w-full text-left py-3 text-sm text-white/70 hover:text-white uppercase tracking-wider"
                 >
-                  {tab.replace(/-/g, " ")}
+                  {tab.label}
                 </button>
               ))}
               <Link
