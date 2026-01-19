@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  Brain, Target, Lightbulb, Zap, Timer,
-  Play, Lock, ShieldAlert, AlertCircle, Info
+  Brain, Target, Lightbulb, Zap, Timer, Play, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
@@ -13,9 +12,8 @@ import { S1RAGameSelector } from "./S1RAGameSelector";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
-import { useGamesGating, GameGatingResult, GatingStatus } from "@/hooks/useGamesGating";
-import { GameType, getGameTypeFromArea } from "@/lib/gamesGating";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useGamesGating } from "@/hooks/useGamesGating";
+import { GameType } from "@/lib/gamesGating";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
@@ -41,35 +39,6 @@ interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
 }
 
-// Helper to get human-readable reason (user-facing language)
-function getWithholdReason(result: GameGatingResult): string {
-  if (!result.reasonCode) return "Unavailable";
-  
-  switch (result.reasonCode) {
-    case "RECOVERY_TOO_LOW":
-      return "Recovery is low — build recovery through Detox or Walk";
-    case "SHARPNESS_TOO_LOW":
-      return `Sharpness below threshold (${result.details?.currentValue ?? 0}%)`;
-    case "SHARPNESS_TOO_HIGH":
-      return "Sharpness already optimal — focus training not needed";
-    case "READINESS_TOO_LOW":
-      return `Readiness below threshold (${result.details?.currentValue ?? 0}%)`;
-    case "READINESS_OUT_OF_RANGE":
-      return "Readiness outside optimal range for this session";
-    case "CAP_REACHED_DAILY_S1":
-      return "Daily fast focus limit reached (3/day)";
-    case "CAP_REACHED_DAILY_S2":
-      return "Daily deep work limit reached (1/day)";
-    case "CAP_REACHED_WEEKLY_S2":
-      return "Weekly deep work limit reached";
-    case "CAP_REACHED_WEEKLY_IN":
-      return "Weekly insight limit reached";
-    case "SUPERHUMAN_REC_REQUIRED":
-      return "Recovery ≥55% required for advanced deep work";
-    default:
-      return "Temporarily unavailable";
-  }
-}
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
@@ -185,86 +154,42 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 </div>
               </div>
 
-              {/* Area Cards - Stacked within each system */}
+              {/* Area Cards - Stacked within each system - Always clickable */}
               <div className="p-2 space-y-1.5">
                 {areas.map((area) => {
                   const Icon = AREA_ICONS[area.areaId] || Brain;
-                  const gatingResult = games[area.gameType];
-                  const isEnabled = !gatingResult || gatingResult.status === "ENABLED";
-                  const isProtection = gatingResult?.status === "PROTECTION";
-                  const isWithheld = gatingResult?.status === "WITHHELD";
                   
                   return (
-                    <TooltipProvider key={`${area.areaId}-${system}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
-                            disabled={!isEnabled}
-                            className={cn(
-                              "group relative w-full p-2 rounded-lg border transition-all text-left",
-                              isEnabled 
-                                ? "bg-background/50 hover:bg-background border-border/50 hover:border-primary/30 active:scale-[0.98]"
-                                : isProtection
-                                  ? "bg-muted/30 border-protection/30 opacity-70 cursor-not-allowed"
-                                  : "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
-                            )}
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className={cn(
-                                  "w-6 h-6 rounded-md flex items-center justify-center shrink-0",
-                                  isEnabled
-                                    ? system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
-                                    : "bg-muted/30"
-                                )}>
-                                {isProtection ? (
-                                  <ShieldAlert className="w-3 h-3 text-protection" />
-                                ) : isWithheld ? (
-                                  <Lock className="w-3 h-3 text-muted-foreground" />
-                                ) : (
-                                  <Icon className={cn("w-3 h-3", iconColor)} />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className={cn(
-                                  "text-[10px] font-medium leading-tight",
-                                  isEnabled ? "text-foreground" : "text-muted-foreground"
-                                )}>
-                                  {area.name}
-                                </h4>
-                                <p className="text-[8px] text-muted-foreground leading-tight flex items-center gap-0.5">
-                                  {isEnabled ? area.tagline : (
-                                    <>
-                                      <span className={isProtection ? "text-protection/70" : ""}>
-                                        {isProtection ? "Recovery needed" : "Locked"}
-                                      </span>
-                                      <Info className="w-2.5 h-2.5 text-muted-foreground/50" />
-                                    </>
-                                  )}
-                                </p>
-                              </div>
-                              
-                              {/* Play indicator - only for enabled games */}
-                              {isEnabled && (
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Play className={cn("w-3 h-3", iconColor)} />
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        </TooltipTrigger>
-                        {!isEnabled && gatingResult && (
-                          <TooltipContent side="bottom" className="max-w-[200px]">
-                            <p className="text-xs">{getWithholdReason(gatingResult)}</p>
-                            {gatingResult.unlockActions.length > 0 && (
-                              <p className="text-[10px] text-muted-foreground mt-1">
-                                Try: {gatingResult.unlockActions[0]}
-                              </p>
-                            )}
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
+                    <button
+                      key={`${area.areaId}-${system}`}
+                      onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
+                      className={cn(
+                        "group relative w-full p-2 rounded-lg border transition-all text-left",
+                        "bg-background/50 hover:bg-background border-border/50 hover:border-primary/30 active:scale-[0.98]"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                            "w-6 h-6 rounded-md flex items-center justify-center shrink-0",
+                            system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
+                          )}>
+                          <Icon className={cn("w-3 h-3", iconColor)} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-[10px] font-medium leading-tight text-foreground">
+                            {area.name}
+                          </h4>
+                          <p className="text-[8px] text-muted-foreground leading-tight">
+                            {area.tagline}
+                          </p>
+                        </div>
+                        
+                        {/* Play indicator */}
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Play className={cn("w-3 h-3", iconColor)} />
+                        </div>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
