@@ -87,29 +87,32 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const { games, caps, safetyRuleActive, isLoading: gatingLoading } = useGamesGating();
 
   const handleGameTypeClick = (areaId: NeuroLabArea, mode: ThinkingSystem, gameType: GameType) => {
-    // Check gating status first
+    // Always allow opening game selectors to see the games list
+    // Individual games will be locked within the selector if needed
     const gatingResult = games[gameType];
+    const isLocked = gatingResult && gatingResult.status !== "ENABLED";
     
-    if (gatingResult && gatingResult.status !== "ENABLED") {
-      // Game is gated - don't allow starting
+    // S1-AE has its own game selector with Triage Sprint, Orbit Lock, Focus Switch
+    if (gameType === "S1-AE") {
+      setShowS1AESelector(true);
+      return;
+    }
+    
+    // S1-RA has its own game selector with Flash Connect, Constellation Snap
+    if (gameType === "S1-RA") {
+      setShowS1RASelector(true);
+      return;
+    }
+    
+    // For S2 games (CT/IN), if locked, don't open the picker
+    // (since ExercisePickerSheet doesn't have built-in gating UI yet)
+    if (isLocked) {
       return;
     }
     
     if (gamesComplete) {
       setPendingGame({ areaId, mode });
       setShowTargetExceededDialog(true);
-      return;
-    }
-    
-    // S1-AE has its own game selector with Triage Sprint and Orbit Lock
-    if (gameType === "S1-AE") {
-      setShowS1AESelector(true);
-      return;
-    }
-    
-    // S1-RA has its own game selector with Flash Connect
-    if (gameType === "S1-RA") {
-      setShowS1RASelector(true);
       return;
     }
     

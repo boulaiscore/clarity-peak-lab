@@ -1,10 +1,10 @@
 /**
  * ============================================
- * S1-RA GAME SELECTOR v1.0
+ * S1-RA GAME SELECTOR v1.1
  * ============================================
  * 
  * Bottom sheet selector for Rapid Association (RA) games.
- * Currently includes: Flash Connect
+ * Now shows games list even when locked, with lock indicators.
  * 
  * Uses S1DifficultySelector for user-selectable difficulty.
  */
@@ -12,7 +12,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Lightbulb, Star, ChevronRight, Sparkles } from "lucide-react";
+import { Lightbulb, Star, ChevronRight, Sparkles, Lock, ShieldAlert } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -24,6 +24,8 @@ import { useS1Difficulty } from "@/hooks/useS1Difficulty";
 import { S1DifficultySelector } from "./S1DifficultySelector";
 import { Difficulty } from "@/lib/s1DifficultyEngine";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGamesGating } from "@/hooks/useGamesGating";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface S1RAGameSelectorProps {
   open: boolean;
@@ -58,11 +60,35 @@ const RA_GAMES: RAGameOption[] = [
   },
 ];
 
+// Helper to get human-readable reason
+function getWithholdReason(reasonCode?: string): string {
+  if (!reasonCode) return "Unavailable";
+  
+  switch (reasonCode) {
+    case "RECOVERY_TOO_LOW":
+      return "Recovery is low — build recovery through Detox or Walk";
+    case "SHARPNESS_TOO_LOW":
+      return "Sharpness below threshold";
+    case "READINESS_TOO_LOW":
+      return "Readiness below threshold";
+    case "CAP_REACHED_DAILY_S1":
+      return "Daily focus limit reached (3/day)";
+    default:
+      return "Temporarily unavailable";
+  }
+}
+
 export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) {
   const navigate = useNavigate();
   const [selectedGame, setSelectedGame] = useState<RAGameOption | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("medium");
   const [isOverride, setIsOverride] = useState(false);
+  
+  // Get gating status for S1-RA
+  const { games: gatingResults, isLoading: gatingLoading } = useGamesGating();
+  const s1raGating = gatingResults["S1-RA"];
+  const isLocked = s1raGating && s1raGating.status !== "ENABLED";
+  const isProtection = s1raGating?.status === "PROTECTION";
   
   // Get difficulty options from unified S1 engine
   const {
@@ -70,12 +96,17 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
     options,
     safetyModeActive,
     safetyLabel,
-    isLoading,
+    isLoading: difficultyLoading,
     _debug,
   } = useS1Difficulty();
   
+  const isLoading = difficultyLoading || gatingLoading;
+  
   // Set initial difficulty to recommended when data loads
   const handleGameSelect = (game: RAGameOption) => {
+    // Don't allow selection if locked
+    if (isLocked) return;
+    
     setSelectedGame(game);
     setSelectedDifficulty(recommended);
     setIsOverride(false);
@@ -135,6 +166,25 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
               </SheetHeader>
               
               <div className="space-y-3 pb-6">
+                {/* Show lock banner if games are locked */}
+                {isLocked && (
+                  <Alert className={cn(
+                    "border",
+                    isProtection 
+                      ? "border-protection/30 bg-protection/5" 
+                      : "border-muted-foreground/20 bg-muted/30"
+                  )}>
+                    {isProtection ? (
+                      <ShieldAlert className="h-4 w-4 text-protection" />
+                    ) : (
+                      <Lock className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <AlertDescription className="text-xs text-muted-foreground">
+                      {getWithholdReason(s1raGating?.reasonCode)}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 {isLoading ? (
                   <Skeleton className="h-28 w-full rounded-xl" />
                 ) : (
@@ -148,33 +198,57 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handleGameSelect(game)}
+                        disabled={isLocked}
                         className={cn(
                           "w-full p-4 rounded-xl border text-left transition-all",
-                          "bg-background/50 hover:bg-background",
-                          "border-primary/40 ring-1 ring-primary/20",
-                          "hover:border-primary/30 active:scale-[0.98]",
-                          "group relative"
+                          "group relative",
+                          isLocked
+                            ? "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
+                            : cn(
+                                "bg-background/50 hover:bg-background",
+                                "border-primary/40 ring-1 ring-primary/20",
+                                "hover:border-primary/30 active:scale-[0.98]"
+                              )
                         )}
                       >
-                        {/* Suggested badge (since there's only one game) */}
-                        <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30">
-                          <Sparkles className="w-3 h-3 text-primary" />
-                          <span className="text-[9px] font-medium text-primary">
-                            Available
-                          </span>
-                        </div>
+                        {/* Available badge (only when not locked) */}
+                        {!isLocked && (
+                          <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30">
+                            <Sparkles className="w-3 h-3 text-primary" />
+                            <span className="text-[9px] font-medium text-primary">
+                              Available
+                            </span>
+                          </div>
+                        )}
                         
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
-                            <Lightbulb className="w-5 h-5 text-amber-400" />
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                            isLocked ? "bg-muted/30" : "bg-amber-500/15"
+                          )}>
+                            {isLocked ? (
+                              isProtection ? (
+                                <ShieldAlert className="w-5 h-5 text-protection" />
+                              ) : (
+                                <Lock className="w-5 h-5 text-muted-foreground" />
+                              )
+                            ) : (
+                              <Lightbulb className="w-5 h-5 text-amber-400" />
+                            )}
                           </div>
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className="text-sm font-semibold text-foreground">
+                              <h4 className={cn(
+                                "text-sm font-semibold",
+                                isLocked ? "text-muted-foreground" : "text-foreground"
+                              )}>
                                 {game.name}
                               </h4>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">
+                              <span className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded-full",
+                                isLocked ? "bg-muted/30 text-muted-foreground" : "bg-amber-500/10 text-amber-400"
+                              )}>
                                 {game.tagline}
                               </span>
                             </div>
@@ -184,8 +258,11 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                             </p>
                             
                             <div className="flex items-center gap-3 text-[10px]">
-                              <div className="flex items-center gap-1 text-amber-400/80">
-                                <Star className="w-3 h-3 fill-amber-400/50" />
+                              <div className={cn(
+                                "flex items-center gap-1",
+                                isLocked ? "text-muted-foreground/50" : "text-amber-400/80"
+                              )}>
+                                <Star className={cn("w-3 h-3", isLocked ? "" : "fill-amber-400/50")} />
                                 <span>{xp} XP</span>
                               </div>
                               <span className="text-muted-foreground">~60 seconds</span>
@@ -193,7 +270,10 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                           </div>
                           
                           <div className="flex items-center justify-center h-10">
-                            <ChevronRight className="w-4 h-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                            <ChevronRight className={cn(
+                              "w-4 h-4 text-muted-foreground transition-opacity",
+                              isLocked ? "opacity-30" : "opacity-50 group-hover:opacity-100"
+                            )} />
                           </div>
                         </div>
                       </motion.button>
