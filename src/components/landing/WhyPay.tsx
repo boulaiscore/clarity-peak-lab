@@ -1,59 +1,55 @@
-import { TrendingUp, Infinity, Zap } from "lucide-react";
+import { motion } from "framer-motion";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
 
 export function WhyPay() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
-    <section className="py-24 sm:py-32 relative">
-      <div className="container px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
-              <span className="text-gradient">Cognitive Longevity</span>
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-              Cognitive fitness for long-term performance. Your brain is your competitive advantage — train it systematically.
-            </p>
-          </div>
+    <section className="bg-black py-32 lg:py-48 relative overflow-hidden" ref={ref}>
+      {/* Subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-white/[0.02] to-black" />
+      
+      <div className="container px-6 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="max-w-4xl mx-auto text-center"
+        >
+          {/* Large Statement */}
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-8">
+            Your brain is your
+            <br />
+            <span className="text-white/60">competitive advantage.</span>
+          </h2>
+          
+          <p className="text-xl sm:text-2xl text-white/50 font-light max-w-2xl mx-auto mb-16">
+            Train it like one.
+          </p>
 
-          <div className="grid sm:grid-cols-3 gap-6 mb-16">
-            <div className="p-6 sm:p-8 rounded-xl bg-card border border-border shadow-card">
-              <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center mb-4">
-                <TrendingUp className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Compounding Returns</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Small, consistent improvements in thinking quality multiply over years of decisions.
-              </p>
+          {/* Stats Row */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="grid grid-cols-3 gap-8 max-w-3xl mx-auto pt-16 border-t border-white/10"
+          >
+            <div>
+              <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">5min</p>
+              <p className="text-xs text-white/40 uppercase tracking-wider">Daily</p>
             </div>
-            
-            <div className="p-6 sm:p-8 rounded-xl bg-card border border-border shadow-card">
-              <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center mb-4">
-                <Infinity className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Long-Term Sharpness</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Maintain peak cognitive performance longer. Protect your most valuable asset.
-              </p>
+            <div>
+              <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">12wk</p>
+              <p className="text-xs text-white/40 uppercase tracking-wider">Program</p>
             </div>
-            
-            <div className="p-6 sm:p-8 rounded-xl bg-card border border-border shadow-card">
-              <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center mb-4">
-                <Zap className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">On-Demand Precision</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Access structured thinking protocols exactly when you need them most.
-              </p>
+            <div>
+              <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">∞</p>
+              <p className="text-xs text-white/40 uppercase tracking-wider">Returns</p>
             </div>
-          </div>
-
-          {/* Quote */}
-          <div className="text-center p-8 sm:p-12 rounded-xl bg-gradient-surface border border-border">
-            <blockquote className="text-xl sm:text-2xl font-medium mb-4 leading-relaxed">
-              "Higher-order cognition. <span className="text-gradient">Better decisions.</span>"
-            </blockquote>
-            <p className="text-muted-foreground text-sm">— The NeuroLoop Philosophy</p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

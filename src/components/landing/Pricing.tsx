@@ -1,130 +1,145 @@
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Zap } from "lucide-react";
+import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
+
+const tiers = [
+  {
+    name: "Free",
+    price: "$0",
+    period: "forever",
+    description: "Get started with core training",
+    features: [
+      "2 daily sessions",
+      "Basic S1 & S2 drills",
+      "Progress tracking",
+      "Community access",
+    ],
+    cta: "Start Free",
+    highlighted: false,
+  },
+  {
+    name: "Pro",
+    price: "$11.99",
+    period: "/month",
+    description: "Complete cognitive system",
+    features: [
+      "Unlimited sessions",
+      "Full protocol library",
+      "Advanced analytics",
+      "Monthly cognitive report",
+      "Priority support",
+    ],
+    cta: "Start 7-Day Trial",
+    highlighted: true,
+  },
+  {
+    name: "Elite",
+    price: "$16.99",
+    period: "/month",
+    description: "Maximum performance",
+    features: [
+      "Everything in Pro",
+      "On-demand reports",
+      "Early access features",
+      "1:1 onboarding call",
+      "Private community",
+    ],
+    cta: "Start 7-Day Trial",
+    highlighted: false,
+  },
+];
 
 export function Pricing() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
-    <section className="py-24 sm:py-32 relative">
-      <div className="absolute inset-0 bg-gradient-subtle" />
-      
-      <div className="container px-6 relative">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-semibold mb-5">
-            Choose Your <span className="text-gradient">Access</span>
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Select the depth of cognitive insight and reporting that matches your needs.
+    <section className="bg-black py-24 lg:py-32 relative" ref={ref}>
+      <div className="container px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-medium mb-4">
+            MEMBERSHIP
           </p>
-        </div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6">
+            Choose Your Level
+          </h2>
+          <p className="text-lg text-white/60 max-w-xl mx-auto">
+            Start free, upgrade when you're ready for more.
+          </p>
+        </motion.div>
 
+        {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {/* Free Tier */}
-          <div className="p-8 rounded-xl bg-card border border-border animate-fade-in-up shadow-card">
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-2">Free</h3>
-              <p className="text-muted-foreground text-sm">Introductory system access</p>
-            </div>
-            
-            <div className="mb-8">
-              <span className="text-4xl font-semibold">$0</span>
-              <span className="text-muted-foreground">/forever</span>
-            </div>
+          {tiers.map((tier, index) => (
+            <motion.div
+              key={tier.name}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: index * 0.1 }}
+              className={`relative p-8 rounded-2xl ${
+                tier.highlighted 
+                  ? "bg-white text-black" 
+                  : "bg-white/[0.02] border border-white/10"
+              }`}
+            >
+              {tier.highlighted && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="px-4 py-1 rounded-full bg-black text-white text-xs font-medium">
+                    POPULAR
+                  </span>
+                </div>
+              )}
 
-            <ul className="space-y-4 mb-8">
-              {[
-                "2 daily cognitive sessions",
-                "Introductory S1 & S2 access",
-                "Limited Neuro Lab protocols",
-                "Basic progress tracking",
-                "Standard accuracy modeling",
-              ].map((feature) => (
-                <li key={feature} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Button asChild variant="outline" className="w-full min-h-[52px] rounded-xl">
-              <Link to="/auth">Get Started</Link>
-            </Button>
-          </div>
-
-          {/* Premium Tier */}
-          <div className="p-8 rounded-xl bg-card border border-primary/25 shadow-glow animate-fade-in-up relative" style={{ animationDelay: "0.1s" }}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                BEST VALUE
-              </span>
-            </div>
-            
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-5 h-5 text-primary" />
-                <h3 className="text-xl font-semibold">Premium</h3>
+              <div className="mb-8">
+                <h3 className={`text-xl font-semibold mb-1 ${tier.highlighted ? "text-black" : "text-white"}`}>
+                  {tier.name}
+                </h3>
+                <p className={`text-sm ${tier.highlighted ? "text-black/60" : "text-white/50"}`}>
+                  {tier.description}
+                </p>
               </div>
-              <p className="text-muted-foreground text-sm">Complete cognitive system</p>
-            </div>
-            
-            <div className="mb-8">
-              <span className="text-4xl font-semibold">$11.99</span>
-              <span className="text-muted-foreground">/month</span>
-            </div>
 
-            <ul className="space-y-4 mb-8">
-              {[
-                "Unlimited daily sessions",
-                "Full S1 & S2 protocols",
-                "Full Neuro Lab access",
-                "Enhanced cognitive accuracy",
-                "Monthly Cognitive Report",
-              ].map((feature) => (
-                <li key={feature} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Button asChild variant="hero" className="w-full min-h-[52px] rounded-xl">
-              <Link to="/auth">Start Free Trial</Link>
-            </Button>
-          </div>
-
-          {/* Pro Tier */}
-          <div className="p-8 rounded-xl bg-card border border-border shadow-card animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-2">
-                <Crown className="w-5 h-5 text-muted-foreground" />
-                <h3 className="text-xl font-semibold">Pro</h3>
+              <div className="mb-8">
+                <span className={`text-4xl font-bold tracking-tight ${tier.highlighted ? "text-black" : "text-white"}`}>
+                  {tier.price}
+                </span>
+                <span className={`${tier.highlighted ? "text-black/60" : "text-white/50"}`}>
+                  {tier.period}
+                </span>
               </div>
-              <p className="text-muted-foreground text-sm">Advanced insight layer</p>
-            </div>
-            
-            <div className="mb-8">
-              <span className="text-4xl font-semibold">$16.99</span>
-              <span className="text-muted-foreground">/month</span>
-            </div>
 
-            <ul className="space-y-4 mb-8">
-              {[
-                "Everything in Premium",
-                "On-demand Cognitive Reports",
-                "Advanced trend analytics",
-                "Priority support",
-                "Early access to features",
-              ].map((feature, i) => (
-                <li key={feature} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                  <span className={i === 1 ? "font-medium" : ""}>{feature}</span>
-                </li>
-              ))}
-            </ul>
+              <ul className="space-y-3 mb-8">
+                {tier.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3 text-sm">
+                    <Check className={`w-4 h-4 shrink-0 mt-0.5 ${tier.highlighted ? "text-black" : "text-white/60"}`} />
+                    <span className={tier.highlighted ? "text-black/80" : "text-white/70"}>
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
 
-            <Button asChild variant="outline" className="w-full min-h-[52px] rounded-xl">
-              <Link to="/auth">Start Free Trial</Link>
-            </Button>
-          </div>
+              <Button 
+                asChild 
+                className={`w-full rounded-full h-12 font-semibold ${
+                  tier.highlighted 
+                    ? "bg-black text-white hover:bg-black/90" 
+                    : "bg-white text-black hover:bg-white/90"
+                }`}
+              >
+                <Link to="/auth">{tier.cta}</Link>
+              </Button>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
