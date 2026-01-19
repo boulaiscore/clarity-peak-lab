@@ -71,10 +71,10 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* CTA - pill shaped, solid white */}
+          {/* CTA - pill shaped, primary accent */}
           <Button 
             asChild 
-            className="rounded-full bg-white text-black hover:bg-white/90 font-semibold px-6 h-10"
+            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-6 h-10"
           >
             <Link to="/auth">Join Now</Link>
           </Button>

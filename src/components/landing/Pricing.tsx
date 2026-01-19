@@ -133,7 +133,7 @@ export function Pricing() {
                 className={`w-full rounded-full h-12 font-semibold ${
                   tier.highlighted 
                     ? "bg-black text-white hover:bg-black/90" 
-                    : "bg-white text-black hover:bg-white/90"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
                 }`}
               >
                 <Link to="/auth">{tier.cta}</Link>

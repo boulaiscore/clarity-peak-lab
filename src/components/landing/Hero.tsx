@@ -39,7 +39,7 @@ export function Hero() {
           >
             TRAIN YOUR
             <br />
-            <span className="text-white/90">MIND</span>
+            <span className="text-primary">MIND</span>
           </motion.h1>
 
           {/* Subheadline - light, simple */}
@@ -52,7 +52,7 @@ export function Hero() {
             The cognitive performance system for elite professionals.
           </motion.p>
 
-          {/* Single CTA - pill shaped, solid white */}
+          {/* Single CTA - pill shaped, with primary accent */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -60,7 +60,7 @@ export function Hero() {
           >
             <Button 
               asChild 
-              className="rounded-full bg-white text-black hover:bg-white/90 font-semibold px-10 h-14 text-lg"
+              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-10 h-14 text-lg"
             >
               <Link to="/auth">
                 Start Training

@@ -64,11 +64,11 @@ function FeatureSection({ feature, index }: { feature: typeof features[0], index
         </div>
       </div>
 
-      {/* Visual - Circular Metric (WHOOP-style orb) */}
+      {/* Visual - Circular Metric (WHOOP-style orb) with blue accent */}
       <div className={`flex justify-center ${isReversed ? "lg:order-1" : ""}`}>
         <div className="relative w-64 h-64 sm:w-80 sm:h-80">
           {/* Outer ring */}
-          <div className="absolute inset-0 rounded-full border border-white/10" />
+          <div className="absolute inset-0 rounded-full border border-primary/20" />
           
           {/* Progress ring */}
           <svg className="absolute inset-0 w-full h-full -rotate-90">
@@ -79,7 +79,7 @@ function FeatureSection({ feature, index }: { feature: typeof features[0], index
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
-              className="text-white/5"
+              className="text-primary/10"
             />
             <motion.circle
               cx="50%"
@@ -89,7 +89,7 @@ function FeatureSection({ feature, index }: { feature: typeof features[0], index
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              className="text-white"
+              className="text-primary"
               strokeDasharray="283"
               initial={{ strokeDashoffset: 283 }}
               animate={isInView ? { strokeDashoffset: 283 * (1 - (index + 1) * 0.25) } : {}}
@@ -102,10 +102,13 @@ function FeatureSection({ feature, index }: { feature: typeof features[0], index
             <span className="text-5xl sm:text-6xl font-bold text-white tracking-tight">
               {feature.stat}
             </span>
-            <span className="text-xs text-white/50 uppercase tracking-wider mt-2">
+            <span className="text-xs text-primary/70 uppercase tracking-wider mt-2">
               {feature.statLabel}
             </span>
           </div>
+          
+          {/* Subtle glow */}
+          <div className="absolute inset-0 rounded-full bg-primary/5 blur-2xl -z-10" />
         </div>
       </div>
     </motion.div>
