@@ -1515,19 +1515,24 @@ export function CognitiveLibrary() {
 
   const removeCompletion = useRemoveContentCompletion();
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [itemToRemove, setItemToRemove] = useState<CognitiveInput | null>(null);
 
-  const handleRemove = async (item: CognitiveInput) => {
+  const handleRemoveConfirm = async () => {
+    if (!itemToRemove) return;
+    
     // Extract base ID from prefixed ID: content-podcast-hidden-brain → hidden-brain
-    const parts = item.id.split("-");
+    const parts = itemToRemove.id.split("-");
     const contentType = parts[1] as "podcast" | "book" | "article";
     const baseId = parts.slice(2).join("-");
     
-    setRemovingId(item.id);
+    setRemovingId(itemToRemove.id);
+    setItemToRemove(null);
+    
     try {
       await removeCompletion.mutateAsync({ contentId: baseId, contentType });
       toast({
         title: "Removed from Library",
-        description: `${item.title} is back in your task list.`,
+        description: `${itemToRemove.title} is back in your task list.`,
       });
     } catch {
       toast({
@@ -1538,6 +1543,10 @@ export function CognitiveLibrary() {
     } finally {
       setRemovingId(null);
     }
+  };
+
+  const handleRemoveRequest = (item: CognitiveInput) => {
+    setItemToRemove(item);
   };
 
   return (
@@ -1574,7 +1583,7 @@ export function CognitiveLibrary() {
           items={podcastsCompleted}
           iconColor="text-violet-500"
           bgColor="bg-violet-500/10"
-          onRemove={handleRemove}
+          onRemove={handleRemoveRequest}
           removingId={removingId}
         />
       )}
@@ -1587,7 +1596,7 @@ export function CognitiveLibrary() {
           items={booksCompleted}
           iconColor="text-amber-500"
           bgColor="bg-amber-500/10"
-          onRemove={handleRemove}
+          onRemove={handleRemoveRequest}
           removingId={removingId}
         />
       )}
@@ -1600,10 +1609,28 @@ export function CognitiveLibrary() {
           items={articlesCompleted}
           iconColor="text-blue-500"
           bgColor="bg-blue-500/10"
-          onRemove={handleRemove}
+          onRemove={handleRemoveRequest}
           removingId={removingId}
         />
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!itemToRemove} onOpenChange={(open) => !open && setItemToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from Library?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{itemToRemove?.title}" will be moved back to your task list. You can complete it again later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveConfirm}>
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
