@@ -147,7 +147,7 @@ export default function ReasoningQualityImpact() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-card border border-border/40 mb-8"
+          className="p-5 rounded-2xl bg-card border border-border/40 mb-6"
         >
           <div className="flex items-center justify-between">
             <div>
@@ -175,18 +175,80 @@ export default function ReasoningQualityImpact() {
           </div>
         </motion.div>
 
-        {/* Impact Scale Legend */}
-        <div className="flex items-center justify-between mb-4 px-1">
-          <div className="flex items-center gap-1.5">
-            <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-amber-500" />
-            <span className="text-[11px] font-medium text-amber-500 uppercase tracking-wide">Negative</span>
+        {/* Breakdown Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="p-4 rounded-xl bg-card/50 border border-border/30 mb-8"
+        >
+          <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4">
+            Score Breakdown
+          </h3>
+          
+          <div className="space-y-3">
+            {/* S2 Core */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">S2 Core</span>
+                <span className="text-[10px] text-muted-foreground/60">× 50%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {Math.round(s2Core)}%
+                </span>
+                <span className="text-sm font-semibold tabular-nums w-12 text-right">
+                  {s2CoreContribution.toFixed(1)}
+                </span>
+              </div>
+            </div>
+            
+            {/* S2 Consistency */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Consistency</span>
+                <span className="text-[10px] text-muted-foreground/60">× 30%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {Math.round(s2Consistency)}%
+                </span>
+                <span className="text-sm font-semibold tabular-nums w-12 text-right">
+                  {s2ConsistencyContribution.toFixed(1)}
+                </span>
+              </div>
+            </div>
+            
+            {/* Task Priming */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Task Priming</span>
+                <span className="text-[10px] text-muted-foreground/60">× 20%</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {Math.round(taskPriming)}%
+                </span>
+                <span className="text-sm font-semibold tabular-nums w-12 text-right">
+                  {taskPrimingContribution.toFixed(1)}
+                </span>
+              </div>
+            </div>
+            
+            {/* Total */}
+            <div className="pt-3 mt-2 border-t border-border/30 flex items-center justify-between">
+              <span className="text-sm font-medium">Total</span>
+              <span className="text-sm font-bold tabular-nums w-12 text-right">
+                {(s2CoreContribution + s2ConsistencyContribution + taskPrimingContribution).toFixed(1)}%
+              </span>
+            </div>
           </div>
-          <span className="text-[11px] text-muted-foreground uppercase tracking-wide">% Impact</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-medium text-primary uppercase tracking-wide">Positive</span>
-            <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[6px] border-b-primary" />
-          </div>
-        </div>
+        </motion.div>
+
+        {/* Section Title */}
+        <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3 px-1">
+          Component Details
+        </h3>
 
         {/* Impact Drivers List */}
         <div className="space-y-2">
