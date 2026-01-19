@@ -434,6 +434,16 @@ const Onboarding = () => {
           {/* Step 6: RRI - Sleep (last 2 days) */}
           {step === 6 && (
             <div className="animate-fade-in">
+              {/* RRI Calibration Notice */}
+              <div className="mb-5 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                <p className="text-[12px] text-primary font-medium text-center">
+                  Recovery Calibration
+                </p>
+                <p className="text-[11px] text-muted-foreground text-center mt-1 leading-relaxed">
+                  The next 3 questions assess your current cognitive recovery state. Answer honestly for accurate training recommendations.
+                </p>
+              </div>
+
               <div className="text-center mb-6">
                 <div className="w-11 h-11 rounded-xl bg-teal-500/15 flex items-center justify-center mx-auto mb-3">
                   <Moon className="w-5 h-5 text-teal-400" />
