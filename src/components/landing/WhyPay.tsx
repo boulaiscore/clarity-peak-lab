@@ -22,7 +22,7 @@ export function WhyPay() {
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-8">
             Your brain is your
             <br />
-            <span className="text-white/60">competitive advantage.</span>
+            <span className="text-primary">competitive advantage.</span>
           </h2>
           
           <p className="text-xl sm:text-2xl text-white/50 font-light max-w-2xl mx-auto mb-16">
