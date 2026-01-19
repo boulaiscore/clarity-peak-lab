@@ -3,15 +3,19 @@
  * 
  * WHOOP-inspired analysis page showing behavioral impacts on RQ.
  * Premium, scientific, S2-focused.
+ * 
+ * Breakdown: CT/2, IN/2, S2 Consistency, Task Priming (by type), Decay
  */
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
+import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { TASK_TYPE_WEIGHTS } from "@/lib/reasoningQuality";
 
 interface ImpactDriver {
   id: string;
@@ -31,8 +35,13 @@ interface ImpactDriver {
 
 export default function ReasoningQualityImpact() {
   const navigate = useNavigate();
-  const { rq, s2Core, s2Consistency, taskPriming, isLoading } = useReasoningQuality();
+  const { rq, s2Consistency, taskPriming, decay, isDecaying, taskBreakdown, isLoading } = useReasoningQuality();
+  const { states } = useCognitiveStates();
   const [selectedDriver, setSelectedDriver] = useState<ImpactDriver | null>(null);
+
+  // Get CT and IN from cognitive states
+  const CT = states.CT;
+  const IN = states.IN;
 
   // Status badge
   const getStatusBadge = (value: number) => {
@@ -44,68 +53,176 @@ export default function ReasoningQualityImpact() {
   const status = getStatusBadge(rq);
 
   // Calculate actual weighted contributions to RQ
-  // RQ = 50% S2 Core + 30% S2 Consistency + 20% Task Priming
-  const s2CoreContribution = s2Core * 0.50;
+  // RQ = 50% S2 Core (25% CT + 25% IN) + 30% S2 Consistency + 20% Task Priming - Decay
+  // S2 Core = (CT + IN) / 2, weight = 50% → CT contributes 25%, IN contributes 25%
+  const ctContribution = CT * 0.25; // CT/2 * 50% = CT * 25%
+  const inContribution = IN * 0.25; // IN/2 * 50% = IN * 25%
   const s2ConsistencyContribution = s2Consistency * 0.30;
-  const taskPrimingContribution = taskPriming * 0.20;
+  
+  // Task priming breakdown: podcasts, articles, books
+  // Total weight = 20%, split by actual contribution
+  const podcastContribution = (taskBreakdown?.podcast ?? 0) * 0.20;
+  const articleContribution = (taskBreakdown?.article ?? 0) * 0.20;
+  const bookContribution = (taskBreakdown?.book ?? 0) * 0.20;
+  
+  // Decay is subtracted
+  const decayContribution = decay;
 
-  // Generate impact drivers based on actual RQ components - always show all 3
+  // Generate impact drivers based on actual RQ components
   const drivers = useMemo((): ImpactDriver[] => {
-    return [
-      // S2 Core contribution (50% weight)
+    const driverList: ImpactDriver[] = [
+      // CT contribution (25% weight)
       {
-        id: "s2-core",
-        name: "S2 Core",
-        rawValue: s2Core,
-        weight: "50%",
-        contribution: s2CoreContribution,
-        type: s2Core >= 50 ? "positive" : s2Core >= 30 ? "neutral" : "negative",
-        description: "Your current System 2 skill level (Critical Thinking and Intuition scores) forms the foundation of reasoning quality.",
+        id: "ct",
+        name: "Critical Thinking",
+        rawValue: CT,
+        weight: "25%",
+        contribution: ctContribution,
+        type: CT >= 50 ? "positive" : CT >= 30 ? "neutral" : "negative",
+        description: "Your Critical Thinking skill level contributes to S2 Core, the foundation of reasoning quality.",
         details: {
-          period: "Current skills",
-          frequency: `${Math.round(s2Core)}% skill level`,
-          direction: s2Core >= 50 ? "Positive" : "Neutral",
-          note: "S2 Core = (Critical Thinking + Intuition) / 2. It accounts for 50% of your Reasoning Quality score.",
+          period: "Current skill level",
+          frequency: `${Math.round(CT)}% CT skill`,
+          direction: CT >= 50 ? "Positive" : "Neutral",
+          note: "Critical Thinking (CT) contributes 25% to RQ as part of S2 Core = (CT + IN) / 2 × 50%.",
+        },
+      },
+      // IN contribution (25% weight)
+      {
+        id: "in",
+        name: "Insight",
+        rawValue: IN,
+        weight: "25%",
+        contribution: inContribution,
+        type: IN >= 50 ? "positive" : IN >= 30 ? "neutral" : "negative",
+        description: "Your Insight skill level contributes to S2 Core, the foundation of reasoning quality.",
+        details: {
+          period: "Current skill level",
+          frequency: `${Math.round(IN)}% IN skill`,
+          direction: IN >= 50 ? "Positive" : "Neutral",
+          note: "Insight (IN) contributes 25% to RQ as part of S2 Core = (CT + IN) / 2 × 50%.",
         },
       },
       // S2 Consistency contribution (30% weight)
       {
         id: "s2-consistency",
-        name: "Consistency",
+        name: "S2 Consistency",
         rawValue: s2Consistency,
         weight: "30%",
         contribution: s2ConsistencyContribution,
         type: s2Consistency >= 50 ? "positive" : s2Consistency >= 30 ? "neutral" : "negative",
         description: "Stability and reliability of your performance across System 2 reasoning sessions.",
         details: {
-          period: "Last 10 sessions",
+          period: "Last 10 S2 sessions",
           frequency: `${Math.round(s2Consistency)}% consistency`,
           direction: s2Consistency >= 50 ? "Positive" : "Neutral",
-          note: "Consistency measures stability in System 2 game performance. It accounts for 30% of your Reasoning Quality score.",
-        },
-      },
-      // Task Priming contribution (20% weight)
-      {
-        id: "task-priming",
-        name: "Task Priming",
-        rawValue: taskPriming,
-        weight: "20%",
-        contribution: taskPrimingContribution,
-        type: taskPriming >= 30 ? "positive" : taskPriming >= 10 ? "neutral" : "negative",
-        description: "Engagement with structured content (podcasts, readings, books) that primes deliberate reasoning.",
-        details: {
-          period: "Last 7 days",
-          frequency: taskPriming > 0 ? "Active engagement" : "Low engagement",
-          direction: taskPriming >= 30 ? "Positive" : "Neutral",
-          note: "Task Priming is driven by podcasts, articles, and books completed in the last 7 days. It accounts for 20% of your Reasoning Quality score.",
+          note: "S2 Consistency measures stability in System 2 game performance. It accounts for 30% of your Reasoning Quality score.",
         },
       },
     ];
-  }, [s2Core, s2Consistency, taskPriming, s2CoreContribution, s2ConsistencyContribution, taskPrimingContribution]);
+    
+    // Task Priming - broken down by content type (only show if > 0)
+    if (podcastContribution > 0) {
+      driverList.push({
+        id: "task-podcast",
+        name: "Podcasts",
+        rawValue: taskBreakdown?.podcast ?? 0,
+        weight: "20%",
+        contribution: podcastContribution,
+        type: "positive",
+        description: "Podcast listening primes deliberate reasoning by exposing you to structured arguments and new ideas.",
+        details: {
+          period: "Last 7 days",
+          frequency: `${taskBreakdown?.podcastCount ?? 0} podcast(s) completed`,
+          direction: "Positive",
+          note: `Each podcast contributes ${TASK_TYPE_WEIGHTS.podcast} base points to Task Priming, weighted by recency.`,
+        },
+      });
+    }
+    
+    if (articleContribution > 0) {
+      driverList.push({
+        id: "task-article",
+        name: "Articles",
+        rawValue: taskBreakdown?.article ?? 0,
+        weight: "20%",
+        contribution: articleContribution,
+        type: "positive",
+        description: "Reading articles engages analytical thinking and strengthens conceptual frameworks.",
+        details: {
+          period: "Last 7 days",
+          frequency: `${taskBreakdown?.articleCount ?? 0} article(s) completed`,
+          direction: "Positive",
+          note: `Each article contributes ${TASK_TYPE_WEIGHTS.article} base points to Task Priming, weighted by recency.`,
+        },
+      });
+    }
+    
+    if (bookContribution > 0) {
+      driverList.push({
+        id: "task-book",
+        name: "Books",
+        rawValue: taskBreakdown?.book ?? 0,
+        weight: "20%",
+        contribution: bookContribution,
+        type: "positive",
+        description: "Book reading provides deep engagement with complex ideas, maximizing conceptual priming.",
+        details: {
+          period: "Last 7 days",
+          frequency: `${taskBreakdown?.bookCount ?? 0} book(s) completed`,
+          direction: "Positive",
+          note: `Each book contributes ${TASK_TYPE_WEIGHTS.book} base points to Task Priming, weighted by recency.`,
+        },
+      });
+    }
+    
+    // If no task priming at all, show placeholder
+    if (podcastContribution === 0 && articleContribution === 0 && bookContribution === 0) {
+      driverList.push({
+        id: "task-priming-empty",
+        name: "Task Priming",
+        rawValue: 0,
+        weight: "20%",
+        contribution: 0,
+        type: "neutral",
+        description: "Complete podcasts, articles, or books to prime your deliberate reasoning.",
+        details: {
+          period: "Last 7 days",
+          frequency: "No tasks completed",
+          direction: "Neutral",
+          note: "Task Priming accounts for 20% of RQ. Complete content from the Library to activate this component.",
+        },
+      });
+    }
+    
+    // Decay (only show if active)
+    if (isDecaying && decayContribution > 0) {
+      driverList.push({
+        id: "decay",
+        name: "Inactivity Decay",
+        rawValue: decayContribution,
+        weight: "−",
+        contribution: -decayContribution,
+        type: "negative",
+        description: "Extended inactivity (14+ days without S2 games or tasks) gradually reduces Reasoning Quality.",
+        details: {
+          period: "14+ days inactivity",
+          frequency: `-${decayContribution.toFixed(1)} points`,
+          direction: "Negative",
+          note: "RQ decays at -2 points per week of inactivity beyond 14 days. Floor: S2 Core - 10.",
+        },
+      });
+    }
+    
+    return driverList;
+  }, [CT, IN, s2Consistency, ctContribution, inContribution, s2ConsistencyContribution, 
+      podcastContribution, articleContribution, bookContribution, taskBreakdown, 
+      isDecaying, decayContribution]);
 
-  // Total for verification
-  const totalContribution = s2CoreContribution + s2ConsistencyContribution + taskPrimingContribution;
-
+  // Total contribution (sum of all positive contributions minus decay)
+  const positiveTotal = ctContribution + inContribution + s2ConsistencyContribution + 
+                        podcastContribution + articleContribution + bookContribution;
+  const totalContribution = positiveTotal - decayContribution;
 
   if (isLoading) {
     return (
@@ -215,7 +332,7 @@ export default function ReasoningQualityImpact() {
                       driver.type === "negative" && "text-amber-500"
                     )}
                   >
-                    +{driver.contribution.toFixed(1)}
+                    {driver.contribution >= 0 ? "+" : ""}{driver.contribution.toFixed(1)}
                   </span>
                 </div>
               </div>
@@ -230,7 +347,7 @@ export default function ReasoningQualityImpact() {
                     driver.type === "negative" && "bg-amber-500"
                   )}
                   initial={{ width: 0 }}
-                  animate={{ width: `${(driver.contribution / totalContribution) * 100}%` }}
+                  animate={{ width: `${Math.abs(driver.contribution / positiveTotal) * 100}%` }}
                   transition={{ duration: 0.6, delay: 0.2 + index * 0.05, ease: "easeOut" }}
                 />
               </div>
