@@ -1,10 +1,11 @@
 /**
  * ============================================
- * S1-RA GAME SELECTOR v1.1
+ * S1-RA GAME SELECTOR v1.2
  * ============================================
  * 
  * Bottom sheet selector for Rapid Association (RA) games.
  * Now shows games list even when locked, with lock indicators.
+ * v1.2: Added "Recently Played" badge for games played in last 7 days
  * 
  * Uses S1DifficultySelector for user-selectable difficulty.
  */
@@ -12,7 +13,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Lightbulb, Star, ChevronRight, Sparkles, Lock, ShieldAlert } from "lucide-react";
+import { Lightbulb, Star, ChevronRight, Sparkles, Lock, ShieldAlert, Clock } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +27,10 @@ import { Difficulty } from "@/lib/s1DifficultyEngine";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGamesGating } from "@/hooks/useGamesGating";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { subDays, format } from "date-fns";
 
 interface S1RAGameSelectorProps {
   open: boolean;
@@ -88,6 +93,7 @@ function getWithholdReason(reasonCode?: string): string {
 
 export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedGame, setSelectedGame] = useState<RAGameOption | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("medium");
   const [isOverride, setIsOverride] = useState(false);
@@ -107,6 +113,30 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
     isLoading: difficultyLoading,
     _debug,
   } = useS1Difficulty();
+  
+  // v1.2: Fetch recently played games (last 7 days)
+  const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm:ss");
+  const { data: recentlyPlayedGames } = useQuery({
+    queryKey: ["recently-played-ra-games", user?.id, sevenDaysAgo],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("game_sessions")
+        .select("game_name")
+        .eq("user_id", user.id)
+        .eq("game_type", "S1-RA")
+        .gte("completed_at", sevenDaysAgo);
+      
+      if (error) throw error;
+      
+      // Get unique game names - also check exercise_completions for games without game_name
+      const uniqueGames = [...new Set((data || []).map(s => s.game_name).filter(Boolean))];
+      return uniqueGames as string[];
+    },
+    enabled: !!user?.id && open,
+    staleTime: 60_000,
+  });
   
   const isLoading = difficultyLoading || gatingLoading;
   
@@ -198,6 +228,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                 ) : (
                   RA_GAMES.map((game, index) => {
                     const xp = game.xpByDifficulty[recommended];
+                    const isRecentlyPlayed = recentlyPlayedGames?.includes(game.id) ?? false;
                     
                     return (
                       <motion.button
@@ -219,8 +250,15 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                               )
                         )}
                       >
-                        {/* Available badge (only when not locked) */}
-                        {!isLocked && (
+                        {/* Recently Played badge */}
+                        {isRecentlyPlayed && !isLocked ? (
+                          <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50">
+                            <Clock className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-[9px] font-medium text-muted-foreground">
+                              Recent
+                            </span>
+                          </div>
+                        ) : !isLocked && (
                           <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30">
                             <Sparkles className="w-3 h-3 text-primary" />
                             <span className="text-[9px] font-medium text-primary">

@@ -1,7 +1,8 @@
 /**
- * S1-AE Game Selector v1.5
+ * S1-AE Game Selector v1.6
  * 
  * Updated to show games list even when locked, with lock indicators.
+ * v1.6: Added "Recently Played" badge for games played in last 7 days
  * Uses:
  * - AE Guidance Engine for game suggestion
  * - S1 Difficulty Engine for difficulty options
@@ -11,7 +12,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, Crosshair, Zap, Star, ChevronLeft, ChevronRight, Sparkles, RefreshCcw, Lock, ShieldAlert, Info } from "lucide-react";
+import { Target, Crosshair, Zap, Star, ChevronLeft, ChevronRight, Sparkles, RefreshCcw, Lock, ShieldAlert, Info, Clock } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -27,6 +28,10 @@ import { Difficulty } from "@/lib/s1DifficultyEngine";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGamesGating } from "@/hooks/useGamesGating";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { subDays, format } from "date-fns";
 
 interface S1AEGameSelectorProps {
   open: boolean;
@@ -99,6 +104,7 @@ function getWithholdReason(reasonCode?: string): string {
 
 export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedGame, setSelectedGame] = useState<GameOption | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("medium");
   const [isOverride, setIsOverride] = useState(false);
@@ -125,6 +131,30 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
     isLoading: difficultyLoading,
     _debug,
   } = useS1Difficulty();
+  
+  // v1.6: Fetch recently played games (last 7 days)
+  const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm:ss");
+  const { data: recentlyPlayedGames } = useQuery({
+    queryKey: ["recently-played-ae-games", user?.id, sevenDaysAgo],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("game_sessions")
+        .select("game_name")
+        .eq("user_id", user.id)
+        .eq("game_type", "S1-AE")
+        .gte("completed_at", sevenDaysAgo);
+      
+      if (error) throw error;
+      
+      // Get unique game names
+      const uniqueGames = [...new Set((data || []).map(s => s.game_name).filter(Boolean))];
+      return uniqueGames as string[];
+    },
+    enabled: !!user?.id && open,
+    staleTime: 60_000,
+  });
   
   const isLoading = aeLoading || difficultyLoading || gatingLoading;
   
@@ -227,59 +257,70 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                     <Skeleton className="h-28 w-full rounded-xl" />
                   </>
                 ) : (
-                  sortedGames.map((game, index) => {
-                    const Icon = game.icon;
-                    const isSuggested = game.id === suggestedGame && !isLocked;
-                    const xp = game.xpByDifficulty[recommended];
-                    
-                    // Get accent color classes
-                    const accentBg = game.accentColor === "violet" 
-                      ? "bg-violet-500/15" 
-                      : game.accentColor === "emerald" 
-                        ? "bg-emerald-500/15" 
-                        : "bg-cyan-500/15";
-                    const accentText = game.accentColor === "violet" 
-                      ? "text-violet-400" 
-                      : game.accentColor === "emerald" 
-                        ? "text-emerald-400" 
-                        : "text-cyan-400";
-                    const accentBadgeBg = game.accentColor === "violet" 
-                      ? "bg-violet-500/10 text-violet-400" 
-                      : game.accentColor === "emerald" 
-                        ? "bg-emerald-500/10 text-emerald-400" 
-                        : "bg-cyan-500/10 text-cyan-400";
-                    
-                    return (
-                      <motion.button
-                        key={game.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        onClick={() => handleSelectGame(game)}
-                        disabled={isLocked}
-                        className={cn(
-                          "w-full p-4 rounded-xl border text-left transition-all",
-                          "group relative",
-                          isLocked
-                            ? "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
-                            : cn(
-                                "bg-background/50 hover:bg-background",
-                                "hover:border-primary/30 active:scale-[0.98]",
-                                isSuggested 
-                                  ? "border-primary/40 ring-1 ring-primary/20" 
-                                  : "border-border/50"
-                              )
-                        )}
-                      >
-                        {/* Suggested badge */}
-                        {isSuggested && (
-                          <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30">
-                            <Sparkles className="w-3 h-3 text-primary" />
-                            <span className="text-[9px] font-medium text-primary">
-                              Suggested • {suggestedReason}
-                            </span>
-                          </div>
-                        )}
+                    sortedGames.map((game, index) => {
+                      const Icon = game.icon;
+                      const isSuggested = game.id === suggestedGame && !isLocked;
+                      const isRecentlyPlayed = recentlyPlayedGames?.includes(game.id) ?? false;
+                      const xp = game.xpByDifficulty[recommended];
+                      
+                      // Get accent color classes
+                      const accentBg = game.accentColor === "violet" 
+                        ? "bg-violet-500/15" 
+                        : game.accentColor === "emerald" 
+                          ? "bg-emerald-500/15" 
+                          : "bg-cyan-500/15";
+                      const accentText = game.accentColor === "violet" 
+                        ? "text-violet-400" 
+                        : game.accentColor === "emerald" 
+                          ? "text-emerald-400" 
+                          : "text-cyan-400";
+                      const accentBadgeBg = game.accentColor === "violet" 
+                        ? "bg-violet-500/10 text-violet-400" 
+                        : game.accentColor === "emerald" 
+                          ? "bg-emerald-500/10 text-emerald-400" 
+                          : "bg-cyan-500/10 text-cyan-400";
+                      
+                      return (
+                        <motion.button
+                          key={game.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          onClick={() => handleSelectGame(game)}
+                          disabled={isLocked}
+                          className={cn(
+                            "w-full p-4 rounded-xl border text-left transition-all",
+                            "group relative",
+                            isLocked
+                              ? "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
+                              : cn(
+                                  "bg-background/50 hover:bg-background",
+                                  "hover:border-primary/30 active:scale-[0.98]",
+                                  isSuggested 
+                                    ? "border-primary/40 ring-1 ring-primary/20" 
+                                    : "border-border/50"
+                                )
+                          )}
+                        >
+                          {/* Suggested badge */}
+                          {isSuggested && (
+                            <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30">
+                              <Sparkles className="w-3 h-3 text-primary" />
+                              <span className="text-[9px] font-medium text-primary">
+                                Suggested • {suggestedReason}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Recently Played badge - only show if not suggested */}
+                          {!isSuggested && isRecentlyPlayed && !isLocked && (
+                            <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border/50">
+                              <Clock className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-[9px] font-medium text-muted-foreground">
+                                Recent
+                              </span>
+                            </div>
+                          )}
                         
                         <div className="flex items-start gap-3">
                           <div className={cn(
