@@ -1434,9 +1434,12 @@ function getItemNormalizedScore(item: CognitiveInput): number {
 export function CognitiveLibrary() {
   const { user } = useAuth();
   const { data: completedIds = [], isLoading } = useLoggedExposures(user?.id);
+  
+  // All hooks MUST be called before any early returns
+  const removeCompletion = useRemoveContentCompletion();
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [itemToRemove, setItemToRemove] = useState<CognitiveInput | null>(null);
 
-  // Merge legacy catalog (COGNITIVE_INPUTS) with the newer Tasks catalogs (PODCASTS/READINGS)
-  // so completions like content-podcast-freakonomics-radio show up in Library.
   // Merge legacy catalog (COGNITIVE_INPUTS) with the newer Tasks catalogs (PODCASTS/READINGS)
   // DB stores IDs like "content-podcast-hidden-brain", so we map with that prefix.
   const libraryCatalog: CognitiveInput[] = useMemo(() => {
@@ -1485,6 +1488,7 @@ export function CognitiveLibrary() {
 
   const stats = calculateLibraryStats(completedItems);
 
+  // Early returns AFTER all hooks
   if (!user) {
     return (
       <div className="text-center py-12">
@@ -1512,10 +1516,6 @@ export function CognitiveLibrary() {
       </div>
     );
   }
-
-  const removeCompletion = useRemoveContentCompletion();
-  const [removingId, setRemovingId] = useState<string | null>(null);
-  const [itemToRemove, setItemToRemove] = useState<CognitiveInput | null>(null);
 
   const handleRemoveConfirm = async () => {
     if (!itemToRemove) return;
