@@ -1602,21 +1602,15 @@ export function CognitiveLibrary() {
         Your completed cognitive inputs: podcasts listened, books and articles read.
       </p>
 
-      {/* Total Reasoning Quality Contribution - Animated Counter */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Brain className="h-5 w-5 text-primary" />
-          <span className="text-sm font-medium text-primary">Reasoning Quality Impact</span>
+      {/* Total Reasoning Quality Contribution - Minimalist */}
+      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50">
+        <div className="flex items-center gap-2">
+          <Brain className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Reasoning Quality from library</span>
         </div>
-        <div className="flex items-baseline justify-center gap-1">
-          <span className="text-3xl font-bold text-foreground tabular-nums">
-            +{animatedRQ.toFixed(1)}
-          </span>
-          <span className="text-sm text-muted-foreground">points</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground mt-2">
-          Cumulative contribution from {completedItems.length} completed {completedItems.length === 1 ? 'item' : 'items'}
-        </p>
+        <span className="text-sm font-semibold tabular-nums">
+          +{animatedRQ.toFixed(1)}%
+        </span>
       </div>
 
       {/* Content Stats */}
