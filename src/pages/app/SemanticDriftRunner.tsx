@@ -115,11 +115,40 @@ export default function SemanticDriftRunner() {
               </div>
             </div>
             
-            <div className="p-6">
+            <div className="p-6 space-y-6">
+              <div className="text-center space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Navigate fast semantic drifts under time pressure
+                </p>
+              </div>
+              
               <S1DifficultySelector
-                onSelect={handleDifficultySelect}
-                onCancel={() => navigate("/neuro-lab?tab=games")}
+                options={[
+                  { difficulty: "easy", status: "enabled" },
+                  { difficulty: "medium", status: "recommended" },
+                  { difficulty: "hard", status: "enabled" },
+                ]}
+                recommended="medium"
+                selected={difficulty}
+                onSelect={(d, _isOverride) => handleDifficultySelect(d)}
+                accentColor="violet"
               />
+              
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => navigate("/neuro-lab?tab=games")}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => setPhase("playing")}
+                >
+                  Start
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
