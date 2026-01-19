@@ -1,181 +1,130 @@
-import { Zap, Brain, Target, ExternalLink, Gamepad2, BookOpen, Smartphone, Star, Headphones, FileText, BookMarked } from "lucide-react";
-import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
+import { Zap, Brain, Gamepad2, Smartphone, BookOpen } from "lucide-react";
 
 const systems = [
   {
     icon: Zap,
-    title: "System 1: Intuitive",
-    subtitle: "Pattern Recognition",
-    description: "Train rapid pattern recognition and intuitive judgment. Build faster decision-making under pressure through strategic drills that sharpen automatic processing.",
-    color: "text-amber-400",
-    bgColor: "bg-amber-400/10",
-    borderColor: "hover:border-amber-400/25",
+    number: "01",
+    title: "System 1",
+    subtitle: "INTUITIVE",
+    description: "Train rapid pattern recognition and automatic processing. Build faster judgment under pressure.",
   },
   {
     icon: Brain,
-    title: "System 2: Deliberate",
-    subtitle: "Strategic Analysis",
-    description: "Develop deep analytical reasoning and bias resistance. Strengthen critical thinking, strategic clarity, and high-quality decision-making through structured exercises.",
-    color: "text-teal-400",
-    bgColor: "bg-teal-400/10",
-    borderColor: "hover:border-teal-400/25",
+    number: "02", 
+    title: "System 2",
+    subtitle: "DELIBERATE",
+    description: "Develop deep analytical reasoning. Strengthen critical thinking and strategic clarity.",
   },
 ];
 
-const trainingPillars = [
+const pillars = [
   {
     icon: Gamepad2,
     title: "Cognitive Games",
-    description: "Science-backed drills across 3 strategic domains. Each session adapts to your performance level.",
-    color: "text-blue-400",
-    bgColor: "bg-blue-400/10",
-    stats: "5-8 exercises per session",
-    domains: ["Focus Arena", "Critical Reasoning", "Creativity Hub"],
+    description: "Science-backed drills across 3 domains that adapt to your performance.",
   },
   {
     icon: BookOpen,
     title: "Deep Content",
-    description: "Curated content that primes your mind for deep thinking. Challenge yourself, don't just consume.",
-    color: "text-purple-400",
-    bgColor: "bg-purple-400/10",
-    stats: "MIT, HBR, academic sources",
-    tasks: [
-      { icon: Headphones, name: "Podcasts" },
-      { icon: FileText, name: "Articles" },
-      { icon: BookMarked, name: "Book Excerpts" },
-    ],
+    description: "Curated podcasts, articles, and readings that prime strategic thinking.",
   },
   {
     icon: Smartphone,
     title: "Digital Detox",
-    description: "Structured breaks from distracting apps. Earn XP for focused offline time. Reclaim your attention span.",
-    color: "text-green-400",
-    bgColor: "bg-green-400/10",
-    stats: "1-3 hours weekly target",
+    description: "Structured breaks from distracting apps. Earn XP for focused offline time.",
   },
 ];
 
-
 export function HowItWorks() {
-  return (
-    <section id="how-it-works" className="py-16 sm:py-24 md:py-32 relative">
-      <div className="absolute inset-0 bg-gradient-subtle" />
-      
-      <div className="container px-4 sm:px-6 relative">
-        <div className="text-center mb-12 sm:mb-16">
-          <p className="text-primary text-xs sm:text-sm font-medium tracking-wider uppercase mb-3">
-            Based on Kahneman's Dual-Process Theory
-          </p>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-4 sm:mb-5">
-            Train <span className="text-gradient">Strategic Thinking</span>
-          </h2>
-          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-4">
-            The modern mind is fragmented. AI makes thinking easier but weaker. 
-            Elite performers train deep reasoning and strategic clarity daily.
-          </p>
-          <Link 
-            to="/brain-science" 
-            className="inline-flex items-center gap-2 text-primary text-sm font-medium hover:underline"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Deep dive: AI, Social Media & Your Brain
-          </Link>
-        </div>
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-        {/* Two Systems */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto mb-12 sm:mb-20">
+  return (
+    <section id="how-it-works" className="bg-black py-24 lg:py-32 relative">
+      <div className="container px-6" ref={ref}>
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
+        >
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-medium mb-4">
+            THE TECHNOLOGY
+          </p>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6">
+            Dual-Process Training
+          </h2>
+          <p className="text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
+            Based on Nobel Prize-winning cognitive science. Train both thinking systems for complete mental performance.
+          </p>
+        </motion.div>
+
+        {/* Two Systems - Large Cards */}
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 mb-24">
           {systems.map((system, index) => (
-            <div
+            <motion.div
               key={system.title}
-              className={`relative p-5 sm:p-8 rounded-xl bg-card border border-border ${system.borderColor} transition-all duration-300 animate-fade-in-up shadow-card`}
-              style={{ animationDelay: `${index * 0.15}s` }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: index * 0.15 }}
+              className="relative p-8 lg:p-12 rounded-2xl bg-white/[0.02] border border-white/10 group hover:border-white/20 transition-colors"
             >
-              <div className={`w-12 sm:w-14 h-12 sm:h-14 rounded-xl ${system.bgColor} flex items-center justify-center mb-4 sm:mb-6`}>
-                <system.icon className={`w-6 sm:w-7 h-6 sm:h-7 ${system.color}`} />
-              </div>
+              {/* Number */}
+              <span className="absolute top-8 right-8 text-6xl lg:text-7xl font-bold text-white/5">
+                {system.number}
+              </span>
               
-              <p className={`text-xs font-medium ${system.color} tracking-wider uppercase mb-2`}>
-                {system.subtitle}
-              </p>
-              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">{system.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{system.description}</p>
-            </div>
+              <div className="relative">
+                <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:bg-white/10 transition-colors">
+                  <system.icon className="w-7 h-7 text-white" />
+                </div>
+                
+                <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-medium mb-2">
+                  {system.subtitle}
+                </p>
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4">
+                  {system.title}
+                </h3>
+                <p className="text-white/60 leading-relaxed">
+                  {system.description}
+                </p>
+              </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* Three Training Pillars */}
-        <div className="mb-12 sm:mb-20">
-          <div className="text-center mb-8 sm:mb-10">
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-3">
-              Your Weekly Training System
-            </h3>
-            <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
-              Three pillars that work together to build cognitive fitness. 
-              Each earns XP toward your weekly goal.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 max-w-5xl mx-auto">
-            {trainingPillars.map((pillar, index) => (
-              <div
+        {/* Training Pillars - Horizontal Strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-medium mb-8 text-center">
+            WEEKLY TRAINING SYSTEM
+          </p>
+          
+          <div className="grid sm:grid-cols-3 gap-4 lg:gap-6">
+            {pillars.map((pillar, index) => (
+              <motion.div
                 key={pillar.title}
-                className="relative p-5 sm:p-6 rounded-xl bg-card border border-border hover:border-primary/20 transition-all duration-300 animate-fade-in-up shadow-card group"
-                style={{ animationDelay: `${0.2 + index * 0.1}s` }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
+                className="p-6 lg:p-8 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors text-center"
               >
-                <div className={`w-10 sm:w-12 h-10 sm:h-12 rounded-xl ${pillar.bgColor} flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
-                  <pillar.icon className={`w-5 sm:w-6 h-5 sm:h-6 ${pillar.color}`} />
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                  <pillar.icon className="w-6 h-6 text-white/80" />
                 </div>
-                
-                <h4 className="text-base sm:text-lg font-semibold mb-2">{pillar.title}</h4>
-                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-3">{pillar.description}</p>
-                
-                {/* Show domains for Cognitive Games */}
-                {'domains' in pillar && pillar.domains && (
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-                    {pillar.domains.map((domain) => (
-                      <span key={domain} className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-muted/50 text-foreground">
-                        <Target className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-primary" />
-                        {domain}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Show tasks for Deep Content */}
-                {'tasks' in pillar && pillar.tasks && (
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-                    {pillar.tasks.map((task) => (
-                      <span key={task.name} className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-muted/50 text-foreground">
-                        <task.icon className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-purple-400" />
-                        {task.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                
-                <div className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${pillar.bgColor} ${pillar.color}`}>
-                  <Star className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
-                  {pillar.stats}
-                </div>
-              </div>
+                <h4 className="text-lg font-semibold text-white mb-2">{pillar.title}</h4>
+                <p className="text-sm text-white/50 leading-relaxed">{pillar.description}</p>
+              </motion.div>
             ))}
           </div>
-
-          {/* XP Explainer */}
-          <div className="mt-6 sm:mt-8 max-w-2xl mx-auto">
-            <div className="p-4 sm:p-5 rounded-xl bg-primary/5 border border-primary/10 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Star className="w-4 sm:w-5 h-4 sm:h-5 text-amber-400" />
-                <span className="text-sm sm:text-base font-semibold">Weekly XP Goals</span>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Choose your intensity: <span className="text-emerald-400 font-medium">Light (100 XP)</span>, 
-                <span className="text-blue-400 font-medium"> Expert (150 XP)</span>, or 
-                <span className="text-red-400 font-medium"> Superhuman (250 XP)</span> per week.
-              </p>
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
