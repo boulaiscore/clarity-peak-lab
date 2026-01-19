@@ -637,12 +637,13 @@ export function SpotifyTasksView() {
       const newInProgressIds = inProgressIds.filter(id => id !== contentId);
       setInProgressIds(newInProgressIds);
       localStorage.setItem("task-in-progress-ids", JSON.stringify(newInProgressIds));
-      
+
       toast.success("Added to Library!", { icon: "📚" });
       queryClient.invalidateQueries({ queryKey: ["completed-content-ids"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-content-count"] });
       queryClient.invalidateQueries({ queryKey: ["in-progress-content-ids"] });
       queryClient.invalidateQueries({ queryKey: ["logged-exposures"] }); // For CognitiveLibrary
+      queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] }); // For RQ Task Priming
       setSelectedPodcast(null);
       setSelectedReading(null);
     },
