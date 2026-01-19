@@ -395,24 +395,24 @@ function useLoggedExposures(userId: string | undefined) {
       
       if (exerciseError) throw exerciseError;
       
-      // Extract content IDs from exercise_id format: content-{type}-{id}
-      const newSystemIds = (exerciseData || []).map(row => {
-        const parts = row.exercise_id.split("-");
-        return parts.slice(2).join("-"); // Get everything after "content-{type}-"
-      });
-      
+      // Keep full IDs (e.g. "content-podcast-hidden-brain") so they match the Library catalog.
+      const newSystemIds = (exerciseData || []).map(row => row.exercise_id);
+
       // Also check legacy user_listened_podcasts for backwards compatibility
       const { data: legacyData, error: legacyError } = await supabase
         .from("user_listened_podcasts")
         .select("podcast_id")
         .eq("user_id", userId);
-      
+
       if (legacyError) throw legacyError;
-      
-      const legacyIds = (legacyData || []).map(row => row.podcast_id);
-      
+
+      // Legacy table stores base podcast IDs (e.g. "hidden-brain").
+      // Add both raw and prefixed forms to cover old + new catalog IDs.
+      const legacyRawIds = (legacyData || []).map(row => row.podcast_id);
+      const legacyPrefixedIds = legacyRawIds.map(id => `content-podcast-${id}`);
+
       // Combine and deduplicate
-      return [...new Set([...newSystemIds, ...legacyIds])];
+      return [...new Set([...newSystemIds, ...legacyPrefixedIds, ...legacyRawIds])];
     },
     enabled: !!userId,
     staleTime: 30_000,
