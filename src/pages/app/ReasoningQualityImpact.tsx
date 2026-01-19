@@ -1,13 +1,15 @@
 /**
  * Reasoning Quality – Impact Analysis
  * 
- * WHOOP-inspired premium analysis page for daily RQ monitoring.
- * Features: Central ring display, dark immersive background, clean impact breakdown.
+ * WHOOP-inspired analysis page showing behavioral impacts on RQ.
+ * Premium, scientific, S2-focused.
+ * 
+ * Breakdown: CT/2, IN/2, S2 Consistency, Task Priming (by type), Decay
  */
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Brain, BookOpen, Headphones, FileText, AlertTriangle, Sparkles, Target, Lightbulb } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
@@ -23,7 +25,6 @@ interface ImpactDriver {
   contribution: number;
   type: "positive" | "neutral" | "negative";
   description: string;
-  icon: React.ReactNode;
   details: {
     period: string;
     frequency: string;
@@ -49,27 +50,28 @@ export default function ReasoningQualityImpact() {
   const { states } = useCognitiveStates();
   const [selectedDriver, setSelectedDriver] = useState<ImpactDriver | null>(null);
 
-  // Get CT and IN from cognitive states
+  // Get CT and IN from cognitive states (for display only)
   const CT = states.CT;
   const IN = states.IN;
 
-  // Status badge with WHOOP-style classification
+  // Status badge
   const getStatusBadge = (value: number) => {
-    if (value >= 80) return { label: "Elite", color: "text-primary", ring: "stroke-primary" };
-    if (value >= 60) return { label: "Strong", color: "text-primary/80", ring: "stroke-primary/70" };
-    if (value >= 40) return { label: "Building", color: "text-muted-foreground", ring: "stroke-muted-foreground/60" };
-    return { label: "Developing", color: "text-muted-foreground/70", ring: "stroke-muted-foreground/40" };
+    if (value >= 80) return { label: "Strong", color: "text-primary" };
+    if (value >= 60) return { label: "Advancing", color: "text-primary/80" };
+    return { label: "Developing", color: "text-muted-foreground" };
   };
 
   const status = getStatusBadge(rq);
 
+  // Use pre-calculated contributions from the hook (ensures math adds up)
   // Split s2CoreContribution between CT and IN proportionally
   const ctProportion = CT + IN > 0 ? CT / (CT + IN) : 0.5;
   const inProportion = CT + IN > 0 ? IN / (CT + IN) : 0.5;
   const ctContribution = s2CoreContribution * ctProportion;
   const inContribution = s2CoreContribution * inProportion;
   
-  // Task priming breakdown
+  // Task priming breakdown: podcasts, articles, books
+  // Split taskPrimingContribution proportionally by type
   const totalTaskPoints = (taskBreakdown?.podcast ?? 0) + (taskBreakdown?.article ?? 0) + (taskBreakdown?.book ?? 0);
   const podcastContribution = totalTaskPoints > 0 
     ? taskPrimingContribution * ((taskBreakdown?.podcast ?? 0) / totalTaskPoints)
@@ -81,11 +83,13 @@ export default function ReasoningQualityImpact() {
     ? taskPrimingContribution * ((taskBreakdown?.book ?? 0) / totalTaskPoints)
     : 0;
   
+  // Decay is subtracted
   const decayContribution = decay;
 
-  // Generate impact drivers
+  // Generate impact drivers based on actual RQ components
   const drivers = useMemo((): ImpactDriver[] => {
     const driverList: ImpactDriver[] = [
+      // CT contribution (25% weight)
       {
         id: "ct",
         name: "Critical Thinking",
@@ -93,7 +97,6 @@ export default function ReasoningQualityImpact() {
         weight: "25%",
         contribution: ctContribution,
         type: CT >= 50 ? "positive" : CT >= 30 ? "neutral" : "negative",
-        icon: <Target className="w-4 h-4" />,
         description: "Your Critical Thinking skill level contributes to S2 Core, the foundation of reasoning quality.",
         details: {
           period: "Current skill level",
@@ -102,6 +105,7 @@ export default function ReasoningQualityImpact() {
           note: "Critical Thinking (CT) contributes 25% to RQ as part of S2 Core = (CT + IN) / 2 × 50%.",
         },
       },
+      // IN contribution (25% weight)
       {
         id: "in",
         name: "Insight",
@@ -109,7 +113,6 @@ export default function ReasoningQualityImpact() {
         weight: "25%",
         contribution: inContribution,
         type: IN >= 50 ? "positive" : IN >= 30 ? "neutral" : "negative",
-        icon: <Lightbulb className="w-4 h-4" />,
         description: "Your Insight skill level contributes to S2 Core, the foundation of reasoning quality.",
         details: {
           period: "Current skill level",
@@ -118,14 +121,14 @@ export default function ReasoningQualityImpact() {
           note: "Insight (IN) contributes 25% to RQ as part of S2 Core = (CT + IN) / 2 × 50%.",
         },
       },
+      // S2 Consistency contribution (30% weight)
       {
         id: "s2-consistency",
-        name: "Consistency",
+        name: "How Steady You Think",
         rawValue: s2Consistency,
         weight: "30%",
         contribution: s2ConsistencyContribution,
         type: s2Consistency >= 50 ? "positive" : s2Consistency >= 30 ? "neutral" : "negative",
-        icon: <Sparkles className="w-4 h-4" />,
         description: "Stability and reliability of your performance across System 2 reasoning sessions.",
         details: {
           period: "Last 10 S2 sessions",
@@ -136,7 +139,7 @@ export default function ReasoningQualityImpact() {
       },
     ];
     
-    // Task Priming breakdown
+    // Task Priming - broken down by content type (only show if > 0)
     if (podcastContribution > 0) {
       driverList.push({
         id: "task-podcast",
@@ -145,13 +148,12 @@ export default function ReasoningQualityImpact() {
         weight: "20%",
         contribution: podcastContribution,
         type: "positive",
-        icon: <Headphones className="w-4 h-4" />,
-        description: "Podcast listening primes deliberate reasoning by exposing you to structured arguments.",
+        description: "Podcast listening primes deliberate reasoning by exposing you to structured arguments and new ideas.",
         details: {
           period: "Last 7 days",
-          frequency: `${taskBreakdown?.podcastCount ?? 0} podcast(s)`,
+          frequency: `${taskBreakdown?.podcastCount ?? 0} podcast(s) completed`,
           direction: "Positive",
-          note: `Each podcast contributes ${TASK_TYPE_WEIGHTS.podcast} base points to Task Priming.`,
+          note: `Each podcast contributes ${TASK_TYPE_WEIGHTS.podcast} base points to Task Priming, weighted by recency.`,
         },
       });
     }
@@ -164,13 +166,12 @@ export default function ReasoningQualityImpact() {
         weight: "20%",
         contribution: articleContribution,
         type: "positive",
-        icon: <FileText className="w-4 h-4" />,
         description: "Reading articles engages analytical thinking and strengthens conceptual frameworks.",
         details: {
           period: "Last 7 days",
-          frequency: `${taskBreakdown?.articleCount ?? 0} article(s)`,
+          frequency: `${taskBreakdown?.articleCount ?? 0} article(s) completed`,
           direction: "Positive",
-          note: `Each article contributes ${TASK_TYPE_WEIGHTS.article} base points to Task Priming.`,
+          note: `Each article contributes ${TASK_TYPE_WEIGHTS.article} base points to Task Priming, weighted by recency.`,
         },
       });
     }
@@ -183,18 +184,17 @@ export default function ReasoningQualityImpact() {
         weight: "20%",
         contribution: bookContribution,
         type: "positive",
-        icon: <BookOpen className="w-4 h-4" />,
-        description: "Book reading provides deep engagement with complex ideas.",
+        description: "Book reading provides deep engagement with complex ideas, maximizing conceptual priming.",
         details: {
           period: "Last 7 days",
-          frequency: `${taskBreakdown?.bookCount ?? 0} book(s)`,
+          frequency: `${taskBreakdown?.bookCount ?? 0} book(s) completed`,
           direction: "Positive",
-          note: `Each book contributes ${TASK_TYPE_WEIGHTS.book} base points to Task Priming.`,
+          note: `Each book contributes ${TASK_TYPE_WEIGHTS.book} base points to Task Priming, weighted by recency.`,
         },
       });
     }
     
-    // Empty task priming placeholder
+    // If no task priming at all, show placeholder
     if (podcastContribution === 0 && articleContribution === 0 && bookContribution === 0) {
       driverList.push({
         id: "task-priming-empty",
@@ -203,33 +203,31 @@ export default function ReasoningQualityImpact() {
         weight: "20%",
         contribution: 0,
         type: "neutral",
-        icon: <Brain className="w-4 h-4" />,
         description: "Complete podcasts, articles, or books to prime your deliberate reasoning.",
         details: {
           period: "Last 7 days",
           frequency: "No tasks completed",
           direction: "Neutral",
-          note: "Task Priming accounts for 20% of RQ.",
+          note: "Task Priming accounts for 20% of RQ. Complete content from the Library to activate this component.",
         },
       });
     }
     
-    // Decay
+    // Decay (only show if active)
     if (isDecaying && decayContribution > 0) {
       driverList.push({
         id: "decay",
-        name: "Inactivity",
+        name: "Inactivity Decay",
         rawValue: decayContribution,
         weight: "−",
         contribution: -decayContribution,
         type: "negative",
-        icon: <AlertTriangle className="w-4 h-4" />,
-        description: "Extended inactivity gradually reduces Reasoning Quality.",
+        description: "Extended inactivity (14+ days without S2 games or tasks) gradually reduces Reasoning Quality.",
         details: {
           period: "14+ days inactivity",
           frequency: `-${decayContribution.toFixed(1)} points`,
           direction: "Negative",
-          note: "RQ decays at -2 points per week beyond 14 days of inactivity.",
+          note: "RQ decays at -2 points per week of inactivity beyond 14 days. Floor: S2 Core - 10.",
         },
       });
     }
@@ -239,13 +237,13 @@ export default function ReasoningQualityImpact() {
       podcastContribution, articleContribution, bookContribution, taskBreakdown, 
       isDecaying, decayContribution]);
 
+  // Total contribution (sum of all positive contributions minus decay)
   const positiveTotal = ctContribution + inContribution + s2ConsistencyContribution + 
                         podcastContribution + articleContribution + bookContribution;
 
-  // Ring calculations
-  const ringRadius = 72;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const ringProgress = (rq / 100) * ringCircumference;
+  // Use hook's RQ as the canonical total to keep all screens consistent.
+  // (Breakdown rows may show small rounding differences at 0-decimal display.)
+  const totalContribution = rq;
 
   if (isLoading) {
     return (
@@ -256,246 +254,190 @@ export default function ReasoningQualityImpact() {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(220,15%,4%)]">
-      {/* Header - Minimal */}
-      <header className="sticky top-0 z-50 bg-[hsl(220,15%,4%)]/95 backdrop-blur-sm">
-        <div className="flex items-center justify-between h-14 px-5">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/30">
+        <div className="flex items-center justify-center relative h-14 px-4">
           <button
             onClick={() => navigate("/app")}
-            className="p-2 -ml-2 rounded-full hover:bg-white/5 transition-colors"
+            className="absolute left-4 p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-white/80" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <span className="text-[11px] uppercase tracking-[0.15em] text-white/40 font-medium">
-            Daily Monitoring
-          </span>
-          <div className="w-9" /> {/* Spacer */}
+          <div className="text-center">
+            <h1 className="text-sm font-semibold tracking-wide uppercase">Reasoning Quality</h1>
+            <p className="text-[10px] text-muted-foreground">Impact Analysis</p>
+          </div>
         </div>
       </header>
 
-      <main className="px-5 pb-24 max-w-lg mx-auto">
-        {/* Hero Ring Section */}
-        <motion.section
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col items-center justify-center py-10"
-        >
-          {/* Central Ring */}
-          <div className="relative w-48 h-48 mb-6">
-            {/* Background glow */}
-            <div className="absolute inset-0 rounded-full bg-primary/5 blur-2xl" />
-            
-            {/* Ring SVG */}
-            <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
-              {/* Background ring */}
-              <circle
-                cx="80"
-                cy="80"
-                r={ringRadius}
-                fill="none"
-                stroke="hsl(220, 10%, 12%)"
-                strokeWidth="6"
-              />
-              {/* Progress ring */}
-              <motion.circle
-                cx="80"
-                cy="80"
-                r={ringRadius}
-                fill="none"
-                stroke="hsl(var(--primary))"
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray={ringCircumference}
-                initial={{ strokeDashoffset: ringCircumference }}
-                animate={{ strokeDashoffset: ringCircumference - ringProgress }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-              />
-            </svg>
-            
-            {/* Center content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <motion.span
-                className="text-5xl font-bold text-white tabular-nums tracking-tight"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                {rq.toFixed(1)}
-              </motion.span>
-              <span className="text-xs text-white/40 uppercase tracking-wider mt-1">
-                RQ Score
-              </span>
-            </div>
-          </div>
-          
-          {/* Status badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className={cn(
-              "px-4 py-1.5 rounded-full bg-white/5 border border-white/10",
-              status.color
-            )}
-          >
-            <span className="text-sm font-medium tracking-wide">{status.label}</span>
-          </motion.div>
-          
-          {/* Subtitle */}
-          <p className="text-sm text-white/30 text-center mt-4 max-w-xs leading-relaxed">
-            Reasoning Quality measures the depth and consistency of your deliberate thinking
+      <main className="px-5 py-6 pb-24 max-w-lg mx-auto">
+        {/* Meta info */}
+        <div className="mb-6">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-2">
+            Updated daily
           </p>
-        </motion.section>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Understand how your behaviors and training patterns have shaped your reasoning quality over the past 90 days.
+            <br />
+            <span className="text-muted-foreground/60">Tap any factor to explore details.</span>
+          </p>
+        </div>
 
-        {/* Divider */}
-        <div className="h-px bg-white/5 mb-8" />
-
-        {/* Impact Breakdown */}
-        <section>
-          <h2 className="text-[11px] uppercase tracking-[0.15em] text-white/40 mb-4">
-            Impact Breakdown
-          </h2>
-          
-          <div className="space-y-3">
-            {drivers.map((driver, index) => (
-              <motion.button
-                key={driver.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                onClick={() => setSelectedDriver(driver)}
-                className="w-full group"
-              >
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all">
-                  {/* Icon */}
-                  <div className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                    driver.type === "positive" && "bg-primary/10 text-primary",
-                    driver.type === "neutral" && "bg-white/5 text-white/40",
-                    driver.type === "negative" && "bg-amber-500/10 text-amber-400"
-                  )}>
-                    {driver.icon}
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-white/90 truncate">
-                        {driver.name}
-                      </span>
-                      <div className="flex items-center gap-2 shrink-0 ml-2">
-                        <span className="text-[11px] text-white/30 tabular-nums">
-                          {driver.weight}
-                        </span>
-                        <span className={cn(
-                          "text-sm font-semibold tabular-nums",
-                          driver.type === "positive" && "text-primary",
-                          driver.type === "neutral" && "text-white/40",
-                          driver.type === "negative" && "text-amber-400"
-                        )}>
-                          {driver.contribution >= 0 ? "+" : ""}{driver.contribution.toFixed(1)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Progress bar */}
-                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        className={cn(
-                          "h-full rounded-full",
-                          driver.type === "positive" && "bg-primary",
-                          driver.type === "neutral" && "bg-white/20",
-                          driver.type === "negative" && "bg-amber-500"
-                        )}
-                        initial={{ width: 0 }}
-                        animate={{ 
-                          width: positiveTotal > 0 
-                            ? `${Math.abs(driver.contribution / positiveTotal) * 100}%` 
-                            : "0%" 
-                        }}
-                        transition={{ duration: 0.6, delay: 0.3 + index * 0.05 }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-          
-          {/* Total */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-white/60 uppercase tracking-wide">
-                Total RQ
-              </span>
-              <span className="text-xl font-bold text-white tabular-nums">
+        {/* Main RQ Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-2xl bg-card border border-border/40 mb-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold mb-1">Reasoning Quality (RQ)</h2>
+              <p className="text-[11px] text-muted-foreground">
+                Consistency, accuracy, and stability in deliberate thinking
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold tabular-nums">
                 {rq.toFixed(1)}%
+              </div>
+              <span className={cn("text-xs font-medium", status.color)}>
+                {status.label}
               </span>
             </div>
-          </motion.div>
-        </section>
+          </div>
+          <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden mt-4">
+            <motion.div
+              className="h-full bg-primary/60 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${rq}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+          </div>
+        </motion.div>
 
-        {/* Footer note */}
-        <p className="text-[11px] text-white/20 text-center mt-10 leading-relaxed">
-          Updated daily based on your training patterns and content engagement
-        </p>
-      </main>
+        {/* Component Details */}
+        <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3 px-1">
+          Component Details
+        </h3>
 
-      {/* Detail Sheet */}
-      <Sheet open={!!selectedDriver} onOpenChange={() => setSelectedDriver(null)}>
-        <SheetContent side="bottom" className="rounded-t-3xl h-auto max-h-[70vh] bg-[hsl(220,12%,8%)] border-white/10">
-          {selectedDriver && (
-            <div className="pb-8">
-              <SheetHeader className="text-left mb-6">
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center",
-                    selectedDriver.type === "positive" && "bg-primary/10 text-primary",
-                    selectedDriver.type === "neutral" && "bg-white/5 text-white/40",
-                    selectedDriver.type === "negative" && "bg-amber-500/10 text-amber-400"
-                  )}>
-                    {selectedDriver.icon}
-                  </div>
-                  <SheetTitle className="text-lg font-semibold text-white">
-                    {selectedDriver.name}
-                  </SheetTitle>
+        {/* Impact Drivers List */}
+        <div className="space-y-2">
+          {drivers.map((driver, index) => (
+            <motion.button
+              key={driver.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              onClick={() => setSelectedDriver(driver)}
+              className="w-full p-4 rounded-xl bg-card/50 border border-border/30 hover:bg-card/80 transition-colors text-left"
+            >
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium uppercase tracking-wide">
+                    {driver.name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/60">
+                    × {driver.weight}
+                  </span>
                 </div>
-              </SheetHeader>
-
-              <p className="text-sm text-white/50 leading-relaxed mb-6">
-                {selectedDriver.description}
-              </p>
-
-              <div className="space-y-3">
-                <div className="flex justify-between py-3 border-b border-white/5">
-                  <span className="text-xs text-white/30 uppercase tracking-wide">Period</span>
-                  <span className="text-sm text-white/80">{selectedDriver.details.period}</span>
-                </div>
-                <div className="flex justify-between py-3 border-b border-white/5">
-                  <span className="text-xs text-white/30 uppercase tracking-wide">Value</span>
-                  <span className="text-sm text-white/80">{selectedDriver.details.frequency}</span>
-                </div>
-                <div className="flex justify-between py-3 border-b border-white/5">
-                  <span className="text-xs text-white/30 uppercase tracking-wide">Impact</span>
-                  <span className={cn(
-                    "text-sm font-medium",
-                    selectedDriver.type === "positive" && "text-primary",
-                    selectedDriver.type === "neutral" && "text-white/60",
-                    selectedDriver.type === "negative" && "text-amber-400"
-                  )}>
-                    {selectedDriver.contribution >= 0 ? "+" : ""}{selectedDriver.contribution.toFixed(1)} pts
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {Math.round(driver.rawValue)}%
+                  </span>
+                  <span
+                    className={cn(
+                      "text-sm font-semibold tabular-nums",
+                      driver.type === "positive" && "text-primary",
+                      driver.type === "neutral" && "text-muted-foreground",
+                      driver.type === "negative" && "text-amber-500"
+                    )}
+                  >
+                    {driver.contribution >= 0 ? "+" : ""}{driver.contribution.toFixed(1)}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-6 p-4 rounded-xl bg-white/[0.02] border border-white/5">
-                <p className="text-xs text-white/40 leading-relaxed">
+              {/* Progress Bar showing contribution relative to max possible */}
+              <div className="relative h-1 bg-muted/20 rounded-full overflow-hidden">
+                <motion.div
+                  className={cn(
+                    "h-full rounded-full",
+                    driver.type === "positive" && "bg-primary",
+                    driver.type === "neutral" && "bg-muted-foreground/50",
+                    driver.type === "negative" && "bg-amber-500"
+                  )}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.abs(driver.contribution / positiveTotal) * 100}%` }}
+                  transition={{ duration: 0.6, delay: 0.2 + index * 0.05, ease: "easeOut" }}
+                />
+              </div>
+            </motion.button>
+          ))}
+          
+          {/* Total Row - show actual sum of displayed contributions */}
+          <div className="p-4 rounded-xl bg-card border border-border/40">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
+              <span className="text-lg font-bold tabular-nums">
+                {rq.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="mt-8 px-2">
+          <p className="text-[11px] text-muted-foreground/60 leading-relaxed text-center">
+            Impact scores are based on longitudinal patterns across multiple sessions.
+            <br />
+            Single actions do not directly change Reasoning Quality.
+          </p>
+        </div>
+      </main>
+
+      {/* Detail Sheet */}
+      <Sheet open={!!selectedDriver} onOpenChange={() => setSelectedDriver(null)}>
+        <SheetContent side="bottom" className="rounded-t-3xl h-auto max-h-[70vh]">
+          {selectedDriver && (
+            <div className="pb-8">
+              <SheetHeader className="text-left mb-6">
+                <SheetTitle className="text-base font-semibold uppercase tracking-wide">
+                  {selectedDriver.name}
+                </SheetTitle>
+              </SheetHeader>
+
+              <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                {selectedDriver.description}
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex justify-between py-2 border-b border-border/20">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Period analyzed</span>
+                  <span className="text-sm">{selectedDriver.details.period}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-border/20">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Frequency observed</span>
+                  <span className="text-sm">{selectedDriver.details.frequency}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-border/20">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Direction</span>
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      selectedDriver.type === "positive" && "text-primary",
+                      selectedDriver.type === "neutral" && "text-muted-foreground",
+                      selectedDriver.type === "negative" && "text-amber-500"
+                    )}
+                  >
+                    {selectedDriver.details.direction}
+                  </span>
+                </div>
+              </div>
+
+              {/* Scientific note */}
+              <div className="mt-6 p-3 rounded-lg bg-muted/20 border border-border/20">
+                <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
                   {selectedDriver.details.note}
                 </p>
               </div>
