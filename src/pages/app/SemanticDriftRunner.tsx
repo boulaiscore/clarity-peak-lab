@@ -1,8 +1,9 @@
 /**
  * SEMANTIC DRIFT — Runner Page
+ * v1.1: Added auth validation and save confirmation
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,13 +20,14 @@ import {
 } from "@/components/games/semantic-drift";
 import { ArrowLeft, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 type GamePhase = "difficulty" | "playing" | "results";
 
 export default function SemanticDriftRunner() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const queryClient = useQueryClient();
   const recordGameSession = useRecordGameSession();
   
@@ -37,6 +39,15 @@ export default function SemanticDriftRunner() {
   const [results, setResults] = useState<RoundResult[]>([]);
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [xpAwarded, setXpAwarded] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // v1.1: Validate auth before starting game
+  useEffect(() => {
+    if (!user?.id && !session?.user?.id) {
+      toast.error("Please log in to play");
+      navigate("/auth");
+    }
+  }, [user?.id, session?.user?.id, navigate]);
   
   const handleDifficultySelect = useCallback((selected: Difficulty) => {
     setDifficulty(selected);
@@ -58,25 +69,40 @@ export default function SemanticDriftRunner() {
     const xp = Math.round(baseXP * (0.5 + accuracy * 0.5));
     setXpAwarded(xp);
     
-    if (user?.id) {
+    // v1.1: Enhanced save with validation and feedback
+    const userId = user?.id || session?.user?.id;
+    if (userId) {
+      setIsSaving(true);
       try {
+        console.log("[SemanticDrift] Saving session for user:", userId);
+        
         await recordGameSession({
           gameType: "S1-RA",
           gymArea: "creativity",
           thinkingMode: "fast",
           xpAwarded: xp,
           score,
+          gameName: "semantic_drift",
         });
         
+        console.log("[SemanticDrift] ✅ Session saved successfully");
+        toast.success(`+${xp} XP earned!`, { icon: "⭐" });
+        
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
-        queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
+        queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
       } catch (error) {
-        console.error("[SemanticDrift] Failed to record session:", error);
+        console.error("[SemanticDrift] ❌ Failed to record session:", error);
+        toast.error("Failed to save session");
+      } finally {
+        setIsSaving(false);
       }
+    } else {
+      console.warn("[SemanticDrift] No user ID, session not saved");
+      toast.warning("Session not saved - please log in");
     }
     
     setPhase("results");
-  }, [difficulty, user?.id, recordGameSession, queryClient]);
+  }, [difficulty, user?.id, session?.user?.id, recordGameSession, queryClient]);
   
   const handlePlayAgain = useCallback(() => {
     setResults([]);

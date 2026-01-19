@@ -1,4 +1,9 @@
-import { useState, useCallback } from "react";
+/**
+ * ORBIT LOCK — Runner Page
+ * v1.1: Added auth validation and save confirmation
+ */
+
+import { useState, useCallback, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
@@ -10,49 +15,61 @@ import { Button } from "@/components/ui/button";
 export default function OrbitLockRunner() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const recordGameSession = useRecordGameSession();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const [isComplete, setIsComplete] = useState(false);
 
+  // v1.1: Validate auth before starting game
+  useEffect(() => {
+    if (!user?.id && !session?.user?.id) {
+      toast.error("Please log in to play");
+      navigate("/auth");
+    }
+  }, [user?.id, session?.user?.id, navigate]);
+
   const handleComplete = useCallback(async (results: OrbitLockFinalResults) => {
     setIsComplete(true);
     
-    // Record game session for caps, XP routing, and AE Guidance metrics
-    if (user?.id) {
+    const userId = user?.id || session?.user?.id;
+    if (userId) {
       try {
+        console.log("[OrbitLock] Saving session for user:", userId);
+        
         await recordGameSession({
           gameType: "S1-AE",
           gymArea: "focus",
           thinkingMode: "fast",
           xpAwarded: results.xpAwarded,
           score: results.score,
-          // AE Guidance metrics
           gameName: "orbit_lock",
-          timeInBandPct: results.totalTimeInBandPct, // Already 0-100
+          timeInBandPct: results.totalTimeInBandPct,
           degradationSlope: results.degradationSlope,
-          // Orbit Lock doesn't have these Triage Sprint metrics
           falseAlarmRate: null,
           hitRate: null,
           rtVariability: null,
         });
         
+        console.log("[OrbitLock] ✅ Session saved successfully");
         toast.success(`+${results.xpAwarded} XP earned!`, { icon: "⭐" });
         
         if (results.isPerfect) {
           toast.success("Perfect Session! 🌟", { duration: 3000 });
         }
       } catch (error) {
-        console.error("Failed to record game session:", error);
+        console.error("[OrbitLock] ❌ Failed to record session:", error);
+        toast.error("Failed to save session");
       }
+    } else {
+      console.warn("[OrbitLock] No user ID, session not saved");
+      toast.warning("Session not saved - please log in");
     }
     
-    // Navigate back after showing results
     setTimeout(() => {
       navigate("/neuro-lab");
     }, 500);
-  }, [user?.id, recordGameSession, navigate]);
+  }, [user?.id, session?.user?.id, recordGameSession, navigate]);
 
   const handleBack = () => {
     navigate("/neuro-lab");
@@ -60,7 +77,6 @@ export default function OrbitLockRunner() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/30">
         <div className="flex items-center justify-between px-4 py-3">
           <Button
@@ -78,11 +94,10 @@ export default function OrbitLockRunner() {
             <p className="text-[10px] text-muted-foreground capitalize">{difficulty} Mode</p>
           </div>
           
-          <div className="w-16" /> {/* Spacer for centering */}
+          <div className="w-16" />
         </div>
       </div>
       
-      {/* Game Content */}
       <div className="pt-16 pb-8 px-4">
         <OrbitLockDrill
           difficulty={difficulty}
