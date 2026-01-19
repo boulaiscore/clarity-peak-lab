@@ -52,6 +52,7 @@ import { ReadingType, ReadingDemand, getReadingTypeCopy } from "@/data/readings"
 import { calculateSingleTaskRQContribution } from "@/lib/reasoningQuality";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -325,7 +326,7 @@ function PodcastDetailsDialog({
   open: boolean;
   onClose: () => void;
   onMarkComplete: (podcastId: string) => void;
-  onOpenExternal: (podcastId: string) => void;
+  onOpenExternal: (podcastId: string, contentType: "podcast" | "book" | "article") => void;
   isCompleted: boolean;
   isInProgress: boolean;
   isMarking: boolean;
@@ -336,7 +337,7 @@ function PodcastDetailsDialog({
   const spotifyUrl = getSpotifySearchUrl(podcast.podcast.spotifyQuery);
   
   const handleExternalOpen = (url: string) => {
-    onOpenExternal(podcast.podcast.id);
+    onOpenExternal(podcast.podcast.id, "podcast");
     window.open(url, "_blank", "noopener,noreferrer");
   };
   
@@ -428,16 +429,18 @@ function ReadingDetailsDialog({
   open: boolean;
   onClose: () => void;
   onMarkComplete: (readingId: string) => void;
-  onOpenExternal: (readingId: string) => void;
+  onOpenExternal: (readingId: string, contentType: "podcast" | "book" | "article") => void;
   isCompleted: boolean;
   isInProgress: boolean;
   isMarking: boolean;
 }) {
   if (!reading) return null;
   
+  const contentType = reading.reading.readingType === "BOOK" ? "book" : "article";
+  
   const handleExternalOpen = () => {
     if (reading.reading.url) {
-      onOpenExternal(reading.reading.id);
+      onOpenExternal(reading.reading.id, contentType);
       window.open(reading.reading.url, "_blank", "noopener,noreferrer");
     }
   };
@@ -524,15 +527,12 @@ export function SpotifyTasksView() {
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [showAddedToLibrary, setShowAddedToLibrary] = useState(false);
   const [addedContentType, setAddedContentType] = useState<"podcast" | "book" | "article" | null>(null);
-  // Local state for in-progress items (persisted to localStorage)
-  const [inProgressIds, setInProgressIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem("task-in-progress-ids");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Use shared hook for in-progress items (synced with Home page)
+  const { 
+    inProgressIds, 
+    markAsInProgress, 
+    removeFromInProgress 
+  } = useInProgressTasks();
   
   // Get permissioning data
   const {
@@ -578,17 +578,15 @@ export function SpotifyTasksView() {
   });
   
   // Mark item as in-progress when external link is clicked
-  const handleOpenExternal = useCallback((contentId: string) => {
+  const handleOpenExternal = useCallback((contentId: string, contentType?: "podcast" | "book" | "article") => {
     if (!inProgressIds.includes(contentId) && !completedIds.includes(contentId)) {
-      const newIds = [...inProgressIds, contentId];
-      setInProgressIds(newIds);
-      localStorage.setItem("task-in-progress-ids", JSON.stringify(newIds));
+      markAsInProgress(contentId, contentType || "podcast");
       toast.info("Task started! Remember to mark complete when finished.", { 
         icon: "📖",
         duration: 3000 
       });
     }
-  }, [inProgressIds, completedIds]);
+  }, [inProgressIds, completedIds, markAsInProgress]);
   
   // Get status for a content item
   const getTaskStatus = useCallback((contentId: string): TaskStatus => {
@@ -627,10 +625,8 @@ export function SpotifyTasksView() {
       setMarkingId(contentId);
     },
     onSuccess: ({ contentId, contentType }) => {
-      // Remove from in-progress
-      const newInProgressIds = inProgressIds.filter(id => id !== contentId);
-      setInProgressIds(newInProgressIds);
-      localStorage.setItem("task-in-progress-ids", JSON.stringify(newInProgressIds));
+      // Remove from in-progress using shared hook
+      removeFromInProgress(contentId);
 
       // Show animated overlay
       setAddedContentType(contentType);
