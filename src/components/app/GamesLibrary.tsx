@@ -149,7 +149,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className={cn("text-[11px] font-semibold", iconColor)}>{systemLabel}</span>
-                    <span className={cn("text-[9px]", system === "fast" ? "text-area-fast/60" : "text-area-slow/60")}>• {systemDesc}</span>
+                    <span className={cn("text-[9px]", system === "fast" ? "text-area-fast/80" : "text-area-slow/80")}>• {systemDesc}</span>
                   </div>
                 </div>
               </div>
@@ -176,10 +176,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                           <Icon className={cn("w-3 h-3", iconColor)} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-[10px] font-medium leading-tight text-foreground">
+                          <h4 className="text-[11px] font-medium leading-tight text-foreground">
                             {area.name}
                           </h4>
-                          <p className="text-[8px] text-muted-foreground leading-tight">
+                          <p className="text-[9px] text-muted-foreground/80 leading-tight">
                             {area.tagline}
                           </p>
                         </div>
@@ -199,8 +199,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       </div>
 
       {/* Gating Explanation */}
-      <p className="text-[9px] text-muted-foreground/60 text-center px-4 italic">
-        Games unlock based on your cognitive metrics. Tap locked games for details.
+      <p className="text-[10px] text-muted-foreground/70 text-center px-4">
+        Games unlock based on your cognitive metrics.
       </p>
 
       {/* Exercise Picker Sheet (for non-S1-AE games) */}

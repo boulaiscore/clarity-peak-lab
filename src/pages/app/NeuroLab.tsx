@@ -160,7 +160,7 @@ export default function NeuroLab() {
               <Brain className="w-7 h-7 text-primary" />
             </div>
             <h2 className="text-lg font-semibold mb-2">Calibration Required</h2>
-            <p className="text-sm text-muted-foreground/70 mb-6 max-w-xs">
+            <p className="text-sm text-muted-foreground mb-6 max-w-xs">
               Complete your baseline calibration before accessing training and tasks.
             </p>
             <button
@@ -192,7 +192,7 @@ export default function NeuroLab() {
                 <CheckCircle2 className="w-4 h-4 text-foreground/60" />
               </div>
               <div>
-                <h3 className="text-[12px] font-semibold text-foreground/80">Week Complete</h3>
+                <h3 className="text-[12px] font-semibold text-foreground">Week Complete</h3>
                 <p className="text-[10px] text-muted-foreground">
                   {sessionsRequired} sessions done • Free training unlocked
                 </p>

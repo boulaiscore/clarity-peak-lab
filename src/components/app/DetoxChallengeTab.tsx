@@ -283,7 +283,7 @@ export function DetoxChallengeTab() {
               <p className="text-sm text-muted-foreground mb-2">
                 {DETOX_COGNITIVE_MESSAGES.completion.getDescription(Math.floor(lastSessionSeconds / 60))}
               </p>
-              <p className="text-xs text-muted-foreground/70 mb-3">
+              <p className="text-xs text-muted-foreground mb-3">
                 {DETOX_COGNITIVE_MESSAGES.completion.getBenefit(Math.floor(lastSessionSeconds / 60))}
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium">
@@ -395,7 +395,7 @@ export function DetoxChallengeTab() {
                   
                   <h4 className={cn(
                     "text-sm font-semibold mb-1",
-                    isSelected ? "text-foreground" : "text-foreground/70"
+                    isSelected ? "text-foreground" : "text-foreground/80"
                   )}>
                     {mode.id === "detox" ? "Digital Detox" : "Active Walk"}
                   </h4>
@@ -409,7 +409,7 @@ export function DetoxChallengeTab() {
                   
                   <div className={cn(
                     "mt-2 text-[10px] font-medium",
-                    isSelected ? "text-foreground/60" : "text-muted-foreground/60"
+                    isSelected ? "text-foreground/70" : "text-muted-foreground/80"
                   )}>
                     {mode.id === "detox" ? "100% impact" : "50% impact"}
                   </div>
@@ -455,7 +455,7 @@ export function DetoxChallengeTab() {
             transition={{ delay: 0.3 }}
             className="text-center space-y-3"
           >
-            <p className="text-xs text-muted-foreground/80">
+            <p className="text-xs text-muted-foreground">
               {selectedMode === "detox" 
                 ? "Best before high-focus or deep reasoning sessions."
                 : "Best when recovery is low but movement feels manageable."
@@ -479,7 +479,7 @@ export function DetoxChallengeTab() {
           </div>
 
           {/* Reminder Info - Subtle footer */}
-          <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/60 pt-2">
+          <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/80 pt-2">
             {dailySettings?.reminderEnabled ? (
               <>
                 <Bell className="w-3 h-3 text-primary/60" />
@@ -521,7 +521,7 @@ export function DetoxChallengeTab() {
                 These hours are dedicated to <span className="text-foreground font-medium">sleep</span> — the most important form of cognitive recovery. 
                 Active recovery (detox and walking) is designed for daytime use.
               </p>
-              <p className="text-xs text-muted-foreground/70 pt-1">
+              <p className="text-xs text-muted-foreground pt-1">
                 Get quality rest now. Start your recovery session tomorrow after 7 AM.
               </p>
             </AlertDialogDescription>
