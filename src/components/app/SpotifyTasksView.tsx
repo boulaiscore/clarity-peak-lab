@@ -1,5 +1,5 @@
 /**
- * Spotify-Style Tasks View v1.1
+ * Spotify-Style Tasks View v1.2
  * 
  * Horizontal scrollable sections for cognitive content:
  * - Suggested For You (based on cognitive state)
@@ -7,12 +7,13 @@
  * - Books
  * - Articles
  * 
- * v1.1: Added "Mark Complete" button in task details dialogs
+ * v1.2: Track "In Progress" when user opens external links,
+ *       show badge on cards, completed items go to Library only
  * 
  * Spotify-inspired design: horizontal carousels, large cards, minimal UI
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   Headphones, 
@@ -25,7 +26,9 @@ import {
   Sparkles,
   Library,
   BookMarked,
-  Check
+  Check,
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 import { 
   Dialog,
@@ -36,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { usePodcastPermissioning, PodcastEligibility } from "@/hooks/usePodcastPermissioning";
 import { useReadingPermissioning, ReadingEligibility } from "@/hooks/useReadingPermissioning";
 import { CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
@@ -51,6 +55,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfWeek, subDays } from "date-fns";
+
+// Status type for tracking task progress
+type TaskStatus = "not_started" | "in_progress" | "completed";
 
 // Gradient backgrounds for cards - Spotify-inspired
 const PODCAST_GRADIENTS = [
@@ -124,15 +131,17 @@ function SectionHeader({
   );
 }
 
-// Podcast Card - Spotify Album Style
+// Podcast Card - Spotify Album Style with Status Badge
 function PodcastCard({ 
   podcast, 
   index,
-  onClick 
+  onClick,
+  status 
 }: { 
   podcast: PodcastEligibility;
   index: number;
   onClick: () => void;
+  status: TaskStatus;
 }) {
   const gradient = getGradient(index, "podcast");
   
@@ -142,7 +151,7 @@ function PodcastCard({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
-      className="group flex-shrink-0 w-[140px] text-left"
+      className="group flex-shrink-0 w-[140px] text-left relative"
     >
       {/* Album Art Style Cover */}
       <div className={cn(
@@ -153,6 +162,16 @@ function PodcastCard({
         <div className="absolute inset-0 flex items-center justify-center">
           <Headphones className="w-12 h-12 text-white/40" />
         </div>
+        
+        {/* Status badge - In Progress */}
+        {status === "in_progress" && (
+          <div className="absolute top-2 right-2 z-10">
+            <Badge variant="secondary" className="bg-amber-500/90 text-white border-0 text-[9px] px-1.5 py-0.5 gap-1">
+              <Loader2 className="w-2.5 h-2.5 animate-spin" />
+              In Progress
+            </Badge>
+          </div>
+        )}
         
         {/* Demand badge */}
         <div className="absolute top-2 left-2">
@@ -178,17 +197,19 @@ function PodcastCard({
   );
 }
 
-// Reading Card - Spotify Album Style (for Books and Articles)
+// Reading Card - Spotify Album Style (for Books and Articles) with Status Badge
 function ReadingCard({ 
   reading, 
   index,
   type,
-  onClick 
+  onClick,
+  status 
 }: { 
   reading: ReadingEligibility;
   index: number;
   type: "book" | "article";
   onClick: () => void;
+  status: TaskStatus;
 }) {
   const gradient = getGradient(index, type);
   const Icon = type === "book" ? BookOpen : reading.reading.readingType === "RECOVERY_SAFE" ? Leaf : FileText;
@@ -200,7 +221,7 @@ function ReadingCard({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
-      className="group flex-shrink-0 w-[140px] text-left"
+      className="group flex-shrink-0 w-[140px] text-left relative"
     >
       {/* Album Art Style Cover */}
       <div className={cn(
@@ -211,6 +232,16 @@ function ReadingCard({
         <div className="absolute inset-0 flex items-center justify-center">
           <Icon className="w-12 h-12 text-white/40" />
         </div>
+        
+        {/* Status badge - In Progress */}
+        {status === "in_progress" && (
+          <div className="absolute top-2 right-2 z-10">
+            <Badge variant="secondary" className="bg-amber-500/90 text-white border-0 text-[9px] px-1.5 py-0.5 gap-1">
+              <Loader2 className="w-2.5 h-2.5 animate-spin" />
+              In Progress
+            </Badge>
+          </div>
+        )}
         
         {/* Type and Demand badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -293,20 +324,29 @@ function PodcastDetailsDialog({
   open,
   onClose,
   onMarkComplete,
+  onOpenExternal,
   isCompleted,
+  isInProgress,
   isMarking,
 }: {
   podcast: PodcastEligibility | null;
   open: boolean;
   onClose: () => void;
   onMarkComplete: (podcastId: string) => void;
+  onOpenExternal: (podcastId: string) => void;
   isCompleted: boolean;
+  isInProgress: boolean;
   isMarking: boolean;
 }) {
   if (!podcast) return null;
   
   const appleUrl = getApplePodcastUrl(podcast.podcast.applePodcastId);
   const spotifyUrl = getSpotifySearchUrl(podcast.podcast.spotifyQuery);
+  
+  const handleExternalOpen = (url: string) => {
+    onOpenExternal(podcast.podcast.id);
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
   
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -322,16 +362,34 @@ function PodcastDetailsDialog({
         </DialogHeader>
         
         <div className="space-y-3 pt-2">
+          {/* In Progress indicator */}
+          {isInProgress && !isCompleted && (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <Loader2 className="w-4 h-4 text-amber-500 animate-spin" />
+              <span className="text-xs text-amber-600 dark:text-amber-400">
+                In Progress — Mark complete when finished
+              </span>
+            </div>
+          )}
+          
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
-              <a href={appleUrl} target="_blank" rel="noopener noreferrer">
-                Apple Podcasts
-              </a>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 gap-2"
+              onClick={() => handleExternalOpen(appleUrl)}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Apple Podcasts
             </Button>
-            <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
-              <a href={spotifyUrl} target="_blank" rel="noopener noreferrer">
-                Spotify
-              </a>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 gap-2"
+              onClick={() => handleExternalOpen(spotifyUrl)}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Spotify
             </Button>
           </div>
           
@@ -369,17 +427,28 @@ function ReadingDetailsDialog({
   open,
   onClose,
   onMarkComplete,
+  onOpenExternal,
   isCompleted,
+  isInProgress,
   isMarking,
 }: {
   reading: ReadingEligibility | null;
   open: boolean;
   onClose: () => void;
   onMarkComplete: (readingId: string) => void;
+  onOpenExternal: (readingId: string) => void;
   isCompleted: boolean;
+  isInProgress: boolean;
   isMarking: boolean;
 }) {
   if (!reading) return null;
+  
+  const handleExternalOpen = () => {
+    if (reading.reading.url) {
+      onOpenExternal(reading.reading.id);
+      window.open(reading.reading.url, "_blank", "noopener,noreferrer");
+    }
+  };
   
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -395,6 +464,16 @@ function ReadingDetailsDialog({
         </DialogHeader>
         
         <div className="space-y-3 pt-2">
+          {/* In Progress indicator */}
+          {isInProgress && !isCompleted && (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <Loader2 className="w-4 h-4 text-amber-500 animate-spin" />
+              <span className="text-xs text-amber-600 dark:text-amber-400">
+                In Progress — Mark complete when finished
+              </span>
+            </div>
+          )}
+          
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {reading.reading.author && <span>{reading.reading.author}</span>}
             <span className="flex items-center gap-1">
@@ -404,10 +483,14 @@ function ReadingDetailsDialog({
           </div>
           
           {reading.reading.url && (
-            <Button variant="outline" size="sm" className="w-full gap-2" asChild>
-              <a href={reading.reading.url} target="_blank" rel="noopener noreferrer">
-                Open Reading
-              </a>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full gap-2"
+              onClick={handleExternalOpen}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Open Reading
             </Button>
           )}
           
@@ -447,6 +530,15 @@ export function SpotifyTasksView() {
   const [selectedPodcast, setSelectedPodcast] = useState<PodcastEligibility | null>(null);
   const [selectedReading, setSelectedReading] = useState<ReadingEligibility | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  // Local state for in-progress items (persisted to localStorage)
+  const [inProgressIds, setInProgressIds] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("task-in-progress-ids");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
   
   // Get permissioning data
   const {
@@ -467,9 +559,8 @@ export function SpotifyTasksView() {
   const isRecoveryMode = podcastRecoveryMode || readingRecoveryMode;
   
   // Fetch completed content IDs
-  const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm:ss");
   const { data: completedIds = [] } = useQuery({
-    queryKey: ["completed-content-ids", user?.id, sevenDaysAgo],
+    queryKey: ["completed-content-ids", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       
@@ -491,6 +582,26 @@ export function SpotifyTasksView() {
     enabled: !!user?.id,
     staleTime: 30_000,
   });
+  
+  // Mark item as in-progress when external link is clicked
+  const handleOpenExternal = useCallback((contentId: string) => {
+    if (!inProgressIds.includes(contentId) && !completedIds.includes(contentId)) {
+      const newIds = [...inProgressIds, contentId];
+      setInProgressIds(newIds);
+      localStorage.setItem("task-in-progress-ids", JSON.stringify(newIds));
+      toast.info("Task started! Remember to mark complete when finished.", { 
+        icon: "📖",
+        duration: 3000 
+      });
+    }
+  }, [inProgressIds, completedIds]);
+  
+  // Get status for a content item
+  const getTaskStatus = useCallback((contentId: string): TaskStatus => {
+    if (completedIds.includes(contentId)) return "completed";
+    if (inProgressIds.includes(contentId)) return "in_progress";
+    return "not_started";
+  }, [completedIds, inProgressIds]);
   
   // Mutation to mark content as complete
   const markCompleteMutation = useMutation({
@@ -522,9 +633,15 @@ export function SpotifyTasksView() {
       setMarkingId(contentId);
     },
     onSuccess: ({ contentId, contentType }) => {
+      // Remove from in-progress
+      const newInProgressIds = inProgressIds.filter(id => id !== contentId);
+      setInProgressIds(newInProgressIds);
+      localStorage.setItem("task-in-progress-ids", JSON.stringify(newInProgressIds));
+      
       toast.success("Added to Library!", { icon: "📚" });
       queryClient.invalidateQueries({ queryKey: ["completed-content-ids"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-content-count"] });
+      queryClient.invalidateQueries({ queryKey: ["in-progress-content-ids"] });
       setSelectedPodcast(null);
       setSelectedReading(null);
     },
@@ -547,23 +664,39 @@ export function SpotifyTasksView() {
     markCompleteMutation.mutate({ contentId: readingId, contentType });
   };
   
-  // Combine all enabled content for "Suggested" section
+  // Filter out completed items from browse view
+  const filterCompleted = <T extends PodcastEligibility | ReadingEligibility>(
+    items: T[],
+    getIdFn: (item: T) => string
+  ) => items.filter(item => !completedIds.includes(getIdFn(item)));
+  
+  // Combine all enabled content for "Suggested" section (exclude completed)
   const allSuggested: Array<{ type: "podcast" | "book" | "article"; item: PodcastEligibility | ReadingEligibility }> = [
-    ...enabledPodcasts.map(p => ({ type: "podcast" as const, item: p as PodcastEligibility | ReadingEligibility })),
-    ...enabledReadings.map(r => ({ 
+    ...filterCompleted(enabledPodcasts, p => p.podcast.id).map(p => ({ 
+      type: "podcast" as const, 
+      item: p as PodcastEligibility | ReadingEligibility 
+    })),
+    ...filterCompleted(enabledReadings, r => r.reading.id).map(r => ({ 
       type: (r.reading.readingType === "BOOK" ? "book" : "article") as "podcast" | "book" | "article", 
       item: r as PodcastEligibility | ReadingEligibility 
     })),
   ];
   
-  // Filter books and articles
-  const books = [...enabledReadings, ...withheldReadings].filter(
-    r => r.reading.readingType === "BOOK"
+  // Filter books and articles (exclude completed)
+  const books = filterCompleted(
+    [...enabledReadings, ...withheldReadings].filter(r => r.reading.readingType === "BOOK"),
+    r => r.reading.id
   );
-  const articles = [...enabledReadings, ...withheldReadings].filter(
-    r => r.reading.readingType === "NON_FICTION" || r.reading.readingType === "RECOVERY_SAFE"
+  const articles = filterCompleted(
+    [...enabledReadings, ...withheldReadings].filter(
+      r => r.reading.readingType === "NON_FICTION" || r.reading.readingType === "RECOVERY_SAFE"
+    ),
+    r => r.reading.id
   );
-  const allPodcasts = [...enabledPodcasts, ...withheldPodcasts];
+  const allPodcasts = filterCompleted(
+    [...enabledPodcasts, ...withheldPodcasts],
+    p => p.podcast.id
+  );
   
   if (isLoading) {
     return (
@@ -647,13 +780,14 @@ export function SpotifyTasksView() {
                 icon={Headphones}
               />
               <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex gap-3 pb-2">
+              <div className="flex gap-3 pb-2">
                   {allPodcasts.slice(0, 6).map((podcast, index) => (
                     <PodcastCard
                       key={podcast.podcast.id}
                       podcast={podcast}
                       index={index}
                       onClick={() => setSelectedPodcast(podcast)}
+                      status={getTaskStatus(podcast.podcast.id)}
                     />
                   ))}
                 </div>
@@ -671,7 +805,7 @@ export function SpotifyTasksView() {
                 icon={BookOpen}
               />
               <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex gap-3 pb-2">
+              <div className="flex gap-3 pb-2">
                   {books.slice(0, 6).map((book, index) => (
                     <ReadingCard
                       key={book.reading.id}
@@ -679,6 +813,7 @@ export function SpotifyTasksView() {
                       index={index}
                       type="book"
                       onClick={() => setSelectedReading(book)}
+                      status={getTaskStatus(book.reading.id)}
                     />
                   ))}
                 </div>
@@ -696,7 +831,7 @@ export function SpotifyTasksView() {
                 icon={FileText}
               />
               <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex gap-3 pb-2">
+              <div className="flex gap-3 pb-2">
                   {articles.slice(0, 6).map((article, index) => (
                     <ReadingCard
                       key={article.reading.id}
@@ -704,6 +839,7 @@ export function SpotifyTasksView() {
                       index={index}
                       type="article"
                       onClick={() => setSelectedReading(article)}
+                      status={getTaskStatus(article.reading.id)}
                     />
                   ))}
                 </div>
@@ -720,7 +856,9 @@ export function SpotifyTasksView() {
         open={!!selectedPodcast}
         onClose={() => setSelectedPodcast(null)}
         onMarkComplete={handleMarkPodcastComplete}
+        onOpenExternal={handleOpenExternal}
         isCompleted={selectedPodcast ? completedIds.includes(selectedPodcast.podcast.id) : false}
+        isInProgress={selectedPodcast ? inProgressIds.includes(selectedPodcast.podcast.id) : false}
         isMarking={markingId === selectedPodcast?.podcast.id}
       />
       <ReadingDetailsDialog
@@ -728,7 +866,9 @@ export function SpotifyTasksView() {
         open={!!selectedReading}
         onClose={() => setSelectedReading(null)}
         onMarkComplete={handleMarkReadingComplete}
+        onOpenExternal={handleOpenExternal}
         isCompleted={selectedReading ? completedIds.includes(selectedReading.reading.id) : false}
+        isInProgress={selectedReading ? inProgressIds.includes(selectedReading.reading.id) : false}
         isMarking={markingId === selectedReading?.reading.id}
       />
     </div>
