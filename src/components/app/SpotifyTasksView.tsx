@@ -1,11 +1,13 @@
 /**
- * Spotify-Style Tasks View
+ * Spotify-Style Tasks View v1.1
  * 
  * Horizontal scrollable sections for cognitive content:
  * - Suggested For You (based on cognitive state)
  * - Podcasts
  * - Books
  * - Articles
+ * 
+ * v1.1: Added "Mark Complete" button in task details dialogs
  * 
  * Spotify-inspired design: horizontal carousels, large cards, minimal UI
  */
@@ -22,7 +24,8 @@ import {
   Clock,
   Sparkles,
   Library,
-  BookMarked
+  BookMarked,
+  Check
 } from "lucide-react";
 import { 
   Dialog,
@@ -43,6 +46,11 @@ import {
 } from "@/data/podcasts";
 import { ReadingType, ReadingDemand, getReadingTypeCopy } from "@/data/readings";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format, startOfWeek, subDays } from "date-fns";
 
 // Gradient backgrounds for cards - Spotify-inspired
 const PODCAST_GRADIENTS = [
@@ -279,15 +287,21 @@ function SuggestedHeroCard({
   );
 }
 
-// Details Dialog for Podcasts
+// Details Dialog for Podcasts with Mark Complete
 function PodcastDetailsDialog({
   podcast,
   open,
   onClose,
+  onMarkComplete,
+  isCompleted,
+  isMarking,
 }: {
   podcast: PodcastEligibility | null;
   open: boolean;
   onClose: () => void;
+  onMarkComplete: (podcastId: string) => void;
+  isCompleted: boolean;
+  isMarking: boolean;
 }) {
   if (!podcast) return null;
   
@@ -307,16 +321,41 @@ function PodcastDetailsDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex gap-2 pt-2">
-          <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
-            <a href={appleUrl} target="_blank" rel="noopener noreferrer">
-              Apple Podcasts
-            </a>
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
-            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer">
-              Spotify
-            </a>
+        <div className="space-y-3 pt-2">
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
+              <a href={appleUrl} target="_blank" rel="noopener noreferrer">
+                Apple Podcasts
+              </a>
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
+              <a href={spotifyUrl} target="_blank" rel="noopener noreferrer">
+                Spotify
+              </a>
+            </Button>
+          </div>
+          
+          {/* Mark Complete Button */}
+          <Button
+            variant={isCompleted ? "secondary" : "default"}
+            size="sm"
+            className="w-full gap-2"
+            onClick={() => onMarkComplete(podcast.podcast.id)}
+            disabled={isCompleted || isMarking}
+          >
+            {isCompleted ? (
+              <>
+                <Check className="w-4 h-4" />
+                Completed
+              </>
+            ) : isMarking ? (
+              "Saving..."
+            ) : (
+              <>
+                <Check className="w-4 h-4" />
+                Mark as Complete
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>
@@ -324,15 +363,21 @@ function PodcastDetailsDialog({
   );
 }
 
-// Details Dialog for Readings
+// Details Dialog for Readings with Mark Complete
 function ReadingDetailsDialog({
   reading,
   open,
   onClose,
+  onMarkComplete,
+  isCompleted,
+  isMarking,
 }: {
   reading: ReadingEligibility | null;
   open: boolean;
   onClose: () => void;
+  onMarkComplete: (readingId: string) => void;
+  isCompleted: boolean;
+  isMarking: boolean;
 }) {
   if (!reading) return null;
   
@@ -365,6 +410,29 @@ function ReadingDetailsDialog({
               </a>
             </Button>
           )}
+          
+          {/* Mark Complete Button */}
+          <Button
+            variant={isCompleted ? "secondary" : "default"}
+            size="sm"
+            className="w-full gap-2"
+            onClick={() => onMarkComplete(reading.reading.id)}
+            disabled={isCompleted || isMarking}
+          >
+            {isCompleted ? (
+              <>
+                <Check className="w-4 h-4" />
+                Completed
+              </>
+            ) : isMarking ? (
+              "Saving..."
+            ) : (
+              <>
+                <Check className="w-4 h-4" />
+                Mark as Complete
+              </>
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -373,9 +441,12 @@ function ReadingDetailsDialog({
 
 // Main Component
 export function SpotifyTasksView() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<"browse" | "library">("browse");
   const [selectedPodcast, setSelectedPodcast] = useState<PodcastEligibility | null>(null);
   const [selectedReading, setSelectedReading] = useState<ReadingEligibility | null>(null);
+  const [markingId, setMarkingId] = useState<string | null>(null);
   
   // Get permissioning data
   const {
@@ -394,6 +465,87 @@ export function SpotifyTasksView() {
   
   const isLoading = podcastLoading || readingLoading;
   const isRecoveryMode = podcastRecoveryMode || readingRecoveryMode;
+  
+  // Fetch completed content IDs
+  const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm:ss");
+  const { data: completedIds = [] } = useQuery({
+    queryKey: ["completed-content-ids", user?.id, sevenDaysAgo],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // Get from exercise_completions with content- prefix
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .select("exercise_id")
+        .eq("user_id", user.id)
+        .like("exercise_id", "content-%");
+      
+      if (error) throw error;
+      
+      // Extract the content ID from exercise_id format: content-{type}-{id}
+      return (data || []).map(c => {
+        const parts = c.exercise_id.split("-");
+        return parts.slice(2).join("-"); // Get everything after "content-{type}-"
+      });
+    },
+    enabled: !!user?.id,
+    staleTime: 30_000,
+  });
+  
+  // Mutation to mark content as complete
+  const markCompleteMutation = useMutation({
+    mutationFn: async ({ contentId, contentType }: { contentId: string; contentType: "podcast" | "book" | "article" }) => {
+      if (!user?.id) throw new Error("Not authenticated");
+      
+      const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+      const exerciseId = `content-${contentType}-${contentId}`;
+      
+      // Insert into exercise_completions for tracking
+      const { error } = await supabase
+        .from("exercise_completions")
+        .insert({
+          user_id: user.id,
+          exercise_id: exerciseId,
+          gym_area: "reasoning", // Tasks are reasoning-related
+          thinking_mode: "slow",
+          difficulty: "medium",
+          xp_earned: 0, // Tasks don't give XP
+          score: 100,
+          week_start: weekStart,
+        });
+      
+      if (error) throw error;
+      
+      return { contentId, contentType };
+    },
+    onMutate: async ({ contentId }) => {
+      setMarkingId(contentId);
+    },
+    onSuccess: ({ contentId, contentType }) => {
+      toast.success("Added to Library!", { icon: "📚" });
+      queryClient.invalidateQueries({ queryKey: ["completed-content-ids"] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-content-count"] });
+      setSelectedPodcast(null);
+      setSelectedReading(null);
+    },
+    onError: (error) => {
+      console.error("Failed to mark complete:", error);
+      toast.error("Failed to save completion");
+    },
+    onSettled: () => {
+      setMarkingId(null);
+    },
+  });
+  
+  const handleMarkPodcastComplete = (podcastId: string) => {
+    markCompleteMutation.mutate({ contentId: podcastId, contentType: "podcast" });
+  };
+  
+  const handleMarkReadingComplete = (readingId: string) => {
+    const reading = [...enabledReadings, ...withheldReadings].find(r => r.reading.id === readingId);
+    const contentType = reading?.reading.readingType === "BOOK" ? "book" : "article";
+    markCompleteMutation.mutate({ contentId: readingId, contentType });
+  };
   
   // Combine all enabled content for "Suggested" section
   const allSuggested: Array<{ type: "podcast" | "book" | "article"; item: PodcastEligibility | ReadingEligibility }> = [
@@ -567,11 +719,17 @@ export function SpotifyTasksView() {
         podcast={selectedPodcast}
         open={!!selectedPodcast}
         onClose={() => setSelectedPodcast(null)}
+        onMarkComplete={handleMarkPodcastComplete}
+        isCompleted={selectedPodcast ? completedIds.includes(selectedPodcast.podcast.id) : false}
+        isMarking={markingId === selectedPodcast?.podcast.id}
       />
       <ReadingDetailsDialog
         reading={selectedReading}
         open={!!selectedReading}
         onClose={() => setSelectedReading(null)}
+        onMarkComplete={handleMarkReadingComplete}
+        isCompleted={selectedReading ? completedIds.includes(selectedReading.reading.id) : false}
+        isMarking={markingId === selectedReading?.reading.id}
       />
     </div>
   );
