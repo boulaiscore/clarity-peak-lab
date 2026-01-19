@@ -58,6 +58,14 @@ const RA_GAMES: RAGameOption[] = [
     route: "/neuro-lab/constellation-snap",
     xpByDifficulty: { easy: 25, medium: 35, hard: 45 },
   },
+  {
+    id: "semantic_drift",
+    name: "Semantic Drift",
+    tagline: "Directional Flow",
+    description: "Navigate fast semantic drifts under time pressure. Trains flexible, directional associations.",
+    route: "/neuro-lab/semantic-drift",
+    xpByDifficulty: { easy: 15, medium: 20, hard: 25 },
+  },
 ];
 
 // Helper to get human-readable reason
