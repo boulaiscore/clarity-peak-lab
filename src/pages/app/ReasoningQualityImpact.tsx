@@ -16,7 +16,9 @@ import { cn } from "@/lib/utils";
 interface ImpactDriver {
   id: string;
   name: string;
-  impact: number; // -30 to +30
+  rawValue: number;
+  weight: string;
+  contribution: number;
   type: "positive" | "neutral" | "negative";
   description: string;
   details: {
@@ -25,7 +27,6 @@ interface ImpactDriver {
     direction: string;
     note: string;
   };
-  isNew?: boolean;
 }
 
 export default function ReasoningQualityImpact() {
@@ -48,61 +49,63 @@ export default function ReasoningQualityImpact() {
   const s2ConsistencyContribution = s2Consistency * 0.30;
   const taskPrimingContribution = taskPriming * 0.20;
 
-  // Generate impact drivers based on actual RQ components
+  // Generate impact drivers based on actual RQ components - always show all 3
   const drivers = useMemo((): ImpactDriver[] => {
-    const items: ImpactDriver[] = [];
-
-    // S2 Core contribution (50% weight) - always show
-    items.push({
-      id: "s2-core",
-      name: "System 2 Skill Level",
-      impact: Math.round(s2CoreContribution),
-      type: s2Core >= 50 ? "positive" : s2Core >= 30 ? "neutral" : "negative",
-      description: "Your current System 2 skill level (Critical Thinking and Intuition scores) forms the foundation of reasoning quality.",
-      details: {
-        period: "Current skills",
-        frequency: `${Math.round(s2Core)}% skill level`,
-        direction: s2Core >= 50 ? "Positive" : "Neutral",
-        note: "S2 Core accounts for 50% of your Reasoning Quality score.",
+    return [
+      // S2 Core contribution (50% weight)
+      {
+        id: "s2-core",
+        name: "S2 Core",
+        rawValue: s2Core,
+        weight: "50%",
+        contribution: s2CoreContribution,
+        type: s2Core >= 50 ? "positive" : s2Core >= 30 ? "neutral" : "negative",
+        description: "Your current System 2 skill level (Critical Thinking and Intuition scores) forms the foundation of reasoning quality.",
+        details: {
+          period: "Current skills",
+          frequency: `${Math.round(s2Core)}% skill level`,
+          direction: s2Core >= 50 ? "Positive" : "Neutral",
+          note: "S2 Core = (Critical Thinking + Intuition) / 2. It accounts for 50% of your Reasoning Quality score.",
+        },
       },
-    });
-
-    // S2 Consistency contribution (30% weight) - always show
-    items.push({
-      id: "s2-consistency",
-      name: "Response Consistency",
-      impact: Math.round(s2ConsistencyContribution),
-      type: s2Consistency >= 50 ? "positive" : s2Consistency >= 30 ? "neutral" : "negative",
-      description: "Stability and reliability of your performance across System 2 reasoning sessions.",
-      details: {
-        period: "Last 10 sessions",
-        frequency: `${Math.round(s2Consistency)}% consistency`,
-        direction: s2Consistency >= 50 ? "Positive" : "Neutral",
-        note: "S2 Consistency accounts for 30% of your Reasoning Quality score.",
+      // S2 Consistency contribution (30% weight)
+      {
+        id: "s2-consistency",
+        name: "Consistency",
+        rawValue: s2Consistency,
+        weight: "30%",
+        contribution: s2ConsistencyContribution,
+        type: s2Consistency >= 50 ? "positive" : s2Consistency >= 30 ? "neutral" : "negative",
+        description: "Stability and reliability of your performance across System 2 reasoning sessions.",
+        details: {
+          period: "Last 10 sessions",
+          frequency: `${Math.round(s2Consistency)}% consistency`,
+          direction: s2Consistency >= 50 ? "Positive" : "Neutral",
+          note: "Consistency measures stability in System 2 game performance. It accounts for 30% of your Reasoning Quality score.",
+        },
       },
-    });
-
-    // Task Priming contribution (20% weight) - always show
-    items.push({
-      id: "task-priming",
-      name: "Conceptual Engagement",
-      impact: Math.round(taskPrimingContribution),
-      type: taskPriming >= 30 ? "positive" : taskPriming >= 10 ? "neutral" : "negative",
-      description: "Engagement with structured content (podcasts, readings, books) that primes deliberate reasoning.",
-      details: {
-        period: "Last 7 days",
-        frequency: taskPriming > 0 ? "Active engagement" : "Low engagement",
-        direction: taskPriming >= 30 ? "Positive" : "Neutral",
-        note: "Task Priming accounts for 20% of your Reasoning Quality score.",
+      // Task Priming contribution (20% weight)
+      {
+        id: "task-priming",
+        name: "Task Priming",
+        rawValue: taskPriming,
+        weight: "20%",
+        contribution: taskPrimingContribution,
+        type: taskPriming >= 30 ? "positive" : taskPriming >= 10 ? "neutral" : "negative",
+        description: "Engagement with structured content (podcasts, readings, books) that primes deliberate reasoning.",
+        details: {
+          period: "Last 7 days",
+          frequency: taskPriming > 0 ? "Active engagement" : "Low engagement",
+          direction: taskPriming >= 30 ? "Positive" : "Neutral",
+          note: "Task Priming is driven by podcasts, articles, and books completed in the last 7 days. It accounts for 20% of your Reasoning Quality score.",
+        },
       },
-    });
-
-    // Sort by absolute impact (highest first)
-    return items.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+    ];
   }, [s2Core, s2Consistency, taskPriming, s2CoreContribution, s2ConsistencyContribution, taskPrimingContribution]);
 
-  // Max impact for normalization
-  const maxImpact = Math.max(...drivers.map(d => Math.abs(d.impact)), 25);
+  // Total for verification
+  const totalContribution = s2CoreContribution + s2ConsistencyContribution + taskPrimingContribution;
+
 
   if (isLoading) {
     return (
@@ -175,77 +178,7 @@ export default function ReasoningQualityImpact() {
           </div>
         </motion.div>
 
-        {/* Breakdown Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="p-4 rounded-xl bg-card/50 border border-border/30 mb-8"
-        >
-          <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4">
-            Score Breakdown
-          </h3>
-          
-          <div className="space-y-3">
-            {/* S2 Core */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">S2 Core</span>
-                <span className="text-[10px] text-muted-foreground/60">× 50%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {Math.round(s2Core)}%
-                </span>
-                <span className="text-sm font-semibold tabular-nums w-12 text-right">
-                  {s2CoreContribution.toFixed(1)}
-                </span>
-              </div>
-            </div>
-            
-            {/* S2 Consistency */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Consistency</span>
-                <span className="text-[10px] text-muted-foreground/60">× 30%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {Math.round(s2Consistency)}%
-                </span>
-                <span className="text-sm font-semibold tabular-nums w-12 text-right">
-                  {s2ConsistencyContribution.toFixed(1)}
-                </span>
-              </div>
-            </div>
-            
-            {/* Task Priming */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Task Priming</span>
-                <span className="text-[10px] text-muted-foreground/60">× 20%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {Math.round(taskPriming)}%
-                </span>
-                <span className="text-sm font-semibold tabular-nums w-12 text-right">
-                  {taskPrimingContribution.toFixed(1)}
-                </span>
-              </div>
-            </div>
-            
-            {/* Total */}
-            <div className="pt-3 mt-2 border-t border-border/30 flex items-center justify-between">
-              <span className="text-sm font-medium">Total</span>
-              <span className="text-sm font-bold tabular-nums w-12 text-right">
-                {(s2CoreContribution + s2ConsistencyContribution + taskPrimingContribution).toFixed(1)}%
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Section Title */}
+        {/* Component Details */}
         <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3 px-1">
           Component Details
         </h3>
@@ -263,58 +196,56 @@ export default function ReasoningQualityImpact() {
             >
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
-                  {driver.isNew && (
-                    <span className="text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium">
-                      New
-                    </span>
-                  )}
                   <span className="text-sm font-medium uppercase tracking-wide">
                     {driver.name}
                   </span>
+                  <span className="text-[10px] text-muted-foreground/60">
+                    × {driver.weight}
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    "text-sm font-semibold tabular-nums",
-                    driver.type === "positive" && "text-primary",
-                    driver.type === "neutral" && "text-muted-foreground",
-                    driver.type === "negative" && "text-amber-500"
-                  )}
-                >
-                  {driver.impact > 0 ? "+" : ""}{driver.impact}%
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {Math.round(driver.rawValue)}%
+                  </span>
+                  <span
+                    className={cn(
+                      "text-sm font-semibold tabular-nums",
+                      driver.type === "positive" && "text-primary",
+                      driver.type === "neutral" && "text-muted-foreground",
+                      driver.type === "negative" && "text-amber-500"
+                    )}
+                  >
+                    +{driver.contribution.toFixed(1)}
+                  </span>
+                </div>
               </div>
 
-              {/* Impact Bar */}
-              <div className="relative h-1 bg-muted/20 rounded-full overflow-visible">
-                {/* Center marker */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-muted-foreground/40 z-10" />
-                
-                {/* Impact fill */}
-                {driver.type === "positive" ? (
-                  <motion.div
-                    className="absolute left-1/2 top-0 h-full bg-primary rounded-r-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(driver.impact / maxImpact) * 50}%` }}
-                    transition={{ duration: 0.6, delay: 0.2 + index * 0.05, ease: "easeOut" }}
-                  />
-                ) : driver.type === "negative" ? (
-                  <motion.div
-                    className="absolute right-1/2 top-0 h-full bg-amber-500 rounded-l-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(Math.abs(driver.impact) / maxImpact) * 50}%` }}
-                    transition={{ duration: 0.6, delay: 0.2 + index * 0.05, ease: "easeOut" }}
-                  />
-                ) : (
-                  <motion.div
-                    className="absolute left-1/2 top-0 h-full bg-muted-foreground/50 rounded-r-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(driver.impact / maxImpact) * 50}%` }}
-                    transition={{ duration: 0.6, delay: 0.2 + index * 0.05, ease: "easeOut" }}
-                  />
-                )}
+              {/* Progress Bar showing contribution relative to max possible */}
+              <div className="relative h-1 bg-muted/20 rounded-full overflow-hidden">
+                <motion.div
+                  className={cn(
+                    "h-full rounded-full",
+                    driver.type === "positive" && "bg-primary",
+                    driver.type === "neutral" && "bg-muted-foreground/50",
+                    driver.type === "negative" && "bg-amber-500"
+                  )}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(driver.contribution / totalContribution) * 100}%` }}
+                  transition={{ duration: 0.6, delay: 0.2 + index * 0.05, ease: "easeOut" }}
+                />
               </div>
             </motion.button>
           ))}
+          
+          {/* Total Row */}
+          <div className="p-4 rounded-xl bg-card border border-border/40">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
+              <span className="text-lg font-bold tabular-nums">
+                {totalContribution.toFixed(1)}%
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Disclaimer */}
