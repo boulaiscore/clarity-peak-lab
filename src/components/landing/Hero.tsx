@@ -1,23 +1,48 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import heroTraining from "@/assets/hero-training.mp4";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import landingDecision from "@/assets/landing-intuitive-decision.mp4";
+import landingCreative from "@/assets/landing-creative-work.mp4";
+import landingReading from "@/assets/landing-reading.mp4";
+
+const videos = [
+  { src: landingDecision, alt: "Intuitive decision making" },
+  { src: landingCreative, alt: "Creative work" },
+  { src: landingReading, alt: "Deep reading" },
+];
 
 export function Hero() {
+  const [currentVideo, setCurrentVideo] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentVideo((prev) => (prev + 1) % videos.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Single Video Background - no carousel */}
+      {/* Video Background Carousel */}
       <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover opacity-50"
-        >
-          <source src={heroTraining} type="video/mp4" />
-        </video>
+        <AnimatePresence mode="wait">
+          <motion.video
+            key={currentVideo}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={videos[currentVideo].src} type="video/mp4" />
+          </motion.video>
+        </AnimatePresence>
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/50" />
       </div>
@@ -92,6 +117,19 @@ export function Hero() {
             </div>
           </motion.div>
         </motion.div>
+      </div>
+
+      {/* Video indicators */}
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+        {videos.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentVideo(index)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === currentVideo ? "bg-primary w-6" : "bg-white/30 hover:bg-white/50"
+            }`}
+          />
+        ))}
       </div>
 
       {/* Scroll indicator */}
