@@ -67,7 +67,7 @@ export default function DailySession() {
   
   const handleStartTraining = () => {
     // Navigate to neuro lab with daily session mode
-    navigate("/app/neuro-lab", { state: { dailySessionMode: true, distribution } });
+    navigate("/neuro-lab", { state: { dailySessionMode: true, distribution } });
   };
   
   return (
