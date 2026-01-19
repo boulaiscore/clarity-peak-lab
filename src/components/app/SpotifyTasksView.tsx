@@ -103,8 +103,17 @@ function RQContributionBadge({ type }: { type: "podcast" | "article" | "book" })
   // Real RQ impact = base contribution × Task Priming weight (0.20)
   const realRQContribution = Math.round(baseContribution * TASK_PRIMING_WEIGHT * 10) / 10;
   return (
-    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground backdrop-blur-sm">
-      +{realRQContribution} RQ
+    <span className="text-[8px] font-medium px-1.5 py-0.5 rounded bg-black/40 text-white/90 backdrop-blur-sm">
+      +{realRQContribution}% Reasoning Quality
+    </span>
+  );
+}
+
+// Badge for suggested items
+function SuggestedBadge() {
+  return (
+    <span className="text-[8px] font-medium px-1.5 py-0.5 rounded bg-primary/80 text-primary-foreground">
+      Suggested
     </span>
   );
 }
@@ -150,12 +159,14 @@ function PodcastCard({
   podcast, 
   index,
   onClick,
-  status 
+  status,
+  isSuggested = false
 }: { 
   podcast: PodcastEligibility;
   index: number;
   onClick: () => void;
   status: TaskStatus;
+  isSuggested?: boolean;
 }) {
   const gradient = getGradient(index, "podcast");
   
@@ -177,15 +188,18 @@ function PodcastCard({
           <Headphones className="w-12 h-12 text-white/40" />
         </div>
         
-        {/* Status badge - In Progress */}
-        {status === "in_progress" && (
-          <div className="absolute top-2 right-2 z-10">
+        {/* Status badge - In Progress or Suggested */}
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
+          {status === "in_progress" && (
             <Badge variant="secondary" className="bg-amber-500/90 text-white border-0 text-[9px] px-1.5 py-0.5 gap-1">
               <Loader2 className="w-2.5 h-2.5 animate-spin" />
               In Progress
             </Badge>
-          </div>
-        )}
+          )}
+          {isSuggested && status !== "in_progress" && (
+            <SuggestedBadge />
+          )}
+        </div>
         
         {/* Demand and RQ badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -218,13 +232,15 @@ function ReadingCard({
   index,
   type,
   onClick,
-  status 
+  status,
+  isSuggested = false
 }: { 
   reading: ReadingEligibility;
   index: number;
   type: "book" | "article";
   onClick: () => void;
   status: TaskStatus;
+  isSuggested?: boolean;
 }) {
   const gradient = getGradient(index, type);
   const Icon = type === "book" ? BookOpen : reading.reading.readingType === "RECOVERY_SAFE" ? Leaf : FileText;
@@ -248,15 +264,18 @@ function ReadingCard({
           <Icon className="w-12 h-12 text-white/40" />
         </div>
         
-        {/* Status badge - In Progress */}
-        {status === "in_progress" && (
-          <div className="absolute top-2 right-2 z-10">
+        {/* Status badge - In Progress or Suggested */}
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
+          {status === "in_progress" && (
             <Badge variant="secondary" className="bg-amber-500/90 text-white border-0 text-[9px] px-1.5 py-0.5 gap-1">
               <Loader2 className="w-2.5 h-2.5 animate-spin" />
               In Progress
             </Badge>
-          </div>
-        )}
+          )}
+          {isSuggested && status !== "in_progress" && (
+            <SuggestedBadge />
+          )}
+        </div>
         
         {/* Type, Demand and RQ badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -292,47 +311,7 @@ function ReadingCard({
   );
 }
 
-// Suggested For You Hero Card
-function SuggestedHeroCard({ 
-  item,
-  type,
-  onClick 
-}: { 
-  item: PodcastEligibility | ReadingEligibility;
-  type: "podcast" | "book" | "article";
-  onClick: () => void;
-}) {
-  const isPodcast = type === "podcast";
-  const title = isPodcast 
-    ? (item as PodcastEligibility).podcast.title 
-    : (item as ReadingEligibility).reading.title;
-  const subtitle = isPodcast
-    ? (item as PodcastEligibility).podcast.intent
-    : (item as ReadingEligibility).reading.description;
-  
-  return (
-    <motion.button
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      onClick={onClick}
-      className="w-full p-4 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 hover:border-primary/40 transition-all active:scale-[0.99] text-left group"
-    >
-      <div className="flex items-center gap-3">
-        <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary/30 transition-colors">
-          <Sparkles className="w-6 h-6 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-medium text-primary uppercase tracking-wide mb-0.5">
-            Suggested for you
-          </p>
-          <p className="text-sm font-semibold truncate">{title}</p>
-          <p className="text-[11px] text-muted-foreground line-clamp-1">{subtitle}</p>
-        </div>
-        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-      </div>
-    </motion.button>
-  );
-}
+// SuggestedHeroCard removed - using badges on cards instead
 
 // Details Dialog for Podcasts with Mark Complete
 function PodcastDetailsDialog({
@@ -706,6 +685,14 @@ export function SpotifyTasksView() {
     })),
   ];
   
+  // Create a set of suggested IDs for marking with badge
+  const suggestedIds = new Set(allSuggested.map(s => {
+    if (s.type === "podcast") {
+      return (s.item as PodcastEligibility).podcast.id;
+    }
+    return (s.item as ReadingEligibility).reading.id;
+  }));
+  
   // Filter books and articles (exclude completed)
   const books = filterCompleted(
     [...enabledReadings, ...withheldReadings].filter(r => r.reading.readingType === "BOOK"),
@@ -772,9 +759,9 @@ export function SpotifyTasksView() {
               >
                 <p className="text-lg font-semibold">Added to Library!</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {addedContentType === "podcast" && "+2.4 RQ from podcast"}
-                  {addedContentType === "article" && "+3 RQ from article"}
-                  {addedContentType === "book" && "+4 RQ from book"}
+                  {addedContentType === "podcast" && "+2.4% Reasoning Quality"}
+                  {addedContentType === "article" && "+3% Reasoning Quality"}
+                  {addedContentType === "book" && "+4% Reasoning Quality"}
                 </p>
               </motion.div>
               
@@ -837,22 +824,6 @@ export function SpotifyTasksView() {
             </motion.div>
           )}
           
-          {/* Suggested For You - Hero */}
-          {allSuggested.length > 0 && (
-            <section>
-              <SuggestedHeroCard
-                item={allSuggested[0].item}
-                type={allSuggested[0].type}
-                onClick={() => {
-                  if (allSuggested[0].type === "podcast") {
-                    setSelectedPodcast(allSuggested[0].item as PodcastEligibility);
-                  } else {
-                    setSelectedReading(allSuggested[0].item as ReadingEligibility);
-                  }
-                }}
-              />
-            </section>
-          )}
           
           {/* Podcasts Section */}
           {allPodcasts.length > 0 && (
@@ -871,6 +842,7 @@ export function SpotifyTasksView() {
                       index={index}
                       onClick={() => setSelectedPodcast(podcast)}
                       status={getTaskStatus(podcast.podcast.id)}
+                      isSuggested={suggestedIds.has(podcast.podcast.id)}
                     />
                   ))}
                 </div>
@@ -897,6 +869,7 @@ export function SpotifyTasksView() {
                       type="book"
                       onClick={() => setSelectedReading(book)}
                       status={getTaskStatus(book.reading.id)}
+                      isSuggested={suggestedIds.has(book.reading.id)}
                     />
                   ))}
                 </div>
@@ -923,6 +896,7 @@ export function SpotifyTasksView() {
                       type="article"
                       onClick={() => setSelectedReading(article)}
                       status={getTaskStatus(article.reading.id)}
+                      isSuggested={suggestedIds.has(article.reading.id)}
                     />
                   ))}
                 </div>
