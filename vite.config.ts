@@ -45,8 +45,8 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         // Import custom service worker for notifications
         importScripts: ["/sw-custom.js"],
-        // Increase max file size to 3MB to handle larger bundles
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        // Increase max file size to 4MB to handle larger bundles
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
