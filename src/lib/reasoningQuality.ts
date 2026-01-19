@@ -67,6 +67,10 @@ export interface RQResult {
   s2Core: number;
   s2Consistency: number;
   taskPriming: number;
+  // Pre-calculated contributions (for display consistency)
+  s2CoreContribution: number;
+  s2ConsistencyContribution: number;
+  taskPrimingContribution: number;
   decay: number;
   isDecaying: boolean;
 }
@@ -323,10 +327,15 @@ export function calculateRQ(input: RQInput): RQResult {
   // 3. Task_Priming
   const taskPriming = calculateTaskPriming(input.taskCompletions, today);
   
-  // 4. Base RQ
-  const baseRQ = 0.50 * s2Core + 0.30 * s2Consistency + 0.20 * taskPriming;
+  // 4. Calculate contributions (raw, for display consistency)
+  const s2CoreContribution = s2Core * 0.50;
+  const s2ConsistencyContribution = s2Consistency * 0.30;
+  const taskPrimingContribution = taskPriming * 0.20;
   
-  // 5. Apply decay
+  // 5. Base RQ
+  const baseRQ = s2CoreContribution + s2ConsistencyContribution + taskPrimingContribution;
+  
+  // 6. Apply decay
   const { decay, floor } = calculateRQDecay(
     input.lastS2GameAt,
     input.lastTaskAt,
@@ -334,7 +343,7 @@ export function calculateRQ(input: RQInput): RQResult {
     today
   );
   
-  // 6. Final RQ with floor
+  // 7. Final RQ with floor
   const finalRQ = clamp(baseRQ - decay, floor, 100);
   
   return {
@@ -342,6 +351,9 @@ export function calculateRQ(input: RQInput): RQResult {
     s2Core: Math.round(s2Core * 10) / 10,
     s2Consistency: Math.round(s2Consistency * 10) / 10,
     taskPriming: Math.round(taskPriming * 10) / 10,
+    s2CoreContribution: Math.round(s2CoreContribution * 10) / 10,
+    s2ConsistencyContribution: Math.round(s2ConsistencyContribution * 10) / 10,
+    taskPrimingContribution: Math.round(taskPrimingContribution * 10) / 10,
     decay: Math.round(decay * 10) / 10,
     isDecaying: decay > 0,
   };
