@@ -43,12 +43,12 @@ export function NavigationTabs({ activeTab, onTabChange }: NavigationTabsProps) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl overflow-y-auto"
+            className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl overflow-y-auto"
           >
             <div className="container px-6 py-24">
               <button
                 onClick={() => onTabChange(null)}
-                className="fixed top-6 right-6 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors z-50"
+                className="fixed top-6 right-6 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors z-[70]"
               >
                 <X className="w-5 h-5" />
               </button>
