@@ -1,9 +1,10 @@
 /**
  * Hook to manage in-progress tasks with start dates
  * Stores data in localStorage for persistence across sessions
+ * Automatically filters out completed items
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { PODCASTS } from "@/data/podcasts";
 import { READINGS } from "@/data/readings";
 
@@ -44,40 +45,60 @@ function getTaskDetails(contentId: string): { type: "podcast" | "book" | "articl
   return null;
 }
 
-export function useInProgressTasks() {
-  const [inProgressData, setInProgressData] = useState<InProgressData>(() => {
-    try {
-      // Try new format first
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-      
-      // Migrate from legacy format if exists
-      const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (legacyStored) {
-        const legacyIds: string[] = JSON.parse(legacyStored);
-        const migrated: InProgressData = {};
-        legacyIds.forEach(id => {
-          const details = getTaskDetails(id);
-          if (details) {
-            migrated[id] = {
-              startedAt: new Date().toISOString(),
-              type: details.type,
-            };
-          }
-        });
-        // Save migrated data
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-        // Keep legacy for backwards compatibility with SpotifyTasksView
-        return migrated;
-      }
-      
-      return {};
-    } catch {
-      return {};
+// Load initial data from localStorage
+function loadInProgressData(): InProgressData {
+  try {
+    // Try new format first
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
     }
-  });
+    
+    // Migrate from legacy format if exists
+    const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacyStored) {
+      const legacyIds: string[] = JSON.parse(legacyStored);
+      const migrated: InProgressData = {};
+      legacyIds.forEach(id => {
+        const details = getTaskDetails(id);
+        if (details) {
+          migrated[id] = {
+            startedAt: new Date().toISOString(),
+            type: details.type,
+          };
+        }
+      });
+      // Save migrated data
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    
+    return {};
+  } catch {
+    return {};
+  }
+}
+
+export function useInProgressTasks(completedIds: string[] = []) {
+  const [inProgressData, setInProgressData] = useState<InProgressData>(loadInProgressData);
+
+  // Clean up completed items from in-progress whenever completedIds changes
+  useEffect(() => {
+    if (completedIds.length === 0) return;
+    
+    setInProgressData(prev => {
+      const idsToRemove = Object.keys(prev).filter(id => completedIds.includes(id));
+      if (idsToRemove.length === 0) return prev;
+      
+      const cleaned = { ...prev };
+      idsToRemove.forEach(id => delete cleaned[id]);
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+      localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(Object.keys(cleaned)));
+      
+      return cleaned;
+    });
+  }, [completedIds]);
 
   const inProgressIds = useMemo(() => Object.keys(inProgressData), [inProgressData]);
 
@@ -94,7 +115,6 @@ export function useInProgressTasks() {
       };
       
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
-      // Also update legacy format for backwards compatibility
       localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(Object.keys(newData)));
       
       return newData;
