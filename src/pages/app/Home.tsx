@@ -15,6 +15,8 @@ import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { formatDistanceToNow } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
@@ -132,8 +134,31 @@ const Home = () => {
     isLoading: rqLoading,
   } = useReasoningQuality();
   
-  // In-progress tasks for reminder section
-  const { getInProgressTasks } = useInProgressTasks();
+  // Fetch completed content IDs to filter out from in-progress
+  const { data: completedIds = [] } = useQuery({
+    queryKey: ["completed-content-ids", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .select("exercise_id")
+        .eq("user_id", user.id)
+        .like("exercise_id", "content-%");
+      
+      if (error) throw error;
+      
+      return (data || []).map(c => {
+        const parts = c.exercise_id.split("-");
+        return parts.slice(2).join("-");
+      });
+    },
+    enabled: !!user?.id,
+    staleTime: 30_000,
+  });
+  
+  // In-progress tasks for reminder section (auto-filters completed items)
+  const { getInProgressTasks } = useInProgressTasks(completedIds);
   
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const { persistDailySnapshot, isSnapshotCurrentToday } = useDailyRecoverySnapshot();

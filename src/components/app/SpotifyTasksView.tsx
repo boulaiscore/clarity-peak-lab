@@ -527,12 +527,6 @@ export function SpotifyTasksView() {
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [showAddedToLibrary, setShowAddedToLibrary] = useState(false);
   const [addedContentType, setAddedContentType] = useState<"podcast" | "book" | "article" | null>(null);
-  // Use shared hook for in-progress items (synced with Home page)
-  const { 
-    inProgressIds, 
-    markAsInProgress, 
-    removeFromInProgress 
-  } = useInProgressTasks();
   
   // Get permissioning data
   const {
@@ -576,6 +570,13 @@ export function SpotifyTasksView() {
     enabled: !!user?.id,
     staleTime: 30_000,
   });
+  
+  // Use shared hook for in-progress items (synced with Home page, auto-filters completed)
+  const { 
+    inProgressIds, 
+    markAsInProgress, 
+    removeFromInProgress 
+  } = useInProgressTasks(completedIds);
   
   // Mark item as in-progress when external link is clicked
   const handleOpenExternal = useCallback((contentId: string, contentType?: "podcast" | "book" | "article") => {
