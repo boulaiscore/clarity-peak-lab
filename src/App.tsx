@@ -43,6 +43,7 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 import DownloadPage from "./pages/Download";
+import ReasoningQualityImpact from "./pages/app/ReasoningQualityImpact";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -349,6 +350,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Health />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/reasoning-quality-impact"
+        element={
+          <ProtectedRoute>
+            <ReasoningQualityImpact />
           </ProtectedRoute>
         }
       />
