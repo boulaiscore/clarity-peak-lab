@@ -106,7 +106,7 @@ export default function ReasoningQualityImpact() {
       // S2 Consistency contribution (30% weight)
       {
         id: "s2-consistency",
-        name: "S2 Consistency",
+        name: "How Steady You Think",
         rawValue: s2Consistency,
         weight: "30%",
         contribution: s2ConsistencyContribution,
@@ -116,7 +116,7 @@ export default function ReasoningQualityImpact() {
           period: "Last 10 S2 sessions",
           frequency: `${Math.round(s2Consistency)}% consistency`,
           direction: s2Consistency >= 50 ? "Positive" : "Neutral",
-          note: "S2 Consistency measures stability in System 2 game performance. It accounts for 30% of your Reasoning Quality score.",
+          note: "Measures how reliably you perform in deliberate thinking games. It accounts for 30% of your Reasoning Quality score.",
         },
       },
     ];
