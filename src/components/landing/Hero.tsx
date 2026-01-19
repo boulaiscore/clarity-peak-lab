@@ -30,29 +30,36 @@ export function Hero() {
     });
   }, []);
 
-  // Handle video transitions with crossfade - 12 seconds per video
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const next = (currentVideo + 1) % videos.length;
-      setNextVideo(next);
-      setIsTransitioning(true);
-      
-      // Start playing next video before transition
-      const nextVideoEl = videoRefs.current[next];
-      if (nextVideoEl) {
-        nextVideoEl.currentTime = 0;
-        nextVideoEl.play();
-      }
-      
-      // Complete transition after fade
-      setTimeout(() => {
-        setCurrentVideo(next);
-        setIsTransitioning(false);
-      }, 1500);
-    }, 12000); // 12 seconds per video
+  // Handle transition to next video
+  const transitionToNext = () => {
+    if (isTransitioning) return;
+    
+    const next = (currentVideo + 1) % videos.length;
+    setNextVideo(next);
+    setIsTransitioning(true);
+    
+    // Start playing next video before transition
+    const nextVideoEl = videoRefs.current[next];
+    if (nextVideoEl) {
+      nextVideoEl.currentTime = 0;
+      nextVideoEl.play();
+    }
+    
+    // Complete transition after fade
+    setTimeout(() => {
+      setCurrentVideo(next);
+      setIsTransitioning(false);
+    }, 1500);
+  };
 
-    return () => clearInterval(interval);
-  }, [currentVideo]);
+  // Listen for video end event
+  useEffect(() => {
+    const currentVideoEl = videoRefs.current[currentVideo];
+    if (currentVideoEl) {
+      currentVideoEl.addEventListener('ended', transitionToNext);
+      return () => currentVideoEl.removeEventListener('ended', transitionToNext);
+    }
+  }, [currentVideo, isTransitioning]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
@@ -64,7 +71,6 @@ export function Hero() {
             ref={(el) => (videoRefs.current[index] = el)}
             autoPlay={index === 0}
             muted
-            loop
             playsInline
             preload="auto"
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1500 ease-in-out"
