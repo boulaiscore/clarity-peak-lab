@@ -396,6 +396,9 @@ export function FlashConnectDrill({ difficulty, onComplete }: FlashConnectDrillP
         xpAwarded={finalResults.xpAwarded}
         isPerfect={finalResults.isPerfect}
         difficulty={difficulty}
+        roundsCompleted={finalResults.roundData.length}
+        totalRounds={12}
+        durationSeconds={90}
         onContinue={() => onComplete(finalResults)}
       />
     );

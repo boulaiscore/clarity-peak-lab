@@ -1,36 +1,42 @@
 /**
  * ============================================
- * REASONING QUALITY (RQ) ENGINE
+ * REASONING QUALITY (RQ) ENGINE v2.0
  * ============================================
  * 
  * RQ is a DERIVED METRIC measuring the QUALITY and EFFICIENCY of reasoning.
  * It is NOT a skill, does NOT assign XP, and does NOT replace CT or IN.
  * 
- * FORMULA:
+ * FORMULA (updated per Global Game Feedback Spec):
  * RQ = clamp(0.50 × S2_Core + 0.30 × S2_Consistency + 0.20 × Task_Priming, 0, 100)
  * 
  * COMPONENTS:
  * - S2_Core = S2 = (CT + IN) / 2
- * - S2_Consistency = 100 - normalized_variance(S2_game_scores_last_N)
- * - Task_Priming = clamp(40 × depth_weight × continuity_factor, 0, 100)
+ * - S2_Consistency = stability/coherence of S2 reasoning (internal, never user-facing)
+ * - Task_Priming = conceptual priming from tasks (affects RQ only via Task_Priming)
  * 
- * CT / IN = how much reasoning the user can sustain (capacity)
- * RQ = how well the user reasons (quality)
+ * S2 CONSISTENCY (Internal - Never User-Facing):
+ * Per S2 session compute:
+ * S2_session_quality = 0.5 × normalized_accuracy + 0.3 × consistency_score + 0.2 × coherence_score
  * 
- * DECAY:
- * - If no S2 game AND no task for 14 days: -2 points RQ per week
- * - Floor: RQ >= (S2_Core - 10)
+ * Update rule:
+ * - If S2_session_quality >= 0.70 → increase S2_Consistency slightly (+2)
+ * - If 0.50–0.69 → no change
+ * - If < 0.50 → slight decrease (-1)
+ * 
+ * Constraints:
+ * - Clamp S2_Consistency to [0,100]
+ * - NEVER update from S1 games
+ * - NEVER update from tasks directly
+ * 
+ * CONNECTION TO RQ:
+ * - S2 games do NOT directly increase RQ
+ * - S2 games affect RQ ONLY via S2_Consistency
+ * - Tasks affect RQ ONLY via Task_Priming
  * 
  * COGNITIVE AGE INTEGRATION:
  * RQ MODULATES the effectiveness of improvement:
  * CognitiveAge = BaselineAge - (Improvement / 10) × (0.85 + 0.15 × RQ / 100)
  * Multiplier range: [0.85, 1.00]
- * 
- * TASK RULES:
- * - Tasks do NOT assign XP
- * - Tasks do NOT increase CT or IN
- * - Tasks do NOT unlock games
- * - Tasks influence ONLY Reasoning Quality (RQ)
  */
 
 import { clamp } from "@/lib/cognitiveEngine";
@@ -87,11 +93,21 @@ export function calculateS2Core(S2: number): number {
 }
 
 // ============================================
-// S2_CONSISTENCY
+// S2_CONSISTENCY (Internal - Never User-Facing)
 // ============================================
 
 /**
- * Measures stability of reasoning in S2 games
+ * S2_Consistency measures stability and coherence of System 2 reasoning over time.
+ * 
+ * Per S2 session compute:
+ * S2_session_quality = 0.5 * normalized_accuracy + 0.3 * consistency_score + 0.2 * coherence_score
+ * 
+ * Update rule:
+ * - If S2_session_quality >= 0.70 → increase S2_Consistency slightly
+ * - If 0.50–0.69 → no change
+ * - If < 0.50 → slight decrease
+ * 
+ * For now, we approximate using score variance as a proxy for consistency.
  * S2_Consistency = 100 - normalized_variance(S2_game_scores_last_N)
  * 
  * Uses last 10 S2 sessions. If < 5 sessions, fallback = 50
@@ -122,6 +138,38 @@ export function calculateS2Consistency(scores: number[]): number {
   const normalizedVariance = clamp((stdDev / 50) * 100, 0, 100);
   
   return clamp(100 - normalizedVariance, 0, 100);
+}
+
+/**
+ * Calculate S2 session quality for updating S2 Consistency.
+ * 
+ * S2_session_quality = 0.5 * normalized_accuracy + 0.3 * consistency_score + 0.2 * coherence_score
+ * 
+ * Returns a value between 0 and 1.
+ */
+export function calculateS2SessionQuality(
+  accuracy: number, // 0-100
+  consistencyScore: number, // 0-100 (e.g., low RT variance)
+  coherenceScore: number // 0-100 (e.g., deliberation time appropriate)
+): number {
+  const normalizedAccuracy = clamp(accuracy / 100, 0, 1);
+  const normalizedConsistency = clamp(consistencyScore / 100, 0, 1);
+  const normalizedCoherence = clamp(coherenceScore / 100, 0, 1);
+  
+  return 0.5 * normalizedAccuracy + 0.3 * normalizedConsistency + 0.2 * normalizedCoherence;
+}
+
+/**
+ * Determine S2 Consistency delta based on session quality.
+ * 
+ * - If quality >= 0.70 → +2 to consistency
+ * - If 0.50–0.69 → no change
+ * - If < 0.50 → -1 to consistency
+ */
+export function getS2ConsistencyDelta(sessionQuality: number): number {
+  if (sessionQuality >= 0.70) return 2;
+  if (sessionQuality >= 0.50) return 0;
+  return -1;
 }
 
 // ============================================
