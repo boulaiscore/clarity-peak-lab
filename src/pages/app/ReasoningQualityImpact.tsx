@@ -35,7 +35,18 @@ interface ImpactDriver {
 
 export default function ReasoningQualityImpact() {
   const navigate = useNavigate();
-  const { rq, s2Core, s2Consistency, taskPriming, decay, isDecaying, taskBreakdown, isLoading } = useReasoningQuality();
+  const { 
+    rq, 
+    s2Core, 
+    s2Consistency, 
+    s2CoreContribution, 
+    s2ConsistencyContribution, 
+    taskPrimingContribution,
+    decay, 
+    isDecaying, 
+    taskBreakdown, 
+    isLoading 
+  } = useReasoningQuality();
   const { states } = useCognitiveStates();
   const [selectedDriver, setSelectedDriver] = useState<ImpactDriver | null>(null);
 
@@ -52,21 +63,25 @@ export default function ReasoningQualityImpact() {
 
   const status = getStatusBadge(rq);
 
-  // Calculate actual weighted contributions to RQ using the SAME values as the formula
-  // RQ = 50% S2 Core + 30% S2 Consistency + 20% Task Priming - Decay
-  // S2 Core = (CT + IN) / 2, so we split the 50% contribution proportionally
-  const s2CoreContribution = s2Core * 0.50;
+  // Use pre-calculated contributions from the hook (ensures math adds up)
+  // Split s2CoreContribution between CT and IN proportionally
   const ctProportion = CT + IN > 0 ? CT / (CT + IN) : 0.5;
   const inProportion = CT + IN > 0 ? IN / (CT + IN) : 0.5;
   const ctContribution = s2CoreContribution * ctProportion;
   const inContribution = s2CoreContribution * inProportion;
-  const s2ConsistencyContribution = s2Consistency * 0.30;
   
   // Task priming breakdown: podcasts, articles, books
-  // Total weight = 20%, split by actual contribution
-  const podcastContribution = (taskBreakdown?.podcast ?? 0) * 0.20;
-  const articleContribution = (taskBreakdown?.article ?? 0) * 0.20;
-  const bookContribution = (taskBreakdown?.book ?? 0) * 0.20;
+  // Split taskPrimingContribution proportionally by type
+  const totalTaskPoints = (taskBreakdown?.podcast ?? 0) + (taskBreakdown?.article ?? 0) + (taskBreakdown?.book ?? 0);
+  const podcastContribution = totalTaskPoints > 0 
+    ? taskPrimingContribution * ((taskBreakdown?.podcast ?? 0) / totalTaskPoints)
+    : 0;
+  const articleContribution = totalTaskPoints > 0 
+    ? taskPrimingContribution * ((taskBreakdown?.article ?? 0) / totalTaskPoints)
+    : 0;
+  const bookContribution = totalTaskPoints > 0 
+    ? taskPrimingContribution * ((taskBreakdown?.book ?? 0) / totalTaskPoints)
+    : 0;
   
   // Decay is subtracted
   const decayContribution = decay;

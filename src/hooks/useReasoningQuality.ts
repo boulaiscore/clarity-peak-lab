@@ -38,10 +38,15 @@ export interface UseReasoningQualityResult {
   // Main RQ value (0-100)
   rq: number;
   
-  // Breakdown
+  // Breakdown (raw values)
   s2Core: number;
   s2Consistency: number;
   taskPriming: number;
+  
+  // Pre-calculated contributions (for display consistency)
+  s2CoreContribution: number;
+  s2ConsistencyContribution: number;
+  taskPrimingContribution: number;
   
   // Task priming breakdown by type
   taskBreakdown: TaskBreakdown;
@@ -236,6 +241,9 @@ export function useReasoningQuality(): UseReasoningQualityResult {
         s2Core: 50,
         s2Consistency: 50,
         taskPriming: 0,
+        s2CoreContribution: 25,
+        s2ConsistencyContribution: 15,
+        taskPrimingContribution: 0,
         decay: 0,
         isDecaying: false,
       };
