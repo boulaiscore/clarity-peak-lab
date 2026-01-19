@@ -23,20 +23,9 @@ import {
 import { ReportPreviewReal } from "@/components/report/ReportPreviewReal";
 import { Progress } from "@/components/ui/progress";
 
-import "@/styles/report-print.css";
+import "@/styles/clinical-report.css";
 
-import { ReportCover } from "@/components/report/ReportCover";
-import { ReportOverview } from "@/components/report/ReportOverview";
-import { ReportWellbeing } from "@/components/report/ReportWellbeing";
-import { ReportSCI } from "@/components/report/ReportSCI";
-import { ReportDualProcess } from "@/components/report/ReportDualProcess";
-import { ReportDomains } from "@/components/report/ReportDomains";
-import { ReportMetaCognitive } from "@/components/report/ReportMetaCognitive";
-import { ReportTrainingAnalytics } from "@/components/report/ReportTrainingAnalytics";
-import { ReportAchievements } from "@/components/report/ReportAchievements";
-import { ReportPhysio } from "@/components/report/ReportPhysio";
-import { ReportActionable } from "@/components/report/ReportActionable";
-import { ReportMethodology } from "@/components/report/ReportMethodology";
+import { ClinicalReport } from "@/components/report/ClinicalReport";
 
 const CREDIT_PACKAGES = [
   { id: 'single', credits: 1, price: '€4.99', pricePerReport: '€4.99', popular: false },
@@ -480,19 +469,14 @@ export default function CognitiveReport() {
         </div>
       )}
 
-      <div ref={printRef} className="report-root">
-        <ReportCover profile={profile} metrics={metrics} generatedAt={generatedAt} />
-        <ReportOverview profile={profile} generatedAt={generatedAt} />
-        <ReportWellbeing metrics={metrics} wearable={wearable} aggregates={aggregates} />
-        <ReportSCI metrics={metrics} />
-        <ReportDualProcess profile={profile} metrics={metrics} />
-        <ReportDomains metrics={metrics} aggregates={aggregates} />
-        <ReportMetaCognitive metrics={metrics} />
-        <ReportTrainingAnalytics profile={profile} metrics={metrics} aggregates={aggregates} sessions={sessions} />
-        <ReportAchievements badges={badges} />
-        <ReportPhysio metrics={metrics} wearable={wearable} />
-        <ReportActionable profile={profile} metrics={metrics} aggregates={aggregates} />
-        <ReportMethodology />
+      <div ref={printRef}>
+        <ClinicalReport 
+          profile={profile} 
+          metrics={metrics} 
+          aggregates={aggregates}
+          badges={badges}
+          generatedAt={generatedAt} 
+        />
       </div>
 
       {/* Purchase Modal with Package Options */}
