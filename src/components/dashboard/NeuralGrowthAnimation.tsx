@@ -434,9 +434,9 @@ export function NeuralGrowthAnimation({
               }`}
               onClick={() => {
                 if (bottleneck.variable === "thinking" || bottleneck.variable === "training") {
-                  navigate("/app/neuro-lab");
+                  navigate("/neuro-lab");
                 } else {
-                  navigate("/app/home?tab=detox");
+                  navigate("/app?tab=detox");
                 }
               }}
             >
