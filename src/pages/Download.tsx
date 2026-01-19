@@ -80,7 +80,7 @@ const DownloadPage = () => {
               </div>
               <div className="text-left">
                 <p className="text-xs text-white/40 uppercase tracking-wider">Coming Soon</p>
-                <p className="text-white font-semibold">App Store</p>
+                <p className="text-white font-semibold">Apple Store</p>
               </div>
             </div>
           </motion.div>
