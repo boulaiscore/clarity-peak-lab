@@ -42,6 +42,7 @@ import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
+import DownloadPage from "./pages/Download";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -352,6 +353,7 @@ function AppRoutes() {
         }
       />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/download" element={<DownloadPage />} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
