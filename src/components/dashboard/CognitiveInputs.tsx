@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { 
   Headphones, Clock, Target, ExternalLink, 
   BookOpen, FileText, ChevronDown, ChevronUp, Brain, Info, 
@@ -1430,6 +1430,40 @@ function getItemNormalizedScore(item: CognitiveInput): number {
   return Math.round((raw / MAX_ITEM_POINTS) * 100);
 }
 
+// Animated counter hook for smooth number transitions
+function useAnimatedCounter(target: number, duration: number = 1000): number {
+  const [value, setValue] = useState(0);
+  const prevTarget = useRef(0);
+  
+  useEffect(() => {
+    if (target === prevTarget.current) return;
+    
+    const startValue = prevTarget.current;
+    const startTime = performance.now();
+    
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = startValue + (target - startValue) * eased;
+      
+      setValue(current);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        prevTarget.current = target;
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [target, duration]);
+  
+  return value;
+}
+
 // Library component - shows all completed items
 export function CognitiveLibrary() {
   const { user } = useAuth();
@@ -1485,6 +1519,18 @@ export function CognitiveLibrary() {
   const podcastsCompleted = completedItems.filter(i => i.type === "podcast");
   const booksCompleted = completedItems.filter(i => i.type === "book");
   const articlesCompleted = completedItems.filter(i => i.type === "article");
+
+  // Calculate total Reasoning Quality contribution from library
+  // Each type contributes: podcast=2.4, article=3, book=4 (base weights * 0.20 task priming weight)
+  const totalRQContribution = useMemo(() => {
+    const podcastRQ = podcastsCompleted.length * 2.4;
+    const articleRQ = articlesCompleted.length * 3;
+    const bookRQ = booksCompleted.length * 4;
+    return Math.round((podcastRQ + articleRQ + bookRQ) * 10) / 10;
+  }, [podcastsCompleted.length, articlesCompleted.length, booksCompleted.length]);
+
+  // Animated counter for RQ display
+  const animatedRQ = useAnimatedCounter(totalRQContribution, 800);
 
   const stats = calculateLibraryStats(completedItems);
 
@@ -1555,6 +1601,23 @@ export function CognitiveLibrary() {
       <p className="text-xs text-muted-foreground text-center">
         Your completed cognitive inputs: podcasts listened, books and articles read.
       </p>
+
+      {/* Total Reasoning Quality Contribution - Animated Counter */}
+      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-center">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Brain className="h-5 w-5 text-primary" />
+          <span className="text-sm font-medium text-primary">Reasoning Quality Impact</span>
+        </div>
+        <div className="flex items-baseline justify-center gap-1">
+          <span className="text-3xl font-bold text-foreground tabular-nums">
+            +{animatedRQ.toFixed(1)}
+          </span>
+          <span className="text-sm text-muted-foreground">points</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground mt-2">
+          Cumulative contribution from {completedItems.length} completed {completedItems.length === 1 ? 'item' : 'items'}
+        </p>
+      </div>
 
       {/* Content Stats */}
       <div className="grid grid-cols-3 gap-3">
