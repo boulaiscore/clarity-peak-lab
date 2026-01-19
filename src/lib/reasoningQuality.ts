@@ -207,12 +207,30 @@ export function calculateTaskPriming(
     return 0;
   }
   
-  // TEMPORARY PLACEHOLDER VALUES
-  // TODO: Replace with editorial-defined depth mapping
-  const depth_weight = 0.6;
-  const continuity_factor = 1.0;
+  // Score per task based on type (depth weight)
+  const typeWeights: Record<string, number> = {
+    podcast: 12,   // Lighter content
+    article: 15,   // Medium depth
+    book: 20,      // Deepest engagement
+  };
   
-  return clamp(40 * depth_weight * continuity_factor, 0, 100);
+  // Calculate weighted score with recency decay
+  let totalScore = 0;
+  for (const task of recentTasks) {
+    const baseScore = typeWeights[task.type] || 12;
+    const daysAgo = Math.floor((today.getTime() - task.completedAt.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Recency weight: today=1.0, 7 days ago=0.3
+    const recencyWeight = Math.max(0.3, 1 - (daysAgo * 0.1));
+    totalScore += baseScore * recencyWeight;
+  }
+  
+  // Cap at 100, with diminishing returns after 5 tasks
+  // First 5 tasks contribute fully, additional tasks at 50%
+  const effectiveTasks = Math.min(recentTasks.length, 5) + Math.max(0, recentTasks.length - 5) * 0.5;
+  const normalized = Math.min(totalScore, effectiveTasks * 20);
+  
+  return clamp(normalized, 0, 100);
 }
 
 // ============================================
