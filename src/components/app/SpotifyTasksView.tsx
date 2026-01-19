@@ -277,11 +277,8 @@ function ReadingCard({
           )}
         </div>
         
-        {/* Type, Demand and RQ badges */}
+        {/* Demand and RQ badges only - removed category label */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          <span className="text-[8px] font-medium px-2 py-0.5 rounded-full bg-black/30 text-white/90 backdrop-blur-sm">
-            {copy.categoryLabel}
-          </span>
           <DemandPill demand={reading.reading.demand} />
           <RQContributionBadge type={type} />
         </div>
