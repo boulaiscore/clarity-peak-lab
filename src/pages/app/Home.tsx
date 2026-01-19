@@ -224,28 +224,26 @@ const Home = () => {
 
 
 
-  // Get insight based on readiness - with cause-effect messaging
+  // Get insight based on readiness - concise action-oriented
   const getInsight = () => {
-    const planName = TRAINING_PLANS[currentPlan].name.replace(" Training", "");
-    
     if (readiness >= 75) {
       return {
-        title: "Optimal window",
-        body: `Your ${planName} protocol detected peak readiness. High-intensity training today will have 2x impact on memory consolidation tonight.`,
-        action: "Push intensity"
+        title: "Peak readiness",
+        body: "Ideal for high-intensity training.",
+        action: "Train now"
       };
     }
     if (readiness >= 55) {
       return {
-        title: "Stable foundation",
-        body: `Conditions support your ${planName} load. Training now maintains the cognitive edge you've built—skipping starts a 48h decline curve.`,
-        action: "Maintain momentum"
+        title: "Good to train",
+        body: "Conditions support full session load.",
+        action: "Start session"
       };
     }
     return {
-      title: "Strategic recovery",
-      body: `Your ${planName} protocol recommends lighter load today. This protects System 1 speed while preserving System 2 depth for tomorrow's peak performance.`,
-      action: "Protect tomorrow"
+      title: "Low readiness",
+      body: "Prioritize recovery or light tasks.",
+      action: "Recover first"
     };
   };
 
@@ -441,30 +439,25 @@ const Home = () => {
             transition={{ delay: 0.08 }}
             className="mb-4"
           >
-            <button
-              onClick={() => navigate("/neuro-lab?tab=tasks")}
-              className="w-full p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 hover:border-emerald-500/40 transition-all active:scale-[0.98] text-left"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-                  <BookMarked className="w-5 h-5 text-emerald-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-1">
-                    Today is for understanding, not effort
-                  </h3>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Light reading improves how you'll reason tomorrow. Training is paused — reflection isn't.
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[10px] font-medium text-emerald-500 uppercase tracking-wide">
-                      Explore Tasks
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-emerald-500/60" />
+              <button
+                onClick={() => navigate("/neuro-lab?tab=tasks")}
+                className="w-full p-3.5 rounded-xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 hover:border-emerald-500/40 transition-all active:scale-[0.98] text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+                    <BookMarked className="w-4 h-4 text-emerald-500" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      Light tasks recommended
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground">
+                      Recovery is low — reading or reflection preferred.
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-emerald-500/60" />
                 </div>
-              </div>
-            </button>
+              </button>
           </motion.section>
         )}
 
@@ -477,25 +470,25 @@ const Home = () => {
           const getDetoxMessage = () => {
             if (detoxProgress === 0) {
               return {
-                headline: "Recovery allocation pending",
-                body: `${minutesRemaining} minutes of attentional reset remaining this week. Reduces accumulated cognitive load.`,
-                metric: `${detoxXPTarget} min target`,
+                headline: "Weekly detox not started",
+                body: `${minutesRemaining} min remaining`,
+                metric: `Target: ${detoxXPTarget} min`,
                 urgency: "high"
               };
             }
             if (detoxProgress < 50) {
               return {
-                headline: "Recovery in progress",
-                body: `${minutesRemaining} minutes remaining to meet weekly recovery target. Attentional capacity restores gradually.`,
-                metric: `${Math.round(detoxProgress)}% complete`,
+                headline: "Detox in progress",
+                body: `${minutesRemaining} min remaining`,
+                metric: `${Math.round(detoxProgress)}% done`,
                 urgency: "medium"
               };
             }
             if (detoxProgress < 100) {
               return {
-                headline: "Recovery nearly complete",
-                body: `${minutesRemaining} minutes to reach weekly target. Sustained recovery maintains decision-making capacity.`,
-                metric: `${Math.round(100 - detoxProgress)}% remaining`,
+                headline: "Almost there",
+                body: `${minutesRemaining} min to complete`,
+                metric: `${Math.round(100 - detoxProgress)}% left`,
                 urgency: "low"
               };
             }
@@ -514,36 +507,32 @@ const Home = () => {
             >
                 <button
                   onClick={() => navigate("/neuro-lab?tab=detox")}
-                  className="w-full p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 hover:border-primary/40 transition-all active:scale-[0.98] text-left"
+                  className="w-full p-3.5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 hover:border-primary/40 transition-all active:scale-[0.98] text-left"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
                       <div className="relative">
                         <Smartphone className="w-4 h-4 text-primary" />
                         <Ban className="w-4 h-4 text-primary absolute inset-0" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-semibold text-primary">{message.headline}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-medium text-primary">{message.headline}</h3>
                         {message.urgency === "high" && (
-                          <Zap className="w-3.5 h-3.5 text-primary animate-pulse" />
+                          <Zap className="w-3 h-3 text-primary animate-pulse" />
                         )}
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
-                        {message.body}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-medium text-primary uppercase tracking-wide">
-                          {message.metric}
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-primary/60" />
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-muted-foreground">{message.body}</span>
+                        <span className="text-[10px] font-medium text-primary">{message.metric}</span>
                       </div>
                     </div>
+                    <ChevronRight className="w-4 h-4 text-primary/60" />
                   </div>
                   
                   {/* Progress bar */}
-                  <div className="mt-3 h-1 bg-primary/10 rounded-full overflow-hidden">
+                  <div className="mt-2.5 h-1 bg-primary/10 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-primary rounded-full"
                       initial={{ width: 0 }}
