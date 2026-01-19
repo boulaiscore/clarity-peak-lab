@@ -42,157 +42,64 @@ export default function ReasoningQualityImpact() {
 
   const status = getStatusBadge(rq);
 
+  // Calculate actual weighted contributions to RQ
+  // RQ = 50% S2 Core + 30% S2 Consistency + 20% Task Priming
+  const s2CoreContribution = s2Core * 0.50;
+  const s2ConsistencyContribution = s2Consistency * 0.30;
+  const taskPrimingContribution = taskPriming * 0.20;
+
   // Generate impact drivers based on actual RQ components
   const drivers = useMemo((): ImpactDriver[] => {
     const items: ImpactDriver[] = [];
 
-    // Positive drivers
-    if (s2Core >= 60) {
-      items.push({
-        id: "s2-sessions",
-        name: "Consistent System 2 Sessions",
-        impact: Math.round((s2Core - 50) * 0.44),
-        type: "positive",
-        description: "Regular engagement with deliberate reasoning exercises correlates with higher reasoning consistency.",
-        details: {
-          period: "Last 90 days",
-          frequency: "Above average",
-          direction: "Positive",
-          note: "This reflects a long-term statistical association, not a single-session causal effect.",
-        },
-      });
-    }
-
-    if (taskPriming >= 30) {
-      items.push({
-        id: "structured-tasks",
-        name: "Structured Reading & Tasks",
-        impact: Math.round(taskPriming * 0.16),
-        type: "positive",
-        description: "Sessions involving structured reading and deliberate tasks are associated with higher reasoning consistency over time.",
-        details: {
-          period: "Last 90 days",
-          frequency: "Regular engagement",
-          direction: "Positive",
-          note: "Task engagement contributes to conceptual priming, supporting reasoning depth.",
-        },
-      });
-    }
-
-    if (s2Consistency >= 60) {
-      items.push({
-        id: "low-variability",
-        name: "Low Variability in Responses",
-        impact: Math.round((s2Consistency - 50) * 0.22),
-        type: "positive",
-        description: "Stable performance patterns across reasoning sessions indicate well-calibrated cognitive processes.",
-        details: {
-          period: "Last 10 sessions",
-          frequency: "Consistent",
-          direction: "Positive",
-          note: "Variability is measured across System 2 game performance.",
-        },
-      });
-    }
-
-    // Add recovery impact if positive
+    // S2 Core contribution (50% weight) - always show
     items.push({
-      id: "cognitive-recovery",
-      name: "Adequate Cognitive Recovery",
-      impact: 9,
-      type: "positive",
-      description: "Sufficient recovery periods between intensive sessions support sustained reasoning capacity.",
+      id: "s2-core",
+      name: "System 2 Skill Level",
+      impact: Math.round(s2CoreContribution),
+      type: s2Core >= 50 ? "positive" : s2Core >= 30 ? "neutral" : "negative",
+      description: "Your current System 2 skill level (Critical Thinking and Intuition scores) forms the foundation of reasoning quality.",
       details: {
-        period: "Last 30 days",
-        frequency: "Observed pattern",
-        direction: "Positive",
-        note: "Recovery supports, but does not directly cause, improved reasoning quality.",
+        period: "Current skills",
+        frequency: `${Math.round(s2Core)}% skill level`,
+        direction: s2Core >= 50 ? "Positive" : "Neutral",
+        note: "S2 Core accounts for 50% of your Reasoning Quality score.",
       },
     });
 
-    // Neutral drivers
+    // S2 Consistency contribution (30% weight) - always show
     items.push({
-      id: "s1-training",
-      name: "System 1 Only Training",
-      impact: 2,
-      type: "neutral",
-      description: "Intuitive training maintains baseline cognitive function but has limited direct impact on deliberate reasoning.",
+      id: "s2-consistency",
+      name: "Response Consistency",
+      impact: Math.round(s2ConsistencyContribution),
+      type: s2Consistency >= 50 ? "positive" : s2Consistency >= 30 ? "neutral" : "negative",
+      description: "Stability and reliability of your performance across System 2 reasoning sessions.",
       details: {
-        period: "Last 90 days",
-        frequency: "Regular",
-        direction: "Neutral",
-        note: "System 1 training supports overall cognition but doesn't directly affect S2 reasoning quality.",
+        period: "Last 10 sessions",
+        frequency: `${Math.round(s2Consistency)}% consistency`,
+        direction: s2Consistency >= 50 ? "Positive" : "Neutral",
+        note: "S2 Consistency accounts for 30% of your Reasoning Quality score.",
       },
     });
 
-    if (s2Consistency >= 40 && s2Consistency < 60) {
-      items.push({
-        id: "irregular-frequency",
-        name: "Irregular Training Frequency",
-        impact: 1,
-        type: "neutral",
-        description: "Variable training patterns show neither strong positive nor negative associations.",
-        details: {
-          period: "Last 90 days",
-          frequency: "Variable",
-          direction: "Neutral",
-          note: "Consistent scheduling may enhance pattern stability over time.",
-        },
-      });
-    }
-
-    // Negative drivers (only if performance indicates issues)
-    if (s2Consistency < 50) {
-      items.push({
-        id: "high-impulsivity",
-        name: "High Impulsivity Pattern",
-        impact: -Math.round((50 - s2Consistency) * 0.24),
-        type: "negative",
-        description: "Rushed responses in deliberate reasoning tasks correlate with lower consistency scores.",
-        details: {
-          period: "Last 10 sessions",
-          frequency: "Observed pattern",
-          direction: "Negative",
-          note: "Slowing down during System 2 tasks may improve response quality.",
-        },
-      });
-    }
-
-    if (taskPriming < 20 && s2Core < 50) {
-      items.push({
-        id: "overtraining",
-        name: "Overtraining without Recovery",
-        impact: -9,
-        type: "negative",
-        description: "High session frequency without adequate recovery periods shows diminishing returns.",
-        details: {
-          period: "Last 30 days",
-          frequency: "Observed",
-          direction: "Negative",
-          note: "Balance training intensity with recovery for optimal cognitive performance.",
-        },
-      });
-    }
-
-    if (s2Consistency < 45) {
-      items.push({
-        id: "time-pressure",
-        name: "Frequent Time Pressure Errors",
-        impact: -7,
-        type: "negative",
-        description: "Errors made under time pressure indicate suboptimal deliberation strategies.",
-        details: {
-          period: "Last 10 sessions",
-          frequency: "Recurring",
-          direction: "Negative",
-          note: "Practice under reduced pressure may strengthen deliberation pathways.",
-        },
-      });
-    }
+    // Task Priming contribution (20% weight) - always show
+    items.push({
+      id: "task-priming",
+      name: "Conceptual Engagement",
+      impact: Math.round(taskPrimingContribution),
+      type: taskPriming >= 30 ? "positive" : taskPriming >= 10 ? "neutral" : "negative",
+      description: "Engagement with structured content (podcasts, readings, books) that primes deliberate reasoning.",
+      details: {
+        period: "Last 7 days",
+        frequency: taskPriming > 0 ? "Active engagement" : "Low engagement",
+        direction: taskPriming >= 30 ? "Positive" : "Neutral",
+        note: "Task Priming accounts for 20% of your Reasoning Quality score.",
+      },
+    });
 
     // Sort by absolute impact (highest first)
     return items.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
-  }, [s2Core, s2Consistency, taskPriming]);
+  }, [s2Core, s2Consistency, taskPriming, s2CoreContribution, s2ConsistencyContribution, taskPrimingContribution]);
 
   // Max impact for normalization
   const maxImpact = Math.max(...drivers.map(d => Math.abs(d.impact)), 25);
@@ -251,7 +158,7 @@ export default function ReasoningQualityImpact() {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold tabular-nums">
-                {Math.round(rq)}
+                {Math.round(rq)}%
               </div>
               <span className={cn("text-xs font-medium", status.color)}>
                 {status.label}
