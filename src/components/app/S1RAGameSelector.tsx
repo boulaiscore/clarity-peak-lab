@@ -48,6 +48,14 @@ const RA_GAMES: RAGameOption[] = [
     route: "/neuro-lab/flash-connect",
     xpByDifficulty: { easy: 25, medium: 25, hard: 35 },
   },
+  {
+    id: "constellation_snap",
+    name: "Constellation Snap",
+    tagline: "Pattern Closure",
+    description: "Complete visual constellations with the missing link. Fast intuitive associations under time pressure.",
+    route: "/neuro-lab/constellation-snap",
+    xpByDifficulty: { easy: 25, medium: 35, hard: 45 },
+  },
 ];
 
 export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) {

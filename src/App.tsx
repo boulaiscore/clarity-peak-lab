@@ -33,6 +33,7 @@ import TriageSprintRunner from "./pages/app/TriageSprintRunner";
 import OrbitLockRunner from "./pages/app/OrbitLockRunner";
 import FocusSwitchRunner from "./pages/app/FocusSwitchRunner";
 import FlashConnectRunner from "./pages/app/FlashConnectRunner";
+import ConstellationSnapRunner from "./pages/app/ConstellationSnapRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
@@ -273,6 +274,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <FlashConnectRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-lab/constellation-snap"
+        element={
+          <ProtectedRoute>
+            <ConstellationSnapRunner />
           </ProtectedRoute>
         }
       />
