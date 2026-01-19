@@ -254,6 +254,10 @@ export function useRecordContentCompletion() {
       // Dashboard Training Details queries
       queryClient.invalidateQueries({ queryKey: ["weekly-content-completions"] });
       queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
+      // Task Priming for RQ - ensures RQ recalculates after complete
+      queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] });
+      // Library refresh
+      queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
     },
   });
 }
@@ -293,6 +297,8 @@ export function useRemoveContentCompletion() {
       queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
       // Library query
       queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
+      // Task Priming for RQ - ensures RQ recalculates after remove
+      queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] });
     },
   });
 }
