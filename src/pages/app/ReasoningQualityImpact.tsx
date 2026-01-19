@@ -299,7 +299,7 @@ export default function ReasoningQualityImpact() {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold tabular-nums">
-                {totalContribution.toFixed(0)}%
+                {rq.toFixed(1)}%
               </div>
               <span className={cn("text-xs font-medium", status.color)}>
                 {status.label}
@@ -380,7 +380,7 @@ export default function ReasoningQualityImpact() {
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
               <span className="text-lg font-bold tabular-nums">
-                {Math.round(rq)}%
+                {rq.toFixed(1)}%
               </span>
             </div>
           </div>
