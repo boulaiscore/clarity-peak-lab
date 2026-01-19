@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Headphones, Clock, Target, ExternalLink, 
   BookOpen, FileText, ChevronDown, ChevronUp, Brain, Info, 
@@ -23,6 +23,8 @@ import { toast } from "@/hooks/use-toast";
 import { useRecordContentCompletion, useRemoveContentCompletion } from "@/hooks/useExerciseXP";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
+import { PODCASTS, getApplePodcastUrl, getSpotifySearchUrl } from "@/data/podcasts";
+import { READINGS } from "@/data/readings";
 
 type InputType = "podcast" | "book" | "article";
 type ThinkingSystem = "S1" | "S2" | "S1+S2";
@@ -1433,7 +1435,47 @@ export function CognitiveLibrary() {
   const { user } = useAuth();
   const { data: completedIds = [], isLoading } = useLoggedExposures(user?.id);
 
-  const completedItems = COGNITIVE_INPUTS.filter(input => completedIds.includes(input.id));
+  // Merge legacy catalog (COGNITIVE_INPUTS) with the newer Tasks catalogs (PODCASTS/READINGS)
+  // so completions like content-podcast-freakonomics-radio show up in Library.
+  const libraryCatalog: CognitiveInput[] = useMemo(() => {
+    const fromPodcasts: CognitiveInput[] = PODCASTS.map(p => ({
+      id: p.id,
+      type: "podcast",
+      title: p.title,
+      author: "",
+      summary: p.intent,
+      duration: "",
+      cognitivePurpose: "",
+      reflectionPrompt: "",
+      primaryUrl: getSpotifySearchUrl(p.spotifyQuery),
+      secondaryUrl: getApplePodcastUrl(p.applePodcastId),
+      difficulty: p.demand === "LOW" ? 1 : p.demand === "MEDIUM" ? 2 : p.demand === "HIGH" ? 3 : 4,
+      thinkingSystem: "S2",
+    }));
+
+    const fromReadings: CognitiveInput[] = READINGS.map(r => ({
+      id: r.id,
+      type: r.readingType === "BOOK" ? "book" : "article",
+      title: r.title,
+      author: r.author,
+      summary: r.description,
+      duration: `${r.durationMinutes} min`,
+      cognitivePurpose: "",
+      reflectionPrompt: "",
+      primaryUrl: r.url || `https://www.google.com/search?q=${encodeURIComponent(r.title)}`,
+      secondaryUrl: undefined,
+      difficulty: r.demand === "LOW" ? 1 : r.demand === "MEDIUM" ? 2 : r.demand === "HIGH" ? 3 : 4,
+      thinkingSystem: r.readingType === "RECOVERY_SAFE" ? "S1" : "S2",
+    }));
+
+    // Deduplicate by id (prefer existing COGNITIVE_INPUTS when there is overlap)
+    const byId = new Map<string, CognitiveInput>();
+    [...fromPodcasts, ...fromReadings].forEach(item => byId.set(item.id, item));
+    COGNITIVE_INPUTS.forEach(item => byId.set(item.id, item));
+    return Array.from(byId.values());
+  }, []);
+
+  const completedItems = libraryCatalog.filter(input => completedIds.includes(input.id));
   
   const podcastsCompleted = completedItems.filter(i => i.type === "podcast");
   const booksCompleted = completedItems.filter(i => i.type === "book");
