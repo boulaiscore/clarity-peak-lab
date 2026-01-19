@@ -240,7 +240,10 @@ export default function ReasoningQualityImpact() {
   // Total contribution (sum of all positive contributions minus decay)
   const positiveTotal = ctContribution + inContribution + s2ConsistencyContribution + 
                         podcastContribution + articleContribution + bookContribution;
-  const totalContribution = positiveTotal - decayContribution;
+
+  // Use hook's RQ as the canonical total to keep all screens consistent.
+  // (Breakdown rows may show small rounding differences at 0-decimal display.)
+  const totalContribution = rq;
 
   if (isLoading) {
     return (
@@ -377,7 +380,7 @@ export default function ReasoningQualityImpact() {
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
               <span className="text-lg font-bold tabular-nums">
-                {totalContribution.toFixed(1)}%
+                {Math.round(rq)}%
               </span>
             </div>
           </div>
