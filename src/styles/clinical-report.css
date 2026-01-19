@@ -1,0 +1,791 @@
+/* Clinical Report Styles - Medical-grade PDF Report */
+
+/* ========================================
+   CSS Variables
+   ======================================== */
+:root {
+  --clinical-primary: #1a365d;
+  --clinical-secondary: #2c5282;
+  --clinical-accent: #2b6cb0;
+  --clinical-text: #1a202c;
+  --clinical-text-muted: #4a5568;
+  --clinical-border: #e2e8f0;
+  --clinical-bg: #ffffff;
+  --clinical-bg-alt: #f7fafc;
+  --clinical-success: #276749;
+  --clinical-warning: #c05621;
+  --clinical-danger: #9b2c2c;
+}
+
+/* ========================================
+   Base Report Structure
+   ======================================== */
+.clinical-report {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 11pt;
+  line-height: 1.6;
+  color: var(--clinical-text);
+  background: var(--clinical-bg);
+  max-width: 210mm;
+  margin: 0 auto;
+}
+
+.clinical-page {
+  background: var(--clinical-bg);
+  padding: 15mm 18mm;
+  min-height: 280mm;
+  page-break-after: always;
+  page-break-inside: avoid;
+}
+
+.clinical-page:last-child {
+  page-break-after: avoid;
+}
+
+/* ========================================
+   Header
+   ======================================== */
+.clinical-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid var(--clinical-primary);
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+
+.clinical-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--clinical-primary);
+}
+
+.clinical-logo svg {
+  flex-shrink: 0;
+}
+
+.clinical-logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.clinical-logo-name {
+  font-size: 16pt;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--clinical-primary);
+}
+
+.clinical-logo-sub {
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.clinical-classification {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.classification-badge {
+  background: var(--clinical-danger);
+  color: white;
+  font-size: 8pt;
+  font-weight: 700;
+  padding: 3px 10px;
+  letter-spacing: 1px;
+}
+
+.classification-type {
+  font-size: 9pt;
+  color: var(--clinical-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   Title Block
+   ======================================== */
+.clinical-title-block {
+  text-align: center;
+  margin: 30px 0 40px;
+}
+
+.clinical-main-title {
+  font-size: 22pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+
+.clinical-report-id {
+  font-size: 10pt;
+  color: var(--clinical-text-muted);
+  font-family: 'Courier New', monospace;
+}
+
+/* ========================================
+   Section Styling
+   ======================================== */
+.clinical-section {
+  margin-bottom: 28px;
+}
+
+.clinical-section-header {
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--clinical-border);
+  padding-bottom: 6px;
+  margin: 0 0 16px;
+}
+
+.clinical-subsection-header {
+  font-size: 10pt;
+  font-weight: 700;
+  color: var(--clinical-secondary);
+  margin: 16px 0 10px;
+}
+
+/* ========================================
+   Field Grid (Identification)
+   ======================================== */
+.clinical-field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  margin-bottom: 20px;
+}
+
+.clinical-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clinical-field-label {
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clinical-field-value {
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--clinical-text);
+}
+
+/* ========================================
+   Data Sources
+   ======================================== */
+.clinical-data-sources {
+  background: var(--clinical-bg-alt);
+  border: 1px solid var(--clinical-border);
+  padding: 14px 16px;
+  margin-top: 16px;
+}
+
+.clinical-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.clinical-list li {
+  margin-bottom: 6px;
+  font-size: 10pt;
+}
+
+.clinical-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Summary Box
+   ======================================== */
+.clinical-summary-box {
+  background: var(--clinical-bg-alt);
+  border-left: 4px solid var(--clinical-primary);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.clinical-summary-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clinical-summary-list li {
+  font-size: 10pt;
+  margin-bottom: 10px;
+  padding-left: 0;
+}
+
+.clinical-summary-list li:last-child {
+  margin-bottom: 0;
+}
+
+.clinical-summary-list li strong {
+  color: var(--clinical-primary);
+}
+
+/* ========================================
+   Interpretation Box
+   ======================================== */
+.clinical-interpretation-box {
+  background: var(--clinical-bg);
+  border: 2px solid var(--clinical-accent);
+  padding: 14px 16px;
+}
+
+.clinical-interpretation {
+  font-size: 10pt;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ========================================
+   SCI Display
+   ======================================== */
+.clinical-sci-display {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--clinical-bg-alt), var(--clinical-bg));
+  border: 2px solid var(--clinical-primary);
+  margin-bottom: 20px;
+}
+
+.clinical-sci-main {
+  display: flex;
+  align-items: baseline;
+}
+
+.clinical-sci-score {
+  font-size: 48pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  line-height: 1;
+}
+
+.clinical-sci-max {
+  font-size: 18pt;
+  color: var(--clinical-text-muted);
+  margin-left: 4px;
+}
+
+.clinical-sci-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clinical-percentile {
+  font-size: 11pt;
+  font-weight: 600;
+  color: var(--clinical-secondary);
+}
+
+.clinical-class {
+  font-size: 10pt;
+  color: var(--clinical-text-muted);
+}
+
+.clinical-sci-explanation p {
+  font-size: 10pt;
+  margin-bottom: 10px;
+}
+
+.clinical-caveat {
+  font-style: italic;
+  color: var(--clinical-text-muted);
+  font-size: 9pt !important;
+}
+
+/* ========================================
+   Cognitive Age Display
+   ======================================== */
+.clinical-age-display {
+  display: flex;
+  gap: 40px;
+  padding: 20px;
+  background: var(--clinical-bg-alt);
+  border: 1px solid var(--clinical-border);
+  margin-bottom: 20px;
+}
+
+.clinical-age-primary,
+.clinical-age-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clinical-age-label {
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clinical-age-value {
+  font-size: 24pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  line-height: 1.1;
+}
+
+.clinical-age-delta {
+  font-size: 10pt;
+  color: var(--clinical-success);
+  font-weight: 600;
+}
+
+.clinical-age-explanation p {
+  font-size: 10pt;
+  margin-bottom: 10px;
+}
+
+/* ========================================
+   Dual-Process Analysis
+   ======================================== */
+.clinical-dual-process {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.clinical-system-card {
+  background: var(--clinical-bg-alt);
+  border: 1px solid var(--clinical-border);
+  padding: 16px;
+}
+
+.clinical-system-title {
+  font-size: 10pt;
+  font-weight: 700;
+  color: var(--clinical-secondary);
+  margin: 0 0 8px;
+}
+
+.clinical-system-score {
+  font-size: 28pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  margin-bottom: 10px;
+}
+
+.clinical-system-desc {
+  font-size: 9pt;
+  color: var(--clinical-text-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.clinical-system-components {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  border-top: 1px solid var(--clinical-border);
+  padding-top: 10px;
+}
+
+.clinical-balance-analysis {
+  background: var(--clinical-bg);
+  border: 1px solid var(--clinical-accent);
+  padding: 14px 16px;
+}
+
+.clinical-balance-analysis p {
+  font-size: 10pt;
+  margin-bottom: 8px;
+}
+
+.clinical-balance-analysis p:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Domain Cards
+   ======================================== */
+.clinical-domains {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.clinical-domain-card {
+  background: var(--clinical-bg);
+  border: 1px solid var(--clinical-border);
+  padding: 14px 16px;
+  page-break-inside: avoid;
+}
+
+.clinical-domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.clinical-domain-name {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  margin: 0;
+}
+
+.clinical-domain-score-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clinical-domain-score {
+  font-size: 20pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+}
+
+.clinical-domain-class {
+  font-size: 8pt;
+  font-weight: 600;
+  padding: 3px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clinical-domain-class.superior {
+  background: #c6f6d5;
+  color: var(--clinical-success);
+}
+
+.clinical-domain-class.above-avg {
+  background: #bee3f8;
+  color: var(--clinical-accent);
+}
+
+.clinical-domain-class.average {
+  background: #e2e8f0;
+  color: var(--clinical-text-muted);
+}
+
+.clinical-domain-class.below-avg {
+  background: #feebc8;
+  color: var(--clinical-warning);
+}
+
+.clinical-domain-class.low {
+  background: #fed7d7;
+  color: var(--clinical-danger);
+}
+
+.clinical-domain-delta {
+  font-size: 9pt;
+  font-weight: 600;
+}
+
+.clinical-domain-delta.positive {
+  color: var(--clinical-success);
+}
+
+.clinical-domain-delta.negative {
+  color: var(--clinical-danger);
+}
+
+.clinical-domain-definition,
+.clinical-domain-implication {
+  font-size: 9pt;
+  margin: 0 0 6px;
+}
+
+.clinical-domain-definition strong,
+.clinical-domain-implication strong {
+  color: var(--clinical-secondary);
+}
+
+/* ========================================
+   Training Stats
+   ======================================== */
+.clinical-training-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.clinical-stat-block {
+  background: var(--clinical-bg-alt);
+  border: 1px solid var(--clinical-border);
+  padding: 14px;
+  text-align: center;
+}
+
+.clinical-stat-value {
+  display: block;
+  font-size: 20pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  line-height: 1.1;
+}
+
+.clinical-stat-label {
+  display: block;
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.clinical-training-interpretation p {
+  font-size: 10pt;
+  margin-bottom: 10px;
+}
+
+.clinical-domain-distribution {
+  margin-top: 20px;
+}
+
+.clinical-domain-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clinical-domain-bar-row {
+  display: grid;
+  grid-template-columns: 140px 80px 60px;
+  gap: 12px;
+  align-items: center;
+  font-size: 9pt;
+}
+
+.clinical-bar-label {
+  font-weight: 600;
+  color: var(--clinical-text);
+}
+
+.clinical-bar-sessions {
+  color: var(--clinical-text-muted);
+}
+
+.clinical-bar-avg {
+  color: var(--clinical-accent);
+  font-weight: 600;
+}
+
+/* ========================================
+   Clinical Interpretation
+   ======================================== */
+.clinical-interpretation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.clinical-interpretation-block {
+  background: var(--clinical-bg-alt);
+  border: 1px solid var(--clinical-border);
+  padding: 14px 16px;
+}
+
+.clinical-interpretation-block .clinical-list li {
+  margin-bottom: 10px;
+}
+
+.clinical-patterns-block {
+  background: var(--clinical-bg);
+  border: 1px solid var(--clinical-accent);
+  padding: 14px 16px;
+}
+
+.clinical-patterns-block p {
+  font-size: 10pt;
+  margin: 0;
+}
+
+/* ========================================
+   Prognosis
+   ======================================== */
+.clinical-prognosis-box {
+  background: var(--clinical-bg-alt);
+  border-left: 4px solid var(--clinical-secondary);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+.clinical-prognosis-box p {
+  font-size: 10pt;
+  margin: 0;
+}
+
+.clinical-confidence-note {
+  font-size: 9pt;
+  color: var(--clinical-text-muted);
+  font-style: italic;
+}
+
+.clinical-confidence-note p {
+  margin: 0;
+}
+
+/* ========================================
+   Prescription Grid
+   ======================================== */
+.clinical-prescription {
+  margin-bottom: 20px;
+}
+
+.clinical-rx-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.clinical-rx-item {
+  background: var(--clinical-bg-alt);
+  border: 1px solid var(--clinical-border);
+  padding: 14px 16px;
+  page-break-inside: avoid;
+}
+
+.clinical-rx-label {
+  display: block;
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.clinical-rx-value {
+  display: block;
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--clinical-primary);
+  margin-bottom: 8px;
+}
+
+.clinical-rx-rationale {
+  display: block;
+  font-size: 9pt;
+  color: var(--clinical-text-muted);
+  line-height: 1.5;
+}
+
+/* ========================================
+   Methodology
+   ======================================== */
+.clinical-methodology {
+  background: var(--clinical-bg-alt);
+  border: 1px solid var(--clinical-border);
+  padding: 16px 18px;
+}
+
+.clinical-methodology p {
+  font-size: 10pt;
+  margin-bottom: 10px;
+}
+
+.clinical-methodology .clinical-list li strong {
+  color: var(--clinical-secondary);
+}
+
+/* ========================================
+   Disclaimer
+   ======================================== */
+.clinical-disclaimer {
+  background: var(--clinical-bg-alt);
+  border: 2px solid var(--clinical-border);
+  padding: 18px 20px;
+}
+
+.clinical-disclaimer p {
+  font-size: 10pt;
+  margin-bottom: 12px;
+}
+
+.clinical-disclaimer .clinical-list li {
+  margin-bottom: 8px;
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+.clinical-footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 2px solid var(--clinical-primary);
+}
+
+.clinical-footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clinical-footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--clinical-primary);
+  font-weight: 700;
+  font-size: 11pt;
+}
+
+.clinical-footer-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  font-family: 'Courier New', monospace;
+}
+
+.clinical-footer-legal {
+  font-size: 8pt;
+  color: var(--clinical-text-muted);
+  margin: 0;
+}
+
+/* ========================================
+   Print Optimizations
+   ======================================== */
+@media print {
+  .clinical-report {
+    margin: 0;
+    padding: 0;
+  }
+
+  .clinical-page {
+    padding: 12mm 15mm;
+    min-height: auto;
+  }
+
+  .clinical-section {
+    page-break-inside: avoid;
+  }
+
+  .clinical-domain-card,
+  .clinical-rx-item {
+    page-break-inside: avoid;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
