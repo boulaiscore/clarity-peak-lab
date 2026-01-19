@@ -256,7 +256,7 @@ export default function ReasoningQualityImpact() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/30">
         <div className="flex items-center justify-center relative h-14 px-4">
           <button
-            onClick={() => navigate("/app/home")}
+            onClick={() => navigate("/app")}
             className="absolute left-4 p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
