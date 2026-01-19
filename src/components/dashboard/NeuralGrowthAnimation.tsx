@@ -513,18 +513,21 @@ export function NeuralGrowthAnimation({
               </p>
               
               {/* CTA Button */}
-              <div className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[11px] font-medium transition-colors ${
-                bottleneck.variable === "recovery"
-                  ? "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30"
-                  : bottleneck.variable === "training"
-                    ? "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
-                    : "bg-primary/20 text-primary hover:bg-primary/30"
-              }`}>
+              <button
+                onClick={() => navigate(bottleneck.variable === "recovery" ? "/detox-session" : "/neuro-lab")}
+                className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                  bottleneck.variable === "recovery"
+                    ? "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30"
+                    : bottleneck.variable === "training"
+                      ? "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
+                      : "bg-primary/20 text-primary hover:bg-primary/30"
+                }`}
+              >
                 {bottleneck.variable === "recovery" 
                   ? "Start Detox Session"
                   : "Go to Lab"}
                 <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              </button>
             </div>
           </div>
         )}
