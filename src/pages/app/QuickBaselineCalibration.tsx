@@ -184,7 +184,7 @@ export default function QuickBaselineCalibration() {
       // Invalidate caches
       await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"] });
-      await queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
 
       toast.success("Calibration complete");
       navigate("/app");
@@ -256,7 +256,7 @@ export default function QuickBaselineCalibration() {
                 
                 // Invalidate caches
                 await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
-                await queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+                await queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
                 
                 navigate("/app");
               }}

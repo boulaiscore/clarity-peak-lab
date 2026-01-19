@@ -543,7 +543,7 @@ export function useRecordGameSession() {
     // 4. Invalidate queries for real-time UI updates
     queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
     queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
-    queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+    queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
     queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
     queryClient.invalidateQueries({ queryKey: ["games-xp-breakdown"] });
     queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });

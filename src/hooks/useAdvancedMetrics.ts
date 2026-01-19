@@ -15,7 +15,7 @@
  * - Cognitive Age regresses if performance drops ≥10 pts for 21+ days
  */
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
@@ -179,6 +179,12 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
     staleTime: 60_000,
   });
   
+  // Check if all data sources are loaded
+  const allLoaded = !statesLoading && !metricsLoading && !progressLoading && !trainingLoading && !xpLoading && !decayLoading && !rqLoading;
+  
+  // Use ref to cache last valid result (prevents flicker during refetch)
+  const cachedResultRef = useRef<Omit<UseAdvancedMetricsResult, 'isLoading'> | null>(null);
+  
   const result = useMemo(() => {
     const today = new Date();
     
@@ -275,8 +281,21 @@ export function useAdvancedMetrics(): UseAdvancedMetricsResult {
     };
   }, [states, S1, S2, baseline, recovery, weeklyGamesXP, plan, lastTrainingData, weeklyXPData, decayData, weekStart, rq, rqIsDecaying]);
   
+  // Update cache only when all data is loaded
+  if (allLoaded) {
+    cachedResultRef.current = result;
+  }
+  
+  // STABILITY: Return cached result while loading to prevent flicker
+  if (!allLoaded && cachedResultRef.current) {
+    return {
+      ...cachedResultRef.current,
+      isLoading: true,
+    };
+  }
+  
   return {
     ...result,
-    isLoading: statesLoading || metricsLoading || progressLoading || trainingLoading || xpLoading || decayLoading || rqLoading,
+    isLoading: !allLoaded,
   };
 }
