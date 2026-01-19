@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain, Clock, Headphones, BookOpen, FileText } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
@@ -11,8 +11,10 @@ import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
+import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { formatDistanceToNow } from "date-fns";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
@@ -129,6 +131,9 @@ const Home = () => {
     isDecaying: rqIsDecaying,
     isLoading: rqLoading,
   } = useReasoningQuality();
+  
+  // In-progress tasks for reminder section
+  const { getInProgressTasks } = useInProgressTasks();
   
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const { persistDailySnapshot, isSnapshotCurrentToday } = useDailyRecoverySnapshot();
@@ -344,7 +349,66 @@ const Home = () => {
               />
             </motion.section>
 
-        {/* Task Suggestion when Recovery is Low - Official NeuroLoop Rule */}
+        {/* In-Progress Tasks Reminder */}
+        {(() => {
+          const inProgressTasks = getInProgressTasks();
+          if (inProgressTasks.length === 0) return null;
+          
+          const getTaskIcon = (type: "podcast" | "book" | "article") => {
+            switch (type) {
+              case "podcast": return <Headphones className="w-4 h-4" />;
+              case "book": return <BookOpen className="w-4 h-4" />;
+              case "article": return <FileText className="w-4 h-4" />;
+            }
+          };
+          
+          return (
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.06 }}
+              className="mb-4"
+            >
+              <button
+                onClick={() => navigate("/neuro-lab?tab=tasks")}
+                className="w-full p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-border transition-all active:scale-[0.98] text-left"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-4 h-4 text-amber-500" />
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                    {inProgressTasks.length} task{inProgressTasks.length > 1 ? 's' : ''} in progress
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {inProgressTasks.slice(0, 2).map((task) => (
+                    <div key={task.id} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+                        {getTaskIcon(task.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{task.title}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Started {formatDistanceToNow(new Date(task.startedAt), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {inProgressTasks.length > 2 && (
+                    <p className="text-[10px] text-muted-foreground">
+                      +{inProgressTasks.length - 2} more
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/30">
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                    Complete to add to Library
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </button>
+            </motion.section>
+          );
+        })()}
         {recoveryEffective < 45 && (
           <motion.section
             initial={{ opacity: 0, y: 12 }}

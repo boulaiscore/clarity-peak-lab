@@ -81,6 +81,7 @@ export const READINGS: Reading[] = [
     durationMinutes: 15,
     description: "Reflective passages for decompression. No concept retention required.",
     source: "Public Domain",
+    url: "https://www.gutenberg.org/files/2680/2680-h/2680-h.htm",
   },
   {
     id: "fiction-seneca-letters",
@@ -91,6 +92,7 @@ export const READINGS: Reading[] = [
     durationMinutes: 12,
     description: "Literary philosophy for emotional regulation, not analytical study.",
     source: "Public Domain",
+    url: "https://www.gutenberg.org/files/97089/97089-h/97089-h.htm",
   },
   {
     id: "fiction-walden-excerpts",
@@ -101,6 +103,7 @@ export const READINGS: Reading[] = [
     durationMinutes: 10,
     description: "Contemplative prose for mental rest. Drop at any time without loss.",
     source: "Public Domain",
+    url: "https://www.gutenberg.org/files/205/205-h/205-h.htm",
   },
   
   // ==================== NON-FICTION READING ====================
@@ -125,6 +128,7 @@ export const READINGS: Reading[] = [
     durationMinutes: 15,
     description: "Understanding the limits of human reasoning in complex decisions.",
     source: "Harvard Business Review",
+    url: "https://hbr.org/search?term=bounded+rationality",
   },
   {
     id: "nf-heuristics-biases",
@@ -135,6 +139,7 @@ export const READINGS: Reading[] = [
     durationMinutes: 20,
     description: "Foundational paper on cognitive biases. Dense but essential reading.",
     source: "Science (1974)",
+    url: "https://www.science.org/doi/10.1126/science.185.4157.1124",
   },
   {
     id: "nf-maps-of-meaning",
@@ -145,6 +150,7 @@ export const READINGS: Reading[] = [
     durationMinutes: 18,
     description: "How beliefs organize into coherent worldviews. Requires inference tracking.",
     source: "Cognitive Science Review",
+    url: "https://www.google.com/search?q=structure+of+belief+systems+cognitive+science",
   },
   {
     id: "nf-critical-thinking",
@@ -154,6 +160,7 @@ export const READINGS: Reading[] = [
     durationMinutes: 10,
     description: "Framework for evaluating claims. Entry-level analytical reading.",
     source: "SGU Foundation",
+    url: "https://www.theskepticsguide.org/",
   },
   
   // ==================== BOOKS (Chapters/Long-form) ====================
@@ -166,6 +173,7 @@ export const READINGS: Reading[] = [
     demand: "MEDIUM",
     durationMinutes: 25,
     description: "The Two Systems. Introduction to automatic vs deliberate thinking.",
+    url: "https://www.amazon.com/Thinking-Fast-Slow-Daniel-Kahneman/dp/0374533555",
   },
   {
     id: "book-rationality-stanovich",
@@ -175,6 +183,7 @@ export const READINGS: Reading[] = [
     demand: "VERY_HIGH",
     durationMinutes: 35,
     description: "Deep dive into cognitive decoupling and reflective thinking.",
+    url: "https://www.amazon.com/Rationality-Reflective-Mind-Keith-Stanovich/dp/0195341147",
   },
   {
     id: "book-superforecasting",
@@ -184,6 +193,7 @@ export const READINGS: Reading[] = [
     demand: "HIGH",
     durationMinutes: 30,
     description: "Calibration and judgment improvement. Requires sustained argument tracking.",
+    url: "https://www.amazon.com/Superforecasting-Science-Prediction-Philip-Tetlock/dp/0804136718",
   },
   {
     id: "book-sources-power",
@@ -193,6 +203,7 @@ export const READINGS: Reading[] = [
     demand: "HIGH",
     durationMinutes: 28,
     description: "How experts make decisions under pressure. Dense case-study format.",
+    url: "https://www.amazon.com/Sources-Power-People-Make-Decisions/dp/0262611465",
   },
   {
     id: "book-fooled-randomness",
@@ -202,6 +213,7 @@ export const READINGS: Reading[] = [
     demand: "MEDIUM",
     durationMinutes: 22,
     description: "Probability blindness and survivorship bias. Conceptual density moderate.",
+    url: "https://www.amazon.com/Fooled-Randomness-Hidden-Markets-Incerto/dp/0812975219",
   },
 ];
 
