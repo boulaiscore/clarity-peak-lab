@@ -1437,9 +1437,11 @@ export function CognitiveLibrary() {
 
   // Merge legacy catalog (COGNITIVE_INPUTS) with the newer Tasks catalogs (PODCASTS/READINGS)
   // so completions like content-podcast-freakonomics-radio show up in Library.
+  // Merge legacy catalog (COGNITIVE_INPUTS) with the newer Tasks catalogs (PODCASTS/READINGS)
+  // DB stores IDs like "content-podcast-hidden-brain", so we map with that prefix.
   const libraryCatalog: CognitiveInput[] = useMemo(() => {
     const fromPodcasts: CognitiveInput[] = PODCASTS.map(p => ({
-      id: p.id,
+      id: `content-podcast-${p.id}`,
       type: "podcast",
       title: p.title,
       author: "",
@@ -1454,7 +1456,7 @@ export function CognitiveLibrary() {
     }));
 
     const fromReadings: CognitiveInput[] = READINGS.map(r => ({
-      id: r.id,
+      id: `content-${r.readingType === "BOOK" ? "book" : "article"}-${r.id}`,
       type: r.readingType === "BOOK" ? "book" : "article",
       title: r.title,
       author: r.author,
