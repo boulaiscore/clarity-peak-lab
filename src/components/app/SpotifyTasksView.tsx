@@ -96,12 +96,15 @@ function DemandPill({ demand }: { demand: string }) {
   );
 }
 
-// RQ Contribution badge
+// RQ Contribution badge - shows actual RQ impact (Task Priming weight = 0.20)
+const TASK_PRIMING_WEIGHT = 0.20;
 function RQContributionBadge({ type }: { type: "podcast" | "article" | "book" }) {
-  const contribution = calculateSingleTaskRQContribution(type, null);
+  const baseContribution = calculateSingleTaskRQContribution(type, null);
+  // Real RQ impact = base contribution × Task Priming weight (0.20)
+  const realRQContribution = Math.round(baseContribution * TASK_PRIMING_WEIGHT * 10) / 10;
   return (
     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground backdrop-blur-sm">
-      +{contribution} RQ
+      +{realRQContribution} RQ
     </span>
   );
 }
