@@ -49,6 +49,7 @@ import {
   PodcastDemand 
 } from "@/data/podcasts";
 import { ReadingType, ReadingDemand, getReadingTypeCopy } from "@/data/readings";
+import { calculateSingleTaskRQContribution } from "@/lib/reasoningQuality";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -91,6 +92,16 @@ function DemandPill({ demand }: { demand: string }) {
   return (
     <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-white/20 text-white/90 backdrop-blur-sm">
       {demand.replace("_", " ")}
+    </span>
+  );
+}
+
+// RQ Contribution badge
+function RQContributionBadge({ type }: { type: "podcast" | "article" | "book" }) {
+  const contribution = calculateSingleTaskRQContribution(type, null);
+  return (
+    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground backdrop-blur-sm">
+      +{contribution} RQ
     </span>
   );
 }
@@ -173,9 +184,10 @@ function PodcastCard({
           </div>
         )}
         
-        {/* Demand badge */}
-        <div className="absolute top-2 left-2">
+        {/* Demand and RQ badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           <DemandPill demand={podcast.podcast.demand} />
+          <RQContributionBadge type="podcast" />
         </div>
         
         {/* Play button on hover */}
@@ -243,12 +255,13 @@ function ReadingCard({
           </div>
         )}
         
-        {/* Type and Demand badges */}
+        {/* Type, Demand and RQ badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           <span className="text-[8px] font-medium px-2 py-0.5 rounded-full bg-black/30 text-white/90 backdrop-blur-sm">
             {copy.categoryLabel}
           </span>
           <DemandPill demand={reading.reading.demand} />
+          <RQContributionBadge type={type} />
         </div>
         
         {/* Duration */}

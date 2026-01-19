@@ -193,6 +193,40 @@ export function getS2ConsistencyDelta(sessionQuality: number): number {
  * - Reading (essay / scientific / philosophy)
  * - Book (classic philosophy, modern, fiction)
  */
+// Base weights for task types
+export const TASK_TYPE_WEIGHTS: Record<string, number> = {
+  podcast: 12,   // Lighter content
+  article: 15,   // Medium depth
+  book: 20,      // Deepest engagement
+};
+
+/**
+ * Calculate the RQ contribution for a SINGLE task.
+ * Returns the exact points this task contributes.
+ * 
+ * If completedAt is provided, applies recency decay.
+ * If completedAt is null (new task), returns fresh contribution.
+ */
+export function calculateSingleTaskRQContribution(
+  type: "podcast" | "article" | "book",
+  completedAt: Date | null = null,
+  today: Date = new Date()
+): number {
+  const baseScore = TASK_TYPE_WEIGHTS[type] || 12;
+  
+  if (!completedAt) {
+    // New task completed today = full contribution
+    return baseScore;
+  }
+  
+  const daysAgo = Math.floor((today.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Recency weight: today=1.0, 7 days ago=0.3
+  const recencyWeight = Math.max(0.3, 1 - (daysAgo * 0.1));
+  
+  return Math.round(baseScore * recencyWeight * 10) / 10;
+}
+
 export function calculateTaskPriming(
   tasks: TaskCompletion[],
   today: Date = new Date()
@@ -207,22 +241,10 @@ export function calculateTaskPriming(
     return 0;
   }
   
-  // Score per task based on type (depth weight)
-  const typeWeights: Record<string, number> = {
-    podcast: 12,   // Lighter content
-    article: 15,   // Medium depth
-    book: 20,      // Deepest engagement
-  };
-  
   // Calculate weighted score with recency decay
   let totalScore = 0;
   for (const task of recentTasks) {
-    const baseScore = typeWeights[task.type] || 12;
-    const daysAgo = Math.floor((today.getTime() - task.completedAt.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Recency weight: today=1.0, 7 days ago=0.3
-    const recencyWeight = Math.max(0.3, 1 - (daysAgo * 0.1));
-    totalScore += baseScore * recencyWeight;
+    totalScore += calculateSingleTaskRQContribution(task.type, task.completedAt, today);
   }
   
   // Cap at 100, with diminishing returns after 5 tasks
