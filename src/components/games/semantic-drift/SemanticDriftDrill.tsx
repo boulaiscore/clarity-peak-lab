@@ -101,7 +101,9 @@ export function SemanticDriftDrill({ difficulty, onComplete }: SemanticDriftDril
     
     // Subtle haptic
     try {
-      Vibration?.vibrate?.({ duration: 30 });
+      if (typeof navigator !== "undefined" && navigator?.vibrate) {
+        navigator.vibrate(30);
+      }
     } catch {}
     
     const correctOption = currentNode.options.find(o => o.tag === "directional")!;

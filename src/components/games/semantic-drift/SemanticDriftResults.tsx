@@ -94,16 +94,27 @@ export function SemanticDriftResults({
     
     const selectedErrors = [...timeouts, ...wrongChoices].slice(0, 5);
     
-    return selectedErrors.map(r => ({
-      roundNumber: r.roundIndex + 1,
-      stimulus: r.seed,
-      options: r.options.map(o => o.word),
-      userChoice: r.chosenOption ?? "(no response)",
-      correctChoice: r.correctOption,
-      microExplanation: r.timeoutFlag
-        ? `Time ran out. The stronger continuation was "${r.correctOption}".`
-        : `The stronger continuation here was "${r.correctOption}".`,
-    }));
+    return selectedErrors.map(r => {
+      const userChoiceIndex = r.chosenOption 
+        ? r.options.findIndex(o => o.word === r.chosenOption)
+        : null;
+      const correctIndex = r.options.findIndex(o => o.word === r.correctOption);
+      
+      return {
+        roundNumber: r.roundIndex + 1,
+        isTimeout: r.timeoutFlag,
+        options: r.options.map((o, idx) => ({
+          id: `${r.roundIndex}-${idx}`,
+          label: o.word,
+          type: "text" as const,
+        })),
+        userChoiceIndex,
+        correctIndex,
+        microLine: r.timeoutFlag
+          ? `Time ran out. The stronger continuation was "${r.correctOption}".`
+          : `The stronger continuation here was "${r.correctOption}".`,
+      };
+    });
   }, [results]);
   
   const config = DIFFICULTY_CONFIG[difficulty];
