@@ -153,6 +153,7 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
   // Tracking
   const [roundResults, setRoundResults] = useState<RoundResult[]>([]);
   const roundStartTime = useRef<number>(0);
+  const sessionStartTime = useRef<number>(0);
   
   // Initialize puzzles
   useEffect(() => {
@@ -173,6 +174,7 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
     if (countdown <= 0) {
       setPhase("playing");
       roundStartTime.current = Date.now();
+      sessionStartTime.current = Date.now();
       setTimeRemaining(config.timerMs);
       return;
     }
@@ -540,6 +542,9 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
               xpAwarded={calculateResults.xpAwarded}
               isPerfect={calculateResults.isPerfect}
               difficulty={difficulty}
+              roundsCompleted={roundResults.length}
+              totalRounds={TOTAL_ROUNDS}
+              durationSeconds={Math.round((Date.now() - sessionStartTime.current) / 1000)}
               onPlayAgain={handlePlayAgain}
               onExit={handleExit}
             />
