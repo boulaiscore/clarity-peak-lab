@@ -35,11 +35,11 @@ export function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-[-0.04em] mb-6 leading-[0.9] text-white"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-[-0.04em] mb-6 leading-[1.1] text-white"
           >
-            TRAIN YOUR
+            Uncover your
             <br />
-            <span className="text-primary">MIND</span>
+            <span className="text-primary">cognitive patterns.</span>
           </motion.h1>
 
           {/* Subheadline - light, simple */}
@@ -47,7 +47,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7 }}
-            className="text-lg sm:text-xl md:text-2xl text-white/60 max-w-xl mx-auto mb-12 leading-relaxed font-light"
+            className="text-lg sm:text-xl md:text-2xl text-white/60 max-w-xl mx-auto mb-8 leading-relaxed font-light"
           >
             The cognitive performance system for elite professionals.
           </motion.p>
@@ -68,31 +68,29 @@ export function Hero() {
               </Link>
             </Button>
           </motion.div>
-        </motion.div>
 
-        {/* Stats - clean, minimal */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.8 }}
-          className="absolute bottom-16 left-0 right-0"
-        >
-          <div className="container px-6">
+          {/* Stats - clean, minimal - moved inside content block */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.8 }}
+            className="mt-16 sm:mt-20"
+          >
             <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
               <div>
-                <p className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-1">23%</p>
+                <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">23%</p>
                 <p className="text-xs text-white/50 uppercase tracking-[0.15em]">Avg. Improvement</p>
               </div>
               <div>
-                <p className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-1">2M+</p>
+                <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">2M+</p>
                 <p className="text-xs text-white/50 uppercase tracking-[0.15em]">Sessions</p>
               </div>
               <div>
-                <p className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-1">Elite</p>
+                <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">Elite</p>
                 <p className="text-xs text-white/50 uppercase tracking-[0.15em]">Protocol</p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
 
