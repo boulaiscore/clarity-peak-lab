@@ -102,8 +102,8 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
       console.log("[useCognitiveStates] Created initial metrics for user:", userId);
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+    onSuccess: (_, userId) => {
+      queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
     },
   });
   
@@ -115,6 +115,8 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
   }, [user?.id, isLoading, rawMetrics]);
   
   // Use ref to cache last valid result (prevents flicker during refetch/loading)
+  // IMPORTANT: This ref persists across renders but resets on page refresh
+  // For better stability, we also check if rawMetrics has data before computing
   const cachedResultRef = useRef<{
     states: CognitiveStates;
     rawStates: CognitiveStates;
@@ -125,7 +127,12 @@ export function useCognitiveStates(): UseCognitiveStatesResult {
   } | null>(null);
   
   const result = useMemo(() => {
-    // If still loading and no rawMetrics, return cached or stable defaults
+    // If still loading, prefer cached values
+    if (isLoading && cachedResultRef.current) {
+      return cachedResultRef.current;
+    }
+    
+    // If no rawMetrics yet, return cached or stable defaults
     if (!rawMetrics) {
       if (cachedResultRef.current) {
         return cachedResultRef.current;

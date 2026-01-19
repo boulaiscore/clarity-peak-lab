@@ -132,9 +132,9 @@ export function useSaveTrainingSession() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, session) => {
       queryClient.invalidateQueries({ queryKey: ["training-sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["user-metrics", session.user_id] });
     },
   });
 }
@@ -176,6 +176,8 @@ export function useUserMetrics(userId: string | undefined) {
       return data as UserCognitiveMetrics | null;
     },
     enabled: !!userId,
+    staleTime: 60_000, // 1 minute - prevent refetch on every mount
+    placeholderData: (prev) => prev ?? undefined, // Keep previous data during refetch
   });
 }
 

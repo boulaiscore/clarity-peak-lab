@@ -189,11 +189,11 @@ export function useRecordExerciseCompletion() {
 
       return { ...data, xpEarned } as ExerciseCompletion & { xpEarned: number };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate all relevant queries for real-time UI updates
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
-      queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["user-metrics", data?.user_id] });
       queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["games-xp-breakdown"] });
       // Dashboard Training Details queries
