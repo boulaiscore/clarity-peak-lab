@@ -229,11 +229,14 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                                 )}>
                                   {area.name}
                                 </h4>
-                                <p className="text-[8px] text-muted-foreground leading-tight">
+                                <p className="text-[8px] text-muted-foreground leading-tight flex items-center gap-0.5">
                                   {isEnabled ? area.tagline : (
-                                    <span className={isProtection ? "text-protection/70" : ""}>
-                                      {isProtection ? "Recovery" : "Locked"}
-                                    </span>
+                                    <>
+                                      <span className={isProtection ? "text-protection/70" : ""}>
+                                        {isProtection ? "Recovery needed" : "Locked"}
+                                      </span>
+                                      <Info className="w-2.5 h-2.5 text-muted-foreground/50" />
+                                    </>
                                   )}
                                 </p>
                               </div>
@@ -266,6 +269,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
           );
         })}
       </div>
+
+      {/* Gating Explanation */}
+      <p className="text-[9px] text-muted-foreground/60 text-center px-4 italic">
+        Games unlock based on your cognitive metrics. Tap locked games for details.
+      </p>
 
       {/* Exercise Picker Sheet (for non-S1-AE games) */}
       <ExercisePickerSheet
