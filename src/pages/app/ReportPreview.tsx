@@ -44,14 +44,22 @@ export default function ReportPreview() {
         </div>
       </div>
 
-      {/* Report Content */}
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* Report Content - Fixed A4, scaled on mobile */}
+      <div className="py-8 overflow-x-auto">
+        <div 
+          className="mx-auto bg-white shadow-lg"
+          style={{
+            width: '210mm',
+            minWidth: '210mm',
+          }}
+        >
           <ClinicalReportMockup />
         </div>
+      </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-12 mb-8 p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20">
+      {/* Bottom CTA */}
+      <div className="container mx-auto px-4 pb-8">
+        <div className="max-w-4xl mx-auto p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-center sm:text-left">
               <h3 className="text-lg font-semibold flex items-center gap-2 justify-center sm:justify-start">
