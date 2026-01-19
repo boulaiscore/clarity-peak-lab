@@ -642,6 +642,7 @@ export function SpotifyTasksView() {
       queryClient.invalidateQueries({ queryKey: ["completed-content-ids"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-content-count"] });
       queryClient.invalidateQueries({ queryKey: ["in-progress-content-ids"] });
+      queryClient.invalidateQueries({ queryKey: ["logged-exposures"] }); // For CognitiveLibrary
       setSelectedPodcast(null);
       setSelectedReading(null);
     },
