@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import landingWorking from "@/assets/landing-working.mp4";
 import landingReading from "@/assets/landing-reading.mp4";
-import landingIntellectual from "@/assets/landing-intellectual.mp4";
+import landingPodcast from "@/assets/landing-podcast.mp4";
 import landingNatureWalk from "@/assets/landing-nature-walk.mp4";
 
 const videos = [
-  { src: landingWorking, label: "Working with NeuroLoop" },
+  { src: landingWorking, label: "Deep Work with NeuroLoop" },
   { src: landingReading, label: "Reading with NeuroLoop" },
-  { src: landingIntellectual, label: "Thinking with NeuroLoop" },
+  { src: landingPodcast, label: "Learning with NeuroLoop" },
   { src: landingNatureWalk, label: "Recovery with NeuroLoop" },
 ];
 
@@ -30,7 +30,7 @@ export function Hero() {
     });
   }, []);
 
-  // Handle video transitions with crossfade - 10 seconds per video
+  // Handle video transitions with crossfade - 12 seconds per video
   useEffect(() => {
     const interval = setInterval(() => {
       const next = (currentVideo + 1) % videos.length;
@@ -49,7 +49,7 @@ export function Hero() {
         setCurrentVideo(next);
         setIsTransitioning(false);
       }, 1500);
-    }, 10000); // 10 seconds per video
+    }, 12000); // 12 seconds per video
 
     return () => clearInterval(interval);
   }, [currentVideo]);
