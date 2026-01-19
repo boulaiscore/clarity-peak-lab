@@ -296,7 +296,7 @@ export default function ReasoningQualityImpact() {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold tabular-nums">
-                {Math.round(rq)}%
+                {totalContribution.toFixed(0)}%
               </div>
               <span className={cn("text-xs font-medium", status.color)}>
                 {status.label}
@@ -372,12 +372,12 @@ export default function ReasoningQualityImpact() {
             </motion.button>
           ))}
           
-          {/* Total Row - use rq directly to ensure it matches */}
+          {/* Total Row - show actual sum of displayed contributions */}
           <div className="p-4 rounded-xl bg-card border border-border/40">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
               <span className="text-lg font-bold tabular-nums">
-                {Math.round(rq)}%
+                {totalContribution.toFixed(1)}%
               </span>
             </div>
           </div>
