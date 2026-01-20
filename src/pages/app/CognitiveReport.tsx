@@ -527,7 +527,7 @@ export default function CognitiveReport() {
                 </p>
               </div>
               <Link to="/neuro-lab">
-                <Button size="sm" variant="outline" className="gap-2 text-foreground">
+                <Button size="sm" variant="default" className="gap-2">
                   <Play className="w-3.5 h-3.5" />
                   Continue Training
                 </Button>
