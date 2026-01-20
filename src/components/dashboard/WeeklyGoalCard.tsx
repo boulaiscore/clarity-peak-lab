@@ -411,6 +411,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               <span className="text-[8px] text-muted-foreground/60">{weeklyXPTarget} XP</span>
             </div>
             
+            {/* Goal clarification */}
+            <p className="text-[7px] text-muted-foreground/50 text-center mt-2 italic">
+              Stay in the optimal zone — {weeklyXPTarget} XP is your plan's max, not your target.
+            </p>
+            
             {/* Upgrade hint */}
             {shouldSuggestUpgrade && (
               <div className="mt-2 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-[8px] text-amber-400 text-center">
