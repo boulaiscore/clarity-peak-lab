@@ -18,7 +18,7 @@ import { usePurchases } from "@/hooks/usePurchases";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2, Watch, RotateCw } from "lucide-react";
+import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2, Watch, RotateCw, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sendPremiumUpgradeEmail } from "@/lib/emailService";
 import { isIOS } from "@/lib/platformUtils";
@@ -26,6 +26,7 @@ import { isIOS } from "@/lib/platformUtils";
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { supabase } from "@/integrations/supabase/client";
+import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,6 +100,9 @@ const Account = () => {
   
   // Timezone state
   const [timezone, setTimezone] = useState("UTC");
+  
+  // Tutorial state
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Subscription upgrade states
   const [isUpgrading, setIsUpgrading] = useState(false);
@@ -670,16 +674,27 @@ const Account = () => {
                 <p className="text-xs text-muted-foreground mb-3">
                   Need assistance? Our team is here to help.
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => window.open("mailto:support@superhuman-labs.com", "_blank")}
-                >
-                  <Mail className="w-4 h-4" />
-                  Contact Support
-                  <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => setShowTutorial(true)}
+                  >
+                    <Play className="w-4 h-4" />
+                    Replay Tutorial
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => window.open("mailto:support@superhuman-labs.com", "_blank")}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Contact Support
+                    <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 
@@ -937,6 +952,12 @@ const Account = () => {
           </div>
         </div>
       </div>
+      
+      {/* Tutorial Modal */}
+      <OnboardingTutorial 
+        show={showTutorial} 
+        onComplete={() => setShowTutorial(false)} 
+      />
     </AppShell>
   );
 };
