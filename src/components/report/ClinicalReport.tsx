@@ -158,11 +158,12 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
   const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
   const accuracy = aggregates.accuracyRatePct ?? 0;
   
-  // v3.0: Use live skill values from SCI calculation for S1/S2 consistency
-  const AE = liveSci?.cognitivePerformance?.components?.AE ?? metrics.focus_stability ?? 50;
-  const RA = liveSci?.cognitivePerformance?.components?.RA ?? metrics.fast_thinking ?? 50;
-  const CT = liveSci?.cognitivePerformance?.components?.CT ?? metrics.reasoning_accuracy ?? 50;
-  const IN = liveSci?.cognitivePerformance?.components?.IN ?? metrics.slow_thinking ?? 50;
+  // v3.1: Use metrics directly (same source as Dashboard) for S1/S2 consistency
+  // This ensures Report and Dashboard calculate identical values
+  const AE = metrics.focus_stability ?? 50;
+  const RA = metrics.fast_thinking ?? 50;
+  const CT = metrics.reasoning_accuracy ?? 50;
+  const IN = metrics.slow_thinking ?? 50;
   
   // Legacy aliases for backward compatibility
   const fast = RA;
