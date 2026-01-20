@@ -502,64 +502,70 @@ export function useRecordGameSession() {
           console.log("[GameSession] Inserted exercise_completion:", exerciseId);
         }
         
-        // 3. Update skill value AND XP timestamps
-        if (params.xpAwarded > 0) {
-          const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as
-            "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
+        // 3. Update skill value, XP timestamps, AND total_sessions
+        const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as
+          "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
+        
+        const SKILL_TO_COLUMN: Record<string, string> = {
+          AE: "focus_stability",
+          RA: "fast_thinking",
+          CT: "reasoning_accuracy",
+          IN: "slow_thinking",
+        };
+        const targetColumn = SKILL_TO_COLUMN[skillRouted];
+        
+        const { data: currentMetrics } = await supabase
+          .from("user_cognitive_metrics")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+        
+        if (currentMetrics) {
+          const currentValue = (currentMetrics as any)[targetColumn] || 50;
+          const currentTotalSessions = (currentMetrics as any).total_sessions ?? 0;
           
-          const SKILL_TO_COLUMN: Record<string, string> = {
-            AE: "focus_stability",
-            RA: "fast_thinking",
-            CT: "reasoning_accuracy",
-            IN: "slow_thinking",
-          };
-          const targetColumn = SKILL_TO_COLUMN[skillRouted];
-          
-          const { data: currentMetrics } = await supabase
-            .from("user_cognitive_metrics")
-            .select("*")
-            .eq("user_id", userId)
-            .maybeSingle();
-          
-          if (currentMetrics) {
-            const currentValue = (currentMetrics as any)[targetColumn] || 50;
+          // Calculate skill delta only if XP awarded
+          let newValue = currentValue;
+          if (params.xpAwarded > 0) {
             const scaledXP = params.xpAwarded * (params.score / 100);
             const delta = scaledXP * 0.5;
-            const newValue = Math.min(100, currentValue + delta);
-            
-            const xpTrackingUpdate: Record<string, string | number> = {
-              last_xp_at: nowUtc,
-              [skillXpColumn]: nowUtc,
-              [targetColumn]: Math.round(newValue * 10) / 10,
-            };
-            
-            const { error: updateError } = await supabase
-              .from("user_cognitive_metrics")
-              .update(xpTrackingUpdate)
-              .eq("user_id", userId);
-            
-            if (updateError) {
-              console.error("[GameSession] Failed to update metrics:", updateError);
-            } else {
-              console.log(`[GameSession] Updated ${targetColumn}: ${currentValue} → ${newValue}`);
-            }
-          } else {
-            const initialValue = 50 + (params.xpAwarded * (params.score / 100) * 0.5);
-            
-            await supabase
-              .from("user_cognitive_metrics")
-              .insert({
-                user_id: userId,
-                focus_stability: skillRouted === "AE" ? Math.round(initialValue * 10) / 10 : 50,
-                fast_thinking: skillRouted === "RA" ? Math.round(initialValue * 10) / 10 : 50,
-                reasoning_accuracy: skillRouted === "CT" ? Math.round(initialValue * 10) / 10 : 50,
-                slow_thinking: skillRouted === "IN" ? Math.round(initialValue * 10) / 10 : 50,
-                [skillXpColumn]: nowUtc,
-                last_xp_at: nowUtc,
-              });
-            
-            console.log("[GameSession] Created new metrics record");
+            newValue = Math.min(100, currentValue + delta);
           }
+          
+          const metricsUpdate: Record<string, string | number> = {
+            last_xp_at: nowUtc,
+            [skillXpColumn]: nowUtc,
+            [targetColumn]: Math.round(newValue * 10) / 10,
+            total_sessions: currentTotalSessions + 1, // BUGFIX: Increment total_sessions
+          };
+          
+          const { error: updateError } = await supabase
+            .from("user_cognitive_metrics")
+            .update(metricsUpdate)
+            .eq("user_id", userId);
+          
+          if (updateError) {
+            console.error("[GameSession] Failed to update metrics:", updateError);
+          } else {
+            console.log(`[GameSession] Updated ${targetColumn}: ${currentValue} → ${newValue}, total_sessions: ${currentTotalSessions + 1}`);
+          }
+        } else {
+          const initialValue = 50 + (params.xpAwarded > 0 ? params.xpAwarded * (params.score / 100) * 0.5 : 0);
+          
+          await supabase
+            .from("user_cognitive_metrics")
+            .insert({
+              user_id: userId,
+              focus_stability: skillRouted === "AE" ? Math.round(initialValue * 10) / 10 : 50,
+              fast_thinking: skillRouted === "RA" ? Math.round(initialValue * 10) / 10 : 50,
+              reasoning_accuracy: skillRouted === "CT" ? Math.round(initialValue * 10) / 10 : 50,
+              slow_thinking: skillRouted === "IN" ? Math.round(initialValue * 10) / 10 : 50,
+              [skillXpColumn]: nowUtc,
+              last_xp_at: nowUtc,
+              total_sessions: 1, // BUGFIX: Initialize total_sessions
+            });
+          
+          console.log("[GameSession] Created new metrics record with total_sessions: 1");
         }
         
         // 4. Invalidate queries for real-time UI updates

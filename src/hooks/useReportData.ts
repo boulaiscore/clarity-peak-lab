@@ -1,6 +1,23 @@
 // src/hooks/useReportData.ts
+/**
+ * ============================================
+ * NEUROLOOP PRO – REPORT DATA HOOK v2.0
+ * ============================================
+ * 
+ * v2.0 BUGFIX: Switched from neuro_gym_sessions to game_sessions
+ *       as the single source of truth for session tracking.
+ *       Added explicit sessions_last_7d count for consistency
+ *       with weekly XP calculations from exercise_completions.
+ * 
+ * Data sources:
+ * - game_sessions: Session count tracking (gating + report)
+ * - exercise_completions: XP ledger (weekly progress)
+ * - user_cognitive_metrics: Aggregated metrics + total_sessions
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { subDays } from "date-fns";
 
 type Area = "focus" | "reasoning" | "creativity";
 
@@ -51,17 +68,21 @@ type Profile = {
   degree_discipline?: string | null;
 };
 
-type NeuroGymSession = {
+/**
+ * v2.0: GameSession type matches game_sessions table (single source of truth)
+ */
+type GameSession = {
   id: string;
   user_id: string;
-  area: string;
-  duration_option: string;
-  exercises_used: string[];
+  system_type: string;        // "S1" | "S2"
+  skill_routed: string;       // "AE" | "RA" | "CT" | "IN"
+  game_type: string;          // "S1-AE" | "S1-RA" | "S2-CT" | "S2-IN"
+  gym_area: string;
+  thinking_mode: string;      // "fast" | "slow"
+  xp_awarded: number;
   score: number;
-  correct_answers: number;
-  total_questions: number;
-  is_daily_training: boolean | null;
   completed_at: string;
+  game_name?: string | null;
 };
 
 type Badge = {
@@ -93,6 +114,8 @@ type ReportAggregates = {
   mostUsedExercises: { exerciseId: string; count: number }[];
   topExercisesByArea: Record<Area, { exerciseId: string; count: number }[]>;
   last30DaysHeatmap: { date: string; count: number }[];
+  // v2.0: Explicit 7-day session count for alignment with weekly XP
+  sessionsLast7d: number;
 };
 
 function safeAvg(values: number[]) {
@@ -116,11 +139,23 @@ function topN(items: string[], n: number) {
     .map(([exerciseId, count]) => ({ exerciseId, count }));
 }
 
+/**
+ * Map gym_area from game_sessions to Area type
+ */
+function mapGymAreaToArea(gymArea: string): Area | null {
+  const areaMap: Record<string, Area> = {
+    focus: "focus",
+    reasoning: "reasoning",
+    creativity: "creativity",
+  };
+  return areaMap[gymArea.toLowerCase()] ?? null;
+}
+
 export function useReportData(userId: string) {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<UserCognitiveMetrics | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [sessions, setSessions] = useState<NeuroGymSession[]>([]);
+  const [sessions, setSessions] = useState<GameSession[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [wearable, setWearable] = useState<WearableSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,11 +168,12 @@ export function useReportData(userId: string) {
       setError(null);
 
       try {
+        // v2.0: Fetch from game_sessions instead of neuro_gym_sessions
         const [mRes, pRes, sRes, bRes, wRes] = await Promise.all([
           supabase.from("user_cognitive_metrics").select("*").eq("user_id", userId).maybeSingle(),
           supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
           supabase
-            .from("neuro_gym_sessions")
+            .from("game_sessions")
             .select("*")
             .eq("user_id", userId)
             .order("completed_at", { ascending: false })
@@ -194,35 +230,45 @@ export function useReportData(userId: string) {
 
     const exercisesByArea: Record<Area, string[]> = { focus: [], reasoning: [], creativity: [] };
 
-    // heatmap ultimi 30 giorni (opzionale)
+    // v2.0: Calculate sessions in the last 7 days (aligns with weekly XP window)
     const today = new Date();
-    const cutoff = new Date(today);
-    cutoff.setDate(today.getDate() - 30);
+    const sevenDaysAgo = subDays(today, 7);
+    const cutoff30d = subDays(today, 30);
     const heat = new Map<string, number>();
+    let sessionsLast7d = 0;
 
     for (const s of sessions) {
-      const areaKey = s.area as Area;
-      if (areas.includes(areaKey)) {
+      const areaKey = mapGymAreaToArea(s.gym_area);
+      const completedDate = new Date(s.completed_at);
+      
+      // Count sessions by area
+      if (areaKey && areas.includes(areaKey)) {
         sessionsByArea[areaKey] += 1;
         scoresByArea[areaKey].push(s.score ?? 0);
       }
 
-      totalCorrect += s.correct_answers ?? 0;
-      totalQuestions += s.total_questions ?? 0;
+      // Accumulate score for accuracy (using score as percentage)
+      totalCorrect += Math.round((s.score ?? 0) / 10); // Approximate from score
+      totalQuestions += 10; // Normalized per session
 
-      if (s.duration_option) durations.push(s.duration_option);
+      if (s.thinking_mode) durations.push(s.thinking_mode);
 
-      const ex = Array.isArray(s.exercises_used) ? s.exercises_used : [];
-      for (const id of ex) {
-        allExercises.push(id);
-        if (areas.includes(areaKey)) {
-          exercisesByArea[areaKey].push(id);
+      // Track game types as "exercises"
+      if (s.game_type) {
+        allExercises.push(s.game_type);
+        if (areaKey && areas.includes(areaKey)) {
+          exercisesByArea[areaKey].push(s.game_type);
         }
       }
 
-      const d = new Date(s.completed_at);
-      if (d >= cutoff) {
-        const key = d.toISOString().slice(0, 10);
+      // v2.0: Count sessions in 7-day window
+      if (completedDate >= sevenDaysAgo) {
+        sessionsLast7d++;
+      }
+
+      // Heatmap for last 30 days
+      if (completedDate >= cutoff30d) {
+        const key = completedDate.toISOString().slice(0, 10);
         heat.set(key, (heat.get(key) ?? 0) + 1);
       }
     }
@@ -257,8 +303,22 @@ export function useReportData(userId: string) {
       mostUsedExercises,
       topExercisesByArea,
       last30DaysHeatmap,
+      sessionsLast7d, // v2.0: Explicit 7-day count
     };
   }, [sessions]);
+
+  // v2.0: Dev guardrail - warn if XP exists but sessions missing
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && aggregates && metrics) {
+      const weeklyGamesXP = metrics.experience_points ?? 0; // Approximate
+      if (weeklyGamesXP > 0 && aggregates.sessionsLast7d === 0) {
+        console.warn(
+          "[Data Mismatch] XP ledger has entries but session ledger is empty for last 7 days. " +
+          "Check game completion flow in useRecordGameSession."
+        );
+      }
+    }
+  }, [aggregates, metrics]);
 
   return { loading, error, metrics, profile, sessions, badges, wearable, aggregates };
 }
