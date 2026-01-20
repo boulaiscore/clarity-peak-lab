@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$11.99",
+    price: "$19.99",
     period: "/month",
     features: [
       "Unlimited sessions",
@@ -33,7 +33,7 @@ const plans = [
   },
   {
     name: "Elite",
-    price: "$16.99",
+    price: "$39.99",
     period: "/month",
     features: [
       "Everything in Pro",

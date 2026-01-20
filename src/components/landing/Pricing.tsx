@@ -22,7 +22,7 @@ const tiers = [
   },
   {
     name: "Pro",
-    price: "$11.99",
+    price: "$19.99",
     period: "/month",
     description: "Complete cognitive system",
     features: [
@@ -37,7 +37,7 @@ const tiers = [
   },
   {
     name: "Elite",
-    price: "$16.99",
+    price: "$39.99",
     period: "/month",
     description: "Maximum performance",
     features: [
