@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRecordGameSession } from "@/hooks/useRecordGameSession";
+import { useRecordGameSession } from "@/hooks/useGamesGating";
 import {
   SignalVsNoiseDrill,
   SignalVsNoiseResults,
@@ -28,7 +28,7 @@ type Phase = "intro" | "playing" | "results";
 export default function SignalVsNoiseRunner() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { recordGameSession } = useRecordGameSession();
+  const recordGameSession = useRecordGameSession();
   
   const [phase, setPhase] = useState<Phase>("intro");
   const [difficulty, setDifficulty] = useState<Difficulty>("standard");
@@ -77,13 +77,13 @@ export default function SignalVsNoiseRunner() {
           gameType: "S2-IN",
           gymArea: "reasoning",
           thinkingMode: "slow",
-          skillRouted: "IN",
-          systemType: "S2",
           score: gameMetrics.sessionScore,
           xpAwarded: scaledXP,
           durationSeconds: duration,
           difficulty: difficulty === "standard" ? "medium" : difficulty,
           gameName: "signal_vs_noise",
+          startedAt: startedAtRef.current?.toISOString() ?? null,
+          status: 'completed',
         });
       } catch (error) {
         console.error("Failed to record Signal vs Noise session:", error);

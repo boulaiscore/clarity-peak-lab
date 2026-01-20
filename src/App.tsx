@@ -38,6 +38,7 @@ import SemanticDriftRunner from "./pages/app/SemanticDriftRunner";
 import CausalLedgerRunner from "./pages/app/CausalLedgerRunner";
 import CounterfactualAuditRunner from "./pages/app/CounterfactualAuditRunner";
 import SocraticCrossExamRunner from "./pages/app/SocraticCrossExamRunner";
+import SignalVsNoiseRunner from "./pages/app/SignalVsNoiseRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
@@ -320,6 +321,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SocraticCrossExamRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-lab/signal-vs-noise"
+        element={
+          <ProtectedRoute>
+            <SignalVsNoiseRunner />
           </ProtectedRoute>
         }
       />
