@@ -331,10 +331,9 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
     // Total score
     const totalScore = blockScores.reduce((a, b) => a + b, 0);
     
-    // XP calculation
-    const baseXP = config.xpPerBlock * 3;
+    // XP calculation - v1.5: Using centralized XP
     const isPerfect = perseverationRate < 0.1 && switchLatencyAvg < 500 && degradationSlope < 0.2;
-    const xpAwarded = isPerfect ? baseXP + PERFECT_BONUS_XP : baseXP;
+    const xpAwarded = calculateGameXP(difficulty, isPerfect);
     
     return {
       score: totalScore,
@@ -350,7 +349,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
       isPerfect,
       difficulty,
     };
-  }, [phase, blockScores, switchLatencies, perseverations, postSwitchErrors, totalTaps, config.xpPerBlock, difficulty]);
+  }, [phase, blockScores, switchLatencies, perseverations, postSwitchErrors, totalTaps, difficulty]);
   
   // ============================================
   // RENDER
