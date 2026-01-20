@@ -2,110 +2,21 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
-import landingWorking from "@/assets/landing-working.mp4";
-import landingReading from "@/assets/landing-reading.mp4";
-import landingPodcast from "@/assets/landing-podcast.mp4";
-import landingNatureWalk from "@/assets/landing-nature-walk.mp4";
-
-const videos = [
-  { src: landingWorking, label: "Deep Work with NeuroLoop" },
-  { src: landingReading, label: "Reading with NeuroLoop" },
-  { src: landingPodcast, label: "Learning with NeuroLoop" },
-  { src: landingNatureWalk, label: "Recovery with NeuroLoop" },
-];
+import heroIllustration from "@/assets/hero-illustration.png";
 
 export function Hero() {
-  const [currentVideo, setCurrentVideo] = useState(0);
-  const [nextVideo, setNextVideo] = useState(1);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-
-  // Preload all videos on mount
-  useEffect(() => {
-    videoRefs.current.forEach((video) => {
-      if (video) {
-        video.load();
-      }
-    });
-  }, []);
-
-  // Handle transition to next video
-  const transitionToNext = () => {
-    if (isTransitioning) return;
-    
-    const next = (currentVideo + 1) % videos.length;
-    setNextVideo(next);
-    setIsTransitioning(true);
-    
-    // Start playing next video before transition
-    const nextVideoEl = videoRefs.current[next];
-    if (nextVideoEl) {
-      nextVideoEl.currentTime = 0;
-      nextVideoEl.play();
-    }
-    
-    // Complete transition after fade
-    setTimeout(() => {
-      setCurrentVideo(next);
-      setIsTransitioning(false);
-    }, 1500);
-  };
-
-  // Listen for video end event
-  useEffect(() => {
-    const currentVideoEl = videoRefs.current[currentVideo];
-    if (currentVideoEl) {
-      currentVideoEl.addEventListener('ended', transitionToNext);
-      return () => currentVideoEl.removeEventListener('ended', transitionToNext);
-    }
-  }, [currentVideo, isTransitioning]);
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
-      {/* Video Background - All videos stacked, opacity controlled */}
+      {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        {videos.map((video, index) => (
-          <video
-            key={index}
-            ref={(el) => (videoRefs.current[index] = el)}
-            autoPlay={index === 0}
-            muted
-            playsInline
-            preload="auto"
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1500 ease-in-out"
-            style={{
-              opacity: index === currentVideo 
-                ? (isTransitioning ? 0 : 0.15)
-                : index === nextVideo && isTransitioning 
-                  ? 0.15 
-                  : 0,
-              zIndex: index === currentVideo ? 1 : index === nextVideo ? 2 : 0,
-            }}
-          >
-            <source src={video.src} type="video/mp4" />
-          </video>
-        ))}
+        <img
+          src={heroIllustration}
+          alt="Neural network illustration"
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+        />
         {/* Light overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-white/80 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-white/60 z-10" />
       </div>
-
-      {/* NeuroLoop Badge */}
-      <motion.div
-        key={currentVideo}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-        className="absolute bottom-36 sm:bottom-40 left-6 sm:left-10 z-20"
-      >
-        <div className="flex items-center gap-2 bg-black/5 backdrop-blur-sm px-4 py-2 rounded-full border border-black/10">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-xs sm:text-sm text-black/70 font-medium tracking-wide">
-            {videos[currentVideo].label}
-          </span>
-        </div>
-      </motion.div>
 
       {/* Content */}
       <div className="container relative z-20 px-6 pt-24 pb-16">
@@ -143,7 +54,7 @@ export function Hero() {
           >
             <Button 
               asChild 
-              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-10 h-14 text-lg"
+              className="rounded-full bg-primary text-white hover:bg-primary/90 font-semibold px-10 h-14 text-lg"
             >
               <Link to="/download">
                 Start Training
@@ -175,33 +86,6 @@ export function Hero() {
             </div>
           </motion.div>
         </motion.div>
-      </div>
-
-      {/* Video indicators */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-        {videos.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              if (index !== currentVideo) {
-                setNextVideo(index);
-                setIsTransitioning(true);
-                const nextVideoEl = videoRefs.current[index];
-                if (nextVideoEl) {
-                  nextVideoEl.currentTime = 0;
-                  nextVideoEl.play();
-                }
-                setTimeout(() => {
-                  setCurrentVideo(index);
-                  setIsTransitioning(false);
-                }, 1500);
-              }
-            }}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentVideo ? "bg-primary w-6" : "bg-black/20 hover:bg-black/40"
-            }`}
-          />
-        ))}
       </div>
 
       {/* Scroll indicator */}
