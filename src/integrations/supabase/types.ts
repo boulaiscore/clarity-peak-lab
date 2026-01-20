@@ -198,6 +198,7 @@ export type Database = {
           degradation_slope: number | null
           difficulty: string | null
           difficulty_override: boolean | null
+          duration_seconds: number
           false_alarm_rate: number | null
           game_name: string | null
           game_type: string
@@ -210,6 +211,8 @@ export type Database = {
           rt_variability: number | null
           score: number
           skill_routed: string
+          started_at: string | null
+          status: string
           switch_latency_avg: number | null
           system_type: string
           thinking_mode: string
@@ -223,6 +226,7 @@ export type Database = {
           degradation_slope?: number | null
           difficulty?: string | null
           difficulty_override?: boolean | null
+          duration_seconds?: number
           false_alarm_rate?: number | null
           game_name?: string | null
           game_type: string
@@ -235,6 +239,8 @@ export type Database = {
           rt_variability?: number | null
           score?: number
           skill_routed: string
+          started_at?: string | null
+          status?: string
           switch_latency_avg?: number | null
           system_type: string
           thinking_mode: string
@@ -248,6 +254,7 @@ export type Database = {
           degradation_slope?: number | null
           difficulty?: string | null
           difficulty_override?: boolean | null
+          duration_seconds?: number
           false_alarm_rate?: number | null
           game_name?: string | null
           game_type?: string
@@ -260,6 +267,8 @@ export type Database = {
           rt_variability?: number | null
           score?: number
           skill_routed?: string
+          started_at?: string | null
+          status?: string
           switch_latency_avg?: number | null
           system_type?: string
           thinking_mode?: string
@@ -706,6 +715,7 @@ export type Database = {
           last_low_rec_check_date: string | null
           last_ra_xp_at: string | null
           last_s2_game_at: string | null
+          last_session_at: string | null
           last_task_at: string | null
           last_xp_at: string | null
           low_rec_streak_days: number | null
@@ -780,6 +790,7 @@ export type Database = {
           last_low_rec_check_date?: string | null
           last_ra_xp_at?: string | null
           last_s2_game_at?: string | null
+          last_session_at?: string | null
           last_task_at?: string | null
           last_xp_at?: string | null
           low_rec_streak_days?: number | null
@@ -854,6 +865,7 @@ export type Database = {
           last_low_rec_check_date?: string | null
           last_ra_xp_at?: string | null
           last_s2_game_at?: string | null
+          last_session_at?: string | null
           last_task_at?: string | null
           last_xp_at?: string | null
           low_rec_streak_days?: number | null
