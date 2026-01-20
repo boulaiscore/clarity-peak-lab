@@ -1,9 +1,10 @@
 // src/pages/app/CognitiveReport.tsx
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target, Eye, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target, Eye, ZoomIn, ZoomOut, FolderOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { useReportAccess } from "@/hooks/useReportAccess";
+import { useReportHistory } from "@/hooks/useReportHistory";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeRedirectUrls, isNative } from "@/lib/platformUtils";
@@ -22,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ReportPreviewReal } from "@/components/report/ReportPreviewReal";
 import { Progress } from "@/components/ui/progress";
+import { ReportHistoryList } from "@/components/report/ReportHistoryList";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import "@/styles/clinical-report.css";
 
@@ -55,6 +58,8 @@ export default function CognitiveReport() {
     hasCreditsOrPurchase,
   } = useReportAccess();
   
+  const { reports, isLoading: historyLoading, saveReport } = useReportHistory(userId);
+  
   // Total credits available for display
   const totalCredits = isPro ? Infinity : monthlyCredits + reportCredits;
 
@@ -64,6 +69,7 @@ export default function CognitiveReport() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [scale, setScale] = useState(0.4); // Start zoomed out on mobile
+  const [showHistory, setShowHistory] = useState(false);
   
   const zoomIn = () => setScale((s) => Math.min(s + 0.15, 1));
   const zoomOut = () => setScale((s) => Math.max(s - 0.15, 0.25));
@@ -135,8 +141,8 @@ export default function CognitiveReport() {
     if (!printRef.current) return;
     setDownloading(true);
     
-    // Use a credit if we have credits (not legacy purchase)
-    if (reportCredits > 0) {
+    // Use a credit if we have credits (not Pro user)
+    if (!isPro && (reportCredits > 0 || monthlyCredits > 0)) {
       try {
         await useCredit.mutateAsync();
       } catch (err) {
@@ -168,7 +174,20 @@ export default function CognitiveReport() {
 
     try {
       await html2pdf().set(opt).from(printRef.current).save();
+      
+      // Save report to history
+      await saveReport.mutateAsync({
+        cognitiveAge: metrics?.baseline_cognitive_age ?? undefined,
+        sciScore: metrics?.cognitive_performance_score ?? undefined,
+        fastThinking: metrics?.fast_thinking ?? undefined,
+        slowThinking: metrics?.slow_thinking ?? undefined,
+        totalSessions: metrics?.total_sessions ?? undefined,
+      });
+      
       toast.success("PDF downloaded successfully!");
+    } catch (err) {
+      console.error('Error downloading PDF:', err);
+      toast.error("Failed to download PDF. Please try again.");
     } finally {
       setDownloading(false);
     }
@@ -499,6 +518,55 @@ export default function CognitiveReport() {
               </Link>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Download PDF Button - Prominent */}
+      {weeklyPlanCompleted && canDownloadPDF && (
+        <div className="px-4 mb-4 print:hidden">
+          <Button 
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="w-full gap-2 h-12"
+            variant="premium"
+          >
+            <Download className="w-5 h-5" />
+            {downloading ? "Generating PDF..." : "Download PDF Report"}
+          </Button>
+        </div>
+      )}
+
+      {/* Report History Section */}
+      {reports.length > 0 && (
+        <div className="px-4 mb-4 print:hidden">
+          <Collapsible open={showHistory} onOpenChange={setShowHistory}>
+            <CollapsibleTrigger asChild>
+              <button className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-card/50 hover:bg-card transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FolderOpen className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-medium">Report History</span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {reports.length} report{reports.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+                {showHistory ? (
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3">
+              <ReportHistoryList 
+                reports={reports} 
+                isLoading={historyLoading}
+              />
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       )}
 
