@@ -31,7 +31,7 @@ interface ClinicalReportProps {
     philosophical_reasoning?: number | null;
     cognitive_level?: number | null;
     experience_points?: number | null;
-    total_sessions?: number;
+    total_sessions?: number;           // Lifetime sessions from user_cognitive_metrics
     baseline_fast_thinking?: number | null;
     baseline_slow_thinking?: number | null;
     baseline_focus?: number | null;
@@ -49,6 +49,7 @@ interface ClinicalReportProps {
     preferredDuration?: string;
     mostUsedExercises: { exerciseId: string; count: number }[];
     last30DaysHeatmap?: { date: string; count: number }[];
+    sessionsLast7d?: number;           // v2.0: Sessions in rolling 7-day window
   };
   badges: Array<{
     badge_name: string;
@@ -147,7 +148,9 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
   const cri = Math.round(metrics.cognitive_readiness_score ?? 50);
   const xp = metrics.experience_points ?? 0;
   const level = metrics.cognitive_level ?? 1;
+  // v2.0: Use both lifetime and 7-day session counts
   const totalSessions = metrics.total_sessions ?? 0;
+  const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
   const accuracy = aggregates.accuracyRatePct ?? 0;
   
   const fast = metrics.fast_thinking ?? 50;
@@ -253,19 +256,19 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
   const strengths = sortedDomains.slice(0, 2).filter(d => d.score >= 60);
   const vulnerabilities = sortedDomains.slice(-2).filter(d => d.score < 60).reverse();
 
-  // Prognosis
+  // Prognosis - v2.0: Use sessionsLast7d for recency-weighted confidence
   const prognosisText = useMemo(() => {
-    if (totalSessions < 5) {
-      return "Insufficient training data for reliable trajectory estimation. Continued engagement is recommended to establish baseline patterns.";
+    if (sessionsLast7d < 2) {
+      return "Insufficient recent training data for reliable trajectory estimation. Continued engagement is recommended to establish baseline patterns.";
     }
     if (sci >= 75 && accuracy >= 75) {
       return "Based on current performance patterns, maintenance of cognitive indices is likely with continued adherence. Moderate confidence in sustained performance over the next 30-45 days.";
     }
-    if (sci >= 55 && totalSessions >= 10) {
+    if (sci >= 55 && sessionsLast7d >= 5) {
       return "Current trajectory suggests gradual improvement is achievable with consistent engagement. With maintained training frequency, an increase of 3-7 SCI points over 30-45 days is plausible.";
     }
     return "Performance patterns indicate opportunity for improvement. Consistent engagement at current or increased frequency may yield measurable gains within 30-45 days, contingent on adherence.";
-  }, [sci, accuracy, totalSessions]);
+  }, [sci, accuracy, sessionsLast7d]);
 
   return (
     <div className="clinical-report relative">
@@ -351,7 +354,8 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
           <div className="clinical-data-sources">
             <h3 className="clinical-subsection-header">Data Sources</h3>
             <ul className="clinical-list">
-              <li>Behavioral training sessions (n={totalSessions})</li>
+              <li>In-app sessions (last 7 days): {sessionsLast7d}</li>
+              <li>Lifetime sessions: {totalSessions}</li>
               <li>Performance metrics from standardized cognitive exercises</li>
               <li>Longitudinal tracking data ({observationWindow.start} – {observationWindow.end})</li>
               <li>Response accuracy and latency distributions</li>
@@ -384,8 +388,8 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
                 to chronological age{age ? ` (${age} years)` : ""}.
               </li>
               <li>
-                <strong>Training Engagement:</strong> {totalSessions} sessions completed with {accuracy.toFixed(1)}% mean accuracy, 
-                indicating {totalSessions >= 20 ? "consistent" : totalSessions >= 10 ? "moderate" : "early-stage"} engagement.
+                <strong>Training Engagement:</strong> {sessionsLast7d} sessions in last 7 days ({totalSessions} lifetime) with {accuracy.toFixed(1)}% mean accuracy, 
+                indicating {sessionsLast7d >= 7 ? "consistent" : sessionsLast7d >= 3 ? "moderate" : "early-stage"} recent engagement.
               </li>
               <li>
                 <strong>Readiness State:</strong> Cognitive Readiness Index (CRI) of {cri} suggests 
