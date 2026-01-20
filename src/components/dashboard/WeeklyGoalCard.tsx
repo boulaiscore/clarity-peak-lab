@@ -348,18 +348,23 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </div>
             </div>
             
-            {/* Your Capacity indicator with trend arrow */}
-            <div className="flex items-center gap-1 mb-2">
-              <TrendingUp className="w-2.5 h-2.5 text-muted-foreground/50" />
-              <span className="text-[8px] text-muted-foreground/50">
-                Your Capacity: {Math.round(trainingCapacity)} XP
-              </span>
-              {tcTrend === "up" && (
-                <ArrowUp className="w-2.5 h-2.5 text-teal-400" />
-              )}
-              {tcTrend === "down" && (
-                <ArrowDown className="w-2.5 h-2.5 text-amber-400" />
-              )}
+            {/* Your Capacity indicator with trend arrow + explanation */}
+            <div className="mb-2">
+              <div className="flex items-center gap-1">
+                <TrendingUp className="w-2.5 h-2.5 text-muted-foreground/50" />
+                <span className="text-[8px] text-muted-foreground/50">
+                  Your Capacity: {Math.round(trainingCapacity)} XP
+                </span>
+                {tcTrend === "up" && (
+                  <ArrowUp className="w-2.5 h-2.5 text-teal-400" />
+                )}
+                {tcTrend === "down" && (
+                  <ArrowDown className="w-2.5 h-2.5 text-amber-400" />
+                )}
+              </div>
+              <p className="text-[7px] text-muted-foreground/40 italic mt-0.5 pl-3.5">
+                What you can currently absorb without overtraining.
+              </p>
             </div>
             
             {/* Status Label - Clear actionable message */}
@@ -382,12 +387,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   width: `${optimalRangePercent.max - optimalRangePercent.min}%` 
                 }}
               />
-              {/* Current Position Marker - circular dot */}
+              {/* Current Position Marker - passive vertical line indicator */}
               <motion.div
-                className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full ${barStyles.markerBg} border-2 ${barStyles.markerBorder} shadow-lg`}
-                style={{ left: `calc(${progressPercent}% - 8px)` }}
+                className={`absolute top-0 h-full w-0.5 ${barStyles.markerBg} rounded-full shadow-sm`}
+                style={{ left: `calc(${progressPercent}% - 1px)` }}
                 initial={false}
-                animate={{ left: `calc(${progressPercent}% - 8px)` }}
+                animate={{ left: `calc(${progressPercent}% - 1px)` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
@@ -404,12 +409,17 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[200px] text-xs">
-                    The sweet spot where you train enough to grow, but not so much that you burn out. It shifts up as your brain adapts.
+                    Where training converts best into real gains. It shifts up as your brain adapts.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
               <span className="text-[8px] text-muted-foreground/60">{weeklyXPTarget} XP</span>
             </div>
+            
+            {/* Optimal Zone explanation */}
+            <p className="text-[7px] text-muted-foreground/40 italic text-center mt-1">
+              Where training converts best into real gains.
+            </p>
             
             {/* Goal clarification */}
             <p className="text-[7px] text-muted-foreground/50 text-center mt-2 italic">
@@ -435,11 +445,11 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 XP only show how much you trained — not how good you are.
               </p>
               
-              {/* Training mix - simple */}
+              {/* Training mix - Cognitive Balance header */}
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Dumbbell className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Training mix</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Cognitive Balance (this week)</span>
                 </div>
                 
                 <div className="grid grid-cols-[130px_1fr_1fr] gap-1 mb-1">
@@ -541,6 +551,13 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                     );
                   })}
                 </div>
+                
+                {/* S2 balance hint - only if S2 XP = 0 */}
+                {Math.round(gamesSubTargets[1]?.earned ?? 0) === 0 && (
+                  <p className="text-[7px] text-muted-foreground/50 italic mt-1.5">
+                    Add one S2 session to stabilize gains.
+                  </p>
+                )}
               </div>
 
               {/* Recovery Budget Section */}
@@ -567,6 +584,12 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 <p className="text-[8px] text-muted-foreground/50 mt-1">
                   Recovery doesn't add XP. It helps training turn into real gains.
                 </p>
+                {/* No recovery logged hint */}
+                {recoveryMinutesEarned === 0 && (
+                  <p className="text-[7px] text-muted-foreground/40 italic mt-0.5">
+                    No recovery logged yet.
+                  </p>
+                )}
               </div>
             </motion.div>
           </CollapsibleContent>
