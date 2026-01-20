@@ -174,13 +174,27 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
   
   const age = profile.birth_date ? calculateAge(profile.birth_date) : null;
   
-  // Cognitive Age calculation
+  // v3.2: Cognitive Age calculation ALIGNED with Dashboard (src/pages/app/Dashboard.tsx:32-72)
+  // Same formula: average 5 skills, compare to baseline avg, 10 pts improvement = 1 year younger
   const baselineCogAge = metrics.baseline_cognitive_age ?? (age ?? 35);
   const cognitiveAge = useMemo(() => {
-    const sciDelta = sci - 50;
-    const adjustment = -0.2 * sciDelta;
-    return Math.round(baselineCogAge + adjustment);
-  }, [sci, baselineCogAge]);
+    // Current skill averages (same as Dashboard)
+    const currentAvg = (AE + RA + CT + IN + creativity) / 5;
+    
+    // Baseline skill averages
+    const baselineFocus = metrics.baseline_focus ?? 50;
+    const baselineFast = metrics.baseline_fast_thinking ?? 50;
+    const baselineReasoning = metrics.baseline_reasoning ?? 50;
+    const baselineSlow = metrics.baseline_slow_thinking ?? 50;
+    const baselineCreativity = metrics.baseline_creativity ?? 50;
+    const baselineAvg = (baselineFocus + baselineFast + baselineReasoning + baselineSlow + baselineCreativity) / 5;
+    
+    // Performance gain & age adjustment (identical to Dashboard)
+    const performanceGain = currentAvg - baselineAvg;
+    const ageImprovement = performanceGain / 10;
+    
+    return Math.round(baselineCogAge - ageImprovement);
+  }, [AE, RA, CT, IN, creativity, metrics, baselineCogAge]);
   const cogAgePercentile = useMemo(() => {
     if (!age) return 50;
     const delta = age - cognitiveAge;
