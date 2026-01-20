@@ -14,6 +14,7 @@ import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
+import { useTutorialState } from "@/hooks/useTutorialState";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { formatDistanceToNow } from "date-fns";
@@ -29,6 +30,7 @@ import { ReasoningTab } from "@/components/home/ReasoningTab";
 import { CapacityTab } from "@/components/home/CapacityTab";
 import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCard";
 import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
+import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
 // Circular progress ring component
 interface RingProps {
@@ -191,6 +193,9 @@ const Home = () => {
   const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState<HomeTabId>("overview");
+  
+  // Tutorial state - shows after first onboarding completion
+  const { showTutorial, markTutorialComplete } = useTutorialState();
   
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
@@ -635,6 +640,12 @@ const Home = () => {
           </button>
         </SheetContent>
       </Sheet>
+      
+      {/* Onboarding Tutorial - appears once after first login post-onboarding */}
+      <OnboardingTutorial 
+        show={showTutorial} 
+        onComplete={markTutorialComplete} 
+      />
     </AppShell>
   );
 };
