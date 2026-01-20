@@ -401,7 +401,7 @@ export function useRecordGameSession() {
     status?: 'completed' | 'aborted'; // Default 'completed'
     difficulty?: 'easy' | 'medium' | 'hard'; // Difficulty level
     // AE Guidance Engine metrics (optional)
-    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch" | "flash_connect" | "semantic_drift" | "constellation_snap" | "causal_ledger" | "counterfactual_audit" | "socratic_cross_exam";
+    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch" | "flash_connect" | "semantic_drift" | "constellation_snap" | "causal_ledger" | "counterfactual_audit" | "socratic_cross_exam" | "signal_vs_noise";
     falseAlarmRate?: number | null;
     hitRate?: number | null;
     rtVariability?: number | null;

@@ -10,6 +10,7 @@ import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
 import { S1RAGameSelector } from "./S1RAGameSelector";
 import { S2CTGameSelector } from "./S2CTGameSelector";
+import { S2INGameSelector } from "./S2INGameSelector";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
@@ -53,6 +54,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [showS1AESelector, setShowS1AESelector] = useState(false);
   const [showS1RASelector, setShowS1RASelector] = useState(false);
   const [showS2CTSelector, setShowS2CTSelector] = useState(false);
+  const [showS2INSelector, setShowS2INSelector] = useState(false);
   const { gamesComplete } = useCappedWeeklyProgress();
   const { games, caps, safetyRuleActive, isLoading: gatingLoading } = useGamesGating();
 
@@ -74,14 +76,15 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       return;
     }
     
-    // S2-CT has its own game selector with Causal Ledger
+    // S2-CT has its own game selector with Causal Ledger, Counterfactual Audit, Socratic Cross-Exam
     if (gameType === "S2-CT") {
       setShowS2CTSelector(true);
       return;
     }
     
-    // For S2-IN games, if locked, don't open the picker
-    if (isLocked) {
+    // S2-IN has its own game selector with Signal vs Noise
+    if (gameType === "S2-IN") {
+      setShowS2INSelector(true);
       return;
     }
     
@@ -230,10 +233,16 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         onOpenChange={setShowS1RASelector}
       />
 
-      {/* S2-CT Game Selector (Causal Ledger) */}
+      {/* S2-CT Game Selector (Causal Ledger, Counterfactual Audit, Socratic Cross-Exam) */}
       <S2CTGameSelector
         open={showS2CTSelector}
         onOpenChange={setShowS2CTSelector}
+      />
+
+      {/* S2-IN Game Selector (Signal vs Noise) */}
+      <S2INGameSelector
+        open={showS2INSelector}
+        onOpenChange={setShowS2INSelector}
       />
 
       {/* Target Exceeded Warning Dialog */}
