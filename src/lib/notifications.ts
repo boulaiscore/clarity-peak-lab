@@ -84,7 +84,7 @@ export function showDetoxReminderNotification(remainingMinutes: number, dailyGoa
   
   showLocalNotification("📵 Obiettivo Detox incompleto", {
     body: `Hai completato ${completedMinutes}/${dailyGoal} minuti oggi (${progressPercent}%). Mancano ${remainingMinutes} minuti per raggiungere il tuo obiettivo!`,
-    data: { url: "/app/home" },
+    data: { url: "/app" },
     tag: "neuroloop-detox-reminder",
     requireInteraction: true,
   });
@@ -372,7 +372,7 @@ export function initializeDailyReminder(
 export function showRecoveryWarningNotification(streakDays: number, currentRec: number): void {
   showLocalNotification("⚠️ Recovery in calo", {
     body: `REC al ${currentRec}% da ${streakDays} giorni. Previeni il decay con 30 min di detox.`,
-    data: { url: "/app/home" },
+    data: { url: "/app" },
     tag: "neuroloop-recovery-warning",
     requireInteraction: true,
   });
@@ -385,7 +385,7 @@ export function showRecoveryWarningNotification(streakDays: number, currentRec: 
 export function showRecoveryCriticalNotification(streakDays: number, decayPoints: number): void {
   showLocalNotification("🚨 Readiness Decay Attivo", {
     body: `${streakDays} giorni con REC < 40%. La tua Readiness sta calando di -${decayPoints} punti. Completa 45 min di recovery.`,
-    data: { url: "/app/home" },
+    data: { url: "/app" },
     tag: "neuroloop-recovery-critical",
     requireInteraction: true,
   });
