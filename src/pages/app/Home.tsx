@@ -12,6 +12,7 @@ import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useInProgressTasks } from "@/hooks/useInProgressTasks";
+import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { formatDistanceToNow } from "date-fns";
@@ -113,6 +114,13 @@ const Home = () => {
   const stableCognitiveLoad = useStableCognitiveLoad();
   const { cappedTotalXP, rawDetoxXP, detoxXPTarget, detoxProgress, detoxComplete } = stableCognitiveLoad;
   const totalWeeklyXP = cappedTotalXP;
+  
+  // Capped weekly progress for smart training reminders
+  const { 
+    cappedGamesXP, 
+    gamesXPTarget,
+    totalProgress,
+  } = useCappedWeeklyProgress();
   
   // New cognitive engine metrics
   const { sharpness, readiness, recovery: recoveryRaw, isLoading: metricsLoading } = useTodayMetrics();
@@ -539,7 +547,43 @@ const Home = () => {
           );
         })()}
 
-
+        {/* Smart Training Reminder - based on XP progress */}
+        {(() => {
+          const xpRemaining = Math.max(0, gamesXPTarget - cappedGamesXP);
+          const gamesNeeded = Math.ceil(xpRemaining / 20); // ~20 XP average per game
+          
+          // Only show if below 80% progress and there's work to do
+          if (totalProgress >= 80 || xpRemaining <= 0) return null;
+          
+          return (
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 }}
+              className="mb-4"
+            >
+              <button
+                onClick={() => navigate("/neuro-lab")}
+                className="w-full p-3.5 rounded-xl bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border border-blue-500/20 hover:border-blue-500/40 transition-all active:scale-[0.98] text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0">
+                    <Dumbbell className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                      Today: train to stay on track
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground">
+                      {xpRemaining} XP left — ~{gamesNeeded} game{gamesNeeded > 1 ? 's' : ''} to hit target
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-blue-500/60" />
+                </div>
+              </button>
+            </motion.section>
+          );
+        })()}
 
         {/* Quick Status Cards - Protocol as cause */}
         <motion.section

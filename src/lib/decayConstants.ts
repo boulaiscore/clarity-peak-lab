@@ -126,9 +126,9 @@ export const TC_OPTIMAL_MAX_PERCENT = 0.85;
 /** Threshold for showing upgrade hint (optMax >= 90% of planCap) */
 export const TC_UPGRADE_HINT_THRESHOLD = 0.90;
 
-/** Plan capacity caps */
+/** Plan capacity caps - v1.5: Aligned with XP targets */
 export const TC_PLAN_CAPS: Record<string, number> = {
-  light: 120,
-  expert: 200,
-  superhuman: 300,
+  light: 100,      // Target: 80 XP (80% of cap)
+  expert: 160,     // Target: 140 XP (87.5% of cap)
+  superhuman: 220, // Target: 200 XP (91% of cap)
 };
