@@ -315,10 +315,20 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           <CollapsibleTrigger className="w-full">
             {/* Header - Training Load (Weekly) */}
             <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <Activity className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[11px] font-semibold">Cognitive Load (Weekly)</span>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 cursor-help">
+                      <Activity className="w-3.5 h-3.5 text-primary" />
+                      <span className="text-[11px] font-semibold">Cognitive Load (Weekly)</span>
+                      <Info className="w-2.5 h-2.5 text-muted-foreground/50" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px] text-xs">
+                    Based on the last 7 days (rolling window), not calendar weeks.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] text-muted-foreground/70 tabular-nums">
                   {Math.round(rawGamesXP)} / {planCap} XP
