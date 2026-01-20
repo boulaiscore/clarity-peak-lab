@@ -56,6 +56,9 @@ export default function CognitiveReport() {
     weeklyProgress,
     xpRemaining,
     hasCreditsOrPurchase,
+    planName,
+    planXPTarget,
+    currentXP,
   } = useReportAccess();
   
   const { reports, isLoading: historyLoading, saveReport } = useReportHistory(userId);
@@ -497,17 +500,30 @@ export default function CognitiveReport() {
               <div>
                 <h3 className="text-sm font-semibold text-amber-500">Complete Your Weekly Plan</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Finish your weekly training to unlock PDF download
+                  Finish your weekly training to unlock PDF download. This is a <strong>preview only</strong>.
                 </p>
               </div>
+              
+              {/* Plan info */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                  {planName}
+                </span>
+                <span className="text-muted-foreground">
+                  Weekly target: {planXPTarget} XP
+                </span>
+              </div>
+              
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">{Math.round(weeklyProgress)}%</span>
+                  <span className="font-medium">{currentXP} / {planXPTarget} XP</span>
                 </div>
                 <Progress value={weeklyProgress} className="h-2" />
                 <p className="text-[10px] text-muted-foreground">
-                  {xpRemaining > 0 ? `${xpRemaining} XP remaining` : 'Almost there!'}
+                  {xpRemaining > 0 
+                    ? `${xpRemaining} XP remaining · Training resets every 7 days (rolling window)` 
+                    : 'Almost there!'}
                 </p>
               </div>
               <Link to="/neuro-lab">
@@ -536,45 +552,71 @@ export default function CognitiveReport() {
         </div>
       )}
 
-      {/* Report History Section */}
-      {reports.length > 0 && (
-        <div className="px-4 mb-4 print:hidden">
-          <Collapsible open={showHistory} onOpenChange={setShowHistory}>
-            <CollapsibleTrigger asChild>
-              <button className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-card/50 hover:bg-card transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <FolderOpen className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-medium">Report History</span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      {reports.length} report{reports.length > 1 ? 's' : ''}
-                    </span>
-                  </div>
+      {/* Report History Section - Always visible */}
+      <div className="px-4 mb-4 print:hidden">
+        <Collapsible open={showHistory} onOpenChange={setShowHistory}>
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-card/50 hover:bg-card transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <FolderOpen className="w-4 h-4 text-primary" />
                 </div>
-                {showHistory ? (
-                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-3">
+                <div className="text-left">
+                  <span className="text-sm font-medium">Report History</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    {reports.length > 0 ? `${reports.length} report${reports.length > 1 ? 's' : ''}` : 'No reports yet'}
+                  </span>
+                </div>
+              </div>
+              {showHistory ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            {reports.length > 0 ? (
               <ReportHistoryList 
                 reports={reports} 
                 isLoading={historyLoading}
               />
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      )}
+            ) : (
+              <div className="p-4 rounded-xl border border-border bg-card/30 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No reports generated yet.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Complete your weekly plan and download your first report.
+                </p>
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
 
       {/* Report Content - Fixed A4, scalable */}
-      <div className="overflow-auto p-4 print:p-0 print:overflow-visible">
+      <div className="overflow-auto p-4 print:p-0 print:overflow-visible relative">
+        {/* Preview overlay when weekly plan not completed */}
+        {!weeklyPlanCompleted && (
+          <div className="absolute inset-0 z-10 pointer-events-none print:hidden">
+            <div className="sticky top-1/3 flex flex-col items-center justify-center">
+              <div className="bg-amber-500/95 text-white px-6 py-3 rounded-xl shadow-xl flex items-center gap-3">
+                <Lock className="w-5 h-5" />
+                <div>
+                  <p className="font-semibold text-sm">Preview Mode</p>
+                  <p className="text-xs opacity-90">Complete training to unlock PDF</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div 
           ref={printRef}
-          className="mx-auto bg-white shadow-lg origin-top transition-transform duration-200 print:shadow-none print:transform-none"
+          className={`mx-auto bg-white shadow-lg origin-top transition-transform duration-200 print:shadow-none print:transform-none ${
+            !weeklyPlanCompleted ? 'opacity-60' : ''
+          }`}
           style={{
             width: '210mm',
             minWidth: '210mm',
@@ -587,7 +629,8 @@ export default function CognitiveReport() {
             metrics={metrics} 
             aggregates={aggregates}
             badges={badges}
-            generatedAt={generatedAt} 
+            generatedAt={generatedAt}
+            isPreview={!weeklyPlanCompleted}
           />
         </div>
       </div>

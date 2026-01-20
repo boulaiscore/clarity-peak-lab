@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 
 export function useReportAccess() {
   const { user } = useAuth();
@@ -9,6 +10,10 @@ export function useReportAccess() {
   const subscriptionStatus = user?.subscriptionStatus || "free";
   const isPremium = subscriptionStatus === "premium" || subscriptionStatus === "pro";
   const isPro = subscriptionStatus === "pro";
+  
+  // Get user's training plan info
+  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
+  const plan = TRAINING_PLANS[planId];
 
   // Get weekly progress to check if plan is complete
   const { 
@@ -140,6 +145,10 @@ export function useReportAccess() {
     weeklyProgress: totalProgress,
     xpRemaining,
     hasCreditsOrPurchase,
+    // Plan info for UI
+    planName: plan.name,
+    planXPTarget: totalXPTarget,
+    currentXP: cappedTotalXP,
     refetchPurchase: () => {
       refetchCredits();
       refetchPurchase();
