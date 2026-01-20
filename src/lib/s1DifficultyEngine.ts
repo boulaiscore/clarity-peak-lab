@@ -68,6 +68,7 @@ export interface S1DifficultyInput {
   readiness: number;        // 0-100
   weeklyXP: number;         // current load (XP earned this week)
   trainingCapacity: number; // TC
+  trainingPlan?: "light" | "expert" | "superhuman"; // v1.5: Training plan affects suggestion
 }
 
 // =============================================================================
@@ -127,10 +128,41 @@ function shouldBlockMedium(input: S1DifficultyInput, tc: number): DifficultyLock
 // =============================================================================
 
 /**
- * Determine the suggested difficulty based on metrics
+ * Determine the suggested difficulty based on metrics AND training plan
+ * 
+ * v1.5 UPDATE: Training plan influences the default suggestion:
+ * - Light: Prefers Easy/Medium (only Medium if REC > 60)
+ * - Expert: Standard balanced logic
+ * - Superhuman: Prefers Medium/Hard (Easy only if REC < 40)
  */
 function suggestDifficulty(input: S1DifficultyInput, optMin: number, optMax: number): Difficulty {
-  const { recovery, sharpness, readiness, weeklyXP } = input;
+  const { recovery, sharpness, readiness, weeklyXP, trainingPlan } = input;
+  
+  // ===== LIGHT PLAN: Conservative approach =====
+  if (trainingPlan === "light") {
+    // Only suggest Medium if recovery is strong
+    if (recovery >= 60 && sharpness >= 60 && weeklyXP <= optMax) {
+      return "medium";
+    }
+    // Default to Easy for Light plan
+    return "easy";
+  }
+  
+  // ===== SUPERHUMAN PLAN: Aggressive approach =====
+  if (trainingPlan === "superhuman") {
+    // Suggest Hard if conditions are good
+    if (recovery >= 65 && weeklyXP <= optMax && sharpness >= 65 && readiness >= 55) {
+      return "hard";
+    }
+    // Only fall to Easy if recovery is very low
+    if (recovery < 40) {
+      return "easy";
+    }
+    // Default to Medium for Superhuman
+    return "medium";
+  }
+  
+  // ===== EXPERT PLAN (default): Balanced approach =====
   
   // Suggest EASY if ANY is true:
   // - REC < 45

@@ -124,6 +124,29 @@ export const XP_VALUES = {
   detoxWeeklyBonus: 5,
 } as const;
 
+/**
+ * Standardized Game XP by Difficulty (v1.5)
+ * All games use these uniform values for consistency
+ */
+export const GAME_XP_BY_DIFFICULTY = {
+  easy: { base: 15, perfectBonus: 8 },     // Range: 15-23 XP
+  medium: { base: 22, perfectBonus: 10 },  // Range: 22-32 XP
+  hard: { base: 30, perfectBonus: 12 },    // Range: 30-42 XP
+} as const;
+
+export type GameDifficulty = keyof typeof GAME_XP_BY_DIFFICULTY;
+
+/**
+ * Calculate game XP based on difficulty and performance
+ * @param difficulty - The game difficulty level
+ * @param isPerfect - Whether the player achieved perfect performance
+ * @returns Total XP awarded
+ */
+export function calculateGameXP(difficulty: GameDifficulty, isPerfect: boolean): number {
+  const config = GAME_XP_BY_DIFFICULTY[difficulty];
+  return config.base + (isPerfect ? config.perfectBonus : 0);
+}
+
 // Helper to get XP for exercise difficulty
 export function getExerciseXP(difficulty: "easy" | "medium" | "hard"): number {
   switch (difficulty) {
@@ -153,9 +176,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "low",
     color: "emerald",
     icon: "leaf",
-    // Weekly capacity: up to 120 XP | Adaptive range: 40–80 XP
-    xpTargetWeek: 120,
-    weeklyXPTarget: 120, // Alias
+    // v1.5: Reduced target for sustainability (4-5 games/week)
+    xpTargetWeek: 80,
+    weeklyXPTarget: 80, // Alias
     contentXPTarget: 0, // v1.3: tasks don't give XP
     detox: {
       weeklyMinutes: 480,
@@ -173,10 +196,10 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       insightMaxPerWeek: 2,
       s2MaxPerWeek: 4,
     },
-    // v1.4: Clear communication fields
+    // v1.5: Clear communication fields
     dailyEstimate: {
-      total: "~20 min",
-      games: "15-18 min",
+      total: "~15-20 min",
+      games: "1 game/day (~15 min)",
       recovery: "~30 min (Detox/Walking)",
       tasks: "Optional"
     },
@@ -187,11 +210,11 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "Complete a Detox or Walking session"
     },
     whatYouDo: [
-      "S1 games always available (Focus, Creativity fast)",
-      "S2 games unlock after Detox/Walking (Recovery ≥ 50%)",
-      "Podcasts & readings optional"
+      "4-5 games S1 a settimana (Easy/Medium)",
+      "S2 sbloccati con Recovery ≥ 50%",
+      "Contenuti opzionali"
     ],
-    forWhom: "Starting out or variable schedule",
+    forWhom: "Chi inizia o ha tempo variabile",
     sessions: [
       {
         id: "fast-focus",
@@ -250,10 +273,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "medium",
     color: "blue",
     icon: "target",
-    // Weekly capacity: up to 200 XP | Adaptive range: 120–160 XP
-    xpTargetWeek: 200,
-    // Backward compatibility aliases
-    weeklyXPTarget: 200,
+    // v1.5: Reduced target for sustainability (6-7 games/week)
+    xpTargetWeek: 140,
+    weeklyXPTarget: 140,
     contentXPTarget: 0, // v1.3: Tasks don't give XP
     detox: {
       weeklyMinutes: 840,
@@ -271,10 +293,10 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       insightMaxPerWeek: 3,
       s2MaxPerWeek: 7,
     },
-    // v1.4: Clear communication fields
+    // v1.5: Clear communication fields
     dailyEstimate: {
-      total: "~45 min",
-      games: "22-25 min",
+      total: "~25-35 min",
+      games: "1-2 games/day (~20-25 min)",
       recovery: "~30 min (Detox/Walking)",
       tasks: "10-15 min (2/week)"
     },
@@ -285,11 +307,11 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "Maintain consistent Detox/Walking habit"
     },
     whatYouDo: [
-      "Balanced S1 and S2 games (both available with Recovery)",
-      "2 prescribed contents per week (podcasts or readings)",
-      "14h/week Detox + Walking unlocks full S2 access"
+      "6-7 games bilanciati S1+S2 a settimana",
+      "Difficoltà Medium standard",
+      "2 contenuti prescritti a settimana"
     ],
-    forWhom: "Stable routine, ready to progress",
+    forWhom: "Chi ha routine stabile e vuole progredire",
     sessions: [
       {
         id: "fast-control",
@@ -348,10 +370,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     intensity: "high",
     color: "red",
     icon: "flame",
-    // Weekly capacity: up to 300 XP | Adaptive range: 220–260 XP
-    xpTargetWeek: 300,
-    // Backward compatibility aliases
-    weeklyXPTarget: 300,
+    // v1.5: Reduced target for sustainability (8-10 games/week)
+    xpTargetWeek: 200,
+    weeklyXPTarget: 200,
     contentXPTarget: 0, // v1.3: Tasks don't give XP
     detox: {
       weeklyMinutes: 1680,
@@ -369,10 +390,10 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       insightMaxPerWeek: 4,
       s2MaxPerWeek: 10,
     },
-    // v1.4: Clear communication fields
+    // v1.5: Clear communication fields
     dailyEstimate: {
-      total: "~75 min",
-      games: "30-35 min",
+      total: "~45-60 min",
+      games: "2-3 games/day (~30-35 min)",
       recovery: "~40 min (Detox/Walking)",
       tasks: "15-20 min (3/week mandatory)"
     },
@@ -383,11 +404,11 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "28h/week Detox + Walking required"
     },
     whatYouDo: [
-      "Intensive S2 training with mandatory content priming",
-      "3 mandatory contents per week (book excerpts, dense podcasts)",
-      "28h/week recovery required to access full S2 games"
+      "8-10 games intensivi S1+S2 a settimana",
+      "Difficoltà Medium/Hard preferita",
+      "3 contenuti obbligatori a settimana"
     ],
-    forWhom: "Maximum performance, established discipline",
+    forWhom: "Chi punta a massima performance",
     sessions: [
       {
         id: "heavy-slow",

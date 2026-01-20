@@ -45,8 +45,10 @@ interface DifficultyConfig {
   bandWidth: number; // 0-1 (portion of orbit that is target)
   baseDrift: number;
   distractionIntensity: number;
-  xpPerAct: number;
 }
+
+// v1.5: XP imported from centralized config
+import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
 
 const ACT_CONFIGS: ActConfig[] = [
   { duration: 25, label: "Stabilize", description: "Find your rhythm", driftStrength: 1.0, pulseFrequency: 0, glintFrequency: 0, orbitSpeedMult: 1.0 },
@@ -55,12 +57,11 @@ const ACT_CONFIGS: ActConfig[] = [
 ];
 
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
-  easy: { bandWidth: 0.18, baseDrift: 0.008, distractionIntensity: 0.5, xpPerAct: 3 },
-  medium: { bandWidth: 0.12, baseDrift: 0.012, distractionIntensity: 1.0, xpPerAct: 5 },
-  hard: { bandWidth: 0.08, baseDrift: 0.016, distractionIntensity: 1.5, xpPerAct: 8 },
+  easy: { bandWidth: 0.18, baseDrift: 0.008, distractionIntensity: 0.5 },
+  medium: { bandWidth: 0.12, baseDrift: 0.012, distractionIntensity: 1.0 },
+  hard: { bandWidth: 0.08, baseDrift: 0.016, distractionIntensity: 1.5 },
 };
 
-const PERFECT_BONUS_XP = 10;
 const PERFECT_TIME_IN_BAND_THRESHOLD = 0.85;
 const PERFECT_OVERCORRECTION_THRESHOLD = 0.3;
 
@@ -302,12 +303,11 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
       distractionResistanceIndex * 15 // 15% weight on distraction resistance
     );
     
-    // XP calculation
-    const baseXP = config.xpPerAct * 3;
+    // XP calculation - v1.5: Using centralized XP
     const isPerfect = totalTimeInBandPct >= PERFECT_TIME_IN_BAND_THRESHOLD 
       && overcorrectionIndex < PERFECT_OVERCORRECTION_THRESHOLD
       && act3Pct >= act1Pct * 0.8; // No major degradation
-    const xpAwarded = isPerfect ? baseXP + PERFECT_BONUS_XP : baseXP;
+    const xpAwarded = calculateGameXP(difficulty, isPerfect);
     
     return {
       score,
@@ -324,7 +324,7 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
       difficulty,
       actsCount: 3,
     };
-  }, [phase, timeInBandPerAct, totalTimePerAct, dialChanges, distractionTimeInBand, distractionTotalTime, config.xpPerAct, difficulty]);
+  }, [phase, timeInBandPerAct, totalTimePerAct, dialChanges, distractionTimeInBand, distractionTotalTime, difficulty]);
   
   // ============================================
   // RENDER

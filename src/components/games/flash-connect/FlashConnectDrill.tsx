@@ -56,19 +56,20 @@ interface RoundResult {
 
 interface DifficultyConfig {
   timerMs: number;
-  xpBase: number;
 }
 
+// v1.5: XP imported from centralized config
+import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
+
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
-  easy: { timerMs: 5000, xpBase: 25 },
-  medium: { timerMs: 4000, xpBase: 25 },
-  hard: { timerMs: 3200, xpBase: 25 },
+  easy: { timerMs: 5000 },
+  medium: { timerMs: 4000 },
+  hard: { timerMs: 3200 },
 };
 
 const TOTAL_ROUNDS = 12;
 const INCUBATION_ROUNDS = [4, 8]; // After these rounds
 const INCUBATION_DURATION_MS = 2500;
-const PERFECT_BONUS_XP = 10;
 const PREMATURE_THRESHOLD_MS = 350;
 const FEEDBACK_DURATION_MS = 800;
 
@@ -270,9 +271,9 @@ export function FlashConnectDrill({ difficulty, onComplete }: FlashConnectDrillP
       ? correctReactionTimes[Math.floor(correctReactionTimes.length / 2)]
       : 0;
     
-    // XP calculation
+    // XP calculation - v1.5: Using centralized XP
     const isPerfect = connectionRate >= 90;
-    const xpAwarded = config.xpBase + (isPerfect ? PERFECT_BONUS_XP : 0);
+    const xpAwarded = calculateGameXP(difficulty, isPerfect);
     
     // Score (0-100 based on connection rate and speed)
     const speedBonus = Math.max(0, (config.timerMs - medianReactionTime) / config.timerMs) * 20;

@@ -60,8 +60,10 @@ interface DifficultyConfig {
   switchIntervalMin: number;
   switchIntervalMax: number;
   hasLureTiming: boolean;
-  xpPerBlock: number;
 }
+
+// v1.5: XP imported from centralized config
+import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
 
 const BLOCK_CONFIGS: BlockConfig[] = [
   { duration: 15, label: "Lock", description: "Find the active lane", switchIntervalMin: 3, switchIntervalMax: 4 },
@@ -70,12 +72,11 @@ const BLOCK_CONFIGS: BlockConfig[] = [
 ];
 
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
-  easy: { lanes: 3, switchIntervalMin: 3, switchIntervalMax: 4, hasLureTiming: false, xpPerBlock: 3 },
-  medium: { lanes: 4, switchIntervalMin: 2, switchIntervalMax: 3.5, hasLureTiming: false, xpPerBlock: 5 },
-  hard: { lanes: 4, switchIntervalMin: 1.5, switchIntervalMax: 3, hasLureTiming: true, xpPerBlock: 8 },
+  easy: { lanes: 3, switchIntervalMin: 3, switchIntervalMax: 4, hasLureTiming: false },
+  medium: { lanes: 4, switchIntervalMin: 2, switchIntervalMax: 3.5, hasLureTiming: false },
+  hard: { lanes: 4, switchIntervalMin: 1.5, switchIntervalMax: 3, hasLureTiming: true },
 };
 
-const PERFECT_BONUS_XP = 10;
 const LANE_COLORS = [
   { active: "from-cyan-400 to-cyan-500", inactive: "bg-cyan-500/10", glow: "shadow-cyan-400/50" },
   { active: "from-violet-400 to-violet-500", inactive: "bg-violet-500/10", glow: "shadow-violet-400/50" },
