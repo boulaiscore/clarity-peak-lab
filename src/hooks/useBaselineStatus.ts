@@ -79,7 +79,7 @@ export function useBaselineStatus(): BaselineStatus {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60_000,
+    staleTime: 0, // Always fresh - critical for post-calibration UI updates
   });
   
   // Get calibration status with fallback logic
