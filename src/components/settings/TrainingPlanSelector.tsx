@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { TRAINING_PLANS, TrainingPlanId, TrainingPlan, SessionConfig } from "@/lib/trainingPlans";
-import { Leaf, Target, Flame, Check, Clock, BookOpen, Dumbbell, ChevronDown, ChevronUp, Smartphone } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { TRAINING_PLANS, TrainingPlanId, TrainingPlan } from "@/lib/trainingPlans";
+import { Leaf, Target, Flame, Check, Clock, ChevronDown, ChevronUp, Zap, Brain, Timer, Lock, Unlock, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const PLAN_ICONS: Record<TrainingPlanId, typeof Leaf> = {
   light: Leaf,
@@ -10,112 +11,28 @@ const PLAN_ICONS: Record<TrainingPlanId, typeof Leaf> = {
   superhuman: Flame,
 };
 
-const PLAN_COLORS: Record<TrainingPlanId, { bg: string; border: string; text: string; icon: string }> = {
+const PLAN_COLORS: Record<TrainingPlanId, { bg: string; border: string; text: string; icon: string; accent: string }> = {
   light: {
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/30",
     text: "text-emerald-400",
     icon: "text-emerald-400",
+    accent: "bg-emerald-500/20",
   },
   expert: {
     bg: "bg-blue-500/10",
     border: "border-blue-500/30",
     text: "text-blue-400",
     icon: "text-blue-400",
+    accent: "bg-blue-500/20",
   },
   superhuman: {
     bg: "bg-red-500/10",
     border: "border-red-500/30",
     text: "text-red-400",
     icon: "text-red-400",
+    accent: "bg-red-500/20",
   },
-};
-
-// Light plan session copy refinements
-const LIGHT_SESSION_COPY: Record<string, { title: string; subtitle: string; microcopy: string; badge: string }> = {
-  "fast-focus": {
-    title: "Fast Focus",
-    subtitle: "Attention & reactivity (System 1)",
-    microcopy: "Enabled when clarity and recovery are sufficient.",
-    badge: "S1",
-  },
-  "mixed": {
-    title: "Mixed Session",
-    subtitle: "Fast processing with light reasoning",
-    microcopy: "Available only when system capacity allows.",
-    badge: "S1 + light S2",
-  },
-  "consolidation": {
-    title: "Consolidation",
-    subtitle: "Light integration & stabilization",
-    microcopy: "Prioritized during stable recovery phases.",
-    badge: "Light S2",
-  },
-};
-
-// Light plan audience tag refinements
-const LIGHT_AUDIENCE_TAGS: Record<string, string> = {
-  "Maintenance focus": "Stability & continuity",
-  "Variable schedules": "Flexible scheduling",
-  "Entry configuration": "Low-friction entry",
-};
-
-// Expert plan session copy refinements
-const EXPERT_SESSION_COPY: Record<string, { title: string; subtitle: string; microcopy: string; badge: string }> = {
-  "fast-control": {
-    title: "Fast Control",
-    subtitle: "Precision, inhibition, and speed (System 1)",
-    microcopy: "Maintains clarity under load.",
-    badge: "S1",
-  },
-  "slow-reasoning": {
-    title: "Structured Reasoning",
-    subtitle: "Deliberate analysis and logic (System 2)",
-    microcopy: "Enabled when readiness is high.",
-    badge: "S2",
-  },
-  "dual-process": {
-    title: "Integration",
-    subtitle: "Connecting fast and slow thinking",
-    microcopy: "Supports transfer across systems.",
-    badge: "S1 + S2",
-  },
-};
-
-// Expert plan audience tag refinements
-const EXPERT_AUDIENCE_TAGS: Record<string, string> = {
-  "Regular practice": "Deliberate progression",
-  "Structured depth": "Balanced cognitive load",
-  "Sustained engagement": "Sustained focus",
-};
-
-// Superhuman plan session copy refinements
-const SUPERHUMAN_SESSION_COPY: Record<string, { title: string; subtitle: string; microcopy: string; badge: string }> = {
-  "heavy-slow": {
-    title: "Deep Reasoning",
-    subtitle: "Sustained analytical work (System 2)",
-    microcopy: "Requires elevated recovery and readiness.",
-    badge: "S2",
-  },
-  "dual-stress": {
-    title: "Integration",
-    subtitle: "Cross-system consolidation under load",
-    microcopy: "Available selectively to prevent overload.",
-    badge: "S1 + S2",
-  },
-  "reflection": {
-    title: "Fast Precision",
-    subtitle: "Maximum clarity and control (System 1)",
-    microcopy: "Enabled only in high-stability states.",
-    badge: "S2",
-  },
-};
-
-// Superhuman plan audience tag refinements
-const SUPERHUMAN_AUDIENCE_TAGS: Record<string, string> = {
-  "High tolerance": "Peak cognitive load",
-  "Consistent availability": "Strict regulation",
-  "Maximum structure": "Temporary configuration",
 };
 
 interface TrainingPlanSelectorProps {
@@ -131,577 +48,253 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan, showDetails =
     setExpandedPlan(expandedPlan === planId ? null : planId);
   };
 
-  // Render Light plan expanded details (refined copy)
-  const renderLightPlanDetails = (plan: TrainingPlan, colors: typeof PLAN_COLORS.light) => (
-    <div className="pt-3 space-y-4">
-      {/* Weekly Cognitive Configuration */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Weekly Cognitive Configuration</p>
-        <p className="text-[9px] text-muted-foreground/70 mb-2.5 italic">
-          Defines maximum cognitive input, not required activity.
-        </p>
-        <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
-          <div className="grid grid-cols-3 gap-3">
-            {/* Content Cap */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-purple-500/15 flex items-center justify-center mx-auto mb-1">
-                <BookOpen className="w-3 h-3 text-purple-400" />
-              </div>
-              <p className="text-[10px] font-medium text-purple-400">Cap: {plan.contentPerWeek}</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Maximum enabled content
-              </p>
-            </div>
-            {/* Recovery Target */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-green-500/15 flex items-center justify-center mx-auto mb-1">
-                <Smartphone className="w-3 h-3 text-green-400" />
-              </div>
-              <p className="text-[10px] font-medium text-green-400">Target: {Math.round(plan.detox.weeklyMinutes / 60)}h</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Detox & walking buffer
-              </p>
-            </div>
-            {/* Sessions */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-blue-500/15 flex items-center justify-center mx-auto mb-1">
-                <Dumbbell className="w-3 h-3 text-blue-400" />
-              </div>
-              <p className="text-[10px] font-medium text-blue-400">Up to {plan.sessionsPerWeek}</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Contextually enabled
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Designed For */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Designed For</p>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {plan.targetAudience.map((audience, i) => (
-            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400/90">
-              {LIGHT_AUDIENCE_TAGS[audience] || audience}
-            </span>
-          ))}
-        </div>
-        <p className="text-[9px] text-muted-foreground/70 italic">
-          Recommended for your first 7–14 days.
-        </p>
-      </div>
-
-      {/* Session Templates */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Session Templates</p>
-        <p className="text-[9px] text-muted-foreground/70 mb-2 italic">
-          Sessions are enabled based on your cognitive state.
-        </p>
-        <div className="space-y-2">
-          {plan.sessions.map((session) => {
-            const copy = LIGHT_SESSION_COPY[session.id];
-            if (!copy) return null;
-            
-            return (
-              <div
-                key={session.id}
-                className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
-              >
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[11px] font-medium">{copy.title}</span>
-                  <span className="text-[9px] text-muted-foreground">{session.duration}</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground mb-1.5">{copy.subtitle}</p>
-                
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[8px] px-1.5 py-0.5 rounded font-medium bg-emerald-500/15 text-emerald-400">
-                    {copy.badge}
-                  </span>
-                  {session.content && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">
-                      Content optional
-                    </span>
-                  )}
-                </div>
-                
-                <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
-                  {copy.microcopy}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Eligible Content */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">
-          Eligible Content <span className="font-normal">(when enabled)</span>
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {plan.contentTypes.filter(t => t !== "none").map((type) => (
-            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-              {type === "podcast" && "🎧 Podcast"}
-              {type === "reading" && "📄 Reading"}
-              {type === "book-extract" && "📚 Book"}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Recovery Budget */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Budget</p>
-        <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
-              <Smartphone className="w-3 h-3 text-green-400" />
-            </div>
-            <span className="text-[11px] font-semibold text-green-400">
-              {Math.round(plan.detox.weeklyMinutes / 60)}h / week
-            </span>
-          </div>
-          <div className="space-y-1 text-[10px] text-muted-foreground mb-2">
-            <p>Minimum session: {plan.detox.minSessionMinutes} min</p>
-            <p>Walking contributes to recovery</p>
-          </div>
-          <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
-            Recovery builds your cognitive buffer and affects availability of sessions and content.
-          </p>
-        </div>
-      </div>
-
-      {/* Closing Statement */}
-      <div className="pt-2 border-t border-border/20">
-        <p className="text-[10px] text-muted-foreground/50 text-center italic">
-          Light Training prioritizes continuity over intensity. Fewer sessions is a valid outcome.
-        </p>
-      </div>
-    </div>
-  );
-
-  // Render Expert plan expanded details (refined copy)
-  const renderExpertPlanDetails = (plan: TrainingPlan, colors: typeof PLAN_COLORS.expert) => (
-    <div className="pt-3 space-y-4">
-      {/* Expert Cognitive Configuration */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Expert Cognitive Configuration</p>
-        <p className="text-[9px] text-muted-foreground/70 mb-2.5 italic">
-          Designed for deliberate cognitive progression.
-        </p>
-        <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
-          <div className="grid grid-cols-3 gap-3">
-            {/* Content Availability */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-purple-500/15 flex items-center justify-center mx-auto mb-1">
-                <BookOpen className="w-3 h-3 text-purple-400" />
-              </div>
-              <p className="text-[10px] font-medium text-purple-400">Moderate</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Enabled selectively
-              </p>
-            </div>
-            {/* Recovery Target */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-green-500/15 flex items-center justify-center mx-auto mb-1">
-                <Smartphone className="w-3 h-3 text-green-400" />
-              </div>
-              <p className="text-[10px] font-medium text-green-400">Target: {Math.round(plan.detox.weeklyMinutes / 60)}h</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Required for load
-              </p>
-            </div>
-            {/* Sessions */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-blue-500/15 flex items-center justify-center mx-auto mb-1">
-                <Dumbbell className="w-3 h-3 text-blue-400" />
-              </div>
-              <p className="text-[10px] font-medium text-blue-400">Up to {plan.sessionsPerWeek}</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Balanced S1 & S2
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Designed For */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Designed For</p>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {plan.targetAudience.map((audience, i) => (
-            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400/90">
-              {EXPERT_AUDIENCE_TAGS[audience] || audience}
-            </span>
-          ))}
-        </div>
-        <p className="text-[9px] text-muted-foreground/70 italic">
-          Recommended when stability is established.
-        </p>
-        <p className="text-[9px] text-muted-foreground/50 italic mt-0.5">
-          Automatically adapts to your recovery and readiness.
-        </p>
-      </div>
-
-      {/* Session Templates */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Session Templates</p>
-        <p className="text-[9px] text-muted-foreground/70 mb-2 italic">
-          Sessions are available when cognitive capacity supports depth.
-        </p>
-        <div className="space-y-2">
-          {plan.sessions.map((session) => {
-            const copy = EXPERT_SESSION_COPY[session.id];
-            if (!copy) return null;
-            
-            return (
-              <div
-                key={session.id}
-                className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
-              >
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[11px] font-medium">{copy.title}</span>
-                  <span className="text-[9px] text-muted-foreground">{session.duration}</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground mb-1.5">{copy.subtitle}</p>
-                
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[8px] px-1.5 py-0.5 rounded font-medium bg-blue-500/15 text-blue-400">
-                    {copy.badge}
-                  </span>
-                  {session.content && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">
-                      Content optional
-                    </span>
-                  )}
-                </div>
-                
-                <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
-                  {copy.microcopy}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Eligible Content */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">
-          Eligible Content <span className="font-normal">(when appropriate)</span>
-        </p>
-        <div className="flex flex-wrap gap-1.5 mb-1.5">
-          {plan.contentTypes.filter(t => t !== "none").map((type) => (
-            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-              {type === "podcast" && "🎧 Podcast"}
-              {type === "reading" && "📄 Reading"}
-              {type === "book-extract" && "📚 Book"}
-            </span>
-          ))}
-        </div>
-        <p className="text-[8px] text-muted-foreground/60 italic">
-          Content is enabled only when it supports current cognitive goals.
-        </p>
-      </div>
-
-      {/* Recovery Requirement */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Requirement</p>
-        <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
-              <Smartphone className="w-3 h-3 text-green-400" />
-            </div>
-            <span className="text-[11px] font-semibold text-green-400">
-              {Math.round(plan.detox.weeklyMinutes / 60)}h / week
-            </span>
-          </div>
-          <div className="space-y-1 text-[10px] text-muted-foreground mb-2">
-            <p>Minimum session: {plan.detox.minSessionMinutes} min</p>
-            <p>Walking: {plan.detox.walkingMinMinutes} min minimum</p>
-          </div>
-          <p className="text-[9px] text-muted-foreground/60 italic leading-snug mb-1">
-            Recovery is required to maintain quality at this level.
-          </p>
-          <p className="text-[8px] text-muted-foreground/50 italic leading-snug">
-            Insufficient recovery will reduce session availability.
-          </p>
-        </div>
-      </div>
-
-      {/* Closing Statement */}
-      <div className="pt-2 border-t border-border/20">
-        <p className="text-[10px] text-muted-foreground/50 text-center italic">
-          Expert Training favors quality and intention over volume.
-        </p>
-      </div>
-    </div>
-  );
-
-  // Render Superhuman plan expanded details (refined copy)
-  const renderSuperhumanPlanDetails = (plan: TrainingPlan, colors: typeof PLAN_COLORS.superhuman) => (
-    <div className="pt-3 space-y-4">
-      {/* Superhuman Cognitive Configuration */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Superhuman Cognitive Configuration</p>
-        <p className="text-[9px] text-muted-foreground/70 mb-2.5 italic">
-          High-intensity cognitive work under strict system safeguards.
-        </p>
-        <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
-          <div className="grid grid-cols-3 gap-3">
-            {/* Content Availability */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-purple-500/15 flex items-center justify-center mx-auto mb-1">
-                <BookOpen className="w-3 h-3 text-purple-400" />
-              </div>
-              <p className="text-[10px] font-medium text-purple-400">Limited</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Aligned with capacity
-              </p>
-            </div>
-            {/* Recovery Requirement */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-green-500/15 flex items-center justify-center mx-auto mb-1">
-                <Smartphone className="w-3 h-3 text-green-400" />
-              </div>
-              <p className="text-[10px] font-medium text-green-400">Elevated</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                Non-negotiable
-              </p>
-            </div>
-            {/* Sessions */}
-            <div className="text-center">
-              <div className="w-6 h-6 rounded bg-amber-500/15 flex items-center justify-center mx-auto mb-1">
-                <Dumbbell className="w-3 h-3 text-amber-400" />
-              </div>
-              <p className="text-[10px] font-medium text-amber-400">Selective</p>
-              <p className="text-[8px] text-muted-foreground/70 leading-tight mt-0.5">
-                High cognitive cost
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Designed For */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Designed For</p>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {plan.targetAudience.map((audience, i) => (
-            <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/90">
-              {SUPERHUMAN_AUDIENCE_TAGS[audience] || audience}
-            </span>
-          ))}
-        </div>
-        <p className="text-[9px] text-muted-foreground/70 italic">
-          Recommended only for short, focused periods.
-        </p>
-        <p className="text-[9px] text-muted-foreground/50 italic mt-0.5">
-          Not intended for continuous use.
-        </p>
-      </div>
-
-      {/* Session Templates */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Session Templates</p>
-        <p className="text-[9px] text-muted-foreground/70 mb-2 italic">
-          Sessions are enabled only when recovery and readiness are optimal.
-        </p>
-        <div className="space-y-2">
-          {plan.sessions.map((session) => {
-            const copy = SUPERHUMAN_SESSION_COPY[session.id];
-            if (!copy) return null;
-            
-            return (
-              <div
-                key={session.id}
-                className="p-2.5 rounded-lg bg-muted/20 border border-border/20"
-              >
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[11px] font-medium">{copy.title}</span>
-                  <span className="text-[9px] text-muted-foreground">{session.duration}</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground mb-1.5">{copy.subtitle}</p>
-                
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[8px] px-1.5 py-0.5 rounded font-medium bg-amber-500/15 text-amber-400">
-                    {copy.badge}
-                  </span>
-                  {session.content && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground">
-                      Content highly selective
-                    </span>
-                  )}
-                </div>
-                
-                <p className="text-[9px] text-muted-foreground/60 italic leading-snug">
-                  {copy.microcopy}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Eligible Content */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">
-          Eligible Content <span className="font-normal">(rarely enabled)</span>
-        </p>
-        <div className="flex flex-wrap gap-1.5 mb-1.5">
-          {plan.contentTypes.filter(t => t !== "none").map((type) => (
-            <span key={type} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground">
-              {type === "podcast" && "🎧 Podcast"}
-              {type === "reading" && "📄 Reading"}
-              {type === "book-extract" && "📚 Book"}
-            </span>
-          ))}
-        </div>
-        <p className="text-[8px] text-muted-foreground/60 italic">
-          Content is enabled only when it supports performance without increasing cognitive strain.
-        </p>
-      </div>
-
-      {/* Recovery Requirement */}
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Recovery Requirement</p>
-        <div className="p-2.5 rounded-lg bg-green-500/10 border border-green-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-5 h-5 rounded bg-green-500/20 flex items-center justify-center">
-              <Smartphone className="w-3 h-3 text-green-400" />
-            </div>
-            <span className="text-[11px] font-semibold text-green-400">
-              {Math.round(plan.detox.weeklyMinutes / 60)}h / week
-            </span>
-          </div>
-          <div className="space-y-1 text-[10px] text-muted-foreground mb-2">
-            <p>Minimum session: {plan.detox.minSessionMinutes} min</p>
-            <p>Walking: {plan.detox.walkingMinMinutes} min minimum</p>
-          </div>
-          <p className="text-[9px] text-muted-foreground/60 italic leading-snug mb-1">
-            Insufficient recovery will immediately reduce availability.
-          </p>
-          <p className="text-[8px] text-muted-foreground/50 italic leading-snug">
-            System protection overrides user preference at this level.
-          </p>
-        </div>
-      </div>
-
-      {/* Closing Statement */}
-      <div className="pt-2 border-t border-border/20">
-        <p className="text-[10px] text-muted-foreground/50 text-center italic">
-          Superhuman Training is a temporary mode for controlled peak performance.
-        </p>
-        <p className="text-[8px] text-muted-foreground/40 text-center italic mt-1">
-          Returning to Expert or Light is a valid and expected outcome.
-        </p>
-      </div>
-    </div>
-  );
+  const plans = Object.values(TRAINING_PLANS) as TrainingPlan[];
 
   return (
     <div className="space-y-3">
-      {(Object.keys(TRAINING_PLANS) as TrainingPlanId[]).map((planId) => {
-        const plan = TRAINING_PLANS[planId];
-        const Icon = PLAN_ICONS[planId];
-        const colors = PLAN_COLORS[planId];
-        const isSelected = selectedPlan === planId;
-        const isExpanded = expandedPlan === planId;
+      {/* Period explanation */}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 border border-border/30">
+        <Timer className="w-3.5 h-3.5 text-muted-foreground" />
+        <p className="text-[10px] text-muted-foreground">
+          Progress is tracked on a <span className="font-medium text-foreground">rolling 7-day window</span>, not calendar weeks.
+        </p>
+      </div>
+
+      {plans.map((plan) => {
+        const Icon = PLAN_ICONS[plan.id];
+        const colors = PLAN_COLORS[plan.id];
+        const isSelected = selectedPlan === plan.id;
+        const isExpanded = expandedPlan === plan.id;
 
         return (
           <motion.div
-            key={planId}
+            key={plan.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             className={cn(
-              "rounded-xl border-2 transition-all overflow-hidden",
-              isSelected ? colors.border : "border-border/30",
-              isSelected ? colors.bg : "bg-card/50"
+              "rounded-xl border transition-all duration-200",
+              isSelected
+                ? `${colors.bg} ${colors.border} ring-1 ring-${plan.color}-500/30`
+                : "bg-muted/20 border-border/30 hover:bg-muted/30"
             )}
           >
-            {/* Main Card - Clickable */}
-            <button
-              onClick={() => onSelectPlan(planId)}
-              className="w-full p-4 text-left"
-            >
-              <div className="flex items-start gap-3">
-                {/* Icon */}
-                <div className={cn(
-                  "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                  isSelected ? colors.bg : "bg-muted/30"
-                )}>
-                  <Icon className={cn("w-6 h-6", isSelected ? colors.icon : "text-muted-foreground")} />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-sm">{plan.name}</h3>
-                    {isSelected && (
-                      <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", colors.bg, colors.text)}>
-                        Selected
-                      </span>
-                    )}
+            {/* Main Card - Always Visible */}
+            <div className="p-4">
+              {/* Header: Icon + Name + Daily Time */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colors.accent)}>
+                    <Icon className={cn("w-5 h-5", colors.icon)} />
                   </div>
-                  <p className={cn("text-xs font-medium mb-1", colors.text)}>{plan.tagline}</p>
-                  <p className="text-[11px] text-muted-foreground line-clamp-2">{plan.description}</p>
-
-                  {/* Quick Stats */}
-                  <div className="flex items-center gap-4 mt-2">
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      <span>{plan.sessionDuration}/session</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Dumbbell className="w-3 h-3" />
-                      <span>{planId === "light" || planId === "expert" ? `up to ${plan.sessionsPerWeek}` : `${plan.sessionsPerWeek}×`}/week</span>
-                    </div>
+                  <div>
+                    <h3 className="text-sm font-semibold">{plan.name}</h3>
+                    <p className="text-[10px] text-muted-foreground">{plan.tagline}</p>
                   </div>
                 </div>
-
-                {/* Selection indicator */}
-                <div className={cn(
-                  "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                  isSelected ? `${colors.border} ${colors.bg}` : "border-border/50"
-                )}>
-                  {isSelected && <Check className={cn("w-3 h-3", colors.text)} />}
+                <div className={cn("px-2.5 py-1 rounded-lg text-center", colors.accent)}>
+                  <span className={cn("text-sm font-bold", colors.text)}>{plan.dailyEstimate.total}</span>
+                  <p className="text-[8px] text-muted-foreground">per day</p>
                 </div>
               </div>
-            </button>
 
-            {/* Expand Details Button */}
-            {showDetails && (
-              <button
-                onClick={() => toggleExpand(planId)}
-                className="w-full px-4 py-2 flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground border-t border-border/20 transition-colors"
-              >
-                {isExpanded ? (
-                  <>
-                    <span>Hide details</span>
-                    <ChevronUp className="w-3 h-3" />
-                  </>
-                ) : (
-                  <>
-                    <span>View details</span>
-                    <ChevronDown className="w-3 h-3" />
-                  </>
+              {/* What You Do - 3 Clear Bullets */}
+              <div className="mb-3">
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1.5">What you do</p>
+                <ul className="space-y-1">
+                  {plan.whatYouDo.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className={cn("w-1 h-1 rounded-full mt-1.5 flex-shrink-0", colors.text.replace("text-", "bg-"))} />
+                      <span className="text-[11px] text-foreground/90 leading-tight">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Who It's For */}
+              <div className="mb-3 px-2.5 py-1.5 rounded-lg bg-muted/30">
+                <p className="text-[10px] text-muted-foreground">
+                  <span className="font-medium text-foreground">Best for:</span> {plan.forWhom}
+                </p>
+              </div>
+
+              {/* S2 Gating Info - Key Insight */}
+              <TooltipProvider>
+                <div className="flex items-center gap-2 mb-3 px-2.5 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                  <Lock className="w-3 h-3 text-violet-400 flex-shrink-0" />
+                  <p className="text-[10px] text-violet-300 flex-1">
+                    S2 games require <span className="font-medium">{plan.gatingExplainer.s2Requirement}</span>
+                  </p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-violet-400/50 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[220px] text-xs">
+                      <p className="font-medium mb-1">How S2 games unlock:</p>
+                      <ul className="text-[10px] space-y-0.5 text-muted-foreground">
+                        <li>• S1 games (Focus, Creativity Fast) are always available</li>
+                        <li>• S2 games (Reasoning, Insight) need Recovery</li>
+                        <li>• {plan.gatingExplainer.prerequisiteForS2}</li>
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
+
+              {/* Quick Stats Row */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="text-center px-2 py-1.5 rounded-lg bg-muted/30">
+                  <p className={cn("text-xs font-semibold", colors.text)}>{plan.xpTargetWeek}</p>
+                  <p className="text-[8px] text-muted-foreground">Max XP/week</p>
+                </div>
+                <div className="text-center px-2 py-1.5 rounded-lg bg-muted/30">
+                  <p className={cn("text-xs font-semibold", colors.text)}>{Math.round(plan.detox.weeklyMinutes / 60)}h</p>
+                  <p className="text-[8px] text-muted-foreground">Recovery/week</p>
+                </div>
+                <div className="text-center px-2 py-1.5 rounded-lg bg-muted/30">
+                  <p className={cn("text-xs font-semibold", colors.text)}>{plan.contentPerWeek}</p>
+                  <p className="text-[8px] text-muted-foreground">Tasks/week</p>
+                </div>
+              </div>
+
+              {/* Actions Row */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onSelectPlan(plan.id)}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all",
+                    isSelected
+                      ? `${colors.bg} ${colors.text} border ${colors.border}`
+                      : "bg-muted/50 text-foreground hover:bg-muted"
+                  )}
+                >
+                  {isSelected ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      Selected
+                    </>
+                  ) : (
+                    "Select Plan"
+                  )}
+                </button>
+                {showDetails && (
+                  <button
+                    onClick={() => toggleExpand(plan.id)}
+                    className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-muted/30 hover:bg-muted/50 text-xs text-muted-foreground transition-all"
+                  >
+                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    Details
+                  </button>
                 )}
-              </button>
-            )}
+              </div>
+            </div>
 
             {/* Expanded Details */}
-            {showDetails && isExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="px-4 pb-4 border-t border-border/20"
-              >
-                {planId === "light" && renderLightPlanDetails(plan, colors)}
-                {planId === "expert" && renderExpertPlanDetails(plan, colors)}
-                {planId === "superhuman" && renderSuperhumanPlanDetails(plan, colors)}
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {showDetails && isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pb-4 pt-2 border-t border-border/30">
+                    {/* Time Breakdown */}
+                    <div className="mb-4">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-2">Daily time breakdown</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="p-2 rounded-lg bg-muted/20 text-center">
+                          <Zap className="w-3 h-3 text-amber-400 mx-auto mb-1" />
+                          <p className="text-[10px] font-medium">{plan.dailyEstimate.games}</p>
+                          <p className="text-[8px] text-muted-foreground">Games</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-muted/20 text-center">
+                          <Leaf className="w-3 h-3 text-green-400 mx-auto mb-1" />
+                          <p className="text-[10px] font-medium">{plan.dailyEstimate.recovery}</p>
+                          <p className="text-[8px] text-muted-foreground">Recovery</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-muted/20 text-center">
+                          <Brain className="w-3 h-3 text-purple-400 mx-auto mb-1" />
+                          <p className="text-[10px] font-medium">{plan.dailyEstimate.tasks}</p>
+                          <p className="text-[8px] text-muted-foreground">Tasks</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* How Gating Works */}
+                    <div className="mb-4">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-2">How game access works</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10">
+                          <Unlock className="w-3 h-3 text-emerald-400" />
+                          <p className="text-[10px] text-emerald-300">
+                            <span className="font-medium">S1 games</span> (Focus, Creativity Fast) — always available
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-violet-500/10">
+                          <Lock className="w-3 h-3 text-violet-400" />
+                          <p className="text-[10px] text-violet-300">
+                            <span className="font-medium">S2 games</span> (Reasoning, Insight) — require {plan.gatingExplainer.s2Requirement}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground/70 mt-2 italic">
+                        {plan.gatingExplainer.prerequisiteForS2}
+                      </p>
+                    </div>
+
+                    {/* Session Templates */}
+                    <div className="mb-4">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-2">Session templates</p>
+                      <div className="space-y-1.5">
+                        {plan.sessions.map((session) => (
+                          <div
+                            key={session.id}
+                            className="flex items-center justify-between p-2 rounded-lg bg-muted/20"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className={cn(
+                                "text-[8px] px-1.5 py-0.5 rounded font-medium",
+                                session.thinkingSystems.includes("S2")
+                                  ? "bg-violet-500/20 text-violet-400"
+                                  : "bg-amber-500/20 text-amber-400"
+                              )}>
+                                {session.thinkingSystems.join(" + ")}
+                              </span>
+                              <span className="text-[10px] font-medium">{session.name}</span>
+                            </div>
+                            <span className="text-[9px] text-muted-foreground">{session.duration}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Weekly Caps */}
+                    <div className="p-2.5 rounded-lg bg-muted/20 border border-border/20">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-2">Weekly caps</p>
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">S2 games max:</span>
+                          <span className="font-medium">{plan.gamesGating.s2MaxPerWeek}/week</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Insight games max:</span>
+                          <span className="font-medium">{plan.gamesGating.insightMaxPerWeek}/week</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Philosophy */}
+                    <div className="mt-3 pt-3 border-t border-border/20">
+                      <p className="text-[9px] text-muted-foreground/60 italic text-center">
+                        {plan.philosophy}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         );
       })}

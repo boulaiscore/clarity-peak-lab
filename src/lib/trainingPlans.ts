@@ -1,14 +1,15 @@
 /**
  * ============================================
- * NEUROLOOP PRO – TRAINING PLANS v1.3
+ * NEUROLOOP PRO – TRAINING PLANS v1.4
  * ============================================
  * 
- * Technical Manual v1.3 Aligned
+ * Technical Manual v1.4 Aligned
  * 
- * KEY CHANGES:
- * - Tasks do NOT give XP (removed contentXPTarget)
- * - xpTargetWeek is ONLY from games
- * - Added plan-specific modifiers for games gating
+ * KEY CHANGES (v1.4):
+ * - Added dailyEstimate for clear time commitment communication
+ * - Added periodType to clarify rolling 7-day windows
+ * - Added gatingExplainer to explain S2 unlock requirements
+ * - Added whatYouDo and forWhom for simplified UI
  */
 
 export type TrainingPlanId = "light" | "expert" | "superhuman";
@@ -56,6 +57,25 @@ export interface GamesGatingModifiers {
   s2MaxPerWeek: number; // Weekly cap for all S2 games
 }
 
+/**
+ * Daily time estimate breakdown (v1.4)
+ */
+export interface DailyEstimate {
+  total: string;
+  games: string;
+  recovery: string;
+  tasks: string;
+}
+
+/**
+ * Gating explainer for user education (v1.4)
+ */
+export interface GatingExplainer {
+  s2Requirement: string;
+  s1AlwaysAvailable: boolean;
+  prerequisiteForS2: string;
+}
+
 export interface TrainingPlan {
   id: TrainingPlanId;
   name: string;
@@ -77,6 +97,12 @@ export interface TrainingPlan {
   detox: DetoxRequirement;
   gamesGating: GamesGatingModifiers;
   sessions: SessionConfig[];
+  // v1.4: New fields for clearer communication
+  dailyEstimate: DailyEstimate;
+  periodType: "rolling-7-days";
+  gatingExplainer: GatingExplainer;
+  whatYouDo: string[];
+  forWhom: string;
 }
 
 // XP Points configuration (Games only in v1.3)
@@ -147,6 +173,25 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       insightMaxPerWeek: 2,
       s2MaxPerWeek: 4,
     },
+    // v1.4: Clear communication fields
+    dailyEstimate: {
+      total: "~20 min",
+      games: "15-18 min",
+      recovery: "~30 min (Detox/Walking)",
+      tasks: "Optional"
+    },
+    periodType: "rolling-7-days",
+    gatingExplainer: {
+      s2Requirement: "Recovery ≥ 50%",
+      s1AlwaysAvailable: true,
+      prerequisiteForS2: "Complete a Detox or Walking session"
+    },
+    whatYouDo: [
+      "S1 games always available (Focus, Creativity fast)",
+      "S2 games unlock after Detox/Walking (Recovery ≥ 50%)",
+      "Podcasts & readings optional"
+    ],
+    forWhom: "Starting out or variable schedule",
     sessions: [
       {
         id: "fast-focus",
@@ -226,6 +271,25 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       insightMaxPerWeek: 3,
       s2MaxPerWeek: 7,
     },
+    // v1.4: Clear communication fields
+    dailyEstimate: {
+      total: "~45 min",
+      games: "22-25 min",
+      recovery: "~30 min (Detox/Walking)",
+      tasks: "10-15 min (2/week)"
+    },
+    periodType: "rolling-7-days",
+    gatingExplainer: {
+      s2Requirement: "Recovery ≥ 50%",
+      s1AlwaysAvailable: true,
+      prerequisiteForS2: "Maintain consistent Detox/Walking habit"
+    },
+    whatYouDo: [
+      "Balanced S1 and S2 games (both available with Recovery)",
+      "2 prescribed contents per week (podcasts or readings)",
+      "14h/week Detox + Walking unlocks full S2 access"
+    ],
+    forWhom: "Stable routine, ready to progress",
     sessions: [
       {
         id: "fast-control",
@@ -305,6 +369,25 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       insightMaxPerWeek: 4,
       s2MaxPerWeek: 10,
     },
+    // v1.4: Clear communication fields
+    dailyEstimate: {
+      total: "~75 min",
+      games: "30-35 min",
+      recovery: "~40 min (Detox/Walking)",
+      tasks: "15-20 min (3/week mandatory)"
+    },
+    periodType: "rolling-7-days",
+    gatingExplainer: {
+      s2Requirement: "Recovery ≥ 55%",
+      s1AlwaysAvailable: true,
+      prerequisiteForS2: "28h/week Detox + Walking required"
+    },
+    whatYouDo: [
+      "Intensive S2 training with mandatory content priming",
+      "3 mandatory contents per week (book excerpts, dense podcasts)",
+      "28h/week recovery required to access full S2 games"
+    ],
+    forWhom: "Maximum performance, established discipline",
     sessions: [
       {
         id: "heavy-slow",
