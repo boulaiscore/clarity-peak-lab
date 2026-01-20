@@ -19,14 +19,14 @@ const protocols = [
 
 export function ProtocolsSection() {
   return (
-    <section id="protocols" className="py-24 scroll-mt-24">
+    <section id="protocols" className="py-24 scroll-mt-24 bg-white">
       <div className="container px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-black tracking-tight mb-6">
               Training Protocols
             </h2>
-            <p className="text-lg text-white/50 max-w-xl mx-auto">
+            <p className="text-lg text-black/50 max-w-xl mx-auto">
               Structured programs built around specific cognitive skills.
             </p>
           </div>
@@ -39,12 +39,12 @@ export function ProtocolsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="p-8 rounded-2xl bg-white/[0.02] border border-white/10"
+                className="p-8 rounded-2xl bg-black/[0.02] border border-black/5"
               >
-                <h3 className="text-lg font-semibold text-white mb-6">{protocol.title}</h3>
+                <h3 className="text-lg font-semibold text-black mb-6">{protocol.title}</h3>
                 <ul className="space-y-3">
                   {protocol.items.map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-white/60 text-sm">
+                    <li key={item} className="flex items-start gap-3 text-black/60 text-sm">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                       {item}
                     </li>
@@ -54,12 +54,12 @@ export function ProtocolsSection() {
             ))}
           </div>
 
-          <p className="text-center text-sm text-white/30 mb-8">
+          <p className="text-center text-sm text-black/30 mb-8">
             Protocols adapt over time based on your performance patterns.
           </p>
 
           <div className="text-center">
-            <Button asChild className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-8 h-12">
+            <Button asChild className="rounded-full bg-primary text-white hover:bg-primary/90 font-semibold px-8 h-12">
               <Link to="/auth">Explore Protocols →</Link>
             </Button>
           </div>

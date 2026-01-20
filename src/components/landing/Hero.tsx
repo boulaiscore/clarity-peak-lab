@@ -62,7 +62,7 @@ export function Hero() {
   }, [currentVideo, isTransitioning]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
       {/* Video Background - All videos stacked, opacity controlled */}
       <div className="absolute inset-0 z-0">
         {videos.map((video, index) => (
@@ -76,9 +76,9 @@ export function Hero() {
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1500 ease-in-out"
             style={{
               opacity: index === currentVideo 
-                ? (isTransitioning ? 0 : 0.5)
+                ? (isTransitioning ? 0 : 0.15)
                 : index === nextVideo && isTransitioning 
-                  ? 0.5 
+                  ? 0.15 
                   : 0,
               zIndex: index === currentVideo ? 1 : index === nextVideo ? 2 : 0,
             }}
@@ -86,11 +86,11 @@ export function Hero() {
             <source src={video.src} type="video/mp4" />
           </video>
         ))}
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/50 z-10" />
+        {/* Light overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-white/80 z-10" />
       </div>
 
-      {/* NeuroLoop Badge - WHOOP style */}
+      {/* NeuroLoop Badge */}
       <motion.div
         key={currentVideo}
         initial={{ opacity: 0, y: 10 }}
@@ -99,9 +99,9 @@ export function Hero() {
         transition={{ duration: 0.5 }}
         className="absolute bottom-36 sm:bottom-40 left-6 sm:left-10 z-20"
       >
-        <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
+        <div className="flex items-center gap-2 bg-black/5 backdrop-blur-sm px-4 py-2 rounded-full border border-black/10">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-xs sm:text-sm text-white/80 font-medium tracking-wide">
+          <span className="text-xs sm:text-sm text-black/70 font-medium tracking-wide">
             {videos[currentVideo].label}
           </span>
         </div>
@@ -120,7 +120,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-white"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-black"
           >
             Master your <span className="text-primary">mental edge.</span>
           </motion.h1>
@@ -130,7 +130,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7 }}
-            className="text-base sm:text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-8 font-light"
+            className="text-base sm:text-lg md:text-xl text-black/50 max-w-2xl mx-auto mb-8 font-light"
           >
             The cognitive performance system for elite professionals.
           </motion.p>
@@ -152,7 +152,7 @@ export function Hero() {
             </Button>
           </motion.div>
 
-          {/* Stats - clean, minimal - moved inside content block */}
+          {/* Stats - clean, minimal */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -161,16 +161,16 @@ export function Hero() {
           >
             <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">23%</p>
-                <p className="text-xs text-white/50 uppercase tracking-[0.15em]">Avg. Improvement</p>
+                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">23%</p>
+                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Avg. Improvement</p>
               </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">2M+</p>
-                <p className="text-xs text-white/50 uppercase tracking-[0.15em]">Sessions</p>
+                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">2M+</p>
+                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Sessions</p>
               </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1">Elite</p>
-                <p className="text-xs text-white/50 uppercase tracking-[0.15em]">Protocol</p>
+                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">Elite</p>
+                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Protocol</p>
               </div>
             </div>
           </motion.div>
@@ -198,7 +198,7 @@ export function Hero() {
               }
             }}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentVideo ? "bg-primary w-6" : "bg-white/30 hover:bg-white/50"
+              index === currentVideo ? "bg-primary w-6" : "bg-black/20 hover:bg-black/40"
             }`}
           />
         ))}
@@ -214,9 +214,9 @@ export function Hero() {
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2"
+          className="w-6 h-10 rounded-full border-2 border-black/20 flex items-start justify-center p-2"
         >
-          <div className="w-1 h-2 rounded-full bg-white/40" />
+          <div className="w-1 h-2 rounded-full bg-black/30" />
         </motion.div>
       </motion.div>
     </section>

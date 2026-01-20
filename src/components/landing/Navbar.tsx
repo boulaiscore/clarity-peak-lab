@@ -33,7 +33,7 @@ export function Navbar() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           scrolled || mobileMenuOpen
-            ? "bg-black/95 backdrop-blur-md" 
+            ? "bg-white/95 backdrop-blur-md border-b border-black/5" 
             : "bg-transparent"
         )}
       >
@@ -44,7 +44,7 @@ export function Navbar() {
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="flex items-center"
             >
-              <span className="text-white font-bold text-lg tracking-tight">NEUROLOOP</span>
+              <span className="text-black font-bold text-lg tracking-tight">NEUROLOOP</span>
             </button>
 
             {/* Navigation Tabs */}
@@ -53,7 +53,7 @@ export function Navbar() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden w-10 h-10 flex items-center justify-center text-white/70 hover:text-white"
+              className="lg:hidden w-10 h-10 flex items-center justify-center text-black/70 hover:text-black"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -61,7 +61,7 @@ export function Navbar() {
             {/* CTA */}
             <Button 
               asChild 
-              className="hidden lg:flex rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-6 h-10"
+              className="hidden lg:flex rounded-full bg-primary text-white hover:bg-primary/90 font-semibold px-6 h-10"
             >
               <Link to="/download">Join Now</Link>
             </Button>
@@ -70,20 +70,20 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-black/95 border-t border-white/5">
+          <div className="lg:hidden bg-white/95 border-t border-black/5">
             <div className="container px-6 py-4 space-y-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className="block w-full text-left py-3 text-sm text-white/70 hover:text-white uppercase tracking-wider"
+                  className="block w-full text-left py-3 text-sm text-black/60 hover:text-black uppercase tracking-wider"
                 >
                   {tab.label}
                 </button>
               ))}
               <Link
                 to="/download"
-                className="block w-full text-center py-3 mt-4 rounded-full bg-primary text-primary-foreground font-semibold"
+                className="block w-full text-center py-3 mt-4 rounded-full bg-primary text-white font-semibold"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Join Now

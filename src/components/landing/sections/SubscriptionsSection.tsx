@@ -49,14 +49,14 @@ const plans = [
 
 export function SubscriptionsSection() {
   return (
-    <section id="subscriptions" className="py-24 scroll-mt-24">
+    <section id="subscriptions" className="py-24 scroll-mt-24 bg-white">
       <div className="container px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-black tracking-tight mb-6">
               Choose Your Level
             </h2>
-            <p className="text-lg text-white/50 max-w-xl mx-auto">
+            <p className="text-lg text-black/50 max-w-xl mx-auto">
               Start free. Upgrade when you're ready to go deeper.
             </p>
           </div>
@@ -71,29 +71,29 @@ export function SubscriptionsSection() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className={`relative p-8 rounded-2xl ${
                   plan.highlighted
-                    ? "bg-white text-black"
-                    : "bg-white/[0.02] border border-white/10"
+                    ? "bg-primary text-white"
+                    : "bg-black/[0.02] border border-black/10"
                 }`}
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-4 py-1 rounded-full bg-black text-white text-xs font-medium">
+                    <span className="px-4 py-1 rounded-full bg-white text-primary text-xs font-medium">
                       MOST POPULAR
                     </span>
                   </div>
                 )}
 
                 <div className="mb-6">
-                  <h3 className={`text-xl font-semibold mb-1 ${plan.highlighted ? "text-black" : "text-white"}`}>
+                  <h3 className={`text-xl font-semibold mb-1 ${plan.highlighted ? "text-white" : "text-black"}`}>
                     {plan.name}
                   </h3>
                 </div>
 
                 <div className="mb-8">
-                  <span className={`text-4xl font-bold tracking-tight ${plan.highlighted ? "text-black" : "text-white"}`}>
+                  <span className={`text-4xl font-bold tracking-tight ${plan.highlighted ? "text-white" : "text-black"}`}>
                     {plan.price}
                   </span>
-                  <span className={plan.highlighted ? "text-black/60" : "text-white/50"}>
+                  <span className={plan.highlighted ? "text-white/70" : "text-black/50"}>
                     {" "}{plan.period}
                   </span>
                 </div>
@@ -101,8 +101,8 @@ export function SubscriptionsSection() {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
-                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlighted ? "text-black" : "text-white/60"}`} />
-                      <span className={plan.highlighted ? "text-black/80" : "text-white/70"}>
+                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlighted ? "text-white" : "text-black/60"}`} />
+                      <span className={plan.highlighted ? "text-white/90" : "text-black/70"}>
                         {feature}
                       </span>
                     </li>
@@ -113,8 +113,8 @@ export function SubscriptionsSection() {
                   asChild
                   className={`w-full rounded-full h-12 font-semibold ${
                     plan.highlighted
-                      ? "bg-black text-white hover:bg-black/90"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                      ? "bg-white text-primary hover:bg-white/90"
+                      : "bg-primary text-white hover:bg-primary/90"
                   }`}
                 >
                   <Link to="/auth">{plan.cta}</Link>

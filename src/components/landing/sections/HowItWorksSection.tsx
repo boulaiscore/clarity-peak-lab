@@ -30,14 +30,14 @@ const steps = [
 
 export function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="py-24 scroll-mt-24">
+    <section id="how-it-works" className="py-24 scroll-mt-24 bg-black/[0.02]">
       <div className="container px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-black tracking-tight mb-6">
               How NeuroLoop Works
             </h2>
-            <p className="text-lg text-white/50 max-w-2xl mx-auto">
+            <p className="text-lg text-black/50 max-w-2xl mx-auto">
               A structured system to train how you think — not just how fast.
             </p>
           </div>
@@ -50,21 +50,21 @@ export function HowItWorksSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="relative p-8 rounded-2xl bg-white/[0.02] border border-white/10"
+                className="relative p-8 rounded-2xl bg-white border border-black/5"
               >
-                <span className="absolute top-6 right-6 text-5xl font-bold text-white/5">
+                <span className="absolute top-6 right-6 text-5xl font-bold text-black/5">
                   {step.number}
                 </span>
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                  <step.icon className="w-6 h-6 text-white/80" />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                  <step.icon className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
-                <p className="text-white/50 leading-relaxed">{step.description}</p>
+                <h3 className="text-xl font-semibold text-black mb-3">{step.title}</h3>
+                <p className="text-black/50 leading-relaxed">{step.description}</p>
               </motion.div>
             ))}
           </div>
 
-          <p className="text-center text-sm text-white/30">
+          <p className="text-center text-sm text-black/30">
             NeuroLoop does not read brain signals. It trains cognitive behavior through structured decision tasks.
           </p>
         </div>
