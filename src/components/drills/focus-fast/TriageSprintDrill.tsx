@@ -65,6 +65,9 @@ const ROUND_CONFIG = {
   3: { durationMs: 30000, label: 'DECIDE UNDER PRESSURE', urgentMultiplier: 1.5, lureMultiplier: 1.2, paceMultiplier: 0.90, rushFinal: true },
 } as const;
 
+// v1.5: XP imported from centralized config
+import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
+
 const DIFFICULTY_CONFIG = {
   easy: {
     cardPaceMs: 1500,
@@ -72,7 +75,6 @@ const DIFFICULTY_CONFIG = {
     lureRate: 0.15,
     urgentRate: 0.25,
     targetPrevalence: 0.30,
-    xpPerRound: 3,
   },
   medium: {
     cardPaceMs: 1200,
@@ -80,7 +82,6 @@ const DIFFICULTY_CONFIG = {
     lureRate: 0.22,
     urgentRate: 0.35,
     targetPrevalence: 0.25,
-    xpPerRound: 5,
   },
   hard: {
     cardPaceMs: 900,
@@ -88,7 +89,6 @@ const DIFFICULTY_CONFIG = {
     lureRate: 0.30,
     urgentRate: 0.45,
     targetPrevalence: 0.20,
-    xpPerRound: 8,
   },
 };
 
@@ -454,10 +454,9 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
     const round3Accuracy = round3Trials.filter(t => t.correct).length / Math.max(1, round3Trials.length);
     const degradationSlope = round1Accuracy - round3Accuracy;
     
-    // XP calculation
-    const baseXp = TOTAL_ROUNDS * config.xpPerRound;
+    // XP calculation - v1.5: Using centralized XP
     const isPerfect = falseAlarmRate <= 0.05 && hitRate >= 0.85;
-    const xpAwarded = baseXp + (isPerfect ? PERFECT_XP_BONUS : 0);
+    const xpAwarded = calculateGameXP(difficulty, isPerfect);
     
     return {
       score: totalScore,
@@ -475,7 +474,7 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
       degradationSlope,
       isPerfect,
     };
-  }, [phase, allRoundStats, config.xpPerRound]);
+  }, [phase, allRoundStats, difficulty]);
 
   // ============ RENDER: INSTRUCTION ============
   if (phase === 'instruction') {

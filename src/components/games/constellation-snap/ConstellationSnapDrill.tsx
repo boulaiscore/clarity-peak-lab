@@ -60,19 +60,19 @@ interface RoundResult {
 
 interface DifficultyConfig {
   timerMs: number;
-  xpBase: number;
-  difficultyBonus: number;
 }
 
+// v1.5: XP imported from centralized config
+import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
+
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
-  easy: { timerMs: 900, xpBase: 25, difficultyBonus: 0 },
-  medium: { timerMs: 750, xpBase: 25, difficultyBonus: 10 },
-  hard: { timerMs: 600, xpBase: 25, difficultyBonus: 20 },
+  easy: { timerMs: 900 },
+  medium: { timerMs: 750 },
+  hard: { timerMs: 600 },
 };
 
 const TOTAL_ROUNDS = 30;
 const ROUNDS_PER_ACT = 10;
-const PERFECT_BONUS_XP = 10;
 const CONSTELLATION_FADE_IN_MS = 150;
 const FEEDBACK_DURATION_MS = 180;
 const INTER_ROUND_DELAY_MS = 300;
@@ -330,10 +330,9 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
     // Session score (70% accuracy, 30% speed)
     const sessionScore = Math.round(0.7 * accuracy + 0.3 * speedScore);
     
-    // XP calculation
+    // XP calculation - v1.5: Using centralized XP
     const isPerfect = sessionScore >= 90;
-    let xpAwarded = config.xpBase + config.difficultyBonus;
-    if (isPerfect) xpAwarded += PERFECT_BONUS_XP;
+    const xpAwarded = calculateGameXP(difficulty, isPerfect);
     
     return {
       sessionScore,
