@@ -7,6 +7,7 @@ import {
   AssessmentSection,
   WhyNeuroloopSection,
   ProtocolsSection,
+  FAQSection,
 } from "@/components/landing/sections";
 
 const Index = () => {
@@ -19,6 +20,7 @@ const Index = () => {
       <AssessmentSection />
       <WhyNeuroloopSection />
       <ProtocolsSection />
+      <FAQSection />
       <Footer />
     </div>
   );
