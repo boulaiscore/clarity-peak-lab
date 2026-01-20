@@ -515,6 +515,45 @@ export type Database = {
         }
         Relationships: []
       }
+      report_generations: {
+        Row: {
+          cognitive_age: number | null
+          created_at: string
+          fast_thinking: number | null
+          generated_at: string
+          id: string
+          report_type: string
+          sci_score: number | null
+          slow_thinking: number | null
+          total_sessions: number | null
+          user_id: string
+        }
+        Insert: {
+          cognitive_age?: number | null
+          created_at?: string
+          fast_thinking?: number | null
+          generated_at?: string
+          id?: string
+          report_type?: string
+          sci_score?: number | null
+          slow_thinking?: number | null
+          total_sessions?: number | null
+          user_id: string
+        }
+        Update: {
+          cognitive_age?: number | null
+          created_at?: string
+          fast_thinking?: number | null
+          generated_at?: string
+          id?: string
+          report_type?: string
+          sci_score?: number | null
+          slow_thinking?: number | null
+          total_sessions?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       report_purchases: {
         Row: {
           amount_cents: number
