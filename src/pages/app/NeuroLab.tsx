@@ -180,23 +180,32 @@ export default function NeuroLab() {
     <AppShell>
       <div className="px-4 py-4 max-w-md mx-auto space-y-0">
 
-        {/* Week Complete Banner - Muted styling */}
+        {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-3 rounded-xl bg-muted/30 border border-border/50"
+            className="mb-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4 text-foreground/60" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-[12px] font-semibold text-emerald-400">Weekly goal reached</h3>
+                  <p className="text-[10px] text-muted-foreground">
+                    Keep the rhythm or explore freely.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-[12px] font-semibold text-foreground">Week Complete</h3>
-                <p className="text-[10px] text-muted-foreground">
-                  {sessionsRequired} sessions done • Free training unlocked
-                </p>
-              </div>
+              <button
+                onClick={() => navigate("/app/report")}
+                className="text-[10px] font-medium text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1"
+              >
+                View Report
+                <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
           </motion.div>
         )}

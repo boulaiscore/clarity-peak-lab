@@ -128,12 +128,12 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                   className="text-center"
                 >
                   <h2 className="text-3xl font-bold text-white mb-2">
-                    Weekly Goal Complete!
+                    This Week's Goal Complete!
                   </h2>
                   <div className="flex items-center justify-center gap-2">
                     <Sparkles className="w-5 h-5 text-amber-400" />
                     <p className="text-lg text-amber-400 font-medium">
-                      You crushed it this week
+                      Same plan, same rhythm. See you next week.
                     </p>
                     <Sparkles className="w-5 h-5 text-amber-400" />
                   </div>
