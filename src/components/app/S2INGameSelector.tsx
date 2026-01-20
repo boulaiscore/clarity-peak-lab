@@ -10,7 +10,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Lock, ChevronRight, ShieldAlert, Star, Timer, Clock } from "lucide-react";
+import { Sparkles, Lock, ChevronRight, ShieldAlert, Star, Timer, Clock, FlaskConical } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -51,6 +51,16 @@ const GAMES: GameOption[] = [
     icon: Sparkles,
     route: "/neuro-lab/signal-vs-noise",
     estimatedXP: 22,
+    estimatedDuration: "~5 min",
+  },
+  {
+    id: "hidden_rule_lab",
+    name: "Hidden Rule Lab",
+    tagline: "Hypothesis Testing",
+    description: "Infer hidden mechanisms by observing patterns and choosing informative tests to confirm your hypothesis.",
+    icon: FlaskConical,
+    route: "/neuro-lab/hidden-rule-lab",
+    estimatedXP: 25,
     estimatedDuration: "~5 min",
   },
 ];
