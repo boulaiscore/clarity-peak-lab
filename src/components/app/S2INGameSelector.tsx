@@ -27,20 +27,24 @@ interface S2INGameSelectorProps {
 interface GameOption {
   id: string;
   name: string;
+  tagline: string;
   description: string;
   route: string;
   icon: React.ElementType;
-  duration: string;
+  estimatedXP: number;
+  estimatedDuration: string;
 }
 
 const GAMES: GameOption[] = [
   {
     id: "signal-vs-noise",
     name: "Signal vs Noise",
+    tagline: "Pattern Recognition",
     description: "Find the real driver behind messy outcomes.",
     route: "/neuro-lab/signal-vs-noise",
     icon: Sparkles,
-    duration: "~5 min",
+    estimatedXP: 22,
+    estimatedDuration: "~5 min",
   },
 ];
 
@@ -102,11 +106,16 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-0.5">
                       <h3 className="text-sm font-medium">{game.name}</h3>
-                      <span className="text-[10px] text-muted-foreground">
-                        {game.duration}
+                      <span className="text-[10px] text-emerald-400 font-medium">
+                        ~{game.estimatedXP} XP
                       </span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] text-area-slow/80">{game.tagline}</span>
+                      <span className="text-[8px] text-muted-foreground/50">•</span>
+                      <span className="text-[10px] text-muted-foreground">{game.estimatedDuration}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {game.description}
