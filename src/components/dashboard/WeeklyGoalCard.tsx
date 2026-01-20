@@ -367,34 +367,61 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               </p>
             </div>
             
-            {/* Status Label - Clear actionable message */}
+            {/* Status Label - Clear actionable message OR Goal Complete */}
             <div className="mb-2">
-              <span className={`text-[11px] font-semibold ${getStatusColor(adaptiveStatus.status)}`}>
-                {adaptiveStatus.copy.label}
-              </span>
-              <p className="text-[8px] text-muted-foreground/60 mt-0.5">
-                {adaptiveStatus.copy.description}
-              </p>
+              {goalReached ? (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-emerald-400">Weekly target reached</span>
+                    <span className="text-emerald-400 text-[10px]">✓</span>
+                  </div>
+                  <p className="text-[8px] text-muted-foreground/60 mt-0.5">
+                    Report unlocked. Extra training is bonus work.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <span className={`text-[11px] font-semibold ${getStatusColor(adaptiveStatus.status)}`}>
+                    {adaptiveStatus.copy.label}
+                  </span>
+                  <p className="text-[8px] text-muted-foreground/60 mt-0.5">
+                    {adaptiveStatus.copy.description}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Main Progress Bar with Optimal Range - marker style like reference */}
-            <div className={`relative h-2.5 ${barStyles.trackBg} rounded-full`}>
-              {/* Optimal Range Band - highlighted zone */}
-              <div 
-                className={`absolute h-full ${barStyles.optimalZoneBg} border-l border-r ${barStyles.optimalZoneBorder} rounded-sm`}
-                style={{ 
-                  left: `${optimalRangePercent.min}%`, 
-                  width: `${optimalRangePercent.max - optimalRangePercent.min}%` 
-                }}
-              />
-              {/* Current Position Marker - passive vertical line indicator */}
-              <motion.div
-                className={`absolute top-0 h-full w-0.5 ${barStyles.markerBg} rounded-full shadow-sm`}
-                style={{ left: `calc(${progressPercent}% - 1px)` }}
-                initial={false}
-                animate={{ left: `calc(${progressPercent}% - 1px)` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-              />
+            <div className={`relative h-2.5 ${goalReached ? "bg-emerald-500/30" : barStyles.trackBg} rounded-full`}>
+              {/* Optimal Range Band - highlighted zone (hidden when goal reached) */}
+              {!goalReached && (
+                <div 
+                  className={`absolute h-full ${barStyles.optimalZoneBg} border-l border-r ${barStyles.optimalZoneBorder} rounded-sm`}
+                  style={{ 
+                    left: `${optimalRangePercent.min}%`, 
+                    width: `${optimalRangePercent.max - optimalRangePercent.min}%` 
+                  }}
+                />
+              )}
+              {/* Progress fill when goal reached */}
+              {goalReached && (
+                <motion.div
+                  className="absolute top-0 left-0 h-full bg-emerald-400/60 rounded-full"
+                  initial={false}
+                  animate={{ width: `${Math.min(100, progressPercent)}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                />
+              )}
+              {/* Current Position Marker - passive vertical line indicator (hidden when goal reached) */}
+              {!goalReached && (
+                <motion.div
+                  className={`absolute top-0 h-full w-0.5 ${barStyles.markerBg} rounded-full shadow-sm`}
+                  style={{ left: `calc(${progressPercent}% - 1px)` }}
+                  initial={false}
+                  animate={{ left: `calc(${progressPercent}% - 1px)` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                />
+              )}
             </div>
             
             {/* Range Labels with optimal range values */}

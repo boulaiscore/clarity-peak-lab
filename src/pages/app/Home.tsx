@@ -369,10 +369,22 @@ const Home = () => {
                 />
               </div>
               
-              {/* Explanatory line below rings */}
-              <p className="text-center text-xs text-muted-foreground leading-relaxed px-4 mb-4">
-                Today's cognitive state based on training and recovery inputs.
-              </p>
+              {/* Explanatory line below rings OR Goal Complete indicator */}
+              {totalProgress >= 100 ? (
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-xs font-medium text-emerald-400">Weekly Target Reached</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/70 mt-1.5">
+                    Same plan, same rhythm. Keep training or rest freely.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-center text-xs text-muted-foreground leading-relaxed px-4 mb-4">
+                  Today's cognitive state based on training and recovery inputs.
+                </p>
+              )}
               
               {/* Reasoning Quality Card */}
               <ReasoningQualityCard

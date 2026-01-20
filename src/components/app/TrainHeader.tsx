@@ -113,17 +113,26 @@ export function TrainHeader({
           </div>
         </motion.div>
 
-        {/* Ring - smaller */}
+        {/* Ring - smaller, with completion state */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
+          className={cn(
+            "rounded-full",
+            weekProgress >= 100 && "ring-2 ring-emerald-400/30 ring-offset-2 ring-offset-background"
+          )}
         >
           <CognitiveRing progress={weekProgress} size={100} strokeWidth={7}>
             <div className="flex flex-col items-center">
-              <Brain className="w-5 h-5 mb-0.5 text-primary" />
+              <Brain className={cn("w-5 h-5 mb-0.5", weekProgress >= 100 ? "text-emerald-400" : "text-primary")} />
               <span className="text-xl font-bold leading-none">{Math.round(weekProgress)}%</span>
-              <span className="text-[8px] text-muted-foreground uppercase tracking-wide">Week</span>
+              <span className={cn(
+                "text-[8px] uppercase tracking-wide",
+                weekProgress >= 100 ? "text-emerald-400 font-medium" : "text-muted-foreground"
+              )}>
+                {weekProgress >= 100 ? "Complete" : "Week"}
+              </span>
             </div>
           </CognitiveRing>
         </motion.div>
@@ -136,8 +145,20 @@ export function TrainHeader({
           className="flex flex-col items-start gap-1"
         >
           <div>
-            <p className="text-lg font-bold text-primary leading-none">{weeklyXPEarned}</p>
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">XP</p>
+            <div className="flex items-center gap-1">
+              <p className={cn(
+                "text-lg font-bold leading-none",
+                weekProgress >= 100 ? "text-emerald-400" : "text-primary"
+              )}>
+                {weeklyXPEarned}
+              </p>
+              {weekProgress >= 100 && (
+                <span className="text-emerald-400 text-[10px]">✓</span>
+              )}
+            </div>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
+              {weekProgress >= 100 ? "Target reached" : "XP"}
+            </p>
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground leading-none">{weeklyXPTarget}</p>
