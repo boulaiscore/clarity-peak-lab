@@ -3,6 +3,7 @@ import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target, Eye, ZoomIn, ZoomOut, FolderOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
+import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useReportHistory } from "@/hooks/useReportHistory";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +44,9 @@ export default function CognitiveReport() {
   const userId = user?.id as string;
 
   const { loading, error, metrics, profile, sessions, badges, wearable, aggregates } = useReportData(userId);
+  
+  // Use the same SCI calculation as Dashboard for consistency
+  const { sci: liveSci, isLoading: sciLoading } = useCognitiveNetworkScore();
   const { 
     canViewReport, 
     canDownloadPDF, 
@@ -631,6 +635,7 @@ export default function CognitiveReport() {
             badges={badges}
             generatedAt={generatedAt}
             isPreview={!weeklyPlanCompleted}
+            liveSci={liveSci}
           />
         </div>
       </div>
