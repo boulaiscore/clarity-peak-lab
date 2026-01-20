@@ -214,19 +214,19 @@ const MetricsVisual = () => (
         </p>
       </motion.div>
       
-      {/* Cognitive Age */}
+      {/* Reasoning Quality */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20"
+        className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20"
       >
         <div className="flex items-center gap-2 mb-1">
-          <Clock className="w-4 h-4 text-amber-400" />
-          <span className="text-[10px] font-semibold text-amber-400">Cognitive Age</span>
+          <Brain className="w-4 h-4 text-violet-400" />
+          <span className="text-[10px] font-semibold text-violet-400">Reasoning Quality</span>
         </div>
         <p className="text-[8px] text-muted-foreground leading-tight">
-          Your brain's functional age. Drops with consistent training.
+          How well you think deliberately. Built by System 2 training.
         </p>
       </motion.div>
     </div>
