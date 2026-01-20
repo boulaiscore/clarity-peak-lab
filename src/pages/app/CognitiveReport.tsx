@@ -6,6 +6,7 @@ import { useReportData } from "@/hooks/useReportData";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useReportHistory } from "@/hooks/useReportHistory";
+import { useUserMetrics } from "@/hooks/useExercises"; // v3.3: Use same source as Dashboard
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeRedirectUrls, isNative } from "@/lib/platformUtils";
@@ -43,7 +44,11 @@ export default function CognitiveReport() {
   const { user } = useAuth();
   const userId = user?.id as string;
 
-  const { loading, error, metrics, profile, sessions, badges, wearable, aggregates } = useReportData(userId);
+  const { loading, error, metrics: reportMetrics, profile, sessions, badges, wearable, aggregates } = useReportData(userId);
+  
+  // v3.3: Use LIVE metrics from useUserMetrics (same source as Dashboard) for S1/S2/Age consistency
+  // This ensures Report shows exactly what Dashboard shows
+  const { data: liveMetrics, isLoading: metricsLoading } = useUserMetrics(userId);
   
   // Use the same SCI calculation as Dashboard for consistency
   const { sci: liveSci, isLoading: sciLoading } = useCognitiveNetworkScore();
@@ -66,6 +71,29 @@ export default function CognitiveReport() {
   } = useReportAccess();
   
   const { reports, isLoading: historyLoading, saveReport } = useReportHistory(userId);
+  
+  // v3.3: Merge live metrics (from useUserMetrics, same as Dashboard) with report metrics
+  // Priority: liveMetrics for S1/S2/Age consistency, reportMetrics as fallback
+  const metrics = useMemo(() => {
+    if (!reportMetrics && !liveMetrics) return null;
+    return {
+      ...reportMetrics,
+      // Override with live values to match Dashboard exactly
+      focus_stability: liveMetrics?.focus_stability ?? reportMetrics?.focus_stability,
+      fast_thinking: liveMetrics?.fast_thinking ?? reportMetrics?.fast_thinking,
+      reasoning_accuracy: liveMetrics?.reasoning_accuracy ?? reportMetrics?.reasoning_accuracy,
+      slow_thinking: liveMetrics?.slow_thinking ?? reportMetrics?.slow_thinking,
+      creativity: liveMetrics?.creativity ?? reportMetrics?.creativity,
+      baseline_focus: liveMetrics?.baseline_focus ?? reportMetrics?.baseline_focus,
+      baseline_fast_thinking: liveMetrics?.baseline_fast_thinking ?? reportMetrics?.baseline_fast_thinking,
+      baseline_reasoning: liveMetrics?.baseline_reasoning ?? reportMetrics?.baseline_reasoning,
+      baseline_slow_thinking: liveMetrics?.baseline_slow_thinking ?? reportMetrics?.baseline_slow_thinking,
+      baseline_creativity: liveMetrics?.baseline_creativity ?? reportMetrics?.baseline_creativity,
+      baseline_cognitive_age: liveMetrics?.baseline_cognitive_age ?? reportMetrics?.baseline_cognitive_age,
+      cognitive_performance_score: liveMetrics?.cognitive_performance_score ?? reportMetrics?.cognitive_performance_score,
+      total_sessions: liveMetrics?.total_sessions ?? reportMetrics?.total_sessions,
+    };
+  }, [liveMetrics, reportMetrics]);
   
   // Total credits available for display
   const totalCredits = isPro ? Infinity : monthlyCredits + reportCredits;
