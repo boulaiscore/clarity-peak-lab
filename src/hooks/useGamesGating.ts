@@ -370,16 +370,18 @@ function determineReasonCode(
 /**
  * Hook to record a game session completion.
  * 
- * v1.5: Now also inserts into exercise_completions so that weekly XP
- * metrics in useWeeklyProgress correctly count game XP.
- * 
- * v1.6: Added session validation, retry logic, and toast feedback.
+ * v1.7 MANUAL-COMPLIANCE UPDATE:
+ * - Skill delta = XP × 0.5 (NO score scaling)
+ * - Updates only if status='completed' AND xpAwarded > 0
+ * - Tracks session duration via startedAt + durationSeconds
+ * - Aborted sessions recorded for analytics but don't affect metrics
  * 
  * Updates XP timestamps in user_cognitive_metrics:
- * - last_xp_at (global) - updated on every game completion
- * - last_{skill}_xp_at - updated for the routed skill only
+ * - last_xp_at (global) - updated only when xpAwarded > 0
+ * - last_{skill}_xp_at - updated for the routed skill only when xpAwarded > 0
+ * - last_session_at - updated for any completed session
  * 
- * Also updates the routed skill value using Δskill = XP × 0.5
+ * Also updates the routed skill value using Δskill = XP × 0.5 (Manual-compliant)
  * 
  * This prevents skill decay for 30 days after training that skill.
  */
@@ -393,8 +395,13 @@ export function useRecordGameSession() {
     thinkingMode: "fast" | "slow";
     xpAwarded: number;
     score: number;
+    // v1.7: New required/optional params for duration + status tracking
+    startedAt?: string | null;        // ISO timestamp when session started
+    durationSeconds: number;          // Required, must be >= 0
+    status?: 'completed' | 'aborted'; // Default 'completed'
+    difficulty?: 'easy' | 'medium' | 'hard'; // Difficulty level
     // AE Guidance Engine metrics (optional)
-    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch" | "flash_connect" | "semantic_drift" | "constellation_snap";
+    gameName?: "orbit_lock" | "triage_sprint" | "focus_switch" | "flash_connect" | "semantic_drift" | "constellation_snap" | "causal_ledger";
     falseAlarmRate?: number | null;
     hitRate?: number | null;
     rtVariability?: number | null;
@@ -423,7 +430,11 @@ export function useRecordGameSession() {
       return null;
     }
     
-    console.log("[GameSession] Starting save for user:", userId, "Game:", params.gameType);
+    // v1.7: Validate durationSeconds
+    const durationSeconds = Math.max(0, Math.floor(params.durationSeconds ?? 0));
+    const sessionStatus = params.status ?? 'completed';
+    
+    console.log("[GameSession] Starting save for user:", userId, "Game:", params.gameType, "Status:", sessionStatus, "Duration:", durationSeconds);
     
     // Derive system_type and skill_routed from gameType
     const systemType = params.gameType.startsWith("S1") ? "S1" : "S2";
@@ -437,7 +448,8 @@ export function useRecordGameSession() {
     
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        // 1. Insert game session (for gating/caps tracking + AE guidance metrics)
+        // 1. Insert game session ALWAYS (for gating/caps tracking + analytics)
+        //    Both completed and aborted sessions are recorded
         const { data, error } = await supabase
           .from("game_sessions")
           .insert({
@@ -449,7 +461,12 @@ export function useRecordGameSession() {
             thinking_mode: params.thinkingMode,
             xp_awarded: params.xpAwarded,
             score: params.score,
+            // v1.7: New duration + status tracking
+            started_at: params.startedAt ?? null,
             completed_at: nowUtc,
+            duration_seconds: durationSeconds,
+            status: sessionStatus,
+            difficulty: params.difficulty ?? null,
             // AE Guidance metrics (shared)
             game_name: params.gameName ?? null,
             degradation_slope: params.degradationSlope ?? null,
@@ -479,30 +496,41 @@ export function useRecordGameSession() {
           throw error;
         }
         
-        console.log("[GameSession] Game session inserted successfully:", data.id);
+        console.log("[GameSession] Game session inserted:", data.id, "Status:", sessionStatus);
         
-        // 2. Also insert into exercise_completions for weekly XP tracking
-        const exerciseId = `game-${params.gameType}-${data.id}`;
-        const { error: completionError } = await supabase
-          .from("exercise_completions")
-          .insert({
-            user_id: userId,
-            exercise_id: exerciseId,
-            gym_area: params.gymArea,
-            thinking_mode: params.thinkingMode,
-            difficulty: "medium",
-            xp_earned: params.xpAwarded,
-            score: params.score,
-            week_start: weekStart,
-          });
+        // v1.7: If aborted, stop here - don't update XP/skills/exercise_completions
+        if (sessionStatus === 'aborted') {
+          console.log("[GameSession] Aborted session recorded, skipping metrics update");
+          queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
+          queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
+          return data;
+        }
         
-        if (completionError) {
-          console.error("[GameSession] Failed to insert exercise_completion:", completionError);
-        } else {
-          console.log("[GameSession] Inserted exercise_completion:", exerciseId);
+        // 2. Insert into exercise_completions ONLY if completed AND xpAwarded > 0
+        if (params.xpAwarded > 0) {
+          const exerciseId = `game-${params.gameType}-${data.id}`;
+          const { error: completionError } = await supabase
+            .from("exercise_completions")
+            .insert({
+              user_id: userId,
+              exercise_id: exerciseId,
+              gym_area: params.gymArea,
+              thinking_mode: params.thinkingMode,
+              difficulty: params.difficulty ?? "medium",
+              xp_earned: params.xpAwarded,
+              score: params.score,
+              week_start: weekStart,
+            });
+          
+          if (completionError) {
+            console.error("[GameSession] Failed to insert exercise_completion:", completionError);
+          } else {
+            console.log("[GameSession] Inserted exercise_completion:", exerciseId);
+          }
         }
         
         // 3. Update skill value, XP timestamps, AND total_sessions
+        //    ONLY if completed AND xpAwarded > 0
         const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as
           "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
         
@@ -524,20 +552,28 @@ export function useRecordGameSession() {
           const currentValue = (currentMetrics as any)[targetColumn] || 50;
           const currentTotalSessions = (currentMetrics as any).total_sessions ?? 0;
           
-          // Calculate skill delta only if XP awarded
-          let newValue = currentValue;
-          if (params.xpAwarded > 0) {
-            const scaledXP = params.xpAwarded * (params.score / 100);
-            const delta = scaledXP * 0.5;
-            newValue = Math.min(100, currentValue + delta);
-          }
-          
+          // v1.7: Build metrics update conditionally
           const metricsUpdate: Record<string, string | number> = {
-            last_xp_at: nowUtc,
-            [skillXpColumn]: nowUtc,
-            [targetColumn]: Math.round(newValue * 10) / 10,
-            total_sessions: currentTotalSessions + 1, // BUGFIX: Increment total_sessions
+            // Always update last_session_at for completed sessions
+            last_session_at: nowUtc,
           };
+          
+          // v1.7: MANUAL-COMPLIANT: Only update skills/XP timestamps if xpAwarded > 0
+          if (params.xpAwarded > 0) {
+            // v1.7 BUGFIX: Remove score scaling! Delta = XP × 0.5 only (Manual-compliant)
+            const delta = params.xpAwarded * 0.5;
+            const newValue = Math.min(100, currentValue + delta);
+            
+            metricsUpdate.last_xp_at = nowUtc;
+            metricsUpdate[skillXpColumn] = nowUtc;
+            metricsUpdate[targetColumn] = Math.round(newValue * 10) / 10;
+            // v1.7: Only increment total_sessions for XP-awarding sessions
+            metricsUpdate.total_sessions = currentTotalSessions + 1;
+            
+            console.log(`[GameSession] Skill update: ${targetColumn} ${currentValue} → ${newValue} (delta: ${delta})`);
+          } else {
+            console.log("[GameSession] xpAwarded=0, only updating last_session_at");
+          }
           
           const { error: updateError } = await supabase
             .from("user_cognitive_metrics")
@@ -547,10 +583,12 @@ export function useRecordGameSession() {
           if (updateError) {
             console.error("[GameSession] Failed to update metrics:", updateError);
           } else {
-            console.log(`[GameSession] Updated ${targetColumn}: ${currentValue} → ${newValue}, total_sessions: ${currentTotalSessions + 1}`);
+            console.log(`[GameSession] Metrics updated:`, Object.keys(metricsUpdate).join(", "));
           }
-        } else {
-          const initialValue = 50 + (params.xpAwarded > 0 ? params.xpAwarded * (params.score / 100) * 0.5 : 0);
+        } else if (params.xpAwarded > 0) {
+          // v1.7 BUGFIX: Remove score scaling for initial insert too!
+          const delta = params.xpAwarded * 0.5;
+          const initialValue = 50 + delta;
           
           await supabase
             .from("user_cognitive_metrics")
@@ -562,7 +600,8 @@ export function useRecordGameSession() {
               slow_thinking: skillRouted === "IN" ? Math.round(initialValue * 10) / 10 : 50,
               [skillXpColumn]: nowUtc,
               last_xp_at: nowUtc,
-              total_sessions: 1, // BUGFIX: Initialize total_sessions
+              last_session_at: nowUtc,
+              total_sessions: 1,
             });
           
           console.log("[GameSession] Created new metrics record with total_sessions: 1");

@@ -327,6 +327,11 @@ export default function NeuroLabSessionRunner() {
               thinkingMode: mode,
               xpAwarded: XP_REWARDS.sessionComplete,
               score: averageScore,
+              // v1.2: Add duration tracking (estimate based on session exercises)
+              startedAt: null, // NeuroLab sessions don't track precise start
+              durationSeconds: sessionExercises.length * 30, // Estimate 30s per exercise
+              status: 'completed',
+              difficulty: 'medium',
             });
             // Invalidate game session queries to update caps
             queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });

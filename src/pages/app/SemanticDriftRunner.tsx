@@ -1,9 +1,9 @@
 /**
  * SEMANTIC DRIFT — Runner Page
- * v1.1: Added auth validation and save confirmation
+ * v1.2: Added duration tracking + Manual-compliant session recording
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,9 @@ export default function SemanticDriftRunner() {
   const [xpAwarded, setXpAwarded] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   
+  // v1.2: Track session start time for duration calculation
+  const startedAtRef = useRef<Date | null>(null);
+  
   // v1.1: Validate auth before starting game
   useEffect(() => {
     if (!user?.id && !session?.user?.id) {
@@ -51,6 +54,8 @@ export default function SemanticDriftRunner() {
   
   const handleDifficultySelect = useCallback((selected: Difficulty) => {
     setDifficulty(selected);
+    // v1.2: Start timing when game begins
+    startedAtRef.current = new Date();
     setPhase("playing");
   }, []);
   
@@ -69,12 +74,18 @@ export default function SemanticDriftRunner() {
     const xp = Math.round(baseXP * (0.5 + accuracy * 0.5));
     setXpAwarded(xp);
     
+    // v1.2: Calculate duration from startedAtRef
+    const endedAt = new Date();
+    const calculatedDuration = startedAtRef.current
+      ? Math.floor((endedAt.getTime() - startedAtRef.current.getTime()) / 1000)
+      : duration;
+    
     // v1.1: Enhanced save with validation and feedback
     const userId = user?.id || session?.user?.id;
     if (userId) {
       setIsSaving(true);
       try {
-        console.log("[SemanticDrift] Saving session for user:", userId);
+        console.log("[SemanticDrift] Saving session for user:", userId, "Duration:", calculatedDuration);
         
         await recordGameSession({
           gameType: "S1-RA",
@@ -83,6 +94,11 @@ export default function SemanticDriftRunner() {
           xpAwarded: xp,
           score,
           gameName: "semantic_drift",
+          // v1.2: New duration tracking params
+          startedAt: startedAtRef.current?.toISOString() ?? null,
+          durationSeconds: calculatedDuration,
+          status: 'completed',
+          difficulty,
         });
         
         console.log("[SemanticDrift] ✅ Session saved successfully");
@@ -108,6 +124,8 @@ export default function SemanticDriftRunner() {
     setResults([]);
     setDurationSeconds(0);
     setXpAwarded(0);
+    // v1.2: Reset start time for new game
+    startedAtRef.current = new Date();
     setPhase("playing");
   }, []);
   
@@ -170,7 +188,10 @@ export default function SemanticDriftRunner() {
                 </Button>
                 <Button
                   className="flex-1"
-                  onClick={() => setPhase("playing")}
+                  onClick={() => {
+                    startedAtRef.current = new Date();
+                    setPhase("playing");
+                  }}
                 >
                   Start
                 </Button>

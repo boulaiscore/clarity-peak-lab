@@ -5,10 +5,10 @@
  * 
  * Runner page for the Constellation Snap game.
  * Routes XP to RA (fast_thinking) only.
- * v1.1: Added auth validation and save confirmation
+ * v1.2: Added duration tracking + Manual-compliant session recording
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
@@ -26,6 +26,13 @@ export default function ConstellationSnapRunner() {
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const isOverride = searchParams.get("override") === "true";
   const [isComplete, setIsComplete] = useState(false);
+  
+  // v1.2: Track session start time for duration calculation
+  const startedAtRef = useRef<Date | null>(null);
+  
+  useEffect(() => {
+    startedAtRef.current = new Date();
+  }, []);
 
   // v1.1: Validate auth before starting game
   useEffect(() => {
@@ -38,10 +45,16 @@ export default function ConstellationSnapRunner() {
   const handleComplete = useCallback(async (results: ConstellationSnapFinalResults) => {
     setIsComplete(true);
     
+    // v1.2: Calculate duration
+    const endedAt = new Date();
+    const durationSeconds = startedAtRef.current
+      ? Math.floor((endedAt.getTime() - startedAtRef.current.getTime()) / 1000)
+      : 0;
+    
     const userId = user?.id || session?.user?.id;
     if (userId) {
       try {
-        console.log("[ConstellationSnap] Saving session for user:", userId);
+        console.log("[ConstellationSnap] Saving session for user:", userId, "Duration:", durationSeconds);
         
         await recordGameSession({
           gameType: "S1-RA",
@@ -59,6 +72,11 @@ export default function ConstellationSnapRunner() {
           switchLatencyAvg: null,
           perseverationRate: null,
           postSwitchErrorRate: null,
+          // v1.2: New duration tracking params
+          startedAt: startedAtRef.current?.toISOString() ?? null,
+          durationSeconds,
+          status: 'completed',
+          difficulty,
         });
         
         console.log("[ConstellationSnap] ✅ Session saved successfully");
@@ -79,7 +97,7 @@ export default function ConstellationSnapRunner() {
     setTimeout(() => {
       navigate("/neuro-lab");
     }, 500);
-  }, [user?.id, session?.user?.id, recordGameSession, navigate, isOverride]);
+  }, [user?.id, session?.user?.id, recordGameSession, navigate, isOverride, difficulty]);
 
   const handleBack = () => {
     navigate("/neuro-lab");

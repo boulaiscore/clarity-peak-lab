@@ -1,8 +1,11 @@
 // src/hooks/useReportData.ts
 /**
  * ============================================
- * NEUROLOOP PRO – REPORT DATA HOOK v2.0
+ * NEUROLOOP PRO – REPORT DATA HOOK v2.1
  * ============================================
+ * 
+ * v2.1: Use getMediumPeriodStart() for consistent 7-day rolling window
+ *       (aligned with temporal windows system, no timezone drift)
  * 
  * v2.0 BUGFIX: Switched from neuro_gym_sessions to game_sessions
  *       as the single source of truth for session tracking.
@@ -18,6 +21,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { subDays } from "date-fns";
+import { getMediumPeriodStart } from "@/lib/temporalWindows";
 
 type Area = "focus" | "reasoning" | "creativity";
 
@@ -230,9 +234,9 @@ export function useReportData(userId: string) {
 
     const exercisesByArea: Record<Area, string[]> = { focus: [], reasoning: [], creativity: [] };
 
-    // v2.0: Calculate sessions in the last 7 days (aligns with weekly XP window)
+    // v2.1: Use getMediumPeriodStart for consistent rolling window (no timezone drift)
     const today = new Date();
-    const sevenDaysAgo = subDays(today, 7);
+    const sevenDaysAgo = getMediumPeriodStart(today);
     const cutoff30d = subDays(today, 30);
     const heat = new Map<string, number>();
     let sessionsLast7d = 0;
