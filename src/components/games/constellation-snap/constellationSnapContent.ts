@@ -693,4 +693,23 @@ export function shuffleOptions(puzzle: ConstellationPuzzle): ConstellationTile[]
   return shuffleArray([puzzle.correctOption, ...puzzle.distractors]);
 }
 
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Constellation Snap session.
+ * Used by anti-repetition engine to detect duplicate sessions.
+ */
+export function getSessionHashParams(
+  puzzles: ConstellationPuzzle[],
+  difficulty: "easy" | "medium" | "hard"
+): { stimulusIds: string[]; distractorSet: string[]; difficulty: string } {
+  return {
+    stimulusIds: puzzles.map(p => p.correctOption.id),
+    distractorSet: puzzles.flatMap(p => p.distractors.map(d => d.id)).slice(0, 20),
+    difficulty,
+  };
+}
+
 export { NEAR_PUZZLES, MID_PUZZLES, REMOTE_PUZZLES };

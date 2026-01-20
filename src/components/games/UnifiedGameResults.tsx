@@ -61,6 +61,9 @@ export interface UnifiedGameResultsProps {
   // Optional: Review Mistakes data
   mistakes?: ReviewMistake[];
   
+  // Optional: Quality bonus line (from gameQualityBonus)
+  qualityLine?: string;
+  
   // Actions
   onPlayAgain: () => void;
   onExit: () => void;
@@ -114,6 +117,7 @@ export function UnifiedGameResults({
   kpis,
   isPerfect = false,
   mistakes = [],
+  qualityLine,
   onPlayAgain,
   onExit,
 }: UnifiedGameResultsProps) {
@@ -188,6 +192,17 @@ export function UnifiedGameResults({
             <Zap className="w-3.5 h-3.5" />
             <span>XP → {skillName}</span>
           </div>
+          {/* Quality Line (subtle, only if bonus applied) */}
+          {qualityLine && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35 }}
+              className="text-xs text-muted-foreground/70 mt-2 italic"
+            >
+              {qualityLine}
+            </motion.p>
+          )}
         </motion.div>
 
         {/* ─────────────────────────────────────────────
