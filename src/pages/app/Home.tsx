@@ -13,6 +13,7 @@ import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { formatDistanceToNow } from "date-fns";
@@ -27,6 +28,7 @@ import { IntuitionTab } from "@/components/home/IntuitionTab";
 import { ReasoningTab } from "@/components/home/ReasoningTab";
 import { CapacityTab } from "@/components/home/CapacityTab";
 import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCard";
+import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 
 // Circular progress ring component
 interface RingProps {
@@ -121,6 +123,9 @@ const Home = () => {
     gamesXPTarget,
     totalProgress,
   } = useCappedWeeklyProgress();
+  
+  // Prioritized suggestions based on metrics and lab state
+  const { suggestions: prioritizedSuggestions, isLoading: suggestionsLoading } = usePrioritizedSuggestions();
   
   // New cognitive engine metrics
   const { sharpness, readiness, recovery: recoveryRaw, isLoading: metricsLoading } = useTodayMetrics();
@@ -380,7 +385,12 @@ const Home = () => {
               />
             </motion.section>
 
-        {/* In-Progress Tasks Reminder */}
+        {/* Smart Prioritized Suggestions */}
+        {prioritizedSuggestions.slice(0, 2).map((suggestion, index) => (
+          <SmartSuggestionCard key={suggestion.id} suggestion={suggestion} index={index} />
+        ))}
+
+        {/* In-Progress Tasks Reminder - shown after priority suggestions */}
         {(() => {
           const inProgressTasks = getInProgressTasks();
           if (inProgressTasks.length === 0) return null;
@@ -397,7 +407,7 @@ const Home = () => {
             <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.06 }}
+              transition={{ delay: 0.14 }}
               className="mb-4"
             >
               <button
@@ -435,150 +445,6 @@ const Home = () => {
                     Complete to add to Library
                   </span>
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </button>
-            </motion.section>
-          );
-        })()}
-        {recoveryEffective < 45 && (
-          <motion.section
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="mb-4"
-          >
-              <button
-                onClick={() => navigate("/neuro-lab?tab=tasks")}
-                className="w-full p-3.5 rounded-xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 hover:border-emerald-500/40 transition-all active:scale-[0.98] text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-                    <BookMarked className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                      Today: read or reflect
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground">
-                      To restore cognitive capacity for tomorrow.
-                    </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-emerald-500/60" />
-                </div>
-              </button>
-          </motion.section>
-        )}
-
-        {/* Detox Engagement Card - Whoop-style motivation */}
-        {!detoxComplete && (() => {
-          const detoxRemaining = Math.max(0, detoxXPTarget - rawDetoxXP);
-          const minutesRemaining = Math.round(detoxRemaining / 2); // ~2 XP per minute
-          
-          // Different messages based on progress
-          const getDetoxMessage = () => {
-            if (detoxProgress === 0) {
-              return {
-                headline: "Today: start your detox",
-                body: `${minutesRemaining} min to go — to restore focus.`,
-                urgency: "high"
-              };
-            }
-            if (detoxProgress < 50) {
-              return {
-                headline: "Today: continue detox",
-                body: `${minutesRemaining} min left — to hit your weekly target.`,
-                urgency: "medium"
-              };
-            }
-            if (detoxProgress < 100) {
-              return {
-                headline: "Today: finish detox",
-                body: `${minutesRemaining} min left — to complete recovery.`,
-                urgency: "low"
-              };
-            }
-            return null;
-          };
-          
-          const message = getDetoxMessage();
-          if (!message) return null;
-          
-          return (
-            <motion.section
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-4"
-            >
-                <button
-                  onClick={() => navigate("/neuro-lab?tab=detox")}
-                  className="w-full p-3.5 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 hover:border-primary/40 transition-all active:scale-[0.98] text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                      <div className="relative">
-                        <Smartphone className="w-4 h-4 text-primary" />
-                        <Ban className="w-4 h-4 text-primary absolute inset-0" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium text-primary">{message.headline}</h3>
-                        {message.urgency === "high" && (
-                          <Zap className="w-3 h-3 text-primary animate-pulse" />
-                        )}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">{message.body}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-primary/60" />
-                  </div>
-                  
-                  {/* Progress bar */}
-                  <div className="mt-2.5 h-1 bg-primary/10 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-primary rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min(100, detoxProgress)}%` }}
-                      transition={{ duration: 0.8, ease: "easeOut" }}
-                    />
-                  </div>
-                </button>
-            </motion.section>
-          );
-        })()}
-
-        {/* Smart Training Reminder - based on XP progress */}
-        {(() => {
-          const xpRemaining = Math.max(0, gamesXPTarget - cappedGamesXP);
-          const gamesNeeded = Math.ceil(xpRemaining / 20); // ~20 XP average per game
-          
-          // Only show if below 80% progress and there's work to do
-          if (totalProgress >= 80 || xpRemaining <= 0) return null;
-          
-          return (
-            <motion.section
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12 }}
-              className="mb-4"
-            >
-              <button
-                onClick={() => navigate("/neuro-lab")}
-                className="w-full p-3.5 rounded-xl bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border border-blue-500/20 hover:border-blue-500/40 transition-all active:scale-[0.98] text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0">
-                    <Dumbbell className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                      Today: train to stay on track
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground">
-                      {xpRemaining} XP left — ~{gamesNeeded} game{gamesNeeded > 1 ? 's' : ''} to hit target
-                    </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-blue-500/60" />
                 </div>
               </button>
             </motion.section>
