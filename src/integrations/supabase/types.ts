@@ -193,6 +193,8 @@ export type Database = {
       }
       game_sessions: {
         Row: {
+          anti_repetition_triggered: boolean | null
+          bonus_applied: boolean | null
           completed_at: string
           created_at: string
           degradation_slope: number | null
@@ -207,6 +209,7 @@ export type Database = {
           id: string
           perseveration_rate: number | null
           post_switch_error_rate: number | null
+          quality_score: number | null
           recovery_speed_index: number | null
           rt_variability: number | null
           score: number
@@ -221,6 +224,8 @@ export type Database = {
           xp_awarded: number
         }
         Insert: {
+          anti_repetition_triggered?: boolean | null
+          bonus_applied?: boolean | null
           completed_at?: string
           created_at?: string
           degradation_slope?: number | null
@@ -235,6 +240,7 @@ export type Database = {
           id?: string
           perseveration_rate?: number | null
           post_switch_error_rate?: number | null
+          quality_score?: number | null
           recovery_speed_index?: number | null
           rt_variability?: number | null
           score?: number
@@ -249,6 +255,8 @@ export type Database = {
           xp_awarded?: number
         }
         Update: {
+          anti_repetition_triggered?: boolean | null
+          bonus_applied?: boolean | null
           completed_at?: string
           created_at?: string
           degradation_slope?: number | null
@@ -263,6 +271,7 @@ export type Database = {
           id?: string
           perseveration_rate?: number | null
           post_switch_error_rate?: number | null
+          quality_score?: number | null
           recovery_speed_index?: number | null
           rt_variability?: number | null
           score?: number
@@ -893,6 +902,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           visual_processing?: number
+        }
+        Relationships: []
+      }
+      user_game_history: {
+        Row: {
+          bonus_applied: boolean | null
+          combo_hash: string
+          completed_at: string
+          difficulty: string | null
+          fallback_used: boolean | null
+          game_name: string
+          id: string
+          near_duplicate_rejected: number | null
+          quality_score: number | null
+          user_id: string
+        }
+        Insert: {
+          bonus_applied?: boolean | null
+          combo_hash: string
+          completed_at?: string
+          difficulty?: string | null
+          fallback_used?: boolean | null
+          game_name: string
+          id?: string
+          near_duplicate_rejected?: number | null
+          quality_score?: number | null
+          user_id: string
+        }
+        Update: {
+          bonus_applied?: boolean | null
+          combo_hash?: string
+          completed_at?: string
+          difficulty?: string | null
+          fallback_used?: boolean | null
+          game_name?: string
+          id?: string
+          near_duplicate_rejected?: number | null
+          quality_score?: number | null
+          user_id?: string
         }
         Relationships: []
       }
