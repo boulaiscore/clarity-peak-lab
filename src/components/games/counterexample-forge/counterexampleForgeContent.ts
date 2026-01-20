@@ -329,3 +329,25 @@ export function generateSession(difficulty: Difficulty): RuleSet {
 export function getAllRuleSets(): RuleSet[] {
   return [...EASY_RULES, ...MEDIUM_RULES, ...HARD_RULES];
 }
+
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Counterexample Forge session.
+ * Used by anti-repetition engine to detect duplicate sessions.
+ */
+export function getSessionHashParams(
+  ruleSet: RuleSet,
+  difficulty: Difficulty
+): { stimulusIds: string[]; ruleParams: Record<string, any>; difficulty: string } {
+  return {
+    stimulusIds: [ruleSet.id],
+    ruleParams: { 
+      claimChipsCount: ruleSet.claimChips.length,
+      breakCasesCount: ruleSet.breakCases.length,
+    },
+    difficulty,
+  };
+}

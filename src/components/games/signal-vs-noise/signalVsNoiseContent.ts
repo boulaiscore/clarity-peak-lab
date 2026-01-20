@@ -745,3 +745,21 @@ export function generateSession(difficulty: Difficulty): SignalCase[] {
 export function getAllCases(): SignalCase[] {
   return CASES;
 }
+
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Signal vs Noise session.
+ * Used by anti-repetition engine to detect duplicate sessions.
+ */
+export function getSessionHashParams(
+  cases: SignalCase[],
+  difficulty: Difficulty
+): { stimulusIds: string[]; difficulty: string } {
+  return {
+    stimulusIds: cases.map(c => c.id),
+    difficulty,
+  };
+}

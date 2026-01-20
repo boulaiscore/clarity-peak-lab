@@ -474,3 +474,21 @@ export function getPuzzlesForSession(
     options: shuffleArray(puzzle.options),
   }));
 }
+
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Flash Connect session.
+ * Used by anti-repetition engine to detect duplicate sessions.
+ */
+export function getSessionHashParams(
+  puzzles: FlashConnectPuzzle[],
+  difficulty: "easy" | "medium" | "hard"
+): { stimulusIds: string[]; difficulty: string } {
+  return {
+    stimulusIds: puzzles.map(p => p.id),
+    difficulty,
+  };
+}

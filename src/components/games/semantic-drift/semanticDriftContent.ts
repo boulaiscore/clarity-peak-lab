@@ -708,3 +708,21 @@ export const DIFFICULTY_CONFIG = {
   medium: { rounds: 28, timePerRound: 2500 },
   hard: { rounds: 30, timePerRound: 2000 },
 } as const;
+
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Semantic Drift session.
+ * Used by anti-repetition engine to detect duplicate sessions.
+ */
+export function getSessionHashParams(
+  nodes: SemanticNode[],
+  difficulty: "easy" | "medium" | "hard"
+): { stimulusIds: string[]; difficulty: string } {
+  return {
+    stimulusIds: nodes.map(n => n.seed),
+    difficulty,
+  };
+}

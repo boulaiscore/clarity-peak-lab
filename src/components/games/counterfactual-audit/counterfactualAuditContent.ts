@@ -1010,3 +1010,21 @@ export function generateSession(difficulty: Difficulty): AuditRound[] {
 export function getAllRounds(): AuditRound[] {
   return ROUNDS;
 }
+
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Counterfactual Audit session.
+ * Used by anti-repetition engine to detect duplicate sessions.
+ */
+export function getSessionHashParams(
+  rounds: AuditRound[],
+  difficulty: Difficulty
+): { stimulusIds: string[]; difficulty: string } {
+  return {
+    stimulusIds: rounds.map(r => r.id),
+    difficulty,
+  };
+}

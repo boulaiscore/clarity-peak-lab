@@ -293,3 +293,20 @@ export const DECISION_LABELS: Record<Decision, { label: string; description: str
     description: "Logical error or obvious confounding" 
   },
 };
+
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Causal Ledger session.
+ * Used by anti-repetition engine to detect duplicate sessions.
+ */
+export function getSessionHashParams(
+  scenarios: CausalScenario[]
+): { stimulusIds: string[]; difficulty: string } {
+  return {
+    stimulusIds: scenarios.map(s => s.id),
+    difficulty: "medium", // Causal Ledger uses act-based difficulty, not explicit level
+  };
+}

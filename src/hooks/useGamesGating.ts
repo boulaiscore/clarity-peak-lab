@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – GAMES GATING HOOK v1.6
+ * NEUROLOOP PRO – GAMES GATING HOOK v1.7
  * ============================================
  * 
  * Enforces game availability based on:
@@ -17,6 +17,11 @@
  *       - Retry logic for transient failures
  *       - Toast feedback for save confirmation
  *       - Detailed logging for debugging
+ * 
+ * v1.7: Anti-Repetition + Quality Bonus integration:
+ *       - Records combo hashes for anti-repetition
+ *       - Stores quality scores and bonus flags
+ *       - Supports quality bonus XP calculation
  * 
  * NO OVERRIDE ALLOWED FOR GAMES.
  */
@@ -38,6 +43,7 @@ import {
   getGameTypeFromArea,
   isSafetyRuleActive,
 } from "@/lib/gamesGating";
+import { recordComboHash } from "@/lib/antiRepetitionEngine";
 import { startOfDay, startOfWeek, subDays, format } from "date-fns";
 import { toast } from "sonner";
 
@@ -413,6 +419,11 @@ export function useRecordGameSession() {
     postSwitchErrorRate?: number | null;
     // Difficulty override tracking (v1.4)
     difficultyOverride?: boolean;
+    // v1.7: Anti-repetition + quality bonus params
+    comboHash?: string;
+    qualityScore?: number;
+    bonusApplied?: boolean;
+    antiRepetitionTriggered?: boolean;
   }) => {
     // v1.6: Enhanced user validation
     const userId = user?.id;
@@ -482,6 +493,10 @@ export function useRecordGameSession() {
             post_switch_error_rate: params.postSwitchErrorRate ?? null,
             // Difficulty override tracking
             difficulty_override: params.difficultyOverride ?? false,
+            // v1.7: Quality + anti-repetition tracking
+            quality_score: params.qualityScore ?? null,
+            bonus_applied: params.bonusApplied ?? false,
+            anti_repetition_triggered: params.antiRepetitionTriggered ?? false,
           })
           .select()
           .single();
@@ -504,6 +519,22 @@ export function useRecordGameSession() {
           queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
           queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
           return data;
+        }
+        
+        // v1.7: Record combo hash for anti-repetition (if provided)
+        if (params.comboHash && params.gameName) {
+          recordComboHash(
+            userId,
+            params.gameName,
+            params.comboHash,
+            params.difficulty ?? "medium",
+            params.qualityScore,
+            params.bonusApplied,
+            params.antiRepetitionTriggered ? 1 : 0,
+            false
+          ).catch((err) => {
+            console.warn("[GameSession] Failed to record combo hash:", err);
+          });
         }
         
         // 2. Insert into exercise_completions ONLY if completed AND xpAwarded > 0

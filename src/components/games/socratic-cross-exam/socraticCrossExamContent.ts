@@ -1354,3 +1354,19 @@ export function generateSocraticSession(): SocraticRound[] {
   
   return session.slice(0, SOCRATIC_CONFIG.rounds);
 }
+
+// ============================================
+// ANTI-REPETITION HASH GENERATION
+// ============================================
+
+/**
+ * Generate combo hash parameters for Socratic Cross-Exam session.
+ */
+export function getSessionHashParams(
+  rounds: SocraticRound[]
+): { stimulusIds: string[]; difficulty: string } {
+  return {
+    stimulusIds: rounds.map(r => r.id),
+    difficulty: "medium",
+  };
+}
