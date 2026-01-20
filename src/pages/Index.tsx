@@ -12,7 +12,7 @@ import {
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <Hero />
       <SubscriptionsSection />
