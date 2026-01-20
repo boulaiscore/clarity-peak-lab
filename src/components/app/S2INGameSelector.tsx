@@ -63,6 +63,16 @@ const GAMES: GameOption[] = [
     estimatedXP: 25,
     estimatedDuration: "~5 min",
   },
+  {
+    id: "counterexample_forge",
+    name: "Counterexample Forge",
+    tagline: "Rule Breaking",
+    description: "Disprove proposed rules, choose the best patch, then stress-test your improved hypothesis.",
+    icon: FlaskConical,
+    route: "/neuro-lab/counterexample-forge",
+    estimatedXP: 25,
+    estimatedDuration: "~5 min",
+  },
 ];
 
 // Helper to get human-readable reason
