@@ -40,6 +40,7 @@ import CounterfactualAuditRunner from "./pages/app/CounterfactualAuditRunner";
 import SocraticCrossExamRunner from "./pages/app/SocraticCrossExamRunner";
 import SignalVsNoiseRunner from "./pages/app/SignalVsNoiseRunner";
 import HiddenRuleLabRunner from "./pages/app/HiddenRuleLabRunner";
+import CounterexampleForgeRunner from "./pages/app/CounterexampleForgeRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
@@ -338,6 +339,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <HiddenRuleLabRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-lab/counterexample-forge"
+        element={
+          <ProtectedRoute>
+            <CounterexampleForgeRunner />
           </ProtectedRoute>
         }
       />
