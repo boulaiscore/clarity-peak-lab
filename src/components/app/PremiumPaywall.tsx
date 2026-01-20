@@ -62,7 +62,7 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
 
   const handleUpgrade = () => {
     onOpenChange(false);
-    navigate("/app/premium");
+    navigate("/app/account?tab=subscription");
   };
 
   return (

@@ -272,7 +272,7 @@ export default function CognitiveReport() {
               <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
             </div>
           </div>
-          <Link to="/app/premium">
+          <Link to="/app/account?tab=subscription">
             <Button variant="outline" className="w-full gap-2 border-primary/30 hover:bg-primary/10">
               <Crown className="w-4 h-4 text-amber-400" />
               View Premium Plans
