@@ -173,6 +173,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
     trainingCapacity, 
     optimalRange: optimalRangeXP, 
     planCap,
+    weeklyXPTarget,
     shouldSuggestUpgrade,
     isLoading: tcLoading,
     tcTrend,
@@ -210,18 +211,20 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   const cappedGames = Math.min(rawGamesXP, gamesXPTarget);
   
   // Calculate adaptive status based on actual XP, optimal range, and minimum meaningful threshold
-  const adaptiveStatus = useMemo(() => getAdaptiveStatus(rawGamesXP, optimalRangeXP, planCap), [rawGamesXP, optimalRangeXP, planCap]);
+  // v1.5: Use weeklyXPTarget (80/140/200) for status calculation, not planCap
+  const adaptiveStatus = useMemo(() => getAdaptiveStatus(rawGamesXP, optimalRangeXP, weeklyXPTarget), [rawGamesXP, optimalRangeXP, weeklyXPTarget]);
   
-  // Calculate bar percentages for optimal range visualization (scale 0 → planCap)
+  // Calculate bar percentages for optimal range visualization (scale 0 → weeklyXPTarget)
+  // v1.5: Use weeklyXPTarget as the bar max, not planCap
   const optimalRangePercent = useMemo(() => ({
-    min: (optimalRangeXP.min / planCap) * 100,
-    max: (optimalRangeXP.max / planCap) * 100
-  }), [optimalRangeXP, planCap]);
+    min: (optimalRangeXP.min / weeklyXPTarget) * 100,
+    max: (optimalRangeXP.max / weeklyXPTarget) * 100
+  }), [optimalRangeXP, weeklyXPTarget]);
   
-  // Current progress as percentage of planCap
+  // Current progress as percentage of weeklyXPTarget
   const progressPercent = useMemo(() => 
-    Math.min(100, (rawGamesXP / planCap) * 100), 
-    [rawGamesXP, planCap]
+    Math.min(100, (rawGamesXP / weeklyXPTarget) * 100), 
+    [rawGamesXP, weeklyXPTarget]
   );
 
   useEffect(() => {
@@ -333,9 +336,9 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </Tooltip>
               </TooltipProvider>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] text-muted-foreground/70 tabular-nums">
-                  {Math.round(rawGamesXP)} / {planCap} XP
-                </span>
+              <span className="text-[9px] text-muted-foreground/70 tabular-nums">
+                {Math.round(rawGamesXP)} / {weeklyXPTarget} XP
+              </span>
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -405,7 +408,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <span className="text-[8px] text-muted-foreground/60">{planCap} XP</span>
+              <span className="text-[8px] text-muted-foreground/60">{weeklyXPTarget} XP</span>
             </div>
             
             {/* Upgrade hint */}
@@ -588,7 +591,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           <span className="text-[12px] font-semibold">Cognitive Load (Weekly)</span>
         </div>
         <div className="text-[10px] text-muted-foreground/50 tabular-nums">
-          {Math.round(rawGamesXP)} / {planCap} XP
+          {Math.round(rawGamesXP)} / {weeklyXPTarget} XP
           {isSyncing && <span className="ml-1 text-[8px]">•</span>}
         </div>
       </div>
@@ -643,7 +646,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
         <span className="text-[9px] text-teal-400/70">
           Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP
         </span>
-        <span className="text-[9px] text-muted-foreground/60">{planCap} XP</span>
+        <span className="text-[9px] text-muted-foreground/60">{weeklyXPTarget} XP</span>
       </div>
       
       {/* Upgrade hint */}
