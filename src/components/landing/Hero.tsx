@@ -115,24 +115,22 @@ export function Hero() {
           transition={{ duration: 1, ease: "easeOut" }}
           className="max-w-5xl mx-auto text-center"
         >
-          {/* Main Headline - Clean, elegant, no bold */}
+          {/* Main Headline - Clean, elegant, single line */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-white"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-white"
           >
-            Master your
-            <br />
-            <span className="text-primary">mental edge.</span>
+            Master your <span className="text-primary">mental edge.</span>
           </motion.h1>
 
-          {/* Subheadline - light, simple */}
+          {/* Subheadline - single line */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7 }}
-            className="text-lg sm:text-xl md:text-2xl text-white/60 max-w-xl mx-auto mb-8 leading-relaxed font-light"
+            className="text-base sm:text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-8 font-light"
           >
             The cognitive performance system for elite professionals.
           </motion.p>
