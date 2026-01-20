@@ -56,6 +56,7 @@ interface ClinicalReportProps {
     earned_at?: string;
   }>;
   generatedAt: Date;
+  isPreview?: boolean;
 }
 
 // Helper functions
@@ -128,7 +129,7 @@ function formatEducation(level: string | null | undefined, discipline: string | 
   return d ? `${l} (${d})` : l;
 }
 
-export function ClinicalReport({ profile, metrics, aggregates, badges, generatedAt }: ClinicalReportProps) {
+export function ClinicalReport({ profile, metrics, aggregates, badges, generatedAt, isPreview = false }: ClinicalReportProps) {
   const reportId = `NL-${generatedAt.getTime().toString(36).toUpperCase()}`;
   const observationWindow = useMemo(() => {
     const endDate = generatedAt;
@@ -267,7 +268,25 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
   }, [sci, accuracy, totalSessions]);
 
   return (
-    <div className="clinical-report">
+    <div className="clinical-report relative">
+      {/* Preview watermark */}
+      {isPreview && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
+          style={{ top: '40%' }}
+        >
+          <div 
+            className="text-amber-500/20 font-bold text-[80px] tracking-[0.3em] select-none"
+            style={{ 
+              transform: 'rotate(-35deg)',
+              textShadow: '0 0 10px rgba(0,0,0,0.05)'
+            }}
+          >
+            PREVIEW
+          </div>
+        </div>
+      )}
+      
       {/* Page 1: Cover & Identification */}
       <section className="clinical-page clinical-cover">
         <header className="clinical-header">
@@ -287,6 +306,11 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
         <div className="clinical-title-block">
           <h1 className="clinical-main-title">Cognitive Performance Assessment Report</h1>
           <p className="clinical-report-id">Report ID: {reportId}</p>
+          {isPreview && (
+            <p className="text-amber-600 text-xs font-medium mt-2 px-3 py-1 bg-amber-50 rounded-md inline-block">
+              ⚠ Preview — Complete weekly training to generate final report
+            </p>
+          )}
         </div>
 
         <section className="clinical-section">
