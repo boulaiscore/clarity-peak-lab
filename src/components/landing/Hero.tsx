@@ -115,16 +115,16 @@ export function Hero() {
           transition={{ duration: 1, ease: "easeOut" }}
           className="max-w-5xl mx-auto text-center"
         >
-          {/* Main Headline - MASSIVE, bold, tight tracking */}
+          {/* Main Headline - WHOOP style with Bebas Neue */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-[-0.04em] mb-6 leading-[1.1] text-white"
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.02em] mb-6 leading-[0.95] text-white uppercase"
           >
-            Uncover your
+            Master your
             <br />
-            <span className="text-primary">cognitive patterns.</span>
+            <span className="text-primary">mental edge.</span>
           </motion.h1>
 
           {/* Subheadline - light, simple */}
