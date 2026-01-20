@@ -793,10 +793,22 @@ export interface DynamicOptimalRange {
 /**
  * Get dynamic optimal range based on Training Capacity.
  * optMin = round(0.60 * TC)
- * optMax = round(0.85 * TC)
+ * optMax = min(round(0.85 * TC), weeklyXPTarget) – if target provided
+ * 
+ * v1.5: Ensures optMax doesn't exceed the plan's XP target
  */
-export function getDynamicOptimalRange(tc: number, planCap: number): DynamicOptimalRange {
-  const min = Math.round(tc * TC_OPTIMAL_MIN_PERCENT);
-  const max = Math.round(tc * TC_OPTIMAL_MAX_PERCENT);
+export function getDynamicOptimalRange(
+  tc: number, 
+  planCap: number, 
+  weeklyXPTarget?: number
+): DynamicOptimalRange {
+  const rawMin = Math.round(tc * TC_OPTIMAL_MIN_PERCENT);
+  const rawMax = Math.round(tc * TC_OPTIMAL_MAX_PERCENT);
+  
+  // If weeklyXPTarget provided, cap optMax at the target
+  const max = weeklyXPTarget ? Math.min(rawMax, weeklyXPTarget) : rawMax;
+  // Ensure optMin doesn't exceed 70% of the capped optMax
+  const min = Math.min(rawMin, Math.round(max * 0.7));
+  
   return { min, max, cap: planCap };
 }

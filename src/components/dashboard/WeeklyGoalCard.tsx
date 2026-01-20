@@ -320,7 +320,10 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-2 cursor-help">
                       <Activity className="w-3.5 h-3.5 text-primary" />
-                      <span className="text-[11px] font-semibold">Cognitive Load (Weekly)</span>
+                      <span className="text-[11px] font-semibold">
+                        Cognitive Load
+                        <span className="text-[9px] font-normal text-muted-foreground/70 ml-1">(Rolling 7 days)</span>
+                      </span>
                       <Info className="w-2.5 h-2.5 text-muted-foreground/50" />
                     </div>
                   </TooltipTrigger>

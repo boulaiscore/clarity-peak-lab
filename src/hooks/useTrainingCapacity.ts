@@ -26,7 +26,7 @@ import {
   TC_PLAN_CAPS,
   TC_UPGRADE_HINT_THRESHOLD,
 } from "@/lib/decayConstants";
-import { TrainingPlanId } from "@/lib/trainingPlans";
+import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 
 export type TCTrend = "up" | "down" | "stable";
 
@@ -252,7 +252,11 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
   const result = useMemo((): UseTrainingCapacityResult => {
     const tc = tcData?.training_capacity ?? TC_FLOOR;
     const previousTC = tcData?.tc_previous_value ?? tc;
-    const optimalRange = getDynamicOptimalRange(tc, planCap);
+    
+    // v1.5: Pass weeklyXPTarget to cap optMax at plan target
+    const plan = TRAINING_PLANS[planId];
+    const weeklyXPTarget = plan?.xpTargetWeek ?? planCap;
+    const optimalRange = getDynamicOptimalRange(tc, planCap, weeklyXPTarget);
     
     // Show upgrade hint if optMax >= 90% of planCap
     const shouldSuggestUpgrade = optimalRange.max >= planCap * TC_UPGRADE_HINT_THRESHOLD;
@@ -275,7 +279,7 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
       tcTrend,
       tcDelta,
     };
-  }, [tcData, planCap, tcLoading, statesLoading]);
+  }, [tcData, planCap, planId, tcLoading, statesLoading]);
   
   return result;
 }

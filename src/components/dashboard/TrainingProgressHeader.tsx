@@ -123,7 +123,10 @@ export const TrainingProgressHeader = () => {
         {/* Stats Column */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-sm font-semibold text-foreground">Weekly Progress</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              Weekly Progress
+              <span className="text-[9px] font-normal text-muted-foreground ml-1">(7-day window)</span>
+            </h3>
             {streak > 0 && (
               <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-orange-500/10">
                 <Flame className="w-3 h-3 text-orange-400" />
