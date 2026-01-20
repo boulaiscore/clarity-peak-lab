@@ -115,12 +115,12 @@ export function Hero() {
           transition={{ duration: 1, ease: "easeOut" }}
           className="max-w-5xl mx-auto text-center"
         >
-          {/* Main Headline - WHOOP style with Bebas Neue */}
+          {/* Main Headline - Clean, elegant, no bold */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.02em] mb-6 leading-[0.95] text-white uppercase"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-white"
           >
             Master your
             <br />
