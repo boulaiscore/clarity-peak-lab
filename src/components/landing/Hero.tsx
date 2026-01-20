@@ -12,10 +12,10 @@ export function Hero() {
         <img
           src={heroIllustration}
           alt="Neural network illustration"
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          className="absolute inset-0 w-full h-full object-cover opacity-50"
         />
         {/* Light overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-white/60 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/40 z-10" />
       </div>
 
       {/* Content */}
