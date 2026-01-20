@@ -34,6 +34,7 @@ export interface UseTrainingCapacityResult {
   trainingCapacity: number;
   optimalRange: DynamicOptimalRange;
   planCap: number;
+  weeklyXPTarget: number; // v1.5: The actual XP target for the plan (80/140/200)
   shouldSuggestUpgrade: boolean;
   isLoading: boolean;
   tcTrend: TCTrend;
@@ -248,14 +249,16 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
     recLoading,
   ]);
   
+  // v1.5: Get plan's weekly XP target
+  const plan = TRAINING_PLANS[planId];
+  const weeklyXPTarget = plan?.xpTargetWeek ?? planCap;
+  
   // Compute final values including trend
   const result = useMemo((): UseTrainingCapacityResult => {
     const tc = tcData?.training_capacity ?? TC_FLOOR;
     const previousTC = tcData?.tc_previous_value ?? tc;
     
     // v1.5: Pass weeklyXPTarget to cap optMax at plan target
-    const plan = TRAINING_PLANS[planId];
-    const weeklyXPTarget = plan?.xpTargetWeek ?? planCap;
     const optimalRange = getDynamicOptimalRange(tc, planCap, weeklyXPTarget);
     
     // Show upgrade hint if optMax >= 90% of planCap
@@ -274,12 +277,13 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
       trainingCapacity: tc,
       optimalRange,
       planCap,
+      weeklyXPTarget, // v1.5: Expose the actual XP target
       shouldSuggestUpgrade,
       isLoading: tcLoading || statesLoading,
       tcTrend,
       tcDelta,
     };
-  }, [tcData, planCap, planId, tcLoading, statesLoading]);
+  }, [tcData, planCap, planId, weeklyXPTarget, tcLoading, statesLoading]);
   
   return result;
 }
