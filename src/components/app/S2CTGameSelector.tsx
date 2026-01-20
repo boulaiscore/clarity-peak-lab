@@ -53,6 +53,28 @@ const GAMES: GameOption[] = [
     estimatedDuration: "8-10 min",
     accentColor: "violet",
   },
+  {
+    id: "counterfactual_audit",
+    name: "Counterfactual Audit",
+    tagline: "Evidence Discipline",
+    description: "Find the one missing fact that flips the decision. Train calibration and counterfactual reasoning.",
+    icon: Brain,
+    route: "/neuro-lab/counterfactual-audit",
+    estimatedXP: 20,
+    estimatedDuration: "~4 min",
+    accentColor: "violet",
+  },
+  {
+    id: "socratic_cross_exam",
+    name: "Socratic Cross-Exam",
+    tagline: "Assumption Analysis",
+    description: "Surface hidden assumptions and test internal consistency. Discovery-based reasoning.",
+    icon: Brain,
+    route: "/neuro-lab/socratic-cross-exam",
+    estimatedXP: 18,
+    estimatedDuration: "4-6 min",
+    accentColor: "violet",
+  },
 ];
 
 // Helper to get human-readable reason

@@ -36,6 +36,8 @@ import FlashConnectRunner from "./pages/app/FlashConnectRunner";
 import ConstellationSnapRunner from "./pages/app/ConstellationSnapRunner";
 import SemanticDriftRunner from "./pages/app/SemanticDriftRunner";
 import CausalLedgerRunner from "./pages/app/CausalLedgerRunner";
+import CounterfactualAuditRunner from "./pages/app/CounterfactualAuditRunner";
+import SocraticCrossExamRunner from "./pages/app/SocraticCrossExamRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
@@ -302,6 +304,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <CausalLedgerRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-lab/counterfactual-audit"
+        element={
+          <ProtectedRoute>
+            <CounterfactualAuditRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/neuro-lab/socratic-cross-exam"
+        element={
+          <ProtectedRoute>
+            <SocraticCrossExamRunner />
           </ProtectedRoute>
         }
       />
