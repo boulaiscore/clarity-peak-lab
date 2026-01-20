@@ -2,6 +2,7 @@
 // Medical-grade Cognitive Performance Report
 import React, { useMemo } from "react";
 import { Brain } from "lucide-react";
+import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
 type Area = "focus" | "reasoning" | "creativity";
 
@@ -58,6 +59,8 @@ interface ClinicalReportProps {
   }>;
   generatedAt: Date;
   isPreview?: boolean;
+  // v3.0: Live SCI from useCognitiveNetworkScore for consistency with Dashboard
+  liveSci?: SCIBreakdown | null;
 }
 
 // Helper functions
@@ -130,7 +133,7 @@ function formatEducation(level: string | null | undefined, discipline: string | 
   return d ? `${l} (${d})` : l;
 }
 
-export function ClinicalReport({ profile, metrics, aggregates, badges, generatedAt, isPreview = false }: ClinicalReportProps) {
+export function ClinicalReport({ profile, metrics, aggregates, badges, generatedAt, isPreview = false, liveSci }: ClinicalReportProps) {
   const reportId = `NL-${generatedAt.getTime().toString(36).toUpperCase()}`;
   const observationWindow = useMemo(() => {
     const endDate = generatedAt;
@@ -142,7 +145,9 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
     };
   }, [generatedAt]);
 
-  const sci = Math.round(metrics.cognitive_performance_score ?? 50);
+  // v3.0: Use live SCI from Dashboard calculation for consistency
+  // Falls back to DB value if liveSci not provided
+  const sci = liveSci?.total ?? Math.round(metrics.cognitive_performance_score ?? 50);
   const sciPercentile = getPercentile(sci);
   const sciClass = getClassification(sci);
   const cri = Math.round(metrics.cognitive_readiness_score ?? 50);
@@ -153,10 +158,17 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
   const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
   const accuracy = aggregates.accuracyRatePct ?? 0;
   
-  const fast = metrics.fast_thinking ?? 50;
-  const slow = metrics.slow_thinking ?? 50;
-  const focus = metrics.focus_stability ?? 50;
-  const reasoning = metrics.reasoning_accuracy ?? 50;
+  // v3.0: Use live skill values from SCI calculation for S1/S2 consistency
+  const AE = liveSci?.cognitivePerformance?.components?.AE ?? metrics.focus_stability ?? 50;
+  const RA = liveSci?.cognitivePerformance?.components?.RA ?? metrics.fast_thinking ?? 50;
+  const CT = liveSci?.cognitivePerformance?.components?.CT ?? metrics.reasoning_accuracy ?? 50;
+  const IN = liveSci?.cognitivePerformance?.components?.IN ?? metrics.slow_thinking ?? 50;
+  
+  // Legacy aliases for backward compatibility
+  const fast = RA;
+  const slow = IN;
+  const focus = AE;
+  const reasoning = CT;
   const creativity = metrics.creativity ?? 50;
   
   const age = profile.birth_date ? calculateAge(profile.birth_date) : null;
@@ -180,9 +192,10 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
     return 10;
   }, [age, cognitiveAge]);
 
-  // System balance
-  const s1Score = Math.round((fast + focus + (metrics.reaction_speed ?? 50)) / 3);
-  const s2Score = Math.round((slow + reasoning + (metrics.clarity_score ?? 50)) / 3);
+  // v3.0: System 1/2 scores aligned with Dashboard calculation
+  // S1 = average of fast skills (AE, RA), S2 = average of slow skills (CT, IN)
+  const s1Score = Math.round((AE + RA) / 2);
+  const s2Score = Math.round((CT + IN) / 2);
   const systemBalance = useMemo(() => {
     const diff = s1Score - s2Score;
     if (Math.abs(diff) <= 5) return { status: "Balanced", desc: "Optimal dual-process integration" };
