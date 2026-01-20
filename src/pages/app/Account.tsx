@@ -851,7 +851,7 @@ const Account = () => {
                     <Rocket className="w-5 h-5 text-purple-400" />
                     <span className="font-semibold">Pro</span>
                   </div>
-                  <span className="text-lg font-bold">$16.99<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                  <span className="text-lg font-bold">$39.99<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
                 </div>
                 <ul className="space-y-2 text-xs text-muted-foreground mb-4">
                   <li className="flex items-center gap-2">
