@@ -464,18 +464,24 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           </text>
         </svg>
 
-        {/* Score overlays on brain - show baseline values */}
+        {/* Score overlays on brain */}
         <div className="absolute inset-0 flex pointer-events-none">
-          {/* Fast baseline */}
+          {/* Fast current */}
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <span className="text-3xl font-bold text-amber-400 drop-shadow-lg">{fastBaseline}</span>
+              <span className="text-3xl font-bold text-amber-400 drop-shadow-lg">{fastScore}</span>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                Baseline: {fastBaseline}
+              </div>
             </div>
           </div>
-          {/* Slow baseline */}
+          {/* Slow current */}
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <span className="text-3xl font-bold text-violet-400 drop-shadow-lg">{slowBaseline}</span>
+              <span className="text-3xl font-bold text-violet-400 drop-shadow-lg">{slowScore}</span>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                Baseline: {slowBaseline}
+              </div>
             </div>
           </div>
         </div>
