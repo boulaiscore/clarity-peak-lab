@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Brain, Zap, Timer, Target, Leaf, Calendar, 
-  ChevronRight, ChevronLeft, X, Sparkles 
+  ChevronRight, ChevronLeft, X, Sparkles, Activity, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -162,6 +162,77 @@ const RecoveryBalanceVisual = () => (
   </div>
 );
 
+// Metrics visual - shows the four main metrics
+const MetricsVisual = () => (
+  <div className="py-3">
+    <div className="grid grid-cols-2 gap-3">
+      {/* Sharpness */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20"
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <Zap className="w-4 h-4 text-blue-400" />
+          <span className="text-[10px] font-semibold text-blue-400">Sharpness</span>
+        </div>
+        <p className="text-[8px] text-muted-foreground leading-tight">
+          Your intuitive clarity today. High = fast pattern recognition.
+        </p>
+      </motion.div>
+      
+      {/* Readiness */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20"
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <Activity className="w-4 h-4 text-indigo-400" />
+          <span className="text-[10px] font-semibold text-indigo-400">Readiness</span>
+        </div>
+        <p className="text-[8px] text-muted-foreground leading-tight">
+          Capacity for deliberate work. Train hard when high.
+        </p>
+      </motion.div>
+      
+      {/* Recovery */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/20"
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <Leaf className="w-4 h-4 text-teal-400" />
+          <span className="text-[10px] font-semibold text-teal-400">Recovery</span>
+        </div>
+        <p className="text-[8px] text-muted-foreground leading-tight">
+          Attentional restoration. Low = rest more, train less.
+        </p>
+      </motion.div>
+      
+      {/* Cognitive Age */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20"
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <Clock className="w-4 h-4 text-amber-400" />
+          <span className="text-[10px] font-semibold text-amber-400">Cognitive Age</span>
+        </div>
+        <p className="text-[8px] text-muted-foreground leading-tight">
+          Your brain's functional age. Drops with consistent training.
+        </p>
+      </motion.div>
+    </div>
+  </div>
+);
+
 const GetStartedVisual = () => (
   <motion.div
     initial={{ scale: 0.8, opacity: 0 }}
@@ -213,6 +284,15 @@ const SLIDES: TutorialSlide[] = [
     icon: <Leaf className="w-5 h-5" />,
     visual: <RecoveryBalanceVisual />,
     accent: "from-teal-500/20 to-primary/20",
+  },
+  {
+    id: "metrics",
+    title: "Your Daily Metrics",
+    subtitle: "What the numbers mean",
+    description: "These four metrics show your cognitive state today. Use them to decide when to train hard and when to recover.",
+    icon: <Activity className="w-5 h-5" />,
+    visual: <MetricsVisual />,
+    accent: "from-blue-500/20 to-teal-500/20",
   },
   {
     id: "start",
