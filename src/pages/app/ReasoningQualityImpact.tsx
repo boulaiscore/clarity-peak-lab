@@ -15,6 +15,7 @@ import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { AppShell } from "@/components/app/AppShell";
 import { TASK_TYPE_WEIGHTS } from "@/lib/reasoningQuality";
 
 interface ImpactDriver {
@@ -247,31 +248,32 @@ export default function ReasoningQualityImpact() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
+      <AppShell>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/30">
-        <div className="flex items-center justify-center relative h-14 px-4">
+    <AppShell>
+      <div className="pb-6">
+        {/* Page Header */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30">
           <button
             onClick={() => navigate("/app")}
-            className="absolute left-4 p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="text-center">
+          <div>
             <h1 className="text-sm font-semibold tracking-wide uppercase">Reasoning Quality</h1>
             <p className="text-[10px] text-muted-foreground">Impact Analysis</p>
           </div>
         </div>
-      </header>
 
-      <main className="px-5 py-6 pb-24 max-w-lg mx-auto">
+        <div className="px-5 py-6 max-w-lg mx-auto">
         {/* Meta info */}
         <div className="mb-6">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-2">
@@ -394,7 +396,7 @@ export default function ReasoningQualityImpact() {
             Single actions do not directly change Reasoning Quality.
           </p>
         </div>
-      </main>
+      </div>
 
       {/* Detail Sheet */}
       <Sheet open={!!selectedDriver} onOpenChange={() => setSelectedDriver(null)}>
@@ -445,6 +447,7 @@ export default function ReasoningQualityImpact() {
           )}
         </SheetContent>
       </Sheet>
-    </div>
+      </div>
+    </AppShell>
   );
 }
