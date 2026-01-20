@@ -491,7 +491,7 @@ export default function CognitiveReport() {
                   {xpRemaining > 0 ? `${xpRemaining} XP remaining` : 'Almost there!'}
                 </p>
               </div>
-              <Link to="/app/home">
+              <Link to="/neuro-lab">
                 <Button size="sm" variant="outline" className="gap-2">
                   <Play className="w-3.5 h-3.5" />
                   Continue Training
