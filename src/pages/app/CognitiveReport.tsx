@@ -203,7 +203,7 @@ export default function CognitiveReport() {
         {/* Header with Back Button */}
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => navigate(-1)} 
+            onClick={() => navigate('/app')} 
             className="p-2 rounded-full hover:bg-muted transition-colors"
           >
             <ArrowLeft size={20} />
@@ -394,7 +394,7 @@ export default function CognitiveReport() {
             </Button>
           </Link>
           <button 
-            onClick={() => navigate(-1)} 
+            onClick={() => navigate('/app')} 
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Go Back
@@ -411,7 +411,7 @@ export default function CognitiveReport() {
         <div className="flex items-center justify-between px-3 py-3">
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => navigate(-1)} 
+              onClick={() => navigate('/app')} 
               className="p-2 rounded-full hover:bg-muted transition-colors"
               aria-label="Go back"
             >
