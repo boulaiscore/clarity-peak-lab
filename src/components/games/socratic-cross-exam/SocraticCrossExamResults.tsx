@@ -3,7 +3,7 @@
  */
 
 import { useMemo } from "react";
-import { UnifiedGameResults, KPIData, ReviewMistake } from "@/components/games/UnifiedGameResults";
+import { UnifiedGameResults, KPIData, ReviewMistake } from "@/components/games";
 import { SocraticRoundResult } from "./index";
 import { SOCRATIC_CONFIG } from "./socraticCrossExamContent";
 
