@@ -64,18 +64,6 @@ export default function ReasoningQualityImpact() {
 
   const status = getStatusBadge(rq);
 
-  // DEBUG: Log values from hooks
-  console.log('[RQ Impact DEBUG] Hook values:', {
-    rq,
-    s2Core,
-    s2Consistency,
-    s2CoreContribution,
-    s2ConsistencyContribution,
-    taskPrimingContribution,
-    CT,
-    IN,
-    decay,
-  });
 
   // Use pre-calculated contributions from the hook (ensures math adds up)
   // Split s2CoreContribution between CT and IN proportionally
