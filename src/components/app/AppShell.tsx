@@ -96,7 +96,7 @@ export function AppShell({ children }: AppShellProps) {
             </button>
             
             <Link to="/app" className="flex items-center gap-2">
-              <NeuroLoopLogo size={24} className="text-primary" />
+              <NeuroLoopLogo size={24} className="text-foreground" />
               <span className="font-semibold tracking-tight text-sm">NeuroLoop</span>
             </Link>
             
