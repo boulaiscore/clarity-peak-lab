@@ -346,7 +346,7 @@ export function ProductShowcase() {
               {showcaseSlides.map((slide, index) => (
                 <div 
                   key={index} 
-                  className="flex-[0_0_calc(33.333%-1rem)] min-w-[280px] pl-4"
+                  className="flex-[0_0_calc(30%-1rem)] min-w-[252px] pl-4"
                 >
                   <ShowcaseCard 
                     slide={slide} 
