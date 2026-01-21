@@ -10,11 +10,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Brain, Scale, ChevronRight, Lock, ShieldAlert, Sparkles, Star, Timer, Clock } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGamesGating } from "@/hooks/useGamesGating";
@@ -136,15 +136,15 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh]">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[85vh]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <SheetHeader className="pb-4">
-            <SheetTitle className="flex items-center gap-2 text-base">
+          <DrawerHeader className="pb-4">
+            <DrawerTitle className="flex items-center gap-2 text-base">
               <div className="w-8 h-8 rounded-lg bg-area-slow/15 flex items-center justify-center">
                 <Brain className="w-4 h-4 text-area-slow" />
               </div>
@@ -152,8 +152,8 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
                 <span className="text-foreground">Critical Thinking</span>
                 <span className="text-xs text-muted-foreground ml-2">S2-CT</span>
               </div>
-            </SheetTitle>
-          </SheetHeader>
+            </DrawerTitle>
+          </DrawerHeader>
 
           <div className="space-y-3 pb-6">
             {/* Show lock banner if games are locked */}
@@ -271,7 +271,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
             </div>
           </div>
         </motion.div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }

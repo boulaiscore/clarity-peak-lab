@@ -14,11 +14,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Target, Crosshair, Zap, Star, ChevronLeft, ChevronRight, Sparkles, RefreshCcw, Lock, ShieldAlert, Info, Clock } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useAEGuidance } from "@/hooks/useAEGuidance";
 import { useS1Difficulty } from "@/hooks/useS1Difficulty";
@@ -207,8 +207,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
   const getXPForGame = (game: GameOption) => game.xpByDifficulty[selectedDifficulty];
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh]">
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerContent className="max-h-[85vh]">
         <AnimatePresence mode="wait">
           {!selectedGame ? (
             // Game Selection View
@@ -219,8 +219,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <SheetHeader className="pb-4">
-                <SheetTitle className="flex items-center gap-2 text-base">
+              <DrawerHeader className="pb-4">
+                <DrawerTitle className="flex items-center gap-2 text-base">
                   <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
                     <Crosshair className="w-4 h-4 text-area-fast" />
                   </div>
@@ -228,8 +228,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                     <span className="text-foreground">Attentional Efficiency</span>
                     <span className="text-xs text-muted-foreground ml-2">S1-AE</span>
                   </div>
-                </SheetTitle>
-              </SheetHeader>
+                </DrawerTitle>
+              </DrawerHeader>
 
               <div className="space-y-3 pb-6">
                 {/* Show lock banner if games are locked */}
@@ -383,8 +383,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2 }}
             >
-              <SheetHeader className="pb-4">
-                <SheetTitle className="flex items-center gap-2 text-base">
+              <DrawerHeader className="pb-4">
+                <DrawerTitle className="flex items-center gap-2 text-base">
                   <button
                     onClick={handleBack}
                     className="w-8 h-8 rounded-lg bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
@@ -409,8 +409,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                     )} />
                   </div>
                   <span className="text-foreground">{selectedGame.name}</span>
-                </SheetTitle>
-              </SheetHeader>
+                </DrawerTitle>
+              </DrawerHeader>
 
               <div className="space-y-4 pb-6">
                 {/* Difficulty Selector (user can now choose!) */}
@@ -465,7 +465,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
             </motion.div>
           )}
         </AnimatePresence>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
