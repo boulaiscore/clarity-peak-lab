@@ -179,35 +179,35 @@ export function IntuitionTab() {
         </h3>
         
         <div className="space-y-2">
-          {/* Fast Processing (S1) - 60% weight */}
+          {/* Fast Processing (S1) - Primary driver */}
           <DriverCard
             icon={<Zap className="w-4 h-4" />}
             title="Fast Processing"
             description="Reflects your speed and intuitive processing."
             status={s1Status}
-            weight="60% weight"
+            emphasis="primary"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
           
-          {/* Deliberate Reasoning (S2) - 40% weight */}
+          {/* Deliberate Reasoning (S2) - Secondary driver */}
           <DriverCard
             icon={<Brain className="w-4 h-4" />}
             title="Deliberate Reasoning"
             description="Reflects your capacity for structured and analytical thinking."
             status={s2Status}
-            weight="40% weight"
+            emphasis="secondary"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
           
-          {/* Recovery State - Multiplier */}
+          {/* Recovery State - Modifier */}
           <DriverCard
             icon={<Battery className="w-4 h-4" />}
             title="Recovery State"
             description="Determines how much of your cognitive capacity you can access today."
             status={recoveryStatus}
-            weight={`×${(0.75 + 0.25 * recovery / 100).toFixed(2)} modifier`}
+            emphasis="modifier"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
@@ -263,7 +263,7 @@ function DriverCard({
   title, 
   description, 
   status,
-  weight,
+  emphasis,
   getStatusStyle,
   getStatusLabel
 }: { 
@@ -271,23 +271,24 @@ function DriverCard({
   title: string; 
   description: string;
   status: "low" | "moderate" | "good";
-  weight: string;
+  emphasis: "primary" | "secondary" | "modifier";
   getStatusStyle: (s: "low" | "moderate" | "good") => string;
   getStatusLabel: (s: "low" | "moderate" | "good") => string;
 }) {
+  const emphasisLabel = emphasis === "primary" ? "Primary" : emphasis === "secondary" ? "Secondary" : "Modifier";
+  
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-card/50 border border-border/30">
       <span className="text-muted-foreground mt-0.5 shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-sm font-medium">{title}</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-muted-foreground/70">{weight}</span>
-            <span className="text-[9px] text-muted-foreground/50">·</span>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusStyle(status)}`}>
-              {getStatusLabel(status)}
-            </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{title}</span>
+            <span className="text-[9px] text-muted-foreground/50 uppercase tracking-wider">{emphasisLabel}</span>
           </div>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusStyle(status)}`}>
+            {getStatusLabel(status)}
+          </span>
         </div>
         <p className="text-xs text-muted-foreground/80 leading-relaxed">{description}</p>
       </div>
