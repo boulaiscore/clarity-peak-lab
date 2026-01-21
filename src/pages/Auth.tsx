@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendPasswordResetEmail } from "@/lib/emailService";
 import { getPasswordResetRedirectUrl, isIOS } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
 import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
 import { toast } from "@/hooks/use-toast";
 
@@ -199,9 +200,9 @@ const Auth = () => {
         <div className="relative z-10 flex-1 flex items-center justify-center px-6 pb-16">
           <div className="w-full max-w-sm">
             <div className="text-center mb-10">
-              <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center mx-auto mb-4">
-                <span className="text-foreground font-semibold text-lg">N</span>
-              </div>
+            <div className="flex items-center justify-center mb-4">
+              <NeuroLoopLogo size={48} className="text-primary" />
+            </div>
               <h1 className="text-2xl font-semibold mb-2">Reset password</h1>
               <p className="text-muted-foreground text-sm">
                 Enter your email and we will send you a reset link
@@ -271,8 +272,8 @@ const Auth = () => {
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-10">
-            <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center mx-auto mb-4">
-              <span className="text-foreground font-semibold text-lg">N</span>
+            <div className="flex items-center justify-center mb-4">
+              <NeuroLoopLogo size={48} className="text-primary" />
             </div>
             <h1 className="text-2xl font-semibold mb-2">
               {isLogin ? "Welcome back" : "Start training"}
