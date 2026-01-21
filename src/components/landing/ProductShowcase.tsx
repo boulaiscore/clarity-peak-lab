@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Zap, Brain, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Zap, Brain, Plus, Activity } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ShowcaseDetailModal } from "./ShowcaseDetailModal";
 
@@ -223,6 +223,33 @@ function SharpnessMetric({ value, subtext }: { value: string; subtext: string })
   );
 }
 
+// Readiness - Circular with Activity icon (like Sharpness but for readiness)
+function ReadinessMetric({ value, subtext }: { value: string; subtext: string }) {
+  const percentage = parseInt(value);
+  return (
+    <div className="relative w-24 h-24 sm:w-28 sm:h-28">
+      <svg className="w-full h-full -rotate-90">
+        <circle cx="50%" cy="50%" r="42%" fill="none" stroke="currentColor" strokeWidth="3" className="text-white/10" />
+        <motion.circle
+          cx="50%" cy="50%" r="42%" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"
+          className="text-emerald-400"
+          strokeDasharray={264}
+          initial={{ strokeDashoffset: 264 }}
+          whileInView={{ strokeDashoffset: 264 * (1 - percentage / 100) }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          viewport={{ once: true }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full m-1">
+        <Activity className="w-4 h-4 text-emerald-400 mb-0.5" />
+        <span className="text-xl font-bold text-white">{value}</span>
+        <span className="text-[7px] uppercase tracking-wider text-white/50">Readiness</span>
+        <span className="text-[7px] text-emerald-400">{subtext}</span>
+      </div>
+    </div>
+  );
+}
+
 // Dual Process - Split indicator (S1/S2)
 function DualProcessMetric({ value, subtext }: { value: string; subtext: string }) {
   const s1Pct = parseInt(value);
@@ -271,6 +298,7 @@ function MetricRenderer({ type, value, subtext }: { type: string; value: string;
     case "recovery": return <RecoveryMetric value={value} subtext={subtext} />;
     case "reasoning": return <ReasoningMetric value={value} subtext={subtext} />;
     case "sharpness": return <SharpnessMetric value={value} subtext={subtext} />;
+    case "readiness": return <ReadinessMetric value={value} subtext={subtext} />;
     case "dualProcess": return <DualProcessMetric value={value} subtext={subtext} />;
     default: return null;
   }
