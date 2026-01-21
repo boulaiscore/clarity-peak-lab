@@ -318,7 +318,7 @@ function ShowcaseCard({ slide, onOpenDetail }: { slide: typeof showcaseSlides[0]
       <img
         src={slide.image}
         alt={slide.headline}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 saturate-[0.85] contrast-[1.05] brightness-[0.97]"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 saturate-[0.85] contrast-[1.05] brightness-[1.05]"
       />
       
       {/* Film grain overlay */}
