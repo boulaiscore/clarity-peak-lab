@@ -1606,10 +1606,10 @@ export function CognitiveLibrary() {
       <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50">
         <div className="flex items-center gap-2">
           <Brain className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Reasoning Quality from library</span>
+          <span className="text-xs text-muted-foreground">RQ contribution from library</span>
         </div>
         <span className="text-sm font-semibold tabular-nums">
-          +{animatedRQ.toFixed(1)}%
+          +{animatedRQ.toFixed(1)} pts
         </span>
       </div>
 

@@ -301,7 +301,7 @@ export default function ReasoningQualityImpact() {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold tabular-nums">
-                {Math.round(rq)}
+                {rq.toFixed(1)}
               </div>
               <span className={cn("text-xs font-medium", status.color)}>
                 {status.label}
@@ -355,7 +355,7 @@ export default function ReasoningQualityImpact() {
                       driver.type === "negative" && "text-amber-500"
                     )}
                   >
-                    {driver.contribution >= 0 ? "+" : ""}{Math.round(driver.contribution)}
+                    {driver.contribution >= 0 ? "+" : ""}{driver.contribution.toFixed(1)}
                   </span>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export default function ReasoningQualityImpact() {
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
               <span className="text-lg font-bold tabular-nums">
-                {Math.round(rq)}
+                {rq.toFixed(1)}
               </span>
             </div>
           </div>
