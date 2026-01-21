@@ -12,14 +12,16 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* Open circle / loop logo - original design */}
+      {/* Open circle / loop logo - elegant thin stroke */}
       <path
         d="M12 3C7.029 3 3 7.029 3 12s4.029 9 9 9 9-4.029 9-9"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         fill="none"
       />
+      {/* Neural node at the opening */}
+      <circle cx="21" cy="12" r="1.5" fill="currentColor" />
     </svg>
   );
 }
