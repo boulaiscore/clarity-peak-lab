@@ -44,6 +44,8 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
         strokeWidth="2"
         strokeLinecap="round"
       />
+      {/* Neural node at center intersection */}
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
     </svg>
   );
 }
