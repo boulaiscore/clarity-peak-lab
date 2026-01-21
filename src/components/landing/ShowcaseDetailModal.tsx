@@ -81,36 +81,36 @@ export function ShowcaseDetailModal({
               <X className="w-4 h-4 text-white" />
             </button>
 
-            {/* Content container */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 px-6 pb-10 pt-4 max-w-4xl mx-auto">
-              {/* iPhone Mockup */}
-              <div className="relative flex-shrink-0">
-                {/* iPhone frame */}
-                <div className="relative w-48 sm:w-56 aspect-[9/19.5] bg-[#1a1a1a] rounded-[2rem] sm:rounded-[2.5rem] border-[3px] border-[#2a2a2a] shadow-2xl overflow-hidden">
+            {/* Content container - WHOOP style layout */}
+            <div className="flex flex-col md:flex-row items-start justify-center gap-8 md:gap-16 px-6 md:px-12 pb-10 pt-4 max-w-6xl mx-auto">
+              {/* iPhone Mockup - Much larger, cropped to show top portion */}
+              <div className="relative flex-shrink-0 self-center md:self-start">
+                {/* iPhone frame - larger size */}
+                <div className="relative w-72 sm:w-80 md:w-96 aspect-[9/16] bg-[#1a1a1a] rounded-[2.5rem] sm:rounded-[3rem] border-[4px] border-[#2a2a2a] shadow-2xl overflow-hidden">
                   {/* Dynamic Island */}
-                  <div className="absolute top-2 sm:top-2.5 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-4 sm:h-5 bg-black rounded-full z-10" />
+                  <div className="absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 w-24 sm:w-28 h-6 sm:h-7 bg-black rounded-full z-10" />
                   
-                  {/* Screen content - using object-contain to show full screenshot */}
-                  <div className="absolute inset-[3px] rounded-[1.8rem] sm:rounded-[2.2rem] overflow-hidden bg-[#0d1117]">
+                  {/* Screen content - object-cover with object-top to show upper portion */}
+                  <div className="absolute inset-[4px] rounded-[2.2rem] sm:rounded-[2.7rem] overflow-hidden bg-[#0d1117]">
                     <img
                       src={slide.detailScreenshot}
                       alt={slide.detailHeadline}
-                      className="w-full h-full object-contain object-center"
+                      className="w-full h-full object-cover object-top"
                     />
                   </div>
                   
                   {/* Screen reflection */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none rounded-[2rem] sm:rounded-[2.5rem]" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none rounded-[2.5rem] sm:rounded-[3rem]" />
                 </div>
               </div>
 
-              {/* Text content */}
-              <div className="max-w-sm text-center md:text-left">
+              {/* Text content - positioned to the right like WHOOP */}
+              <div className="max-w-md text-center md:text-left md:pt-8">
                 <motion.h3
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.3 }}
-                  className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3 sm:mb-4 tracking-tight"
+                  className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6 tracking-tight leading-tight"
                 >
                   {slide.detailHeadline}
                 </motion.h3>
@@ -118,7 +118,7 @@ export function ShowcaseDetailModal({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.3 }}
-                  className="text-white/70 text-sm sm:text-base leading-relaxed"
+                  className="text-white/70 text-base sm:text-lg leading-relaxed"
                 >
                   {slide.detailDescription}
                 </motion.p>
