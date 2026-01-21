@@ -91,7 +91,7 @@ function PlanCard({ plan, index }: { plan: typeof plans[0]; index: number }) {
 
       {plan.highlighted && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <span className="px-4 py-1 rounded-full bg-white text-primary text-xs font-medium shadow-md">
+          <span className="px-4 py-1 rounded-full bg-white text-primary text-xs font-medium shadow-md border-2 border-primary">
             MOST POPULAR
           </span>
         </div>
