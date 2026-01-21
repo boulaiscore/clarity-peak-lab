@@ -6,6 +6,8 @@ interface ShowcaseSlide {
   detailScreenshot: string;
   detailHeadline: string;
   detailDescription: string;
+  testimonial?: string;
+  testimonialAuthor?: string;
 }
 
 interface ShowcaseDetailModalProps {
@@ -122,20 +124,22 @@ export function ShowcaseDetailModal({
               </motion.p>
 
               {/* Testimonial on mobile */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.3 }}
-                className="bg-primary/10 rounded-xl p-4"
-              >
-                <p className="text-black/50 text-xs uppercase tracking-wider mb-2">
-                  What our members say
-                </p>
-                <p className="text-black text-base italic leading-relaxed mb-3">
-                  "My decision-making has become sharper since I started tracking my cognitive patterns."
-                </p>
-                <p className="text-black font-semibold text-sm">S. Chen</p>
-              </motion.div>
+              {slide.testimonial && slide.testimonialAuthor && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
+                  className="bg-primary/10 rounded-xl p-4"
+                >
+                  <p className="text-black/50 text-xs uppercase tracking-wider mb-2">
+                    What our members say
+                  </p>
+                  <p className="text-black text-base italic leading-relaxed mb-3">
+                    "{slide.testimonial}"
+                  </p>
+                  <p className="text-black font-semibold text-sm">{slide.testimonialAuthor}</p>
+                </motion.div>
+              )}
             </div>
 
             {/* Desktop Layout - side by side */}
@@ -180,20 +184,22 @@ export function ShowcaseDetailModal({
                 </motion.p>
 
                 {/* Testimonial on desktop */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.3 }}
-                  className="bg-white/10 rounded-xl p-5"
-                >
-                  <p className="text-white/50 text-xs uppercase tracking-wider mb-2">
-                    What our members say
-                  </p>
-                  <p className="text-white text-base italic leading-relaxed mb-3">
-                    "Understanding my dual-process balance transformed how I approach high-stakes negotiations."
-                  </p>
-                  <p className="text-white font-semibold text-sm">J. Okonkwo</p>
-                </motion.div>
+                {slide.testimonial && slide.testimonialAuthor && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.3 }}
+                    className="bg-white/10 rounded-xl p-5"
+                  >
+                    <p className="text-white/50 text-xs uppercase tracking-wider mb-2">
+                      What our members say
+                    </p>
+                    <p className="text-white text-base italic leading-relaxed mb-3">
+                      "{slide.testimonial}"
+                    </p>
+                    <p className="text-white font-semibold text-sm">{slide.testimonialAuthor}</p>
+                  </motion.div>
+                )}
               </div>
             </div>
           </motion.div>
