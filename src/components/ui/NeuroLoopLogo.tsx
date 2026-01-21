@@ -12,29 +12,11 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* N letter - left vertical stroke */}
+      {/* WHOOP-style bold N - solid filled shape */}
       <path
-        d="M5 19V5"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
+        d="M4 20V4H8L16 14V4H20V20H16L8 10V20H4Z"
+        fill="currentColor"
       />
-      {/* N letter - diagonal stroke */}
-      <path
-        d="M5 5L19 19"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      {/* N letter - right vertical stroke */}
-      <path
-        d="M19 5V19"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      {/* Neural node - small accent dot */}
-      <circle cx="12" cy="12" r="2" fill="currentColor" />
     </svg>
   );
 }
