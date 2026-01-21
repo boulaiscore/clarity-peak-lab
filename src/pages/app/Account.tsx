@@ -790,9 +790,16 @@ const Account = () => {
 
               {/* Pro Plan */}
               <div className={cn(
-                "p-5 rounded-xl border shadow-card",
+                "p-5 rounded-xl border shadow-card relative",
                 isPremium ? "bg-primary/5 border-primary/30" : "bg-card border-border"
               )}>
+                {!isPremium && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                    <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
+                      MOST POPULAR
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Crown className="w-5 h-5 text-amber-400" />
@@ -845,13 +852,8 @@ const Account = () => {
               </div>
 
               {/* Elite Plan */}
-              <div className="p-5 rounded-xl bg-card border border-primary/25 shadow-card relative">
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                  <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
-                    BEST VALUE
-                  </span>
-                </div>
-                <div className="flex items-center justify-between mb-3 mt-1">
+              <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Rocket className="w-5 h-5 text-purple-400" />
                     <span className="font-semibold">Elite</span>
