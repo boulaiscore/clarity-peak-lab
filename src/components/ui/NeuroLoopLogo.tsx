@@ -12,25 +12,17 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* Minimalist N with integrated loop curve - Whoop/Oura inspired */}
-      {/* Single continuous stroke forming N with flowing loop */}
+      {/* Abstract broken ring - neural loop symbol */}
+      {/* Main arc - 270 degrees */}
       <path
-        d="M6 18V6L18 18V6"
+        d="M12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12"
         stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Subtle loop accent - small arc suggesting continuity */}
-      <path
-        d="M6 6C6 4 8 3 10 4"
-        stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2.5"
         strokeLinecap="round"
         fill="none"
-        opacity="0.6"
       />
+      {/* Neural spark/accent at the gap - suggesting neural activity */}
+      <circle cx="19" cy="7" r="1.5" fill="currentColor" />
     </svg>
   );
 }
