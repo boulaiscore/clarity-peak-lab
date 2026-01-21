@@ -331,13 +331,13 @@ export function ProductShowcase() {
       <div className="container px-4 sm:px-6">
         {/* Section header */}
         <div className="text-center mb-12 max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-6">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black tracking-tight mb-6">
             Reason clearly in the age of AI and constant stimulation
           </h2>
-          <p className="text-foreground/80 text-base sm:text-lg leading-relaxed mb-4">
+          <p className="text-black/70 text-base sm:text-lg leading-relaxed mb-4">
             In an era of continuous notifications and algorithm-driven decisions, human reasoning is under unprecedented cognitive pressure. Attention fragments, intuition is overstimulated, and deliberate thinking deteriorates.
           </p>
-          <p className="text-foreground/80 text-base sm:text-lg leading-relaxed">
+          <p className="text-black/70 text-base sm:text-lg leading-relaxed">
             NeuroLoop helps you measure, train, and stabilize how you think, combining cognitive science with structured mental training, so you can make better decisions in a noisy world.
           </p>
         </div>
