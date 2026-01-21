@@ -261,7 +261,7 @@ export function DetoxChallengeTab() {
   const currentModeConfig = RECOVERY_MODES[selectedMode];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 -mx-4 px-4 py-4 bg-teal-500/5 rounded-xl">
       {/* Active Session, Completed, or Start */}
       {isActive || justCompleted ? (
         <motion.div
