@@ -21,7 +21,7 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
         fill="none"
       />
       {/* Neural node at the opening */}
-      <circle cx="21" cy="12" r="1.5" fill="currentColor" />
+      <circle cx="18.4" cy="5.6" r="1.5" fill="currentColor" />
     </svg>
   );
 }
