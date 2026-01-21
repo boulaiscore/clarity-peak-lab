@@ -194,8 +194,8 @@ export function SubscriptionsSection() {
           </div>
 
           {/* Mobile: Horizontal carousel */}
-          <div className="md:hidden relative">
-            <div className="overflow-hidden" ref={emblaRef}>
+          <div className="md:hidden relative pt-4">
+            <div className="overflow-visible" ref={emblaRef}>
               <div className="flex -ml-4">
                 {plans.map((plan, index) => (
                   <div 
