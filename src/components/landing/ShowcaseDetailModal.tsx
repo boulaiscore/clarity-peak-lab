@@ -8,6 +8,7 @@ interface ShowcaseSlide {
   detailDescription: string;
   testimonial?: string;
   testimonialAuthor?: string;
+  testimonialRole?: string;
 }
 
 interface ShowcaseDetailModalProps {
@@ -137,7 +138,12 @@ export function ShowcaseDetailModal({
                   <p className="text-black text-base italic leading-relaxed mb-3">
                     "{slide.testimonial}"
                   </p>
-                  <p className="text-black font-semibold text-sm">{slide.testimonialAuthor}</p>
+                  <div className="flex flex-col">
+                    <p className="text-black font-semibold text-sm">{slide.testimonialAuthor}</p>
+                    {slide.testimonialRole && (
+                      <p className="text-black/60 text-xs">{slide.testimonialRole}</p>
+                    )}
+                  </div>
                 </motion.div>
               )}
             </div>
@@ -197,7 +203,12 @@ export function ShowcaseDetailModal({
                     <p className="text-white text-base italic leading-relaxed mb-3">
                       "{slide.testimonial}"
                     </p>
-                    <p className="text-white font-semibold text-sm">{slide.testimonialAuthor}</p>
+                    <div className="flex flex-col">
+                      <p className="text-white font-semibold text-sm">{slide.testimonialAuthor}</p>
+                      {slide.testimonialRole && (
+                        <p className="text-white/60 text-xs">{slide.testimonialRole}</p>
+                      )}
+                    </div>
                   </motion.div>
                 )}
               </div>
