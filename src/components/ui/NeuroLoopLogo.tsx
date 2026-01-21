@@ -22,8 +22,8 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
         fill="none"
       />
       {/* Neural nodes at gap ends - like synaptic terminals */}
-      <circle cx="18" cy="4.5" r="1.8" fill="currentColor" />
-      <circle cx="19.5" cy="6.5" r="1.8" fill="currentColor" />
+      <circle cx="18" cy="4.5" r="1.2" fill="currentColor" />
+      <circle cx="19.5" cy="6.5" r="1.2" fill="currentColor" />
       {/* Synaptic connection spark between nodes */}
       <path
         d="M18.3 5.2L19 6"
