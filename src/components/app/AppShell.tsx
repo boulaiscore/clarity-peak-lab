@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Home, LayoutDashboard, User, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers } from "lucide-react";
+import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { useDecayNotificationInit } from "@/hooks/useDecayNotificationInit";
@@ -91,9 +92,7 @@ export function AppShell({ children }: AppShellProps) {
             </button>
             
             <Link to="/app" className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-semibold text-[10px]">N</span>
-              </div>
+              <NeuroLoopLogo size={24} className="text-primary" />
               <span className="font-semibold tracking-tight text-sm">NeuroLoop</span>
             </Link>
             
