@@ -12,16 +12,38 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* Infinity/figure-8 loop representing neural feedback loop */}
+      {/* Outer loop/circle wrapping the N */}
+      <circle 
+        cx="12" 
+        cy="12" 
+        r="10" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        fill="none"
+        opacity="0.4"
+      />
+      {/* N letter inside the loop */}
+      {/* Left vertical stroke */}
       <path
-        d="M8 12C8 9.5 6.5 8 4.5 8C2.5 8 1 9.5 1 12C1 14.5 2.5 16 4.5 16C6.5 16 8 14.5 8 12ZM8 12C8 9.5 9.5 7 12 7C14.5 7 16 9.5 16 12M16 12C16 14.5 17.5 16 19.5 16C21.5 16 23 14.5 23 12C23 9.5 21.5 8 19.5 8C17.5 8 16 9.5 16 12"
+        d="M8 16V8"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
-        fill="none"
       />
-      {/* Central neural node at crossing point */}
-      <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+      {/* Diagonal stroke */}
+      <path
+        d="M8 8L16 16"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      {/* Right vertical stroke */}
+      <path
+        d="M16 8V16"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
