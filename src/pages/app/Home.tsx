@@ -36,7 +36,7 @@ import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCar
 import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
-// Circular progress ring component with icon above value and colored subtext
+// Circular progress ring component with icon and status inside
 interface RingProps {
   value: number;
   max: number;
@@ -67,7 +67,7 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
             fill="none"
             stroke="hsl(var(--muted))"
             strokeWidth={strokeWidth}
-            className="opacity-30"
+            className="opacity-20"
           />
         </svg>
         {/* Progress ring */}
@@ -85,28 +85,27 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
             className="transition-all duration-1000 ease-out"
           />
         </svg>
-        {/* Center content: icon above value */}
+        {/* Center content: icon, value, and status */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {icon && (
-            <div className="mb-0.5" style={{ color }}>
+            <div className="opacity-40 mb-0.5" style={{ color }}>
               {icon}
             </div>
           )}
-          <span className="text-2xl font-bold tracking-tight text-foreground">
+          <span className="text-xl font-bold tracking-tight text-foreground">
             {displayValue}
           </span>
+          {dynamicIndicator && (
+            <span className="text-[8px] uppercase tracking-wider mt-0.5" style={{ color, opacity: 0.8 }}>
+              {dynamicIndicator}
+            </span>
+          )}
         </div>
       </div>
       {/* Label below the ring */}
-      <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-muted-foreground text-center">
+      <p className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-muted-foreground text-center">
         {label}
       </p>
-      {/* Dynamic indicator with color */}
-      {dynamicIndicator && (
-        <span className="text-[10px] font-medium mt-0.5" style={{ color }}>
-          {dynamicIndicator}
-        </span>
-      )}
     </div>
   );
 };
@@ -357,7 +356,7 @@ const Home = () => {
                   value={metricsLoading ? 0 : sharpness}
                   max={100}
                   size={90}
-                  strokeWidth={5}
+                  strokeWidth={4}
                   color={sharpnessColor}
                   label="Sharpness"
                   displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}`}
@@ -367,13 +366,13 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  icon={<Zap className="w-4 h-4" />}
+                  icon={<Zap className="w-3 h-3" />}
                 />
                 <ProgressRing
                   value={readiness}
                   max={100}
                   size={90}
-                  strokeWidth={5}
+                  strokeWidth={4}
                   color={readinessColor}
                   label="Readiness"
                   displayValue={`${Math.round(readiness)}`}
@@ -383,13 +382,13 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  icon={<Activity className="w-4 h-4" />}
+                  icon={<Activity className="w-3 h-3" />}
                 />
                 <ProgressRing
                   value={recoveryEffectiveLoading ? 0 : recoveryEffective}
                   max={100}
                   size={90}
-                  strokeWidth={5}
+                  strokeWidth={4}
                   color={recoveryColor}
                   label="Recovery"
                   displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
@@ -399,7 +398,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  icon={<Leaf className="w-4 h-4" />}
+                  icon={<Leaf className="w-3 h-3" />}
                 />
               </div>
               
