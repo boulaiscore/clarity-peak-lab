@@ -22,17 +22,21 @@ interface NeuroLoopWordmarkProps {
  */
 export function NeuroLoopWordmark({
   logoSize = 22,
-  uppercase = false,
+  // Brand rule: always uppercase unless explicitly overridden.
+  uppercase = true,
   suffix,
   className,
   logoClassName,
   textClassName,
 }: NeuroLoopWordmarkProps) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
+    <span className={cn("inline-flex items-center gap-0", className)} aria-label="NEUROLOOP">
       <NeuroLoopLogo size={logoSize} className={logoClassName} />
       <span className={textClassName}>
-        {uppercase ? "EUROLOOP" : "euroLoop"}
+        {/* Tighten kerning so the mark reads as the leading 'N' in one word */}
+        <span className="-ml-1">
+          {uppercase ? "EUROLOOP" : "euroLoop"}
+        </span>
         {suffix ?? ""}
       </span>
     </span>
