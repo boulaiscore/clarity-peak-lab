@@ -8,6 +8,7 @@ import meditationImage from "@/assets/landing-meditation-calm.jpg";
 import bookReadingImage from "@/assets/landing-book-reading.jpg";
 import phoneThinkingImage from "@/assets/landing-phone-thinking.jpg";
 import outdoorWalkImage from "@/assets/landing-outdoor-walk.jpg";
+import podcastListeningImage from "@/assets/landing-podcast-listening.jpg";
 
 const showcaseSlides = [
   {
@@ -49,6 +50,14 @@ const showcaseSlides = [
     metricValue: "52%",
     metricLabel: "DUAL PROCESS",
     metricSubtext: "Balanced",
+  },
+  {
+    image: podcastListeningImage,
+    headline: "Learn while you listen",
+    metricType: "reasoning" as const,
+    metricValue: "85",
+    metricLabel: "KNOWLEDGE ABSORPTION",
+    metricSubtext: "+8% this week",
   },
 ];
 
