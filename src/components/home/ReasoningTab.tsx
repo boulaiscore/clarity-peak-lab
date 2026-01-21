@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useMemo } from "react";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
+import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
 
 export function ReasoningTab() {
   const { readiness, recovery, S2, AE, isLoading } = useTodayMetrics();
@@ -156,11 +157,19 @@ export function ReasoningTab() {
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {Math.round(readiness)}
             </span>
-            <span className="text-xs text-muted-foreground mt-1">
-              {getReadinessStatus(readiness).label}
+            <span className="text-xs text-muted-foreground/70 mt-1">
+              {getMetricDisplayInfo(
+                getReadinessStatus(readiness).label,
+                getReadinessStatus(readiness).level,
+                null,
+                null
+              ).text}
             </span>
           </div>
         </div>
+        {/* Definition below ring */}
+        <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">Readiness</p>
+        <p className="text-[9px] text-muted-foreground/50">{METRIC_DEFINITIONS.readiness}</p>
       </div>
 
       {/* Drivers Section */}

@@ -4,6 +4,7 @@ import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
+import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
 
 
 export function CapacityTab() {
@@ -59,16 +60,23 @@ export function CapacityTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-              Recovery
-            </p>
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {isLoading ? "—" : `${Math.round(recovery)}`}
               <span className="text-3xl">%</span>
             </span>
-            <span className="text-xs text-muted-foreground mt-1">{isLoading ? "" : getRecoveryStatus(recovery).label}</span>
+            <span className="text-xs text-muted-foreground/70 mt-1">
+              {isLoading ? "" : getMetricDisplayInfo(
+                getRecoveryStatus(recovery).label,
+                getRecoveryStatus(recovery).level,
+                null,
+                null
+              ).text}
+            </span>
           </div>
         </div>
+        {/* Definition below ring */}
+        <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">Recovery</p>
+        <p className="text-[9px] text-muted-foreground/50">{METRIC_DEFINITIONS.recovery}</p>
       </div>
 
       {/* Recovery Status Card */}
