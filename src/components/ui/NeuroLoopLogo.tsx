@@ -12,30 +12,36 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* Premium N with neural curve - elegant thin strokes */}
-      {/* Left vertical */}
+      {/* N with integrated infinity loop - premium cognitive symbol */}
+      {/* Left vertical stroke of N */}
       <path
-        d="M6 19V5"
+        d="M5 18V6"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
-      {/* Flowing neural curve connecting the strokes */}
+      {/* Infinity loop flowing through the N diagonal */}
       <path
-        d="M6 5C6 5 9 8 12 12C15 16 18 19 18 19"
+        d="M5 6C5 6 8 6 10 9C12 12 12 12 12 12C12 12 12 12 14 9C16 6 19 6 19 6"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M5 18C5 18 8 18 10 15C12 12 12 12 12 12C12 12 12 12 14 15C16 18 19 18 19 18"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Right vertical stroke of N */}
+      <path
+        d="M19 6V18"
+        stroke="currentColor"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
-      {/* Right vertical */}
-      <path
-        d="M18 5V19"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      {/* Small neural node accent */}
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.6" />
     </svg>
   );
 }
