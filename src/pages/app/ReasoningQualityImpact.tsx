@@ -101,7 +101,7 @@ export default function ReasoningQualityImpact() {
         description: "Your Critical Thinking skill level contributes to S2 Core, the foundation of reasoning quality.",
         details: {
           period: "Current skill level",
-          frequency: `${Math.round(CT)}% CT skill`,
+          frequency: `${Math.round(CT)} CT skill`,
           direction: CT >= 50 ? "Positive" : "Neutral",
           note: "Critical Thinking (CT) contributes 25% to RQ as part of S2 Core = (CT + IN) / 2 × 50%.",
         },
@@ -117,7 +117,7 @@ export default function ReasoningQualityImpact() {
         description: "Your Insight skill level contributes to S2 Core, the foundation of reasoning quality.",
         details: {
           period: "Current skill level",
-          frequency: `${Math.round(IN)}% IN skill`,
+          frequency: `${Math.round(IN)} IN skill`,
           direction: IN >= 50 ? "Positive" : "Neutral",
           note: "Insight (IN) contributes 25% to RQ as part of S2 Core = (CT + IN) / 2 × 50%.",
         },
@@ -133,7 +133,7 @@ export default function ReasoningQualityImpact() {
         description: "Stability and reliability of your performance across System 2 reasoning sessions.",
         details: {
           period: "Last 10 S2 sessions",
-          frequency: `${Math.round(s2Consistency)}% consistency`,
+          frequency: `${Math.round(s2Consistency)} consistency`,
           direction: s2Consistency >= 50 ? "Positive" : "Neutral",
           note: "Measures how reliably you perform in deliberate thinking games. It accounts for 30% of your Reasoning Quality score.",
         },
@@ -301,7 +301,7 @@ export default function ReasoningQualityImpact() {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold tabular-nums">
-                {rq.toFixed(1)}%
+                {Math.round(rq)}
               </div>
               <span className={cn("text-xs font-medium", status.color)}>
                 {status.label}
@@ -334,7 +334,7 @@ export default function ReasoningQualityImpact() {
               onClick={() => setSelectedDriver(driver)}
               className="w-full p-4 rounded-xl bg-card/50 border border-border/30 hover:bg-card/80 transition-colors text-left"
             >
-              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium uppercase tracking-wide">
                     {driver.name}
@@ -345,7 +345,7 @@ export default function ReasoningQualityImpact() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground tabular-nums">
-                    {Math.round(driver.rawValue)}%
+                    {Math.round(driver.rawValue)}
                   </span>
                   <span
                     className={cn(
@@ -355,7 +355,7 @@ export default function ReasoningQualityImpact() {
                       driver.type === "negative" && "text-amber-500"
                     )}
                   >
-                    {driver.contribution >= 0 ? "+" : ""}{driver.contribution.toFixed(1)}
+                    {driver.contribution >= 0 ? "+" : ""}{Math.round(driver.contribution)}
                   </span>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export default function ReasoningQualityImpact() {
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold uppercase tracking-wide">Total</span>
               <span className="text-lg font-bold tabular-nums">
-                {rq.toFixed(1)}%
+                {Math.round(rq)}
               </span>
             </div>
           </div>

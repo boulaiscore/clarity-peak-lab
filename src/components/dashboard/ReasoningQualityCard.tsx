@@ -105,7 +105,7 @@ export function ReasoningQualityCard({
         <div className="flex items-center gap-2">
           <div className="text-right">
             <div className="text-2xl font-bold tabular-nums">
-              {rq.toFixed(1)}%
+              {Math.round(rq)}
             </div>
             <span className="text-[11px] text-muted-foreground">
               {getQualityLevel(rq)}

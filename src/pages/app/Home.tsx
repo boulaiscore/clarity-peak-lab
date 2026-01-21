@@ -349,7 +349,7 @@ const Home = () => {
                   strokeWidth={6}
                   color={sharpnessColor}
                   label="Sharpness"
-                  displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}%`}
+                  displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}`}
                   microcopy="Current intuitive clarity"
                 />
                 <ProgressRing
@@ -359,7 +359,7 @@ const Home = () => {
                   strokeWidth={6}
                   color={readinessColor}
                   label="Readiness"
-                  displayValue={`${Math.round(readiness)}%`}
+                  displayValue={`${Math.round(readiness)}`}
                   microcopy="Capacity for deliberate work"
                 />
                 <ProgressRing
@@ -369,7 +369,7 @@ const Home = () => {
                   strokeWidth={6}
                   color={recoveryColor}
                   label="Recovery"
-                  displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
+                  displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}`}
                   microcopy="Attentional restoration"
                 />
               </div>
