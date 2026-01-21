@@ -33,8 +33,8 @@ export function Navbar() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           scrolled || mobileMenuOpen
-            ? "bg-white/95 backdrop-blur-md border-b border-black/5" 
-            : "bg-transparent"
+            ? "bg-gray-100/95 backdrop-blur-md border-b border-black/5" 
+            : "bg-gray-100/80 backdrop-blur-sm"
         )}
       >
         <div className="container px-6">
