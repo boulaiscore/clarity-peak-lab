@@ -327,7 +327,7 @@ export function ProductShowcase() {
   }, [emblaApi]);
 
   return (
-    <section className="bg-muted/30 py-12 sm:py-20">
+    <section className="bg-primary/5 py-12 sm:py-20">
       <div className="container px-4 sm:px-6">
         {/* Section header */}
         <div className="text-center mb-10">
@@ -346,7 +346,7 @@ export function ProductShowcase() {
               {showcaseSlides.map((slide, index) => (
                 <div 
                   key={index} 
-                  className="flex-[0_0_calc(30%-1rem)] min-w-[252px] pl-4"
+                  className="flex-[0_0_calc(26%-1rem)] min-w-[220px] pl-4"
                 >
                   <ShowcaseCard 
                     slide={slide} 
