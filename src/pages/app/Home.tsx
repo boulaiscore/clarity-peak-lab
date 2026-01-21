@@ -18,6 +18,8 @@ import { useTutorialState } from "@/hooks/useTutorialState";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
+import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
+import { useMetricWeeklyChange } from "@/hooks/useMetricWeeklyChange";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +35,7 @@ import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCar
 import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
-// Circular progress ring component
+// Circular progress ring component with dynamic indicator inside
 interface RingProps {
   value: number;
   max: number;
@@ -42,12 +44,12 @@ interface RingProps {
   color: string;
   label: string;
   displayValue: string;
-  microcopy?: string;
-  statusLabel?: string;
+  definition: string;
+  dynamicIndicator?: string;
   icon?: React.ReactNode;
 }
 
-const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, microcopy, statusLabel, icon }: RingProps) => {
+const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, definition, dynamicIndicator, icon }: RingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(value / max, 1);
@@ -82,22 +84,25 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
             className="transition-all duration-1000 ease-out"
           />
         </svg>
-        {/* Center value */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+        {/* Center value + dynamic indicator inside */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
           {icon}
           <span className="text-2xl font-semibold tracking-tight text-foreground">
             {displayValue}
           </span>
+          {dynamicIndicator && (
+            <span className="text-[9px] text-muted-foreground/70 mt-0.5">
+              {dynamicIndicator}
+            </span>
+          )}
         </div>
       </div>
       <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
         {label}
       </p>
-      {statusLabel && (
-        <p className="mt-0.5 text-[9px] text-muted-foreground/80 text-center">
-          {statusLabel}
-        </p>
-      )}
+      <p className="text-[8px] text-muted-foreground/50 text-center">
+        {definition}
+      </p>
     </div>
   );
 };
@@ -352,7 +357,13 @@ const Home = () => {
                   color={sharpnessColor}
                   label="Sharpness"
                   displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}`}
-                  statusLabel={metricsLoading ? undefined : getSharpnessStatus(sharpness).label}
+                  definition={METRIC_DEFINITIONS.sharpness}
+                  dynamicIndicator={metricsLoading ? undefined : getMetricDisplayInfo(
+                    getSharpnessStatus(sharpness).label,
+                    getSharpnessStatus(sharpness).level,
+                    null,
+                    null
+                  ).text}
                 />
                 <ProgressRing
                   value={readiness}
@@ -362,7 +373,13 @@ const Home = () => {
                   color={readinessColor}
                   label="Readiness"
                   displayValue={`${Math.round(readiness)}`}
-                  statusLabel={getReadinessStatus(readiness).label}
+                  definition={METRIC_DEFINITIONS.readiness}
+                  dynamicIndicator={getMetricDisplayInfo(
+                    getReadinessStatus(readiness).label,
+                    getReadinessStatus(readiness).level,
+                    null,
+                    null
+                  ).text}
                 />
                 <ProgressRing
                   value={recoveryEffectiveLoading ? 0 : recoveryEffective}
@@ -372,7 +389,13 @@ const Home = () => {
                   color={recoveryColor}
                   label="Recovery"
                   displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
-                  statusLabel={recoveryEffectiveLoading ? undefined : getRecoveryStatus(recoveryEffective).label}
+                  definition={METRIC_DEFINITIONS.recovery}
+                  dynamicIndicator={recoveryEffectiveLoading ? undefined : getMetricDisplayInfo(
+                    getRecoveryStatus(recoveryEffective).label,
+                    getRecoveryStatus(recoveryEffective).level,
+                    null,
+                    null
+                  ).text}
                 />
               </div>
               

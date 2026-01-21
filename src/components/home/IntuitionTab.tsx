@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useMemo } from "react";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
+import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
 
 export function IntuitionTab() {
   const { 
@@ -159,11 +160,19 @@ export function IntuitionTab() {
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {isLoading ? "—" : `${Math.round(sharpness)}`}
             </span>
-            <span className="text-xs text-muted-foreground mt-1">
-              {isLoading ? "Sharpness" : getSharpnessStatus(sharpness).label}
+            <span className="text-xs text-muted-foreground/70 mt-1">
+              {isLoading ? "" : getMetricDisplayInfo(
+                getSharpnessStatus(sharpness).label,
+                getSharpnessStatus(sharpness).level,
+                null,
+                null
+              ).text}
             </span>
           </div>
         </div>
+        {/* Definition below ring */}
+        <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">Sharpness</p>
+        <p className="text-[9px] text-muted-foreground/50">{METRIC_DEFINITIONS.sharpness}</p>
       </div>
 
       {/* Drivers Section */}

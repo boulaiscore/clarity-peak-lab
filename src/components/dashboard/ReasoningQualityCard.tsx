@@ -10,6 +10,7 @@ import { Info, AlertTriangle, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import { getReasoningQualityStatus } from "@/lib/metricStatusLabels";
+import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
 
 interface ReasoningQualityCardProps {
   rq: number;
@@ -91,7 +92,7 @@ export function ReasoningQualityCard({
               )}
             </div>
           <p className="text-[11px] text-muted-foreground">
-            Depth and quality of thought elaboration
+            {METRIC_DEFINITIONS.reasoningQuality}
           </p>
         </div>
         
@@ -101,8 +102,13 @@ export function ReasoningQualityCard({
             <div className="text-3xl font-bold tabular-nums">
               {Math.round(rq)}
             </div>
-            <span className="text-[11px] text-muted-foreground">
-              {getReasoningQualityStatus(rq).label}
+            <span className="text-[11px] text-muted-foreground/70">
+              {getMetricDisplayInfo(
+                getReasoningQualityStatus(rq).label,
+                getReasoningQualityStatus(rq).level,
+                null,
+                null
+              ).text}
             </span>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
