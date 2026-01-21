@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { NavigationTabs, tabs } from "./NavigationTabs";
 import { Menu, X } from "lucide-react";
-import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
+import { NeuroLoopWordmark } from "@/components/ui/NeuroLoopWordmark";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -45,8 +45,12 @@ export function Navbar() {
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               className="flex items-center gap-2"
             >
-              <NeuroLoopLogo size={22} className="text-black" />
-              <span className="text-black font-bold text-lg tracking-tight">NEUROLOOP</span>
+              <NeuroLoopWordmark
+                logoSize={22}
+                uppercase
+                logoClassName="text-black"
+                textClassName="text-black font-bold text-lg tracking-tight"
+              />
             </button>
 
             {/* Navigation Tabs */}
