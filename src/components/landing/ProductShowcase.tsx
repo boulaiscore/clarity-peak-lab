@@ -3,17 +3,16 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Zap, Brain, Plus } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 
-import executiveImage from "@/assets/landing-executive-v2.jpg";
-import meditationImage from "@/assets/landing-meditation-v2.jpg";
-import readingImage from "@/assets/landing-reading-v2.jpg";
-import walkingImage from "@/assets/landing-walking-v2.jpg";
-import strategyImage from "@/assets/landing-strategy-v2.jpg";
+import focusWorkImage from "@/assets/landing-focus-work.jpg";
+import meditationImage from "@/assets/landing-meditation-calm.jpg";
+import bookReadingImage from "@/assets/landing-book-reading.jpg";
+import phoneThinkingImage from "@/assets/landing-phone-thinking.jpg";
+import outdoorWalkImage from "@/assets/landing-outdoor-walk.jpg";
 
-// Slides organized in groups of 3
 const showcaseSlides = [
   {
-    image: executiveImage,
-    headline: "Misura le tue capacità cognitive",
+    image: focusWorkImage,
+    headline: "Measure your cognitive performance",
     metricType: "cognitiveAge" as const,
     metricValue: "38.2",
     metricLabel: "COGNITIVE AGE",
@@ -21,31 +20,31 @@ const showcaseSlides = [
   },
   {
     image: meditationImage,
-    headline: "Recupera con protocolli mirati",
+    headline: "Recover with targeted protocols",
     metricType: "recovery" as const,
     metricValue: "87%",
     metricLabel: "RECOVERY",
     metricSubtext: "Optimal readiness",
   },
   {
-    image: readingImage,
-    headline: "Affina il ragionamento",
+    image: bookReadingImage,
+    headline: "Sharpen your reasoning",
     metricType: "reasoning" as const,
     metricValue: "92",
     metricLabel: "REASONING QUALITY",
     metricSubtext: "+12% this month",
   },
   {
-    image: walkingImage,
-    headline: "Potenzia la tua intuizione",
+    image: phoneThinkingImage,
+    headline: "Boost your intuition",
     metricType: "sharpness" as const,
     metricValue: "76",
     metricLabel: "SHARPNESS",
     metricSubtext: "High clarity",
   },
   {
-    image: strategyImage,
-    headline: "Bilancia i tuoi sistemi cognitivi",
+    image: outdoorWalkImage,
+    headline: "Balance your cognitive systems",
     metricType: "dualProcess" as const,
     metricValue: "52%",
     metricLabel: "DUAL PROCESS",
@@ -258,8 +257,6 @@ export function ProductShowcase() {
     slidesToScroll: 1,
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(true);
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
@@ -269,8 +266,6 @@ export function ProductShowcase() {
     
     const onSelect = () => {
       setSelectedIndex(emblaApi.selectedScrollSnap());
-      setCanScrollPrev(emblaApi.canScrollPrev());
-      setCanScrollNext(emblaApi.canScrollNext());
     };
     
     emblaApi.on("select", onSelect);
@@ -284,21 +279,21 @@ export function ProductShowcase() {
         {/* Section header */}
         <div className="text-center mb-10">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">
-            PERCHÉ NEUROLOOP
+            WHY NEUROLOOP
           </p>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
-            Il tuo vantaggio cognitivo
+            Your cognitive advantage
           </h2>
         </div>
 
-        {/* Carousel - 3 cards visible */}
+        {/* Carousel - 3 cards visible with uniform spacing */}
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-4">
+            <div className="flex -ml-4">
               {showcaseSlides.map((slide, index) => (
                 <div 
                   key={index} 
-                  className="flex-[0_0_calc(33.333%-11px)] min-w-[280px] sm:min-w-0"
+                  className="flex-[0_0_calc(33.333%-1rem)] min-w-[280px] pl-4"
                 >
                   <ShowcaseCard slide={slide} />
                 </div>
