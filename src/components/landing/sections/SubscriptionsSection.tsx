@@ -8,47 +8,46 @@ const plans = [
     name: "Free",
     price: "$0",
     period: "forever",
-    subtitle: "Baseline access to cognitive training",
+    summary: "Explore cognitive training at your own pace.",
     features: [
-      "Up to 2 training sessions per day",
-      "Limited System 1 & System 2 games",
-      "Core dashboard metrics",
-      "Basic progress tracking",
-      "Baseline cognitive calibration",
+      "2 sessions/day",
+      "Limited S1 & S2 games",
+      "Core dashboard",
+      "Baseline calibration",
     ],
     cta: "Start Free",
     highlighted: false,
   },
   {
     name: "Pro",
-    price: "$19.99",
+    price: "$19.90",
     period: "/month",
-    subtitle: "Train your cognitive performance",
+    annualPrice: "$199",
+    annualNote: "2 months free",
+    summary: "The complete cognitive training experience for high performers.",
     features: [
-      "Unlimited training sessions",
-      "Full System 1 & System 2 training library",
-      "Cognitive Load & Capacity tracking",
-      "Advanced performance analytics",
-      "Monthly cognitive performance report",
-      "Personalized training recommendations",
-      "Priority support",
+      "Unlimited sessions",
+      "Full training library",
+      "Load & Capacity tracking",
+      "Monthly performance report",
+      "Personalized recommendations",
     ],
     cta: "Start 7-Day Trial",
     highlighted: true,
   },
   {
     name: "Elite",
-    price: "$29.99",
+    price: "$29.90",
     period: "/month",
-    subtitle: "Master how you think under pressure",
+    annualPrice: "$299",
+    annualNote: "2 months free",
+    summary: "Deeper cognitive supervision and advanced reasoning insights.",
     features: [
       "Everything in Pro",
-      "Expanded System 2 access (Critical Thinking & Insight)",
-      "Reduced S2 gating + higher cognitive load ceilings",
-      "Advanced Reasoning Quality insights",
-      "On-demand performance & reasoning reports",
-      "Early access to new training protocols",
-      "Weekly cognitive brief (elite-only)",
+      "Expanded S2 access",
+      "Reasoning Quality insights",
+      "On-demand reports",
+      "Weekly cognitive brief",
     ],
     cta: "Start 7-Day Trial",
     highlighted: false,
@@ -77,7 +76,7 @@ export function SubscriptionsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`relative p-8 rounded-2xl ${
+                className={`relative p-8 rounded-2xl flex flex-col ${
                   plan.highlighted
                     ? "bg-primary text-white"
                     : "bg-black/[0.02] border border-black/10"
@@ -91,28 +90,40 @@ export function SubscriptionsSection() {
                   </div>
                 )}
 
-                <div className="mb-4">
-                  <h3 className={`text-xl font-semibold mb-2 ${plan.highlighted ? "text-white" : "text-black"}`}>
-                    {plan.name}
-                  </h3>
-                  <p className={`text-sm ${plan.highlighted ? "text-white/70" : "text-black/50"}`}>
-                    {plan.subtitle}
-                  </p>
-                </div>
+                {/* Plan name */}
+                <h3 className={`text-xl font-semibold mb-3 ${plan.highlighted ? "text-white" : "text-black"}`}>
+                  {plan.name}
+                </h3>
 
-                <div className="mb-6">
-                  <span className={`text-4xl font-bold tracking-tight ${plan.highlighted ? "text-white" : "text-black"}`}>
+                {/* Summary sentence */}
+                <p className={`text-sm mb-6 leading-relaxed ${plan.highlighted ? "text-white/80" : "text-black/60"}`}>
+                  {plan.summary}
+                </p>
+
+                {/* Pricing */}
+                <div className="mb-2">
+                  <span className={`text-3xl font-bold tracking-tight ${plan.highlighted ? "text-white" : "text-black"}`}>
                     {plan.price}
                   </span>
-                  <span className={plan.highlighted ? "text-white/70" : "text-black/50"}>
-                    {" "}{plan.period}
+                  <span className={`text-sm ${plan.highlighted ? "text-white/70" : "text-black/50"}`}>
+                    {plan.period}
                   </span>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                {/* Annual pricing */}
+                {plan.annualPrice && (
+                  <p className={`text-sm mb-6 ${plan.highlighted ? "text-white/70" : "text-black/50"}`}>
+                    or <span className="font-medium">{plan.annualPrice}/year</span>{" "}
+                    <span className="text-xs">({plan.annualNote})</span>
+                  </p>
+                )}
+                {!plan.annualPrice && <div className="mb-6" />}
+
+                {/* Compact feature list */}
+                <ul className="space-y-2 mb-8 flex-1">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm">
-                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlighted ? "text-white" : "text-primary"}`} />
+                    <li key={feature} className="flex items-center gap-2 text-sm">
+                      <Check className={`w-4 h-4 shrink-0 ${plan.highlighted ? "text-white/80" : "text-primary"}`} />
                       <span className={plan.highlighted ? "text-white/90" : "text-black/70"}>
                         {feature}
                       </span>
