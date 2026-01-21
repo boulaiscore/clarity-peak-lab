@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
@@ -6,7 +6,8 @@ import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
 import { 
   ChevronRight, Dumbbell,
-  BookMarked, CheckCircle2, Smartphone, Ban, Brain
+  BookMarked, CheckCircle2, Smartphone, Ban, Brain,
+  Zap, Battery, BatteryLow
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,7 @@ import { DailyTrainingConfirmDialog } from "@/components/app/DailyTrainingConfir
 import { useDailyTraining } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
@@ -57,6 +59,77 @@ export default function NeuroLab() {
   // Use capped progress for the Weekly Load total (excess beyond category targets doesn't count)
   const { cappedTotalXP } = useCappedWeeklyProgress();
   const weeklyLoadXP = cappedTotalXP;
+  
+  // Recovery for dynamic guidance
+  const { recoveryEffective, isLoading: recoveryLoading } = useRecoveryEffective();
+  
+  // Dynamic guidance based on Recovery level
+  const recoveryGuidance = useMemo(() => {
+    if (recoveryLoading) {
+      return {
+        icon: Battery,
+        iconColor: "text-muted-foreground",
+        headline: "Loading your status...",
+        message: "",
+        action: "",
+      };
+    }
+    
+    const rec = recoveryEffective;
+    
+    // Peak (80+): Full intensity
+    if (rec >= 80) {
+      return {
+        icon: Zap,
+        iconColor: "text-emerald-400",
+        headline: `Recovery ${Math.round(rec)}% — You're primed.`,
+        message: "Your brain is ready for peak performance.",
+        action: "Push hard with S2 games. This is your window for deep reasoning work.",
+      };
+    }
+    
+    // Sharp (65-79): Good to go
+    if (rec >= 65) {
+      return {
+        icon: Battery,
+        iconColor: "text-emerald-400",
+        headline: `Recovery ${Math.round(rec)}% — Strong.`,
+        message: "Good energy for cognitive training.",
+        action: "S2 games are unlocked. Balance intensity with a task or walk if needed.",
+      };
+    }
+    
+    // Steady (50-64): Moderate, be strategic
+    if (rec >= 50) {
+      return {
+        icon: Battery,
+        iconColor: "text-amber-400",
+        headline: `Recovery ${Math.round(rec)}% — Moderate.`,
+        message: "You can train, but don't overdo it.",
+        action: "S1 games + Tasks are ideal. Consider a detox or walk to boost recovery.",
+      };
+    }
+    
+    // Foggy (35-49): Low, focus on recovery
+    if (rec >= 35) {
+      return {
+        icon: BatteryLow,
+        iconColor: "text-amber-500",
+        headline: `Recovery ${Math.round(rec)}% — Low.`,
+        message: "Your brain needs rest to perform.",
+        action: "Skip intense training. Focus on detox, walking, or light tasks to rebuild.",
+      };
+    }
+    
+    // Drained (<35): Very low, prioritize recovery
+    return {
+      icon: BatteryLow,
+      iconColor: "text-red-400",
+      headline: `Recovery ${Math.round(rec)}% — Depleted.`,
+      message: "Training now may backfire. Your brain needs recovery.",
+      action: "Detox and walk to rebuild. Tasks are fine. Save games for when you're recharged.",
+    };
+  }, [recoveryEffective, recoveryLoading]);
   
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit">("area");
@@ -209,12 +282,24 @@ export default function NeuroLab() {
           </motion.div>
         )}
 
-        {/* Cognitive Load Guidance - WHOOP style */}
-        <div className="mb-3">
-          <p className="text-[13px] text-foreground/80 leading-relaxed">
-            <span className="font-semibold text-foreground">Listen to your body.</span>{" "}
-            High recovery? Push harder with S2 games. Feeling low? Focus on tasks, detox & walking to rebuild.
-          </p>
+        {/* Cognitive Load Guidance - Dynamic based on Recovery */}
+        <div className="mb-4 p-3 rounded-xl bg-muted/30 border border-border/40">
+          <div className="flex items-start gap-3">
+            <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
+              <recoveryGuidance.icon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-[14px] font-semibold text-foreground leading-tight">
+                {recoveryGuidance.headline}
+              </p>
+              <p className="text-[12px] text-foreground/70 leading-relaxed">
+                {recoveryGuidance.message}
+              </p>
+              <p className="text-[12px] text-foreground/90 leading-relaxed font-medium">
+                {recoveryGuidance.action}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Weekly Goal - Compact */}
