@@ -201,7 +201,7 @@ const Auth = () => {
           <div className="w-full max-w-sm">
             <div className="text-center mb-10">
             <div className="flex items-center justify-center mb-4">
-              <NeuroLoopLogo size={48} className="text-primary" />
+              <NeuroLoopLogo size={48} className="text-foreground" />
             </div>
               <h1 className="text-2xl font-semibold mb-2">Reset password</h1>
               <p className="text-muted-foreground text-sm">
@@ -273,7 +273,7 @@ const Auth = () => {
           {/* Logo */}
           <div className="text-center mb-10">
             <div className="flex items-center justify-center mb-4">
-              <NeuroLoopLogo size={48} className="text-primary" />
+              <NeuroLoopLogo size={48} className="text-foreground" />
             </div>
             <h1 className="text-2xl font-semibold mb-2">
               {isLogin ? "Welcome back" : "Start training"}
