@@ -132,9 +132,9 @@ export function ShowcaseDetailModal({
                   What our users say
                 </p>
                 <p className="text-black text-base italic leading-relaxed mb-3">
-                  "NeuroLoop taught me that mental recovery days are as important as training days."
+                  "My decision-making has become sharper since I started tracking my cognitive patterns."
                 </p>
-                <p className="text-black font-semibold text-sm">Marco T.</p>
+                <p className="text-black font-semibold text-sm">Sophia Chen, Investment Director</p>
               </motion.div>
             </div>
 
@@ -190,9 +190,9 @@ export function ShowcaseDetailModal({
                     What our users say
                   </p>
                   <p className="text-white text-base italic leading-relaxed mb-3">
-                    "NeuroLoop taught me that mental recovery days are as important as training days. Seeing a low readiness score pushes me to take better care of my mind."
+                    "Understanding my dual-process balance transformed how I approach high-stakes negotiations."
                   </p>
-                  <p className="text-white font-semibold text-sm">Marco T., Founder & CEO</p>
+                  <p className="text-white font-semibold text-sm">James Okonkwo, Managing Director</p>
                 </motion.div>
               </div>
             </div>
