@@ -11,12 +11,12 @@ const TIERS = {
   premium: {
     name: 'NeuroLoop Pro',
     description: 'Complete cognitive training with monthly report.',
-    amount: 1999, // $19.99
+    amount: 1990, // $19.90
   },
   pro: {
     name: 'NeuroLoop Elite',
     description: 'Master-level cognitive training with advanced insights.',
-    amount: 2999, // $29.99
+    amount: 2990, // $29.90
   },
 };
 

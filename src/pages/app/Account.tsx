@@ -788,7 +788,7 @@ const Account = () => {
                 </div>
               )}
 
-              {/* Premium Plan */}
+              {/* Pro Plan */}
               <div className={cn(
                 "p-5 rounded-xl border shadow-card",
                 isPremium ? "bg-primary/5 border-primary/30" : "bg-card border-border"
@@ -796,33 +796,35 @@ const Account = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Crown className="w-5 h-5 text-amber-400" />
-                    <span className="font-semibold">Premium</span>
+                    <span className="font-semibold">Pro</span>
                     {isPremium && (
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/15 text-emerald-400">
                         ACTIVE
                       </span>
                     )}
                   </div>
-                  <span className="text-lg font-bold">$12<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                  <span className="text-lg font-bold">$19.90<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
                 </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Complete cognitive training for high performers.
+                </p>
                 <ul className="space-y-2 text-xs text-muted-foreground mb-4">
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-primary" />
-                    Unlimited training sessions
+                    Unlimited sessions & full library
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-primary" />
-                    Full games & drills library
+                    Load & Capacity tracking
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-primary" />
-                    Monthly Cognitive Report
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-primary" />
-                    Advanced analytics & insights
+                    Monthly performance report
                   </li>
                 </ul>
+                <p className="text-xs text-muted-foreground/70 mb-3">
+                  or $199/year <span className="text-[10px]">(2 months free)</span>
+                </p>
                 {!isPremium && (
                   <Button 
                     onClick={() => handleSubscribe('premium')} 
@@ -839,7 +841,7 @@ const Account = () => {
                 )}
               </div>
 
-              {/* Pro Plan */}
+              {/* Elite Plan */}
               <div className="p-5 rounded-xl bg-card border border-primary/25 shadow-card relative">
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
                   <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
@@ -849,30 +851,36 @@ const Account = () => {
                 <div className="flex items-center justify-between mb-3 mt-1">
                   <div className="flex items-center gap-2">
                     <Rocket className="w-5 h-5 text-purple-400" />
-                    <span className="font-semibold">Pro</span>
+                    <span className="font-semibold">Elite</span>
                   </div>
-                  <span className="text-lg font-bold">$29.99<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                  <span className="text-lg font-bold">$29.90<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
                 </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Deeper cognitive supervision & reasoning insights.
+                </p>
                 <ul className="space-y-2 text-xs text-muted-foreground mb-4">
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-purple-400" />
-                    Everything in Premium
+                    Everything in Pro
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-purple-400" />
-                    On-demand Cognitive Reports
+                    Reasoning Quality insights
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-purple-400" />
-                    AI-powered coaching
+                    On-demand reports
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-purple-400" />
-                    Priority support
+                    Weekly cognitive brief
                   </li>
                 </ul>
+                <p className="text-xs text-muted-foreground/70 mb-3">
+                  or $299/year <span className="text-[10px]">(2 months free)</span>
+                </p>
                 <Button 
-                  onClick={() => handleSubscribe('pro')} 
+                  onClick={() => handleSubscribe('pro')}
                   variant="hero" 
                   size="sm"
                   className="w-full"

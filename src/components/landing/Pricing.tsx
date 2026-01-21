@@ -10,47 +10,46 @@ const tiers = [
     name: "Free",
     price: "$0",
     period: "forever",
-    subtitle: "Baseline access to cognitive training",
+    summary: "Explore cognitive training at your own pace.",
     features: [
-      "Up to 2 training sessions per day",
-      "Limited System 1 & System 2 games",
-      "Core dashboard metrics",
-      "Basic progress tracking",
-      "Baseline cognitive calibration",
+      "2 sessions/day",
+      "Limited S1 & S2 games",
+      "Core dashboard",
+      "Baseline calibration",
     ],
     cta: "Start Free",
     highlighted: false,
   },
   {
     name: "Pro",
-    price: "$19.99",
+    price: "$19.90",
     period: "/month",
-    subtitle: "Train your cognitive performance",
+    annualPrice: "$199",
+    annualNote: "2 months free",
+    summary: "The complete cognitive training experience for high performers.",
     features: [
-      "Unlimited training sessions",
-      "Full System 1 & System 2 training library",
-      "Cognitive Load & Capacity tracking",
-      "Advanced performance analytics",
-      "Monthly cognitive performance report",
-      "Personalized training recommendations",
-      "Priority support",
+      "Unlimited sessions",
+      "Full training library",
+      "Load & Capacity tracking",
+      "Monthly performance report",
+      "Personalized recommendations",
     ],
     cta: "Start 7-Day Trial",
     highlighted: true,
   },
   {
     name: "Elite",
-    price: "$29.99",
+    price: "$29.90",
     period: "/month",
-    subtitle: "Master how you think under pressure",
+    annualPrice: "$299",
+    annualNote: "2 months free",
+    summary: "Deeper cognitive supervision and advanced reasoning insights.",
     features: [
       "Everything in Pro",
-      "Expanded System 2 access (Critical Thinking & Insight)",
-      "Reduced S2 gating + higher cognitive load ceilings",
-      "Advanced Reasoning Quality insights",
-      "On-demand performance & reasoning reports",
-      "Early access to new training protocols",
-      "Weekly cognitive brief (elite-only)",
+      "Expanded S2 access",
+      "Reasoning Quality insights",
+      "On-demand reports",
+      "Weekly cognitive brief",
     ],
     cta: "Start 7-Day Trial",
     highlighted: false,
@@ -85,7 +84,7 @@ export function Pricing() {
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.1 * index }}
-              className={`relative p-8 rounded-2xl ${
+              className={`relative p-8 rounded-2xl flex flex-col ${
                 tier.highlighted
                   ? "bg-primary text-white"
                   : "bg-black/[0.02] border border-black/10"
@@ -99,28 +98,40 @@ export function Pricing() {
                 </div>
               )}
 
-              <div className="mb-4">
-                <h3 className={`text-xl font-semibold mb-2 ${tier.highlighted ? "text-white" : "text-black"}`}>
-                  {tier.name}
-                </h3>
-                <p className={`text-sm ${tier.highlighted ? "text-white/70" : "text-black/50"}`}>
-                  {tier.subtitle}
-                </p>
-              </div>
+              {/* Plan name */}
+              <h3 className={`text-xl font-semibold mb-3 ${tier.highlighted ? "text-white" : "text-black"}`}>
+                {tier.name}
+              </h3>
 
-              <div className="mb-6">
-                <span className={`text-4xl font-bold tracking-tight ${tier.highlighted ? "text-white" : "text-black"}`}>
+              {/* Summary sentence */}
+              <p className={`text-sm mb-6 leading-relaxed ${tier.highlighted ? "text-white/80" : "text-black/60"}`}>
+                {tier.summary}
+              </p>
+
+              {/* Pricing */}
+              <div className="mb-2">
+                <span className={`text-3xl font-bold tracking-tight ${tier.highlighted ? "text-white" : "text-black"}`}>
                   {tier.price}
                 </span>
-                <span className={`text-base ${tier.highlighted ? "text-white/70" : "text-black/50"}`}>
-                  {" "}{tier.period}
+                <span className={`text-sm ${tier.highlighted ? "text-white/70" : "text-black/50"}`}>
+                  {tier.period}
                 </span>
               </div>
 
-              <ul className="space-y-3 mb-8">
+              {/* Annual pricing */}
+              {tier.annualPrice && (
+                <p className={`text-sm mb-6 ${tier.highlighted ? "text-white/70" : "text-black/50"}`}>
+                  or <span className="font-medium">{tier.annualPrice}/year</span>{" "}
+                  <span className="text-xs">({tier.annualNote})</span>
+                </p>
+              )}
+              {!tier.annualPrice && <div className="mb-6" />}
+
+              {/* Compact feature list */}
+              <ul className="space-y-2 mb-8 flex-1">
                 {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3 text-sm">
-                    <Check className={`w-4 h-4 shrink-0 mt-0.5 ${tier.highlighted ? "text-white" : "text-primary"}`} />
+                  <li key={feature} className="flex items-center gap-2 text-sm">
+                    <Check className={`w-4 h-4 shrink-0 ${tier.highlighted ? "text-white/80" : "text-primary"}`} />
                     <span className={tier.highlighted ? "text-white/90" : "text-black/70"}>
                       {feature}
                     </span>
