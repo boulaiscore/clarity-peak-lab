@@ -30,7 +30,7 @@ const showcaseSlides = [
   },
   {
     image: bookReadingImage,
-    headline: "Sharpen your reasoning",
+    headline: "Sharpen your mind through curated reading",
     metricType: "reasoning" as const,
     metricValue: "92",
     metricLabel: "REASONING QUALITY",
