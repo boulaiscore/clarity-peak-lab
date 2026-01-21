@@ -15,6 +15,7 @@ import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
 import { useTutorialState } from "@/hooks/useTutorialState";
+import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
@@ -135,6 +136,9 @@ const Home = () => {
     gamesXPTarget,
     totalProgress,
   } = useCappedWeeklyProgress();
+  
+  // Training Capacity for Optimal Zone display
+  const { optimalRange } = useTrainingCapacity();
   
   // Prioritized suggestions based on metrics and lab state
   const { suggestions: prioritizedSuggestions, isLoading: suggestionsLoading } = usePrioritizedSuggestions();
@@ -532,29 +536,26 @@ const Home = () => {
               Balancing intuition speed and reasoning depth.
             </p>
           </button>
-          <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+          <button 
+            onClick={() => navigate("/app/lab")}
+            className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-left hover:bg-emerald-500/10 transition-colors active:scale-[0.98]"
+          >
             <p className="text-[10px] uppercase tracking-[0.12em] text-emerald-500 mb-1">
               Optimal Zone
             </p>
-            <div className="flex items-center gap-1.5 mb-1">
-              <Target className="w-3.5 h-3.5 text-emerald-500" />
-              <p className="text-sm font-semibold tabular-nums text-emerald-500">
-                {totalWeeklyXP} <span className="text-muted-foreground font-normal">/ {weeklyXPTarget} XP</span>
-              </p>
-            </div>
-            <div className="h-1 bg-emerald-500/10 rounded-full overflow-hidden mb-2">
-              <div 
-                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, (totalWeeklyXP / weeklyXPTarget) * 100)}%` }}
-              />
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-emerald-500" />
+                <p className="text-sm font-semibold tabular-nums text-emerald-500">
+                  {optimalRange.min}–{optimalRange.max} <span className="text-muted-foreground font-normal">XP</span>
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-emerald-500/60" />
             </div>
             <p className="text-[10px] text-muted-foreground leading-snug">
-              {totalWeeklyXP >= weeklyXPTarget 
-                ? "You're in the zone — extra training is bonus work."
-                : "Train within this range for best cognitive gains."
-              }
+              Train within this range for best cognitive gains.
             </p>
-          </div>
+          </button>
         </motion.section>
 
           </>
