@@ -549,7 +549,7 @@ const Home = () => {
             </p>
           </button>
           <button 
-            onClick={() => navigate("/app/lab")}
+            onClick={() => navigate("/neuro-lab")}
             className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-left hover:bg-emerald-500/10 transition-colors active:scale-[0.98]"
           >
             <p className="text-[10px] uppercase tracking-[0.12em] text-emerald-500 mb-1">
