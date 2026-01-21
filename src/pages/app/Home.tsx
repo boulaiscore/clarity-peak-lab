@@ -29,7 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
-import { HomeTabs, HomeTabId } from "@/components/home/HomeTabs";
+import { HomeTabId } from "@/components/home/HomeTabs";
 import { IntuitionTab } from "@/components/home/IntuitionTab";
 import { ReasoningTab } from "@/components/home/ReasoningTab";
 import { CapacityTab } from "@/components/home/CapacityTab";
@@ -48,16 +48,20 @@ interface RingProps {
   displayValue: string;
   dynamicIndicator?: string;
   icon?: React.ReactNode;
+  onClick?: () => void;
 }
 
-const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, dynamicIndicator, icon }: RingProps) => {
+const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, dynamicIndicator, icon, onClick }: RingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(value / max, 1);
   const strokeDashoffset = circumference - progress * circumference;
 
   return (
-    <div className="flex flex-col items-center">
+    <button 
+      className="flex flex-col items-center cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.97]"
+      onClick={onClick}
+    >
       <div className="relative" style={{ width: size, height: size }}>
         {/* Background ring */}
         <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
@@ -107,7 +111,7 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
       <p className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-muted-foreground text-center">
         {label}
       </p>
-    </div>
+    </button>
   );
 };
 
@@ -342,12 +346,21 @@ const Home = () => {
     <AppShell>
       <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-5 py-4 max-w-md mx-auto">
 
-        {/* Tab Navigation */}
-        <HomeTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
         {/* Tab Content */}
         {activeTab === "overview" && (
           <>
+            {/* Today Header */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.02 }}
+              className="mb-4"
+            >
+              <h2 className="text-center text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+                Today
+              </h2>
+            </motion.section>
+            
             {/* Three Rings with Cognitive Engine Metrics */}
             <motion.section
               initial={{ opacity: 0, y: 12 }}
@@ -371,6 +384,7 @@ const Home = () => {
                     null
                   ).text}
                   icon={<Zap className="w-3 h-3" />}
+                  onClick={() => setActiveTab("intuition")}
                 />
                 <ProgressRing
                   value={readiness}
@@ -387,6 +401,7 @@ const Home = () => {
                     null
                   ).text}
                   icon={<Activity className="w-3 h-3" />}
+                  onClick={() => setActiveTab("reasoning")}
                 />
                 <ProgressRing
                   value={recoveryEffectiveLoading ? 0 : recoveryEffective}
@@ -403,6 +418,7 @@ const Home = () => {
                     null
                   ).text}
                   icon={<Leaf className="w-3 h-3" />}
+                  onClick={() => setActiveTab("capacity")}
                 />
               </div>
               
@@ -561,9 +577,9 @@ const Home = () => {
           </>
         )}
 
-        {activeTab === "intuition" && <IntuitionTab />}
-        {activeTab === "reasoning" && <ReasoningTab />}
-        {activeTab === "capacity" && <CapacityTab />}
+        {activeTab === "intuition" && <IntuitionTab onBackToOverview={() => setActiveTab("overview")} />}
+        {activeTab === "reasoning" && <ReasoningTab onBackToOverview={() => setActiveTab("overview")} />}
+        {activeTab === "capacity" && <CapacityTab onBackToOverview={() => setActiveTab("overview")} />}
       </main>
 
       {/* Protocol Change Sheet */}

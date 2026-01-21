@@ -7,7 +7,11 @@ import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 
 
-export function CapacityTab() {
+interface CapacityTabProps {
+  onBackToOverview?: () => void;
+}
+
+export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
   const { 
     recoveryEffective: recovery, 
     isUsingRRI,
@@ -32,6 +36,18 @@ export function CapacityTab() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8"
     >
+      {/* Today Header - Back to Overview */}
+      {onBackToOverview && (
+        <button 
+          onClick={onBackToOverview}
+          className="w-full text-center py-1 hover:opacity-70 transition-opacity active:scale-[0.98]"
+        >
+          <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+            Today
+          </span>
+        </button>
+      )}
+
       {/* Main Ring - Large & Centered */}
       <div className="flex flex-col items-center pt-6 pb-4">
         <div className="relative" style={{ width: size, height: size }}>
