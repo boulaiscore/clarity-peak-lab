@@ -15,11 +15,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Lightbulb, Star, ChevronRight, Sparkles, Lock, ShieldAlert, Clock } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useS1Difficulty } from "@/hooks/useS1Difficulty";
 import { S1DifficultySelector } from "./S1DifficultySelector";
@@ -179,8 +179,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
   };
   
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh]">
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerContent className="max-h-[85vh]">
         <AnimatePresence mode="wait">
           {!selectedGame ? (
             // Game Selection View
@@ -191,8 +191,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <SheetHeader className="pb-4">
-                <SheetTitle className="flex items-center gap-2 text-base">
+              <DrawerHeader className="pb-4">
+                <DrawerTitle className="flex items-center gap-2 text-base">
                   <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
                     <Lightbulb className="w-4 h-4 text-amber-400" />
                   </div>
@@ -200,8 +200,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                     <span className="text-foreground">Rapid Association</span>
                     <span className="text-xs text-muted-foreground ml-2">S1-RA</span>
                   </div>
-                </SheetTitle>
-              </SheetHeader>
+                </DrawerTitle>
+              </DrawerHeader>
               
               <div className="space-y-3 pb-6">
                 {/* Show lock banner if games are locked */}
@@ -337,8 +337,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2 }}
             >
-              <SheetHeader className="pb-4">
-                <SheetTitle className="flex items-center gap-2 text-base">
+              <DrawerHeader className="pb-4">
+                <DrawerTitle className="flex items-center gap-2 text-base">
                   <button
                     onClick={handleBack}
                     className="w-8 h-8 rounded-lg bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
@@ -349,8 +349,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                     <Lightbulb className="w-4 h-4 text-amber-400" />
                   </div>
                   <span className="text-foreground">{selectedGame.name}</span>
-                </SheetTitle>
-              </SheetHeader>
+                </DrawerTitle>
+              </DrawerHeader>
               
               <div className="space-y-4 pb-6">
                 {/* Difficulty Selector */}
@@ -397,7 +397,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
             </motion.div>
           )}
         </AnimatePresence>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
