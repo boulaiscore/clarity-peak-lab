@@ -38,14 +38,14 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
     >
       {/* Today Header - Back to Overview */}
       {onBackToOverview && (
-        <button 
-          onClick={onBackToOverview}
-          className="w-full text-center py-1 hover:opacity-70 transition-opacity active:scale-[0.98]"
-        >
-          <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
-            Today
-          </span>
-        </button>
+        <div className="flex justify-center">
+          <button 
+            onClick={onBackToOverview}
+            className="px-4 py-1.5 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80 hover:bg-muted/60 transition-colors active:scale-[0.97]"
+          >
+            ← Today
+          </button>
+        </div>
       )}
 
       {/* Main Ring - Large & Centered */}

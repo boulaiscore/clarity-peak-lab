@@ -107,10 +107,10 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
           )}
         </div>
       </div>
-      {/* Label below the ring */}
-      <p className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-muted-foreground text-center">
+      {/* Label below the ring - button-like */}
+      <span className="mt-2 px-3 py-1 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80 hover:bg-muted/60 transition-colors">
         {label}
-      </p>
+      </span>
     </button>
   );
 };
@@ -349,16 +349,16 @@ const Home = () => {
         {/* Tab Content */}
         {activeTab === "overview" && (
           <>
-            {/* Today Header */}
+            {/* Today Header - button-like */}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.02 }}
-              className="mb-4"
+              className="mb-4 flex justify-center"
             >
-              <h2 className="text-center text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+              <span className="px-4 py-1.5 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80">
                 Today
-              </h2>
+              </span>
             </motion.section>
             
             {/* Three Rings with Cognitive Engine Metrics */}
