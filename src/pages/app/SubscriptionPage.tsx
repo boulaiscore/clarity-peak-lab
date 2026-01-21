@@ -5,10 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { usePurchases } from "@/hooks/usePurchases";
 import { toast } from "@/hooks/use-toast";
-import { User, Crown, Zap, Shield, CreditCard, Rocket, Check, Loader2, RotateCw } from "lucide-react";
+import { User, Crown, Zap, Shield, CreditCard, Rocket, Check, Loader2, RotateCw, ExternalLink, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sendPremiumUpgradeEmail } from "@/lib/emailService";
 import { supabase } from "@/integrations/supabase/client";
+import { Browser } from '@capacitor/browser';
+import { isNative } from '@/lib/platformUtils';
 
 const BETA_LIMIT = 100;
 
@@ -27,6 +29,7 @@ const SubscriptionPage = () => {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [selectedTier, setSelectedTier] = useState<'premium' | 'pro' | null>(null);
   const [betaCount, setBetaCount] = useState<number | null>(null);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
 
   // Fetch beta user count
   useEffect(() => {
@@ -129,6 +132,55 @@ const SubscriptionPage = () => {
     await restoreAllPurchases();
   };
 
+  const handleManagePayments = async () => {
+    if (!user?.email) {
+      toast({
+        title: "Error",
+        description: "Please log in to manage payments.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsOpeningPortal(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-billing-portal-session', {
+        body: {
+          userEmail: user.email,
+          returnUrl: `${window.location.origin}/app/subscription`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.error === 'No billing account found' || data?.code === 'NO_CUSTOMER') {
+        toast({
+          title: "No billing account",
+          description: "You don't have any payment history yet.",
+        });
+        return;
+      }
+
+      if (data?.url) {
+        if (isNative()) {
+          await Browser.open({ url: data.url });
+        } else {
+          window.location.href = data.url;
+        }
+      }
+    } catch (error) {
+      console.error('Error opening billing portal:', error);
+      toast({
+        title: "Error",
+        description: "Could not open payment management. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsOpeningPortal(false);
+    }
+  };
+
   return (
     <AppShell>
       <div className="container px-6 py-8 sm:py-12">
@@ -182,6 +234,31 @@ const SubscriptionPage = () => {
                   {isPremium ? "Active" : "Limited"}
                 </span>
               </div>
+            </div>
+
+            {/* Payment Management */}
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                <Receipt className="w-4 h-4 text-primary" />
+                Payment Management
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Update payment methods, view invoices, and manage billing details.
+              </p>
+              <Button 
+                onClick={handleManagePayments}
+                variant="outline"
+                size="sm"
+                className="w-full"
+                disabled={isOpeningPortal}
+              >
+                {isOpeningPortal ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                )}
+                Manage Payments
+              </Button>
             </div>
 
             {/* Beta Access Banner */}
