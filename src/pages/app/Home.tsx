@@ -383,7 +383,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  icon={<Zap className="w-3 h-3" />}
+                  
                   onClick={() => setActiveTab("intuition")}
                 />
                 <ProgressRing
@@ -400,7 +400,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  icon={<Activity className="w-3 h-3" />}
+                  
                   onClick={() => setActiveTab("reasoning")}
                 />
                 <ProgressRing
@@ -417,7 +417,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  icon={<Leaf className="w-3 h-3" />}
+                  
                   onClick={() => setActiveTab("capacity")}
                 />
               </div>
