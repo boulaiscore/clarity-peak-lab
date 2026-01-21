@@ -8,7 +8,11 @@ import { useState, useMemo } from "react";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 
-export function ReasoningTab() {
+interface ReasoningTabProps {
+  onBackToOverview?: () => void;
+}
+
+export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
   const { readiness, recovery, S2, AE, isLoading } = useTodayMetrics();
   
   const [infoOpen, setInfoOpen] = useState(false);
@@ -132,6 +136,18 @@ export function ReasoningTab() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {/* Today Header - Back to Overview */}
+      {onBackToOverview && (
+        <button 
+          onClick={onBackToOverview}
+          className="w-full text-center py-1 hover:opacity-70 transition-opacity active:scale-[0.98]"
+        >
+          <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+            Today
+          </span>
+        </button>
+      )}
+
       {/* Header */}
       <div className="text-center space-y-2 pt-2">
         <h2 className="text-xl font-semibold tracking-tight">Readiness</h2>
