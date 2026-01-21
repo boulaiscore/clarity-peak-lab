@@ -342,14 +342,14 @@ export function ProductShowcase() {
           </p>
         </div>
 
-        {/* Carousel - 3 cards visible with uniform spacing */}
+        {/* Carousel - 1 card on mobile, 3 on desktop */}
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex -ml-6">
+            <div className="flex -ml-4 sm:-ml-6">
               {showcaseSlides.map((slide, index) => (
                 <div 
                   key={index} 
-                  className="flex-[0_0_calc(29%-1.5rem)] min-w-[242px] pl-6"
+                  className="flex-[0_0_85%] sm:flex-[0_0_calc(33.333%-1.5rem)] min-w-0 sm:min-w-[242px] pl-4 sm:pl-6"
                 >
                   <ShowcaseCard 
                     slide={slide} 
@@ -360,16 +360,16 @@ export function ProductShowcase() {
             </div>
           </div>
 
-          {/* Navigation arrows */}
+          {/* Navigation arrows - hidden on mobile */}
           <button
             onClick={scrollPrev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-10 h-10 rounded-full bg-foreground shadow-lg flex items-center justify-center hover:bg-foreground/90 transition-colors z-10"
+            className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-10 h-10 rounded-full bg-foreground shadow-lg items-center justify-center hover:bg-foreground/90 transition-colors z-10"
           >
             <ChevronLeft className="w-5 h-5 text-background" />
           </button>
           <button
             onClick={scrollNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-10 h-10 rounded-full bg-foreground shadow-lg flex items-center justify-center hover:bg-foreground/90 transition-colors z-10"
+            className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-10 h-10 rounded-full bg-foreground shadow-lg items-center justify-center hover:bg-foreground/90 transition-colors z-10"
           >
             <ChevronRight className="w-5 h-5 text-background" />
           </button>
@@ -388,6 +388,22 @@ export function ProductShowcase() {
               }`}
             />
           ))}
+        </div>
+
+        {/* Testimonial Section */}
+        <div className="mt-12 sm:mt-16 bg-primary/10 rounded-2xl p-6 sm:p-8 max-w-2xl">
+          <p className="text-black/60 text-sm uppercase tracking-wider mb-4">
+            What our users say
+          </p>
+          <p className="text-black text-xl sm:text-2xl lg:text-3xl font-medium italic leading-relaxed mb-6">
+            "NeuroLoop taught me that mental recovery days are as important as training days. Seeing a low readiness score in the morning pushes me to take better care of my mind."
+          </p>
+          <p className="text-black font-semibold">
+            Marco T.
+          </p>
+          <p className="text-black/60 text-sm">
+            Founder & CEO
+          </p>
         </div>
       </div>
 
