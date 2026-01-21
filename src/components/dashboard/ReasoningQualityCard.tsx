@@ -104,7 +104,7 @@ export function ReasoningQualityCard({
         {/* Score + Chevron */}
         <div className="flex items-center gap-2">
           <div className="text-right">
-            <div className="text-2xl font-bold tabular-nums">
+            <div className="text-3xl font-bold tabular-nums">
               {Math.round(rq)}
             </div>
             <span className="text-[11px] text-muted-foreground">

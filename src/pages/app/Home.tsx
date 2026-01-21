@@ -83,7 +83,7 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
         {/* Center value */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
           {icon}
-          <span className="text-xl font-semibold tracking-tight text-foreground">
+          <span className="text-2xl font-semibold tracking-tight text-foreground">
             {displayValue}
           </span>
         </div>
@@ -369,7 +369,7 @@ const Home = () => {
                   strokeWidth={6}
                   color={recoveryColor}
                   label="Recovery"
-                  displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}`}
+                  displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
                   microcopy="Attentional restoration"
                 />
               </div>
