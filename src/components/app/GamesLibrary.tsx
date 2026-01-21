@@ -115,17 +115,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Safe Mode Banner - shown when no-deadlock rule is active */}
-      {safetyRuleActive && (
-        <Alert className="border-primary/20 bg-primary/5">
-          <Info className="h-4 w-4 text-primary/60" />
-          <AlertDescription className="text-xs text-muted-foreground">
-            <span className="font-medium text-primary/80">Safe mode training available</span> while recovery data is building.
-          </AlertDescription>
-        </Alert>
-      )}
-      
+    <div className="space-y-3">
       {/* System Cards - Side by Side Layout */}
       <div className="grid grid-cols-2 gap-3">
         {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
@@ -163,8 +153,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 </div>
               </div>
 
-              {/* Area Cards - Stacked within each system - Always clickable */}
-              <div className="p-2 space-y-1.5">
+              {/* Area Cards - Stacked within each system */}
+              <div className="p-2.5 space-y-2">
                 {areas.map((area) => {
                   const Icon = AREA_ICONS[area.areaId] || Brain;
                   
@@ -173,30 +163,21 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                       key={`${area.areaId}-${system}`}
                       onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
                       className={cn(
-                        "group relative w-full p-2 rounded-lg border transition-all text-left",
-                        "bg-background/50 hover:bg-background border-border/50 hover:border-primary/30 active:scale-[0.98]"
+                        "group relative w-full p-3 rounded-xl border transition-all text-left",
+                        "bg-background/60 hover:bg-background border-border/40 hover:border-primary/30 active:scale-[0.98]"
                       )}
                     >
-                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                         <div className={cn(
-                            "w-6 h-6 rounded-md flex items-center justify-center shrink-0",
+                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
                             system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
                           )}>
-                          <Icon className={cn("w-3 h-3", iconColor)} />
+                          <Icon className={cn("w-4 h-4", iconColor)} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-[11px] font-medium leading-tight text-foreground">
-                            {area.name}
-                          </h4>
-                          <p className="text-[9px] text-muted-foreground/80 leading-tight">
-                            {area.tagline}
-                          </p>
-                        </div>
-                        
-                        {/* Play indicator */}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Play className={cn("w-3 h-3", iconColor)} />
-                        </div>
+                        <h4 className="flex-1 text-xs font-medium text-foreground">
+                          {area.name}
+                        </h4>
+                        <Play className={cn("w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity", iconColor)} />
                       </div>
                     </button>
                   );
@@ -206,11 +187,6 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
           );
         })}
       </div>
-
-      {/* Gating Explanation */}
-      <p className="text-[10px] text-muted-foreground/70 text-center px-4">
-        Games unlock based on your cognitive metrics.
-      </p>
 
       {/* Exercise Picker Sheet (for non-S1-AE games) */}
       <ExercisePickerSheet

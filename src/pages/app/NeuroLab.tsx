@@ -24,7 +24,6 @@ import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
-import { NeuralResetPrompt } from "@/components/neural-reset/NeuralResetPrompt";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -210,49 +209,49 @@ export default function NeuroLab() {
           </motion.div>
         )}
 
-        {/* Neural Reset Prompt - contextual, not mandatory */}
-        <NeuralResetPrompt className="mb-4" />
-
         {/* Weekly Goal - Compact */}
         <WeeklyGoalCard compact />
 
-        {/* Main Tabs - Simplified */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 h-10 mb-3 bg-muted/30">
-            <TabsTrigger value="games" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-              <Dumbbell className="w-3.5 h-3.5" />
-              Training
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-              <BookMarked className="w-3.5 h-3.5" />
-              Tasks
-            </TabsTrigger>
-            <TabsTrigger value="detox" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-              <div className="relative w-3.5 h-3.5">
-                <Smartphone className="w-3.5 h-3.5" />
-                <Ban className="w-3.5 h-3.5 absolute inset-0" />
-              </div>
-              Detox & Walk
-            </TabsTrigger>
-          </TabsList>
+        {/* Training Section - Distinct Background */}
+        <div className="bg-muted/20 -mx-4 px-4 py-4 mt-4 rounded-t-2xl">
+          {/* Main Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full grid grid-cols-3 h-10 mb-3 bg-background/60">
+              <TabsTrigger value="games" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
+                <Dumbbell className="w-3.5 h-3.5" />
+                Training
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
+                <BookMarked className="w-3.5 h-3.5" />
+                Tasks
+              </TabsTrigger>
+              <TabsTrigger value="detox" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
+                <div className="relative w-3.5 h-3.5">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <Ban className="w-3.5 h-3.5 absolute inset-0" />
+                </div>
+                Detox & Walk
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Training Tab (Games) - First */}
-          <TabsContent value="games" className="mt-0">
-            <GamesLibrary 
-              onStartGame={handleEnterArea}
-            />
-          </TabsContent>
+            {/* Training Tab (Games) */}
+            <TabsContent value="games" className="mt-0">
+              <GamesLibrary 
+                onStartGame={handleEnterArea}
+              />
+            </TabsContent>
 
-          {/* Tasks Tab */}
-          <TabsContent value="tasks" className="mt-0">
-            <TasksTabContent />
-          </TabsContent>
+            {/* Tasks Tab */}
+            <TabsContent value="tasks" className="mt-0">
+              <TasksTabContent />
+            </TabsContent>
 
-          {/* Detox Tab */}
-          <TabsContent value="detox" className="mt-0">
-            <DetoxChallengeTab />
-          </TabsContent>
-        </Tabs>
+            {/* Detox Tab */}
+            <TabsContent value="detox" className="mt-0">
+              <DetoxChallengeTab />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       <PremiumPaywall 
