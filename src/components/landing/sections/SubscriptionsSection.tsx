@@ -8,11 +8,13 @@ const plans = [
     name: "Free",
     price: "$0",
     period: "forever",
+    subtitle: "Baseline access to cognitive training",
     features: [
-      "2 daily training sessions",
-      "Basic System 1 & System 2 games",
+      "Up to 2 training sessions per day",
+      "Limited System 1 & System 2 games",
       "Core dashboard metrics",
-      "Progress tracking",
+      "Basic progress tracking",
+      "Baseline cognitive calibration",
     ],
     cta: "Start Free",
     highlighted: false,
@@ -21,11 +23,14 @@ const plans = [
     name: "Pro",
     price: "$19.99",
     period: "/month",
+    subtitle: "Train your cognitive performance",
     features: [
-      "Unlimited sessions",
-      "Full training library",
-      "Advanced analytics",
-      "Monthly cognitive report",
+      "Unlimited training sessions",
+      "Full System 1 & System 2 training library",
+      "Cognitive Load & Capacity tracking",
+      "Advanced performance analytics",
+      "Monthly cognitive performance report",
+      "Personalized training recommendations",
       "Priority support",
     ],
     cta: "Start 7-Day Trial",
@@ -33,14 +38,17 @@ const plans = [
   },
   {
     name: "Elite",
-    price: "$39.99",
+    price: "$29.99",
     period: "/month",
+    subtitle: "Master how you think under pressure",
     features: [
       "Everything in Pro",
-      "On-demand performance reports",
-      "Early access to new protocols",
-      "1:1 onboarding call",
-      "Private community access",
+      "Expanded System 2 access (Critical Thinking & Insight)",
+      "Reduced S2 gating + higher cognitive load ceilings",
+      "Advanced Reasoning Quality insights",
+      "On-demand performance & reasoning reports",
+      "Early access to new training protocols",
+      "Weekly cognitive brief (elite-only)",
     ],
     cta: "Start 7-Day Trial",
     highlighted: false,
@@ -83,13 +91,16 @@ export function SubscriptionsSection() {
                   </div>
                 )}
 
-                <div className="mb-6">
-                  <h3 className={`text-xl font-semibold mb-1 ${plan.highlighted ? "text-white" : "text-black"}`}>
+                <div className="mb-4">
+                  <h3 className={`text-xl font-semibold mb-2 ${plan.highlighted ? "text-white" : "text-black"}`}>
                     {plan.name}
                   </h3>
+                  <p className={`text-sm ${plan.highlighted ? "text-white/70" : "text-black/50"}`}>
+                    {plan.subtitle}
+                  </p>
                 </div>
 
-                <div className="mb-8">
+                <div className="mb-6">
                   <span className={`text-4xl font-bold tracking-tight ${plan.highlighted ? "text-white" : "text-black"}`}>
                     {plan.price}
                   </span>
@@ -101,7 +112,7 @@ export function SubscriptionsSection() {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
-                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlighted ? "text-white" : "text-black/60"}`} />
+                      <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlighted ? "text-white" : "text-primary"}`} />
                       <span className={plan.highlighted ? "text-white/90" : "text-black/70"}>
                         {feature}
                       </span>
@@ -122,6 +133,11 @@ export function SubscriptionsSection() {
               </motion.div>
             ))}
           </div>
+
+          {/* Global note */}
+          <p className="text-center text-sm text-black/40 mt-12 max-w-2xl mx-auto italic">
+            XP measures training volume, not intelligence. NeuroLoop adapts difficulty, load, and insight depth to your cognitive profile.
+          </p>
         </div>
       </div>
     </section>
