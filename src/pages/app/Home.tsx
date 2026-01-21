@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain, Clock, Headphones, BookOpen, FileText } from "lucide-react";
+import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain, Clock, Headphones, BookOpen, FileText, Activity } from "lucide-react";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
@@ -36,7 +36,7 @@ import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCar
 import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
-// Circular progress ring component with dynamic indicator inside
+// Circular progress ring component with icon above value and colored subtext
 interface RingProps {
   value: number;
   max: number;
@@ -67,6 +67,7 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
             fill="none"
             stroke="hsl(var(--muted))"
             strokeWidth={strokeWidth}
+            className="opacity-30"
           />
         </svg>
         {/* Progress ring */}
@@ -84,22 +85,28 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
             className="transition-all duration-1000 ease-out"
           />
         </svg>
-        {/* Center value + dynamic indicator inside */}
+        {/* Center content: icon above value */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {icon}
-          <span className="text-2xl font-semibold tracking-tight text-foreground">
+          {icon && (
+            <div className="mb-0.5" style={{ color }}>
+              {icon}
+            </div>
+          )}
+          <span className="text-2xl font-bold tracking-tight text-foreground">
             {displayValue}
           </span>
-          {dynamicIndicator && (
-            <span className="text-[9px] text-muted-foreground/70 mt-0.5">
-              {dynamicIndicator}
-            </span>
-          )}
         </div>
       </div>
-      <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
+      {/* Label below the ring */}
+      <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-muted-foreground text-center">
         {label}
       </p>
+      {/* Dynamic indicator with color */}
+      {dynamicIndicator && (
+        <span className="text-[10px] font-medium mt-0.5" style={{ color }}>
+          {dynamicIndicator}
+        </span>
+      )}
     </div>
   );
 };
@@ -350,7 +357,7 @@ const Home = () => {
                   value={metricsLoading ? 0 : sharpness}
                   max={100}
                   size={90}
-                  strokeWidth={6}
+                  strokeWidth={5}
                   color={sharpnessColor}
                   label="Sharpness"
                   displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}`}
@@ -360,12 +367,13 @@ const Home = () => {
                     null,
                     null
                   ).text}
+                  icon={<Zap className="w-4 h-4" />}
                 />
                 <ProgressRing
                   value={readiness}
                   max={100}
                   size={90}
-                  strokeWidth={6}
+                  strokeWidth={5}
                   color={readinessColor}
                   label="Readiness"
                   displayValue={`${Math.round(readiness)}`}
@@ -375,12 +383,13 @@ const Home = () => {
                     null,
                     null
                   ).text}
+                  icon={<Activity className="w-4 h-4" />}
                 />
                 <ProgressRing
                   value={recoveryEffectiveLoading ? 0 : recoveryEffective}
                   max={100}
                   size={90}
-                  strokeWidth={6}
+                  strokeWidth={5}
                   color={recoveryColor}
                   label="Recovery"
                   displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
@@ -390,6 +399,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
+                  icon={<Leaf className="w-4 h-4" />}
                 />
               </div>
               
