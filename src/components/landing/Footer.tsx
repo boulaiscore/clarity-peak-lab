@@ -1,4 +1,4 @@
-import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
+import { NeuroLoopWordmark } from "@/components/ui/NeuroLoopWordmark";
 
 export function Footer() {
   return (
@@ -7,8 +7,12 @@ export function Footer() {
         <div className="flex flex-col items-center justify-center gap-4">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <NeuroLoopLogo size={22} className="text-black" />
-            <span className="text-black font-bold text-lg tracking-tight">NEUROLOOP</span>
+            <NeuroLoopWordmark
+              logoSize={22}
+              uppercase
+              logoClassName="text-black"
+              textClassName="text-black font-bold text-lg tracking-tight"
+            />
           </div>
 
           {/* Copyright */}

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Zap, Brain, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap, Bell, Leaf, Target, Flame, Moon, Smartphone, Battery } from "lucide-react";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { computeRRI, RRI_SLEEP_OPTIONS, RRI_DETOX_OPTIONS, RRI_MENTAL_STATE_OPTIONS } from "@/lib/recoveryReadinessInit";
+import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
 
 // Steps: 1=Welcome, 2=Personal, 3=Education, 4=Discipline, 5=Work, 6=Sleep(RRI), 7=Detox(RRI), 8=MentalState(RRI), 9=Plan, 10=Reminder
 type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
@@ -189,7 +190,7 @@ const Onboarding = () => {
           {step === 1 && (
             <div className="text-center animate-fade-in">
               <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center mx-auto mb-6">
-                <span className="text-foreground font-semibold text-xl">N</span>
+                <NeuroLoopLogo size={28} className="text-foreground" />
               </div>
               <h1 className="text-2xl font-semibold mb-3 tracking-tight leading-tight">
                 Welcome to NeuroLoop
