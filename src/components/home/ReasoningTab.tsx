@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useMemo } from "react";
+import { getReadinessStatus } from "@/lib/metricStatusLabels";
 
 export function ReasoningTab() {
   const { readiness, recovery, S2, AE, isLoading } = useTodayMetrics();
@@ -155,7 +156,9 @@ export function ReasoningTab() {
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {Math.round(readiness)}
             </span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Readiness</span>
+            <span className="text-xs text-muted-foreground mt-1">
+              {getReadinessStatus(readiness).label}
+            </span>
           </div>
         </div>
       </div>

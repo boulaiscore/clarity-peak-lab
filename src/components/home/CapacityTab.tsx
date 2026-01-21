@@ -3,6 +3,7 @@ import { Leaf, Smartphone, Footprints, Battery } from "lucide-react";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 
 
 export function CapacityTab() {
@@ -23,13 +24,6 @@ export function CapacityTab() {
   // Premium functional color - Teal for Recovery (fixed, not status-based)
   const ringColor = "hsl(174, 72%, 45%)";
 
-  // Status text based on recovery level
-  const getRecoveryLabel = () => {
-    if (recovery >= 80) return "High";
-    if (recovery >= 50) return "Moderate";
-    if (recovery >= 20) return "Low";
-    return "Very Low";
-  };
   
   return (
     <motion.div
@@ -72,7 +66,7 @@ export function CapacityTab() {
               {isLoading ? "—" : `${Math.round(recovery)}`}
               <span className="text-3xl">%</span>
             </span>
-            <span className="text-xs text-muted-foreground mt-1">{getRecoveryLabel()}</span>
+            <span className="text-xs text-muted-foreground mt-1">{isLoading ? "" : getRecoveryStatus(recovery).label}</span>
           </div>
         </div>
       </div>

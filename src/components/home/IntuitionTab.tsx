@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useMemo } from "react";
+import { getSharpnessStatus } from "@/lib/metricStatusLabels";
 
 export function IntuitionTab() {
   const { 
@@ -158,7 +159,9 @@ export function IntuitionTab() {
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {isLoading ? "—" : `${Math.round(sharpness)}`}
             </span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Sharpness</span>
+            <span className="text-xs text-muted-foreground mt-1">
+              {isLoading ? "Sharpness" : getSharpnessStatus(sharpness).label}
+            </span>
           </div>
         </div>
       </div>

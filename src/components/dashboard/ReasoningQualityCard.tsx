@@ -8,8 +8,8 @@
 import { motion } from "framer-motion";
 import { Info, AlertTriangle, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 
 interface ReasoningQualityCardProps {
   rq: number;
@@ -27,12 +27,6 @@ export function ReasoningQualityCard({
 }: ReasoningQualityCardProps) {
   const navigate = useNavigate();
   
-  const getQualityLevel = (value: number) => {
-    if (value >= 80) return "Elite";
-    if (value >= 60) return "High";
-    if (value >= 40) return "Developing";
-    return "Building";
-  };
   
   if (isLoading) {
     return (
@@ -108,7 +102,7 @@ export function ReasoningQualityCard({
               {Math.round(rq)}
             </div>
             <span className="text-[11px] text-muted-foreground">
-              {getQualityLevel(rq)}
+              {getReasoningQualityStatus(rq).label}
             </span>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
