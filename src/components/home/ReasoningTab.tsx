@@ -21,11 +21,15 @@ export function ReasoningTab() {
   const progress = Math.min(readiness / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
 
-  // Status thresholds (same as Sharpness)
-  const getStatus = (value: number): "low" | "moderate" | "good" => {
-    if (value >= 70) return "good";
-    if (value >= 45) return "moderate";
-    return "low";
+  // Status thresholds - 5 levels for more variance
+  type StatusLevel = "very_low" | "low" | "moderate" | "good" | "high";
+  
+  const getStatus = (value: number): StatusLevel => {
+    if (value >= 80) return "high";
+    if (value >= 65) return "good";
+    if (value >= 50) return "moderate";
+    if (value >= 35) return "low";
+    return "very_low";
   };
 
   const readinessStatus = getStatus(readiness);
@@ -33,40 +37,50 @@ export function ReasoningTab() {
   const reasoningStatus = getStatus(S2);
   const focusStatus = getStatus(AE);
 
-  // Dynamic subtitle based on readiness
+  // Dynamic subtitle based on readiness - 5 levels
   const getSubtitle = () => {
-    if (readiness >= 70) return "You are ready for demanding, high-focus work.";
-    if (readiness >= 45) return "You can handle moderate cognitive effort today.";
+    if (readiness >= 80) return "Peak readiness. You can sustain demanding, high-focus work.";
+    if (readiness >= 65) return "You are ready for demanding, high-focus work.";
+    if (readiness >= 50) return "Moderate readiness. You can handle sustained effort with breaks.";
+    if (readiness >= 35) return "Readiness is reduced. Shorter work sessions are advised.";
     return "Your capacity for sustained cognitive work is currently limited.";
   };
 
-  // Recovery impact text
+  // Recovery impact text - 5 levels
   const getRecoveryImpact = () => {
-    if (recovery >= 70) return "Recovery fully supports sustained cognitive effort today.";
-    if (recovery >= 45) return "Recovery partially supports your cognitive endurance.";
-    return "Low recovery reduces your ability to sustain effort, even if your skills are strong.";
+    if (recovery >= 80) return "Recovery is excellent, fully supporting sustained effort.";
+    if (recovery >= 65) return "Recovery is good, supporting most cognitive demands.";
+    if (recovery >= 50) return "Recovery partially supports your cognitive endurance.";
+    if (recovery >= 35) return "Recovery is low, limiting your ability to sustain effort.";
+    return "Low recovery significantly reduces your endurance, even if skills are strong.";
   };
 
   // Premium functional color - Soft Indigo for Readiness (fixed, not status-based)
   const ringColor = "hsl(245, 58%, 65%)";
 
-  // Status badge styling - neutral tones, no alarm colors
-  const getStatusStyle = (status: "low" | "moderate" | "good") => {
+  // Status badge styling - 5 levels, neutral tones
+  const getStatusStyle = (status: StatusLevel) => {
     switch (status) {
+      case "high":
+        return "bg-primary/20 text-primary border-primary/40";
       case "good":
         return "bg-primary/15 text-primary border-primary/30";
       case "moderate":
         return "bg-muted/30 text-muted-foreground border-muted-foreground/30";
       case "low":
         return "bg-muted/20 text-muted-foreground/70 border-muted-foreground/20";
+      case "very_low":
+        return "bg-muted/10 text-muted-foreground/50 border-muted-foreground/10";
     }
   };
 
-  const getStatusLabel = (status: "low" | "moderate" | "good") => {
+  const getStatusLabel = (status: StatusLevel) => {
     switch (status) {
+      case "high": return "Excellent";
       case "good": return "Good";
       case "moderate": return "Moderate";
       case "low": return "Low";
+      case "very_low": return "Very Low";
     }
   };
 
@@ -267,10 +281,10 @@ function DriverCard({
   icon: React.ReactNode; 
   title: string; 
   description: string;
-  status: "low" | "moderate" | "good";
+  status: "very_low" | "low" | "moderate" | "good" | "high";
   emphasis: "primary" | "secondary" | "modifier";
-  getStatusStyle: (s: "low" | "moderate" | "good") => string;
-  getStatusLabel: (s: "low" | "moderate" | "good") => string;
+  getStatusStyle: (s: "very_low" | "low" | "moderate" | "good" | "high") => string;
+  getStatusLabel: (s: "very_low" | "low" | "moderate" | "good" | "high") => string;
 }) {
   const emphasisLabel = emphasis === "primary" ? "Primary" : emphasis === "secondary" ? "Secondary" : "Modifier";
   

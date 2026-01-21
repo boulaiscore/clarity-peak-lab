@@ -31,9 +31,10 @@ export function ReasoningQualityCard({
   
   if (isLoading) {
     return (
-      <div className="p-3 rounded-xl bg-card border border-border/40 animate-pulse">
-        <div className="h-4 bg-muted rounded w-24 mb-1" />
-        <div className="h-6 bg-muted rounded w-16" />
+      <div className="p-4 rounded-xl bg-card border border-border/40 animate-pulse">
+        <div className="h-4 bg-muted rounded w-28 mb-3" />
+        <div className="h-8 bg-muted rounded w-20 mb-3" />
+        <div className="h-1.5 bg-muted rounded-full" />
       </div>
     );
   }
@@ -44,11 +45,12 @@ export function ReasoningQualityCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       onClick={() => navigate("/app/reasoning-quality-impact")}
-      className="w-full p-3 rounded-xl bg-card border border-border/40 text-left hover:bg-card/80 transition-colors"
+      className="w-full p-4 rounded-xl bg-card border border-border/40 text-left hover:bg-card/80 transition-colors"
     >
-      <div className="flex items-center justify-between">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-medium text-muted-foreground">Reasoning Quality</h3>
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Reasoning Quality</h3>
           {isDecaying && (
             <Popover>
               <PopoverTrigger asChild>
@@ -70,23 +72,32 @@ export function ReasoningQualityCard({
             </Popover>
           )}
         </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <span className="text-xl font-bold tabular-nums">
-              {Math.round(rq)}
-            </span>
-            <span className="text-[10px] text-muted-foreground/70 ml-1.5">
-              {getMetricDisplayInfo(
-                getReasoningQualityStatus(rq).label,
-                getReasoningQualityStatus(rq).level,
-                null,
-                null
-              ).text}
-            </span>
-          </div>
-          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
-        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
+      </div>
+      
+      {/* Score row */}
+      <div className="flex items-baseline gap-2 mb-3">
+        <span className="text-3xl font-bold tabular-nums">
+          {Math.round(rq)}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {getMetricDisplayInfo(
+            getReasoningQualityStatus(rq).label,
+            getReasoningQualityStatus(rq).level,
+            null,
+            null
+          ).text}
+        </span>
+      </div>
+      
+      {/* Progress bar */}
+      <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-foreground/25 rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${rq}%` }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+        />
       </div>
     </motion.button>
   );
