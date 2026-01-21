@@ -97,15 +97,16 @@ function DemandPill({ demand }: { demand: string }) {
   );
 }
 
-// RQ Contribution badge - shows actual RQ impact (Task Priming weight = 0.20)
+// RQ Contribution badge - shows potential RQ contribution for this item type
+// Note: This is the potential contribution to Task Priming, not a guaranteed delta to total RQ
 const TASK_PRIMING_WEIGHT = 0.20;
 function RQContributionBadge({ type }: { type: "podcast" | "article" | "book" }) {
   const baseContribution = calculateSingleTaskRQContribution(type, null);
-  // Real RQ impact = base contribution × Task Priming weight (0.20)
-  const realRQContribution = Math.round(baseContribution * TASK_PRIMING_WEIGHT * 10) / 10;
+  // Potential RQ impact = base contribution × Task Priming weight (0.20)
+  const potentialRQContribution = Math.round(baseContribution * TASK_PRIMING_WEIGHT * 10) / 10;
   return (
     <span className="text-[8px] font-medium px-1.5 py-0.5 rounded bg-black/40 text-white/90 backdrop-blur-sm">
-      +{realRQContribution}% Reasoning Quality
+      +{potentialRQContribution} RQ potential
     </span>
   );
 }

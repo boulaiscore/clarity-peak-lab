@@ -346,15 +346,16 @@ export function calculateRQ(input: RQInput): RQResult {
   // 7. Final RQ with floor
   const finalRQ = clamp(baseRQ - decay, floor, 100);
   
+  // Return full precision values - rounding happens only at display layer
   return {
-    rq: Math.round(finalRQ * 10) / 10,
-    s2Core: Math.round(s2Core * 10) / 10,
-    s2Consistency: Math.round(s2Consistency * 10) / 10,
-    taskPriming: Math.round(taskPriming * 10) / 10,
-    s2CoreContribution: Math.round(s2CoreContribution * 10) / 10,
-    s2ConsistencyContribution: Math.round(s2ConsistencyContribution * 10) / 10,
-    taskPrimingContribution: Math.round(taskPrimingContribution * 10) / 10,
-    decay: Math.round(decay * 10) / 10,
+    rq: finalRQ,
+    s2Core: s2Core,
+    s2Consistency: s2Consistency,
+    taskPriming: taskPriming,
+    s2CoreContribution: s2CoreContribution,
+    s2ConsistencyContribution: s2ConsistencyContribution,
+    taskPrimingContribution: taskPrimingContribution,
+    decay: decay,
     isDecaying: decay > 0,
   };
 }

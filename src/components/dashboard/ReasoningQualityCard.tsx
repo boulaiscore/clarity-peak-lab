@@ -78,7 +78,7 @@ export function ReasoningQualityCard({
       {/* Score row */}
       <div className="flex items-baseline gap-2 mb-3">
         <span className="text-3xl font-bold tabular-nums">
-          {Math.round(rq)}
+          {rq.toFixed(1)}
         </span>
         <span className="text-xs text-muted-foreground">
           {getMetricDisplayInfo(
