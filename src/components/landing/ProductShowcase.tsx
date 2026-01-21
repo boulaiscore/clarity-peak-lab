@@ -33,7 +33,7 @@ const showcaseSlides = [
     detailHeadline: "Measure your brain's biological age",
     detailDescription: "Cognitive Age translates your cognitive performance into a biological brain age. A value lower than your chronological age indicates a sharper, more reactive brain built through consistent training.",
     testimonial: "Seeing my cognitive age drop by 3 years in 2 months was the proof I needed.",
-    testimonialAuthor: "M. Eriksson",
+    testimonialAuthor: "M. Reynolds",
   },
   {
     image: meditationImage,
@@ -46,7 +46,7 @@ const showcaseSlides = [
     detailHeadline: "Optimize your mental recovery",
     detailDescription: "The Recovery section monitors your cognitive rest and guides you with targeted protocols like Digital Detox and Walking to maximize your mental readiness for peak performance.",
     testimonial: "The recovery protocols helped me understand when to push and when to rest.",
-    testimonialAuthor: "S. Nakamura",
+    testimonialAuthor: "S. Mitchell",
   },
   {
     image: bookReadingImage,
@@ -59,7 +59,7 @@ const showcaseSlides = [
     detailHeadline: "Sharpen reasoning through curated content",
     detailDescription: "The Library offers selected books and articles that stimulate critical thinking and analytical reasoning, contributing to your Reasoning Quality score with every piece you complete.",
     testimonial: "The curated library transformed my reading from passive to purposeful.",
-    testimonialAuthor: "A. Petrov",
+    testimonialAuthor: "A. Morrison",
   },
   {
     image: phoneThinkingImage,
@@ -72,7 +72,7 @@ const showcaseSlides = [
     detailHeadline: "Train your rapid intuition",
     detailDescription: "Through System 1 games like Flash Connect and Constellation Snap, you train fast, accurate decision-making to improve cognitive Sharpness and intuitive response times.",
     testimonial: "My reaction time in high-pressure situations has noticeably improved.",
-    testimonialAuthor: "L. Martinez",
+    testimonialAuthor: "L. Bennett",
   },
   {
     image: outdoorWalkImage,
@@ -85,7 +85,7 @@ const showcaseSlides = [
     detailHeadline: "Balance fast and reflective thinking",
     detailDescription: "The Dual Process Index shows the equilibrium between your System 1 (intuitive) and System 2 (analytical) thinking. Optimal balance is the key to effective decisions under any circumstances.",
     testimonial: "Understanding my dual-process balance changed how I approach complex decisions.",
-    testimonialAuthor: "J. Okonkwo",
+    testimonialAuthor: "J. Crawford",
   },
   {
     image: podcastListeningImage,
@@ -98,7 +98,7 @@ const showcaseSlides = [
     detailHeadline: "Absorb insights through curated podcasts",
     detailDescription: "The podcast section lets you absorb curated content during daily activities, contributing to your cognitive growth without taking extra time from your schedule.",
     testimonial: "I now optimize my commute with targeted cognitive content.",
-    testimonialAuthor: "R. Johansson",
+    testimonialAuthor: "R. Thompson",
   },
   {
     image: criticalReasoningImage,
@@ -111,7 +111,7 @@ const showcaseSlides = [
     detailHeadline: "Build deliberate reasoning capacity",
     detailDescription: "Games like Causal Ledger challenge you to evaluate cause-effect relationships and resist cognitive biases, building a more analytical and disciplined mind over time.",
     testimonial: "The bias resistance training made me aware of patterns I never noticed before.",
-    testimonialAuthor: "K. Andersson",
+    testimonialAuthor: "K. Harrison",
   },
 ];
 
@@ -413,7 +413,7 @@ export function ProductShowcase() {
             "NeuroLoop taught me that mental recovery days are as important as training days. Seeing a low readiness score in the morning pushes me to take better care of my mind."
           </p>
           <p className="text-black font-semibold">
-            H. Lindqvist
+            H. Whitfield
           </p>
         </div>
       </div>
