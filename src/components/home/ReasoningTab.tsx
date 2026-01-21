@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useMemo } from "react";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
-import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
+import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 
 export function ReasoningTab() {
   const { readiness, recovery, S2, AE, isLoading } = useTodayMetrics();
@@ -167,9 +167,6 @@ export function ReasoningTab() {
             </span>
           </div>
         </div>
-        {/* Definition below ring */}
-        <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">Readiness</p>
-        <p className="text-[9px] text-muted-foreground/50">{METRIC_DEFINITIONS.readiness}</p>
       </div>
 
       {/* Drivers Section */}
@@ -179,32 +176,35 @@ export function ReasoningTab() {
         </h3>
         
         <div className="space-y-2">
-          {/* Recovery */}
+          {/* Recovery - 35% weight */}
           <DriverCard
             icon={<Battery className="w-4 h-4" />}
             title="Recovery"
             description="Recovery determines how much mental effort you can sustain today."
             status={recoveryStatus}
+            weight="35% weight"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
           
-          {/* Reasoning Capacity (S2) */}
+          {/* Reasoning Capacity (S2) - 35% weight */}
           <DriverCard
             icon={<Brain className="w-4 h-4" />}
             title="Reasoning Capacity"
             description="Reflects your ability to engage in structured, analytical thinking."
             status={reasoningStatus}
+            weight="35% weight"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
           
-          {/* Focus Stability (AE) */}
+          {/* Focus Stability (AE) - 30% weight */}
           <DriverCard
             icon={<Focus className="w-4 h-4" />}
             title="Focus Stability"
             description="Reflects how well you can maintain attention without mental fatigue."
             status={focusStatus}
+            weight="30% weight"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
@@ -260,6 +260,7 @@ function DriverCard({
   title, 
   description, 
   status,
+  weight,
   getStatusStyle,
   getStatusLabel
 }: { 
@@ -267,6 +268,7 @@ function DriverCard({
   title: string; 
   description: string;
   status: "low" | "moderate" | "good";
+  weight: string;
   getStatusStyle: (s: "low" | "moderate" | "good") => string;
   getStatusLabel: (s: "low" | "moderate" | "good") => string;
 }) {
@@ -276,9 +278,13 @@ function DriverCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <span className="text-sm font-medium">{title}</span>
-          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusStyle(status)}`}>
-            {getStatusLabel(status)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground/70">{weight}</span>
+            <span className="text-[9px] text-muted-foreground/50">·</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusStyle(status)}`}>
+              {getStatusLabel(status)}
+            </span>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground/80 leading-relaxed">{description}</p>
       </div>

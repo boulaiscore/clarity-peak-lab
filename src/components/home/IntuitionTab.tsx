@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useMemo } from "react";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
-import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
+import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 
 export function IntuitionTab() {
   const { 
@@ -170,9 +170,6 @@ export function IntuitionTab() {
             </span>
           </div>
         </div>
-        {/* Definition below ring */}
-        <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">Sharpness</p>
-        <p className="text-[9px] text-muted-foreground/50">{METRIC_DEFINITIONS.sharpness}</p>
       </div>
 
       {/* Drivers Section */}
@@ -182,32 +179,35 @@ export function IntuitionTab() {
         </h3>
         
         <div className="space-y-2">
-          {/* Fast Processing (S1) */}
+          {/* Fast Processing (S1) - 60% weight */}
           <DriverCard
             icon={<Zap className="w-4 h-4" />}
             title="Fast Processing"
             description="Reflects your speed and intuitive processing."
             status={s1Status}
+            weight="60% weight"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
           
-          {/* Deliberate Reasoning (S2) */}
+          {/* Deliberate Reasoning (S2) - 40% weight */}
           <DriverCard
             icon={<Brain className="w-4 h-4" />}
             title="Deliberate Reasoning"
             description="Reflects your capacity for structured and analytical thinking."
             status={s2Status}
+            weight="40% weight"
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
           
-          {/* Recovery State */}
+          {/* Recovery State - Multiplier */}
           <DriverCard
             icon={<Battery className="w-4 h-4" />}
             title="Recovery State"
             description="Determines how much of your cognitive capacity you can access today."
             status={recoveryStatus}
+            weight={`×${(0.75 + 0.25 * recovery / 100).toFixed(2)} modifier`}
             getStatusStyle={getStatusStyle}
             getStatusLabel={getStatusLabel}
           />
@@ -263,6 +263,7 @@ function DriverCard({
   title, 
   description, 
   status,
+  weight,
   getStatusStyle,
   getStatusLabel
 }: { 
@@ -270,6 +271,7 @@ function DriverCard({
   title: string; 
   description: string;
   status: "low" | "moderate" | "good";
+  weight: string;
   getStatusStyle: (s: "low" | "moderate" | "good") => string;
   getStatusLabel: (s: "low" | "moderate" | "good") => string;
 }) {
@@ -279,9 +281,13 @@ function DriverCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <span className="text-sm font-medium">{title}</span>
-          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusStyle(status)}`}>
-            {getStatusLabel(status)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground/70">{weight}</span>
+            <span className="text-[9px] text-muted-foreground/50">·</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusStyle(status)}`}>
+              {getStatusLabel(status)}
+            </span>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground/80 leading-relaxed">{description}</p>
       </div>
