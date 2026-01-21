@@ -330,8 +330,8 @@ export function ProductShowcase() {
     <section className="bg-primary/5 py-12 sm:py-20">
       <div className="container px-4 sm:px-6">
         {/* Section header */}
-        <div className="text-center mb-12 max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black tracking-tight mb-6">
+        <div className="text-left mb-12 max-w-3xl">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-black tracking-tight mb-6">
             Reason clearly in the age of AI and constant stimulation
           </h2>
           <p className="text-black/70 text-base sm:text-lg leading-relaxed mb-4">
