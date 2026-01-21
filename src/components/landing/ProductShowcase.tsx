@@ -384,7 +384,7 @@ export function ProductShowcase() {
             Reason clearly in the age of AI and constant stimulation
           </h2>
           <p className="text-black/70 text-base sm:text-lg leading-relaxed">
-            In a world of constant notifications and algorithm-driven decisions, clear thinking is under pressure. NeuroLoop helps you measure, train, and stabilize how you reason—so you can make better decisions in a noisy world.
+            In a world of constant notifications and algorithm-driven decisions, clear thinking is under pressure. NeuroLoop helps you measure, train, and stabilize how you reason, so you can make better decisions in a noisy world.
           </p>
         </div>
 
