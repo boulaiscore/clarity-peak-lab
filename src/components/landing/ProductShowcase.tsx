@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Zap, Brain, Plus } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
+import { ShowcaseDetailModal } from "./ShowcaseDetailModal";
 
 import focusWorkImage from "@/assets/landing-focus-work.jpg";
 import meditationImage from "@/assets/landing-meditation-calm.jpg";
@@ -11,6 +12,15 @@ import outdoorWalkImage from "@/assets/landing-outdoor-walk.jpg";
 import podcastListeningImage from "@/assets/landing-podcast-listening.jpg";
 import criticalReasoningImage from "@/assets/landing-critical-reasoning.jpg";
 
+// Detail screenshots for modal
+import detailCognitiveAge from "@/assets/landing/detail-cognitive-age.png";
+import detailRecovery from "@/assets/landing/detail-recovery.png";
+import detailLibrary from "@/assets/landing/detail-library.png";
+import detailTraining from "@/assets/landing/detail-training.png";
+import detailDualProcess from "@/assets/landing/detail-dual-process.png";
+import detailPodcast from "@/assets/landing/detail-podcast.png";
+import detailReasoningQuality from "@/assets/landing/detail-reasoning-quality.png";
+
 const showcaseSlides = [
   {
     image: focusWorkImage,
@@ -19,6 +29,9 @@ const showcaseSlides = [
     metricValue: "38.2",
     metricLabel: "COGNITIVE AGE",
     metricSubtext: "4.1 years younger",
+    detailScreenshot: detailCognitiveAge,
+    detailHeadline: "Measure your brain's biological age",
+    detailDescription: "Cognitive Age translates your cognitive performance into a biological brain age. A value lower than your chronological age indicates a sharper, more reactive brain built through consistent training.",
   },
   {
     image: meditationImage,
@@ -27,6 +40,9 @@ const showcaseSlides = [
     metricValue: "87%",
     metricLabel: "RECOVERY",
     metricSubtext: "Optimal readiness",
+    detailScreenshot: detailRecovery,
+    detailHeadline: "Optimize your mental recovery",
+    detailDescription: "The Recovery section monitors your cognitive rest and guides you with targeted protocols like Digital Detox and Walking to maximize your mental readiness for peak performance.",
   },
   {
     image: bookReadingImage,
@@ -35,6 +51,9 @@ const showcaseSlides = [
     metricValue: "92",
     metricLabel: "REASONING QUALITY",
     metricSubtext: "+12% this month",
+    detailScreenshot: detailLibrary,
+    detailHeadline: "Sharpen reasoning through curated content",
+    detailDescription: "The Library offers selected books and articles that stimulate critical thinking and analytical reasoning, contributing to your Reasoning Quality score with every piece you complete.",
   },
   {
     image: phoneThinkingImage,
@@ -43,6 +62,9 @@ const showcaseSlides = [
     metricValue: "76",
     metricLabel: "SHARPNESS",
     metricSubtext: "High clarity",
+    detailScreenshot: detailTraining,
+    detailHeadline: "Train your rapid intuition",
+    detailDescription: "Through System 1 games like Flash Connect and Constellation Snap, you train fast, accurate decision-making to improve cognitive Sharpness and intuitive response times.",
   },
   {
     image: outdoorWalkImage,
@@ -51,6 +73,9 @@ const showcaseSlides = [
     metricValue: "52%",
     metricLabel: "DUAL PROCESS",
     metricSubtext: "Balanced",
+    detailScreenshot: detailDualProcess,
+    detailHeadline: "Balance fast and reflective thinking",
+    detailDescription: "The Dual Process Index shows the equilibrium between your System 1 (intuitive) and System 2 (analytical) thinking. Optimal balance is the key to effective decisions under any circumstances.",
   },
   {
     image: podcastListeningImage,
@@ -59,6 +84,9 @@ const showcaseSlides = [
     metricValue: "85",
     metricLabel: "KNOWLEDGE ABSORPTION",
     metricSubtext: "+8% this week",
+    detailScreenshot: detailPodcast,
+    detailHeadline: "Absorb insights through curated podcasts",
+    detailDescription: "The podcast section lets you absorb curated content during daily activities, contributing to your cognitive growth without taking extra time from your schedule.",
   },
   {
     image: criticalReasoningImage,
@@ -67,6 +95,9 @@ const showcaseSlides = [
     metricValue: "88",
     metricLabel: "CRITICAL REASONING",
     metricSubtext: "Top 15%",
+    detailScreenshot: detailReasoningQuality,
+    detailHeadline: "Build deliberate reasoning capacity",
+    detailDescription: "Games like Causal Ledger challenge you to evaluate cause-effect relationships and resist cognitive biases, building a more analytical and disciplined mind over time.",
   },
 ];
 
@@ -231,7 +262,7 @@ function MetricRenderer({ type, value, subtext }: { type: string; value: string;
   }
 }
 
-function ShowcaseCard({ slide }: { slide: typeof showcaseSlides[0] }) {
+function ShowcaseCard({ slide, onOpenDetail }: { slide: typeof showcaseSlides[0]; onOpenDetail: () => void }) {
   return (
     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden group">
       {/* Background image */}
@@ -261,7 +292,10 @@ function ShowcaseCard({ slide }: { slide: typeof showcaseSlides[0] }) {
       </div>
       
       {/* Plus button at bottom-right */}
-      <button className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors shadow-lg">
+      <button 
+        onClick={onOpenDetail}
+        className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all shadow-lg"
+      >
         <Plus className="w-5 h-5 text-foreground" />
       </button>
     </div>
@@ -275,6 +309,7 @@ export function ProductShowcase() {
     slidesToScroll: 1,
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedSlideIndex, setSelectedSlideIndex] = useState<number | null>(null);
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
@@ -313,7 +348,10 @@ export function ProductShowcase() {
                   key={index} 
                   className="flex-[0_0_calc(33.333%-1rem)] min-w-[280px] pl-4"
                 >
-                  <ShowcaseCard slide={slide} />
+                  <ShowcaseCard 
+                    slide={slide} 
+                    onOpenDetail={() => setSelectedSlideIndex(index)}
+                  />
                 </div>
               ))}
             </div>
@@ -349,6 +387,15 @@ export function ProductShowcase() {
           ))}
         </div>
       </div>
+
+      {/* Detail Modal */}
+      <ShowcaseDetailModal
+        isOpen={selectedSlideIndex !== null}
+        slideIndex={selectedSlideIndex ?? 0}
+        slides={showcaseSlides}
+        onClose={() => setSelectedSlideIndex(null)}
+        onNavigate={setSelectedSlideIndex}
+      />
     </section>
   );
 }
