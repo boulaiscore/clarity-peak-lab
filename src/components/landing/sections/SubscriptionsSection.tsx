@@ -22,10 +22,10 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$19.90",
-    period: "/month",
-    annualPrice: "$199",
-    annualNote: "2 months free",
+    price: "$199",
+    period: " / year",
+    monthlyEquivalent: "≈ $16.60 / month • 2 months free",
+    monthlyOption: "Monthly option: $19.90 / month",
     summary: "The complete cognitive training experience for high performers.",
     features: [
       "Unlimited sessions",
@@ -39,10 +39,10 @@ const plans = [
   },
   {
     name: "Elite",
-    price: "$29.90",
-    period: "/month",
-    annualPrice: "$299",
-    annualNote: "2 months free",
+    price: "$299",
+    period: " / year",
+    monthlyEquivalent: "≈ $24.90 / month • 2 months free",
+    monthlyOption: "Monthly option: $29.90 / month",
     summary: "Deeper cognitive supervision and advanced reasoning insights.",
     features: [
       "Everything in Pro",
@@ -117,14 +117,18 @@ function PlanCard({ plan, index }: { plan: typeof plans[0]; index: number }) {
         </span>
       </div>
 
-      {/* Annual pricing */}
-      {plan.annualPrice && (
-        <p className={`text-sm mb-6 relative z-10 ${plan.highlighted ? "text-white/70" : "text-zinc-500"}`}>
-          or <span className="font-medium">{plan.annualPrice}/year</span>{" "}
-          <span className="text-xs">({plan.annualNote})</span>
+      {/* Monthly equivalent & option */}
+      {plan.monthlyEquivalent && (
+        <p className={`text-xs mb-1 relative z-10 ${plan.highlighted ? "text-white/70" : "text-zinc-500"}`}>
+          {plan.monthlyEquivalent}
         </p>
       )}
-      {!plan.annualPrice && <div className="mb-6" />}
+      {plan.monthlyOption && (
+        <p className={`text-xs mb-6 relative z-10 ${plan.highlighted ? "text-white/60" : "text-zinc-400"}`}>
+          {plan.monthlyOption}
+        </p>
+      )}
+      {!plan.monthlyEquivalent && <div className="mb-6" />}
 
       {/* Compact feature list */}
       <ul className="space-y-2 mb-8 flex-1 relative z-10">

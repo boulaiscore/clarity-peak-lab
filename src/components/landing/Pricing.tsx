@@ -22,10 +22,10 @@ const tiers = [
   },
   {
     name: "Pro",
-    price: "$19.90",
-    period: "/month",
-    annualPrice: "$199",
-    annualNote: "2 months free",
+    price: "$199",
+    period: " / year",
+    monthlyEquivalent: "≈ $16.60 / month • 2 months free",
+    monthlyOption: "Monthly option: $19.90 / month",
     summary: "The complete cognitive training experience for high performers.",
     features: [
       "Unlimited sessions",
@@ -39,10 +39,10 @@ const tiers = [
   },
   {
     name: "Elite",
-    price: "$29.90",
-    period: "/month",
-    annualPrice: "$299",
-    annualNote: "2 months free",
+    price: "$299",
+    period: " / year",
+    monthlyEquivalent: "≈ $24.90 / month • 2 months free",
+    monthlyOption: "Monthly option: $29.90 / month",
     summary: "Deeper cognitive supervision and advanced reasoning insights.",
     features: [
       "Everything in Pro",
@@ -118,14 +118,18 @@ export function Pricing() {
                 </span>
               </div>
 
-              {/* Annual pricing */}
-              {tier.annualPrice && (
-                <p className={`text-sm mb-6 ${tier.highlighted ? "text-white/70" : "text-black/50"}`}>
-                  or <span className="font-medium">{tier.annualPrice}/year</span>{" "}
-                  <span className="text-xs">({tier.annualNote})</span>
+              {/* Monthly equivalent & option */}
+              {tier.monthlyEquivalent && (
+                <p className={`text-xs mb-1 ${tier.highlighted ? "text-white/70" : "text-black/50"}`}>
+                  {tier.monthlyEquivalent}
                 </p>
               )}
-              {!tier.annualPrice && <div className="mb-6" />}
+              {tier.monthlyOption && (
+                <p className={`text-xs mb-6 ${tier.highlighted ? "text-white/60" : "text-black/40"}`}>
+                  {tier.monthlyOption}
+                </p>
+              )}
+              {!tier.monthlyEquivalent && <div className="mb-6" />}
 
               {/* Compact feature list */}
               <ul className="space-y-2 mb-8 flex-1">
