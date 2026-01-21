@@ -209,6 +209,14 @@ export default function NeuroLab() {
           </motion.div>
         )}
 
+        {/* Cognitive Load Guidance - WHOOP style */}
+        <div className="mb-3">
+          <p className="text-[13px] text-foreground/80 leading-relaxed">
+            <span className="font-semibold text-foreground">Listen to your body.</span>{" "}
+            High recovery? Push harder with S2 games. Feeling low? Focus on tasks, detox & walking to rebuild.
+          </p>
+        </div>
+
         {/* Weekly Goal - Compact */}
         <WeeklyGoalCard compact />
 
