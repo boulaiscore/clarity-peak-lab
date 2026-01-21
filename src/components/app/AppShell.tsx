@@ -1,11 +1,12 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, User, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers } from "lucide-react";
+import { Home, LayoutDashboard, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers, User, Dumbbell, Settings, CreditCard, LogOut } from "lucide-react";
 import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { useDecayNotificationInit } from "@/hooks/useDecayNotificationInit";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface AppShellProps {
@@ -20,8 +21,11 @@ const navItems = [
 ];
 
 const menuItems = [
+  { to: "/app/account?tab=profile", icon: User, label: "Profile" },
+  { to: "/app/account?tab=training", icon: Dumbbell, label: "Training" },
+  { to: "/app/account?tab=preferences", icon: Settings, label: "Settings" },
+  { to: "/app/account?tab=subscription", icon: CreditCard, label: "Subscription" },
   { to: "/brain-science", icon: BookOpen, label: "Science" },
-  { to: "/app/account", icon: User, label: "Account" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
@@ -29,6 +33,7 @@ export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate();
   const { permission, isSupported, checkReminders } = useNotifications();
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   
   // Initialize decay notifications on app load
@@ -169,29 +174,37 @@ export function AppShell({ children }: AppShellProps) {
             >
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden max-w-md mx-auto">
                 {menuItems.map((item) => {
-                  const isActive = location.pathname === item.to;
+                  const isActive = location.pathname + location.search === item.to || 
+                    (item.to.startsWith("/app/account") && location.pathname === "/app/account" && item.to.includes(location.search));
                   return (
                     <Link
                       key={item.to}
                       to={item.to}
                       onClick={() => setMenuOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3.5 transition-colors border-b border-border/30 last:border-b-0",
+                        "flex items-center gap-3 px-4 py-3.5 transition-colors border-b border-border/30",
                         isActive
                           ? "bg-primary/10 text-primary"
                           : "text-foreground hover:bg-muted/50"
                       )}
                     >
-                      <div className="relative">
-                        <item.icon className="w-5 h-5" />
-                        {'badge' in item && item.badge && (
-                          <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
-                        )}
-                      </div>
+                      <item.icon className="w-5 h-5" />
                       <span className="text-sm font-medium">{item.label}</span>
                     </Link>
                   );
                 })}
+                
+                {/* Logout button */}
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                  }}
+                  className="flex items-center gap-3 px-4 py-3.5 transition-colors w-full text-left text-red-400 hover:bg-red-500/10"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="text-sm font-medium">Sign Out</span>
+                </button>
               </div>
             </motion.div>
           )}
