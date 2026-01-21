@@ -803,8 +803,11 @@ const Account = () => {
                       </span>
                     )}
                   </div>
-                  <span className="text-lg font-bold">$19.90<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                  <span className="text-lg font-bold">$199<span className="text-xs text-muted-foreground font-normal"> / year</span></span>
                 </div>
+                <p className="text-[10px] text-muted-foreground mb-1">
+                  ≈ $16.60 / month • 2 months free
+                </p>
                 <p className="text-xs text-muted-foreground mb-3">
                   Complete cognitive training for high performers.
                 </p>
@@ -823,7 +826,7 @@ const Account = () => {
                   </li>
                 </ul>
                 <p className="text-xs text-muted-foreground/70 mb-3">
-                  or $199/year <span className="text-[10px]">(2 months free)</span>
+                  Monthly option: $19.90/month
                 </p>
                 {!isPremium && (
                   <Button 
@@ -853,8 +856,11 @@ const Account = () => {
                     <Rocket className="w-5 h-5 text-purple-400" />
                     <span className="font-semibold">Elite</span>
                   </div>
-                  <span className="text-lg font-bold">$29.90<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                  <span className="text-lg font-bold">$299<span className="text-xs text-muted-foreground font-normal"> / year</span></span>
                 </div>
+                <p className="text-[10px] text-muted-foreground mb-1">
+                  ≈ $24.90 / month • 2 months free
+                </p>
                 <p className="text-xs text-muted-foreground mb-3">
                   Deeper cognitive supervision & reasoning insights.
                 </p>
@@ -877,7 +883,7 @@ const Account = () => {
                   </li>
                 </ul>
                 <p className="text-xs text-muted-foreground/70 mb-3">
-                  or $299/year <span className="text-[10px]">(2 months free)</span>
+                  Monthly option: $29.90/month
                 </p>
                 <Button 
                   onClick={() => handleSubscribe('pro')}
