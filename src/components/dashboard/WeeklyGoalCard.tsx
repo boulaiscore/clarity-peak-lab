@@ -304,7 +304,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
   
   const barStyles = getBarStyles(adaptiveStatus.status);
 
-  // Compact version for NeuroLab
+  // Compact version for NeuroLab - Ultra-simplified
   if (compact) {
     return (
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -316,29 +316,16 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
           className="p-3 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4"
         >
           <CollapsibleTrigger className="w-full">
-            {/* Header - Training Load (Weekly) */}
-            <div className="flex items-center justify-between mb-1">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-help">
-                      <Activity className="w-3.5 h-3.5 text-primary" />
-                      <span className="text-[11px] font-semibold">
-                        Cognitive Load
-                        <span className="text-[9px] font-normal text-muted-foreground/70 ml-1">(Rolling 7 days)</span>
-                      </span>
-                      <Info className="w-2.5 h-2.5 text-muted-foreground/50" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[200px] text-xs">
-                    Based on the last 7 days (rolling window), not calendar weeks.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            {/* Header Row - Label + XP + Status */}
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-              <span className="text-[9px] text-muted-foreground/70 tabular-nums">
-                {Math.round(rawGamesXP)} / {weeklyXPTarget} XP
-              </span>
+                <Activity className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-semibold">Cognitive Load</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium tabular-nums">
+                  {Math.round(rawGamesXP)} / {weeklyXPTarget} XP
+                </span>
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -347,53 +334,10 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                 </motion.div>
               </div>
             </div>
-            
-            {/* Your Capacity indicator with trend arrow + explanation */}
-            <div className="mb-2">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="w-2.5 h-2.5 text-muted-foreground/50" />
-                <span className="text-[8px] text-muted-foreground/50">
-                  Your Capacity: {Math.round(trainingCapacity)} XP
-                </span>
-                {tcTrend === "up" && (
-                  <ArrowUp className="w-2.5 h-2.5 text-teal-400" />
-                )}
-                {tcTrend === "down" && (
-                  <ArrowDown className="w-2.5 h-2.5 text-amber-400" />
-                )}
-              </div>
-              <p className="text-[7px] text-muted-foreground/40 italic mt-0.5 pl-3.5">
-                What you can currently absorb without overtraining.
-              </p>
-            </div>
-            
-            {/* Status Label - Clear actionable message OR Goal Complete */}
-            <div className="mb-2">
-              {goalReached ? (
-                <>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-semibold text-emerald-400">Weekly target reached</span>
-                    <span className="text-emerald-400 text-[10px]">✓</span>
-                  </div>
-                  <p className="text-[8px] text-muted-foreground/60 mt-0.5">
-                    Report unlocked. Extra training is bonus work.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <span className={`text-[11px] font-semibold ${getStatusColor(adaptiveStatus.status)}`}>
-                    {adaptiveStatus.copy.label}
-                  </span>
-                  <p className="text-[8px] text-muted-foreground/60 mt-0.5">
-                    {adaptiveStatus.copy.description}
-                  </p>
-                </>
-              )}
-            </div>
 
-            {/* Main Progress Bar with Optimal Range - marker style like reference */}
+            {/* Main Progress Bar with Optimal Range */}
             <div className={`relative h-2.5 ${goalReached ? "bg-emerald-500/30" : barStyles.trackBg} rounded-full`}>
-              {/* Optimal Range Band - highlighted zone (hidden when goal reached) */}
+              {/* Optimal Range Band */}
               {!goalReached && (
                 <div 
                   className={`absolute h-full ${barStyles.optimalZoneBg} border-l border-r ${barStyles.optimalZoneBorder} rounded-sm`}
@@ -412,7 +356,7 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 />
               )}
-              {/* Current Position Marker - passive vertical line indicator (hidden when goal reached) */}
+              {/* Current Position Marker */}
               {!goalReached && (
                 <motion.div
                   className={`absolute top-0 h-full w-0.5 ${barStyles.markerBg} rounded-full shadow-sm`}
@@ -424,41 +368,15 @@ export function WeeklyGoalCard({ compact = false }: WeeklyGoalCardProps) {
               )}
             </div>
             
-            {/* Range Labels with optimal range values */}
-            <div className="flex justify-between mt-1.5">
-              <span className="text-[8px] text-muted-foreground/60">0 XP</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-[8px] text-teal-400/70 flex items-center gap-0.5 cursor-help">
-                      Optimal: {optimalRangeXP.min}–{optimalRangeXP.max} XP
-                      <Info className="w-2.5 h-2.5" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[200px] text-xs">
-                    Where training converts best into real gains. It shifts up as your brain adapts.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <span className="text-[8px] text-muted-foreground/60">{weeklyXPTarget} XP</span>
+            {/* Status Label - Inline below bar */}
+            <div className="flex items-center justify-between mt-1.5">
+              <span className={`text-[10px] font-medium ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
+                {goalReached ? "Weekly target reached ✓" : adaptiveStatus.copy.label}
+              </span>
+              <span className="text-[9px] text-muted-foreground/60">
+                Optimal: {optimalRangeXP.min}–{optimalRangeXP.max}
+              </span>
             </div>
-            
-            {/* Optimal Zone explanation */}
-            <p className="text-[7px] text-muted-foreground/40 italic text-center mt-1">
-              Where training converts best into real gains.
-            </p>
-            
-            {/* Goal clarification */}
-            <p className="text-[7px] text-muted-foreground/50 text-center mt-2 italic">
-              Stay in the optimal zone — {weeklyXPTarget} XP is your plan's max, not your target.
-            </p>
-            
-            {/* Upgrade hint */}
-            {shouldSuggestUpgrade && (
-              <div className="mt-2 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-[8px] text-amber-400 text-center">
-                Your capacity is approaching this plan's limit.
-              </div>
-            )}
           </CollapsibleTrigger>
 
           <CollapsibleContent>
