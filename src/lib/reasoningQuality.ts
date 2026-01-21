@@ -343,8 +343,13 @@ export function calculateRQ(input: RQInput): RQResult {
     today
   );
   
-  // 7. Final RQ with floor
-  const finalRQ = clamp(baseRQ - decay, floor, 100);
+  // 7. Final RQ - apply floor ONLY when there's actual decay
+  // The floor prevents RQ from dropping too far due to inactivity,
+  // but should NOT artificially raise RQ when baseRQ is naturally low
+  const decayedRQ = baseRQ - decay;
+  const finalRQ = decay > 0 
+    ? clamp(decayedRQ, floor, 100)
+    : clamp(decayedRQ, 0, 100);
   
   // Return full precision values - rounding happens only at display layer
   return {

@@ -265,25 +265,6 @@ export function useReasoningQuality(): UseReasoningQualityResult {
       lastTaskAt,
     });
     
-    // DEBUG: Log RQ calculation inputs and outputs
-    console.log('[RQ DEBUG] Inputs:', {
-      S2,
-      s2GameScoresCount: (s2GameScores || []).length,
-      taskCompletionsCount: (taskCompletions || []).length,
-      lastS2GameAt,
-      lastTaskAt,
-    });
-    console.log('[RQ DEBUG] Result:', {
-      rq: computed.rq,
-      s2Core: computed.s2Core,
-      s2Consistency: computed.s2Consistency,
-      taskPriming: computed.taskPriming,
-      s2CoreContribution: computed.s2CoreContribution,
-      s2ConsistencyContribution: computed.s2ConsistencyContribution,
-      taskPrimingContribution: computed.taskPrimingContribution,
-      decay: computed.decay,
-    });
-    
     cachedResultRef.current = computed;
     return computed;
   }, [S2, s2GameScores, taskCompletions, persistedData, statesLoading, persistedLoading, scoresLoading, tasksLoading]);
