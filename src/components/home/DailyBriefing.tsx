@@ -29,82 +29,146 @@ function generateBriefing(
   recovery: number,
   rq: number
 ): BriefingResult {
-  // Priority 1: Recovery is critically low
-  if (recovery < 40) {
+  // === CRITICAL STATES (Priority 1-2) ===
+  
+  // Recovery critically low - blocks everything
+  if (recovery < 35) {
     return {
-      headline: "Recovery is limiting you.",
-      action: "Rest before training.",
+      headline: "Recovery is your bottleneck.",
+      action: "Prioritize rest. Training today would be counterproductive.",
       icon: Battery,
     };
   }
   
-  // Priority 2: Peak state - both sharpness and readiness high
+  // Recovery low but not critical
+  if (recovery < 50) {
+    return {
+      headline: "Low recovery detected.",
+      action: "Light activity only. A detox session would help.",
+      icon: Battery,
+    };
+  }
+  
+  // === PEAK STATES (Priority 3-5) ===
+  
+  // Full peak - everything high
+  if (sharpness >= 75 && readiness >= 75 && rq >= 60) {
+    return {
+      headline: "Peak cognitive state.",
+      action: "This is your best window for complex decisions and deep work.",
+      icon: Target,
+    };
+  }
+  
+  // High sharpness + readiness, but RQ is lagging
+  if (sharpness >= 70 && readiness >= 70 && rq < 50) {
+    return {
+      headline: "High output, shallow depth.",
+      action: "You're fast today. Add a reasoning task to deepen thinking.",
+      icon: Brain,
+    };
+  }
+  
+  // Standard peak - sharpness and readiness aligned
   if (sharpness >= 70 && readiness >= 70) {
     return {
-      headline: "Peak state today.",
-      action: "Tackle hard cognitive work.",
+      headline: "Strong cognitive day.",
+      action: "Tackle your hardest work now.",
       icon: Target,
     };
   }
   
-  // Priority 3: Good recovery but RQ is low - focus on reasoning
-  if (recovery >= 50 && rq < 40) {
+  // === IMBALANCED STATES (Priority 6-10) ===
+  
+  // High RQ but low sharpness - deep but slow
+  if (rq >= 60 && sharpness < 50) {
     return {
-      headline: "Reasoning needs attention.",
-      action: "Try a task or S2 game.",
+      headline: "Deep thinking, slow processing.",
+      action: "Good for reflection and analysis. Avoid time-pressure tasks.",
       icon: Brain,
     };
   }
   
-  // Priority 4: Good recovery with weak sharpness - build fast thinking
-  if (recovery >= 60 && sharpness < 50) {
+  // High RQ but low readiness - can think well but not for long
+  if (rq >= 60 && readiness < 50) {
     return {
-      headline: "Good recovery available.",
-      action: "Build fast processing today.",
+      headline: "Quality over duration.",
+      action: "Short focused bursts. Take breaks between sessions.",
+      icon: Brain,
+    };
+  }
+  
+  // High sharpness, low readiness - fast but limited endurance
+  if (sharpness >= 70 && readiness < 55) {
+    return {
+      headline: "Quick bursts available.",
+      action: "Effective for rapid decisions. Avoid marathon sessions.",
       icon: Zap,
     };
   }
   
-  // Priority 5: Good recovery with weak readiness - build reasoning
-  if (recovery >= 60 && readiness < 50) {
-    return {
-      headline: "Good recovery available.",
-      action: "Train reasoning capacity.",
-      icon: Brain,
-    };
-  }
-  
-  // Priority 6: Everything moderate - steady state
-  if (sharpness >= 45 && sharpness < 70 && readiness >= 45 && readiness < 70) {
-    return {
-      headline: "Steady baseline.",
-      action: "Maintain with light training.",
-      icon: Target,
-    };
-  }
-  
-  // Priority 7: High readiness, lower sharpness
-  if (readiness >= 70 && sharpness < 60) {
+  // High readiness, low sharpness - can sustain but not sharp
+  if (readiness >= 70 && sharpness < 55) {
     return {
       headline: "Endurance is strong.",
-      action: "Focus on quick processing.",
-      icon: Zap,
+      action: "Routine work flows well. Save complex tasks for peak days.",
+      icon: Target,
     };
   }
   
-  // Priority 8: High sharpness, lower readiness
-  if (sharpness >= 70 && readiness < 60) {
+  // Low RQ with good recovery - reasoning gap
+  if (rq < 40 && recovery >= 55) {
     return {
-      headline: "Quick bursts are optimal.",
-      action: "Avoid long sessions.",
+      headline: "Reasoning depth is low.",
+      action: "A library task or S2 game would sharpen your thinking.",
+      icon: Brain,
+    };
+  }
+  
+  // === TRAINING OPPORTUNITIES (Priority 11-13) ===
+  
+  // Good recovery, weak sharpness - S1 training opportunity
+  if (recovery >= 60 && sharpness < 50) {
+    return {
+      headline: "Recovery supports training.",
+      action: "Focus games would boost your processing speed.",
       icon: Zap,
     };
   }
   
-  // Default: balanced moderate state
+  // Good recovery, weak readiness - endurance training opportunity
+  if (recovery >= 60 && readiness < 50) {
+    return {
+      headline: "Capacity available.",
+      action: "Build reasoning to improve sustained performance.",
+      icon: Brain,
+    };
+  }
+  
+  // === MODERATE STATES (Priority 14-15) ===
+  
+  // All metrics moderate - stable baseline
+  if (sharpness >= 45 && sharpness < 70 && readiness >= 45 && readiness < 70 && rq >= 40 && rq < 60) {
+    return {
+      headline: "Steady baseline.",
+      action: "Routine work is fine. One training session maintains momentum.",
+      icon: Target,
+    };
+  }
+  
+  // Moderate with one weak area
+  if (sharpness >= 50 && readiness >= 50 && rq < 40) {
+    return {
+      headline: "Functional but shallow.",
+      action: "Consider a reading or task to build reasoning depth.",
+      icon: Brain,
+    };
+  }
+  
+  // === DEFAULT ===
   return {
     headline: "Conditions are stable.",
-    action: "Complete your session.",
+    action: "Complete your planned session.",
     icon: Target,
   };
 }
