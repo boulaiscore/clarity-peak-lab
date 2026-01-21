@@ -9,6 +9,7 @@ import bookReadingImage from "@/assets/landing-book-reading.jpg";
 import phoneThinkingImage from "@/assets/landing-phone-thinking.jpg";
 import outdoorWalkImage from "@/assets/landing-outdoor-walk.jpg";
 import podcastListeningImage from "@/assets/landing-podcast-listening.jpg";
+import criticalReasoningImage from "@/assets/landing-critical-reasoning.jpg";
 
 const showcaseSlides = [
   {
@@ -58,6 +59,14 @@ const showcaseSlides = [
     metricValue: "85",
     metricLabel: "KNOWLEDGE ABSORPTION",
     metricSubtext: "+8% this week",
+  },
+  {
+    image: criticalReasoningImage,
+    headline: "Train your critical thinking",
+    metricType: "sharpness" as const,
+    metricValue: "88",
+    metricLabel: "CRITICAL REASONING",
+    metricSubtext: "Top 15%",
   },
 ];
 
