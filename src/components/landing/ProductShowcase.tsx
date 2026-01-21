@@ -342,11 +342,11 @@ export function ProductShowcase() {
         {/* Carousel - 3 cards visible with uniform spacing */}
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex -ml-4">
+            <div className="flex -ml-6">
               {showcaseSlides.map((slide, index) => (
                 <div 
                   key={index} 
-                  className="flex-[0_0_calc(26%-1rem)] min-w-[220px] pl-4"
+                  className="flex-[0_0_calc(29%-1.5rem)] min-w-[242px] pl-6"
                 >
                   <ShowcaseCard 
                     slide={slide} 
