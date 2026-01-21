@@ -17,6 +17,7 @@ import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
 import { useTutorialState } from "@/hooks/useTutorialState";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,10 +43,11 @@ interface RingProps {
   label: string;
   displayValue: string;
   microcopy?: string;
+  statusLabel?: string;
   icon?: React.ReactNode;
 }
 
-const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, microcopy, icon }: RingProps) => {
+const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, microcopy, statusLabel, icon }: RingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(value / max, 1);
@@ -91,9 +93,9 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
       <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
         {label}
       </p>
-      {microcopy && (
-        <p className="mt-0.5 text-[8px] text-muted-foreground/60 text-center max-w-[80px] leading-tight">
-          {microcopy}
+      {statusLabel && (
+        <p className="mt-0.5 text-[9px] text-muted-foreground/80 text-center">
+          {statusLabel}
         </p>
       )}
     </div>
@@ -350,7 +352,7 @@ const Home = () => {
                   color={sharpnessColor}
                   label="Sharpness"
                   displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}`}
-                  microcopy="Current intuitive clarity"
+                  statusLabel={metricsLoading ? undefined : getSharpnessStatus(sharpness).label}
                 />
                 <ProgressRing
                   value={readiness}
@@ -360,7 +362,7 @@ const Home = () => {
                   color={readinessColor}
                   label="Readiness"
                   displayValue={`${Math.round(readiness)}`}
-                  microcopy="Capacity for deliberate work"
+                  statusLabel={getReadinessStatus(readiness).label}
                 />
                 <ProgressRing
                   value={recoveryEffectiveLoading ? 0 : recoveryEffective}
@@ -370,7 +372,7 @@ const Home = () => {
                   color={recoveryColor}
                   label="Recovery"
                   displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
-                  microcopy="Attentional restoration"
+                  statusLabel={recoveryEffectiveLoading ? undefined : getRecoveryStatus(recoveryEffective).label}
                 />
               </div>
               
