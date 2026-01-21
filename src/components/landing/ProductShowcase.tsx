@@ -391,10 +391,8 @@ export function ProductShowcase() {
       {/* Detail Modal */}
       <ShowcaseDetailModal
         isOpen={selectedSlideIndex !== null}
-        slideIndex={selectedSlideIndex ?? 0}
-        slides={showcaseSlides}
+        slide={selectedSlideIndex !== null ? showcaseSlides[selectedSlideIndex] : null}
         onClose={() => setSelectedSlideIndex(null)}
-        onNavigate={setSelectedSlideIndex}
       />
     </section>
   );
