@@ -12,32 +12,38 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* N with infinity loop integrated */}
+      {/* Outer loop/circle wrapping the N */}
+      <circle 
+        cx="12" 
+        cy="12" 
+        r="10" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        fill="none"
+        opacity="0.4"
+      />
+      {/* N letter inside the loop */}
       {/* Left vertical stroke */}
       <path
-        d="M5 18V6"
+        d="M8 16V8"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
       />
-      {/* Infinity loop forming the diagonal - figure 8 shape */}
+      {/* Diagonal stroke */}
       <path
-        d="M5 6C7 6 9 9 12 12C15 15 17 18 19 18C17 18 15 15 12 12C9 9 7 6 5 6"
+        d="M8 8L16 16"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
       />
       {/* Right vertical stroke */}
       <path
-        d="M19 6V18"
+        d="M16 8V16"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
       />
-      {/* Neural node at center intersection */}
-      <circle cx="12" cy="12" r="1.8" fill="currentColor" />
     </svg>
   );
 }
