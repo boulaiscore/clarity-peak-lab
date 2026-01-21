@@ -330,13 +330,16 @@ export function ProductShowcase() {
     <section className="bg-primary/5 py-12 sm:py-20">
       <div className="container px-4 sm:px-6">
         {/* Section header */}
-        <div className="text-center mb-10">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">
-            WHY NEUROLOOP
-          </p>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
-            Your cognitive advantage
+        <div className="text-center mb-12 max-w-3xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-6">
+            Reason clearly in the age of AI and constant stimulation
           </h2>
+          <p className="text-foreground/80 text-base sm:text-lg leading-relaxed mb-4">
+            In an era of continuous notifications and algorithm-driven decisions, human reasoning is under unprecedented cognitive pressure. Attention fragments, intuition is overstimulated, and deliberate thinking deteriorates.
+          </p>
+          <p className="text-foreground/80 text-base sm:text-lg leading-relaxed">
+            NeuroLoop helps you measure, train, and stabilize how you think, combining cognitive science with structured mental training, so you can make better decisions in a noisy world.
+          </p>
         </div>
 
         {/* Carousel - 3 cards visible with uniform spacing */}
