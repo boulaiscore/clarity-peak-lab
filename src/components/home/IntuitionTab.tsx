@@ -155,7 +155,7 @@ export function IntuitionTab() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-5xl font-bold tabular-nums text-foreground">
+            <span className="text-6xl font-bold tabular-nums text-foreground">
               {isLoading ? "—" : `${Math.round(sharpness)}`}
             </span>
             <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Sharpness</span>

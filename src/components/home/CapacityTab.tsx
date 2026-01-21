@@ -82,6 +82,7 @@ export function CapacityTab() {
             </div>
             <span className="text-6xl font-bold tabular-nums text-foreground">
               {isLoading ? "—" : `${Math.round(recovery)}`}
+              <span className="text-3xl">%</span>
             </span>
             <span className="text-xs text-muted-foreground mt-1">{getRecoveryLabel()}</span>
           </div>
