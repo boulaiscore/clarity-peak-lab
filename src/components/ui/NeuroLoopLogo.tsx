@@ -12,11 +12,30 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* WHOOP-style bold N - solid filled shape */}
+      {/* Premium N with neural curve - elegant thin strokes */}
+      {/* Left vertical */}
       <path
-        d="M4 20V4H8L16 14V4H20V20H16L8 10V20H4Z"
-        fill="currentColor"
+        d="M6 19V5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
+      {/* Flowing neural curve connecting the strokes */}
+      <path
+        d="M6 5C6 5 9 8 12 12C15 16 18 19 18 19"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      {/* Right vertical */}
+      <path
+        d="M18 5V19"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      {/* Small neural node accent */}
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.6" />
     </svg>
   );
 }
