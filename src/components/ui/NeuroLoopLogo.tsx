@@ -12,7 +12,7 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* Simplified N with single flowing loop */}
+      {/* N with infinity loop integrated */}
       {/* Left vertical stroke */}
       <path
         d="M5 18V6"
@@ -20,12 +20,13 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
         strokeWidth="1.8"
         strokeLinecap="round"
       />
-      {/* Single diagonal loop curve */}
+      {/* Infinity loop forming the diagonal - figure 8 shape */}
       <path
-        d="M5 6C8 6 12 12 12 12C12 12 16 18 19 18"
+        d="M5 6C7 6 9 9 12 12C15 15 17 18 19 18C17 18 15 15 12 12C9 9 7 6 5 6"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
+        strokeLinejoin="round"
         fill="none"
       />
       {/* Right vertical stroke */}
@@ -35,8 +36,8 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
         strokeWidth="1.8"
         strokeLinecap="round"
       />
-      {/* Neural node at center */}
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+      {/* Neural node at center intersection */}
+      <circle cx="12" cy="12" r="1.8" fill="currentColor" />
     </svg>
   );
 }
