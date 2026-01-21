@@ -399,10 +399,7 @@ export function ProductShowcase() {
             "NeuroLoop taught me that mental recovery days are as important as training days. Seeing a low readiness score in the morning pushes me to take better care of my mind."
           </p>
           <p className="text-black font-semibold">
-            Henrik Lindqvist
-          </p>
-          <p className="text-black/60 text-sm">
-            Partner, Sequoia Capital
+            H. Lindqvist
           </p>
         </div>
       </div>

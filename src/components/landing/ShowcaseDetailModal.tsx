@@ -134,7 +134,7 @@ export function ShowcaseDetailModal({
                 <p className="text-black text-base italic leading-relaxed mb-3">
                   "My decision-making has become sharper since I started tracking my cognitive patterns."
                 </p>
-                <p className="text-black font-semibold text-sm">Sophia Chen, Investment Director</p>
+                <p className="text-black font-semibold text-sm">S. Chen</p>
               </motion.div>
             </div>
 
@@ -192,7 +192,7 @@ export function ShowcaseDetailModal({
                   <p className="text-white text-base italic leading-relaxed mb-3">
                     "Understanding my dual-process balance transformed how I approach high-stakes negotiations."
                   </p>
-                  <p className="text-white font-semibold text-sm">James Okonkwo, Managing Director</p>
+                  <p className="text-white font-semibold text-sm">J. Okonkwo</p>
                 </motion.div>
               </div>
             </div>
