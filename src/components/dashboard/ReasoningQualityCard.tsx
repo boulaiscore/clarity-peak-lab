@@ -91,9 +91,9 @@ export function ReasoningQualityCard({
       </div>
       
       {/* Progress bar */}
-      <div className="h-1.5 bg-primary/10 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-primary/15 rounded-full overflow-hidden">
         <motion.div 
-          className="h-full bg-primary/40 rounded-full"
+          className="h-full bg-primary rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${rq}%` }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}

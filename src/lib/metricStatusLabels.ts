@@ -20,11 +20,11 @@ export interface MetricStatus {
  * Higher = sharper, more ready for demanding tasks.
  */
 export function getSharpnessStatus(value: number): MetricStatus {
-  if (value >= 75) return { level: "high", label: "High Clarity" };
-  if (value >= 55) return { level: "good", label: "Good" };
-  if (value >= 35) return { level: "moderate", label: "Moderate" };
-  if (value >= 20) return { level: "low", label: "Low" };
-  return { level: "very_low", label: "Very Low" };
+  if (value >= 80) return { level: "high", label: "Peak" };
+  if (value >= 65) return { level: "good", label: "Sharp" };
+  if (value >= 50) return { level: "moderate", label: "Steady" };
+  if (value >= 35) return { level: "low", label: "Foggy" };
+  return { level: "very_low", label: "Drained" };
 }
 
 /**
@@ -33,11 +33,11 @@ export function getSharpnessStatus(value: number): MetricStatus {
  * Combines recovery, reasoning capacity, and focus stability.
  */
 export function getReadinessStatus(value: number): MetricStatus {
-  if (value >= 75) return { level: "high", label: "Fully Ready" };
-  if (value >= 55) return { level: "good", label: "Good" };
-  if (value >= 35) return { level: "moderate", label: "Moderate" };
-  if (value >= 20) return { level: "low", label: "Low" };
-  return { level: "very_low", label: "Limited" };
+  if (value >= 80) return { level: "high", label: "Optimal" };
+  if (value >= 65) return { level: "good", label: "Ready" };
+  if (value >= 50) return { level: "moderate", label: "Baseline" };
+  if (value >= 35) return { level: "low", label: "Limited" };
+  return { level: "very_low", label: "Depleted" };
 }
 
 /**
@@ -46,11 +46,11 @@ export function getReadinessStatus(value: number): MetricStatus {
  * Built through detox and walking activities.
  */
 export function getRecoveryStatus(value: number): MetricStatus {
-  if (value >= 80) return { level: "high", label: "High" };
-  if (value >= 60) return { level: "good", label: "Good" };
-  if (value >= 40) return { level: "moderate", label: "Moderate" };
-  if (value >= 20) return { level: "low", label: "Low" };
-  return { level: "very_low", label: "Very Low" };
+  if (value >= 80) return { level: "high", label: "Restored" };
+  if (value >= 65) return { level: "good", label: "Recovered" };
+  if (value >= 50) return { level: "moderate", label: "Partial" };
+  if (value >= 35) return { level: "low", label: "Fatigued" };
+  return { level: "very_low", label: "Depleted" };
 }
 
 /**
