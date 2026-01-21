@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers, User, Dumbbell, Settings, CreditCard, LogOut } from "lucide-react";
+import { Home, LayoutDashboard, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers, User, Settings, CreditCard, LogOut } from "lucide-react";
 import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
@@ -21,10 +21,9 @@ const navItems = [
 ];
 
 const menuItems = [
-  { to: "/app/account?tab=profile", icon: User, label: "Profile" },
-  { to: "/app/account?tab=training", icon: Dumbbell, label: "Training" },
-  { to: "/app/account?tab=preferences", icon: Settings, label: "Settings" },
-  { to: "/app/account?tab=subscription", icon: CreditCard, label: "Subscription" },
+  { to: "/app/profile", icon: User, label: "Profile" },
+  { to: "/app/settings", icon: Settings, label: "Settings" },
+  { to: "/app/subscription", icon: CreditCard, label: "Subscription" },
   { to: "/brain-science", icon: BookOpen, label: "Science" },
 ];
 
@@ -152,7 +151,7 @@ export function AppShell({ children }: AppShellProps) {
             onClick={() => setMenuOpen(!menuOpen)}
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[52px]",
-              menuOpen || menuItems.some(item => location.pathname === item.to)
+              menuOpen || menuItems.some(item => location.pathname === item.to || (item.to === "/brain-science" && location.pathname === "/brain-science"))
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground"
             )}
@@ -174,8 +173,7 @@ export function AppShell({ children }: AppShellProps) {
             >
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden max-w-md mx-auto">
                 {menuItems.map((item) => {
-                  const isActive = location.pathname + location.search === item.to || 
-                    (item.to.startsWith("/app/account") && location.pathname === "/app/account" && item.to.includes(location.search));
+                  const isActive = location.pathname === item.to;
                   return (
                     <Link
                       key={item.to}

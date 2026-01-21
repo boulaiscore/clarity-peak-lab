@@ -18,7 +18,9 @@ import Dashboard from "./pages/app/Dashboard";
 import Protocol from "./pages/app/Protocol";
 
 import Premium from "./pages/app/Premium";
-import Account from "./pages/app/Account";
+import ProfilePage from "./pages/app/ProfilePage";
+import SettingsPage from "./pages/app/SettingsPage";
+import SubscriptionPage from "./pages/app/SubscriptionPage";
 import TrainingsList from "./pages/app/TrainingsList";
 import TrainingRunner from "./pages/app/TrainingRunner";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
@@ -207,10 +209,26 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/app/account"
+        path="/app/profile"
         element={
           <ProtectedRoute>
-            <Account />
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/subscription"
+        element={
+          <ProtectedRoute>
+            <SubscriptionPage />
           </ProtectedRoute>
         }
       />
