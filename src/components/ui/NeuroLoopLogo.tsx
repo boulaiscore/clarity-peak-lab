@@ -12,40 +12,25 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* Outer loop/circle wrapping the N */}
-      <circle 
-        cx="12" 
-        cy="12" 
-        r="10" 
-        stroke="currentColor" 
-        strokeWidth="1.5" 
+      {/* Minimalist N with integrated loop curve - Whoop/Oura inspired */}
+      {/* Single continuous stroke forming N with flowing loop */}
+      <path
+        d="M6 18V6L18 18V6"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         fill="none"
-        opacity="0.4"
       />
-      {/* N letter inside the loop */}
-      {/* Left vertical stroke */}
+      {/* Subtle loop accent - small arc suggesting continuity */}
       <path
-        d="M8 16V8"
+        d="M6 6C6 4 8 3 10 4"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
+        fill="none"
+        opacity="0.6"
       />
-      {/* Diagonal stroke */}
-      <path
-        d="M8 8L16 16"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      {/* Right vertical stroke */}
-      <path
-        d="M16 8V16"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      {/* Neural node at center intersection */}
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
     </svg>
   );
 }
