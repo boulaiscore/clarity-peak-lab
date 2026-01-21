@@ -532,26 +532,26 @@ const Home = () => {
               Balancing intuition speed and reasoning depth.
             </p>
           </button>
-          <div className="p-4 rounded-xl bg-card border border-border/40">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              Weekly Capacity
+          <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-emerald-500 mb-1">
+              Optimal Zone
             </p>
             <div className="flex items-center gap-1.5 mb-1">
-              <Star className="w-3.5 h-3.5 text-amber-400" />
-              <p className="text-sm font-semibold tabular-nums text-amber-400">
-                {totalWeeklyXP} <span className="text-muted-foreground font-normal">/ {weeklyXPTarget}</span>
+              <Target className="w-3.5 h-3.5 text-emerald-500" />
+              <p className="text-sm font-semibold tabular-nums text-emerald-500">
+                {totalWeeklyXP} <span className="text-muted-foreground font-normal">/ {weeklyXPTarget} XP</span>
               </p>
             </div>
-            <div className="h-1 bg-amber-500/10 rounded-full overflow-hidden mb-2">
+            <div className="h-1 bg-emerald-500/10 rounded-full overflow-hidden mb-2">
               <div 
-                className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, (totalWeeklyXP / weeklyXPTarget) * 100)}%` }}
               />
             </div>
-            <p className="text-[10px] text-muted-foreground/70 leading-snug">
+            <p className="text-[10px] text-muted-foreground leading-snug">
               {totalWeeklyXP >= weeklyXPTarget 
-                ? "Capacity sustains intuition & reasoning."
-                : "Build capacity for sharper cognition."
+                ? "You're in the zone — extra training is bonus work."
+                : "Train within this range for best cognitive gains."
               }
             </p>
           </div>
