@@ -16,7 +16,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { usePurchases } from "@/hooks/usePurchases";
 import { toast } from "@/hooks/use-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Crown, Save, LogOut, Zap, Brain, Calendar, RotateCcw, Shield, Mail, CreditCard, HelpCircle, Rocket, ExternalLink, Bell, BellRing, Sun, Moon, Dumbbell, GraduationCap, Briefcase, Users, Globe, Settings, Check, Loader2, Watch, RotateCw, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -86,6 +86,8 @@ const Account = () => {
     useNativeIAP 
   } = usePurchases();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "profile";
   const [name, setName] = useState(user?.name || "");
   
   const [sessionDuration, setSessionDuration] = useState<SessionDuration | undefined>(user?.sessionDuration);
@@ -415,7 +417,7 @@ const Account = () => {
           </div>
 
           {/* Tabbed Navigation */}
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="profile" className="text-xs gap-1.5">
                 <User className="w-3.5 h-3.5" />
