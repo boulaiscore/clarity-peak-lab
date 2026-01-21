@@ -97,7 +97,7 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
               {icon}
             </div>
           )}
-          <span className="text-xl font-bold tracking-tight text-foreground">
+          <span className="text-2xl font-bold tracking-tight text-foreground">
             {displayValue}
           </span>
           {dynamicIndicator && (
