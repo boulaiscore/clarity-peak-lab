@@ -129,7 +129,7 @@ export function ShowcaseDetailModal({
                 className="bg-primary/10 rounded-xl p-4"
               >
                 <p className="text-black/50 text-xs uppercase tracking-wider mb-2">
-                  What our users say
+                  What our members say
                 </p>
                 <p className="text-black text-base italic leading-relaxed mb-3">
                   "My decision-making has become sharper since I started tracking my cognitive patterns."
@@ -187,7 +187,7 @@ export function ShowcaseDetailModal({
                   className="bg-white/10 rounded-xl p-5"
                 >
                   <p className="text-white/50 text-xs uppercase tracking-wider mb-2">
-                    What our users say
+                    What our members say
                   </p>
                   <p className="text-white text-base italic leading-relaxed mb-3">
                     "Understanding my dual-process balance transformed how I approach high-stakes negotiations."

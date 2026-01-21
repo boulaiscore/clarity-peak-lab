@@ -393,7 +393,7 @@ export function ProductShowcase() {
         {/* Testimonial Section */}
         <div className="mt-12 sm:mt-16 bg-primary/10 rounded-2xl p-6 sm:p-8 max-w-2xl">
           <p className="text-black/60 text-sm uppercase tracking-wider mb-4">
-            What our users say
+            What our members say
           </p>
           <p className="text-black text-xl sm:text-2xl lg:text-3xl font-medium italic leading-relaxed mb-6">
             "NeuroLoop taught me that mental recovery days are as important as training days. Seeing a low readiness score in the morning pushes me to take better care of my mind."
