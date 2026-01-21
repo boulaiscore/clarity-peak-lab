@@ -294,9 +294,9 @@ function ShowcaseCard({ slide, onOpenDetail }: { slide: typeof showcaseSlides[0]
       {/* Plus button at bottom-right */}
       <button 
         onClick={onOpenDetail}
-        className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all shadow-lg"
+        className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-black/70 flex items-center justify-center hover:bg-black/90 hover:scale-110 transition-all shadow-lg backdrop-blur-sm"
       >
-        <Plus className="w-5 h-5 text-foreground" />
+        <Plus className="w-5 h-5 text-white" />
       </button>
     </div>
   );
@@ -360,15 +360,15 @@ export function ProductShowcase() {
           {/* Navigation arrows */}
           <button
             onClick={scrollPrev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors z-10 border border-gray-200"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-10 h-10 rounded-full bg-foreground shadow-lg flex items-center justify-center hover:bg-foreground/90 transition-colors z-10"
           >
-            <ChevronLeft className="w-5 h-5 text-foreground" />
+            <ChevronLeft className="w-5 h-5 text-background" />
           </button>
           <button
             onClick={scrollNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors z-10 border border-gray-200"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-10 h-10 rounded-full bg-foreground shadow-lg flex items-center justify-center hover:bg-foreground/90 transition-colors z-10"
           >
-            <ChevronRight className="w-5 h-5 text-foreground" />
+            <ChevronRight className="w-5 h-5 text-background" />
           </button>
         </div>
 
