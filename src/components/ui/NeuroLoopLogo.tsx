@@ -21,10 +21,7 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
         fill="none"
       />
       {/* Central neural node at crossing point */}
-      <circle cx="12" cy="12" r="2" fill="currentColor" />
-      {/* Small dendrite nodes */}
-      <circle cx="4.5" cy="12" r="1" fill="currentColor" />
-      <circle cx="19.5" cy="12" r="1" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.8" fill="currentColor" />
     </svg>
   );
 }
