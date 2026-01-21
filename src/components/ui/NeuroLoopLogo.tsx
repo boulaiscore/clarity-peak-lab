@@ -12,17 +12,19 @@ export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
       fill="none"
       className={className}
     >
-      {/* Abstract broken ring - neural loop symbol */}
-      {/* Main arc - open at top right */}
+      {/* Infinity/figure-8 loop representing neural feedback loop */}
       <path
-        d="M18 4.5C16.5 3.5 14.5 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 10 20.5 8.2 19.5 6.5"
+        d="M8 12C8 9.5 6.5 8 4.5 8C2.5 8 1 9.5 1 12C1 14.5 2.5 16 4.5 16C6.5 16 8 14.5 8 12ZM8 12C8 9.5 9.5 7 12 7C14.5 7 16 9.5 16 12M16 12C16 14.5 17.5 16 19.5 16C21.5 16 23 14.5 23 12C23 9.5 21.5 8 19.5 8C17.5 8 16 9.5 16 12"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2"
         strokeLinecap="round"
         fill="none"
       />
-      {/* Single neural node centered in the gap */}
-      <circle cx="19" cy="5.5" r="1.3" fill="currentColor" />
+      {/* Central neural node at crossing point */}
+      <circle cx="12" cy="12" r="2" fill="currentColor" />
+      {/* Small dendrite nodes */}
+      <circle cx="4.5" cy="12" r="1" fill="currentColor" />
+      <circle cx="19.5" cy="12" r="1" fill="currentColor" />
     </svg>
   );
 }
