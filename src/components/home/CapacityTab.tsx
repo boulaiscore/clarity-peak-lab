@@ -4,7 +4,7 @@ import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
-import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
+import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 
 
 export function CapacityTab() {
@@ -74,9 +74,6 @@ export function CapacityTab() {
             </span>
           </div>
         </div>
-        {/* Definition below ring */}
-        <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">Recovery</p>
-        <p className="text-[9px] text-muted-foreground/50">{METRIC_DEFINITIONS.recovery}</p>
       </div>
 
       {/* Recovery Status Card */}

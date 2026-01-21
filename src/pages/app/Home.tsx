@@ -18,7 +18,8 @@ import { useTutorialState } from "@/hooks/useTutorialState";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
-import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
+import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
+import { DailyBriefing } from "@/components/home/DailyBriefing";
 import { useMetricWeeklyChange } from "@/hooks/useMetricWeeklyChange";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -44,12 +45,11 @@ interface RingProps {
   color: string;
   label: string;
   displayValue: string;
-  definition: string;
   dynamicIndicator?: string;
   icon?: React.ReactNode;
 }
 
-const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, definition, dynamicIndicator, icon }: RingProps) => {
+const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, dynamicIndicator, icon }: RingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(value / max, 1);
@@ -99,9 +99,6 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
       </div>
       <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground text-center">
         {label}
-      </p>
-      <p className="text-[8px] text-muted-foreground/50 text-center">
-        {definition}
       </p>
     </div>
   );
@@ -357,7 +354,6 @@ const Home = () => {
                   color={sharpnessColor}
                   label="Sharpness"
                   displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}`}
-                  definition={METRIC_DEFINITIONS.sharpness}
                   dynamicIndicator={metricsLoading ? undefined : getMetricDisplayInfo(
                     getSharpnessStatus(sharpness).label,
                     getSharpnessStatus(sharpness).level,
@@ -373,7 +369,6 @@ const Home = () => {
                   color={readinessColor}
                   label="Readiness"
                   displayValue={`${Math.round(readiness)}`}
-                  definition={METRIC_DEFINITIONS.readiness}
                   dynamicIndicator={getMetricDisplayInfo(
                     getReadinessStatus(readiness).label,
                     getReadinessStatus(readiness).level,
@@ -389,7 +384,6 @@ const Home = () => {
                   color={recoveryColor}
                   label="Recovery"
                   displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
-                  definition={METRIC_DEFINITIONS.recovery}
                   dynamicIndicator={recoveryEffectiveLoading ? undefined : getMetricDisplayInfo(
                     getRecoveryStatus(recoveryEffective).label,
                     getRecoveryStatus(recoveryEffective).level,
@@ -424,6 +418,15 @@ const Home = () => {
                 taskPriming={taskPriming}
                 isDecaying={rqIsDecaying}
                 isLoading={rqLoading}
+              />
+              
+              {/* Daily Briefing */}
+              <DailyBriefing
+                sharpness={sharpness}
+                readiness={readiness}
+                recovery={recoveryEffective}
+                rq={rq}
+                isLoading={metricsLoading || rqLoading}
               />
             </motion.section>
 

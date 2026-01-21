@@ -10,7 +10,7 @@ import { Info, AlertTriangle, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import { getReasoningQualityStatus } from "@/lib/metricStatusLabels";
-import { getMetricDisplayInfo, METRIC_DEFINITIONS } from "@/lib/metricDisplayLogic";
+import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 
 interface ReasoningQualityCardProps {
   rq: number;
@@ -91,9 +91,6 @@ export function ReasoningQualityCard({
                 </Popover>
               )}
             </div>
-          <p className="text-[11px] text-muted-foreground">
-            {METRIC_DEFINITIONS.reasoningQuality}
-          </p>
         </div>
         
         {/* Score + Chevron */}

@@ -50,13 +50,3 @@ export function getMetricDisplayInfo(
   return { text: statusLabel, type: "status" };
 }
 
-/**
- * Metric definitions for display below metric names.
- * Keep these brief and action-oriented.
- */
-export const METRIC_DEFINITIONS = {
-  sharpness: "Fast thinking capacity",
-  readiness: "Sustained focus potential",
-  recovery: "Mental energy reserve",
-  reasoningQuality: "Depth of thought",
-} as const;
