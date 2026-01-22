@@ -68,7 +68,7 @@ export function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="mt-12 sm:mt-24 lg:mt-32"
+            className="mt-16 sm:mt-28 lg:mt-36"
           >
             <div className="grid grid-cols-3 gap-4 sm:gap-16 max-w-4xl mx-auto text-center px-2 sm:px-0">
               <div>
