@@ -13,7 +13,7 @@ import {
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen light bg-background text-foreground">
       <Navbar />
       <Hero />
       <ProductShowcase />
