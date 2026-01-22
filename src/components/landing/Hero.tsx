@@ -41,9 +41,9 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7 }}
-            className="text-base sm:text-lg md:text-xl text-black/60 max-w-3xl mx-auto mb-8 font-light leading-relaxed"
+            className="text-base sm:text-lg md:text-xl text-black/60 max-w-2xl mx-auto mb-8 font-light leading-relaxed"
           >
-            Start the new year by training how you reason: NeuroLoop delivers insights grounded in cognitive science to improve attention, decision-making, and mental clarity.<br className="hidden sm:block" /><span className="block sm:inline"> Every day.</span>
+            Train your reasoning. Sharpen your decisions.<br className="hidden sm:block" /><span className="block sm:inline"> Unlock peak mental performance.</span>
           </motion.p>
 
           {/* Single CTA - pill shaped, with primary accent */}
