@@ -72,15 +72,16 @@ export function Hero() {
           >
             <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">23%</p>
-                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Avg. Improvement</p>
+                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">↑ 23%</p>
+                <p className="text-xs text-black/40 uppercase tracking-[0.15em] mb-0.5">Mental Sharpness</p>
+                <p className="text-[10px] text-black/30">avg. improvement over 4 weeks</p>
               </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">2M+</p>
-                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Sessions</p>
+                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">100k+</p>
+                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Training Sessions</p>
               </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">Elite</p>
+                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">Cognitive Elite</p>
                 <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Protocol</p>
               </div>
             </div>
