@@ -33,7 +33,7 @@ export function Hero() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-black"
           >
-            Master your <span className="text-primary whitespace-nowrap">mental edge.</span>
+            Unlock <span className="text-primary">human intelligence.</span>
           </motion.h1>
 
           {/* Subheadline */}
