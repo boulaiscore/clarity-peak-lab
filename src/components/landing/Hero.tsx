@@ -5,6 +5,12 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import heroIllustration from "@/assets/hero-illustration.png";
 import landingBackgroundVideo from "@/assets/landing-background.mp4";
+import landingBackgroundVideo01 from "@/assets/landing-background-01.mp4";
+import landingBackgroundVideo02 from "@/assets/landing-background-02.mp4";
+import landingBackgroundVideo03 from "@/assets/landing-background-03.mp4";
+import landingBackgroundVideo04 from "@/assets/landing-background-04.mp4";
+import landingBackgroundVideo05 from "@/assets/landing-background-05.mp4";
+import { useHeroBackgroundSequence } from "@/components/landing/useHeroBackgroundSequence";
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
@@ -14,10 +20,23 @@ export function Hero() {
   const [needsSoundEnable, setNeedsSoundEnable] = useState(false);
   const [videoIntro, setVideoIntro] = useState(false);
 
+  const { src: sequenceSrc, resetSequence, advance } = useHeroBackgroundSequence({
+    sources: [
+      landingBackgroundVideo01,
+      landingBackgroundVideo02,
+      landingBackgroundVideo03,
+      landingBackgroundVideo04,
+      landingBackgroundVideo05,
+    ],
+    // 5 clips x 10s = ~50s experience in-page
+    maxPlays: 5,
+  });
+
   const resetToImage = () => {
     setShowVideo(false);
     setVideoBlur(false);
     setNeedsSoundEnable(false);
+    resetSequence();
     const v = videoRef.current;
     if (v) {
       v.pause();
@@ -46,7 +65,7 @@ export function Hero() {
         if (!v) return;
 
         v.currentTime = 0;
-        v.volume = 0.25;
+        v.volume = 0.15;
         v.muted = false;
 
         try {
@@ -117,7 +136,24 @@ export function Hero() {
   }, [needsSoundEnable]);
 
   const handleVideoEnded = () => {
-    resetToImage();
+    const { done } = advance();
+    if (done) {
+      resetToImage();
+      return;
+    }
+
+    const v = videoRef.current;
+    if (!v) return;
+
+    // Continue with next clip
+    v.currentTime = 0;
+    v.volume = 0.15;
+    v.muted = false;
+    v.play().catch(() => {
+      // If autoplay with sound is blocked mid-sequence, fall back to muted.
+      v.muted = true;
+      v.play().then(() => setNeedsSoundEnable(true)).catch(() => resetToImage());
+    });
   };
 
   return (
@@ -139,7 +175,7 @@ export function Hero() {
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
             showVideo ? "opacity-40" : "opacity-0"
           }`}
-          src={landingBackgroundVideo}
+          src={prefersReducedMotion ? landingBackgroundVideo : sequenceSrc}
           playsInline
           preload="auto"
           loop={false}
