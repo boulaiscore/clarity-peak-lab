@@ -2,159 +2,28 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import heroIllustration from "@/assets/hero-illustration.png";
-import landingBackgroundVideo from "@/assets/landing-background.mp4";
-import landingBackgroundVideo01 from "@/assets/landing-background-01.mp4";
-import landingBackgroundVideo02 from "@/assets/landing-background-02.mp4";
-import landingBackgroundVideo03 from "@/assets/landing-background-03.mp4";
-import landingBackgroundVideo04 from "@/assets/landing-background-04.mp4";
-import landingBackgroundVideo05 from "@/assets/landing-background-05.mp4";
-import { useHeroBackgroundSequence } from "@/components/landing/useHeroBackgroundSequence";
+import landingMetricsHero10s from "@/assets/landing-metrics-hero-10s.mp4";
+import { useHeroVideoLifecycle } from "@/components/landing/useHeroVideoLifecycle";
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [showVideo, setShowVideo] = useState(false);
-  const [videoBlur, setVideoBlur] = useState(false);
-  const [needsSoundEnable, setNeedsSoundEnable] = useState(false);
-  const [videoIntro, setVideoIntro] = useState(false);
-
-  const { src: sequenceSrc, resetSequence, advance } = useHeroBackgroundSequence({
-    sources: [
-      landingBackgroundVideo01,
-      landingBackgroundVideo02,
-      landingBackgroundVideo03,
-      landingBackgroundVideo04,
-      landingBackgroundVideo05,
-    ],
-    // 5 clips x 10s = ~50s experience in-page
-    maxPlays: 5,
+  const {
+    showVideo,
+    videoBlur,
+    videoIntro,
+    videoOutro,
+    handleVideoTimeUpdate,
+    handleVideoEnded,
+  } = useHeroVideoLifecycle({
+    prefersReducedMotion,
+    videoRef,
+    outroMs: 1500,
+    introDelayMs: 2000,
+    fadeMs: 1200,
   });
-
-  const resetToImage = () => {
-    setShowVideo(false);
-    setVideoBlur(false);
-    setNeedsSoundEnable(false);
-    resetSequence();
-    const v = videoRef.current;
-    if (v) {
-      v.pause();
-      v.currentTime = 0;
-    }
-  };
-
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-
-    let blurTimer: number | undefined;
-    let introTimer: number | undefined;
-    const start = () => {
-      // restart sequence
-      resetToImage();
-
-      const t = window.setTimeout(async () => {
-        setShowVideo(true);
-        setVideoBlur(true);
-        setVideoIntro(true);
-
-        blurTimer = window.setTimeout(() => setVideoBlur(false), 900);
-        introTimer = window.setTimeout(() => setVideoIntro(false), 1200);
-
-        const v = videoRef.current;
-        if (!v) return;
-
-        v.currentTime = 0;
-        v.volume = 0.15;
-        v.muted = false;
-
-        try {
-          await v.play();
-        } catch {
-          // If autoplay with sound is blocked, fall back to muted autoplay,
-          // and allow the user to enable sound with the next gesture.
-          try {
-            v.muted = true;
-            await v.play();
-            setNeedsSoundEnable(true);
-          } catch {
-            // If autoplay is fully blocked, keep the image.
-            resetToImage();
-          }
-        }
-      }, 2000);
-
-      return () => window.clearTimeout(t);
-    };
-
-    const cleanupStart = start();
-
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        start();
-      } else {
-        // Pause immediately when tab loses focus.
-        const v = videoRef.current;
-        v?.pause();
-      }
-    };
-
-    document.addEventListener("visibilitychange", onVisibility);
-
-    return () => {
-      cleanupStart?.();
-      if (blurTimer) window.clearTimeout(blurTimer);
-      if (introTimer) window.clearTimeout(introTimer);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [prefersReducedMotion]);
-
-  // Enable sound on the first user gesture if we had to start muted.
-  useEffect(() => {
-    if (!needsSoundEnable) return;
-
-    const enable = async () => {
-      const v = videoRef.current;
-      if (!v) return;
-      v.muted = false;
-      v.volume = 0.25;
-      try {
-        await v.play();
-      } catch {
-        // If still blocked, do nothing.
-      }
-      setNeedsSoundEnable(false);
-    };
-
-    window.addEventListener("pointerdown", enable, { once: true });
-    window.addEventListener("keydown", enable, { once: true });
-
-    return () => {
-      window.removeEventListener("pointerdown", enable);
-      window.removeEventListener("keydown", enable);
-    };
-  }, [needsSoundEnable]);
-
-  const handleVideoEnded = () => {
-    const { done } = advance();
-    if (done) {
-      resetToImage();
-      return;
-    }
-
-    const v = videoRef.current;
-    if (!v) return;
-
-    // Continue with next clip
-    v.currentTime = 0;
-    v.volume = 0.15;
-    v.muted = false;
-    v.play().catch(() => {
-      // If autoplay with sound is blocked mid-sequence, fall back to muted.
-      v.muted = true;
-      v.play().then(() => setNeedsSoundEnable(true)).catch(() => resetToImage());
-    });
-  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
@@ -173,12 +42,13 @@ export function Hero() {
         <video
           ref={videoRef}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-            showVideo ? "opacity-40" : "opacity-0"
+            showVideo && !videoOutro ? "opacity-40" : "opacity-0"
           }`}
-          src={prefersReducedMotion ? landingBackgroundVideo : sequenceSrc}
+          src={landingMetricsHero10s}
           playsInline
           preload="auto"
           loop={false}
+          onTimeUpdate={handleVideoTimeUpdate}
           onEnded={handleVideoEnded}
           disablePictureInPicture
           controls={false}
