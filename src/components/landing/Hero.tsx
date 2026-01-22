@@ -1,18 +1,66 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import heroIllustration from "@/assets/hero-illustration.png";
+import landingBackgroundVideo from "@/assets/landing-background.mp4";
 
 export function Hero() {
+  const prefersReducedMotion = useReducedMotion();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [showVideo, setShowVideo] = useState(false);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const t = window.setTimeout(async () => {
+      setShowVideo(true);
+      // Start playback after we begin fading in the video
+      try {
+        await videoRef.current?.play();
+      } catch {
+        // Autoplay can be blocked; we still keep the image visible underneath.
+      }
+    }, 2000);
+
+    return () => window.clearTimeout(t);
+  }, [prefersReducedMotion]);
+
+  const handleVideoEnded = () => {
+    setShowVideo(false);
+    const v = videoRef.current;
+    if (v) {
+      v.pause();
+      v.currentTime = 0;
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
+        {/* Base image (always present) */}
         <img
           src={heroIllustration}
           alt="Neural network illustration"
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+            showVideo ? "opacity-0" : "opacity-40"
+          }`}
+        />
+
+        {/* Video layer (fades in after 2s, fades out when ended) */}
+        <video
+          ref={videoRef}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+            showVideo ? "opacity-40" : "opacity-0"
+          }`}
+          src={landingBackgroundVideo}
+          muted
+          playsInline
+          preload="auto"
+          onEnded={handleVideoEnded}
+          aria-hidden="true"
         />
         {/* Light overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/40 z-10" />
