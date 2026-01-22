@@ -13,11 +13,13 @@ export function Hero() {
   const [videoBlur, setVideoBlur] = useState(false);
   const [needsSoundEnable, setNeedsSoundEnable] = useState(false);
   const [videoIntro, setVideoIntro] = useState(false);
+  const [playBlocked, setPlayBlocked] = useState(false);
 
   const resetToImage = () => {
     setShowVideo(false);
     setVideoBlur(false);
     setNeedsSoundEnable(false);
+    setPlayBlocked(false);
     const v = videoRef.current;
     if (v) {
       v.pause();
@@ -59,8 +61,10 @@ export function Hero() {
             await v.play();
             setNeedsSoundEnable(true);
           } catch {
-            // If autoplay is fully blocked, keep the image.
-            resetToImage();
+            // If autoplay is fully blocked (common in some preview contexts),
+            // keep the video layer visible and wait for the first user gesture.
+            v.muted = true;
+            setPlayBlocked(true);
           }
         }
       }, 2000);
@@ -116,6 +120,30 @@ export function Hero() {
     };
   }, [needsSoundEnable]);
 
+  // If autoplay was blocked entirely, start playback on the first user gesture.
+  useEffect(() => {
+    if (!playBlocked) return;
+
+    const startOnGesture = async () => {
+      const v = videoRef.current;
+      if (!v) return;
+      try {
+        await v.play();
+        setPlayBlocked(false);
+      } catch {
+        // Still blocked; keep waiting.
+      }
+    };
+
+    window.addEventListener("pointerdown", startOnGesture);
+    window.addEventListener("keydown", startOnGesture);
+
+    return () => {
+      window.removeEventListener("pointerdown", startOnGesture);
+      window.removeEventListener("keydown", startOnGesture);
+    };
+  }, [playBlocked]);
+
   const handleVideoEnded = () => {
     resetToImage();
   };
@@ -160,6 +188,28 @@ export function Hero() {
             opacity: showVideo ? (videoIntro ? 0.78 : 1) : 1,
           }}
         />
+
+        {/* If autoplay is blocked, show a minimal prompt to start playback */}
+        {!prefersReducedMotion && showVideo && playBlocked ? (
+          <div className="absolute inset-0 z-20 flex items-center justify-center">
+            <Button
+              type="button"
+              className="rounded-full"
+              onClick={async () => {
+                const v = videoRef.current;
+                if (!v) return;
+                try {
+                  await v.play();
+                  setPlayBlocked(false);
+                } catch {
+                  // noop
+                }
+              }}
+            >
+              Avvia video
+            </Button>
+          </div>
+        ) : null}
       </div>
 
       {/* Content */}
