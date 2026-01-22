@@ -1,5 +1,6 @@
 /**
  * SOCRATIC CROSS-EXAM — Runner Page
+ * v1.8: Added daily XP cap enforcement
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -8,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
+import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
 import { 
   SocraticCrossExamDrill,
   SocraticCrossExamResults,
@@ -25,6 +27,7 @@ export default function SocraticCrossExamRunner() {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
   const recordGameSession = useRecordGameSession();
+  const { gamesWithXPToday, dailyMax, isCapReached } = useDailyGamesXPCap();
   
   const [phase, setPhase] = useState<GamePhase>("intro");
   const [results, setResults] = useState<SocraticRoundResult[]>([]);
@@ -56,8 +59,11 @@ export default function SocraticCrossExamRunner() {
     const score = Math.round(avgScore);
     
     // XP: base 18, min 6, scaled by score
-    const xp = Math.max(SOCRATIC_CONFIG.minXP, Math.round(SOCRATIC_CONFIG.baseXP * (score / 100)));
-    setXpAwarded(xp);
+    const rawXP = Math.max(SOCRATIC_CONFIG.minXP, Math.round(SOCRATIC_CONFIG.baseXP * (score / 100)));
+    
+    // v1.8: Apply daily XP cap
+    const actualXP = isCapReached ? 0 : rawXP;
+    setXpAwarded(actualXP);
     
     const userId = user?.id || session?.user?.id;
     if (userId) {
@@ -66,7 +72,7 @@ export default function SocraticCrossExamRunner() {
           gameType: "S2-CT",
           gymArea: "reasoning",
           thinkingMode: "slow",
-          xpAwarded: xp,
+          xpAwarded: actualXP,
           score,
           gameName: "socratic_cross_exam" as any,
           startedAt: startedAtRef.current?.toISOString() ?? null,
@@ -75,7 +81,12 @@ export default function SocraticCrossExamRunner() {
           difficulty: 'medium',
         });
         
-        toast.success(`+${xp} XP → Critical Thinking!`, { icon: "🧠" });
+        // v1.8: Show appropriate toast based on cap status
+        if (actualXP > 0) {
+          toast.success(`+${actualXP} XP → Critical Thinking!`, { icon: "🧠" });
+        } else {
+          toast.info("Daily XP limit reached. Play for practice!", { icon: "🎯" });
+        }
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
       } catch (error) {
         console.error("[SocraticCrossExam] Failed to record:", error);
@@ -84,7 +95,7 @@ export default function SocraticCrossExamRunner() {
     }
     
     setPhase("results");
-  }, [user?.id, session?.user?.id, recordGameSession, queryClient]);
+  }, [user?.id, session?.user?.id, recordGameSession, queryClient, isCapReached]);
   
   const handlePlayAgain = useCallback(() => {
     setResults([]);

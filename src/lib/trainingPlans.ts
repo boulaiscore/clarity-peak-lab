@@ -47,7 +47,7 @@ export interface DetoxRequirement {
 }
 
 /**
- * Games Gating Modifiers (v1.3)
+ * Games Gating Modifiers (v1.3, updated v1.8)
  * Applied to S2 thresholds based on training plan
  */
 export interface GamesGatingModifiers {
@@ -55,6 +55,7 @@ export interface GamesGatingModifiers {
   requireRecForS2: number; // Minimum REC for S2 games
   insightMaxPerWeek: number; // Weekly cap for S2-IN
   s2MaxPerWeek: number; // Weekly cap for all S2 games
+  dailyGamesWithXP: number; // v1.8: Max games that award XP per day (Light=3, Expert=5, Superhuman=7)
 }
 
 /**
@@ -195,6 +196,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       requireRecForS2: 50,
       insightMaxPerWeek: 2,
       s2MaxPerWeek: 4,
+      dailyGamesWithXP: 3, // v1.8: Max 3 games/day award XP
     },
     // v1.5: Clear communication fields
     dailyEstimate: {
@@ -292,6 +294,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       requireRecForS2: 50,
       insightMaxPerWeek: 3,
       s2MaxPerWeek: 7,
+      dailyGamesWithXP: 5, // v1.8: Max 5 games/day award XP
     },
     // v1.5: Clear communication fields
     dailyEstimate: {
@@ -389,6 +392,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       requireRecForS2: 55, // Higher REC requirement
       insightMaxPerWeek: 4,
       s2MaxPerWeek: 10,
+      dailyGamesWithXP: 7, // v1.8: Max 7 games/day award XP
     },
     // v1.5: Clear communication fields
     dailyEstimate: {

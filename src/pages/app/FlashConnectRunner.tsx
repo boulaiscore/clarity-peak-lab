@@ -6,12 +6,14 @@
  * Runner page for the Flash Connect game.
  * Routes XP to RA (fast_thinking) only.
  * v1.2: Added duration tracking + Manual-compliant session recording
+ * v1.8: Added daily XP cap enforcement
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
+import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
 import { toast } from "sonner";
 import { FlashConnectDrill, FlashConnectFinalResults } from "@/components/games/flash-connect";
 import { ArrowLeft } from "lucide-react";
@@ -22,6 +24,7 @@ export default function FlashConnectRunner() {
   const navigate = useNavigate();
   const { user, session } = useAuth();
   const recordGameSession = useRecordGameSession();
+  const { gamesWithXPToday, dailyMax, isCapReached } = useDailyGamesXPCap();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const isOverride = searchParams.get("override") === "true";
@@ -54,13 +57,16 @@ export default function FlashConnectRunner() {
     const userId = user?.id || session?.user?.id;
     if (userId) {
       try {
-        console.log("[FlashConnect] Saving session for user:", userId, "Duration:", durationSeconds);
+        // v1.8: Apply daily XP cap
+        const actualXP = isCapReached ? 0 : results.xpAwarded;
+        
+        console.log("[FlashConnect] Saving session for user:", userId, "Duration:", durationSeconds, "XP:", actualXP);
         
         await recordGameSession({
           gameType: "S1-RA",
           gymArea: "creativity",
           thinkingMode: "fast",
-          xpAwarded: results.xpAwarded,
+          xpAwarded: actualXP,
           score: results.score,
           gameName: "flash_connect",
           difficultyOverride: isOverride,
@@ -80,10 +86,15 @@ export default function FlashConnectRunner() {
         });
         
         console.log("[FlashConnect] ✅ Session saved successfully");
-        toast.success(`+${results.xpAwarded} XP earned!`, { icon: "⭐" });
         
-        if (results.isPerfect) {
-          toast.success("Perfect Session! 🌟", { duration: 3000 });
+        // v1.8: Show appropriate toast based on cap status
+        if (actualXP > 0) {
+          toast.success(`+${actualXP} XP earned!`, { icon: "⭐" });
+          if (results.isPerfect) {
+            toast.success("Perfect Session! 🌟", { duration: 3000 });
+          }
+        } else {
+          toast.info("Daily XP limit reached. Play for practice!", { icon: "🎯" });
         }
       } catch (error) {
         console.error("[FlashConnect] ❌ Failed to record session:", error);
@@ -97,7 +108,7 @@ export default function FlashConnectRunner() {
     setTimeout(() => {
       navigate("/neuro-lab");
     }, 500);
-  }, [user?.id, session?.user?.id, recordGameSession, navigate, isOverride, difficulty]);
+  }, [user?.id, session?.user?.id, recordGameSession, navigate, isOverride, difficulty, isCapReached]);
 
   const handleBack = () => {
     navigate("/neuro-lab");
