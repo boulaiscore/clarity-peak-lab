@@ -10,7 +10,6 @@ import { SessionProvider } from "@/contexts/SessionContext";
 import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
-import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/app/Home";
@@ -21,11 +20,10 @@ import Premium from "./pages/app/Premium";
 import ProfilePage from "./pages/app/ProfilePage";
 import SettingsPage from "./pages/app/SettingsPage";
 import SubscriptionPage from "./pages/app/SubscriptionPage";
+import PaywallPage from "./pages/app/PaywallPage";
 import TrainingsList from "./pages/app/TrainingsList";
 import TrainingRunner from "./pages/app/TrainingRunner";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
-import CognitiveAgeExplained from "./pages/CognitiveAgeExplained";
-import BrainScienceDeepDive from "./pages/BrainScienceDeepDive";
 import InstallPage from "./pages/app/Install";
 import NeuroLab from "./pages/app/NeuroLab";
 import Health from "./pages/app/Health";
@@ -47,9 +45,7 @@ import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
 import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
-import DownloadPage from "./pages/Download";
 import ReasoningQualityImpact from "./pages/app/ReasoningQualityImpact";
 
 // Admin pages
@@ -118,7 +114,8 @@ function OnboardingRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
+      {/* Root redirects to auth for app-only prototype */}
+      <Route path="/" element={<Navigate to="/auth" replace />} />
       <Route path="/auth" element={<Auth />} />
       <Route
         path="/onboarding"
@@ -229,6 +226,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SubscriptionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/paywall"
+        element={
+          <ProtectedRoute>
+            <PaywallPage />
           </ProtectedRoute>
         }
       />
@@ -377,22 +382,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/cognitive-age"
-        element={
-          <ProtectedRoute>
-            <CognitiveAgeExplained />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/brain-science"
-        element={
-          <ProtectedRoute>
-            <BrainScienceDeepDive />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/app/daily-session"
         element={
           <ProtectedRoute>
@@ -424,8 +413,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/download" element={<DownloadPage />} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

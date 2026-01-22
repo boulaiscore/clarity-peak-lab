@@ -15,7 +15,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { Settings, Save, Sun, Moon, Globe, Watch, HelpCircle, Mail, ExternalLink, Bell, BellRing, Dumbbell, Play } from "lucide-react";
+import { Settings, Save, Sun, Moon, Globe, Watch, HelpCircle, Mail, ExternalLink, Bell, BellRing, Dumbbell, Play, FileText, Shield, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
@@ -319,10 +319,50 @@ const SettingsPage = () => {
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => window.open("mailto:support@superhuman-labs.com", "_blank")}
+                  onClick={() => window.open("https://neuroloop.ai/support", "_blank")}
                 >
                   <Mail className="w-4 h-4" />
                   Contact Support
+                  <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Legal & Account */}
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                <FileText className="w-4 h-4 text-primary" />
+                Legal & Account
+              </h3>
+              <div className="flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => window.open("https://neuroloop.ai/privacy", "_blank")}
+                >
+                  <Shield className="w-4 h-4" />
+                  Privacy Policy
+                  <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => window.open("https://neuroloop.ai/terms", "_blank")}
+                >
+                  <FileText className="w-4 h-4" />
+                  Terms of Service
+                  <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-destructive hover:text-destructive"
+                  onClick={() => window.open("https://neuroloop.ai/delete-account", "_blank")}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Account
                   <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
                 </Button>
               </div>
