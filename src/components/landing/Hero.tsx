@@ -18,6 +18,13 @@ export function Hero() {
       setShowVideo(true);
       // Start playback after we begin fading in the video
       try {
+        if (videoRef.current) {
+          // Ensure no audio plays (some browsers can be finicky if the media element
+          // was created before attributes were applied).
+          videoRef.current.muted = true;
+          videoRef.current.volume = 0;
+          videoRef.current.currentTime = 0;
+        }
         await videoRef.current?.play();
       } catch {
         // Autoplay can be blocked; we still keep the image visible underneath.
@@ -26,6 +33,17 @@ export function Hero() {
 
     return () => window.clearTimeout(t);
   }, [prefersReducedMotion]);
+
+  // Safety: whenever the video is hidden, force-stop it so nothing keeps playing “under” the image.
+  useEffect(() => {
+    if (showVideo) return;
+    const v = videoRef.current;
+    if (!v) return;
+    v.pause();
+    v.currentTime = 0;
+    v.muted = true;
+    v.volume = 0;
+  }, [showVideo]);
 
   const handleVideoEnded = () => {
     setShowVideo(false);
@@ -59,7 +77,10 @@ export function Hero() {
           muted
           playsInline
           preload="auto"
+          loop={false}
           onEnded={handleVideoEnded}
+          disablePictureInPicture
+          controls={false}
           aria-hidden="true"
         />
         {/* Light overlay for text readability */}
