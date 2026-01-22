@@ -63,26 +63,26 @@ export function Hero() {
             </Button>
           </motion.div>
 
-          {/* Stats - clean, minimal */}
+          {/* Stats */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="mt-16 sm:mt-20"
+            className="mt-24 sm:mt-32"
           >
-            <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
+            <div className="grid grid-cols-3 gap-16 max-w-4xl mx-auto text-center">
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">↑ 23%</p>
-                <p className="text-xs text-black/40 uppercase tracking-[0.15em] mb-0.5">Mental Sharpness</p>
-                <p className="text-[10px] text-black/30">avg. improvement over 4 weeks</p>
+                <p className="text-2xl sm:text-3xl font-bold text-black tracking-tight mb-1">↑ 23%</p>
+                <p className="text-[10px] text-black/40 uppercase tracking-[0.15em] mb-0.5">Mental Sharpness</p>
+                <p className="text-[9px] text-black/30">avg. improvement over 4 weeks</p>
               </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">100k+</p>
-                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Training Sessions</p>
+                <p className="text-2xl sm:text-3xl font-bold text-black tracking-tight mb-1">100k+</p>
+                <p className="text-[10px] text-black/40 uppercase tracking-[0.15em]">Training Sessions</p>
               </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-1">Cognitive Elite</p>
-                <p className="text-xs text-black/40 uppercase tracking-[0.15em]">Protocol</p>
+                <p className="text-2xl sm:text-3xl font-bold text-black tracking-tight mb-1">Cognitive Elite</p>
+                <p className="text-[10px] text-black/40 uppercase tracking-[0.15em]">Protocol</p>
               </div>
             </div>
           </motion.div>
