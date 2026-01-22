@@ -10,48 +10,109 @@ export function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showVideo, setShowVideo] = useState(false);
+  const [videoBlur, setVideoBlur] = useState(false);
+  const [needsSoundEnable, setNeedsSoundEnable] = useState(false);
 
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-
-    const t = window.setTimeout(async () => {
-      setShowVideo(true);
-      // Start playback after we begin fading in the video
-      try {
-        if (videoRef.current) {
-          // Ensure no audio plays (some browsers can be finicky if the media element
-          // was created before attributes were applied).
-          videoRef.current.muted = true;
-          videoRef.current.volume = 0;
-          videoRef.current.currentTime = 0;
-        }
-        await videoRef.current?.play();
-      } catch {
-        // Autoplay can be blocked; we still keep the image visible underneath.
-      }
-    }, 2000);
-
-    return () => window.clearTimeout(t);
-  }, [prefersReducedMotion]);
-
-  // Safety: whenever the video is hidden, force-stop it so nothing keeps playing “under” the image.
-  useEffect(() => {
-    if (showVideo) return;
-    const v = videoRef.current;
-    if (!v) return;
-    v.pause();
-    v.currentTime = 0;
-    v.muted = true;
-    v.volume = 0;
-  }, [showVideo]);
-
-  const handleVideoEnded = () => {
+  const resetToImage = () => {
     setShowVideo(false);
+    setVideoBlur(false);
+    setNeedsSoundEnable(false);
     const v = videoRef.current;
     if (v) {
       v.pause();
       v.currentTime = 0;
     }
+  };
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    let blurTimer: number | undefined;
+    const start = () => {
+      // restart sequence
+      resetToImage();
+
+      const t = window.setTimeout(async () => {
+        setShowVideo(true);
+        setVideoBlur(true);
+
+        blurTimer = window.setTimeout(() => setVideoBlur(false), 900);
+
+        const v = videoRef.current;
+        if (!v) return;
+
+        v.currentTime = 0;
+        v.volume = 1;
+        v.muted = false;
+
+        try {
+          await v.play();
+        } catch {
+          // If autoplay with sound is blocked, fall back to muted autoplay,
+          // and allow the user to enable sound with the next gesture.
+          try {
+            v.muted = true;
+            await v.play();
+            setNeedsSoundEnable(true);
+          } catch {
+            // If autoplay is fully blocked, keep the image.
+            resetToImage();
+          }
+        }
+      }, 2000);
+
+      return () => window.clearTimeout(t);
+    };
+
+    const cleanupStart = start();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        start();
+      } else {
+        // Pause immediately when tab loses focus.
+        const v = videoRef.current;
+        v?.pause();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cleanupStart?.();
+      if (blurTimer) window.clearTimeout(blurTimer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [prefersReducedMotion]);
+
+  // Enable sound on the first user gesture if we had to start muted.
+  useEffect(() => {
+    if (!needsSoundEnable) return;
+
+    const enable = async () => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.muted = false;
+      v.volume = 1;
+      try {
+        await v.play();
+      } catch {
+        // If still blocked, do nothing.
+      }
+      setNeedsSoundEnable(false);
+    };
+
+    window.addEventListener("pointerdown", enable, { once: true });
+    window.addEventListener("keydown", enable, { once: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", enable);
+      window.removeEventListener("keydown", enable);
+    };
+  }, [needsSoundEnable]);
+
+  const handleVideoEnded = () => {
+    resetToImage();
   };
 
   return (
@@ -74,7 +135,6 @@ export function Hero() {
             showVideo ? "opacity-40" : "opacity-0"
           }`}
           src={landingBackgroundVideo}
-          muted
           playsInline
           preload="auto"
           loop={false}
@@ -82,6 +142,10 @@ export function Hero() {
           disablePictureInPicture
           controls={false}
           aria-hidden="true"
+          style={{
+            filter: showVideo ? (videoBlur ? "blur(10px)" : "blur(0px)") : "blur(0px)",
+            transition: "filter 1200ms ease",
+          }}
         />
         {/* Light overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/40 z-10" />
