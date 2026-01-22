@@ -2,13 +2,21 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { HeroAnimatedBackground } from "./HeroAnimatedBackground";
+import heroIllustration from "@/assets/hero-illustration.png";
 
 export function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
-      {/* Animated Background with Videos, Metrics & App Cards */}
-      <HeroAnimatedBackground />
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src={heroIllustration}
+          alt="Neural network illustration"
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+        />
+        {/* Light overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/40 z-10" />
+      </div>
 
       {/* Content */}
       <div className="container relative z-20 px-6 pt-24 pb-16">
