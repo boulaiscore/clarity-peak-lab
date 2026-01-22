@@ -93,6 +93,7 @@ export function useRecordExerciseCompletion() {
       thinkingMode,
       difficulty,
       score,
+      xpOverride, // v1.8: Optional XP override for session-level capping
     }: {
       exerciseId: string;
       gymArea: string;
@@ -100,10 +101,12 @@ export function useRecordExerciseCompletion() {
       difficulty: "easy" | "medium" | "hard";
       score: number;
       exercise?: any; // Legacy, not used
+      xpOverride?: number; // v1.8: Override XP if provided (for session caps)
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
-      const xpEarned = getExerciseXP(difficulty);
+      // v1.8: Use override if provided, otherwise calculate from difficulty
+      const xpEarned = xpOverride !== undefined ? xpOverride : getExerciseXP(difficulty);
       const weekStart = getCurrentWeekStart();
 
       // 1. Record the exercise completion

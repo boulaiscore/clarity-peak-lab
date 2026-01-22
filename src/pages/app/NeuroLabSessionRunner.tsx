@@ -102,6 +102,10 @@ export default function NeuroLabSessionRunner() {
   const hasCompletedRef = useRef(false);
   // Track which exercises have already been recorded to prevent duplicates
   const recordedExercisesRef = useRef<Set<string>>(new Set());
+  // v1.8: Track cumulative XP in session to enforce cap
+  const sessionXPRef = useRef(0);
+  // v1.8: Cap XP per Neuro Lab session (aligned with Games max of ~30-42 XP)
+  const NEURO_LAB_SESSION_XP_CAP = 30;
   
   // Track previous route params to detect actual changes (not initial mount)
   const prevParamsRef = useRef<{ area: string | null; duration: string | null; thinkingMode: string | null; exerciseId: string | null } | null>(null);
@@ -138,6 +142,7 @@ export default function NeuroLabSessionRunner() {
       setSessionStarted(false);
       hasCompletedRef.current = false;
       recordedExercisesRef.current = new Set();
+      sessionXPRef.current = 0; // v1.8: Reset session XP cap
       prevParamsRef.current = currentParams;
     }
   }, [area, duration, thinkingMode, exerciseId]);
@@ -233,32 +238,54 @@ export default function NeuroLabSessionRunner() {
     setResponses(updated);
     
     // Record individual exercise completion with XP AND update metrics in real-time
+    // v1.8: Apply session-level XP cap to prevent excessive XP from long sessions
     if (user?.id && currentExercise.gym_area) {
       try {
-        const xpEarned = getExerciseXP((currentExercise.difficulty as "easy" | "medium" | "hard") || "medium");
-        await recordExerciseCompletion.mutateAsync({
-          exerciseId: currentExercise.id,
-          gymArea: currentExercise.gym_area,
-          thinkingMode: currentExercise.thinking_mode || null,
-          difficulty: (currentExercise.difficulty as "easy" | "medium" | "hard") || "medium",
-          score: result.score,
-          // Pass the full exercise for real-time metric updates
-          exercise: {
-            metrics_affected: currentExercise.metrics_affected || [],
-            weight: currentExercise.weight,
-            difficulty: currentExercise.difficulty,
-          },
-        });
+        const rawXP = getExerciseXP((currentExercise.difficulty as "easy" | "medium" | "hard") || "medium");
         
-        // Show XP earned toast with metric hint
-        const metricHint = currentExercise.metrics_affected?.[0] 
-          ? ` • ${formatMetricName(currentExercise.metrics_affected[0])} ${result.score >= 50 ? "↑" : "→"}`
-          : "";
-        toast.success(`+${xpEarned} XP${metricHint}`, { 
-          id: `xp-${currentExercise.id}`,
-          duration: 2000,
-          icon: "⭐"
-        });
+        // Calculate capped XP based on session cumulative total
+        const remainingCap = Math.max(0, NEURO_LAB_SESSION_XP_CAP - sessionXPRef.current);
+        const xpEarned = Math.min(rawXP, remainingCap);
+        
+        // Only record if there's XP to award
+        if (xpEarned > 0) {
+          // Update cumulative session XP
+          sessionXPRef.current += xpEarned;
+          
+          await recordExerciseCompletion.mutateAsync({
+            exerciseId: currentExercise.id,
+            gymArea: currentExercise.gym_area,
+            thinkingMode: currentExercise.thinking_mode || null,
+            difficulty: (currentExercise.difficulty as "easy" | "medium" | "hard") || "medium",
+            score: result.score,
+            // Pass the full exercise for real-time metric updates
+            exercise: {
+              metrics_affected: currentExercise.metrics_affected || [],
+              weight: currentExercise.weight,
+              difficulty: currentExercise.difficulty,
+            },
+            // v1.8: Pass capped XP (hook will use this if provided)
+            xpOverride: xpEarned,
+          });
+          
+          // Show XP earned toast with metric hint
+          const metricHint = currentExercise.metrics_affected?.[0] 
+            ? ` • ${formatMetricName(currentExercise.metrics_affected[0])} ${result.score >= 50 ? "↑" : "→"}`
+            : "";
+          const capNote = sessionXPRef.current >= NEURO_LAB_SESSION_XP_CAP ? " (session cap)" : "";
+          toast.success(`+${xpEarned} XP${metricHint}${capNote}`, { 
+            id: `xp-${currentExercise.id}`,
+            duration: 2000,
+            icon: "⭐"
+          });
+        } else {
+          // Cap reached - still record exercise but with 0 XP for completeness tracking
+          toast.info("Session XP cap reached", { 
+            id: `xp-cap-${currentExercise.id}`,
+            duration: 1500,
+            icon: "✓"
+          });
+        }
       } catch (error) {
         console.error("Failed to record exercise XP:", error);
       }
