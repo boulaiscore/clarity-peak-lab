@@ -12,6 +12,7 @@ export function Hero() {
   const [showVideo, setShowVideo] = useState(false);
   const [videoBlur, setVideoBlur] = useState(false);
   const [needsSoundEnable, setNeedsSoundEnable] = useState(false);
+  const [videoIntro, setVideoIntro] = useState(false);
 
   const resetToImage = () => {
     setShowVideo(false);
@@ -28,6 +29,7 @@ export function Hero() {
     if (prefersReducedMotion) return;
 
     let blurTimer: number | undefined;
+    let introTimer: number | undefined;
     const start = () => {
       // restart sequence
       resetToImage();
@@ -35,14 +37,16 @@ export function Hero() {
       const t = window.setTimeout(async () => {
         setShowVideo(true);
         setVideoBlur(true);
+        setVideoIntro(true);
 
         blurTimer = window.setTimeout(() => setVideoBlur(false), 900);
+        introTimer = window.setTimeout(() => setVideoIntro(false), 1200);
 
         const v = videoRef.current;
         if (!v) return;
 
         v.currentTime = 0;
-        v.volume = 1;
+        v.volume = 0.25;
         v.muted = false;
 
         try {
@@ -81,6 +85,7 @@ export function Hero() {
     return () => {
       cleanupStart?.();
       if (blurTimer) window.clearTimeout(blurTimer);
+      if (introTimer) window.clearTimeout(introTimer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [prefersReducedMotion]);
@@ -93,7 +98,7 @@ export function Hero() {
       const v = videoRef.current;
       if (!v) return;
       v.muted = false;
-      v.volume = 1;
+      v.volume = 0.25;
       try {
         await v.play();
       } catch {
@@ -144,11 +149,17 @@ export function Hero() {
           aria-hidden="true"
           style={{
             filter: showVideo ? (videoBlur ? "blur(10px)" : "blur(0px)") : "blur(0px)",
-            transition: "filter 1200ms ease",
+            transform: showVideo ? (videoIntro ? "scale(1.045)" : "scale(1)") : "scale(1)",
+            transition: "filter 1200ms ease, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
         {/* Light overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/40 z-10" />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/40 z-10 transition-opacity duration-1000"
+          style={{
+            opacity: showVideo ? (videoIntro ? 0.78 : 1) : 1,
+          }}
+        />
       </div>
 
       {/* Content */}
