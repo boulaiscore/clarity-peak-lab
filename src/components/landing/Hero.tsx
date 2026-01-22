@@ -31,7 +31,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-black whitespace-nowrap"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light tracking-[-0.02em] mb-6 leading-[1.1] text-black md:whitespace-nowrap"
           >
             Unlock <span className="text-primary">human intelligence.</span>
           </motion.h1>
