@@ -26,7 +26,7 @@ export function Hero() {
           transition={{ duration: 1, ease: "easeOut" }}
           className="max-w-5xl mx-auto text-center"
         >
-          {/* Main Headline - Clean, elegant, single line */}
+          {/* Main Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -36,14 +36,14 @@ export function Hero() {
             Master your <span className="text-primary whitespace-nowrap">mental edge.</span>
           </motion.h1>
 
-          {/* Subheadline - single line */}
+          {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7 }}
-            className="text-base sm:text-lg md:text-xl text-black/50 max-w-2xl mx-auto mb-8 font-light"
+            className="text-base sm:text-lg md:text-xl text-black/60 max-w-3xl mx-auto mb-8 font-light leading-relaxed"
           >
-            The cognitive performance system for elite professionals.
+            Start the new year by training how you reason: NeuroLoop delivers insights grounded in cognitive science to improve attention, decision-making, and mental clarity. Every day.
           </motion.p>
 
           {/* Single CTA - pill shaped, with primary accent */}
