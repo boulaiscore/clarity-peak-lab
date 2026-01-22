@@ -23,6 +23,7 @@ export function Hero() {
     outroMs: 1500,
     introDelayMs: 2000,
     fadeMs: 1200,
+    volume: 0.06,
   });
 
   return (

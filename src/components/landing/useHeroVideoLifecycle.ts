@@ -6,6 +6,8 @@ type UseHeroVideoLifecycleOptions = {
   introDelayMs?: number;
   outroMs?: number;
   fadeMs?: number;
+  /** Initial audio volume (0..1). Default is very low. */
+  volume?: number;
 };
 
 /**
@@ -14,7 +16,7 @@ type UseHeroVideoLifecycleOptions = {
  * - premium intro (blur + subtle zoom-out)
  * - low-volume autoplay w/ graceful fallback
  * - elegant outro fade that reveals the static image
- * - restarts when tab becomes visible again
+ * - plays once per page load (no automatic restarts)
  */
 export function useHeroVideoLifecycle({
   prefersReducedMotion,
@@ -22,12 +24,15 @@ export function useHeroVideoLifecycle({
   introDelayMs = 2000,
   outroMs = 1500,
   fadeMs = 1200,
+  volume = 0.08,
 }: UseHeroVideoLifecycleOptions) {
   const [showVideo, setShowVideo] = useState(false);
   const [videoBlur, setVideoBlur] = useState(false);
   const [videoIntro, setVideoIntro] = useState(false);
   const [videoOutro, setVideoOutro] = useState(false);
   const [needsSoundEnable, setNeedsSoundEnable] = useState(false);
+
+  const hasStartedRef = useRef(false);
 
   const didTriggerOutroRef = useRef(false);
   const fadeTimerRef = useRef<number | undefined>(undefined);
@@ -50,6 +55,8 @@ export function useHeroVideoLifecycle({
   const start = useMemo(() => {
     return () => {
       if (prefersReducedMotion) return;
+      if (hasStartedRef.current) return;
+      hasStartedRef.current = true;
       resetToImage();
 
       const t = window.setTimeout(async () => {
@@ -66,7 +73,7 @@ export function useHeroVideoLifecycle({
         if (!v) return;
 
         v.currentTime = 0;
-        v.volume = 0.15;
+        v.volume = volume;
         v.muted = false;
 
         try {
@@ -90,25 +97,14 @@ export function useHeroVideoLifecycle({
       return () => window.clearTimeout(t);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [introDelayMs, prefersReducedMotion]);
+  }, [introDelayMs, prefersReducedMotion, volume]);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
 
     const cleanupStart = start();
-
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        start();
-      } else {
-        videoRef.current?.pause();
-      }
-    };
-
-    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cleanupStart?.();
-      document.removeEventListener("visibilitychange", onVisibility);
       if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
     };
   }, [prefersReducedMotion, start, videoRef]);
@@ -152,7 +148,7 @@ export function useHeroVideoLifecycle({
   };
 
   const handleVideoEnded = () => {
-    // keep the video element mounted but faded out, then fully reset
+    // keep the video element mounted but faded out, then fully reset to image
     if (fadeTimerRef.current) window.clearTimeout(fadeTimerRef.current);
     fadeTimerRef.current = window.setTimeout(() => {
       resetToImage();
