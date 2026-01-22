@@ -43,7 +43,7 @@ export function Hero() {
             transition={{ delay: 0.4, duration: 0.7 }}
             className="text-base sm:text-lg md:text-xl text-black/60 max-w-2xl mx-auto mb-8 font-light leading-relaxed"
           >
-            Train your reasoning. Sharpen your decisions.<br className="hidden sm:block" /><span className="block sm:inline"> Unlock peak mental performance.</span>
+            The cognitive performance system that trains your reasoning,<br className="hidden sm:block" /><span className="block sm:inline"> sharpens your decisions, and tracks your mental edge.</span>
           </motion.p>
 
           {/* Single CTA - pill shaped, with primary accent */}
