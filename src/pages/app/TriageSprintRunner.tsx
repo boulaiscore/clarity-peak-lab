@@ -1,12 +1,14 @@
 /**
  * TRIAGE SPRINT — Runner Page
  * v1.2: Added duration tracking + Manual-compliant session recording
+ * v1.8: Added daily XP cap enforcement
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
+import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
 import { toast } from "sonner";
 import { TriageSprintDrill } from "@/components/drills/focus-fast/TriageSprintDrill";
 import { ArrowLeft } from "lucide-react";
@@ -17,6 +19,7 @@ export default function TriageSprintRunner() {
   const navigate = useNavigate();
   const { user, session } = useAuth();
   const recordGameSession = useRecordGameSession();
+  const { gamesWithXPToday, dailyMax, isCapReached } = useDailyGamesXPCap();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const [isComplete, setIsComplete] = useState(false);
@@ -62,13 +65,16 @@ export default function TriageSprintRunner() {
     const userId = user?.id || session?.user?.id;
     if (userId) {
       try {
-        console.log("[TriageSprint] Saving session for user:", userId, "Duration:", durationSeconds);
+        // v1.8: Apply daily XP cap
+        const actualXP = isCapReached ? 0 : results.xpAwarded;
+        
+        console.log("[TriageSprint] Saving session for user:", userId, "Duration:", durationSeconds, "XP:", actualXP, "(cap:", dailyMax, "used:", gamesWithXPToday, ")");
         
         await recordGameSession({
           gameType: "S1-AE",
           gymArea: "focus",
           thinkingMode: "fast",
-          xpAwarded: results.xpAwarded,
+          xpAwarded: actualXP, // v1.8: Use capped XP
           score: results.score,
           gameName: "triage_sprint",
           falseAlarmRate: results.falseAlarmRate,
@@ -84,9 +90,15 @@ export default function TriageSprintRunner() {
         });
         
         console.log("[TriageSprint] ✅ Session saved successfully");
-        toast.success(`+${results.xpAwarded} XP earned!`, { icon: "⭐" });
         
-        if (results.isPerfect) {
+        // v1.8: Show appropriate toast based on cap status
+        if (actualXP > 0) {
+          toast.success(`+${actualXP} XP earned!`, { icon: "⭐" });
+        } else {
+          toast.info("Daily XP limit reached. Play for practice!", { icon: "🎯" });
+        }
+        
+        if (results.isPerfect && actualXP > 0) {
           toast.success("Perfect Session! 🌟", { duration: 3000 });
         }
       } catch (error) {
@@ -101,7 +113,7 @@ export default function TriageSprintRunner() {
     setTimeout(() => {
       navigate("/neuro-lab");
     }, 500);
-  }, [user?.id, session?.user?.id, recordGameSession, navigate, difficulty]);
+  }, [user?.id, session?.user?.id, recordGameSession, navigate, difficulty, isCapReached, dailyMax, gamesWithXPToday]);
 
   const handleBack = () => {
     navigate("/neuro-lab");
