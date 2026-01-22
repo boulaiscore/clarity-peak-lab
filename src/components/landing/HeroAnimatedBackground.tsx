@@ -1,5 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 // Animated metrics that float across the background
 const floatingMetrics = [
@@ -201,39 +200,24 @@ function ConnectionLine({ start, end, delay }: { start: { x: number; y: number }
 }
 
 export function HeroAnimatedBackground() {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  
-  const videos = [
-    "/src/assets/hero-video.mp4",
-    "/src/assets/landing-working.mp4",
-    "/src/assets/landing-reading.mp4",
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentVideoIndex((prev) => (prev + 1) % videos.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
-      {/* Video Background */}
-      <AnimatePresence mode="wait">
-        <motion.video
-          key={currentVideoIndex}
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          playsInline
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.3 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.5 }}
-        >
-          <source src={videos[currentVideoIndex]} type="video/mp4" />
-        </motion.video>
-      </AnimatePresence>
+      {/* Abstract gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-white to-primary/10" />
+      
+      {/* Animated mesh gradient */}
+      <motion.div
+        className="absolute inset-0"
+        animate={{
+          background: [
+            "radial-gradient(ellipse at 20% 30%, hsl(var(--primary) / 0.08) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 80% 70%, hsl(var(--primary) / 0.08) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 50% 50%, hsl(var(--primary) / 0.08) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 20% 30%, hsl(var(--primary) / 0.08) 0%, transparent 50%)",
+          ],
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+      />
 
       {/* Gradient Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-white/60 z-10" />
