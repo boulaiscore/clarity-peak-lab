@@ -78,7 +78,7 @@ export function Navbar() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className="block w-full text-left py-3 text-sm text-black/60 hover:text-black uppercase tracking-wider"
+                   className="block w-full text-left py-3 text-[13px] text-foreground/70 hover:text-foreground uppercase tracking-wider"
                 >
                   {tab.label}
                 </button>

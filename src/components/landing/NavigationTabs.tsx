@@ -27,7 +27,7 @@ export function NavigationTabs({ onTabClick }: NavigationTabsProps) {
         <button
           key={tab.id}
           onClick={() => handleTabClick(tab.id)}
-          className="text-[11px] uppercase tracking-[0.15em] font-medium text-black/50 hover:text-black transition-colors"
+          className="text-xs uppercase tracking-[0.15em] font-medium text-foreground/70 hover:text-foreground transition-colors"
         >
           {tab.label}
         </button>
