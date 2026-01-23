@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -14,34 +14,40 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
   const [isDragging, setIsDragging] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 640);
   
-  // Listen for resize events
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Use spring for smooth, physical feel
-  const motionY = useMotionValue(0);
-  const springY = useSpring(motionY, { 
+  const isMobile = windowWidth < 640;
+  
+  // Responsive sizing
+  const trackLength = isMobile ? 200 : 200; // px - horizontal on mobile, vertical on desktop
+  const knobSize = isMobile ? 44 : 48;
+  const usableLength = trackLength - knobSize;
+  
+  const motionValue = useMotionValue(0);
+  const springValue = useSpring(motionValue, { 
     stiffness: 300, 
     damping: 30,
     mass: 0.5 
   });
   
-  // Responsive sizing - smaller on mobile
-  const isMobile = windowWidth < 640;
-  const trackHeight = isMobile ? 160 : 200; // px
-  const knobSize = isMobile ? 40 : 48;
-  const usableHeight = trackHeight - knobSize;
-  
   // Sync external value to motion
   useEffect(() => {
     if (!isDragging) {
-      const targetY = (1 - value) * usableHeight;
-      motionY.set(targetY);
+      if (isMobile) {
+        // Horizontal: left = 0, right = 1
+        const targetX = value * usableLength;
+        motionValue.set(targetX);
+      } else {
+        // Vertical: top = 1, bottom = 0
+        const targetY = (1 - value) * usableLength;
+        motionValue.set(targetY);
+      }
     }
-  }, [value, isDragging, usableHeight, motionY]);
+  }, [value, isDragging, usableLength, motionValue, isMobile]);
   
   const handlePan = useCallback((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (disabled) return;
@@ -51,46 +57,42 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
     
     const rect = container.getBoundingClientRect();
     
-    // On mobile (rotated 90deg), we need to use X-axis instead of Y-axis
-    // The rotation swaps the visual axes
     if (isMobile) {
+      // Horizontal slider on mobile
       const clientX = 'touches' in event 
         ? (event as TouchEvent).touches[0]?.clientX ?? info.point.x
         : info.point.x;
       
-      // When rotated 90deg clockwise, left = top (high value), right = bottom (low value)
       const relativeX = clientX - rect.left - knobSize / 2;
-      const clampedX = Math.max(0, Math.min(usableHeight, relativeX));
-      // Invert because rotation flips the direction
-      const newValue = 1 - (clampedX / usableHeight);
+      const clampedX = Math.max(0, Math.min(usableLength, relativeX));
+      const newValue = clampedX / usableLength;
       
-      motionY.set(clampedX);
+      motionValue.set(clampedX);
       onChange(Math.max(0, Math.min(1, newValue)));
     } else {
+      // Vertical slider on desktop
       const clientY = 'touches' in event 
         ? (event as TouchEvent).touches[0]?.clientY ?? info.point.y
         : info.point.y;
       
       const relativeY = clientY - rect.top - knobSize / 2;
-      const clampedY = Math.max(0, Math.min(usableHeight, relativeY));
-      const newValue = 1 - (clampedY / usableHeight);
+      const clampedY = Math.max(0, Math.min(usableLength, relativeY));
+      const newValue = 1 - (clampedY / usableLength);
       
-      motionY.set(clampedY);
+      motionValue.set(clampedY);
       onChange(Math.max(0, Math.min(1, newValue)));
     }
     
     // Haptic feedback at edges
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      const currentVal = value;
-      if (currentVal <= 0.02 || currentVal >= 0.98) {
+      if (value <= 0.02 || value >= 0.98) {
         navigator.vibrate(10);
       }
     }
-  }, [disabled, onChange, usableHeight, motionY, isMobile, knobSize, value]);
+  }, [disabled, onChange, usableLength, motionValue, isMobile, knobSize, value]);
   
   const handleDragStart = () => {
     setIsDragging(true);
-    // Soft haptic on grab
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate(5);
     }
@@ -99,7 +101,93 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
   const handleDragEnd = () => {
     setIsDragging(false);
   };
-  
+
+  // Mobile: horizontal layout
+  if (isMobile) {
+    return (
+      <div 
+        ref={containerRef}
+        className={cn(
+          "relative flex items-center select-none touch-none",
+          className
+        )}
+        style={{ width: trackLength, height: 56 }}
+      >
+        {/* Glass track background - horizontal */}
+        <div className="absolute inset-y-2 left-0 right-0 rounded-full bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
+          {/* Gradient fill showing intensity */}
+          <motion.div 
+            className="absolute top-0 left-0 bottom-0 rounded-full bg-gradient-to-r from-cyan-500/40 via-cyan-400/20 to-transparent"
+            style={{ width: `${value * 100}%` }}
+          />
+          
+          {/* Track notches */}
+          <div className="absolute inset-y-0 left-4 right-4 flex flex-row justify-between items-center py-1">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div 
+                key={i} 
+                className="h-1.5 w-0.5 rounded-full bg-white/20" 
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Knob - moves horizontally */}
+        <motion.div
+          className={cn(
+            "absolute top-1/2 -translate-y-1/2 z-10 cursor-grab active:cursor-grabbing",
+            disabled && "opacity-50 cursor-not-allowed"
+          )}
+          style={{ 
+            x: springValue,
+            width: knobSize,
+            height: knobSize,
+          }}
+          drag="x"
+          dragConstraints={{ left: 0, right: usableLength }}
+          dragElastic={0.05}
+          onDragStart={handleDragStart}
+          onDrag={handlePan}
+          onDragEnd={handleDragEnd}
+          whileTap={{ scale: 1.05 }}
+        >
+          {/* Outer glow ring */}
+          <div className={cn(
+            "absolute inset-0 rounded-full transition-all duration-200",
+            isDragging 
+              ? "bg-cyan-400/30 shadow-[0_0_24px_4px_rgba(34,211,238,0.3)]" 
+              : "bg-transparent"
+          )} />
+          
+          {/* Main knob */}
+          <div className={cn(
+            "absolute inset-1 rounded-full bg-gradient-to-b from-slate-700 to-slate-800 border border-white/20 shadow-lg",
+            "flex items-center justify-center"
+          )}>
+            <div className={cn(
+              "w-4 h-4 rounded-full border-2 transition-colors duration-200",
+              isDragging 
+                ? "border-cyan-400 bg-cyan-400/20" 
+                : "border-white/40 bg-white/5"
+            )} />
+          </div>
+          
+          {/* Grip lines - vertical for horizontal slider */}
+          <div className="absolute inset-y-4 left-1/2 -translate-x-1/2 flex flex-row gap-1 pointer-events-none">
+            <div className="w-px bg-white/10 rounded-full" />
+            <div className="w-px bg-white/10 rounded-full" />
+            <div className="w-px bg-white/10 rounded-full" />
+          </div>
+        </motion.div>
+        
+        {/* Labels */}
+        <div className="absolute left-1 -bottom-5 text-[8px] text-cyan-400/60 font-mono">−</div>
+        <div className="absolute right-1 -bottom-5 text-[8px] text-cyan-400/60 font-mono">+</div>
+      </div>
+    );
+  }
+
+  // Desktop: vertical layout
   return (
     <div 
       ref={containerRef}
@@ -107,7 +195,7 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
         "relative flex flex-col items-center select-none touch-none",
         className
       )}
-      style={{ height: trackHeight, width: 56 }}
+      style={{ height: trackLength, width: 56 }}
     >
       {/* Glass track background */}
       <div className="absolute inset-x-2 top-0 bottom-0 rounded-full bg-gradient-to-b from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
@@ -135,12 +223,12 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
           disabled && "opacity-50 cursor-not-allowed"
         )}
         style={{ 
-          y: springY,
+          y: springValue,
           width: knobSize,
           height: knobSize,
         }}
         drag="y"
-        dragConstraints={{ top: 0, bottom: usableHeight }}
+        dragConstraints={{ top: 0, bottom: usableLength }}
         dragElastic={0.05}
         onDragStart={handleDragStart}
         onDrag={handlePan}
@@ -160,7 +248,6 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
           "absolute inset-1 rounded-full bg-gradient-to-b from-slate-700 to-slate-800 border border-white/20 shadow-lg",
           "flex items-center justify-center"
         )}>
-          {/* Inner circle indicator */}
           <div className={cn(
             "w-4 h-4 rounded-full border-2 transition-colors duration-200",
             isDragging 
