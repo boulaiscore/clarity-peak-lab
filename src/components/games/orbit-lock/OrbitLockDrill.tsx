@@ -496,8 +496,8 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
             orbitSpeedMultiplier={actConfig.orbitSpeedMult}
           />
           
-          {/* Thumb Dial - horizontal slider on mobile, vertical on desktop */}
-          <div className="sm:ml-2 rotate-90 sm:rotate-0 origin-center">
+          {/* Thumb Dial - native horizontal on mobile, vertical on desktop */}
+          <div className="sm:ml-2">
             <ThumbDial
               value={dialValue}
               onChange={setDialValue}
