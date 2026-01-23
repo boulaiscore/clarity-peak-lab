@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – DAILY GAMES XP CAP v1.8
+ * NLOOP PRO – DAILY GAMES XP CAP v1.8
  * ============================================
  * 
  * Tracks how many games have awarded XP today and

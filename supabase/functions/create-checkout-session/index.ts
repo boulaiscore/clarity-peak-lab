@@ -9,12 +9,12 @@ const corsHeaders = {
 // Tier configuration
 const TIERS = {
   premium: {
-    name: 'NeuroLoop Pro',
+    name: 'NLOOP Pro',
     description: 'Complete cognitive training with monthly report.',
     amount: 1990, // $19.90
   },
   pro: {
-    name: 'NeuroLoop Elite',
+    name: 'NLOOP Elite',
     description: 'Master-level cognitive training with advanced insights.',
     amount: 2990, // $29.90
   },

@@ -1,10 +1,10 @@
 /**
  * ============================================
- * NEUROLOOP TEMPORAL WINDOWS — ROLLING ONLY
+ * NLOOP TEMPORAL WINDOWS — ROLLING ONLY
  * ============================================
  * 
  * OFFICIAL RULES:
- * NeuroLoop NON usa settimane di calendario.
+ * NLOOP NON usa settimane di calendario.
  * Usa SOLO rolling windows.
  * 
  * PERIODS:

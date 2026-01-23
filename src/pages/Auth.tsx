@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendPasswordResetEmail } from "@/lib/emailService";
 import { getPasswordResetRedirectUrl, isIOS } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
-import { NeuroLoopLogo } from "@/components/ui/NeuroLoopLogo";
+import { NLOOPLogo } from "@/components/ui/NLOOPLogo";
 import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
 import { toast } from "@/hooks/use-toast";
 
@@ -201,7 +201,7 @@ const Auth = () => {
           <div className="w-full max-w-sm">
             <div className="text-center mb-10">
             <div className="flex items-center justify-center mb-4">
-              <NeuroLoopLogo size={48} className="text-foreground" />
+              <NLOOPLogo size={48} className="text-foreground" />
             </div>
               <h1 className="text-2xl font-semibold mb-2">Reset password</h1>
               <p className="text-muted-foreground text-sm">
@@ -264,7 +264,7 @@ const Auth = () => {
           {/* Logo */}
           <div className="text-center mb-10">
             <div className="flex items-center justify-center mb-4">
-              <NeuroLoopLogo size={48} className="text-foreground" />
+              <NLOOPLogo size={48} className="text-foreground" />
             </div>
             <h1 className="text-2xl font-semibold mb-2">
               {isLogin ? "Welcome back" : "Start training"}

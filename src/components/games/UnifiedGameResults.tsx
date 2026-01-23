@@ -3,7 +3,7 @@
  * UNIFIED GAME RESULTS v1.0
  * ============================================
  * 
- * Standard End Screen for ALL NeuroLoop games (S1 & S2).
+ * Standard End Screen for ALL NLOOP games (S1 & S2).
  * Follows the Global Game Feedback Specification.
  * 
  * STRUCTURE (fixed order):

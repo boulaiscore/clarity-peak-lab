@@ -1,9 +1,9 @@
 /**
  * ============================================
- * NEUROLOOP PRO – DECAY CONSTANTS
+ * NLOOP PRO – DECAY CONSTANTS
  * ============================================
  * 
- * Quantitative decay rules from NeuroLoop Decay & Dynamics Manual.
+ * Quantitative decay rules from NLOOP Decay & Dynamics Manual.
  * All thresholds and rates are centralized here for maintainability.
  */
 

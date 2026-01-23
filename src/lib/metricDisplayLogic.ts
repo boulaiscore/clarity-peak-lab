@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – METRIC DISPLAY LOGIC
+ * NLOOP PRO – METRIC DISPLAY LOGIC
  * ============================================
  * 
  * Determines what to show inside metric rings:

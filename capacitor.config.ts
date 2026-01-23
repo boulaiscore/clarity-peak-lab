@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.neurolooplabs.neurolooppro',
-  appName: 'NeuroLoop Pro',
+  appId: 'com.nloop.pro',
+  appName: 'NLOOP Pro',
   webDir: 'dist',
   server: {
     cleartext: false
@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
   },
   // iOS-specific configuration
   ios: {
-    scheme: 'neuroloop',
+    scheme: 'nloop',
     contentInset: 'automatic',
   },
   // Android-specific configuration  

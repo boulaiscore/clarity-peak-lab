@@ -47,7 +47,7 @@ interface ReadingCompletion {
   timestamp: string;
 }
 
-const READING_COMPLETIONS_KEY = "neuroloop_reading_completions";
+const READING_COMPLETIONS_KEY = "nloop_reading_completions";
 
 function getReadingCompletions(): { todayCount: number; weeklyBookCount: number } {
   try {

@@ -1,7 +1,7 @@
 // src/hooks/useReportData.ts
 /**
  * ============================================
- * NEUROLOOP PRO – REPORT DATA HOOK v2.1
+ * NLOOP PRO – REPORT DATA HOOK v2.1
  * ============================================
  * 
  * v2.1: Use getMediumPeriodStart() for consistent 7-day rolling window

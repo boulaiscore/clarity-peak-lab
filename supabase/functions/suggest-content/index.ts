@@ -62,7 +62,7 @@ serve(async (req) => {
     const totalContentForMonth = config.contentPerWeek * 4; // 4 weeks per month
 
     // Use AI to generate personalized content suggestions
-    const systemPrompt = `You are a cognitive training content curator for NeuroLoop, a premium cognitive performance platform.
+    const systemPrompt = `You are a cognitive training content curator for NLOOP, a premium cognitive performance platform.
 
 Your task is to suggest ${totalContentForMonth} pieces of content for a month of training based on the user's plan.
 
