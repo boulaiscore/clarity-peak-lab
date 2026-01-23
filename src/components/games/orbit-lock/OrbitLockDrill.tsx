@@ -480,9 +480,9 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
         ))}
       </div>
       
-      {/* Main playfield + dial layout */}
-      <div className="flex-1 flex items-center justify-center px-4 py-6">
-        <div className="flex items-center gap-6">
+      {/* Main playfield + dial layout - vertical on mobile, horizontal on desktop */}
+      <div className="flex-1 flex items-center justify-center px-2 sm:px-4 py-4 sm:py-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
           {/* Orbit Playfield */}
           <OrbitPlayfield
             signalPosition={signalOffset}
@@ -496,12 +496,13 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
             orbitSpeedMultiplier={actConfig.orbitSpeedMult}
           />
           
-          {/* Thumb Dial (right side) */}
-          <ThumbDial
-            value={dialValue}
-            onChange={setDialValue}
-            className="ml-2"
-          />
+          {/* Thumb Dial - horizontal slider on mobile, vertical on desktop */}
+          <div className="sm:ml-2 rotate-90 sm:rotate-0 origin-center">
+            <ThumbDial
+              value={dialValue}
+              onChange={setDialValue}
+            />
+          </div>
         </div>
       </div>
       
