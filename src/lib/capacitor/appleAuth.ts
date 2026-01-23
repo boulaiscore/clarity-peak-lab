@@ -31,7 +31,7 @@ export async function signInWithApple(): Promise<AppleAuthResult> {
       provider: 'apple',
       options: {
         redirectTo: isNative() 
-          ? 'neuroloop://auth/callback' 
+          ? 'nloop://auth/callback' 
           : `${window.location.origin}/#/auth`,
         skipBrowserRedirect: isNative(),
       },
@@ -65,7 +65,7 @@ export async function signInWithApple(): Promise<AppleAuthResult> {
 export async function handleAppleAuthCallback(url: string): Promise<AppleAuthResult> {
   try {
     // Extract the tokens from the URL
-    const urlObj = new URL(url.replace('neuroloop://', 'https://app.'));
+    const urlObj = new URL(url.replace('nloop://', 'https://app.'));
     const accessToken = urlObj.searchParams.get('access_token');
     const refreshToken = urlObj.searchParams.get('refresh_token');
 

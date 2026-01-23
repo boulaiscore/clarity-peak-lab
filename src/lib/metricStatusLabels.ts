@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – METRIC STATUS LABELS
+ * NLOOP PRO – METRIC STATUS LABELS
  * ============================================
  * 
  * Provides consistent qualitative labels for all cognitive metrics.

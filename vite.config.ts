@@ -18,8 +18,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icon-192.png", "icon-512.png", "sw-custom.js"],
       manifest: {
-        name: "NeuroLoop Pro",
-        short_name: "NeuroLoop",
+        name: "NLOOP Pro",
+        short_name: "NLOOP",
         description: "Cognitive fitness system for higher-order thinking and elite decision-making",
         start_url: "/",
         display: "standalone",

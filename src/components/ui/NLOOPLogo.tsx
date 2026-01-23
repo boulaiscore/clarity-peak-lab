@@ -1,9 +1,9 @@
-interface NeuroLoopLogoProps {
+interface NLOOPLogoProps {
   size?: number;
   className?: string;
 }
 
-export function NeuroLoopLogo({ size = 24, className }: NeuroLoopLogoProps) {
+export function NLOOPLogo({ size = 24, className }: NLOOPLogoProps) {
   return (
     <svg
       width={size}

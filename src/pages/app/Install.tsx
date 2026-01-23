@@ -57,7 +57,7 @@ const InstallPage = () => {
           </Link>
           <div>
             <h1 className="text-lg font-semibold text-foreground tracking-tight">
-              Install NeuroLoop
+              Install NLOOP
             </h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
               Get the full experience

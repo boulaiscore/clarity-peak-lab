@@ -8,11 +8,11 @@ import { isIOS, isAndroid, isNative } from '@/lib/platformUtils';
 
 // RevenueCat Product IDs - must match App Store Connect
 export const PRODUCT_IDS = {
-  PREMIUM_MONTHLY: 'neuroloop_premium_monthly',
-  PRO_MONTHLY: 'neuroloop_pro_monthly',
-  REPORT_SINGLE: 'neuroloop_report_single',
-  REPORT_PACK_5: 'neuroloop_report_pack_5',
-  REPORT_PACK_10: 'neuroloop_report_pack_10',
+  PREMIUM_MONTHLY: 'nloop_premium_monthly',
+  PRO_MONTHLY: 'nloop_pro_monthly',
+  REPORT_SINGLE: 'nloop_report_single',
+  REPORT_PACK_5: 'nloop_report_pack_5',
+  REPORT_PACK_10: 'nloop_report_pack_10',
 } as const;
 
 // Entitlement identifiers in RevenueCat

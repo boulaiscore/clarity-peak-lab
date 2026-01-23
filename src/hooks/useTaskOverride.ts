@@ -29,7 +29,7 @@ interface OverrideState {
   weekOverrides: OverrideRecord[];
 }
 
-const STORAGE_KEY = "neuroloop_task_overrides";
+const STORAGE_KEY = "nloop_task_overrides";
 const MAX_DAILY_OVERRIDES = 1;
 const MAX_WEEKLY_OVERRIDES = 3;
 const S2_PENALTY_PER_OVERRIDE = 3;

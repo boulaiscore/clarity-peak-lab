@@ -190,7 +190,7 @@ export default function CognitiveReport() {
     
     const opt = {
       margin: [0, 0, 0, 0],
-      filename: `NeuroLoop_Report_${generatedAt.toISOString().split('T')[0]}.pdf`,
+      filename: `NLOOP_Report_${generatedAt.toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { 
         scale: 2, 

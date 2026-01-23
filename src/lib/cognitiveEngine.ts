@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – COGNITIVE ENGINE v1.3
+ * NLOOP PRO – COGNITIVE ENGINE v1.3
  * ============================================
  * 
  * Technical Manual v1.3 Aligned

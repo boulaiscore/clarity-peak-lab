@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – GAMES GATING SYSTEM v1.4
+ * NLOOP PRO – GAMES GATING SYSTEM v1.4
  * ============================================
  * 
  * Games are gated by cognitive metrics. NO override allowed for games.

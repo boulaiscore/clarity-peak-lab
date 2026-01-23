@@ -1,6 +1,6 @@
 /**
  * ============================================
- * NEUROLOOP PRO – TRAINING PLANS v1.4
+ * NLOOP PRO – TRAINING PLANS v1.4
  * ============================================
  * 
  * Technical Manual v1.4 Aligned

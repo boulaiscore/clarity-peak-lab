@@ -5,7 +5,7 @@ type Theme = "dark" | "light";
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check localStorage first
-    const stored = localStorage.getItem("neuroloop-theme");
+    const stored = localStorage.getItem("nloop-theme");
     if (stored === "light" || stored === "dark") {
       return stored;
     }
@@ -21,7 +21,7 @@ export function useTheme() {
       root.classList.remove("light");
     }
     
-    localStorage.setItem("neuroloop-theme", theme);
+    localStorage.setItem("nloop-theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
