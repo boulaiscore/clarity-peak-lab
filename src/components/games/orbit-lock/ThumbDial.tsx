@@ -50,24 +50,43 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
     if (!container) return;
     
     const rect = container.getBoundingClientRect();
-    const clientY = 'touches' in event 
-      ? (event as TouchEvent).touches[0]?.clientY ?? info.point.y
-      : info.point.y;
     
-    const relativeY = clientY - rect.top - knobSize / 2;
-    const clampedY = Math.max(0, Math.min(usableHeight, relativeY));
-    const newValue = 1 - (clampedY / usableHeight);
-    
-    motionY.set(clampedY);
-    onChange(Math.max(0, Math.min(1, newValue)));
+    // On mobile (rotated 90deg), we need to use X-axis instead of Y-axis
+    // The rotation swaps the visual axes
+    if (isMobile) {
+      const clientX = 'touches' in event 
+        ? (event as TouchEvent).touches[0]?.clientX ?? info.point.x
+        : info.point.x;
+      
+      // When rotated 90deg clockwise, left = top (high value), right = bottom (low value)
+      const relativeX = clientX - rect.left - knobSize / 2;
+      const clampedX = Math.max(0, Math.min(usableHeight, relativeX));
+      // Invert because rotation flips the direction
+      const newValue = 1 - (clampedX / usableHeight);
+      
+      motionY.set(clampedX);
+      onChange(Math.max(0, Math.min(1, newValue)));
+    } else {
+      const clientY = 'touches' in event 
+        ? (event as TouchEvent).touches[0]?.clientY ?? info.point.y
+        : info.point.y;
+      
+      const relativeY = clientY - rect.top - knobSize / 2;
+      const clampedY = Math.max(0, Math.min(usableHeight, relativeY));
+      const newValue = 1 - (clampedY / usableHeight);
+      
+      motionY.set(clampedY);
+      onChange(Math.max(0, Math.min(1, newValue)));
+    }
     
     // Haptic feedback at edges
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      if (newValue <= 0.02 || newValue >= 0.98) {
+      const currentVal = value;
+      if (currentVal <= 0.02 || currentVal >= 0.98) {
         navigator.vibrate(10);
       }
     }
-  }, [disabled, onChange, usableHeight, motionY]);
+  }, [disabled, onChange, usableHeight, motionY, isMobile, knobSize, value]);
   
   const handleDragStart = () => {
     setIsDragging(true);
