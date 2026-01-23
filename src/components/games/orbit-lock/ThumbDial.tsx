@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ThumbDialProps {
   value: number; // 0-1
@@ -11,7 +10,6 @@ interface ThumbDialProps {
 }
 
 export function ThumbDial({ value, onChange, disabled, className }: ThumbDialProps) {
-  const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -23,9 +21,8 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
     mass: 0.5 
   });
   
-  // Responsive track height
-  const trackHeight = isMobile ? 160 : 200; // px
-  const knobSize = isMobile ? 40 : 48;
+  const trackHeight = 200; // px
+  const knobSize = 48;
   const usableHeight = trackHeight - knobSize;
   
   // Sync external value to motion
@@ -81,7 +78,7 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
         "relative flex flex-col items-center select-none touch-none",
         className
       )}
-      style={{ height: trackHeight, width: isMobile ? 48 : 56 }}
+      style={{ height: trackHeight, width: 56 }}
     >
       {/* Glass track background */}
       <div className="absolute inset-x-2 top-0 bottom-0 rounded-full bg-gradient-to-b from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">

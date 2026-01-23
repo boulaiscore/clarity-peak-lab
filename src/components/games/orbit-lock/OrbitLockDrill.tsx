@@ -481,31 +481,27 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
       </div>
       
       {/* Main playfield + dial layout */}
-      <div className="flex-1 flex items-center justify-center px-2 sm:px-4 py-4 sm:py-6 overflow-hidden">
-        <div className="flex items-center gap-2 sm:gap-6 w-full max-w-md justify-center">
+      <div className="flex-1 flex items-center justify-center px-4 py-6">
+        <div className="flex items-center gap-6">
           {/* Orbit Playfield */}
-          <div className="flex-shrink min-w-0">
-            <OrbitPlayfield
-              signalPosition={signalOffset}
-              bandStart={0.5 - config.bandWidth / 2}
-              bandEnd={0.5 + config.bandWidth / 2}
-              inBand={inBand}
-              showPulse={showPulse}
-              showGlint={showGlint}
-              actProgress={actProgress}
-              currentAct={currentAct + 1}
-              orbitSpeedMultiplier={actConfig.orbitSpeedMult}
-            />
-          </div>
+          <OrbitPlayfield
+            signalPosition={signalOffset}
+            bandStart={0.5 - config.bandWidth / 2}
+            bandEnd={0.5 + config.bandWidth / 2}
+            inBand={inBand}
+            showPulse={showPulse}
+            showGlint={showGlint}
+            actProgress={actProgress}
+            currentAct={currentAct + 1}
+            orbitSpeedMultiplier={actConfig.orbitSpeedMult}
+          />
           
           {/* Thumb Dial (right side) */}
-          <div className="flex-shrink-0">
-            <ThumbDial
-              value={dialValue}
-              onChange={setDialValue}
-              className="ml-0 sm:ml-2"
-            />
-          </div>
+          <ThumbDial
+            value={dialValue}
+            onChange={setDialValue}
+            className="ml-2"
+          />
         </div>
       </div>
       

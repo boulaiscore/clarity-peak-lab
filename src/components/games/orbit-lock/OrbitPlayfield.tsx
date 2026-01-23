@@ -92,7 +92,7 @@ export function OrbitPlayfield({
   return (
     <div 
       ref={containerRef}
-      className="relative w-full max-w-[280px] sm:max-w-[320px] aspect-square mx-auto"
+      className="relative w-80 h-80 mx-auto"
     >
       {/* Background grid effect */}
       <div className="absolute inset-0 opacity-10">
