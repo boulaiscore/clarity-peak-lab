@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,14 @@ interface ThumbDialProps {
 export function ThumbDial({ value, onChange, disabled, className }: ThumbDialProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 640);
+  
+  // Listen for resize events
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Use spring for smooth, physical feel
   const motionY = useMotionValue(0);
@@ -21,8 +29,10 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
     mass: 0.5 
   });
   
-  const trackHeight = 200; // px
-  const knobSize = 48;
+  // Responsive sizing - smaller on mobile
+  const isMobile = windowWidth < 640;
+  const trackHeight = isMobile ? 160 : 200; // px
+  const knobSize = isMobile ? 40 : 48;
   const usableHeight = trackHeight - knobSize;
   
   // Sync external value to motion
