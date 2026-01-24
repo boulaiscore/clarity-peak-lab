@@ -132,14 +132,6 @@ export default function SignalVsNoiseRunner() {
 
             {/* Content */}
             <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center mb-6"
-              >
-                <Sparkles className="w-8 h-8 text-primary" />
-              </motion.div>
 
               <motion.h1
                 initial={{ y: 8, opacity: 0 }}

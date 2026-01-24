@@ -630,9 +630,6 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
             {roundType === "lock" && (
               <motion.div key="lock" {...motionConfig.card} className="space-y-5">
                 <div className="text-center space-y-2">
-                  <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto">
-                    <Lock className="w-6 h-6 text-violet-400" />
-                  </div>
                   <h3 className="text-lg font-semibold text-foreground">Lock Your Rule</h3>
                   <p className="text-xs text-muted-foreground">
                     Choose the rule you believe is correct. No going back.

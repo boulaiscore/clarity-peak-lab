@@ -135,10 +135,6 @@ export default function SocraticCrossExamRunner() {
             
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="max-w-sm text-center space-y-6">
-                <div className="w-16 h-16 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto">
-                  <Brain className="w-8 h-8 text-violet-400" />
-                </div>
-                
                 <div>
                   <h1 className="text-2xl font-semibold tracking-tight mb-2">
                     Socratic Cross-Exam
