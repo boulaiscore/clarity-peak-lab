@@ -5,6 +5,7 @@ import { ThumbDial } from "./ThumbDial";
 import { OrbitPlayfield } from "./OrbitPlayfield";
 import { OrbitLockResults } from "./OrbitLockResults";
 import { Target, Zap, Shield } from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
 
 // ============================================
 // TYPES & CONFIGURATION
@@ -13,6 +14,7 @@ import { Target, Zap, Shield } from "lucide-react";
 interface OrbitLockDrillProps {
   difficulty: "easy" | "medium" | "hard";
   onComplete: (results: OrbitLockFinalResults) => void;
+  onExit?: () => void;
 }
 
 export interface OrbitLockFinalResults {
@@ -69,7 +71,7 @@ const PERFECT_OVERCORRECTION_THRESHOLD = 0.3;
 // MAIN COMPONENT
 // ============================================
 
-export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) {
+export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDrillProps) {
   const config = DIFFICULTY_CONFIGS[difficulty];
   
   // Game phases
@@ -455,7 +457,9 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
   
   // Playing state
   return (
-    <div className="min-h-[70vh] flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 rounded-2xl border border-white/5 overflow-hidden">
+    <div className="min-h-[70vh] flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 rounded-2xl border border-white/5 overflow-hidden relative">
+      {/* Exit button */}
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
         <div className="text-xs">

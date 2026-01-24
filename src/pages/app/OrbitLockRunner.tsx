@@ -132,6 +132,7 @@ export default function OrbitLockRunner() {
         <OrbitLockDrill
           difficulty={difficulty}
           onComplete={handleComplete}
+          onExit={handleBack}
         />
       </div>
     </div>

@@ -134,6 +134,7 @@ export default function FocusSwitchRunner() {
         <FocusSwitchDrill
           difficulty={difficulty}
           onComplete={handleComplete}
+          onExit={handleBack}
         />
       </div>
     </div>

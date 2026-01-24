@@ -22,6 +22,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FocusSwitchResults } from "./FocusSwitchResults";
+import { GameExitButton } from "@/components/games/GameExitButton";
 
 // ============================================
 // TYPES & CONFIGURATION
@@ -45,6 +46,7 @@ export interface FocusSwitchFinalResults {
 interface FocusSwitchDrillProps {
   difficulty: "easy" | "medium" | "hard";
   onComplete: (results: FocusSwitchFinalResults) => void;
+  onExit?: () => void;
 }
 
 interface BlockConfig {
