@@ -154,7 +154,6 @@ export default function SemanticDriftRunner() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" />
                 <span className="font-semibold">Semantic Drift</span>
               </div>
             </div>

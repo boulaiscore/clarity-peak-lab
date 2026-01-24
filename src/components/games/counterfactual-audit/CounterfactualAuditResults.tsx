@@ -238,9 +238,6 @@ export function CounterfactualAuditResults({
           transition={{ duration: 0.3 }}
           className="text-center space-y-3"
         >
-          <div className="w-16 h-16 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto">
-            <Brain className="w-8 h-8 text-violet-400" />
-          </div>
           <h1 className="text-xl font-semibold">{sessionTitle}</h1>
           <div className="text-4xl font-bold text-foreground">{metrics.sessionScore}</div>
           <div className="text-sm text-muted-foreground">Session Score</div>

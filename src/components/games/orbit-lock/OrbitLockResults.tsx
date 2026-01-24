@@ -21,15 +21,6 @@ export function OrbitLockResults({ results, onContinue }: OrbitLockResultsProps)
       >
         {/* Header */}
         <div className="text-center space-y-2">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 border border-cyan-400/30"
-          >
-            <Target className="w-8 h-8 text-cyan-400" />
-          </motion.div>
-          
           <h2 className="text-xl font-semibold text-foreground">Session Complete</h2>
           
           {results.isPerfect && (
