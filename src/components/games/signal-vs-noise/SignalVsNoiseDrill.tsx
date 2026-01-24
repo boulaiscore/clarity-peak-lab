@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, X } from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -80,6 +81,7 @@ export interface SessionMetrics {
 interface SignalVsNoiseDrillProps {
   difficulty: Difficulty;
   onComplete: (results: CaseResult[], metrics: SessionMetrics) => void;
+  onExit?: () => void;
 }
 
 // ============================================
@@ -190,7 +192,7 @@ function TimerRing({ remaining, total }: { remaining: number; total: number }) {
 // MAIN COMPONENT
 // ============================================
 
-export function SignalVsNoiseDrill({ difficulty, onComplete }: SignalVsNoiseDrillProps) {
+export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsNoiseDrillProps) {
   const config = DIFFICULTY_CONFIG[difficulty];
   const [cases] = useState(() => generateSession(difficulty));
   const [currentCase, setCurrentCase] = useState(0);
@@ -455,8 +457,10 @@ export function SignalVsNoiseDrill({ difficulty, onComplete }: SignalVsNoiseDril
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.22 }}
-      className="min-h-screen bg-background p-4 pb-24"
+      className="min-h-screen bg-background p-4 pb-24 relative"
     >
+      {/* Exit button */}
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

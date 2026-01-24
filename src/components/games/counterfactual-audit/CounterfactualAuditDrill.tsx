@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Check, ChevronRight } from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -71,9 +72,10 @@ export interface SessionMetrics {
 interface CounterfactualAuditDrillProps {
   difficulty: Difficulty;
   onComplete: (results: RoundResult[], metrics: SessionMetrics, durationSeconds: number) => void;
+  onExit?: () => void;
 }
 
-export function CounterfactualAuditDrill({ difficulty, onComplete }: CounterfactualAuditDrillProps) {
+export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: CounterfactualAuditDrillProps) {
   const prefersReducedMotion = useReducedMotion();
   const config = DIFFICULTY_CONFIG[difficulty];
   
@@ -360,6 +362,8 @@ export function CounterfactualAuditDrill({ difficulty, onComplete }: Counterfact
   
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
+      {/* Exit button */}
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Progress bar */}
       <div className="h-1 bg-muted/30 w-full">
         <motion.div

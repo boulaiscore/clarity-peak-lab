@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle, HelpCircle, XCircle } from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
 import {
   generateSessionScenarios,
   CAUSAL_LEDGER_CONFIG,
@@ -49,9 +50,10 @@ export interface RoundResult {
 
 interface CausalLedgerDrillProps {
   onComplete: (results: RoundResult[], durationSeconds: number) => void;
+  onExit?: () => void;
 }
 
-export function CausalLedgerDrill({ onComplete }: CausalLedgerDrillProps) {
+export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps) {
   const prefersReducedMotion = useReducedMotion();
   
   // Session state
@@ -197,6 +199,8 @@ export function CausalLedgerDrill({ onComplete }: CausalLedgerDrillProps) {
   
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
+      {/* Exit button */}
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Progress bar */}
       <div className="h-1 bg-muted/30 w-full">
         <motion.div
