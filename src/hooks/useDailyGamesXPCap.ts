@@ -74,8 +74,9 @@ export function useDailyGamesXPCap(): DailyGamesXPCapResult {
       };
     },
     enabled: !!userId,
-    staleTime: 30_000, // Refresh every 30 seconds
-    refetchOnWindowFocus: true,
+    staleTime: 60_000, // Refresh every 60 seconds (was 30s)
+    refetchOnWindowFocus: false, // Prevent flicker during games
+    refetchOnMount: false, // Use cached data when available
   });
   
   return useMemo(() => {
