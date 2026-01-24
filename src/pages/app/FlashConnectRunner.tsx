@@ -141,6 +141,7 @@ export default function FlashConnectRunner() {
         <FlashConnectDrill
           difficulty={difficulty}
           onComplete={handleComplete}
+          onExit={handleBack}
         />
       </div>
     </div>

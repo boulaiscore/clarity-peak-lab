@@ -14,6 +14,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Check, X, Lightbulb, FlaskConical, Lock, ArrowRight } from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
 import {
   generateSession,
   SESSION_CONFIG,
@@ -69,9 +70,10 @@ export interface SessionMetrics {
 interface HiddenRuleLabDrillProps {
   difficulty: Difficulty;
   onComplete: (results: RoundResult[], metrics: SessionMetrics, durationSeconds: number) => void;
+  onExit?: () => void;
 }
 
-export function HiddenRuleLabDrill({ difficulty, onComplete }: HiddenRuleLabDrillProps) {
+export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRuleLabDrillProps) {
   const prefersReducedMotion = useReducedMotion();
   
   // Session state

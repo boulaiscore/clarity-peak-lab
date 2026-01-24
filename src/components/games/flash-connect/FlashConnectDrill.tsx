@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FlashConnectResults } from "./FlashConnectResults";
 import { getPuzzlesForSession, FlashConnectPuzzle } from "./flashConnectContent";
+import { GameExitButton } from "@/components/games/GameExitButton";
 
 // ============================================
 // TYPES & CONFIGURATION
@@ -38,6 +39,7 @@ export interface FlashConnectFinalResults {
 interface FlashConnectDrillProps {
   difficulty: "easy" | "medium" | "hard";
   onComplete: (results: FlashConnectFinalResults) => void;
+  onExit?: () => void;
 }
 
 interface RoundResult {
