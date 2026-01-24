@@ -363,7 +363,7 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
       {/* Exit button */}
-      {onExit && <GameExitButton onExit={onExit} />}
+      {onExit && <GameExitButton onExit={onExit} className="right-14" />}
       {/* Progress bar */}
       <div className="h-1 bg-muted/30 w-full">
         <motion.div
