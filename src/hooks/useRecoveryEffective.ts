@@ -83,6 +83,8 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     },
     enabled: !!userId,
     staleTime: 60_000, // 1 minute
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
   
   const isLoading = metricsLoading || rriLoading;

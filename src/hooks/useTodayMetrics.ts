@@ -111,6 +111,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     },
     enabled: !!userId,
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
   
   // Fetch weekly walking minutes from walking_sessions - v2.0: rolling window
@@ -135,6 +137,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     },
     enabled: !!userId,
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
   
   // Fetch today's wearable snapshot
@@ -155,6 +159,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     },
     enabled: !!userId,
     staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
   
   // Fetch readiness decay tracking data
@@ -185,6 +191,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     },
     enabled: !!userId,
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
   
   const weeklyDetoxMinutes = detoxData?.totalMinutes ?? 0;
