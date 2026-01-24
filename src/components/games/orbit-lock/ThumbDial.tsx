@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from "react";
+import type React from "react";
 import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,8 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
     damping: 30,
     mass: 0.5 
   });
+
+  const clamp01 = useCallback((n: number) => Math.max(0, Math.min(1, n)), []);
   
   // Sync external value to motion
   useEffect(() => {
@@ -68,7 +71,14 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
       const newValue = clampedX / usableLength;
       
       motionValue.set(clampedX);
-      onChange(Math.max(0, Math.min(1, newValue)));
+      onChange(clamp01(newValue));
+
+      // Haptic feedback at edges (based on the new value, not the previous prop)
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        if (newValue <= 0.02 || newValue >= 0.98) {
+          navigator.vibrate(10);
+        }
+      }
     } else {
       // Vertical slider on desktop
       const clientY = 'touches' in event 
@@ -80,16 +90,39 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
       const newValue = 1 - (clampedY / usableLength);
       
       motionValue.set(clampedY);
-      onChange(Math.max(0, Math.min(1, newValue)));
-    }
-    
-    // Haptic feedback at edges
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      if (value <= 0.02 || value >= 0.98) {
-        navigator.vibrate(10);
+      onChange(clamp01(newValue));
+
+      // Haptic feedback at edges (based on the new value, not the previous prop)
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        if (newValue <= 0.02 || newValue >= 0.98) {
+          navigator.vibrate(10);
+        }
       }
     }
-  }, [disabled, onChange, usableLength, motionValue, isMobile, knobSize, value]);
+
+  }, [disabled, onChange, usableLength, motionValue, isMobile, knobSize, clamp01]);
+
+  const handlePointerDownTrack = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Allow tap-to-set (and immediate correction) for better mobile precision.
+    const rect = container.getBoundingClientRect();
+    if (isMobile) {
+      const relativeX = event.clientX - rect.left - knobSize / 2;
+      const clampedX = Math.max(0, Math.min(usableLength, relativeX));
+      const newValue = clampedX / usableLength;
+      motionValue.set(clampedX);
+      onChange(clamp01(newValue));
+    } else {
+      const relativeY = event.clientY - rect.top - knobSize / 2;
+      const clampedY = Math.max(0, Math.min(usableLength, relativeY));
+      const newValue = 1 - (clampedY / usableLength);
+      motionValue.set(clampedY);
+      onChange(clamp01(newValue));
+    }
+  }, [disabled, isMobile, knobSize, usableLength, motionValue, onChange, clamp01]);
   
   const handleDragStart = () => {
     setIsDragging(true);
@@ -111,6 +144,7 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
           "relative flex items-center select-none touch-none",
           className
         )}
+        onPointerDown={handlePointerDownTrack}
         style={{ width: trackLength, height: 56 }}
       >
         {/* Glass track background - horizontal */}
@@ -135,7 +169,7 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
         {/* Knob - moves horizontally */}
         <motion.div
           className={cn(
-            "absolute top-1/2 -translate-y-1/2 z-10 cursor-grab active:cursor-grabbing",
+            "absolute left-0 top-1/2 -translate-y-1/2 z-10 cursor-grab active:cursor-grabbing",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           style={{ 
@@ -146,6 +180,7 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
           drag="x"
           dragConstraints={{ left: 0, right: usableLength }}
           dragElastic={0.05}
+          dragMomentum={false}
           onDragStart={handleDragStart}
           onDrag={handlePan}
           onDragEnd={handleDragEnd}
@@ -195,6 +230,7 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
         "relative flex flex-col items-center select-none touch-none",
         className
       )}
+      onPointerDown={handlePointerDownTrack}
       style={{ height: trackLength, width: 56 }}
     >
       {/* Glass track background */}
@@ -230,6 +266,7 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
         drag="y"
         dragConstraints={{ top: 0, bottom: usableLength }}
         dragElastic={0.05}
+        dragMomentum={false}
         onDragStart={handleDragStart}
         onDrag={handlePan}
         onDragEnd={handleDragEnd}
