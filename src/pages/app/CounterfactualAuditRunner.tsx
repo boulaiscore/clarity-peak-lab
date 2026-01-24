@@ -238,7 +238,8 @@ export default function CounterfactualAuditRunner() {
           >
             <CounterfactualAuditDrill 
               difficulty={difficulty}
-              onComplete={handleGameComplete} 
+              onComplete={handleGameComplete}
+              onExit={handleBackToLab}
             />
           </motion.div>
         )}
