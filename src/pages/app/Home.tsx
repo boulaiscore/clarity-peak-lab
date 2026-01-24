@@ -36,6 +36,7 @@ import { CapacityTab } from "@/components/home/CapacityTab";
 import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCard";
 import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
+import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
 
 // Circular progress ring component with icon and status inside
 interface RingProps {
@@ -696,6 +697,9 @@ const Home = () => {
         show={showTutorial} 
         onComplete={markTutorialComplete} 
       />
+      
+      {/* DEV: Test Mode Toggle - remove this line to hide */}
+      <TestModeFloatingToggle />
     </AppShell>
   );
 };
