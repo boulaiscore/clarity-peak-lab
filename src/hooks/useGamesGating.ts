@@ -162,8 +162,9 @@ export function useGamesGating(): UseGamesGatingResult {
       return { s1, s2 };
     },
     enabled: !!userId,
-    staleTime: 30_000, // Refresh every 30 seconds
-    refetchOnWindowFocus: true,
+    staleTime: 60_000, // Refresh every 60 seconds (was 30s)
+    refetchOnWindowFocus: false, // Prevent flicker during games
+    refetchOnMount: false,
   });
   
   // Fetch 7-day S2 and Insight counts
@@ -194,8 +195,9 @@ export function useGamesGating(): UseGamesGatingResult {
       return { s2Total, insightTotal };
     },
     enabled: !!userId,
-    staleTime: 60_000,
-    refetchOnWindowFocus: true,
+    staleTime: 120_000, // 2 minutes
+    refetchOnWindowFocus: false, // Prevent flicker during games
+    refetchOnMount: false,
   });
   
   // Build caps object

@@ -86,10 +86,17 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
   const [showPulse, setShowPulse] = useState(false);
   const [showGlint, setShowGlint] = useState(false);
   
-  // Tracking for scoring
+  // Tracking for scoring - use refs to avoid re-renders during gameplay
+  const timeInBandPerActRef = useRef<number[]>([0, 0, 0]);
+  const totalTimePerActRef = useRef<number[]>([0, 0, 0]);
+  const dialChangesRef = useRef<number[]>([]); // For overcorrection calc
+  const distractionTimeInBandRef = useRef(0);
+  const distractionTotalTimeRef = useRef(0);
+  
+  // Only expose state for final results
   const [timeInBandPerAct, setTimeInBandPerAct] = useState<number[]>([0, 0, 0]);
   const [totalTimePerAct, setTotalTimePerAct] = useState<number[]>([0, 0, 0]);
-  const [dialChanges, setDialChanges] = useState<number[]>([]); // For overcorrection calc
+  const [dialChanges, setDialChanges] = useState<number[]>([]);
   const [distractionTimeInBand, setDistractionTimeInBand] = useState(0);
   const [distractionTotalTime, setDistractionTotalTime] = useState(0);
   
@@ -127,7 +134,7 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
       const dialCorrection = (dialValue - 0.5) * 0.05;
       driftVelocity.current -= dialCorrection;
       
-      // Update signal position
+      // Update signal position (this one needs to be state for rendering)
       setSignalOffset(prev => {
         const newPos = prev + driftVelocity.current;
         return Math.max(0, Math.min(1, newPos));
@@ -139,40 +146,37 @@ export function OrbitLockDrill({ difficulty, onComplete }: OrbitLockDrillProps) 
       const isInBand = distanceFromCenter <= bandHalf;
       setInBand(isInBand);
       
-      // Track dial changes for overcorrection
+      // Track dial changes for overcorrection (use ref, no re-render)
       const dialChange = Math.abs(dialValue - prevDialValue.current);
       if (dialChange > 0.01) {
-        setDialChanges(prev => [...prev.slice(-50), dialChange]);
+        dialChangesRef.current = [...dialChangesRef.current.slice(-50), dialChange];
       }
       prevDialValue.current = dialValue;
       
-      // Update time tracking
-      setTotalTimePerAct(prev => {
-        const updated = [...prev];
-        updated[currentAct] += dt;
-        return updated;
-      });
+      // Update time tracking (use refs, no re-render during gameplay)
+      totalTimePerActRef.current[currentAct] += dt;
       
       if (isInBand) {
-        setTimeInBandPerAct(prev => {
-          const updated = [...prev];
-          updated[currentAct] += dt;
-          return updated;
-        });
+        timeInBandPerActRef.current[currentAct] += dt;
       }
       
-      // Track distraction performance
+      // Track distraction performance (use refs)
       if (showPulse || showGlint) {
-        setDistractionTotalTime(prev => prev + dt);
+        distractionTotalTimeRef.current += dt;
         if (isInBand) {
-          setDistractionTimeInBand(prev => prev + dt);
+          distractionTimeInBandRef.current += dt;
         }
       }
       
-      // Timer countdown
+      // Timer countdown - still need state for UI display
       setActTimeRemaining(prev => {
         if (prev <= dt) {
-          // Act complete
+          // Act complete - sync refs to state for results calculation
+          setTimeInBandPerAct([...timeInBandPerActRef.current]);
+          setTotalTimePerAct([...totalTimePerActRef.current]);
+          setDialChanges([...dialChangesRef.current]);
+          setDistractionTimeInBand(distractionTimeInBandRef.current);
+          setDistractionTotalTime(distractionTotalTimeRef.current);
           handleActComplete();
           return 0;
         }
