@@ -177,6 +177,8 @@ export function useUserMetrics(userId: string | undefined) {
     },
     enabled: !!userId,
     staleTime: 60_000, // 1 minute - prevent refetch on every mount
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     placeholderData: (prev) => prev ?? undefined, // Keep previous data during refetch
   });
 }

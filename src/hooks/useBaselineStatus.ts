@@ -79,7 +79,9 @@ export function useBaselineStatus(): BaselineStatus {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 0, // Always fresh - critical for post-calibration UI updates
+    staleTime: 60_000, // 1 minute - prevents flicker during games
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
   
   // Get calibration status with fallback logic
