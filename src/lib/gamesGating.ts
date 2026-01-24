@@ -23,6 +23,7 @@
  */
 
 import type { CognitiveStates } from "./cognitiveEngine";
+import { isTestModeEnabled } from "@/hooks/useTestMode";
 
 export type GameType = "S1-AE" | "S1-RA" | "S2-CT" | "S2-IN";
 
@@ -312,6 +313,20 @@ export function getAllGamesAvailability(
   planModifiers?: TrainingPlanModifiers,
   isCalibrated?: boolean
 ): Record<GameType, GameAvailability> {
+  // ============================================
+  // TEST MODE BYPASS (v1.5)
+  // ============================================
+  if (isTestModeEnabled()) {
+    console.log("[GamesGating] 🧪 TEST MODE: All games force-enabled");
+    const allEnabled: Record<GameType, GameAvailability> = {
+      "S1-AE": { type: "S1-AE", enabled: true, withheldReason: null, thresholds: [], unlockActions: [] },
+      "S1-RA": { type: "S1-RA", enabled: true, withheldReason: null, thresholds: [], unlockActions: [] },
+      "S2-CT": { type: "S2-CT", enabled: true, withheldReason: null, thresholds: [], unlockActions: [] },
+      "S2-IN": { type: "S2-IN", enabled: true, withheldReason: null, thresholds: [], unlockActions: [] },
+    };
+    return allEnabled;
+  }
+  
   // First compute standard availability
   const result: Record<GameType, GameAvailability> = {
     "S1-AE": checkGameAvailability("S1-AE", sharpness, readiness, recovery, caps, planModifiers),

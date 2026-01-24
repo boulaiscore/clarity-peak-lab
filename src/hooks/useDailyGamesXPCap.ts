@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { startOfDay, format } from "date-fns";
+import { isTestModeEnabled } from "@/hooks/useTestMode";
 
 export interface DailyGamesXPCapResult {
   /** Number of games played today that awarded XP (xp_awarded > 0) */
@@ -78,10 +79,17 @@ export function useDailyGamesXPCap(): DailyGamesXPCapResult {
   });
   
   return useMemo(() => {
+    // TEST MODE BYPASS: If enabled, never show cap as reached
+    const testMode = isTestModeEnabled();
+    
     const gamesWithXPToday = data?.count ?? 0;
     const xpEarnedToday = data?.totalXP ?? 0;
-    const remainingWithXP = Math.max(0, dailyMax - gamesWithXPToday);
-    const isCapReached = gamesWithXPToday >= dailyMax;
+    const remainingWithXP = testMode ? 999 : Math.max(0, dailyMax - gamesWithXPToday);
+    const isCapReached = testMode ? false : gamesWithXPToday >= dailyMax;
+    
+    if (testMode) {
+      console.log("[DailyGamesXPCap] 🧪 TEST MODE: XP cap bypassed");
+    }
     
     return {
       gamesWithXPToday,
