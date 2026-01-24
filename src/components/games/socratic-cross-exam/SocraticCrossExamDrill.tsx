@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Check, X, ChevronRight } from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
 import { 
   SocraticRound, 
   SocraticAssumption,
@@ -20,13 +21,14 @@ import { SocraticRoundResult } from "./index";
 
 interface Props {
   onComplete: (results: SocraticRoundResult[], durationSeconds: number) => void;
+  onExit?: () => void;
 }
 
 type Phase = "assumptions" | "crossExam" | "contradiction" | "feedback";
 
 const EASE_PREMIUM = [0.4, 0, 0.2, 1];
 
-export function SocraticCrossExamDrill({ onComplete }: Props) {
+export function SocraticCrossExamDrill({ onComplete, onExit }: Props) {
   const [rounds] = useState<SocraticRound[]>(() => generateSocraticSession());
   const [currentRound, setCurrentRound] = useState(0);
   const [phase, setPhase] = useState<Phase>("assumptions");
@@ -139,7 +141,9 @@ export function SocraticCrossExamDrill({ onComplete }: Props) {
   const progressPercent = ((currentRound) / SOCRATIC_CONFIG.rounds) * 100;
   
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background relative">
+      {/* Exit button */}
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Header */}
       <div className="p-4 border-b border-border/30">
         <div className="flex items-center justify-between mb-2">

@@ -20,6 +20,7 @@ import {
   SemanticNode,
   SemanticOption,
 } from "./semanticDriftContent";
+import { GameExitButton } from "@/components/games/GameExitButton";
 
 // Premium easing curve
 const EASE_PREMIUM = [0.22, 1, 0.36, 1] as const;
@@ -47,9 +48,10 @@ export interface RoundResult {
 interface SemanticDriftDrillProps {
   difficulty: "easy" | "medium" | "hard";
   onComplete: (results: RoundResult[], durationSeconds: number) => void;
+  onExit?: () => void;
 }
 
-export function SemanticDriftDrill({ difficulty, onComplete }: SemanticDriftDrillProps) {
+export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticDriftDrillProps) {
   const config = DIFFICULTY_CONFIG[difficulty];
   const prefersReducedMotion = useReducedMotion();
   
@@ -273,6 +275,8 @@ export function SemanticDriftDrill({ difficulty, onComplete }: SemanticDriftDril
   
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
+      {/* Exit button */}
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Progress bar */}
       <div className="h-1 bg-muted/30 w-full">
         <motion.div

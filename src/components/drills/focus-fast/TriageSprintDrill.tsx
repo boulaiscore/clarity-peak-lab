@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { TriageSprintResults } from './TriageSprintResults';
 import { Check, X } from 'lucide-react';
+import { GameExitButton } from "@/components/games/GameExitButton";
 
 // ============ TYPES ============
 interface TriageCard {
@@ -51,6 +52,7 @@ interface TriageSprintDrillProps {
     degradationSlope: number;
     isPerfect: boolean;
   }) => void;
+  onExit?: () => void;
 }
 
 // ============ CONFIGURATION ============
@@ -104,7 +106,7 @@ const STABILITY_BONUS = 10;
 const PERFECT_XP_BONUS = 10;
 
 // ============ COMPONENT ============
-export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty, onComplete }) => {
+export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty, onComplete, onExit }) => {
   const config = DIFFICULTY_CONFIG[difficulty];
   
   // Phase management
@@ -612,7 +614,9 @@ export const TriageSprintDrill: React.FC<TriageSprintDrillProps> = ({ difficulty
   const timeProgress = 1 - (roundTimeRemaining / roundConfig.durationMs);
   
   return (
-    <div className="flex flex-col items-center p-4 min-h-[550px]">
+    <div className="flex flex-col items-center p-4 min-h-[550px] relative">
+      {/* Exit button */}
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Header */}
       <div className="w-full mb-4">
         <div className="flex justify-between items-center mb-2">
