@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, Bell, BellOff, Activity, BookOpen, Sun, Moon, Menu, X, Layers, User, Settings, CreditCard, LogOut } from "lucide-react";
+import { Home, LayoutDashboard, Bell, BellOff, Activity, Sun, Moon, Menu, X, Layers, User, Settings, CreditCard, LogOut } from "lucide-react";
 import { NLOOPLogo } from "@/components/ui/NLOOPLogo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
@@ -24,7 +24,6 @@ const menuItems = [
   { to: "/app/profile", icon: User, label: "Profile" },
   { to: "/app/settings", icon: Settings, label: "Settings" },
   { to: "/app/subscription", icon: CreditCard, label: "Subscription" },
-  { to: "/brain-science", icon: BookOpen, label: "Science" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
