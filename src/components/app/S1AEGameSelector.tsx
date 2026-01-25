@@ -154,6 +154,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
     },
     enabled: !!user?.id && open,
     staleTime: 60_000,
+    placeholderData: [],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
   
   const isLoading = aeLoading || difficultyLoading || gatingLoading;
@@ -214,10 +217,10 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
             // Game Selection View
             <motion.div
               key="game-list"
-              initial={{ opacity: 0, x: -20 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">
@@ -381,7 +384,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">
