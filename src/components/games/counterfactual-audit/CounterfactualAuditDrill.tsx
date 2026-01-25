@@ -417,17 +417,16 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
           <AnimatePresence mode="wait">
             <motion.div
               key={`round-${currentRound}`}
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.24, ease: EASE_PREMIUM }}
+              transition={{ duration: 0.2 }}
               className="space-y-4"
             >
               {/* Decision Card */}
               <motion.div
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.06, duration: 0.24 }}
                 className="p-4 rounded-xl bg-card border border-border/40"
               >
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-1.5">
@@ -440,9 +439,8 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
               
               {/* Evidence Card */}
               <motion.div
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.12, duration: 0.24 }}
                 className="p-4 rounded-xl bg-card border border-border/40"
               >
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-2">
@@ -488,9 +486,9 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
                   return (
                     <motion.button
                       key={option.id}
-                      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+                      initial={false}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.18 + index * 0.04, duration: 0.24 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => handleOptionSelect(option.id)}
                       disabled={phase !== "playing" || selectedOption !== null}
                       className={cn(
