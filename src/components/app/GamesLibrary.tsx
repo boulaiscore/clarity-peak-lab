@@ -1,6 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Play, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import {
+  AttentionalEfficiencyIcon,
+  RapidAssociationIcon,
+  CriticalThinkingIcon,
+  InsightIcon,
+  System1Icon,
+  System2Icon,
+} from "@/components/icons/GameIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
@@ -120,6 +128,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
             ? "border-area-fast/30 bg-area-fast/5" 
             : "border-area-slow/30 bg-area-slow/5";
           const iconColor = system === "fast" ? "text-area-fast" : "text-area-slow";
+          const SystemIcon = system === "fast" ? System1Icon : System2Icon;
           
           return (
             <div
@@ -129,17 +138,37 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 accentClass
               )}
             >
-              {/* System Header - Text only, no icon */}
-              <div className="p-3 border-b border-border/30">
-                <div className="flex items-center gap-2">
-                  <span className={cn("text-xs font-semibold tracking-wide", iconColor)}>{systemLabel}</span>
-                  <span className="text-[10px] text-muted-foreground">• {systemDesc}</span>
+              {/* System Header with custom icon */}
+              <div className="p-2.5 flex items-center gap-2 border-b border-border/30">
+                <div className={cn(
+                  "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+                  system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
+                )}>
+                  <SystemIcon className={cn("w-3.5 h-3.5", iconColor)} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn("text-[11px] font-semibold", iconColor)}>{systemLabel}</span>
+                    <span className={cn("text-[9px]", system === "fast" ? "text-area-fast/80" : "text-area-slow/80")}>• {systemDesc}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Area Cards - Clean text-only design */}
+              {/* Area Cards with custom icons */}
               <div className="p-2.5 space-y-2">
                 {areas.map((area) => {
+                  // Select appropriate custom icon based on game type
+                  const getAreaIcon = () => {
+                    switch (area.gameType) {
+                      case "S1-AE": return AttentionalEfficiencyIcon;
+                      case "S1-RA": return RapidAssociationIcon;
+                      case "S2-CT": return CriticalThinkingIcon;
+                      case "S2-IN": return InsightIcon;
+                      default: return AttentionalEfficiencyIcon;
+                    }
+                  };
+                  const AreaIcon = getAreaIcon();
+                  
                   return (
                     <button
                       key={`${area.areaId}-${system}`}
@@ -149,8 +178,14 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                         "bg-background/60 hover:bg-background border-border/40 hover:border-primary/30 active:scale-[0.98]"
                       )}
                     >
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-medium text-foreground">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                          system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
+                        )}>
+                          <AreaIcon className={cn("w-4 h-4", iconColor)} />
+                        </div>
+                        <h4 className="flex-1 text-xs font-medium text-foreground">
                           {area.name}
                         </h4>
                         <ChevronRight className={cn("w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity", iconColor)} />
