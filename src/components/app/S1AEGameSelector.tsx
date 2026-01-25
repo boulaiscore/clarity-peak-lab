@@ -284,11 +284,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                           : "bg-cyan-500/10 text-cyan-400";
                       
                       return (
-                        <motion.button
+                      <motion.button
                           key={game.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectGame(game)}
                           disabled={isLocked}
                           className={cn(
