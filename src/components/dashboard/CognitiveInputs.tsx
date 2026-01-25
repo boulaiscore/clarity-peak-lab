@@ -1682,12 +1682,9 @@ export function CognitiveLibrary() {
       <div className="space-y-2">
         {/* Active RQ - prominently displayed */}
         <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/30">
-          <div className="flex items-center gap-2">
-            <Brain className="h-4 w-4 text-primary" />
-            <div>
-              <span className="text-xs font-medium text-primary">Active RQ (last 7 days)</span>
-              <p className="text-[10px] text-muted-foreground">Contributing to your current score</p>
-            </div>
+          <div>
+            <span className="text-xs font-medium text-primary">Active RQ (last 7 days)</span>
+            <p className="text-[10px] text-muted-foreground">Contributing to your current score</p>
           </div>
           <span className="text-lg font-bold text-primary tabular-nums">
             +{animatedActiveRQ.toFixed(1)}
