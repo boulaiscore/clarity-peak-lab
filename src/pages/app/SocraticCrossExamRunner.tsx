@@ -180,7 +180,7 @@ export default function SocraticCrossExamRunner() {
         
         {phase === "playing" && (
           <motion.div key="playing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-            <SocraticCrossExamDrill onComplete={handleGameComplete} />
+            <SocraticCrossExamDrill onComplete={handleGameComplete} onExit={handleBackToLab} />
           </motion.div>
         )}
         
