@@ -211,9 +211,10 @@ export default function SignalVsNoiseRunner() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <SignalVsNoiseDrill
+          <SignalVsNoiseDrill
               difficulty={difficulty}
               onComplete={handleComplete}
+              onExit={handleBackToLab}
             />
           </motion.div>
         )}

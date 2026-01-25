@@ -509,9 +509,8 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
 
           {/* Outcome Card */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.06 }}
             className="p-4 rounded-xl border border-border/50 bg-card mb-4"
           >
             <div className="flex items-center justify-between mb-3">
@@ -535,9 +534,8 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
 
           {/* Drivers Card */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12 }}
             className="p-4 rounded-xl border border-border/50 bg-card mb-4"
           >
             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-3 block">
@@ -553,9 +551,9 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
                 return (
                   <motion.button
                     key={key}
-                    initial={{ opacity: 0, x: -8 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.12 + i * 0.04 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => phase === "playing" && handleDriverSelect(key)}
                     disabled={phase !== "playing"}
                     className={cn(
@@ -606,9 +604,9 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
                 {currentCaseData.whyOptions.map((opt, i) => (
                   <motion.button
                     key={opt.id}
-                    initial={{ opacity: 0, y: 4 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleWhySelect(opt.id)}
                     className={cn(
                       "w-full p-3 text-left rounded-lg border transition-all text-xs",
