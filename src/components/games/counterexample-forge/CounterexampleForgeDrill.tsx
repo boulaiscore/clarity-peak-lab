@@ -14,6 +14,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Check, X, Lightbulb, Hammer, FlaskConical, Shield, ArrowRight } from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
 import {
   generateSession,
   SESSION_CONFIG,
@@ -69,9 +70,10 @@ export interface SessionMetrics {
 interface CounterexampleForgeDrillProps {
   difficulty: Difficulty;
   onComplete: (results: RoundResult[], metrics: SessionMetrics, durationSeconds: number) => void;
+  onExit?: () => void;
 }
 
-export function CounterexampleForgeDrill({ difficulty, onComplete }: CounterexampleForgeDrillProps) {
+export function CounterexampleForgeDrill({ difficulty, onComplete, onExit }: CounterexampleForgeDrillProps) {
   const prefersReducedMotion = useReducedMotion();
   
   // Session state
@@ -391,6 +393,9 @@ export function CounterexampleForgeDrill({ difficulty, onComplete }: Counterexam
   
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
+      {/* Exit button - offset to avoid timer overlap */}
+      {onExit && <GameExitButton onExit={onExit} className="right-14" />}
+      
       {/* Progress bar */}
       <div className="h-1 bg-muted/30 w-full">
         <motion.div
