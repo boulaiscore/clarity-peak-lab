@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  Brain, Target, Lightbulb, Zap, Timer, Play, Info
+  Crosshair, GitBranch, Waypoints, Sparkle, Gauge, Compass, Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
@@ -19,10 +19,13 @@ import { GameType } from "@/lib/gamesGating";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AREA_ICONS: Record<string, React.ElementType> = {
-  focus: Target,
-  reasoning: Brain,
-  creativity: Lightbulb,
+  focus: Crosshair,
+  reasoning: GitBranch,
+  creativity: Waypoints,
 };
+
+// S2-IN uses Sparkle instead of Waypoints
+const S2_IN_ICON = Sparkle;
 
 // Areas available per thinking system (2x2 matrix)
 const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string; gameType: GameType }[] = [
@@ -119,7 +122,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       {/* System Cards - Side by Side Layout */}
       <div className="grid grid-cols-2 gap-3">
         {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
-          const SystemIcon = system === "fast" ? Zap : Timer;
+          const SystemIcon = system === "fast" ? Gauge : Compass;
           const systemLabel = system === "fast" ? "S1" : "S2";
           const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
           const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
@@ -155,8 +158,9 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
               {/* Area Cards - Stacked within each system */}
               <div className="p-2.5 space-y-2">
-                {areas.map((area) => {
-                  const Icon = AREA_ICONS[area.areaId] || Brain;
+              {areas.map((area) => {
+                  // S2-IN uses Sparkle for Insight
+                  const Icon = area.gameType === "S2-IN" ? S2_IN_ICON : (AREA_ICONS[area.areaId] || Crosshair);
                   
                   return (
                     <button
