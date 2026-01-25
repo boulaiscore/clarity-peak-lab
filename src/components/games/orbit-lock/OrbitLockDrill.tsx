@@ -346,7 +346,7 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6 max-w-sm"
         >
@@ -426,7 +426,7 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
           className="text-center"
         >
@@ -443,7 +443,7 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           className="text-center space-y-2"
         >

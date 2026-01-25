@@ -77,24 +77,20 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
   // Decision options
   const decisions: Decision[] = ["supported", "underspecified", "flawed"];
   
-  // Motion config
+  // Motion config - stabilized with initial={false}
   const motionConfig = useMemo(() => ({
     card: {
-      initial: prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 },
-      animate: prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
-      exit: prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 },
-      transition: { duration: 0.3, ease: EASE_PREMIUM },
+      initial: false as const,
+      animate: { opacity: 1, y: 0 },
+      exit: { opacity: 0 },
+      transition: { duration: 0.2 },
     },
-    option: (index: number) => ({
-      initial: prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -10 },
-      animate: prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0 },
-      transition: { 
-        duration: 0.2, 
-        delay: prefersReducedMotion ? 0 : 0.3 + index * 0.08,
-        ease: EASE_PREMIUM,
-      },
+    option: () => ({
+      initial: false as const,
+      animate: { opacity: 1, x: 0 },
+      transition: { duration: 0.15 },
     }),
-  }), [prefersReducedMotion]);
+  }), []);
   
   // Handle decision selection
   const handleDecision = useCallback((decision: Decision) => {
@@ -286,14 +282,14 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
                     opacityClass = "opacity-50";
                   }
                   
-                  const optionMotion = motionConfig.option(index);
+                  const optionMotion = motionConfig.option();
                   
                   return (
                     <motion.button
                       key={decision}
-                      initial={optionMotion.initial}
-                      animate={optionMotion.animate}
-                      transition={optionMotion.transition}
+                      initial={false}
+                      animate={{ opacity: 1, x: 0 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => handleDecision(decision)}
                       disabled={phase !== "deciding" || feedbackState !== null}
                       className={cn(

@@ -362,7 +362,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 py-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-sm space-y-6 text-center"
         >
@@ -411,9 +411,8 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
       <div className="min-h-[70vh] flex flex-col items-center justify-center">
         <motion.div
           key={countdown}
-          initial={{ scale: 0.5, opacity: 0 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 1.5, opacity: 0 }}
           className="text-7xl font-bold text-primary"
         >
           {countdown || "GO!"}
@@ -427,7 +426,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 py-8">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={false}
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-sm space-y-6 text-center"
         >
