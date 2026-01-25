@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "icon-192.png", "icon-512.png", "sw-custom.js"],
+        // Keep PWA assets aligned with index.html favicons (we no longer rely on favicon.ico)
+        includeAssets: ["favicon.svg", "favicon.png", "icon-192.png", "icon-512.png", "sw-custom.js"],
       manifest: {
         name: "NLOOP Pro",
         short_name: "NLOOP",
