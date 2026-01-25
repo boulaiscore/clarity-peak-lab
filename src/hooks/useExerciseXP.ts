@@ -283,14 +283,25 @@ export function useRemoveContentCompletion() {
 
       const exerciseId = `content-${contentType}-${contentId}`;
 
-      // Delete ALL records for this exercise_id (any week) so it fully reverts
-      const { error } = await supabase
+      // 1. Delete from new system (exercise_completions)
+      const { error: exerciseError } = await supabase
         .from("exercise_completions")
         .delete()
         .eq("user_id", user.id)
         .eq("exercise_id", exerciseId);
 
-      if (error) throw error;
+      if (exerciseError) throw exerciseError;
+
+      // 2. Delete from legacy system (user_listened_podcasts) for podcasts
+      if (contentType === "podcast") {
+        const { error: legacyError } = await supabase
+          .from("user_listened_podcasts")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("podcast_id", contentId);
+
+        if (legacyError) throw legacyError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
