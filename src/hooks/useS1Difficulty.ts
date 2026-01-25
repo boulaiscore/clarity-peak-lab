@@ -55,6 +55,9 @@ export function useS1Difficulty(): UseS1DifficultyResult {
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: { training_plan: "expert" },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
   
   const trainingPlan = (profileData?.training_plan as "light" | "expert" | "superhuman") || "expert";

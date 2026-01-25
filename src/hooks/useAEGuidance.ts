@@ -92,6 +92,9 @@ export function useAEGuidance(): UseAEGuidanceResult {
     enabled: !!userId,
     staleTime: 5 * 60_000, // Cache for 5 minutes
     gcTime: 30 * 60_000,
+    placeholderData: [],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
   
   // Compute aggregates from sessions
