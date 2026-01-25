@@ -380,60 +380,86 @@ const COGNITIVE_INPUTS: CognitiveInput[] = [
   },
 ];
 
-function useLoggedExposures(userId: string | undefined) {
+interface LoggedExposure {
+  id: string;          // prefixed ID (content-podcast-xyz)
+  rawId: string;       // base ID (xyz)
+  completedAt: Date | null;
+  type: "podcast" | "book" | "article";
+}
+
+function useLoggedExposuresData(userId: string | undefined) {
   return useQuery({
     queryKey: ["logged-exposures", userId],
-    queryFn: async () => {
+    queryFn: async (): Promise<LoggedExposure[]> => {
       if (!userId) return [];
 
-      const toBaseId = (exerciseId: string): string | null => {
-        // exercise_id format: content-{podcast|book|article}-{baseId}
+      const toBaseId = (exerciseId: string): { baseId: string; type: "podcast" | "book" | "article" } | null => {
         const match = exerciseId.match(/^content-(podcast|book|article)-(.+)$/);
-        return match?.[2] ?? null;
+        if (!match) return null;
+        return { type: match[1] as "podcast" | "book" | "article", baseId: match[2] };
       };
       
-      // First check exercise_completions (new system)
+      // Fetch from new system WITH completed_at
       const { data: exerciseData, error: exerciseError } = await supabase
         .from("exercise_completions")
-        .select("exercise_id")
+        .select("exercise_id, completed_at")
         .eq("user_id", userId)
         .like("exercise_id", "content-%");
       
       if (exerciseError) throw exerciseError;
       
-      // Keep full IDs (e.g. "content-podcast-hidden-brain") so they match the Library catalog.
-      // ALSO include the base IDs (e.g. "hidden-brain") so the task list (which uses raw IDs) stays in sync.
-      const newSystemPrefixedIds = (exerciseData || []).map(row => row.exercise_id);
-      const newSystemRawIds = newSystemPrefixedIds
-        .map(toBaseId)
-        .filter((id): id is string => Boolean(id));
+      const newSystemExposures: LoggedExposure[] = (exerciseData || []).map(row => {
+        const parsed = toBaseId(row.exercise_id);
+        return {
+          id: row.exercise_id,
+          rawId: parsed?.baseId || row.exercise_id,
+          completedAt: row.completed_at ? new Date(row.completed_at) : null,
+          type: parsed?.type || "article",
+        };
+      });
 
-      // Also check legacy user_listened_podcasts for backwards compatibility
+      // Fetch from legacy user_listened_podcasts
       const { data: legacyData, error: legacyError } = await supabase
         .from("user_listened_podcasts")
-        .select("podcast_id")
+        .select("podcast_id, listened_at")
         .eq("user_id", userId);
 
       if (legacyError) throw legacyError;
 
-      // Legacy table stores base podcast IDs (e.g. "hidden-brain").
-      // Add both raw and prefixed forms to cover old + new catalog IDs.
-      const legacyRawIds = (legacyData || []).map(row => row.podcast_id);
-      const legacyPrefixedIds = legacyRawIds.map(id => `content-podcast-${id}`);
+      const legacyExposures: LoggedExposure[] = (legacyData || []).map(row => ({
+        id: `content-podcast-${row.podcast_id}`,
+        rawId: row.podcast_id,
+        completedAt: row.listened_at ? new Date(row.listened_at) : null,
+        type: "podcast" as const,
+      }));
 
-      // Combine and deduplicate
-      return [
-        ...new Set([
-          ...newSystemPrefixedIds,
-          ...newSystemRawIds,
-          ...legacyPrefixedIds,
-          ...legacyRawIds,
-        ]),
-      ];
+      // Deduplicate by prefixed ID (prefer new system which has accurate timestamps)
+      const byId = new Map<string, LoggedExposure>();
+      legacyExposures.forEach(e => byId.set(e.id, e));
+      newSystemExposures.forEach(e => byId.set(e.id, e)); // Overwrites legacy if both exist
+      
+      return Array.from(byId.values());
     },
     enabled: !!userId,
     staleTime: 30_000,
   });
+}
+
+// Helper hook for backwards compatibility - returns string[] of IDs
+function useLoggedExposures(userId: string | undefined) {
+  const { data: exposures = [], isLoading, error } = useLoggedExposuresData(userId);
+  
+  // Extract all ID forms for filtering: prefixed + raw
+  const loggedIds = useMemo(() => {
+    const ids = new Set<string>();
+    exposures.forEach(e => {
+      ids.add(e.id);
+      ids.add(e.rawId);
+    });
+    return Array.from(ids);
+  }, [exposures]);
+  
+  return { data: loggedIds, isLoading, error, exposures };
 }
 
 // Difficulty indicator component - muted tones
@@ -1484,7 +1510,7 @@ function useAnimatedCounter(target: number, duration: number = 1000): number {
 // Library component - shows all completed items
 export function CognitiveLibrary() {
   const { user } = useAuth();
-  const { data: completedIds = [], isLoading } = useLoggedExposures(user?.id);
+  const { data: completedIds = [], isLoading, exposures = [] } = useLoggedExposures(user?.id);
   
   // All hooks MUST be called before any early returns
   const removeCompletion = useRemoveContentCompletion();
@@ -1537,17 +1563,35 @@ export function CognitiveLibrary() {
   const booksCompleted = completedItems.filter(i => i.type === "book");
   const articlesCompleted = completedItems.filter(i => i.type === "article");
 
-  // Calculate total Reasoning Quality contribution from library
-  // Each type contributes: podcast=2.4, article=3, book=4 (base weights * 0.20 task priming weight)
-  const totalRQContribution = useMemo(() => {
-    const podcastRQ = podcastsCompleted.length * 2.4;
-    const articleRQ = articlesCompleted.length * 3;
-    const bookRQ = booksCompleted.length * 4;
-    return Math.round((podcastRQ + articleRQ + bookRQ) * 10) / 10;
-  }, [podcastsCompleted.length, articlesCompleted.length, booksCompleted.length]);
+  // RQ contribution weights per type
+  const RQ_WEIGHTS = { podcast: 2.4, article: 3, book: 4 };
 
-  // Animated counter for RQ display
-  const animatedRQ = useAnimatedCounter(totalRQContribution, 800);
+  // Calculate RQ: Active (last 7 days) vs Historical (total)
+  const { activeRQ, historicalRQ } = useMemo(() => {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    let activeTotal = 0;
+    let historicalTotal = 0;
+    
+    exposures.forEach(exp => {
+      const weight = RQ_WEIGHTS[exp.type] || 0;
+      historicalTotal += weight;
+      
+      if (exp.completedAt && exp.completedAt >= sevenDaysAgo) {
+        activeTotal += weight;
+      }
+    });
+    
+    return {
+      activeRQ: Math.round(activeTotal * 10) / 10,
+      historicalRQ: Math.round(historicalTotal * 10) / 10,
+    };
+  }, [exposures]);
+
+  // Animated counters for RQ display
+  const animatedActiveRQ = useAnimatedCounter(activeRQ, 800);
+  const animatedHistoricalRQ = useAnimatedCounter(historicalRQ, 800);
 
   const stats = calculateLibraryStats(completedItems);
 
@@ -1634,15 +1678,32 @@ export function CognitiveLibrary() {
         Your completed cognitive inputs: podcasts listened, books and articles read.
       </p>
 
-      {/* Total Reasoning Quality Contribution - Minimalist */}
-      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50">
-        <div className="flex items-center gap-2">
-          <Brain className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">RQ contribution from library</span>
+      {/* RQ Contribution - Active (7d) + Historical */}
+      <div className="space-y-2">
+        {/* Active RQ - prominently displayed */}
+        <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/30">
+          <div className="flex items-center gap-2">
+            <Brain className="h-4 w-4 text-primary" />
+            <div>
+              <span className="text-xs font-medium text-primary">Active RQ (last 7 days)</span>
+              <p className="text-[10px] text-muted-foreground">Contributing to your current score</p>
+            </div>
+          </div>
+          <span className="text-lg font-bold text-primary tabular-nums">
+            +{animatedActiveRQ.toFixed(1)}
+          </span>
         </div>
-        <span className="text-sm font-semibold tabular-nums">
-          +{animatedRQ.toFixed(1)} pts
-        </span>
+        
+        {/* Historical RQ - subdued */}
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/30">
+          <div className="flex items-center gap-2">
+            <Library className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground">Total library value</span>
+          </div>
+          <span className="text-sm font-medium text-muted-foreground tabular-nums">
+            {animatedHistoricalRQ.toFixed(1)} pts
+          </span>
+        </div>
       </div>
 
       {/* Content Stats */}

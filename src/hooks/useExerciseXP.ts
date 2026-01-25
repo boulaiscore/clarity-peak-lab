@@ -313,6 +313,9 @@ export function useRemoveContentCompletion() {
       queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
       // Task Priming for RQ - ensures RQ recalculates after remove
       queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] });
+      // RQ display queries
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted"] });
+      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
     },
   });
 }
