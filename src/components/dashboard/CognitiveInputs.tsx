@@ -385,6 +385,12 @@ function useLoggedExposures(userId: string | undefined) {
     queryKey: ["logged-exposures", userId],
     queryFn: async () => {
       if (!userId) return [];
+
+      const toBaseId = (exerciseId: string): string | null => {
+        // exercise_id format: content-{podcast|book|article}-{baseId}
+        const match = exerciseId.match(/^content-(podcast|book|article)-(.+)$/);
+        return match?.[2] ?? null;
+      };
       
       // First check exercise_completions (new system)
       const { data: exerciseData, error: exerciseError } = await supabase
@@ -396,7 +402,11 @@ function useLoggedExposures(userId: string | undefined) {
       if (exerciseError) throw exerciseError;
       
       // Keep full IDs (e.g. "content-podcast-hidden-brain") so they match the Library catalog.
-      const newSystemIds = (exerciseData || []).map(row => row.exercise_id);
+      // ALSO include the base IDs (e.g. "hidden-brain") so the task list (which uses raw IDs) stays in sync.
+      const newSystemPrefixedIds = (exerciseData || []).map(row => row.exercise_id);
+      const newSystemRawIds = newSystemPrefixedIds
+        .map(toBaseId)
+        .filter((id): id is string => Boolean(id));
 
       // Also check legacy user_listened_podcasts for backwards compatibility
       const { data: legacyData, error: legacyError } = await supabase
@@ -412,7 +422,14 @@ function useLoggedExposures(userId: string | undefined) {
       const legacyPrefixedIds = legacyRawIds.map(id => `content-podcast-${id}`);
 
       // Combine and deduplicate
-      return [...new Set([...newSystemIds, ...legacyPrefixedIds, ...legacyRawIds])];
+      return [
+        ...new Set([
+          ...newSystemPrefixedIds,
+          ...newSystemRawIds,
+          ...legacyPrefixedIds,
+          ...legacyRawIds,
+        ]),
+      ];
     },
     enabled: !!userId,
     staleTime: 30_000,
