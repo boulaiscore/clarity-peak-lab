@@ -394,6 +394,9 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
   
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
+      {/* Exit button - offset to avoid timer overlap */}
+      {onExit && <GameExitButton onExit={onExit} className="right-14" />}
+      
       {/* Progress bar */}
       <div className="h-1 bg-muted/30 w-full">
         <motion.div
