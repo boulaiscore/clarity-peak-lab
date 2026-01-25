@@ -136,6 +136,9 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
     },
     enabled: !!user?.id && open,
     staleTime: 60_000,
+    placeholderData: [],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
   
   const isLoading = difficultyLoading || gatingLoading;
@@ -186,10 +189,10 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
             // Game Selection View
             <motion.div
               key="game-list"
-              initial={{ opacity: 0, x: -20 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">
@@ -335,7 +338,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">

@@ -125,6 +125,9 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
     },
     enabled: !!user?.id && open,
     staleTime: 60_000,
+    placeholderData: [],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const handleSelectGame = (game: GameOption) => {
@@ -140,9 +143,9 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh]">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.15 }}
         >
           <DrawerHeader className="pb-4">
             <DrawerTitle className="flex items-center gap-2 text-base">
