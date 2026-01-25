@@ -142,8 +142,8 @@ export function SocraticCrossExamDrill({ onComplete, onExit }: Props) {
   
   return (
     <div className="h-full flex flex-col bg-background relative">
-      {/* Exit button */}
-      {onExit && <GameExitButton onExit={onExit} />}
+      {/* Exit button - offset to avoid round number overlap */}
+      {onExit && <GameExitButton onExit={onExit} className="right-14" />}
       {/* Header */}
       <div className="p-4 border-b border-border/30">
         <div className="flex items-center justify-between mb-2">
