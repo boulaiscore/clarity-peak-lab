@@ -25,6 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
+import { useDelayedBoolean } from "@/hooks/useDelayedBoolean";
 
 interface S2INGameSelectorProps {
   open: boolean;
@@ -102,6 +103,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
   const s2inGating = gatingResults["S2-IN"];
   const isLocked = s2inGating && s2inGating.status !== "ENABLED";
   const isProtection = s2inGating?.status === "PROTECTION";
+  const showSkeleton = useDelayedBoolean(gatingLoading, 150);
   
   // Fetch recently played games (last 7 days)
   const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm:ss");
@@ -179,7 +181,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
               </Alert>
             )}
             
-            {gatingLoading ? (
+            {showSkeleton ? (
               <Skeleton className="h-28 w-full rounded-xl" />
             ) : (
               GAMES.map((game, index) => {

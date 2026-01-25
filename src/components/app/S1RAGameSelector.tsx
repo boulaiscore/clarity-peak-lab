@@ -31,6 +31,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
+import { useDelayedBoolean } from "@/hooks/useDelayedBoolean";
 
 interface S1RAGameSelectorProps {
   open: boolean;
@@ -142,6 +143,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
   });
   
   const isLoading = difficultyLoading || gatingLoading;
+  const showSkeleton = useDelayedBoolean(isLoading, 150);
   
   // Set initial difficulty to recommended when data loads
   const handleGameSelect = (game: RAGameOption) => {
@@ -226,7 +228,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                   </Alert>
                 )}
                 
-                {isLoading ? (
+                {showSkeleton ? (
                   <Skeleton className="h-28 w-full rounded-xl" />
                 ) : (
                   RA_GAMES.map((game, index) => {
