@@ -1582,11 +1582,26 @@ export function CognitiveLibrary() {
 
   const handleRemoveConfirm = async () => {
     if (!itemToRemove) return;
-    
-    // Extract base ID from prefixed ID: content-podcast-hidden-brain → hidden-brain
-    const parts = itemToRemove.id.split("-");
-    const contentType = parts[1] as "podcast" | "book" | "article";
-    const baseId = parts.slice(2).join("-");
+
+    // Support BOTH id formats:
+    // - new: "content-podcast-very-bad-wizards" (preferred)
+    // - legacy: "very-bad-wizards" (raw)
+    let contentType: "podcast" | "book" | "article";
+    let baseId: string;
+
+    if (itemToRemove.id.startsWith("content-")) {
+      // Extract base ID from prefixed ID: content-podcast-hidden-brain → hidden-brain
+      const match = itemToRemove.id.match(/^content-(podcast|book|article)-(.+)$/);
+      if (!match) {
+        throw new Error(`Invalid content id: ${itemToRemove.id}`);
+      }
+      contentType = match[1] as "podcast" | "book" | "article";
+      baseId = match[2];
+    } else {
+      // Legacy raw IDs
+      contentType = itemToRemove.type;
+      baseId = itemToRemove.id;
+    }
     
     setRemovingId(itemToRemove.id);
     setItemToRemove(null);
