@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Crosshair, GitBranch, Waypoints, Sparkle, Gauge, Compass, Play
-} from "lucide-react";
+import { Play, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
@@ -18,14 +16,6 @@ import { useGamesGating } from "@/hooks/useGamesGating";
 import { GameType } from "@/lib/gamesGating";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const AREA_ICONS: Record<string, React.ElementType> = {
-  focus: Crosshair,
-  reasoning: GitBranch,
-  creativity: Waypoints,
-};
-
-// S2-IN uses Sparkle instead of Waypoints
-const S2_IN_ICON = Sparkle;
 
 // Areas available per thinking system (2x2 matrix)
 const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string; gameType: GameType }[] = [
@@ -122,7 +112,6 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       {/* System Cards - Side by Side Layout */}
       <div className="grid grid-cols-2 gap-3">
         {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
-          const SystemIcon = system === "fast" ? Gauge : Compass;
           const systemLabel = system === "fast" ? "S1" : "S2";
           const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
           const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
@@ -140,28 +129,17 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 accentClass
               )}
             >
-              {/* System Header */}
-              <div className="p-2.5 flex items-center gap-2 border-b border-border/30">
-                <div className={cn(
-                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
-                    system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
-                  )}>
-                  <SystemIcon className={cn("w-3.5 h-3.5", iconColor)} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className={cn("text-[11px] font-semibold", iconColor)}>{systemLabel}</span>
-                    <span className={cn("text-[9px]", system === "fast" ? "text-area-fast/80" : "text-area-slow/80")}>• {systemDesc}</span>
-                  </div>
+              {/* System Header - Text only, no icon */}
+              <div className="p-3 border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <span className={cn("text-xs font-semibold tracking-wide", iconColor)}>{systemLabel}</span>
+                  <span className="text-[10px] text-muted-foreground">• {systemDesc}</span>
                 </div>
               </div>
 
-              {/* Area Cards - Stacked within each system */}
+              {/* Area Cards - Clean text-only design */}
               <div className="p-2.5 space-y-2">
-              {areas.map((area) => {
-                  // S2-IN uses Sparkle for Insight
-                  const Icon = area.gameType === "S2-IN" ? S2_IN_ICON : (AREA_ICONS[area.areaId] || Crosshair);
-                  
+                {areas.map((area) => {
                   return (
                     <button
                       key={`${area.areaId}-${system}`}
@@ -171,17 +149,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                         "bg-background/60 hover:bg-background border-border/40 hover:border-primary/30 active:scale-[0.98]"
                       )}
                     >
-                        <div className="flex items-center gap-3">
-                        <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                            system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
-                          )}>
-                          <Icon className={cn("w-4 h-4", iconColor)} />
-                        </div>
-                        <h4 className="flex-1 text-xs font-medium text-foreground">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-medium text-foreground">
                           {area.name}
                         </h4>
-                        <Play className={cn("w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity", iconColor)} />
+                        <ChevronRight className={cn("w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity", iconColor)} />
                       </div>
                     </button>
                   );
