@@ -309,6 +309,7 @@ export default function HiddenRuleLabRunner() {
             <HiddenRuleLabDrill
               difficulty={difficulty}
               onComplete={handleComplete}
+              onExit={handleBackToLab}
             />
           </motion.div>
         )}
