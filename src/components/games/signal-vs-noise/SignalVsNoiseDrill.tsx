@@ -459,8 +459,8 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
       transition={{ duration: 0.22 }}
       className="min-h-screen bg-background p-4 pb-24 relative"
     >
-      {/* Exit button */}
-      {onExit && <GameExitButton onExit={onExit} />}
+      {/* Exit button - offset to avoid timer overlap */}
+      {onExit && <GameExitButton onExit={onExit} className="right-14" />}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
