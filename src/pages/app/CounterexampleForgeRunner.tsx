@@ -307,6 +307,7 @@ export default function CounterexampleForgeRunner() {
             <CounterexampleForgeDrill
               difficulty={difficulty}
               onComplete={handleComplete}
+              onExit={handleBackToLab}
             />
           </motion.div>
         )}
