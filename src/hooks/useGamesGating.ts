@@ -165,6 +165,7 @@ export function useGamesGating(): UseGamesGatingResult {
     staleTime: 60_000, // Refresh every 60 seconds (was 30s)
     refetchOnWindowFocus: false, // Prevent flicker during games
     refetchOnMount: false,
+    placeholderData: { s1: 0, s2: 0 },
   });
   
   // Fetch 7-day S2 and Insight counts
@@ -198,6 +199,7 @@ export function useGamesGating(): UseGamesGatingResult {
     staleTime: 120_000, // 2 minutes
     refetchOnWindowFocus: false, // Prevent flicker during games
     refetchOnMount: false,
+    placeholderData: { s2Total: 0, insightTotal: 0 },
   });
   
   // Build caps object

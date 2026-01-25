@@ -32,6 +32,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
+import { useDelayedBoolean } from "@/hooks/useDelayedBoolean";
 
 interface S1AEGameSelectorProps {
   open: boolean;
@@ -160,6 +161,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
   });
   
   const isLoading = aeLoading || difficultyLoading || gatingLoading;
+  const showSkeleton = useDelayedBoolean(isLoading, 150);
   
   // Sort games to show suggested first
   const sortedGames = useMemo(() => {
@@ -253,7 +255,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                     </AlertDescription>
                   </Alert>
                 )}
-                {isLoading ? (
+                {showSkeleton ? (
                   // Loading skeleton
                   <>
                     <Skeleton className="h-28 w-full rounded-xl" />
