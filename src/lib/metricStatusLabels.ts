@@ -59,8 +59,9 @@ export function getRecoveryStatus(value: number): MetricStatus {
  * Built through S2 training, consistency, and task engagement.
  */
 export function getReasoningQualityStatus(value: number): MetricStatus {
-  // RQ uses a 3-level system: Elite (80+), Building (35-79), Emerging (<35)
   if (value >= 80) return { level: "high", label: "Elite" };
-  if (value >= 35) return { level: "moderate", label: "Building" };
-  return { level: "low", label: "Emerging" };
+  if (value >= 65) return { level: "good", label: "Strong" };
+  if (value >= 50) return { level: "moderate", label: "Developing" };
+  if (value >= 35) return { level: "low", label: "Building" };
+  return { level: "very_low", label: "Emerging" };
 }
