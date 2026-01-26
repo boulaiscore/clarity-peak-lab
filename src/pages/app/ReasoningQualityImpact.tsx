@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app/AppShell";
 import { TASK_TYPE_WEIGHTS } from "@/lib/reasoningQuality";
+import { getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 
 interface ImpactDriver {
   id: string;
@@ -55,14 +56,22 @@ export default function ReasoningQualityImpact() {
   const CT = states.CT;
   const IN = states.IN;
 
-  // Status badge
-  const getStatusBadge = (value: number) => {
-    if (value >= 80) return { label: "Strong", color: "text-primary" };
-    if (value >= 60) return { label: "Advancing", color: "text-primary/80" };
-    return { label: "Developing", color: "text-muted-foreground" };
+  // Status badge - using centralized status labels for consistency
+  const getStatusColor = (level: string) => {
+    switch (level) {
+      case "high": return "text-primary";
+      case "good": return "text-primary/80";
+      case "moderate": return "text-muted-foreground";
+      case "low": return "text-muted-foreground/80";
+      default: return "text-muted-foreground/60";
+    }
   };
 
-  const status = getStatusBadge(rq);
+  const statusInfo = getReasoningQualityStatus(rq);
+  const status = { 
+    label: statusInfo.label, 
+    color: getStatusColor(statusInfo.level) 
+  };
 
 
   // Use pre-calculated contributions from the hook (ensures math adds up)
