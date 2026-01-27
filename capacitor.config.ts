@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'NLOOP Pro',
   webDir: 'dist',
   server: {
-    url: "https://app.nloop.pro",
+    url: "https://clarity-peak-lab.vercel.app",
     cleartext: false
   },
   plugins: {
