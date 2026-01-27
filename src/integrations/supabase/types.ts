@@ -716,6 +716,7 @@ export type Database = {
           experience_points: number | null
           fast_thinking: number
           focus_stability: number
+          has_recovery_baseline: boolean | null
           id: string
           last_ae_xp_at: string | null
           last_ct_xp_at: string | null
@@ -738,8 +739,10 @@ export type Database = {
           readiness_decay_week_start: string | null
           reasoning_accuracy: number
           reasoning_quality: number | null
+          rec_last_ts: string | null
           rec_snapshot_date: string | null
           rec_snapshot_value: number | null
+          rec_value: number | null
           rq_last_updated_at: string | null
           sci_decay_applied: number | null
           sci_decay_week_start: string | null
@@ -791,6 +794,7 @@ export type Database = {
           experience_points?: number | null
           fast_thinking?: number
           focus_stability?: number
+          has_recovery_baseline?: boolean | null
           id?: string
           last_ae_xp_at?: string | null
           last_ct_xp_at?: string | null
@@ -813,8 +817,10 @@ export type Database = {
           readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
           reasoning_quality?: number | null
+          rec_last_ts?: string | null
           rec_snapshot_date?: string | null
           rec_snapshot_value?: number | null
+          rec_value?: number | null
           rq_last_updated_at?: string | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
@@ -866,6 +872,7 @@ export type Database = {
           experience_points?: number | null
           fast_thinking?: number
           focus_stability?: number
+          has_recovery_baseline?: boolean | null
           id?: string
           last_ae_xp_at?: string | null
           last_ct_xp_at?: string | null
@@ -888,8 +895,10 @@ export type Database = {
           readiness_decay_week_start?: string | null
           reasoning_accuracy?: number
           reasoning_quality?: number | null
+          rec_last_ts?: string | null
           rec_snapshot_date?: string | null
           rec_snapshot_value?: number | null
+          rec_value?: number | null
           rq_last_updated_at?: string | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
