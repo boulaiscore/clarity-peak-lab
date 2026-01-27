@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Leaf, Smartphone, Footprints, Battery } from "lucide-react";
+import { Leaf, Smartphone, Footprints, Battery, AlertCircle } from "lucide-react";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,19 +15,32 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
   const { 
     recoveryEffective: recovery, 
     isUsingRRI,
+    isV2Initialized,
+    hasRecoveryData,
+    weeklyDetoxMinutes,
+    weeklyWalkMinutes,
     isLoading 
   } = useRecoveryEffective();
+  
+  // Determine if we should show "No data" fallback
+  // Show fallback when:
+  // 1. v2 not initialized AND no RRI
+  // 2. OR recovery is 0 with no weekly activity
+  const showNoDataFallback = !isLoading && (
+    (!isV2Initialized && !hasRecoveryData) ||
+    (recovery === 0 && weeklyDetoxMinutes === 0 && weeklyWalkMinutes === 0)
+  );
   
   // Ring calculations - LARGE
   const size = 240;
   const strokeWidth = 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const progress = Math.min(recovery / 100, 1);
+  const progress = showNoDataFallback ? 0 : Math.min(recovery / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
   
   // Premium functional color - Teal for Recovery (fixed, not status-based)
-  const ringColor = "hsl(174, 72%, 45%)";
+  const ringColor = showNoDataFallback ? "hsl(var(--muted))" : "hsl(174, 72%, 45%)";
 
   
   return (
@@ -76,78 +89,126 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-6xl font-bold tabular-nums text-foreground">
-              {isLoading ? "—" : `${Math.round(recovery)}`}
-              <span className="text-3xl">%</span>
-            </span>
-            <span className="text-xs text-muted-foreground/70 mt-1">
-              {isLoading ? "" : getMetricDisplayInfo(
-                getRecoveryStatus(recovery).label,
-                getRecoveryStatus(recovery).level,
-                null,
-                null
-              ).text}
-            </span>
+            {isLoading ? (
+              <span className="text-4xl font-bold text-muted-foreground">—</span>
+            ) : showNoDataFallback ? (
+              <>
+                <AlertCircle className="w-10 h-10 text-muted-foreground/50 mb-2" />
+                <span className="text-sm text-muted-foreground text-center px-4">
+                  Nessun dato
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-6xl font-bold tabular-nums text-foreground">
+                  {Math.round(recovery)}
+                  <span className="text-3xl">%</span>
+                </span>
+                <span className="text-xs text-muted-foreground/70 mt-1">
+                  {getMetricDisplayInfo(
+                    getRecoveryStatus(recovery).label,
+                    getRecoveryStatus(recovery).level,
+                    null,
+                    null
+                  ).text}
+                </span>
+                {isUsingRRI && (
+                  <span className="text-[10px] text-primary/60 mt-1">
+                    Stima iniziale (RRI)
+                  </span>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Recovery Status Card */}
-      <div className="px-2">
-        <div className="flex items-start gap-3 mb-2">
-          <Leaf className="w-5 h-5 text-teal-400 mt-0.5" />
-          <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
+      {/* No Data Fallback Content */}
+      {showNoDataFallback && !isLoading && (
+        <div className="px-2 space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Completa una sessione di Digital Detox o Walking per iniziare.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/neuro-lab?tab=detox">
+              <Button variant="outline" className="w-full h-12 text-sm gap-2">
+                <Smartphone className="w-4 h-4" />
+                Start Detox
+              </Button>
+            </Link>
+            <Link to="/neuro-lab?tab=walk">
+              <Button variant="outline" className="w-full h-12 text-sm gap-2">
+                <Footprints className="w-4 h-4" />
+                Start Walk
+              </Button>
+            </Link>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {recovery >= 80 
-            ? "Recovery is high. Cognitive capacity is fully available." 
-            : recovery >= 50 
-              ? "Recovery is moderate. Deep focus is accessible."
-              : "Recovery is currently low. Build recovery through Detox or Walk to restore capacity."}
-        </p>
-      </div>
+      )}
 
-      {/* Recovery Actions */}
-      <div className="space-y-3 px-2">
-        <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Recovery Actions
-        </div>
-        
-        <div className="space-y-3">
-          <RecoveryActionCard 
-            icon={<Smartphone className="w-5 h-5 text-teal-400" />}
-            label="Digital Detox"
-            impact="Full recovery impact"
-            example="30 min ≈ +4% Recovery"
-          />
-          <RecoveryActionCard 
-            icon={<Footprints className="w-5 h-5 text-emerald-400" />}
-            label="Walking"
-            impact="Moderate recovery impact"
-            example="30 min ≈ +2% Recovery"
-          />
-        </div>
-        
-        {/* Explanatory Note */}
-        <div className="pt-4">
-          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
-            Training builds cognitive skills.{" "}
-            <span className="text-muted-foreground/50">
-              Recovery determines when they can be used effectively.
-            </span>
-          </p>
-        </div>
-      </div>
+      {/* Recovery Status Card - Only show when we have data */}
+      {!showNoDataFallback && !isLoading && (
+        <>
+          <div className="px-2">
+            <div className="flex items-start gap-3 mb-2">
+              <Leaf className="w-5 h-5 text-teal-400 mt-0.5" />
+              <h3 className="text-sm font-semibold uppercase tracking-wide">Recovery Status</h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {recovery >= 80 
+                ? "Recovery is high. Cognitive capacity is fully available." 
+                : recovery >= 50 
+                  ? "Recovery is moderate. Deep focus is accessible."
+                  : "Recovery is currently low. Build recovery through Detox or Walk to restore capacity."}
+            </p>
+          </div>
 
-      {/* CTA Button */}
-      <div className="pt-2 px-2">
-        <Link to="/neuro-lab?tab=detox">
-          <Button variant="premium" className="w-full h-12 text-sm gap-2">
-            <Battery className="w-4 h-4" />
-            Start Recovery
-          </Button>
-        </Link>
-      </div>
+          {/* Recovery Actions */}
+          <div className="space-y-3 px-2">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Recovery Actions
+            </div>
+            
+            <div className="space-y-3">
+              <RecoveryActionCard 
+                icon={<Smartphone className="w-5 h-5 text-teal-400" />}
+                label="Digital Detox"
+                impact="Full recovery impact"
+                example="30 min ≈ +4% Recovery"
+              />
+              <RecoveryActionCard 
+                icon={<Footprints className="w-5 h-5 text-emerald-400" />}
+                label="Walking"
+                impact="Moderate recovery impact"
+                example="30 min ≈ +2% Recovery"
+              />
+            </div>
+            
+            {/* Explanatory Note */}
+            <div className="pt-4">
+              <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+                Training builds cognitive skills.{" "}
+                <span className="text-muted-foreground/50">
+                  Recovery determines when they can be used effectively.
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* CTA Button */}
+          <div className="pt-2 px-2">
+            <Link to="/neuro-lab?tab=detox">
+              <Button variant="premium" className="w-full h-12 text-sm gap-2">
+                <Battery className="w-4 h-4" />
+                Start Recovery
+              </Button>
+            </Link>
+          </div>
+        </>
+      )}
     </motion.div>
   );
 }

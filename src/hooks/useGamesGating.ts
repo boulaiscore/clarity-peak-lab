@@ -98,7 +98,7 @@ export interface UseGamesGatingResult {
   
   // RRI (Recovery Readiness Init) status
   isUsingRRI: boolean;
-  recoveryRaw: number;
+  recoveryV2: number | null;
   
   // Post-baseline safety rule
   safetyRuleActive: boolean;
@@ -122,7 +122,7 @@ export function useGamesGating(): UseGamesGatingResult {
   const { 
     recoveryEffective, 
     isUsingRRI, 
-    recoveryRaw,
+    recoveryV2,
     isLoading: recoveryLoading 
   } = useRecoveryEffective();
   
@@ -305,7 +305,7 @@ export function useGamesGating(): UseGamesGatingResult {
       recovery: recoveryEffective, // Return REC_effective for UI consistency
     },
     isUsingRRI,
-    recoveryRaw,
+    recoveryV2,
     safetyRuleActive,
     isCalibrated,
     checkGame,

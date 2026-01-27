@@ -91,12 +91,43 @@ export const COGNITIVE_AGE_MAX_INCREASE_PER_MONTH = 1;
 export const COGNITIVE_AGE_TRACKING_PERIOD_DAYS = 30;
 
 // ============================================
-// RECOVERY TARGET
+// RECOVERY v2.0 (CONTINUOUS DECAY MODEL)
+// ============================================
+
+/**
+ * Recovery half-life in hours for exponential decay.
+ * REC decays by 50% every 72 hours of inactivity.
+ */
+export const REC_HALF_LIFE_HOURS = 72;
+
+/**
+ * Gain coefficient for recovery actions.
+ * gain = 0.12 * (detox_min + 0.5 * walk_min)
+ */
+export const REC_GAIN_COEFFICIENT = 0.12;
+
+/**
+ * Default RRI value for new users (fallback if onboarding incomplete).
+ */
+export const REC_DEFAULT_RRI = 45;
+
+/**
+ * Minimum RRI value from onboarding.
+ */
+export const REC_RRI_MIN = 35;
+
+/**
+ * Maximum RRI value from onboarding.
+ */
+export const REC_RRI_MAX = 55;
+
+// ============================================
+// LEGACY RECOVERY TARGET (for UI breakdown display only)
 // ============================================
 
 /**
  * Canonical weekly recovery target in minutes (rolling 7-day window).
- * Used for calculating Recovery% = (detox + 0.5×walk) / REC_TARGET × 100
+ * Used for UI display only in Recovery v2.0 - NOT for core REC calculation.
  * 840 min = 14 hours/week = 2 hours/day average
  */
 export const REC_TARGET = 840;
