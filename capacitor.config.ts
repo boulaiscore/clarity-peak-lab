@@ -5,6 +5,7 @@ const config: CapacitorConfig = {
   appName: 'NLOOP Pro',
   webDir: 'dist',
   server: {
+    url: "https://app.nloop.pro",
     cleartext: false
   },
   plugins: {
