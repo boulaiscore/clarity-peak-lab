@@ -61,6 +61,7 @@ export interface UseRecoveryEffectiveResult {
 export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
+  const hasUser = !!userId;
   
   // Fetch Recovery v2 state from user_cognitive_metrics
   const { data: v2State, isLoading: v2Loading } = useQuery({
@@ -87,7 +88,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         hasRecoveryBaseline: data.has_recovery_baseline ?? false,
       };
     },
-    enabled: !!userId,
+    enabled: hasUser,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -108,7 +109,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       if (error) return null;
       return data as { rri_value: number | null; rri_set_at: string | null } | null;
     },
-    enabled: !!userId,
+    enabled: hasUser,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -148,13 +149,16 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       
       return { detoxMinutes, walkMinutes };
     },
-    enabled: !!userId,
+    enabled: hasUser,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
   
-  const isLoading = v2Loading || rriLoading || weeklyLoading;
+  // IMPORTANT: when userId is not resolved yet, React Query marks queries as not loading
+  // (because they're disabled). We still want the UI to stay in a loading state instead
+  // of falling back to 0%.
+  const isLoading = !hasUser || v2Loading || rriLoading || weeklyLoading;
   const weeklyDetoxMinutes = weeklyData?.detoxMinutes ?? 0;
   const weeklyWalkMinutes = weeklyData?.walkMinutes ?? 0;
   
