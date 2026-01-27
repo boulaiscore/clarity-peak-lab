@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendWelcomeEmail } from "@/lib/emailService";
 import { getAuthRedirectUrl } from "@/lib/platformUtils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
+import { calculateRRI, initializeRecoveryBaseline } from "@/lib/recoveryV2";
 
 export type TrainingGoal = "fast_thinking" | "slow_thinking";
 export type SessionDuration = "30s" | "2min" | "5min" | "7min";
@@ -136,6 +137,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
+  // Ensure new users never show Recovery=0 because `user_cognitive_metrics` row is missing.
+  // Runs after profile fetch; fire-and-forget.
+  const ensureRecoveryBaseline = async (userId: string, profile: UserProfile | null) => {
+    try {
+      const { data: existing, error: readErr } = await supabase
+        .from("user_cognitive_metrics")
+        .select("has_recovery_baseline")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (readErr) {
+        console.warn("[Auth] ensureRecoveryBaseline read error:", readErr);
+        return;
+      }
+
+      // Already initialized
+      if (existing?.has_recovery_baseline) return;
+
+      // Compute RRI from profile if present; otherwise fallback handled by initializeRecoveryBaseline
+      let rriValue: number | null = null;
+      if (profile) {
+        if (typeof profile.rri_value === "number") {
+          rriValue = profile.rri_value;
+        } else if (profile.rri_sleep_hours || profile.rri_detox_hours || profile.rri_mental_state) {
+          rriValue = calculateRRI(
+            profile.rri_sleep_hours,
+            profile.rri_detox_hours,
+            profile.rri_mental_state
+          );
+        }
+      }
+
+      const baseline = initializeRecoveryBaseline(rriValue);
+
+      // If row exists but not initialized -> UPDATE; if row missing -> INSERT.
+      if (existing) {
+        const { error: updErr } = await supabase
+          .from("user_cognitive_metrics")
+          .update({
+            rec_value: baseline.newRecValue,
+            rec_last_ts: baseline.newRecLastTs,
+            has_recovery_baseline: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", userId);
+
+        if (updErr) {
+          console.warn("[Auth] ensureRecoveryBaseline update error:", updErr);
+          return;
+        }
+      } else {
+        const { error: insErr } = await supabase.from("user_cognitive_metrics").insert({
+          user_id: userId,
+          rec_value: baseline.newRecValue,
+          rec_last_ts: baseline.newRecLastTs,
+          has_recovery_baseline: true,
+          updated_at: new Date().toISOString(),
+        });
+
+        if (insErr) {
+          console.warn("[Auth] ensureRecoveryBaseline insert error:", insErr);
+          return;
+        }
+      }
+
+      console.log("[Auth] Recovery baseline initialized:", baseline.newRecValue);
+    } catch (e) {
+      console.warn("[Auth] ensureRecoveryBaseline exception:", e);
+    }
+  };
+
   // Fetch user profile from database with retry
   const fetchProfile = async (userId: string, retries = 3): Promise<UserProfile | null> => {
     for (let i = 0; i < retries; i++) {
@@ -190,6 +262,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!isMounted) return;
             setUser(mapProfileToUser(newSession.user, profile));
             setProfileLoaded(true);
+
+              // Defer to avoid doing more Supabase calls inside auth callback turn.
+              setTimeout(() => {
+                ensureRecoveryBaseline(newSession.user.id, profile);
+              }, 0);
+
             setIsLoading(false);
           }, 0);
         } else {
@@ -212,6 +290,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return;
         setUser(mapProfileToUser(existingSession.user, profile));
         setProfileLoaded(true);
+
+        // Fire-and-forget baseline bootstrap for Recovery.
+        setTimeout(() => {
+          ensureRecoveryBaseline(existingSession.user.id, profile);
+        }, 0);
       }
       setIsLoading(false);
     });

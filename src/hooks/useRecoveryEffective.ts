@@ -27,7 +27,6 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEnsureRecoveryBaseline } from "@/hooks/useEnsureRecoveryBaseline";
 import { getCurrentRecovery, hasValidRecoveryData, RecoveryState } from "@/lib/recoveryV2";
 import { isRRIValid } from "@/lib/recoveryReadinessInit";
 import { getMediumPeriodStart } from "@/lib/temporalWindows";
@@ -63,10 +62,6 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
   const hasUser = !!userId;
-
-  // Ensure new accounts are bootstrapped with a Recovery baseline.
-  // This prevents the UI from ever falling back to 0 due to missing DB rows.
-  const { isBootstrapping } = useEnsureRecoveryBaseline();
   
   // Fetch Recovery v2 state from user_cognitive_metrics
   const { data: v2State, isLoading: v2Loading } = useQuery({
@@ -163,7 +158,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   // IMPORTANT: when userId is not resolved yet, React Query marks queries as not loading
   // (because they're disabled). We still want the UI to stay in a loading state instead
   // of falling back to 0%.
-  const isLoading = !hasUser || isBootstrapping || v2Loading || rriLoading || weeklyLoading;
+  const isLoading = !hasUser || v2Loading || rriLoading || weeklyLoading;
   const weeklyDetoxMinutes = weeklyData?.detoxMinutes ?? 0;
   const weeklyWalkMinutes = weeklyData?.walkMinutes ?? 0;
   
