@@ -112,10 +112,10 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
     queryFn: async () => {
       if (!userId) return 50; // Default if no data
       
-      // Get rolling 7-day detox minutes
+      // Get rolling 7-day detox minutes - use detox_completions table (has completed_at)
       const { data: detoxData, error: detoxError } = await supabase
-        .from("detox_sessions")
-        .select("duration_minutes")
+        .from("detox_completions")
+        .select("duration_minutes, completed_at")
         .eq("user_id", userId)
         .gte("completed_at", rollingStartDate.toISOString());
       
