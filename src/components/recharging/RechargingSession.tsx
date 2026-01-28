@@ -1,29 +1,31 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Headphones, Volume2 } from "lucide-react";
-import { RECHARGING_CONFIG, RechargingMode, RECHARGING_MODES } from "@/lib/recharging";
+import { RechargingMode, RECHARGING_MODES } from "@/lib/recharging";
 
 interface RechargingSessionProps {
   mode: RechargingMode;
+  durationMinutes: number;
   onComplete: (durationSeconds: number) => void;
 }
 
-// Audio cues at specific intervals (in seconds from start)
+// Audio cues at percentage intervals of session
 const AUDIO_CUES = [
-  { time: 30, message: "Let your attention settle naturally." },
-  { time: 120, message: "Notice any lingering thoughts without engaging." },
-  { time: 240, message: "Allow mental noise to pass through." },
-  { time: 360, message: "Observe your cognitive state with detachment." },
-  { time: 480, message: "Clarity emerges from stillness." },
-  { time: 600, message: "Your reasoning capacity is restoring." },
+  { pct: 5, message: "Let your attention settle naturally." },
+  { pct: 20, message: "Notice any lingering thoughts without engaging." },
+  { pct: 40, message: "Allow mental noise to pass through." },
+  { pct: 60, message: "Observe your cognitive state with detachment." },
+  { pct: 80, message: "Clarity emerges from stillness." },
+  { pct: 95, message: "Your reasoning capacity is restoring." },
 ];
 
-export function RechargingSession({ mode, onComplete }: RechargingSessionProps) {
+export function RechargingSession({ mode, durationMinutes, onComplete }: RechargingSessionProps) {
   const [elapsed, setElapsed] = useState(0);
   const [currentCue, setCurrentCue] = useState<string | null>(null);
   const [showHeadphonesHint, setShowHeadphonesHint] = useState(true);
+  const shownCuesRef = useRef<Set<number>>(new Set());
   
-  const duration = RECHARGING_CONFIG.duration.default;
+  const duration = durationMinutes * 60; // Convert to seconds
   const progress = Math.min((elapsed / duration) * 100, 100);
 
   // Timer
@@ -42,15 +44,20 @@ export function RechargingSession({ mode, onComplete }: RechargingSessionProps) 
     return () => clearInterval(timer);
   }, [duration, onComplete]);
 
-  // Audio cue display
+  // Audio cue display based on percentage
   useEffect(() => {
-    const cue = AUDIO_CUES.find(c => c.time === elapsed);
-    if (cue) {
-      setCurrentCue(cue.message);
-      // Auto-hide after 6 seconds
-      setTimeout(() => setCurrentCue(null), 6000);
+    const currentPct = (elapsed / duration) * 100;
+    
+    for (const cue of AUDIO_CUES) {
+      if (currentPct >= cue.pct && !shownCuesRef.current.has(cue.pct)) {
+        shownCuesRef.current.add(cue.pct);
+        setCurrentCue(cue.message);
+        // Auto-hide after 6 seconds
+        setTimeout(() => setCurrentCue(null), 6000);
+        break;
+      }
     }
-  }, [elapsed]);
+  }, [elapsed, duration]);
 
   // Hide headphones hint after 10 seconds
   useEffect(() => {

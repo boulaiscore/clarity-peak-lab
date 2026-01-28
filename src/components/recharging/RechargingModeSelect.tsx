@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Battery, Brain, Lightbulb, Moon } from "lucide-react";
+import { Battery, Brain, Lightbulb, Moon, Clock } from "lucide-react";
 import { RechargingMode, RECHARGING_MODES } from "@/lib/recharging";
 import { cn } from "@/lib/utils";
 
+export type RechargingIntensity = 5 | 10 | 15;
+
 interface RechargingModeSelectProps {
-  suggestedMode: RechargingMode;
-  onSelect: (mode: RechargingMode) => void;
+  onSelect: (mode: RechargingMode, intensity: RechargingIntensity) => void;
 }
 
 const MODE_ICONS: Record<RechargingMode, React.ReactNode> = {
@@ -15,69 +16,68 @@ const MODE_ICONS: Record<RechargingMode, React.ReactNode> = {
   "end-of-day": <Moon className="w-5 h-5" />,
 };
 
-export function RechargingModeSelect({ suggestedMode, onSelect }: RechargingModeSelectProps) {
-  const [selected, setSelected] = useState<RechargingMode>(suggestedMode);
+const INTENSITIES: { value: RechargingIntensity; label: string }[] = [
+  { value: 5, label: "5 min" },
+  { value: 10, label: "10 min" },
+  { value: 15, label: "15 min" },
+];
+
+export function RechargingModeSelect({ onSelect }: RechargingModeSelectProps) {
+  const [selectedMode, setSelectedMode] = useState<RechargingMode>("overloaded");
+  const [selectedIntensity, setSelectedIntensity] = useState<RechargingIntensity>(10);
 
   const handleContinue = () => {
-    onSelect(selected);
+    onSelect(selectedMode, selectedIntensity);
   };
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-6 py-10 bg-[#06070A]">
       <div className="w-full max-w-sm">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h2 className="text-lg font-semibold text-white mb-2">
             Choose your Recharging mode
           </h2>
         </div>
 
         {/* Mode Options */}
-        <div className="space-y-3 mb-10">
+        <div className="space-y-2.5 mb-8">
           {(Object.keys(RECHARGING_MODES) as RechargingMode[]).map((modeId) => {
             const mode = RECHARGING_MODES[modeId];
-            const isSelected = selected === modeId;
-            const isSuggested = suggestedMode === modeId;
+            const isSelected = selectedMode === modeId;
 
             return (
               <button
                 key={modeId}
-                onClick={() => setSelected(modeId)}
+                onClick={() => setSelectedMode(modeId)}
                 className={cn(
-                  "w-full p-4 rounded-xl border text-left transition-all duration-200",
+                  "w-full p-3.5 rounded-xl border text-left transition-all duration-200",
                   isSelected
                     ? "bg-white/10 border-white/30"
                     : "bg-white/5 border-white/10 hover:border-white/20"
                 )}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <div className={cn(
-                    "mt-0.5 transition-colors",
+                    "transition-colors",
                     isSelected ? "text-white" : "text-white/40"
                   )}>
                     {MODE_ICONS[modeId]}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "text-sm font-medium transition-colors",
-                        isSelected ? "text-white" : "text-white/70"
-                      )}>
-                        {mode.label}
-                      </span>
-                      {isSuggested && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-white/50 font-medium">
-                          Suggested
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-white/40 mt-0.5">
+                    <span className={cn(
+                      "text-sm font-medium transition-colors",
+                      isSelected ? "text-white" : "text-white/70"
+                    )}>
+                      {mode.label}
+                    </span>
+                    <p className="text-[11px] text-white/40 mt-0.5">
                       {mode.description}
                     </p>
                   </div>
                   {/* Radio indicator */}
                   <div className={cn(
-                    "w-4 h-4 rounded-full border-2 flex items-center justify-center mt-0.5 transition-colors",
+                    "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
                     isSelected ? "border-white" : "border-white/30"
                   )}>
                     {isSelected && (
@@ -90,12 +90,39 @@ export function RechargingModeSelect({ suggestedMode, onSelect }: RechargingMode
           })}
         </div>
 
+        {/* Intensity Selection */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-4 h-4 text-white/40" />
+            <span className="text-sm text-white/60">Session length</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {INTENSITIES.map((intensity) => {
+              const isSelected = selectedIntensity === intensity.value;
+              return (
+                <button
+                  key={intensity.value}
+                  onClick={() => setSelectedIntensity(intensity.value)}
+                  className={cn(
+                    "py-3 px-4 rounded-xl border text-center transition-all duration-200",
+                    isSelected
+                      ? "bg-white/10 border-white/30 text-white"
+                      : "bg-white/5 border-white/10 text-white/50 hover:border-white/20"
+                  )}
+                >
+                  <span className="text-sm font-medium">{intensity.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Continue */}
         <button
           onClick={handleContinue}
           className="w-full py-4 rounded-xl bg-white/10 text-white font-semibold text-sm tracking-wide border border-white/10 hover:bg-white/15 transition-colors active:scale-[0.98]"
         >
-          Start Session
+          Continue
         </button>
       </div>
     </div>
