@@ -1,42 +1,26 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import exercisesData from "@/data/cognitive_exercises.json";
 
-// Convert camelCase JSON keys to snake_case DB columns
-function transformExercise(ex: any) {
-  return {
-    id: ex.id,
-    category: ex.category,
-    type: ex.type,
-    difficulty: ex.difficulty,
-    duration: ex.duration,
-    title: ex.title,
-    prompt: ex.prompt,
-    options: ex.options || null,
-    correct_option_index: ex.correctOptionIndex ?? null,
-    explanation: ex.explanation || null,
-    metrics_affected: ex.metricsAffected || [],
-    weight: ex.weight || 1,
-    gym_area: ex.gymArea || null,
-    thinking_mode: ex.thinkingMode || null,
-  };
-}
+// Track if seeding check has already been attempted this session
+let seedingChecked = false;
 
-// Track if seeding has already been attempted this session
-let seedingAttempted = false;
-
+/**
+ * Auto-seed exercises hook - now only checks if exercises exist.
+ * Actual seeding must be done by admins via the seed-exercises edge function.
+ * This is a security improvement to prevent public write access to exercises.
+ */
 export function useAutoSeedExercises() {
   const hasRun = useRef(false);
 
   useEffect(() => {
     // Prevent double execution from StrictMode or HMR
-    if (hasRun.current || seedingAttempted) return;
+    if (hasRun.current || seedingChecked) return;
     hasRun.current = true;
-    seedingAttempted = true;
+    seedingChecked = true;
 
-    async function checkAndSeed() {
+    async function checkExercises() {
       try {
-        // Check if exercises table is empty
+        // Check if exercises table is populated
         const { count, error: countError } = await supabase
           .from("cognitive_exercises")
           .select("*", { count: "exact", head: true });
@@ -46,38 +30,18 @@ export function useAutoSeedExercises() {
           return;
         }
 
-        // If already populated, skip seeding
         if (count && count > 0) {
-          console.log(`Exercises already seeded: ${count} exercises found`);
-          return;
+          console.log(`Exercises loaded: ${count} exercises available`);
+        } else {
+          console.warn(
+            "No exercises found in database. An admin needs to seed exercises via the seed-exercises edge function."
+          );
         }
-
-        console.log("Seeding cognitive exercises...");
-
-        // Transform and insert in batches
-        const exercises = exercisesData.map(transformExercise);
-        const batchSize = 50;
-        let successCount = 0;
-
-        for (let i = 0; i < exercises.length; i += batchSize) {
-          const batch = exercises.slice(i, i + batchSize);
-          const { error: insertError } = await supabase
-            .from("cognitive_exercises")
-            .upsert(batch, { onConflict: "id" });
-
-          if (insertError) {
-            console.error(`Error inserting batch ${i / batchSize + 1}:`, insertError);
-          } else {
-            successCount += batch.length;
-          }
-        }
-
-        console.log(`Seeded ${successCount} exercises successfully`);
       } catch (err) {
-        console.error("Seed error:", err);
+        console.error("Exercise check error:", err);
       }
     }
 
-    checkAndSeed();
+    checkExercises();
   }, []);
 }

@@ -27,17 +27,45 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.text();
-
+    
+    // SECURITY: Verify Stripe webhook signature
+    const signature = req.headers.get('stripe-signature');
+    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+    
     let event: Stripe.Event;
 
-    try {
-      event = JSON.parse(body) as Stripe.Event;
-    } catch (err) {
-      console.error('Error parsing webhook body:', err);
-      return new Response(
-        JSON.stringify({ error: 'Invalid webhook payload' }),
-        { status: 400, headers: corsHeaders }
-      );
+    // If webhook secret is configured, verify signature
+    if (webhookSecret) {
+      if (!signature) {
+        console.error('Missing stripe-signature header');
+        return new Response(
+          JSON.stringify({ error: 'Missing signature' }),
+          { status: 401, headers: corsHeaders }
+        );
+      }
+      
+      try {
+        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        console.log('Webhook signature verified successfully');
+      } catch (err) {
+        console.error('Webhook signature verification failed:', err);
+        return new Response(
+          JSON.stringify({ error: 'Invalid signature' }),
+          { status: 401, headers: corsHeaders }
+        );
+      }
+    } else {
+      // Fallback for development - log warning
+      console.warn('STRIPE_WEBHOOK_SECRET not configured - signature verification skipped. Configure this secret for production!');
+      try {
+        event = JSON.parse(body) as Stripe.Event;
+      } catch (err) {
+        console.error('Error parsing webhook body:', err);
+        return new Response(
+          JSON.stringify({ error: 'Invalid webhook payload' }),
+          { status: 400, headers: corsHeaders }
+        );
+      }
     }
 
     console.log('Received webhook event:', event.type);
@@ -47,20 +75,34 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.user_id;
         const productType = session.metadata?.product_type;
-        const tier = session.metadata?.tier; // 'premium' or 'pro'
+        const tier = session.metadata?.tier;
         
         console.log('Checkout completed for user:', userId, 'product_type:', productType, 'tier:', tier);
 
         if (userId) {
           if (productType === 'report_credits') {
             const creditsAmount = parseInt(session.metadata?.credits_amount || '1', 10);
+            const paymentIntentId = session.payment_intent as string;
+            
             console.log('Processing report credits purchase for user:', userId, 'credits:', creditsAmount);
+            
+            // SECURITY: Idempotency check - prevent duplicate credit grants
+            const { data: existingPurchase } = await supabase
+              .from('report_credit_purchases')
+              .select('id')
+              .eq('stripe_payment_id', paymentIntentId)
+              .maybeSingle();
+            
+            if (existingPurchase) {
+              console.log('Payment already processed, skipping:', paymentIntentId);
+              break;
+            }
             
             const { error: purchaseError } = await supabase
               .from('report_credit_purchases')
               .insert({
                 user_id: userId,
-                stripe_payment_id: session.payment_intent as string,
+                stripe_payment_id: paymentIntentId,
                 credits_amount: creditsAmount,
                 amount_cents: session.amount_total || 499,
                 currency: session.currency || 'eur',
@@ -93,13 +135,27 @@ serve(async (req) => {
               }
             }
           } else if (productType === 'cognitive_report_pdf') {
+            const paymentIntentId = session.payment_intent as string;
+            
             console.log('Processing single report purchase for user:', userId);
+            
+            // SECURITY: Idempotency check
+            const { data: existingPurchase } = await supabase
+              .from('report_purchases')
+              .select('id')
+              .eq('stripe_payment_id', paymentIntentId)
+              .maybeSingle();
+            
+            if (existingPurchase) {
+              console.log('Payment already processed, skipping:', paymentIntentId);
+              break;
+            }
             
             const { error } = await supabase
               .from('report_purchases')
               .insert({
                 user_id: userId,
-                stripe_payment_id: session.payment_intent as string,
+                stripe_payment_id: paymentIntentId,
                 amount_cents: session.amount_total || 499,
                 currency: session.currency || 'eur',
                 status: 'completed',
