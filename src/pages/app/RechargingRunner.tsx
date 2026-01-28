@@ -147,20 +147,16 @@ export default function RechargingRunner() {
     }
   };
 
-  const isSessionActive = currentPhase === "session";
-
   return (
     <div className="min-h-screen bg-[#06070A] relative">
-      {/* Exit Button - hidden during active session for focus */}
-      {!isSessionActive && (
-        <button
-          onClick={handleExitClick}
-          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-          aria-label="Exit"
-        >
-          <X className="w-5 h-5 text-white/60" />
-        </button>
-      )}
+      {/* Exit Button - always visible */}
+      <button
+        onClick={handleExitClick}
+        className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+        aria-label="Exit"
+      >
+        <X className="w-5 h-5 text-white/60" />
+      </button>
 
       <AnimatePresence mode="wait">
         <motion.div
