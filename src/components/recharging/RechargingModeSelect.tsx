@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Battery, Brain, Lightbulb, Moon } from "lucide-react";
 import { RechargingMode, RECHARGING_MODES } from "@/lib/recharging";
 import { cn } from "@/lib/utils";
@@ -25,12 +24,7 @@ export function RechargingModeSelect({ suggestedMode, onSelect }: RechargingMode
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-6 py-10 bg-[#06070A]">
-      <motion.div
-        className="w-full max-w-sm"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-lg font-semibold text-white mb-2">
@@ -40,13 +34,13 @@ export function RechargingModeSelect({ suggestedMode, onSelect }: RechargingMode
 
         {/* Mode Options */}
         <div className="space-y-3 mb-10">
-          {(Object.keys(RECHARGING_MODES) as RechargingMode[]).map((modeId, index) => {
+          {(Object.keys(RECHARGING_MODES) as RechargingMode[]).map((modeId) => {
             const mode = RECHARGING_MODES[modeId];
             const isSelected = selected === modeId;
             const isSuggested = suggestedMode === modeId;
 
             return (
-              <motion.button
+              <button
                 key={modeId}
                 onClick={() => setSelected(modeId)}
                 className={cn(
@@ -55,10 +49,6 @@ export function RechargingModeSelect({ suggestedMode, onSelect }: RechargingMode
                     ? "bg-white/10 border-white/30"
                     : "bg-white/5 border-white/10 hover:border-white/20"
                 )}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.08 }}
-                whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-start gap-3">
                   <div className={cn(
@@ -95,23 +85,19 @@ export function RechargingModeSelect({ suggestedMode, onSelect }: RechargingMode
                     )}
                   </div>
                 </div>
-              </motion.button>
+              </button>
             );
           })}
         </div>
 
         {/* Continue */}
-        <motion.button
+        <button
           onClick={handleContinue}
-          className="w-full py-4 rounded-xl bg-white/10 text-white font-semibold text-sm tracking-wide border border-white/10 hover:bg-white/15 transition-colors"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          whileTap={{ scale: 0.98 }}
+          className="w-full py-4 rounded-xl bg-white/10 text-white font-semibold text-sm tracking-wide border border-white/10 hover:bg-white/15 transition-colors active:scale-[0.98]"
         >
           Start Session
-        </motion.button>
-      </motion.div>
+        </button>
+      </div>
     </div>
   );
 }
