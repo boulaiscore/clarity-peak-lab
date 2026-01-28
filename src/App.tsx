@@ -42,6 +42,7 @@ import SignalVsNoiseRunner from "./pages/app/SignalVsNoiseRunner";
 import HiddenRuleLabRunner from "./pages/app/HiddenRuleLabRunner";
 import CounterexampleForgeRunner from "./pages/app/CounterexampleForgeRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
+import RechargingRunner from "./pages/app/RechargingRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
 import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
@@ -378,6 +379,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <NeuralResetRunner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recharging"
+        element={
+          <ProtectedRoute>
+            <RechargingRunner />
           </ProtectedRoute>
         }
       />
