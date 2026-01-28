@@ -18,9 +18,9 @@ export function useAdminCheck() {
 
     const checkAdminRole = async () => {
       try {
-        // Use raw SQL via RPC to check admin role
+        // Query the user_roles table to check if user has admin role
         const { data, error } = await supabase
-          .from("user_roles" as never)
+          .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
           .eq("role", "admin")
