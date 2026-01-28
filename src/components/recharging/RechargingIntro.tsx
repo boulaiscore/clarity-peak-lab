@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
 
 interface RechargingIntroProps {
   onBegin: () => void;
 }
 
+/**
+ * Fast Charge Intro
+ * Entry point for audio-only cognitive reset
+ */
 export function RechargingIntro({ onBegin }: RechargingIntroProps) {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-6 py-10 bg-[#06070A]">
@@ -14,11 +17,6 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
-        {/* Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-8">
-          <Zap className="w-8 h-8 text-white/60" />
-        </div>
-        
         {/* Title */}
         <motion.h1 
           className="text-2xl font-semibold tracking-tight text-white mb-2"
@@ -26,7 +24,7 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          Recharging
+          Fast Charge
         </motion.h1>
         
         {/* Subtitle */}
@@ -46,9 +44,9 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <span className="px-2 py-1 rounded bg-white/5 text-white/60 font-medium">10-15 MIN</span>
+          <span className="px-2 py-1 rounded bg-white/5 text-white/60 font-medium">5-15 MIN</span>
           <span>•</span>
-          <span>Guided session</span>
+          <span>Audio only</span>
         </motion.div>
         
         {/* Steps overview */}
@@ -60,8 +58,8 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
         >
           {[
             { num: 1, label: "Quick cognitive check" },
-            { num: 2, label: "Select recharging mode" },
-            { num: 3, label: "Guided session" },
+            { num: 2, label: "Select program & duration" },
+            { num: 3, label: "Audio session (screen off OK)" },
             { num: 4, label: "Post-session assessment" },
           ].map((step) => (
             <div key={step.num} className="flex items-center gap-3">

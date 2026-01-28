@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Headphones, Volume2 } from "lucide-react";
 import { RechargingMode, RECHARGING_MODES } from "@/lib/recharging";
+import { useFastChargeAudio } from "@/hooks/useFastChargeAudio";
 
 interface RechargingSessionProps {
   mode: RechargingMode;
@@ -9,25 +9,29 @@ interface RechargingSessionProps {
   onComplete: (durationSeconds: number) => void;
 }
 
-// Guidance cues at percentage intervals of session
-const GUIDANCE_CUES = [
-  { pct: 0, message: "Focus on the center. Allow stillness." },
-  { pct: 10, message: "Let your attention settle naturally." },
-  { pct: 25, message: "Notice any lingering thoughts without engaging." },
-  { pct: 45, message: "Allow mental noise to pass through." },
-  { pct: 65, message: "Observe your cognitive state with detachment." },
-  { pct: 85, message: "Clarity emerges from stillness." },
-  { pct: 95, message: "Your reasoning capacity is restoring." },
-];
-
+/**
+ * Fast Charge Session
+ * 
+ * Audio-only cognitive reset. Screen can turn off, no interaction required.
+ * Shows only "You can lock your phone now." at start.
+ */
 export function RechargingSession({ mode, durationMinutes, onComplete }: RechargingSessionProps) {
   const [elapsed, setElapsed] = useState(0);
-  const [currentCue, setCurrentCue] = useState<string | null>(GUIDANCE_CUES[0].message);
-  const [showHeadphonesHint, setShowHeadphonesHint] = useState(true);
-  const shownCuesRef = useRef<Set<number>>(new Set([0])); // 0% already shown
+  const [showLockMessage, setShowLockMessage] = useState(true);
+  const startTimeRef = useRef<number>(Date.now());
+  const { start: startAudio, stop: stopAudio } = useFastChargeAudio();
   
   const duration = durationMinutes * 60; // Convert to seconds
   const progress = Math.min((elapsed / duration) * 100, 100);
+
+  // Start audio on mount
+  useEffect(() => {
+    startAudio(mode, durationMinutes);
+    
+    return () => {
+      stopAudio();
+    };
+  }, [mode, durationMinutes, startAudio, stopAudio]);
 
   // Timer
   useEffect(() => {
@@ -36,7 +40,10 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
         const next = prev + 1;
         if (next >= duration) {
           clearInterval(timer);
-          onComplete(next);
+          // Play end tone and complete
+          setTimeout(() => {
+            onComplete(next);
+          }, 500);
         }
         return next;
       });
@@ -45,24 +52,9 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
     return () => clearInterval(timer);
   }, [duration, onComplete]);
 
-  // Guidance cue display based on percentage
+  // Hide lock message after 8 seconds
   useEffect(() => {
-    const currentPct = (elapsed / duration) * 100;
-    
-    for (const cue of GUIDANCE_CUES) {
-      if (currentPct >= cue.pct && !shownCuesRef.current.has(cue.pct)) {
-        shownCuesRef.current.add(cue.pct);
-        setCurrentCue(cue.message);
-        // Auto-hide after 8 seconds (longer for reading comfort)
-        setTimeout(() => setCurrentCue(null), 8000);
-        break;
-      }
-    }
-  }, [elapsed, duration]);
-
-  // Hide headphones hint after 10 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => setShowHeadphonesHint(false), 10000);
+    const timer = setTimeout(() => setShowLockMessage(false), 8000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -76,33 +68,34 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#06070A]">
-      {/* Headphones hint */}
-      {showHeadphonesHint && (
+      {/* Lock message - only visible at start */}
+      {showLockMessage && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10"
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 px-6"
         >
-          <Headphones className="w-4 h-4 text-white/40" />
-          <span className="text-xs text-white/40">Headphones recommended</span>
+          <p className="text-sm text-white/50 text-center">
+            You can lock your phone now.
+          </p>
         </motion.div>
       )}
 
-      {/* Central focal area */}
+      {/* Central minimal focal point */}
       <div className="relative flex flex-col items-center">
-        {/* Ambient ring - very slow pulse */}
+        {/* Subtle ambient ring - very slow pulse */}
         <motion.div
-          className="absolute w-48 h-48 rounded-full"
+          className="absolute w-24 h-24 rounded-full"
           style={{
-            border: "1px solid rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.03)",
           }}
           animate={{
-            scale: [1, 1.03, 1],
-            opacity: [0.3, 0.5, 0.3],
+            scale: [1, 1.02, 1],
+            opacity: [0.2, 0.3, 0.2],
           }}
           transition={{
-            duration: 8,
+            duration: 10,
             repeat: Infinity,
             ease: "easeInOut",
           }}
@@ -110,41 +103,24 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
 
         {/* Inner calm indicator */}
         <motion.div
-          className="w-6 h-6 rounded-full bg-white/10"
+          className="w-3 h-3 rounded-full bg-white/5"
           animate={{
-            opacity: [0.15, 0.25, 0.15],
+            opacity: [0.1, 0.15, 0.1],
           }}
           transition={{
-            duration: 6,
+            duration: 8,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         />
       </div>
 
-      {/* Audio cue display */}
-      <div className="h-16 flex items-center justify-center mt-16 px-6">
-        {currentCue && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2"
-          >
-            <Volume2 className="w-4 h-4 text-white/30" />
-            <p className="text-sm text-white/50 text-center max-w-xs">
-              {currentCue}
-            </p>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Progress and time */}
+      {/* Progress and time - subtle, at bottom */}
       <div className="fixed bottom-12 left-0 right-0 flex flex-col items-center gap-4 px-8">
         {/* Progress bar */}
-        <div className="w-full max-w-xs h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className="w-full max-w-xs h-0.5 bg-white/5 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-white/30 rounded-full"
+            className="h-full bg-white/20 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
@@ -153,16 +129,16 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
 
         {/* Time remaining */}
         <div className="flex flex-col items-center gap-1">
-          <span className="text-2xl font-mono text-white/60 tabular-nums">
+          <span className="text-xl font-mono text-white/40 tabular-nums">
             {formatTime(remaining)}
           </span>
-          <span className="text-[10px] text-white/30 uppercase tracking-widest">
+          <span className="text-[10px] text-white/20 uppercase tracking-widest">
             remaining
           </span>
         </div>
 
-        {/* Mode indicator */}
-        <span className="text-[10px] text-white/20 uppercase tracking-widest">
+        {/* Mode indicator - very subtle */}
+        <span className="text-[10px] text-white/10 uppercase tracking-widest">
           {RECHARGING_MODES[mode].label}
         </span>
       </div>
