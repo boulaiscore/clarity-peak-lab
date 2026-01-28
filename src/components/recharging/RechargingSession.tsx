@@ -9,21 +9,22 @@ interface RechargingSessionProps {
   onComplete: (durationSeconds: number) => void;
 }
 
-// Audio cues at percentage intervals of session
-const AUDIO_CUES = [
-  { pct: 5, message: "Let your attention settle naturally." },
-  { pct: 20, message: "Notice any lingering thoughts without engaging." },
-  { pct: 40, message: "Allow mental noise to pass through." },
-  { pct: 60, message: "Observe your cognitive state with detachment." },
-  { pct: 80, message: "Clarity emerges from stillness." },
+// Guidance cues at percentage intervals of session
+const GUIDANCE_CUES = [
+  { pct: 0, message: "Focus on the center. Allow stillness." },
+  { pct: 10, message: "Let your attention settle naturally." },
+  { pct: 25, message: "Notice any lingering thoughts without engaging." },
+  { pct: 45, message: "Allow mental noise to pass through." },
+  { pct: 65, message: "Observe your cognitive state with detachment." },
+  { pct: 85, message: "Clarity emerges from stillness." },
   { pct: 95, message: "Your reasoning capacity is restoring." },
 ];
 
 export function RechargingSession({ mode, durationMinutes, onComplete }: RechargingSessionProps) {
   const [elapsed, setElapsed] = useState(0);
-  const [currentCue, setCurrentCue] = useState<string | null>(null);
+  const [currentCue, setCurrentCue] = useState<string | null>(GUIDANCE_CUES[0].message);
   const [showHeadphonesHint, setShowHeadphonesHint] = useState(true);
-  const shownCuesRef = useRef<Set<number>>(new Set());
+  const shownCuesRef = useRef<Set<number>>(new Set([0])); // 0% already shown
   
   const duration = durationMinutes * 60; // Convert to seconds
   const progress = Math.min((elapsed / duration) * 100, 100);
@@ -44,16 +45,16 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
     return () => clearInterval(timer);
   }, [duration, onComplete]);
 
-  // Audio cue display based on percentage
+  // Guidance cue display based on percentage
   useEffect(() => {
     const currentPct = (elapsed / duration) * 100;
     
-    for (const cue of AUDIO_CUES) {
+    for (const cue of GUIDANCE_CUES) {
       if (currentPct >= cue.pct && !shownCuesRef.current.has(cue.pct)) {
         shownCuesRef.current.add(cue.pct);
         setCurrentCue(cue.message);
-        // Auto-hide after 6 seconds
-        setTimeout(() => setCurrentCue(null), 6000);
+        // Auto-hide after 8 seconds (longer for reading comfort)
+        setTimeout(() => setCurrentCue(null), 8000);
         break;
       }
     }
