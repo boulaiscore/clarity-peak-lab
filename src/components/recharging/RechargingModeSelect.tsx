@@ -16,6 +16,14 @@ const MODE_ICONS: Record<RechargingMode, React.ReactNode> = {
   "end-of-day": <Moon className="w-5 h-5" />,
 };
 
+// Updated helper text per spec
+const MODE_HELPERS: Record<RechargingMode, string> = {
+  overloaded: "For moments of cognitive saturation.",
+  ruminating: "To interrupt repetitive thinking.",
+  "pre-decision": "Before important choices.",
+  "end-of-day": "To mentally close the day.",
+};
+
 const INTENSITIES: { value: RechargingIntensity; label: string }[] = [
   { value: 5, label: "5 min" },
   { value: 10, label: "10 min" },
@@ -36,7 +44,7 @@ export function RechargingModeSelect({ onSelect }: RechargingModeSelectProps) {
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-lg font-semibold text-white mb-2">
-            Choose your Recharging mode
+            Choose your program
           </h2>
         </div>
 
@@ -72,7 +80,7 @@ export function RechargingModeSelect({ onSelect }: RechargingModeSelectProps) {
                       {mode.label}
                     </span>
                     <p className="text-[11px] text-white/40 mt-0.5">
-                      {mode.description}
+                      {MODE_HELPERS[modeId]}
                     </p>
                   </div>
                   {/* Radio indicator */}
