@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeRedirectUrls, isNative } from "@/lib/platformUtils";
 import { Browser } from "@capacitor/browser";
-import html2pdf from "html2pdf.js";
+import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -167,6 +167,33 @@ export default function CognitiveReport() {
     }
   };
 
+  // Use react-to-print for secure PDF generation (replaces vulnerable html2pdf.js)
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `NLOOP_Report_${generatedAt.toISOString().split('T')[0]}`,
+    onAfterPrint: async () => {
+      // Save report to history after successful print
+      try {
+        await saveReport.mutateAsync({
+          cognitiveAge: metrics?.baseline_cognitive_age ?? undefined,
+          sciScore: metrics?.cognitive_performance_score ?? undefined,
+          fastThinking: metrics?.fast_thinking ?? undefined,
+          slowThinking: metrics?.slow_thinking ?? undefined,
+          totalSessions: metrics?.total_sessions ?? undefined,
+        });
+        toast.success("Report saved! Use your browser's 'Save as PDF' option in the print dialog.");
+      } catch (err) {
+        console.error('Error saving report:', err);
+      }
+      setDownloading(false);
+    },
+    onPrintError: (error) => {
+      console.error('Print error:', error);
+      toast.error("Failed to generate PDF. Please try again.");
+      setDownloading(false);
+    },
+  });
+
   const handleDownloadPDF = async () => {
     if (!canDownloadPDF) {
       setShowPurchaseModal(true);
@@ -188,44 +215,8 @@ export default function CognitiveReport() {
       }
     }
     
-    const opt = {
-      margin: [0, 0, 0, 0],
-      filename: `NLOOP_Report_${generatedAt.toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true, 
-        logging: false,
-        width: 794,
-        windowWidth: 794,
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { 
-        mode: ['css', 'avoid-all'],
-        before: ['.page-break-before'],
-        avoid: ['.avoid-break', '.summary-card', '.domain-card', '.conclusions-box', '.dual-process-card', '.sci-stat']
-      }
-    };
-
-    try {
-      await html2pdf().set(opt).from(printRef.current).save();
-      
-      // Save report to history
-      await saveReport.mutateAsync({
-        cognitiveAge: metrics?.baseline_cognitive_age ?? undefined,
-        sciScore: metrics?.cognitive_performance_score ?? undefined,
-        fastThinking: metrics?.fast_thinking ?? undefined,
-        slowThinking: metrics?.slow_thinking ?? undefined,
-        totalSessions: metrics?.total_sessions ?? undefined,
-      });
-      
-      toast.success("PDF downloaded successfully!");
-    } catch (err) {
-      console.error('Error downloading PDF:', err);
-      toast.error("Failed to download PDF. Please try again.");
-    } finally {
-      setDownloading(false);
-    }
+    // Trigger print dialog - user can save as PDF from browser
+    handlePrint();
   };
 
   // Show preview for non-premium users
