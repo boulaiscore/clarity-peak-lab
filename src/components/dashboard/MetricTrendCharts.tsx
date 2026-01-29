@@ -49,7 +49,7 @@ interface SingleMetricChartProps {
   data: ChartDataPoint[];
 }
 
-// Custom X-axis tick - WHOOP style
+// Custom X-axis tick - WHOOP style (positioned on baseline)
 const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
   if (!payload || x === undefined || y === undefined) return null;
   
@@ -58,21 +58,21 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   
   return (
     <g transform={`translate(${x},${y})`}>
-      {/* Highlight band for last day (rightmost) */}
+      {/* Highlight band for last day (rightmost) - extends up into chart area */}
       {isLastBool && (
         <rect
           x={-22}
-          y={-95}
+          y={-70}
           width={44}
-          height={130}
+          height={95}
           fill="rgba(100, 116, 139, 0.12)"
           rx={6}
         />
       )}
-      {/* Day name */}
+      {/* Day name - positioned below the baseline */}
       <text
         x={0}
-        y={10}
+        y={-8}
         textAnchor="middle"
         fill={isLastBool ? "rgba(148, 163, 184, 1)" : MUTED_TEXT}
         fontSize={11}
@@ -83,7 +83,7 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
       {/* Day number */}
       <text
         x={0}
-        y={24}
+        y={6}
         textAnchor="middle"
         fill={isLastBool ? BRIGHT_TEXT : "rgba(100, 116, 139, 0.6)"}
         fontSize={11}
@@ -140,30 +140,44 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
     xLabel: `${d.dayName}|${d.dayNum}|${d.isLast}`,
   }));
 
-  // Calculate min/max for dynamic Y axis with 4 bands
+  // Calculate min/max for dynamic Y axis
   const values = data.filter(d => d.value !== null).map(d => d.value as number);
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-  // yMin = dataMin so minimum value sits exactly on bottom grid line
-  // yMax = add space above the maximum value
-  let yMin: number;
-  let yMax: number;
+  // Create 4 horizontal bands:
+  // Line 1 (bottom): baseline for dates
+  // Line 2: minimum value (data points rest here)
+  // Line 3: middle
+  // Line 4 (top): maximum + padding
+
+  let yDataMin: number;
+  let yDataMax: number;
 
   if (dataMin === dataMax) {
-    // All values identical: min sits on bottom line, create space above
-    yMin = dataMin;
-    yMax = Math.min(100, dataMin + 20);
+    yDataMin = dataMin;
+    yDataMax = dataMin + 20;
   } else {
-    // Normal case: min on bottom line, max with 20% padding above
-    yMin = dataMin;
+    yDataMin = dataMin;
     const range = dataMax - dataMin;
-    yMax = Math.min(100, dataMax + range * 0.2);
+    yDataMax = dataMax + range * 0.15;
   }
 
-  // Generate 4 equidistant horizontal lines (yMin = first line at bottom)
-  const tickStep = (yMax - yMin) / 3; // 4 lines = 3 gaps
-  const yTicks = [yMin, yMin + tickStep, yMin + tickStep * 2, yMax];
+  // Baseline is below yDataMin to create space for date labels
+  // 3 equal bands above baseline: dataMin, mid, dataMax
+  const dataBandHeight = (yDataMax - yDataMin) / 2;
+  const yBaseline = yDataMin - dataBandHeight;
+
+  // 4 equidistant lines: baseline, min, mid, max
+  const yTicks = [
+    yBaseline,                           // Line 1: baseline for dates
+    yDataMin,                            // Line 2: minimum value
+    yDataMin + dataBandHeight,           // Line 3: middle
+    yDataMax,                            // Line 4: top
+  ];
+
+  const yMin = yBaseline;
+  const yMax = yDataMax;
 
   return (
     <motion.div
@@ -188,24 +202,15 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
           </p>
         </div>
       ) : (
-        <div className="h-[145px] w-full">
+        <div className="h-[160px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 32, right: 20, left: 20, bottom: 38 }}>
-              <XAxis
-                dataKey="xLabel"
-                axisLine={false}
-                tickLine={false}
-                tick={<CustomXAxisTick />}
-                interval={0}
-                height={40}
-              />
+            <LineChart data={chartData} margin={{ top: 32, right: 20, left: 20, bottom: 28 }}>
               <CartesianGrid 
                 horizontal={true}
                 vertical={false}
                 stroke={GRID_COLOR}
                 strokeWidth={1}
                 horizontalCoordinatesGenerator={({ height, offset }) => {
-                  // Map yTicks to pixel coordinates
                   const chartHeight = height;
                   const scale = chartHeight / (yMax - yMin);
                   return yTicks.map(tick => {
@@ -213,6 +218,14 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                     return yPixel;
                   });
                 }}
+              />
+              <XAxis
+                dataKey="xLabel"
+                axisLine={false}
+                tickLine={false}
+                tick={<CustomXAxisTick />}
+                interval={0}
+                orientation="bottom"
               />
               <YAxis
                 domain={[yMin, yMax]}
