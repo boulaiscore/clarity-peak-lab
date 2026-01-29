@@ -73,13 +73,13 @@ function createBrownNoiseProcessor(audioContext: AudioContext): ScriptProcessorN
 
 /**
  * Creates a Low Frequency Tone generator for pre-decision mode
- * Near silence with subtle, calming low-frequency tones
+ * Subtle, calming low-frequency tones with gentle modulation
  */
 function createLowToneGenerator(audioContext: AudioContext): OscillatorNode[] {
   const oscillators: OscillatorNode[] = [];
   
-  // Create subtle low-frequency oscillators
-  const frequencies = [40, 60, 80]; // Hz - very low, almost felt rather than heard
+  // Create subtle low-frequency oscillators - higher frequencies for better audibility
+  const frequencies = [80, 120, 160]; // Hz - low but audible on most speakers
   
   frequencies.forEach((freq) => {
     const osc = audioContext.createOscillator();
@@ -172,15 +172,15 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
         }
 
         case "pre-decision": {
-          // Low tones - near silence with subtle low frequencies
+          // Low tones - subtle, calming low frequencies
           const oscillators = createLowToneGenerator(audioContext);
           const oscGain = audioContext.createGain();
           oscGain.connect(gainNode);
           
           oscillators.forEach((osc, index) => {
-            // Slightly different gain for each oscillator (reduced)
+            // Each oscillator with audible gain
             const individualGain = audioContext.createGain();
-            individualGain.gain.setValueAtTime(0.08 - index * 0.02, audioContext.currentTime);
+            individualGain.gain.setValueAtTime(0.3 - index * 0.05, audioContext.currentTime);
             osc.connect(individualGain);
             individualGain.connect(oscGain);
             osc.start();
@@ -189,9 +189,9 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
           
           nodesRef.current.push(oscGain);
           
-          // Very quiet - near silence (reduced volume)
+          // Audible but still subtle master volume
           gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.08, audioContext.currentTime + 4);
+          gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 4);
           break;
         }
 
