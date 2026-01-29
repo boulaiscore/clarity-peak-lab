@@ -145,33 +145,20 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-  // Create 4 horizontal bands:
-  // Line 1 (bottom): baseline for dates
-  // Line 2: minimum value (data points rest here)
-  // Line 3: middle
-  // Line 4 (top): maximum + padding
+  // Baseline is ALWAYS 0 - if a value is 0, the dot sits on baseline
+  // 4 horizontal lines from 0 to yMax
+  const yBaseline = 0;
+  
+  // yMax = dataMax + padding (at least 20 to give room)
+  const yDataMax = Math.max(dataMax * 1.15, dataMax + 5);
 
-  let yDataMin: number;
-  let yDataMax: number;
-
-  if (dataMin === dataMax) {
-    yDataMin = dataMin;
-    yDataMax = dataMin + 20;
-  } else {
-    yDataMin = dataMin;
-    const range = dataMax - dataMin;
-    yDataMax = dataMax + range * 0.15;
-  }
-
-  // Baseline is below yDataMin to create space for date labels
-  // 3 equal bands above baseline: dataMin, mid, dataMax
-  const dataBandHeight = (yDataMax - yDataMin) / 2;
-  const yBaseline = yDataMin - dataBandHeight;
-
-  const yMid = yDataMin + dataBandHeight;
-  // Grid draws only the 3 data lines; baseline is drawn separately as a ReferenceLine
-  // to guarantee 4 visible lines even when Recharts collapses/extents.
-  const yGridTicks = [yDataMin, yMid, yDataMax];
+  // 4 equidistant lines: 0 (baseline), line2, line3, yMax
+  const bandHeight = yDataMax / 3; // 3 gaps = 4 lines
+  const yGridTicks = [
+    yBaseline + bandHeight,      // Line 2
+    yBaseline + bandHeight * 2,  // Line 3
+    yDataMax,                    // Line 4 (top)
+  ];
 
   const yMin = yBaseline;
   const yMax = yDataMax;
