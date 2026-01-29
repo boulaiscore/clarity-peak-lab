@@ -68,8 +68,8 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
           transition={{ delay: 0.7 }}
         >
           {[
-            { num: 1, label: "Quick cognitive check" },
-            { num: 2, label: "Select program & duration" },
+            { num: 1, label: "Select program & duration" },
+            { num: 2, label: "Quick cognitive check" },
             { num: 3, label: "Audio session (screen off OK)" },
             { num: 4, label: "Post-session assessment" },
           ].map((step) => (
