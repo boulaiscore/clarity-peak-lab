@@ -49,6 +49,69 @@ function createPinkNoiseProcessor(audioContext: AudioContext): AudioWorkletNode 
 }
 
 /**
+ * Creates a Tibetan Singing Bowl generator
+ * Simulates the harmonic overtones of singing bowls with slow amplitude modulation
+ */
+function createSingingBowls(audioContext: AudioContext): { nodes: AudioNode[], output: GainNode } {
+  const nodes: AudioNode[] = [];
+  const masterGain = audioContext.createGain();
+  masterGain.gain.setValueAtTime(0, audioContext.currentTime);
+  
+  // Singing bowl fundamental frequencies (Hz) - based on common bowl tunings
+  const bowlFrequencies = [
+    { fundamental: 110, harmonics: [220, 330, 440] },   // A2 bowl
+    { fundamental: 146.83, harmonics: [293.66, 440.49] }, // D3 bowl  
+    { fundamental: 196, harmonics: [392, 588] },        // G3 bowl
+  ];
+  
+  bowlFrequencies.forEach((bowl, bowlIndex) => {
+    // Fundamental tone
+    const fundamental = audioContext.createOscillator();
+    fundamental.type = "sine";
+    fundamental.frequency.setValueAtTime(bowl.fundamental, audioContext.currentTime);
+    
+    const fundamentalGain = audioContext.createGain();
+    fundamentalGain.gain.setValueAtTime(0.15 - bowlIndex * 0.03, audioContext.currentTime);
+    
+    // Slow amplitude modulation (breathing effect)
+    const lfo = audioContext.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.setValueAtTime(0.05 + bowlIndex * 0.02, audioContext.currentTime); // Very slow: 0.05-0.09 Hz
+    
+    const lfoGain = audioContext.createGain();
+    lfoGain.gain.setValueAtTime(0.04, audioContext.currentTime);
+    
+    lfo.connect(lfoGain);
+    lfoGain.connect(fundamentalGain.gain);
+    lfo.start();
+    
+    fundamental.connect(fundamentalGain);
+    fundamentalGain.connect(masterGain);
+    fundamental.start();
+    
+    nodes.push(fundamental, fundamentalGain, lfo, lfoGain);
+    
+    // Harmonics (quieter)
+    bowl.harmonics.forEach((harmFreq, hIndex) => {
+      const harmonic = audioContext.createOscillator();
+      harmonic.type = "sine";
+      harmonic.frequency.setValueAtTime(harmFreq, audioContext.currentTime);
+      
+      const harmonicGain = audioContext.createGain();
+      harmonicGain.gain.setValueAtTime(0.04 - hIndex * 0.01, audioContext.currentTime);
+      
+      harmonic.connect(harmonicGain);
+      harmonicGain.connect(masterGain);
+      harmonic.start();
+      
+      nodes.push(harmonic, harmonicGain);
+    });
+  });
+  
+  return { nodes, output: masterGain };
+}
+
+/**
  * Creates a Brown Noise generator using Web Audio API
  * Brown noise has more bass/low frequency content (1/f² spectrum)
  */
@@ -148,14 +211,27 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
       // Generate program-specific audio
       switch (program) {
         case "overloaded": {
-          // Pink noise - soft, constant volume
-          const pinkNoise = createPinkNoiseProcessor(audioContext);
-          pinkNoise.connect(gainNode);
-          nodesRef.current.push(pinkNoise);
+          // Tibetan singing bowls with pink noise undertone
           
-          // Fade in (reduced volume)
+          // Pink noise layer (very soft)
+          const pinkNoise = createPinkNoiseProcessor(audioContext);
+          const pinkGain = audioContext.createGain();
+          pinkGain.gain.setValueAtTime(0, audioContext.currentTime);
+          pinkGain.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 4);
+          pinkNoise.connect(pinkGain);
+          pinkGain.connect(gainNode);
+          nodesRef.current.push(pinkNoise, pinkGain);
+          
+          // Singing bowls layer
+          const { nodes: bowlNodes, output: bowlOutput } = createSingingBowls(audioContext);
+          bowlOutput.connect(gainNode);
+          bowlOutput.gain.setValueAtTime(0, audioContext.currentTime);
+          bowlOutput.gain.linearRampToValueAtTime(0.25, audioContext.currentTime + 5);
+          nodesRef.current.push(...bowlNodes, bowlOutput);
+          
+          // Master fade in
           gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.18, audioContext.currentTime + 3);
+          gainNode.gain.linearRampToValueAtTime(0.8, audioContext.currentTime + 3);
           break;
         }
 
