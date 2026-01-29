@@ -11,7 +11,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, subDays, parseISO, startOfDay } from "date-fns";
 import { useMetricHistory } from "@/hooks/useMetricHistory";
-import { Line, LineChart, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Line, LineChart, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { Target, Zap, Battery, Brain } from "lucide-react";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
@@ -49,7 +49,7 @@ interface SingleMetricChartProps {
   data: ChartDataPoint[];
 }
 
-// Custom X-axis tick - WHOOP style (positioned on baseline)
+// Custom X-axis tick - WHOOP style (anchored to the baseline)
 const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
   if (!payload || x === undefined || y === undefined) return null;
   
@@ -69,10 +69,10 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
           rx={6}
         />
       )}
-      {/* Day name - positioned below the baseline */}
+      {/* Day name */}
       <text
         x={0}
-        y={-8}
+        y={-6}
         textAnchor="middle"
         fill={isLastBool ? "rgba(148, 163, 184, 1)" : MUTED_TEXT}
         fontSize={11}
@@ -83,7 +83,7 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
       {/* Day number */}
       <text
         x={0}
-        y={6}
+        y={10}
         textAnchor="middle"
         fill={isLastBool ? BRIGHT_TEXT : "rgba(100, 116, 139, 0.6)"}
         fontSize={11}
@@ -168,13 +168,10 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const dataBandHeight = (yDataMax - yDataMin) / 2;
   const yBaseline = yDataMin - dataBandHeight;
 
-  // 4 equidistant lines: baseline, min, mid, max
-  const yTicks = [
-    yBaseline,                           // Line 1: baseline for dates
-    yDataMin,                            // Line 2: minimum value
-    yDataMin + dataBandHeight,           // Line 3: middle
-    yDataMax,                            // Line 4: top
-  ];
+  const yMid = yDataMin + dataBandHeight;
+  // Grid draws only the 3 data lines; baseline is drawn separately as a ReferenceLine
+  // to guarantee 4 visible lines even when Recharts collapses/extents.
+  const yGridTicks = [yDataMin, yMid, yDataMax];
 
   const yMin = yBaseline;
   const yMax = yDataMax;
@@ -211,14 +208,14 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 stroke={GRID_COLOR}
                 strokeWidth={1}
                 horizontalCoordinatesGenerator={({ height, offset }) => {
-                  const chartHeight = height;
-                  const scale = chartHeight / (yMax - yMin);
-                  return yTicks.map(tick => {
-                    const yPixel = offset.top + (yMax - tick) * scale;
-                    return yPixel;
-                  });
+                  // IMPORTANT: use inner plot height (excluding margins) to avoid grid/axis drift
+                  const innerHeight = height - offset.top - offset.bottom;
+                  const scale = innerHeight / (yMax - yMin);
+                  return yGridTicks.map((tick) => offset.top + (yMax - tick) * scale);
                 }}
               />
+              {/* Baseline for dates (bottom-most line) */}
+              <ReferenceLine y={yBaseline} stroke={GRID_COLOR} strokeWidth={1} ifOverflow="extendDomain" />
               <XAxis
                 dataKey="xLabel"
                 axisLine={false}
@@ -229,7 +226,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
               />
               <YAxis
                 domain={[yMin, yMax]}
-                ticks={yTicks}
+                ticks={yGridTicks}
                 hide
               />
               <Line
