@@ -69,10 +69,10 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
           rx={6}
         />
       )}
-      {/* Day name */}
+      {/* Day name - positioned below baseline */}
       <text
         x={0}
-        y={-6}
+        y={8}
         textAnchor="middle"
         fill={isLastBool ? "rgba(148, 163, 184, 1)" : MUTED_TEXT}
         fontSize={11}
@@ -83,7 +83,7 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
       {/* Day number */}
       <text
         x={0}
-        y={10}
+        y={22}
         textAnchor="middle"
         fill={isLastBool ? BRIGHT_TEXT : "rgba(100, 116, 139, 0.6)"}
         fontSize={11}
