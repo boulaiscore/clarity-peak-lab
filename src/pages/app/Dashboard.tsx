@@ -9,10 +9,11 @@ import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
+import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Dumbbell, BookMarked, Smartphone, Ban, Sparkles } from "lucide-react";
+import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Dumbbell, BookMarked, Smartphone, Ban, Sparkles, LineChart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
@@ -21,7 +22,7 @@ import { cn } from "@/lib/utils";
 const Dashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"overview" | "training" | "report">("overview");
-  const [trainingSubTab, setTrainingSubTab] = useState<"games" | "tasks" | "detox">("tasks");
+  const [trainingSubTab, setTrainingSubTab] = useState<"trends" | "games" | "tasks" | "detox">("trends");
   
   const isPremium = user?.subscriptionStatus === "premium";
   
@@ -192,9 +193,21 @@ const Dashboard = () => {
             {/* Progress Header with Animation */}
             <TrainingProgressHeader />
 
-            {/* Sub-tabs for Tasks/Detox/Games - Cleaner pill style */}
+            {/* Sub-tabs for Trends/Tasks/Detox/Games */}
             <div className="bg-muted/40 p-1 rounded-xl">
               <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setTrainingSubTab("trends")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
+                    trainingSubTab === "trends"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <LineChart className="w-3.5 h-3.5" />
+                  <span>Trends</span>
+                </button>
                 <button
                   onClick={() => setTrainingSubTab("tasks")}
                   className={cn(
@@ -246,7 +259,9 @@ const Dashboard = () => {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
               >
-                {trainingSubTab === "tasks" ? (
+                {trainingSubTab === "trends" ? (
+                  <MetricTrendCharts />
+                ) : trainingSubTab === "tasks" ? (
                   <TrainingTasks />
                 ) : trainingSubTab === "detox" ? (
                   <DetoxStats />
