@@ -4,9 +4,8 @@ import { RechargingMode } from "@/lib/recharging";
 /**
  * Fast Charge Audio Engine
  * 
- * Plays program-specific background audio files.
- * Each program MUST have its own distinct MP3 file - no fallbacks.
- * Duration controls looping/fading only.
+ * Generates program-specific background audio using Web Audio API.
+ * Each program has a unique noise profile - no fallbacks.
  */
 
 type AudioProgram = RechargingMode;
@@ -17,23 +16,84 @@ interface UseFastChargeAudioReturn {
   isPlaying: boolean;
 }
 
-const AUDIO_BASE_PATH = "/audio/recharging/";
+/**
+ * Creates a Pink Noise generator using Web Audio API
+ * Pink noise has equal energy per octave (1/f spectrum)
+ */
+function createPinkNoiseProcessor(audioContext: AudioContext): AudioWorkletNode | ScriptProcessorNode {
+  // Fallback to ScriptProcessor for broader compatibility
+  const bufferSize = 4096;
+  const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+  
+  // Pink noise coefficients (Paul Kellet's algorithm)
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+  
+  processor.onaudioprocess = (e) => {
+    const output = e.outputBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      
+      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+      b6 = white * 0.115926;
+    }
+  };
+  
+  return processor;
+}
 
 /**
- * Strict program-to-file mapping.
- * Each program has a unique background audio file.
- * NO fallback - if file is missing, we throw an error.
+ * Creates a Brown Noise generator using Web Audio API
+ * Brown noise has more bass/low frequency content (1/f² spectrum)
  */
-const PROGRAM_AUDIO_MAP: Record<RechargingMode, string> = {
-  overloaded: "overloaded.mp3",      // Pink noise
-  ruminating: "ruminating.mp3",       // Brown noise (deeper)
-  "pre-decision": "pre_decision.mp3", // Near silence with soft low tones
-  "end-of-day": "end_of_day.mp3",     // Pink noise with slow fade-out
-};
+function createBrownNoiseProcessor(audioContext: AudioContext): ScriptProcessorNode {
+  const bufferSize = 4096;
+  const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+  
+  let lastOut = 0;
+  
+  processor.onaudioprocess = (e) => {
+    const output = e.outputBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      output[i] = (lastOut + (0.02 * white)) / 1.02;
+      lastOut = output[i];
+      output[i] *= 3.5; // Boost the output
+    }
+  };
+  
+  return processor;
+}
+
+/**
+ * Creates a Low Frequency Tone generator for pre-decision mode
+ * Near silence with subtle, calming low-frequency tones
+ */
+function createLowToneGenerator(audioContext: AudioContext): OscillatorNode[] {
+  const oscillators: OscillatorNode[] = [];
+  
+  // Create subtle low-frequency oscillators
+  const frequencies = [40, 60, 80]; // Hz - very low, almost felt rather than heard
+  
+  frequencies.forEach((freq) => {
+    const osc = audioContext.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+    oscillators.push(osc);
+  });
+  
+  return oscillators;
+}
 
 export function useFastChargeAudio(): UseFastChargeAudioReturn {
   const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const nodesRef = useRef<AudioNode[]>([]);
   const gainNodeRef = useRef<GainNode | null>(null);
   const isPlayingRef = useRef(false);
   const stopTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,11 +104,18 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
       stopTimeoutRef.current = null;
     }
 
-    if (sourceRef.current) {
-      try { sourceRef.current.stop(); } catch (e) {}
-      try { sourceRef.current.disconnect(); } catch (e) {}
-      sourceRef.current = null;
-    }
+    // Stop and disconnect all nodes
+    nodesRef.current.forEach(node => {
+      try {
+        if (node instanceof OscillatorNode) {
+          node.stop();
+        }
+        node.disconnect();
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+    });
+    nodesRef.current = [];
 
     if (gainNodeRef.current) {
       try { gainNodeRef.current.disconnect(); } catch (e) {}
@@ -63,80 +130,89 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
     isPlayingRef.current = false;
   }, []);
 
-  const start = useCallback(async (program: AudioProgram, durationMinutes: number) => {
+  const start = useCallback((program: AudioProgram, durationMinutes: number) => {
     cleanup();
 
-    // Get the program-specific audio file
-    const audioFile = PROGRAM_AUDIO_MAP[program];
-    if (!audioFile) {
-      throw new Error(`No audio file mapped for program: ${program}`);
-    }
-
-    const audioUrl = `${AUDIO_BASE_PATH}${audioFile}`;
     const durationSeconds = durationMinutes * 60;
 
     try {
-      // Fetch the audio file
-      const response = await fetch(audioUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to load audio file for program "${program}": ${audioUrl} (${response.status})`);
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-
       // Create audio context
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioContext;
 
-      // Decode the audio
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-      // Create gain node for volume control
+      // Create master gain node
       const gainNode = audioContext.createGain();
       gainNode.connect(audioContext.destination);
       gainNodeRef.current = gainNode;
 
-      // Create source and connect
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.loop = true; // Loop the audio for the duration
-      source.connect(gainNode);
-      sourceRef.current = source;
-
-      // Apply program-specific volume and fade behavior
+      // Generate program-specific audio
       switch (program) {
-        case "overloaded":
-          // Soft pink noise, constant volume
-          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 3); // Fade in
-          break;
-
-        case "ruminating":
-          // Brown noise, slightly louder
-          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 3); // Fade in
-          break;
-
-        case "pre-decision":
-          // Near silence - very quiet
-          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.25, audioContext.currentTime + 3); // Fade in to low volume
-          break;
-
-        case "end-of-day":
-          // Pink noise with slow fade-out toward the end
-          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 3); // Fade in
+        case "overloaded": {
+          // Pink noise - soft, constant volume
+          const pinkNoise = createPinkNoiseProcessor(audioContext);
+          pinkNoise.connect(gainNode);
+          nodesRef.current.push(pinkNoise);
           
-          // Start fading out in the last 20% of the session
+          // Fade in
+          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.35, audioContext.currentTime + 3);
+          break;
+        }
+
+        case "ruminating": {
+          // Brown noise - deeper, slightly louder
+          const brownNoise = createBrownNoiseProcessor(audioContext);
+          brownNoise.connect(gainNode);
+          nodesRef.current.push(brownNoise);
+          
+          // Fade in
+          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 3);
+          break;
+        }
+
+        case "pre-decision": {
+          // Low tones - near silence with subtle low frequencies
+          const oscillators = createLowToneGenerator(audioContext);
+          const oscGain = audioContext.createGain();
+          oscGain.connect(gainNode);
+          
+          oscillators.forEach((osc, index) => {
+            // Slightly different gain for each oscillator
+            const individualGain = audioContext.createGain();
+            individualGain.gain.setValueAtTime(0.15 - index * 0.03, audioContext.currentTime);
+            osc.connect(individualGain);
+            individualGain.connect(oscGain);
+            osc.start();
+            nodesRef.current.push(osc, individualGain);
+          });
+          
+          nodesRef.current.push(oscGain);
+          
+          // Very quiet - near silence
+          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 4);
+          break;
+        }
+
+        case "end-of-day": {
+          // Pink noise with slow fade-out toward the end
+          const pinkNoise = createPinkNoiseProcessor(audioContext);
+          pinkNoise.connect(gainNode);
+          nodesRef.current.push(pinkNoise);
+          
+          // Fade in
+          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.35, audioContext.currentTime + 3);
+          
+          // Schedule fade-out in the last 20% of the session
           const fadeStartTime = durationSeconds * 0.8;
-          gainNode.gain.setValueAtTime(0.4, audioContext.currentTime + fadeStartTime);
+          gainNode.gain.setValueAtTime(0.35, audioContext.currentTime + fadeStartTime);
           gainNode.gain.linearRampToValueAtTime(0.05, audioContext.currentTime + durationSeconds);
           break;
+        }
       }
 
-      // Start playback
-      source.start();
       isPlayingRef.current = true;
 
       // Auto-stop after duration
@@ -156,7 +232,6 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
     } catch (error) {
       cleanup();
       console.error(`Fast Charge audio error for program "${program}":`, error);
-      throw error; // Re-throw to let caller handle the error
     }
   }, [cleanup]);
 
