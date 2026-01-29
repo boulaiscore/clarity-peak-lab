@@ -5,12 +5,14 @@ import { X } from "lucide-react";
 import { RechargingIntro } from "@/components/recharging/RechargingIntro";
 import { RechargingCheck } from "@/components/recharging/RechargingCheck";
 import { RechargingModeSelect, RechargingIntensity } from "@/components/recharging/RechargingModeSelect";
+import { RechargingVoiceModeSelect } from "@/components/recharging/RechargingVoiceModeSelect";
 import { RechargingSession } from "@/components/recharging/RechargingSession";
 import { RechargingResults } from "@/components/recharging/RechargingResults";
 import {
   RechargingCheckValues,
   RechargingMode,
   RechargingResult,
+  RechargingAudioMode,
   calculateRechargingScore,
 } from "@/lib/recharging";
 import {
@@ -27,6 +29,7 @@ import {
 type Phase = 
   | "intro" 
   | "mode-select" 
+  | "voice-mode-select"
   | "pre-check" 
   | "session" 
   | "post-check" 
@@ -36,7 +39,7 @@ type Phase =
  * Recharging Runner
  * 
  * A session-based cognitive reset to restore reasoning clarity.
- * Flow: Intro → Mode selection → Pre-check → Session → Post-check → Results
+ * Flow: Intro → Mode selection → Voice mode selection → Pre-check → Session → Post-check → Results
  * 
  * This does NOT affect long-term metrics or Recovery.
  * It provides a temporary cognitive boost measured by pre/post comparison.
@@ -49,6 +52,7 @@ export default function RechargingRunner() {
   // Session data
   const [selectedMode, setSelectedMode] = useState<RechargingMode | null>(null);
   const [selectedIntensity, setSelectedIntensity] = useState<RechargingIntensity>(10);
+  const [audioMode, setAudioMode] = useState<RechargingAudioMode>("sound_only");
   const [preCheckValues, setPreCheckValues] = useState<RechargingCheckValues | null>(null);
   const [sessionDuration, setSessionDuration] = useState<number>(0);
   const [result, setResult] = useState<RechargingResult | null>(null);
@@ -75,6 +79,11 @@ export default function RechargingRunner() {
   const handleModeSelect = useCallback((mode: RechargingMode, intensity: RechargingIntensity) => {
     setSelectedMode(mode);
     setSelectedIntensity(intensity);
+    setCurrentPhase("voice-mode-select");
+  }, []);
+
+  const handleVoiceModeSelect = useCallback((mode: RechargingAudioMode) => {
+    setAudioMode(mode);
     setCurrentPhase("pre-check");
   }, []);
 
@@ -121,6 +130,12 @@ export default function RechargingRunner() {
             onSelect={handleModeSelect}
           />
         );
+      case "voice-mode-select":
+        return (
+          <RechargingVoiceModeSelect
+            onSelect={handleVoiceModeSelect}
+          />
+        );
       case "pre-check":
         return <RechargingCheck type="pre" onComplete={handlePreCheckComplete} />;
       case "session":
@@ -128,6 +143,7 @@ export default function RechargingRunner() {
           <RechargingSession
             mode={selectedMode || "overloaded"}
             durationMinutes={selectedIntensity}
+            audioMode={audioMode}
             onComplete={handleSessionComplete}
           />
         );
