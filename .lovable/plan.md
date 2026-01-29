@@ -1,92 +1,129 @@
 
-# Fix Grid Lines per Chart Trends WHOOP-Style
+# Fix Layout Grafico Trend WHOOP-Style
 
-## Problema Identificato
-1. `CartesianGrid` non utilizza `horizontalPoints` o `horizontalCoordinatesGenerator` per allineare le linee ai tick Y
-2. Quando i valori sono tutti uguali (es. 34, 34), il range diventa 0 e i calcoli falliscono
-3. Le linee orizzontali non sono visibili perche il CartesianGrid di recharts non rispetta automaticamente i ticks dell'asse Y nascosto
+## Problema
+1. La linea piu bassa del grafico coincide attualmente con yMin (valore minimo)
+2. Le date (asse X) sono renderizzate sulla seconda linea invece che sulla prima (baseline)
+3. Il pallino del valore minimo non poggia correttamente sulla prima linea dati
 
-## Soluzione
-
-### 1. Correggere il calcolo del range Y
-Quando tutti i valori sono uguali, creare un range artificiale centrato sul valore:
-- Se `range === 0`: usare `dataMin - 10` come minimo e `dataMin + 30` come massimo
-- Questo garantisce che ci sia sempre spazio per 4 bande visibili
-- Il valore minimo deve posare sulla prima linea (la piu bassa)
-
-### 2. Usare horizontalCoordinatesGenerator nel CartesianGrid
-Recharts richiede coordinate Y esplicite per disegnare le linee orizzontali ai punti corretti:
-```tsx
-<CartesianGrid 
-  horizontal={true}
-  vertical={false}
-  stroke={GRID_COLOR}
-  horizontalCoordinatesGenerator={(props) => {
-    // Calcola le Y pixel per ogni tick
-    const { height, offset } = props;
-    const yScale = height / (yMax - yMin);
-    return yTicks.map(tick => offset.top + (yMax - tick) * yScale);
-  }}
-/>
+## Struttura Corretta (dal basso verso l'alto)
+```text
+Linea 4 (top)     ─────────────────────  (yMax o spazio sopra massimo)
+Linea 3           ─────────────────────  (valore intermedio)
+Linea 2           ────────O────────O──  (yMin = valore minimo, pallini qui)
+Linea 1 (base)    ─────────────────────  (baseline per date: Sat 24, Sun 25...)
 ```
 
-### 3. Assicurare che il minimo sia sulla prima linea
-- `yMin` deve essere esattamente uguale al `dataMin` (senza padding negativo)
-- Le 4 bande vanno calcolate dal minimo verso l'alto
-- Formula: `yMin = dataMin`, poi distribuire le 4 fasce sopra
+## Soluzione Tecnica
 
-### Modifiche Tecniche
+### 1. Aggiungere una linea baseline separata
+La griglia deve avere 4 linee orizzontali, ma il dominio Y deve iniziare SOTTO il valore minimo per creare spazio per la baseline delle date.
+
+Nuovo calcolo:
+- `yBaseline` = valore fittizio sotto yMin (es. yMin - baselineGap)
+- `yMin` = dataMin (valore minimo reale)
+- `yMax` = dataMax + padding
+- 4 linee: [yBaseline, yMin, yMid, yMax]
+
+### 2. Modificare il dominio YAxis
+```tsx
+const baselineGap = (yMax - dataMin) * 0.25; // Gap per baseline
+const yBaseline = dataMin - baselineGap;
+
+// Domain ora include baseline
+domain={[yBaseline, yMax]}
+
+// 4 linee equidistanti
+const yTicks = [yBaseline, dataMin, (dataMin + dataMax) / 2, yMax];
+```
+
+### 3. Spostare l'asse X alla baseline
+Configurare XAxis con posizione esplicita per allinearsi alla prima linea (yBaseline).
+
+### Modifiche File
 
 **File: `src/components/dashboard/MetricTrendCharts.tsx`**
 
-Linee 143-154 - Ricalcolare yMin/yMax:
+**Linee 143-166** - Ricalcolo dominio Y con baseline:
 ```tsx
-// Calculate min/max for dynamic Y axis with 4 bands
+// Calculate min/max for dynamic Y axis
 const values = data.filter(d => d.value !== null).map(d => d.value as number);
 const dataMin = values.length > 0 ? Math.min(...values) : 50;
 const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-// Handle case when all values are the same
-let yMin: number;
-let yMax: number;
+// Create 4 horizontal bands:
+// Line 1 (bottom): baseline for dates
+// Line 2: minimum value (data points rest here)
+// Line 3: middle
+// Line 4 (top): maximum + padding
+
+let yDataMin: number;
+let yDataMax: number;
 
 if (dataMin === dataMax) {
-  // Create artificial range when values are identical
-  yMin = Math.max(0, dataMin - 5);
-  yMax = Math.min(100, dataMin + 15);
+  yDataMin = dataMin;
+  yDataMax = dataMin + 20;
 } else {
-  // Normal case: min sits on bottom line, add space above max
-  yMin = dataMin;
+  yDataMin = dataMin;
   const range = dataMax - dataMin;
-  yMax = Math.min(100, dataMax + range * 0.2);
+  yDataMax = dataMax + range * 0.15;
 }
 
-// Generate 4 equidistant horizontal lines (yMin = first line at bottom)
-const tickStep = (yMax - yMin) / 3; // 4 lines = 3 gaps
-const yTicks = [yMin, yMin + tickStep, yMin + tickStep * 2, yMax];
+// Baseline is below yDataMin to create space for date labels
+const bandHeight = (yDataMax - yDataMin) / 2; // 3 data bands above baseline
+const yBaseline = yDataMin - bandHeight;
+
+// 4 equidistant lines: baseline, min, mid, max
+const yTicks = [
+  yBaseline,                           // Line 1: baseline for dates
+  yDataMin,                            // Line 2: minimum value
+  yDataMin + bandHeight,               // Line 3: middle
+  yDataMax,                            // Line 4: top
+];
+
+const yMin = yBaseline;
+const yMax = yDataMax;
 ```
 
-Linee 190-195 - Implementare horizontalCoordinatesGenerator:
+**Linee 193-216** - Aggiornare margin bottom e CartesianGrid:
 ```tsx
-<CartesianGrid 
-  horizontal={true}
-  vertical={false}
-  stroke={GRID_COLOR}
-  strokeWidth={1}
-  horizontalCoordinatesGenerator={({ height, offset }) => {
-    // Map yTicks to pixel coordinates
-    const chartHeight = height;
-    const scale = chartHeight / (yMax - yMin);
-    return yTicks.map(tick => {
-      const yPixel = offset.top + (yMax - tick) * scale;
-      return yPixel;
-    });
-  }}
-/>
+<LineChart data={chartData} margin={{ top: 32, right: 20, left: 20, bottom: 8 }}>
+  <CartesianGrid 
+    horizontal={true}
+    vertical={false}
+    stroke={GRID_COLOR}
+    strokeWidth={1}
+    horizontalCoordinatesGenerator={({ height, offset }) => {
+      const chartHeight = height;
+      const scale = chartHeight / (yMax - yMin);
+      return yTicks.map(tick => {
+        const yPixel = offset.top + (yMax - tick) * scale;
+        return yPixel;
+      });
+    }}
+  />
+  <XAxis
+    dataKey="xLabel"
+    axisLine={false}
+    tickLine={false}
+    tick={<CustomXAxisTick />}
+    interval={0}
+    orientation="bottom"
+  />
+  <YAxis
+    domain={[yMin, yMax]}
+    ticks={yTicks}
+    hide
+  />
 ```
 
-### Risultato Atteso
-- 4 linee orizzontali equidistanti sempre visibili
-- La prima linea (in basso) corrisponde esattamente al valore minimo della settimana
-- Le linee si adattano dinamicamente ai dati
-- Funziona anche quando tutti i valori sono identici
+**Linee 52-97** - Aggiornare CustomXAxisTick per allinearsi alla baseline:
+Il tick dell'asse X deve posizionarsi correttamente sulla prima linea orizzontale (baseline). Aggiustare le coordinate Y del rect highlight e del testo.
+
+## Risultato Atteso
+- 4 linee orizzontali equidistanti
+- Linea 1 (piu bassa): solo date (Sat 24, Sun 25, ecc.)
+- Linea 2: valore minimo - i pallini con valore 34 poggiano QUI
+- Linea 3: valore intermedio
+- Linea 4: valore massimo o spazio sopra
+- Le date sono sulla baseline, non sovrapposte ai dati
