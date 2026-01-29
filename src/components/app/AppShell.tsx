@@ -6,6 +6,7 @@ import { NLOOPLogo } from "@/components/ui/NLOOPLogo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { useDecayNotificationInit } from "@/hooks/useDecayNotificationInit";
+import { useAutoMetricSnapshot } from "@/hooks/useAutoMetricSnapshot";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -36,6 +37,9 @@ export function AppShell({ children }: AppShellProps) {
   
   // Initialize decay notifications on app load
   useDecayNotificationInit();
+  
+  // Auto-save daily metric snapshot (readiness, sharpness, recovery, RQ)
+  useAutoMetricSnapshot();
   
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
