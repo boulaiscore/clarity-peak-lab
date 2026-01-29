@@ -96,7 +96,7 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   );
 };
 
-// Custom dot - hollow circle
+// Custom dot - filled black circle
 const CustomDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: ChartDataPoint }) => {
   if (!payload || payload.value === null || cx === undefined || cy === undefined) return null;
   
@@ -105,7 +105,7 @@ const CustomDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: Ch
       cx={cx}
       cy={cy}
       r={5}
-      fill="transparent"
+      fill="#0f172a"
       stroke={CHART_COLOR}
       strokeWidth={2}
     />
