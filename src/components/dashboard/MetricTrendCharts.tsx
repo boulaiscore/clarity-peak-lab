@@ -1,160 +1,89 @@
 /**
  * ============================================
- * METRIC TREND CHARTS
+ * METRIC TREND CHARTS - WHOOP Style
  * ============================================
  * 
- * WHOOP-style line charts for core cognitive metrics:
- * - Readiness
- * - Sharpness
- * - Recovery
- * - Reasoning Quality
+ * Premium line charts for cognitive metrics.
+ * Exact WHOOP/Oura visual specification.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
-import { useMetricHistory, MetricDataPoint } from "@/hooks/useMetricHistory";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Line, LineChart, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from "recharts";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
-  Brain, 
-  Zap, 
-  Battery, 
-  Target,
-  ChevronRight
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useMetricHistory } from "@/hooks/useMetricHistory";
+import { Line, LineChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Target, Zap, Battery, Brain } from "lucide-react";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
 
 interface MetricConfig {
   key: MetricKey;
   label: string;
-  shortLabel: string;
   icon: React.ElementType;
   color: string;
-  gradientId: string;
 }
 
 const METRICS: MetricConfig[] = [
-  {
-    key: "readiness",
-    label: "Readiness",
-    shortLabel: "RDN",
-    icon: Target,
-    color: "hsl(var(--readiness))",
-    gradientId: "readinessGradient",
-  },
-  {
-    key: "sharpness",
-    label: "Sharpness",
-    shortLabel: "SHP",
-    icon: Zap,
-    color: "hsl(var(--sharpness))",
-    gradientId: "sharpnessGradient",
-  },
-  {
-    key: "recovery",
-    label: "Recovery",
-    shortLabel: "REC",
-    icon: Battery,
-    color: "hsl(var(--recovery))",
-    gradientId: "recoveryGradient",
-  },
-  {
-    key: "reasoningQuality",
-    label: "Reasoning Quality",
-    shortLabel: "RQ",
-    icon: Brain,
-    color: "hsl(var(--primary))",
-    gradientId: "rqGradient",
-  },
+  { key: "readiness", label: "Readiness", icon: Target, color: "#7CB3E8" },
+  { key: "sharpness", label: "Sharpness", icon: Zap, color: "#7CB3E8" },
+  { key: "recovery", label: "Recovery", icon: Battery, color: "#7CB3E8" },
+  { key: "reasoningQuality", label: "Reasoning Quality", icon: Brain, color: "#7CB3E8" },
 ];
+
+interface ChartDataPoint {
+  date: string;
+  value: number | null;
+  dayName: string;
+  dayNum: string;
+  isToday: boolean;
+  xLabel: string;
+}
 
 interface SingleMetricChartProps {
   metric: MetricConfig;
-  data: Array<{ date: string; value: number | null; displayDate: string; dayName: string; dayNum: string; isToday: boolean }>;
-  trend: number | null;
-  average: number | null;
-  latestValue: number | null;
+  data: ChartDataPoint[];
 }
 
-// Custom label component to show values above points
-const CustomLabel = ({ x, y, value, color }: { x?: number; y?: number; value?: number | null; color: string }) => {
-  if (value === null || value === undefined || x === undefined || y === undefined) return null;
-  return (
-    <text
-      x={x}
-      y={y - 12}
-      fill={color}
-      textAnchor="middle"
-      fontSize={11}
-      fontWeight={500}
-    >
-      {Math.round(value)}
-    </text>
-  );
-};
-
-// Custom dot component - hollow circles like WHOOP
-const CustomDot = ({ cx, cy, value, color }: { cx?: number; cy?: number; value?: number | null; color: string }) => {
-  if (value === null || value === undefined || cx === undefined || cy === undefined) return null;
-  return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={5}
-      fill="hsl(var(--background))"
-      stroke={color}
-      strokeWidth={2}
-    />
-  );
-};
-
-// Custom X-axis tick with day name and number
+// Custom X-axis tick with WHOOP-style formatting
 const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
   if (!payload || x === undefined || y === undefined) return null;
   
-  // Parse the payload value which contains dayName|dayNum|isToday
   const [dayName, dayNum, isToday] = payload.value.split('|');
   const isTodayBool = isToday === 'true';
   
   return (
     <g transform={`translate(${x},${y})`}>
-      {/* Highlight background for today */}
+      {/* Highlight band for current day */}
       {isTodayBool && (
         <rect
-          x={-16}
-          y={-2}
-          width={32}
-          height={36}
+          x={-20}
+          y={-85}
+          width={40}
+          height={120}
+          fill="rgba(100, 116, 139, 0.12)"
           rx={4}
-          fill="hsl(var(--muted)/0.5)"
         />
       )}
+      {/* Day name */}
       <text
         x={0}
         y={8}
         textAnchor="middle"
-        fill="hsl(var(--muted-foreground))"
-        fontSize={10}
+        fill={isTodayBool ? "rgba(148, 163, 184, 1)" : "rgba(100, 116, 139, 0.7)"}
+        fontSize={11}
+        fontFamily="system-ui, -apple-system, sans-serif"
       >
         {dayName}
       </text>
+      {/* Day number */}
       <text
         x={0}
         y={22}
         textAnchor="middle"
-        fill={isTodayBool ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground)/0.7)"}
-        fontSize={10}
+        fill={isTodayBool ? "rgba(226, 232, 240, 1)" : "rgba(100, 116, 139, 0.6)"}
+        fontSize={11}
         fontWeight={isTodayBool ? 600 : 400}
+        fontFamily="system-ui, -apple-system, sans-serif"
       >
         {dayNum}
       </text>
@@ -162,84 +91,86 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   );
 };
 
-function SingleMetricChart({ metric, data, trend, average, latestValue }: SingleMetricChartProps) {
-  const Icon = metric.icon;
+// Custom dot - hollow circle with background fill
+const CustomDot = ({ cx, cy, payload, color }: { cx?: number; cy?: number; payload?: ChartDataPoint; color: string }) => {
+  if (!payload || payload.value === null || cx === undefined || cy === undefined) return null;
   
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={5}
+      fill="#1E293B"
+      stroke={color}
+      strokeWidth={2}
+    />
+  );
+};
+
+// Custom label above each point
+const CustomLabel = ({ x, y, value, color }: { x?: number; y?: number; value?: number | null; color: string }) => {
+  if (value === null || value === undefined || x === undefined || y === undefined) return null;
+  
+  return (
+    <text
+      x={x}
+      y={y - 14}
+      textAnchor="middle"
+      fill={color}
+      fontSize={12}
+      fontWeight={500}
+      fontFamily="system-ui, -apple-system, sans-serif"
+    >
+      {Math.round(value)}
+    </text>
+  );
+};
+
+function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
+  const Icon = metric.icon;
   const hasData = data.some((d) => d.value !== null);
 
-  // Calculate trend direction
-  const trendDirection = trend === null ? "flat" : trend > 2 ? "up" : trend < -2 ? "down" : "flat";
-
-  // Transform data for custom x-axis
+  // Prepare chart data with xLabel for axis
   const chartData = data.map(d => ({
     ...d,
-    xAxisLabel: `${d.dayName}|${d.dayNum}|${d.isToday}`,
+    xLabel: `${d.dayName}|${d.dayNum}|${d.isToday}`,
   }));
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-2xl bg-card/60 border border-border/40"
+      className="rounded-xl overflow-hidden"
+      style={{ backgroundColor: '#1E293B' }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div 
-            className="p-1.5 rounded-lg"
-            style={{ backgroundColor: `${metric.color}20` }}
-          >
-            <Icon className="w-3.5 h-3.5" style={{ color: metric.color }} />
-          </div>
-          <span className="text-[12px] font-semibold text-foreground uppercase tracking-wide">
-            {metric.label}
-          </span>
-        </div>
-        
-        {/* Trend indicator in header */}
-        {hasData && (
-          <div className="flex items-center gap-1">
-            {trendDirection === "up" && (
-              <>
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-[11px] font-medium text-emerald-400">
-                  +{Math.round(trend!)}
-                </span>
-              </>
-            )}
-            {trendDirection === "down" && (
-              <>
-                <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
-                <span className="text-[11px] font-medium text-rose-400">
-                  {Math.round(trend!)}
-                </span>
-              </>
-            )}
-            {trendDirection === "flat" && (
-              <>
-                <Minus className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-[11px] text-muted-foreground">Stable</span>
-              </>
-            )}
-          </div>
-        )}
+      {/* Minimal header */}
+      <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+        <Icon className="w-3.5 h-3.5" style={{ color: metric.color, opacity: 0.8 }} />
+        <span 
+          className="text-[11px] font-medium uppercase tracking-wider"
+          style={{ color: 'rgba(148, 163, 184, 0.9)' }}
+        >
+          {metric.label}
+        </span>
       </div>
 
       {!hasData ? (
-        <div className="h-[140px] flex items-center justify-center">
-          <p className="text-[10px] text-muted-foreground">No data yet</p>
+        <div className="h-[120px] flex items-center justify-center">
+          <p className="text-[11px]" style={{ color: 'rgba(100, 116, 139, 0.6)' }}>
+            No data yet
+          </p>
         </div>
       ) : (
-        <div className="h-[140px] w-full">
+        <div className="h-[140px] w-full px-2">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 25, right: 10, left: 10, bottom: 30 }}>
+            <LineChart data={chartData} margin={{ top: 30, right: 15, left: 15, bottom: 35 }}>
               <XAxis
-                dataKey="xAxisLabel"
+                dataKey="xLabel"
                 axisLine={false}
                 tickLine={false}
                 tick={<CustomXAxisTick />}
                 interval={0}
-                height={40}
+                height={35}
               />
               <YAxis
                 domain={[0, 100]}
@@ -249,13 +180,15 @@ function SingleMetricChart({ metric, data, trend, average, latestValue }: Single
                 type="monotone"
                 dataKey="value"
                 stroke={metric.color}
-                strokeWidth={1.5}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 connectNulls
                 dot={(props) => (
                   <CustomDot
                     cx={props.cx}
                     cy={props.cy}
-                    value={props.payload.value}
+                    payload={props.payload}
                     color={metric.color}
                   />
                 )}
@@ -267,7 +200,7 @@ function SingleMetricChart({ metric, data, trend, average, latestValue }: Single
                     color={metric.color}
                   />
                 )}
-                activeDot={false}
+                isAnimationActive={false}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -278,13 +211,13 @@ function SingleMetricChart({ metric, data, trend, average, latestValue }: Single
 }
 
 export function MetricTrendCharts() {
-  const { history, trends, averages, isLoading, hasData } = useMetricHistory({ days: 14 });
+  const { history, isLoading, hasData } = useMetricHistory({ days: 7 });
 
-  // Transform data for each metric with WHOOP-style x-axis labels
+  // Transform data for each metric
   const chartDataByMetric = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
     
-    const result: Record<MetricKey, Array<{ date: string; value: number | null; displayDate: string; dayName: string; dayNum: string; isToday: boolean }>> = {
+    const result: Record<MetricKey, ChartDataPoint[]> = {
       readiness: [],
       sharpness: [],
       recovery: [],
@@ -293,39 +226,30 @@ export function MetricTrendCharts() {
 
     history.forEach((point) => {
       const parsedDate = parseISO(point.date);
-      const displayDate = format(parsedDate, "dd");
-      const dayName = format(parsedDate, "EEE"); // Sat, Sun, Mon, etc.
-      const dayNum = format(parsedDate, "d"); // 1, 2, 3, etc.
+      const dayName = format(parsedDate, "EEE");
+      const dayNum = format(parsedDate, "d");
       const isToday = point.date === today;
       
-      result.readiness.push({ date: point.date, value: point.readiness, displayDate, dayName, dayNum, isToday });
-      result.sharpness.push({ date: point.date, value: point.sharpness, displayDate, dayName, dayNum, isToday });
-      result.recovery.push({ date: point.date, value: point.recovery, displayDate, dayName, dayNum, isToday });
-      result.reasoningQuality.push({ date: point.date, value: point.reasoningQuality, displayDate, dayName, dayNum, isToday });
+      const base = { date: point.date, dayName, dayNum, isToday, xLabel: "" };
+      
+      result.readiness.push({ ...base, value: point.readiness });
+      result.sharpness.push({ ...base, value: point.sharpness });
+      result.recovery.push({ ...base, value: point.recovery });
+      result.reasoningQuality.push({ ...base, value: point.reasoningQuality });
     });
 
     return result;
-  }, [history]);
-
-  // Get latest values
-  const latestValues = useMemo(() => {
-    if (history.length === 0) {
-      return { readiness: null, sharpness: null, recovery: null, reasoningQuality: null };
-    }
-    const latest = history[history.length - 1];
-    return {
-      readiness: latest.readiness,
-      sharpness: latest.sharpness,
-      recovery: latest.recovery,
-      reasoningQuality: latest.reasoningQuality,
-    };
   }, [history]);
 
   if (isLoading) {
     return (
       <div className="space-y-3">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-[180px] rounded-2xl bg-card/40 animate-pulse" />
+          <div 
+            key={i} 
+            className="h-[170px] rounded-xl animate-pulse"
+            style={{ backgroundColor: '#1E293B' }}
+          />
         ))}
       </div>
     );
@@ -333,11 +257,12 @@ export function MetricTrendCharts() {
 
   if (!hasData) {
     return (
-      <div className="p-6 rounded-2xl bg-card/60 border border-border/40 text-center">
-        <Brain className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-        <h3 className="text-sm font-semibold text-foreground mb-1">No Historical Data Yet</h3>
-        <p className="text-xs text-muted-foreground">
-          Your metric trends will appear here as you use the app daily.
+      <div 
+        className="p-6 rounded-xl text-center"
+        style={{ backgroundColor: '#1E293B' }}
+      >
+        <p className="text-sm" style={{ color: 'rgba(148, 163, 184, 0.8)' }}>
+          No historical data yet. Your trends will appear here.
         </p>
       </div>
     );
@@ -348,16 +273,13 @@ export function MetricTrendCharts() {
       {METRICS.map((metric, index) => (
         <motion.div
           key={metric.key}
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: index * 0.1 }}
+          transition={{ duration: 0.25, delay: index * 0.05 }}
         >
           <SingleMetricChart
             metric={metric}
             data={chartDataByMetric[metric.key]}
-            trend={trends[metric.key]}
-            average={averages[metric.key]}
-            latestValue={latestValues[metric.key]}
           />
         </motion.div>
       ))}
