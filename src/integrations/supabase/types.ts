@@ -71,6 +71,57 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_metric_snapshots: {
+        Row: {
+          ae: number | null
+          created_at: string
+          ct: number | null
+          id: string
+          in_score: number | null
+          ra: number | null
+          readiness: number | null
+          reasoning_quality: number | null
+          recovery: number | null
+          s1: number | null
+          s2: number | null
+          sharpness: number | null
+          snapshot_date: string
+          user_id: string
+        }
+        Insert: {
+          ae?: number | null
+          created_at?: string
+          ct?: number | null
+          id?: string
+          in_score?: number | null
+          ra?: number | null
+          readiness?: number | null
+          reasoning_quality?: number | null
+          recovery?: number | null
+          s1?: number | null
+          s2?: number | null
+          sharpness?: number | null
+          snapshot_date: string
+          user_id: string
+        }
+        Update: {
+          ae?: number | null
+          created_at?: string
+          ct?: number | null
+          id?: string
+          in_score?: number | null
+          ra?: number | null
+          readiness?: number | null
+          reasoning_quality?: number | null
+          recovery?: number | null
+          s1?: number | null
+          s2?: number | null
+          sharpness?: number | null
+          snapshot_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       detox_completions: {
         Row: {
           completed_at: string
