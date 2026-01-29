@@ -146,22 +146,27 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
   // Baseline is ALWAYS 0 - if a value is 0, the dot sits on baseline
-  // 4 horizontal lines from 0 to yMax
+  // First data line (line 2) = dataMin - minimum value dot sits here
+  // Exception: if dataMin = 0, it sits on baseline
+  
   const yBaseline = 0;
   
-  // yMax = dataMax + padding (at least 20 to give room)
-  const yDataMax = Math.max(dataMax * 1.15, dataMax + 5);
-
-  // 4 equidistant lines: 0 (baseline), line2, line3, yMax
-  const bandHeight = yDataMax / 3; // 3 gaps = 4 lines
+  // Calculate yMax so that dataMin sits on line 2 (first line above baseline)
+  // 4 equidistant lines: 0, yMax/3, 2*yMax/3, yMax
+  // Line 2 = yMax/3 = dataMin → yMax = 3 * dataMin
+  // But if dataMax > yMax, extend to fit all data
+  const yMaxFromMin = dataMin > 0 ? 3 * dataMin : 60; // fallback if dataMin is 0
+  const yMax = Math.max(yMaxFromMin, dataMax * 1.15);
+  
+  // 4 equidistant lines from 0 to yMax
+  const bandHeight = yMax / 3;
   const yGridTicks = [
-    yBaseline + bandHeight,      // Line 2
-    yBaseline + bandHeight * 2,  // Line 3
-    yDataMax,                    // Line 4 (top)
+    bandHeight,        // Line 2 (≈ dataMin when dataMin > 0)
+    bandHeight * 2,    // Line 3
+    yMax,              // Line 4 (top)
   ];
 
   const yMin = yBaseline;
-  const yMax = yDataMax;
 
   return (
     <motion.div
