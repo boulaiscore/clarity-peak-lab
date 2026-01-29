@@ -153,9 +153,9 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
           pinkNoise.connect(gainNode);
           nodesRef.current.push(pinkNoise);
           
-          // Fade in
+          // Fade in (reduced volume)
           gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.35, audioContext.currentTime + 3);
+          gainNode.gain.linearRampToValueAtTime(0.18, audioContext.currentTime + 3);
           break;
         }
 
@@ -165,9 +165,9 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
           brownNoise.connect(gainNode);
           nodesRef.current.push(brownNoise);
           
-          // Fade in
+          // Fade in (reduced volume)
           gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 3);
+          gainNode.gain.linearRampToValueAtTime(0.22, audioContext.currentTime + 3);
           break;
         }
 
@@ -178,9 +178,9 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
           oscGain.connect(gainNode);
           
           oscillators.forEach((osc, index) => {
-            // Slightly different gain for each oscillator
+            // Slightly different gain for each oscillator (reduced)
             const individualGain = audioContext.createGain();
-            individualGain.gain.setValueAtTime(0.15 - index * 0.03, audioContext.currentTime);
+            individualGain.gain.setValueAtTime(0.08 - index * 0.02, audioContext.currentTime);
             osc.connect(individualGain);
             individualGain.connect(oscGain);
             osc.start();
@@ -189,9 +189,9 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
           
           nodesRef.current.push(oscGain);
           
-          // Very quiet - near silence
+          // Very quiet - near silence (reduced volume)
           gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 4);
+          gainNode.gain.linearRampToValueAtTime(0.08, audioContext.currentTime + 4);
           break;
         }
 
@@ -201,14 +201,14 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
           pinkNoise.connect(gainNode);
           nodesRef.current.push(pinkNoise);
           
-          // Fade in
+          // Fade in (reduced volume)
           gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-          gainNode.gain.linearRampToValueAtTime(0.35, audioContext.currentTime + 3);
+          gainNode.gain.linearRampToValueAtTime(0.18, audioContext.currentTime + 3);
           
           // Schedule fade-out in the last 20% of the session
           const fadeStartTime = durationSeconds * 0.8;
-          gainNode.gain.setValueAtTime(0.35, audioContext.currentTime + fadeStartTime);
-          gainNode.gain.linearRampToValueAtTime(0.05, audioContext.currentTime + durationSeconds);
+          gainNode.gain.setValueAtTime(0.18, audioContext.currentTime + fadeStartTime);
+          gainNode.gain.linearRampToValueAtTime(0.03, audioContext.currentTime + durationSeconds);
           break;
         }
       }
