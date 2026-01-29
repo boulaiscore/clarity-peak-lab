@@ -27,7 +27,6 @@ export function useVoiceCueAudio({
 }: UseVoiceCueAudioProps) {
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const startTimeRef = useRef<number>(0);
 
   const playAudio = useCallback((filename: string, volume = 0.8) => {
     try {
@@ -49,7 +48,17 @@ export function useVoiceCueAudio({
     }
   }, []);
 
-  const scheduleVoiceCues = useCallback(() => {
+  const stop = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  }, []);
+
+  // Schedule voice cues when session becomes active
+  useEffect(() => {
     // Clear any existing timeouts
     timeoutsRef.current.forEach(clearTimeout);
     timeoutsRef.current = [];
@@ -57,8 +66,6 @@ export function useVoiceCueAudio({
     if (audioMode !== "voice" || !isActive) {
       return;
     }
-
-    startTimeRef.current = Date.now();
 
     // Play intro immediately
     playAudio("INTRO_01.mp3");
@@ -74,13 +81,6 @@ export function useVoiceCueAudio({
 
       timeoutsRef.current.push(timeout);
     });
-  }, [mode, durationMinutes, audioMode, isActive, playAudio]);
-
-  // Start scheduling when session becomes active
-  useEffect(() => {
-    if (isActive) {
-      scheduleVoiceCues();
-    }
 
     return () => {
       // Cleanup on unmount or when session ends
@@ -92,24 +92,7 @@ export function useVoiceCueAudio({
         audioRef.current = null;
       }
     };
-  }, [isActive, scheduleVoiceCues]);
+  }, [mode, durationMinutes, audioMode, isActive, playAudio]);
 
-  // Cleanup on mode change
-  useEffect(() => {
-    return () => {
-      timeoutsRef.current.forEach(clearTimeout);
-      timeoutsRef.current = [];
-    };
-  }, [audioMode]);
-
-  return {
-    stop: useCallback(() => {
-      timeoutsRef.current.forEach(clearTimeout);
-      timeoutsRef.current = [];
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    }, []),
-  };
+  return { stop };
 }
