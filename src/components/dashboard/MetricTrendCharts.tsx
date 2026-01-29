@@ -142,16 +142,27 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
 
   // Calculate min/max for dynamic Y axis with 4 bands
   const values = data.filter(d => d.value !== null).map(d => d.value as number);
-  const dataMin = values.length > 0 ? Math.min(...values) : 0;
-  const dataMax = values.length > 0 ? Math.max(...values) : 100;
-  const range = dataMax - dataMin;
-  const padding = range * 0.15; // 15% padding
-  const yMin = Math.max(0, Math.floor(dataMin - padding));
-  const yMax = Math.min(100, Math.ceil(dataMax + padding));
-  
-  // Generate 5 ticks (4 bands = 5 lines)
-  const tickStep = (yMax - yMin) / 4;
-  const yTicks = [yMin, yMin + tickStep, yMin + tickStep * 2, yMin + tickStep * 3, yMax];
+  const dataMin = values.length > 0 ? Math.min(...values) : 50;
+  const dataMax = values.length > 0 ? Math.max(...values) : 50;
+
+  // Handle case when all values are the same
+  let yMin: number;
+  let yMax: number;
+
+  if (dataMin === dataMax) {
+    // Create artificial range when values are identical
+    yMin = Math.max(0, dataMin - 5);
+    yMax = Math.min(100, dataMin + 15);
+  } else {
+    // Normal case: min sits on bottom line, add space above max
+    yMin = dataMin;
+    const range = dataMax - dataMin;
+    yMax = Math.min(100, dataMax + range * 0.2);
+  }
+
+  // Generate 4 equidistant horizontal lines (yMin = first line at bottom)
+  const tickStep = (yMax - yMin) / 3; // 4 lines = 3 gaps
+  const yTicks = [yMin, yMin + tickStep, yMin + tickStep * 2, yMax];
 
   return (
     <motion.div
@@ -191,7 +202,16 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 horizontal={true}
                 vertical={false}
                 stroke={GRID_COLOR}
-                strokeDasharray="0"
+                strokeWidth={1}
+                horizontalCoordinatesGenerator={({ height, offset }) => {
+                  // Map yTicks to pixel coordinates
+                  const chartHeight = height;
+                  const scale = chartHeight / (yMax - yMin);
+                  return yTicks.map(tick => {
+                    const yPixel = offset.top + (yMax - tick) * scale;
+                    return yPixel;
+                  });
+                }}
               />
               <YAxis
                 domain={[yMin, yMax]}
