@@ -122,7 +122,7 @@ const CustomLabel = ({ x, y, value }: { x?: number; y?: number; value?: number |
       y={y - 14}
       textAnchor="middle"
       fill={CHART_COLOR}
-      fontSize={13}
+      fontSize={11}
       fontWeight={500}
       fontFamily="system-ui, -apple-system, sans-serif"
     >
