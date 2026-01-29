@@ -31,7 +31,7 @@ const METRICS: MetricConfig[] = [
 
 // WHOOP color palette
 const CHART_COLOR = "#7CB3E8";
-const BG_COLOR = "#1E293B";
+const BG_COLOR = "transparent";
 const MUTED_TEXT = "rgba(100, 116, 139, 0.7)";
 const BRIGHT_TEXT = "rgba(226, 232, 240, 1)";
 
@@ -145,12 +145,10 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl overflow-hidden"
-      style={{ backgroundColor: BG_COLOR }}
+      className="rounded-xl overflow-hidden bg-transparent"
     >
       {/* Header with metric name */}
-      <div className="px-4 pt-3 pb-0 flex items-center gap-2">
-        <Icon className="w-4 h-4" style={{ color: CHART_COLOR, opacity: 0.85 }} />
+      <div className="px-4 pt-3 pb-0">
         <span 
           className="text-[11px] font-semibold tracking-wider"
           style={{ color: 'rgba(148, 163, 184, 0.95)' }}
@@ -185,7 +183,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 type="monotone"
                 dataKey="value"
                 stroke={CHART_COLOR}
-                strokeWidth={2}
+                strokeWidth={1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 connectNulls
@@ -271,8 +269,7 @@ export function MetricTrendCharts() {
         {[1, 2, 3, 4].map((i) => (
           <div 
             key={i} 
-            className="h-[175px] rounded-xl animate-pulse"
-            style={{ backgroundColor: BG_COLOR }}
+            className="h-[175px] rounded-xl animate-pulse bg-muted/20"
           />
         ))}
       </div>
