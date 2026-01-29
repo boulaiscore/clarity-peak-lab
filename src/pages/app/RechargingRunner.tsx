@@ -73,11 +73,6 @@ export default function RechargingRunner() {
 
   // Phase handlers
   const handleBegin = useCallback(() => {
-    setCurrentPhase("pre-check");
-  }, []);
-
-  const handlePreCheckComplete = useCallback((values: RechargingCheckValues) => {
-    setPreCheckValues(values);
     setCurrentPhase("mode-select");
   }, []);
 
@@ -89,6 +84,11 @@ export default function RechargingRunner() {
 
   const handleVoiceModeSelect = useCallback((mode: RechargingAudioMode) => {
     setAudioMode(mode);
+    setCurrentPhase("pre-check");
+  }, []);
+
+  const handlePreCheckComplete = useCallback((values: RechargingCheckValues) => {
+    setPreCheckValues(values);
     startTimeRef.current = Date.now();
     setCurrentPhase("session");
   }, []);
