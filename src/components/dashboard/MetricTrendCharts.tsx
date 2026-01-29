@@ -11,7 +11,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, subDays, parseISO, startOfDay } from "date-fns";
 import { useMetricHistory } from "@/hooks/useMetricHistory";
-import { Line, LineChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Line, LineChart, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Target, Zap, Battery, Brain } from "lucide-react";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
@@ -31,7 +31,7 @@ const METRICS: MetricConfig[] = [
 
 // WHOOP color palette
 const CHART_COLOR = "#7CB3E8";
-const BG_COLOR = "transparent";
+const GRID_COLOR = "rgba(100, 116, 139, 0.15)";
 const MUTED_TEXT = "rgba(100, 116, 139, 0.7)";
 const BRIGHT_TEXT = "rgba(226, 232, 240, 1)";
 
@@ -105,7 +105,7 @@ const CustomDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: Ch
       cx={cx}
       cy={cy}
       r={5}
-      fill={BG_COLOR}
+      fill="transparent"
       stroke={CHART_COLOR}
       strokeWidth={2}
     />
@@ -132,7 +132,6 @@ const CustomLabel = ({ x, y, value }: { x?: number; y?: number; value?: number |
 };
 
 function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
-  const Icon = metric.icon;
   const hasAnyValue = data.some((d) => d.value !== null);
 
   // Prepare chart data with xLabel for axis
@@ -140,6 +139,19 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
     ...d,
     xLabel: `${d.dayName}|${d.dayNum}|${d.isLast}`,
   }));
+
+  // Calculate min/max for dynamic Y axis with 4 bands
+  const values = data.filter(d => d.value !== null).map(d => d.value as number);
+  const dataMin = values.length > 0 ? Math.min(...values) : 0;
+  const dataMax = values.length > 0 ? Math.max(...values) : 100;
+  const range = dataMax - dataMin;
+  const padding = range * 0.15; // 15% padding
+  const yMin = Math.max(0, Math.floor(dataMin - padding));
+  const yMax = Math.min(100, Math.ceil(dataMax + padding));
+  
+  // Generate 5 ticks (4 bands = 5 lines)
+  const tickStep = (yMax - yMin) / 4;
+  const yTicks = [yMin, yMin + tickStep, yMin + tickStep * 2, yMin + tickStep * 3, yMax];
 
   return (
     <motion.div
@@ -175,8 +187,15 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 interval={0}
                 height={40}
               />
+              <CartesianGrid 
+                horizontal={true}
+                vertical={false}
+                stroke={GRID_COLOR}
+                strokeDasharray="0"
+              />
               <YAxis
-                domain={[0, 100]}
+                domain={[yMin, yMax]}
+                ticks={yTicks}
                 hide
               />
               <Line
