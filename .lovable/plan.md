@@ -1,219 +1,215 @@
 
+# Fast Charge Voice Toggle Extension
 
-# Recovery System v2.0 - Decay Continuo
+## Overview
+Add an explicit user choice between "Voice + Sound" and "Sound only" modes for Fast Charge sessions. Voice cues will use pre-generated MP3 audio files (no TTS) played at fixed timestamps based on program and duration.
 
-## Obiettivo
-Sostituire la rolling window settimanale con un sistema event-driven + decay esponenziale.
-
-## Schema Database
-
-### Nuove Colonne su `user_cognitive_metrics`
-```text
-rec_value            NUMERIC DEFAULT 50     -- REC attuale [0-100]
-rec_last_ts          TIMESTAMPTZ            -- Ultimo aggiornamento
-low_rec_hours_total  NUMERIC DEFAULT 0      -- Ore cumulative con REC < 40
+## Current Flow
+```
+Intro → Mode+Duration Select → Pre-check → Session → Post-check → Results
 ```
 
-### Colonne da Rimuovere (Deprecate)
-```text
-rec_snapshot_date       -- Non piu necessario
-rec_snapshot_value      -- Non piu necessario
-low_rec_streak_days     -- Sostituito da low_rec_hours_total
+## New Flow
+```
+Intro → Mode+Duration Select → Voice Mode Select → Pre-check → Session → Post-check → Results
 ```
 
-## Costanti Centralizzate
+---
 
-File: `src/lib/decayConstants.ts`
+## Implementation Steps
 
-```text
-// RECOVERY DECAY SYSTEM v2.0
-REC_HALF_LIFE_HOURS = 72      // Half-life in ore
-REC_GAIN_COEFFICIENT = 0.12  // Gain per minuto di recovery action
-REC_FLOOR = 0                 // Minimo REC
-REC_CEILING = 100             // Massimo REC
-REC_DEFAULT = 50              // Valore iniziale nuovi utenti
+### Step 1: Copy Audio Files to Project
+Copy all uploaded MP3 files to `public/audio/recharging/`:
+- `INTRO_01.mp3`
+- `OVER_01.mp3` through `OVER_04.mp3`
+- `RUM_01.mp3` through `RUM_04.mp3`
+- `PRE_01.mp3` through `PRE_04.mp3`
+- `END_01.mp3` through `END_04.mp3`
+- `OUTRO_01.mp3` (optional, for soft end tone)
 
-// LOW RECOVERY ALERTS
-LOW_REC_THRESHOLD = 40        // Soglia per tracking ore basse
-LOW_REC_WARNING_HOURS = 48    // Ore per warning
-LOW_REC_CRITICAL_HOURS = 72   // Ore per critical
+Using the `public` folder allows direct URL access for Audio API playback.
+
+### Step 2: Create Voice Mode Selection Component
+**New file:** `src/components/recharging/RechargingVoiceModeSelect.tsx`
+
+- Title: "Recharging mode"
+- Two radio options:
+  - "Voice + Sound" — Helper: "Short neutral voice cues during the session."
+  - "Sound only" — Helper: "Background sound only, no voice."
+- Load last choice from localStorage (key: `recharging_audio_mode`)
+- Default to "sound_only" if no stored preference
+- Save choice to localStorage on continue
+
+### Step 3: Update Flow State Machine
+**File:** `src/pages/app/RechargingRunner.tsx`
+
+- Add new phase: `"voice-mode-select"`
+- Add state: `audioMode: "voice" | "sound_only"`
+- Update phase sequence:
+  - After `mode-select` → transition to `voice-mode-select`
+  - After `voice-mode-select` → transition to `pre-check`
+- Pass `audioMode` to `RechargingSession` component
+
+### Step 4: Define Voice Cue Mapping
+**File:** `src/lib/recharging.ts`
+
+Add type and configuration for voice cues:
+
+```typescript
+export type RechargingAudioMode = "voice" | "sound_only";
+
+export type RechargingDuration = 5 | 10 | 15;
+
+// Fixed cue mapping by program and duration
+export const VOICE_CUE_MAP: Record<
+  RechargingMode,
+  Record<RechargingDuration, { timestamp: number; file: string }[]>
+> = {
+  overloaded: {
+    5: [{ timestamp: 150, file: "OVER_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "OVER_01.mp3" },
+      { timestamp: 420, file: "OVER_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "OVER_01.mp3" },
+      { timestamp: 420, file: "OVER_02.mp3" },
+      { timestamp: 660, file: "OVER_03.mp3" },
+    ],
+  },
+  ruminating: {
+    5: [{ timestamp: 150, file: "RUM_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "RUM_01.mp3" },
+      { timestamp: 420, file: "RUM_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "RUM_01.mp3" },
+      { timestamp: 420, file: "RUM_02.mp3" },
+      { timestamp: 660, file: "RUM_03.mp3" },
+    ],
+  },
+  "pre-decision": {
+    5: [{ timestamp: 150, file: "PRE_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "PRE_01.mp3" },
+      { timestamp: 420, file: "PRE_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "PRE_01.mp3" },
+      { timestamp: 420, file: "PRE_02.mp3" },
+      { timestamp: 660, file: "PRE_03.mp3" },
+    ],
+  },
+  "end-of-day": {
+    5: [{ timestamp: 150, file: "END_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "END_01.mp3" },
+      { timestamp: 420, file: "END_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "END_01.mp3" },
+      { timestamp: 420, file: "END_02.mp3" },
+      { timestamp: 660, file: "END_03.mp3" },
+    ],
+  },
+};
 ```
 
-## Core Engine Functions
+### Step 5: Create Voice Cue Audio Hook
+**New file:** `src/hooks/useVoiceCueAudio.ts`
 
-File: `src/lib/cognitiveEngine.ts`
+- Accept props: `mode`, `durationMinutes`, `audioMode`, `onSessionStart`
+- If `audioMode === "voice"`:
+  - Play `INTRO_01.mp3` immediately at t=0
+  - Schedule cues from `VOICE_CUE_MAP` using `setTimeout`
+  - Each cue plays via `new Audio(url).play()`
+- If `audioMode === "sound_only"`:
+  - No voice cues played
+- Cleanup all scheduled timeouts on unmount
+- Graceful volume handling (no jarring starts/stops)
 
-### 1. Decay Calculation
-```text
-function applyRecoveryDecay(currentRec, lastTs, nowTs):
-  deltaHours = (nowTs - lastTs) / (1000 * 60 * 60)
-  if deltaHours <= 0: return currentRec
-  
-  decayedRec = currentRec * 2^(-deltaHours / 72)
-  return clamp(decayedRec, 0, 100)
+### Step 6: Update Session Component
+**File:** `src/components/recharging/RechargingSession.tsx`
+
+- Add props: `audioMode: RechargingAudioMode`
+- Import and use `useVoiceCueAudio` hook
+- Pass mode, duration, and audioMode to the hook
+- UI remains minimal (no text overlays during playback)
+- "You can lock your phone now." message only if `audioMode === "voice"` (intro cue says it)
+- For `sound_only`, show the text message briefly at start
+
+### Step 7: Add Soft End Tone
+At session end, play a subtle completion tone:
+- Option A: Use `OUTRO_01.mp3` as a soft tone (if neutral enough)
+- Option B: Generate a short sine wave tone via Web Audio API (already in audio engine)
+- The current implementation already handles fade-out; add a ~1 second soft tone before transitioning to post-check
+
+---
+
+## Technical Notes
+
+### Audio File Organization
+```
+public/
+└── audio/
+    └── recharging/
+        ├── INTRO_01.mp3
+        ├── OVER_01.mp3
+        ├── OVER_02.mp3
+        ├── OVER_03.mp3
+        ├── OVER_04.mp3
+        ├── RUM_01.mp3
+        ├── RUM_02.mp3
+        ├── RUM_03.mp3
+        ├── RUM_04.mp3
+        ├── PRE_01.mp3
+        ├── PRE_02.mp3
+        ├── PRE_03.mp3
+        ├── PRE_04.mp3
+        ├── END_01.mp3
+        ├── END_02.mp3
+        ├── END_03.mp3
+        └── END_04.mp3
 ```
 
-### 2. Recovery Action Application
-```text
-function applyRecoveryAction(currentRec, lastTs, detoxMin, walkMin, nowTs):
-  // Step 1: Apply decay first
-  decayedRec = applyRecoveryDecay(currentRec, lastTs, nowTs)
-  
-  // Step 2: Apply gain
-  x = detoxMin + 0.5 * walkMin
-  newRec = min(100, decayedRec + 0.12 * x)
-  
-  return { rec: newRec, ts: nowTs }
-```
+### localStorage Key
+- Key: `recharging_audio_mode`
+- Values: `"voice"` | `"sound_only"`
+- Default (first time): `"sound_only"`
 
-### 3. Low Recovery Hours Tracking
-```text
-function updateLowRecHours(prevHours, prevTs, currentRec, nowTs):
-  deltaHours = (nowTs - prevTs) / (1000 * 60 * 60)
-  
-  if currentRec < 40:
-    return prevHours + deltaHours
-  else:
-    return 0  // Reset quando REC sale sopra 40
-```
+### Timestamp Reference
+| Duration | Cue 1 | Cue 2 | Cue 3 |
+|----------|-------|-------|-------|
+| 5 min    | 2:30 (150s) | - | - |
+| 10 min   | 3:00 (180s) | 7:00 (420s) | - |
+| 15 min   | 3:00 (180s) | 7:00 (420s) | 11:00 (660s) |
 
-## Hooks da Modificare
+---
 
-### 1. `useTodayMetrics.ts` (Major Refactor)
+## Files to Modify/Create
 
-**Prima:**
-- Query `detox_completions` e `walking_sessions` per rolling 7-day
-- Calcola REC = (detox + 0.5*walk) / 840 * 100
-
-**Dopo:**
-- Query `user_cognitive_metrics` per `rec_value`, `rec_last_ts`
-- Applica decay su ogni render/mount
-- Espone `recovery` come valore decayed
-
-### 2. `useRecoveryEffective.ts` (Minor Update)
-
-**Prima:**
-- Usa `weeklyDetoxMinutes` e `weeklyWalkMinutes`
-
-**Dopo:**
-- Usa direttamente `rec_value` con decay applicato
-- Mantiene RRI fallback per nuovi utenti
-
-### 3. Nuovo Hook: `useApplyRecoveryAction.ts`
-
-```text
-Mutation che:
-1. Legge rec_value, rec_last_ts da DB
-2. Applica decay
-3. Applica gain da action
-4. Persiste rec_value, rec_last_ts aggiornati
-5. Aggiorna low_rec_hours_total
-6. Invalida query cache
-```
-
-### 4. `useDailyRecoverySnapshot.ts` (Deprecate)
-
-Questo hook diventa obsoleto - la logica di streak giornaliero e sostituita dal tracking continuo delle ore.
-
-## Punti di Integrazione Decay
-
-Il decay deve essere applicato in questi momenti:
-
-1. **App Foreground** - `useEffect` in `App.tsx` con `visibilitychange`
-2. **Prima di ogni action** - Nel mutation `useApplyRecoveryAction`
-3. **Rendering metriche** - In `useTodayMetrics` per display
-
-## Modifiche ai Componenti
-
-### DetoxChallengeTab.tsx
-
-**Prima:**
-```text
-getRecoveryImpact(minutes) = (minutes / 840) * 100
-```
-
-**Dopo:**
-```text
-getRecoveryImpact(minutes) = 0.12 * minutes  // Diretto
-```
-
-### Home.tsx / Recovery Ring
-
-Nessuna modifica UI - usa `recovery` da `useTodayMetrics` che ora e decay-aware.
-
-## Alert System
-
-### Warning (48+ ore con REC < 40)
-- Badge arancione su Recovery ring
-- Toast notification
-
-### Critical (72+ ore con REC < 40)
-- Badge rosso su Recovery ring
-- Push notification (se abilitata)
-- SCI decay accelerato
-
-## Migration Strategy
-
-### Fase 1: Database Migration
-```text
-ALTER TABLE user_cognitive_metrics 
-ADD COLUMN rec_value NUMERIC DEFAULT 50,
-ADD COLUMN rec_last_ts TIMESTAMPTZ DEFAULT now(),
-ADD COLUMN low_rec_hours_total NUMERIC DEFAULT 0;
-```
-
-### Fase 2: Data Backfill
-Per utenti esistenti, calcolare rec_value iniziale dalla rolling window attuale:
-```text
-rec_value = min(100, (weekly_detox + 0.5*weekly_walk) / 840 * 100)
-rec_last_ts = now()
-```
-
-### Fase 3: Code Deployment
-Deploy nuovo engine + hooks
-
-### Fase 4: Cleanup (2 settimane dopo)
-Rimuovere colonne deprecate e vecchia logica
-
-## Backwards Compatibility
-
-- `useRecoveryEffective` mantiene RRI fallback
-- Nuovi utenti iniziano con `rec_value = 50`
-- Zero breaking changes su formule downstream (Sharpness, Readiness, TC, SCI)
-
-## Technical Considerations
-
-### Precision
-- Usare NUMERIC per `rec_value` (non INTEGER) per precisione decay
-- Arrotondare a 1 decimale solo per display
-
-### Timezone
-- `rec_last_ts` in UTC
-- Decay calculation timezone-agnostic
-
-### Performance
-- Decay calculation e O(1) - nessun query aggiuntivo
-- Single UPDATE per action (atomic)
-
-## Modifiche ai File
-
-| File | Azione |
+| File | Action |
 |------|--------|
-| `src/lib/decayConstants.ts` | Aggiungere costanti REC_* |
-| `src/lib/cognitiveEngine.ts` | Aggiungere funzioni decay |
-| `src/hooks/useTodayMetrics.ts` | Refactor completo logica REC |
-| `src/hooks/useRecoveryEffective.ts` | Update per usare rec_value |
-| `src/hooks/useApplyRecoveryAction.ts` | Nuovo hook |
-| `src/hooks/useDailyRecoverySnapshot.ts` | Deprecare |
-| `src/hooks/useDetoxSession.ts` | Chiamare useApplyRecoveryAction |
-| `src/components/app/DetoxChallengeTab.tsx` | Update getRecoveryImpact |
+| `public/audio/recharging/*.mp3` | Copy uploaded audio files |
+| `src/components/recharging/RechargingVoiceModeSelect.tsx` | Create new component |
+| `src/pages/app/RechargingRunner.tsx` | Add phase and state for voice mode |
+| `src/lib/recharging.ts` | Add type and cue mapping |
+| `src/hooks/useVoiceCueAudio.ts` | Create new hook for voice cue scheduling |
+| `src/components/recharging/RechargingSession.tsx` | Integrate voice cue hook |
 
-## Summary
+---
 
-Il sistema proposto:
-- Trasmette che Recovery e una riserva dinamica
-- Decay continuo senza background jobs
-- Crescita solo da azioni deliberate (Detox + Walk)
-- Nessuna rottura su metriche esistenti
-- Implementabile in fasi senza downtime
+## Waiting for Remaining Audio Files
 
+You mentioned you will provide the remaining audio files in the next prompt. Currently received:
+- INTRO_01.mp3
+- PRE_01.mp3 through PRE_04.mp3
+- RUM_01.mp3 through RUM_04.mp3
+
+Still needed:
+- OVER_01.mp3 through OVER_04.mp3
+- END_01.mp3 through END_04.mp3
+- OUTRO_01.mp3 (optional soft tone)
+
+Once all files are uploaded, I can proceed with the full implementation.
