@@ -3,6 +3,12 @@
 // This is NOT physiological recovery - it's a short-term cognitive boost.
 // Does NOT affect long-term baseline metrics, only temporarily modulates Sharpness.
 
+// Audio mode for voice cue toggle
+export type RechargingAudioMode = "voice" | "sound_only";
+
+// Supported durations for voice cue mapping
+export type RechargingDuration = 5 | 10 | 15;
+
 export const RECHARGING_CONFIG = {
   duration: {
     min: 600, // 10 min in seconds
@@ -173,3 +179,62 @@ export function getRechargingLevelColor(level: RechargingScoreLevel): string {
       return "text-muted-foreground";
   }
 }
+
+/**
+ * Fixed voice cue mapping by program and duration.
+ * Each cue has a timestamp (in seconds) and a file to play.
+ * No randomization - exact cue at each timestamp.
+ */
+export const VOICE_CUE_MAP: Record<
+  RechargingMode,
+  Record<RechargingDuration, { timestamp: number; file: string }[]>
+> = {
+  overloaded: {
+    5: [{ timestamp: 150, file: "OVER_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "OVER_01.mp3" },
+      { timestamp: 420, file: "OVER_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "OVER_01.mp3" },
+      { timestamp: 420, file: "OVER_02.mp3" },
+      { timestamp: 660, file: "OVER_03.mp3" },
+    ],
+  },
+  ruminating: {
+    5: [{ timestamp: 150, file: "RUM_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "RUM_01.mp3" },
+      { timestamp: 420, file: "RUM_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "RUM_01.mp3" },
+      { timestamp: 420, file: "RUM_02.mp3" },
+      { timestamp: 660, file: "RUM_03.mp3" },
+    ],
+  },
+  "pre-decision": {
+    5: [{ timestamp: 150, file: "PRE_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "PRE_01.mp3" },
+      { timestamp: 420, file: "PRE_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "PRE_01.mp3" },
+      { timestamp: 420, file: "PRE_02.mp3" },
+      { timestamp: 660, file: "PRE_03.mp3" },
+    ],
+  },
+  "end-of-day": {
+    5: [{ timestamp: 150, file: "END_01.mp3" }],
+    10: [
+      { timestamp: 180, file: "END_01.mp3" },
+      { timestamp: 420, file: "END_02.mp3" },
+    ],
+    15: [
+      { timestamp: 180, file: "END_01.mp3" },
+      { timestamp: 420, file: "END_02.mp3" },
+      { timestamp: 660, file: "END_03.mp3" },
+    ],
+  },
+};

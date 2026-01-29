@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { RechargingMode, RECHARGING_MODES } from "@/lib/recharging";
+import { RechargingMode, RechargingAudioMode, RechargingDuration, RECHARGING_MODES } from "@/lib/recharging";
 import { useFastChargeAudio } from "@/hooks/useFastChargeAudio";
+import { useVoiceCueAudio } from "@/hooks/useVoiceCueAudio";
 
 interface RechargingSessionProps {
   mode: RechargingMode;
   durationMinutes: number;
+  audioMode: RechargingAudioMode;
   onComplete: (durationSeconds: number) => void;
 }
 
@@ -13,9 +15,10 @@ interface RechargingSessionProps {
  * Fast Charge Session
  * 
  * Audio-only cognitive reset. Screen can turn off, no interaction required.
- * Shows only "You can lock your phone now." at start.
+ * Shows "You can lock your phone now." at start (on-screen for sound_only, 
+ * or via INTRO voice cue for voice mode).
  */
-export function RechargingSession({ mode, durationMinutes, onComplete }: RechargingSessionProps) {
+export function RechargingSession({ mode, durationMinutes, audioMode, onComplete }: RechargingSessionProps) {
   const [elapsed, setElapsed] = useState(0);
   const [showLockMessage, setShowLockMessage] = useState(true);
   const startTimeRef = useRef<number>(Date.now());
@@ -24,7 +27,7 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
   const duration = durationMinutes * 60; // Convert to seconds
   const progress = Math.min((elapsed / duration) * 100, 100);
 
-  // Start audio on mount
+  // Start background audio on mount
   useEffect(() => {
     startAudio(mode, durationMinutes);
     
@@ -32,6 +35,14 @@ export function RechargingSession({ mode, durationMinutes, onComplete }: Recharg
       stopAudio();
     };
   }, [mode, durationMinutes, startAudio, stopAudio]);
+
+  // Voice cues (only active if audioMode === "voice")
+  useVoiceCueAudio({
+    mode,
+    durationMinutes: durationMinutes as RechargingDuration,
+    audioMode,
+    isActive: true,
+  });
 
   // Timer
   useEffect(() => {
