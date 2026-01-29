@@ -145,16 +145,17 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-  // Handle case when all values are the same
+  // yMin = dataMin so minimum value sits exactly on bottom grid line
+  // yMax = add space above the maximum value
   let yMin: number;
   let yMax: number;
 
   if (dataMin === dataMax) {
-    // Create artificial range when values are identical
-    yMin = Math.max(0, dataMin - 5);
-    yMax = Math.min(100, dataMin + 15);
+    // All values identical: min sits on bottom line, create space above
+    yMin = dataMin;
+    yMax = Math.min(100, dataMin + 20);
   } else {
-    // Normal case: min sits on bottom line, add space above max
+    // Normal case: min on bottom line, max with 20% padding above
     yMin = dataMin;
     const range = dataMax - dataMin;
     yMax = Math.min(100, dataMax + range * 0.2);
