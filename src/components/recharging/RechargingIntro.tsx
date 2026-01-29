@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-
+import { Headphones } from "lucide-react";
 interface RechargingIntroProps {
   onBegin: () => void;
 }
@@ -37,12 +37,23 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
           Restore reasoning clarity after cognitive overload.
         </motion.p>
         
+        {/* Headphones recommendation */}
+        <motion.div 
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Headphones className="w-4 h-4 text-white/50" />
+          <span className="text-xs text-white/50">For best results, use headphones</span>
+        </motion.div>
+        
         {/* Duration indicator */}
         <motion.div 
           className="flex items-center gap-2 text-xs text-white/40 mb-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
         >
           <span className="px-2 py-1 rounded bg-white/5 text-white/60 font-medium">5-15 MIN</span>
           <span>•</span>
