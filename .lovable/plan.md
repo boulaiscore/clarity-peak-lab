@@ -1,215 +1,92 @@
 
-# Fast Charge Voice Toggle Extension
+# Fix Grid Lines per Chart Trends WHOOP-Style
 
-## Overview
-Add an explicit user choice between "Voice + Sound" and "Sound only" modes for Fast Charge sessions. Voice cues will use pre-generated MP3 audio files (no TTS) played at fixed timestamps based on program and duration.
+## Problema Identificato
+1. `CartesianGrid` non utilizza `horizontalPoints` o `horizontalCoordinatesGenerator` per allineare le linee ai tick Y
+2. Quando i valori sono tutti uguali (es. 34, 34), il range diventa 0 e i calcoli falliscono
+3. Le linee orizzontali non sono visibili perche il CartesianGrid di recharts non rispetta automaticamente i ticks dell'asse Y nascosto
 
-## Current Flow
-```
-Intro → Mode+Duration Select → Pre-check → Session → Post-check → Results
-```
+## Soluzione
 
-## New Flow
-```
-Intro → Mode+Duration Select → Voice Mode Select → Pre-check → Session → Post-check → Results
-```
+### 1. Correggere il calcolo del range Y
+Quando tutti i valori sono uguali, creare un range artificiale centrato sul valore:
+- Se `range === 0`: usare `dataMin - 10` come minimo e `dataMin + 30` come massimo
+- Questo garantisce che ci sia sempre spazio per 4 bande visibili
+- Il valore minimo deve posare sulla prima linea (la piu bassa)
 
----
-
-## Implementation Steps
-
-### Step 1: Copy Audio Files to Project
-Copy all uploaded MP3 files to `public/audio/recharging/`:
-- `INTRO_01.mp3`
-- `OVER_01.mp3` through `OVER_04.mp3`
-- `RUM_01.mp3` through `RUM_04.mp3`
-- `PRE_01.mp3` through `PRE_04.mp3`
-- `END_01.mp3` through `END_04.mp3`
-- `OUTRO_01.mp3` (optional, for soft end tone)
-
-Using the `public` folder allows direct URL access for Audio API playback.
-
-### Step 2: Create Voice Mode Selection Component
-**New file:** `src/components/recharging/RechargingVoiceModeSelect.tsx`
-
-- Title: "Recharging mode"
-- Two radio options:
-  - "Voice + Sound" — Helper: "Short neutral voice cues during the session."
-  - "Sound only" — Helper: "Background sound only, no voice."
-- Load last choice from localStorage (key: `recharging_audio_mode`)
-- Default to "sound_only" if no stored preference
-- Save choice to localStorage on continue
-
-### Step 3: Update Flow State Machine
-**File:** `src/pages/app/RechargingRunner.tsx`
-
-- Add new phase: `"voice-mode-select"`
-- Add state: `audioMode: "voice" | "sound_only"`
-- Update phase sequence:
-  - After `mode-select` → transition to `voice-mode-select`
-  - After `voice-mode-select` → transition to `pre-check`
-- Pass `audioMode` to `RechargingSession` component
-
-### Step 4: Define Voice Cue Mapping
-**File:** `src/lib/recharging.ts`
-
-Add type and configuration for voice cues:
-
-```typescript
-export type RechargingAudioMode = "voice" | "sound_only";
-
-export type RechargingDuration = 5 | 10 | 15;
-
-// Fixed cue mapping by program and duration
-export const VOICE_CUE_MAP: Record<
-  RechargingMode,
-  Record<RechargingDuration, { timestamp: number; file: string }[]>
-> = {
-  overloaded: {
-    5: [{ timestamp: 150, file: "OVER_01.mp3" }],
-    10: [
-      { timestamp: 180, file: "OVER_01.mp3" },
-      { timestamp: 420, file: "OVER_02.mp3" },
-    ],
-    15: [
-      { timestamp: 180, file: "OVER_01.mp3" },
-      { timestamp: 420, file: "OVER_02.mp3" },
-      { timestamp: 660, file: "OVER_03.mp3" },
-    ],
-  },
-  ruminating: {
-    5: [{ timestamp: 150, file: "RUM_01.mp3" }],
-    10: [
-      { timestamp: 180, file: "RUM_01.mp3" },
-      { timestamp: 420, file: "RUM_02.mp3" },
-    ],
-    15: [
-      { timestamp: 180, file: "RUM_01.mp3" },
-      { timestamp: 420, file: "RUM_02.mp3" },
-      { timestamp: 660, file: "RUM_03.mp3" },
-    ],
-  },
-  "pre-decision": {
-    5: [{ timestamp: 150, file: "PRE_01.mp3" }],
-    10: [
-      { timestamp: 180, file: "PRE_01.mp3" },
-      { timestamp: 420, file: "PRE_02.mp3" },
-    ],
-    15: [
-      { timestamp: 180, file: "PRE_01.mp3" },
-      { timestamp: 420, file: "PRE_02.mp3" },
-      { timestamp: 660, file: "PRE_03.mp3" },
-    ],
-  },
-  "end-of-day": {
-    5: [{ timestamp: 150, file: "END_01.mp3" }],
-    10: [
-      { timestamp: 180, file: "END_01.mp3" },
-      { timestamp: 420, file: "END_02.mp3" },
-    ],
-    15: [
-      { timestamp: 180, file: "END_01.mp3" },
-      { timestamp: 420, file: "END_02.mp3" },
-      { timestamp: 660, file: "END_03.mp3" },
-    ],
-  },
-};
+### 2. Usare horizontalCoordinatesGenerator nel CartesianGrid
+Recharts richiede coordinate Y esplicite per disegnare le linee orizzontali ai punti corretti:
+```tsx
+<CartesianGrid 
+  horizontal={true}
+  vertical={false}
+  stroke={GRID_COLOR}
+  horizontalCoordinatesGenerator={(props) => {
+    // Calcola le Y pixel per ogni tick
+    const { height, offset } = props;
+    const yScale = height / (yMax - yMin);
+    return yTicks.map(tick => offset.top + (yMax - tick) * yScale);
+  }}
+/>
 ```
 
-### Step 5: Create Voice Cue Audio Hook
-**New file:** `src/hooks/useVoiceCueAudio.ts`
+### 3. Assicurare che il minimo sia sulla prima linea
+- `yMin` deve essere esattamente uguale al `dataMin` (senza padding negativo)
+- Le 4 bande vanno calcolate dal minimo verso l'alto
+- Formula: `yMin = dataMin`, poi distribuire le 4 fasce sopra
 
-- Accept props: `mode`, `durationMinutes`, `audioMode`, `onSessionStart`
-- If `audioMode === "voice"`:
-  - Play `INTRO_01.mp3` immediately at t=0
-  - Schedule cues from `VOICE_CUE_MAP` using `setTimeout`
-  - Each cue plays via `new Audio(url).play()`
-- If `audioMode === "sound_only"`:
-  - No voice cues played
-- Cleanup all scheduled timeouts on unmount
-- Graceful volume handling (no jarring starts/stops)
+### Modifiche Tecniche
 
-### Step 6: Update Session Component
-**File:** `src/components/recharging/RechargingSession.tsx`
+**File: `src/components/dashboard/MetricTrendCharts.tsx`**
 
-- Add props: `audioMode: RechargingAudioMode`
-- Import and use `useVoiceCueAudio` hook
-- Pass mode, duration, and audioMode to the hook
-- UI remains minimal (no text overlays during playback)
-- "You can lock your phone now." message only if `audioMode === "voice"` (intro cue says it)
-- For `sound_only`, show the text message briefly at start
+Linee 143-154 - Ricalcolare yMin/yMax:
+```tsx
+// Calculate min/max for dynamic Y axis with 4 bands
+const values = data.filter(d => d.value !== null).map(d => d.value as number);
+const dataMin = values.length > 0 ? Math.min(...values) : 50;
+const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-### Step 7: Add Soft End Tone
-At session end, play a subtle completion tone:
-- Option A: Use `OUTRO_01.mp3` as a soft tone (if neutral enough)
-- Option B: Generate a short sine wave tone via Web Audio API (already in audio engine)
-- The current implementation already handles fade-out; add a ~1 second soft tone before transitioning to post-check
+// Handle case when all values are the same
+let yMin: number;
+let yMax: number;
 
----
+if (dataMin === dataMax) {
+  // Create artificial range when values are identical
+  yMin = Math.max(0, dataMin - 5);
+  yMax = Math.min(100, dataMin + 15);
+} else {
+  // Normal case: min sits on bottom line, add space above max
+  yMin = dataMin;
+  const range = dataMax - dataMin;
+  yMax = Math.min(100, dataMax + range * 0.2);
+}
 
-## Technical Notes
-
-### Audio File Organization
-```
-public/
-└── audio/
-    └── recharging/
-        ├── INTRO_01.mp3
-        ├── OVER_01.mp3
-        ├── OVER_02.mp3
-        ├── OVER_03.mp3
-        ├── OVER_04.mp3
-        ├── RUM_01.mp3
-        ├── RUM_02.mp3
-        ├── RUM_03.mp3
-        ├── RUM_04.mp3
-        ├── PRE_01.mp3
-        ├── PRE_02.mp3
-        ├── PRE_03.mp3
-        ├── PRE_04.mp3
-        ├── END_01.mp3
-        ├── END_02.mp3
-        ├── END_03.mp3
-        └── END_04.mp3
+// Generate 4 equidistant horizontal lines (yMin = first line at bottom)
+const tickStep = (yMax - yMin) / 3; // 4 lines = 3 gaps
+const yTicks = [yMin, yMin + tickStep, yMin + tickStep * 2, yMax];
 ```
 
-### localStorage Key
-- Key: `recharging_audio_mode`
-- Values: `"voice"` | `"sound_only"`
-- Default (first time): `"sound_only"`
+Linee 190-195 - Implementare horizontalCoordinatesGenerator:
+```tsx
+<CartesianGrid 
+  horizontal={true}
+  vertical={false}
+  stroke={GRID_COLOR}
+  strokeWidth={1}
+  horizontalCoordinatesGenerator={({ height, offset }) => {
+    // Map yTicks to pixel coordinates
+    const chartHeight = height;
+    const scale = chartHeight / (yMax - yMin);
+    return yTicks.map(tick => {
+      const yPixel = offset.top + (yMax - tick) * scale;
+      return yPixel;
+    });
+  }}
+/>
+```
 
-### Timestamp Reference
-| Duration | Cue 1 | Cue 2 | Cue 3 |
-|----------|-------|-------|-------|
-| 5 min    | 2:30 (150s) | - | - |
-| 10 min   | 3:00 (180s) | 7:00 (420s) | - |
-| 15 min   | 3:00 (180s) | 7:00 (420s) | 11:00 (660s) |
-
----
-
-## Files to Modify/Create
-
-| File | Action |
-|------|--------|
-| `public/audio/recharging/*.mp3` | Copy uploaded audio files |
-| `src/components/recharging/RechargingVoiceModeSelect.tsx` | Create new component |
-| `src/pages/app/RechargingRunner.tsx` | Add phase and state for voice mode |
-| `src/lib/recharging.ts` | Add type and cue mapping |
-| `src/hooks/useVoiceCueAudio.ts` | Create new hook for voice cue scheduling |
-| `src/components/recharging/RechargingSession.tsx` | Integrate voice cue hook |
-
----
-
-## Waiting for Remaining Audio Files
-
-You mentioned you will provide the remaining audio files in the next prompt. Currently received:
-- INTRO_01.mp3
-- PRE_01.mp3 through PRE_04.mp3
-- RUM_01.mp3 through RUM_04.mp3
-
-Still needed:
-- OVER_01.mp3 through OVER_04.mp3
-- END_01.mp3 through END_04.mp3
-- OUTRO_01.mp3 (optional soft tone)
-
-Once all files are uploaded, I can proceed with the full implementation.
+### Risultato Atteso
+- 4 linee orizzontali equidistanti sempre visibili
+- La prima linea (in basso) corrisponde esattamente al valore minimo della settimana
+- Le linee si adattano dinamicamente ai dati
+- Funziona anche quando tutti i valori sono identici
