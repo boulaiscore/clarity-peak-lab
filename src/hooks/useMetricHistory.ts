@@ -58,12 +58,12 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
 
     return rawData.map((row) => ({
       date: row.snapshot_date,
-      readiness: row.readiness ? Number(row.readiness) : null,
-      sharpness: row.sharpness ? Number(row.sharpness) : null,
-      recovery: row.recovery ? Number(row.recovery) : null,
-      reasoningQuality: row.reasoning_quality ? Number(row.reasoning_quality) : null,
-      s1: row.s1 ? Number(row.s1) : null,
-      s2: row.s2 ? Number(row.s2) : null,
+      readiness: row.readiness != null ? Number(row.readiness) : null,
+      sharpness: row.sharpness != null ? Number(row.sharpness) : null,
+      recovery: row.recovery != null ? Number(row.recovery) : null,
+      reasoningQuality: row.reasoning_quality != null ? Number(row.reasoning_quality) : null,
+      s1: row.s1 != null ? Number(row.s1) : null,
+      s2: row.s2 != null ? Number(row.s2) : null,
     }));
   }, [rawData]);
 
