@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
 import { RechargingMode, RechargingAudioMode, RechargingDuration, RECHARGING_MODES } from "@/lib/recharging";
 import { useFastChargeAudio } from "@/hooks/useFastChargeAudio";
 import { useVoiceCueAudio } from "@/hooks/useVoiceCueAudio";
+import { Slider } from "@/components/ui/slider";
 
 interface RechargingSessionProps {
   mode: RechargingMode;
@@ -21,15 +23,26 @@ interface RechargingSessionProps {
 export function RechargingSession({ mode, durationMinutes, audioMode, onComplete }: RechargingSessionProps) {
   const [elapsed, setElapsed] = useState(0);
   const [showLockMessage, setShowLockMessage] = useState(true);
+  const [showVolumeControl, setShowVolumeControl] = useState(false);
+  const [volume, setVolumeState] = useState(70); // 0-100
   const startTimeRef = useRef<number>(Date.now());
-  const { start: startAudio, stop: stopAudio } = useFastChargeAudio();
+  const { start: startAudio, stop: stopAudio, setVolume } = useFastChargeAudio();
   
   const duration = durationMinutes * 60; // Convert to seconds
   const progress = Math.min((elapsed / duration) * 100, 100);
 
+  // Handle volume change
+  const handleVolumeChange = useCallback((value: number[]) => {
+    const newVolume = value[0];
+    setVolumeState(newVolume);
+    setVolume(newVolume / 100); // Convert to 0-1 range
+  }, [setVolume]);
+
   // Start background audio on mount
   useEffect(() => {
     startAudio(mode, durationMinutes);
+    // Set initial volume
+    setVolume(volume / 100);
     
     return () => {
       stopAudio();
@@ -79,6 +92,44 @@ export function RechargingSession({ mode, durationMinutes, audioMode, onComplete
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#06070A]">
+      {/* Volume control button */}
+      <button
+        onClick={() => setShowVolumeControl(!showVolumeControl)}
+        className="absolute top-4 left-4 z-40 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+        aria-label="Volume"
+      >
+        {volume === 0 ? (
+          <VolumeX className="w-5 h-5 text-white/60" />
+        ) : (
+          <Volume2 className="w-5 h-5 text-white/60" />
+        )}
+      </button>
+
+      {/* Volume slider panel */}
+      {showVolumeControl && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="absolute top-16 left-4 z-40 bg-white/10 backdrop-blur-md rounded-xl p-4 w-48"
+        >
+          <div className="flex items-center gap-3">
+            <VolumeX className="w-4 h-4 text-white/40 flex-shrink-0" />
+            <Slider
+              value={[volume]}
+              onValueChange={handleVolumeChange}
+              max={100}
+              step={1}
+              className="flex-1"
+            />
+            <Volume2 className="w-4 h-4 text-white/40 flex-shrink-0" />
+          </div>
+          <p className="text-[10px] text-white/30 text-center mt-2">
+            {volume}%
+          </p>
+        </motion.div>
+      )}
+
       {/* Lock message - only visible at start */}
       {showLockMessage && (
         <motion.div

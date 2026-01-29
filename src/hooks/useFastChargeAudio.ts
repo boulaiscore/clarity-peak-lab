@@ -13,6 +13,7 @@ type AudioProgram = RechargingMode;
 interface UseFastChargeAudioReturn {
   start: (program: AudioProgram, durationMinutes: number) => void;
   stop: () => void;
+  setVolume: (volume: number) => void;
   isPlaying: boolean;
 }
 
@@ -158,6 +159,7 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
   const audioContextRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<AudioNode[]>([]);
   const gainNodeRef = useRef<GainNode | null>(null);
+  const baseVolumeRef = useRef<number>(1); // Store the base volume multiplier
   const isPlayingRef = useRef(false);
   const stopTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -324,6 +326,18 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
     }
   }, [cleanup]);
 
+  const setVolume = useCallback((volume: number) => {
+    // volume: 0-1 range
+    baseVolumeRef.current = Math.max(0, Math.min(1, volume));
+    if (gainNodeRef.current && audioContextRef.current) {
+      // Apply volume smoothly
+      gainNodeRef.current.gain.linearRampToValueAtTime(
+        baseVolumeRef.current,
+        audioContextRef.current.currentTime + 0.1
+      );
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return cleanup;
@@ -332,6 +346,7 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
   return {
     start,
     stop,
+    setVolume,
     isPlaying: isPlayingRef.current,
   };
 }
