@@ -357,8 +357,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    // Import dynamically to avoid circular dependency
-    const { queryClient } = await import("@/App");
+    // Import from dedicated file to avoid circular dependency
+    const { queryClient } = await import("@/lib/queryClient");
     
     await supabase.auth.signOut();
     setUser(null);
