@@ -53,6 +53,7 @@ import { calculateSingleTaskRQContribution } from "@/lib/reasoningQuality";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInProgressTasks } from "@/hooks/useInProgressTasks";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -522,6 +523,7 @@ function ReadingDetailsDialog({
 export function SpotifyTasksView() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   const [viewMode, setViewMode] = useState<"browse" | "library">("browse");
   const [selectedPodcast, setSelectedPodcast] = useState<PodcastEligibility | null>(null);
   const [selectedReading, setSelectedReading] = useState<ReadingEligibility | null>(null);
@@ -646,6 +648,14 @@ export function SpotifyTasksView() {
       queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
       // Analytics 1d uses intraday events + "now" point
       queryClient.invalidateQueries({ queryKey: ["intraday-events", user?.id] });
+
+      // CRITICAL: create an intraday event point so Analytics (1d) can show intermediate values.
+      // Small delay ensures the just-inserted completion is included in the 7d task window.
+      recordMetricsSnapshot(
+        "task",
+        { contentType, contentId, source: "spotify_tasks_view" },
+        250
+      );
       setSelectedPodcast(null);
       setSelectedReading(null);
     },
