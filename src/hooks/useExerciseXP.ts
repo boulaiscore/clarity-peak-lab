@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getExerciseXP } from "@/lib/trainingPlans";
 import { startOfWeek, format } from "date-fns";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { 
   getXPRouting, 
   calculateStateUpdate, 
@@ -214,6 +215,7 @@ export function useRecordExerciseCompletion() {
 export function useRecordContentCompletion() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
 
   return useMutation({
     mutationFn: async ({
@@ -251,7 +253,7 @@ export function useRecordContentCompletion() {
 
       return data as ExerciseCompletion;
     },
-    onSuccess: () => {
+    onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["weekly-exercise-xp"] });
       queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
       // Dashboard Training Details queries
@@ -266,6 +268,14 @@ export function useRecordContentCompletion() {
       queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
       // Analytics intraday refresh
       queryClient.invalidateQueries({ queryKey: ["intraday-events", user?.id] });
+
+      // CRITICAL: create a real intraday event point for Analytics 1d.
+      // Without this, new profiles will show only (00:00) + (now) with the same value.
+      await recordMetricsSnapshot(
+        "task",
+        { contentType: variables.contentType, contentId: variables.contentId },
+        200
+      );
     },
   });
 }
