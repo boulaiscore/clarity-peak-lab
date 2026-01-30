@@ -62,6 +62,9 @@ export function formatDeltaPercent(current: number, previous: number | null): st
   if (previous === null || previous === 0) return null;
   
   const delta = current - previous;
-  const sign = delta >= 0 ? "+" : "";
-  return `${sign}${Math.round(delta)}`;
+  if (delta === 0) return null; // No meaningful change
+  
+  const percentChange = (delta / previous) * 100;
+  const sign = percentChange > 0 ? "+" : "";
+  return `${sign}${Math.round(percentChange)}%`;
 }
