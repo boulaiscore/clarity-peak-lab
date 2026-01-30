@@ -61,6 +61,7 @@ interface IntradayChartDataPoint {
   hour: string;
   isNow: boolean;
   xLabel: string;
+  timeValue: number; // Unix timestamp in ms for proportional positioning
 }
 
 interface SingleMetricChartProps {
@@ -116,17 +117,21 @@ const WeeklyXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   );
 };
 
-// Custom X-axis tick for INTRADAY view (shows hours)
-const IntradayXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
+// Custom X-axis tick for INTRADAY view (shows fixed hours + Now)
+const IntradayXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: number } }) => {
   if (!payload || x === undefined || y === undefined) return null;
   
-  const [hour, isNow] = payload.value.split('|');
-  const isNowBool = isNow === 'true';
+  const timestamp = payload.value;
+  const now = Date.now();
+  const isNowTick = Math.abs(timestamp - now) < 60000; // Within 1 minute = "Now"
+  
+  // Format the hour
+  const hour = format(new Date(timestamp), "HH:mm");
   
   return (
     <g transform={`translate(${x},${y})`}>
       {/* Highlight band for current time */}
-      {isNowBool && (
+      {isNowTick && (
         <rect
           x={-18}
           y={-132}
@@ -141,12 +146,12 @@ const IntradayXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?
         x={0}
         y={14}
         textAnchor="middle"
-        fill={isNowBool ? BRIGHT_TEXT : MUTED_TEXT}
+        fill={isNowTick ? BRIGHT_TEXT : MUTED_TEXT}
         fontSize={11}
-        fontWeight={isNowBool ? 600 : 400}
+        fontWeight={isNowTick ? 600 : 400}
         fontFamily="system-ui, -apple-system, sans-serif"
       >
-        {hour}
+        {isNowTick ? "Now" : hour}
       </text>
     </g>
   );
@@ -190,6 +195,22 @@ const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: numbe
 function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   
+  // Calculate fixed ticks for intraday view
+  const { fixedTicks, midnightTs, nowTs } = useMemo(() => {
+    const todayStart = startOfDay(new Date()).getTime();
+    const now = Date.now();
+    
+    const ticks = [
+      todayStart,                        // 00:00
+      todayStart + 6 * 60 * 60 * 1000,   // 06:00
+      todayStart + 12 * 60 * 60 * 1000,  // 12:00
+      todayStart + 18 * 60 * 60 * 1000,  // 18:00
+      now                                 // Now
+    ].filter(t => t <= now);
+    
+    return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
+  }, []);
+  
   // For intraday, we process the timeline from midnight baseline to now
   const intradayChartData = useMemo(() => {
     if (intradayData.length === 0) return [];
@@ -199,15 +220,16 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
     
-    // Map to chart format - now all points have real values (from midnight baseline + events + now)
+    // Map to chart format with timeValue for proportional positioning
     return sorted.map((d, idx) => {
       const isLast = idx === sorted.length - 1;
+      const timeValue = new Date(d.timestamp).getTime();
       return {
         timestamp: d.timestamp,
         hour: d.hour,
         value: d.value,
         isNow: d.isNow || isLast,
-        isAnchor: false,
+        timeValue,
         xLabel: `${d.hour}|${d.isNow || isLast}`,
       };
     });
@@ -364,15 +386,29 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
               />
               {/* Baseline for dates (bottom-most line) */}
               <ReferenceLine y={yMin} stroke={GRID_COLOR} strokeWidth={1} ifOverflow="extendDomain" />
-              <XAxis
-                dataKey="xLabel"
-                axisLine={false}
-                tickLine={false}
-                tick={viewMode === 'today' ? <IntradayXAxisTick /> : <WeeklyXAxisTick />}
-                padding={{ left: 10, right: 10 }}
-                interval={0}
-                orientation="bottom"
-              />
+              {viewMode === 'today' ? (
+                <XAxis
+                  type="number"
+                  dataKey="timeValue"
+                  scale="time"
+                  domain={[midnightTs, nowTs]}
+                  ticks={fixedTicks}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={<IntradayXAxisTick />}
+                  padding={{ left: 10, right: 10 }}
+                />
+              ) : (
+                <XAxis
+                  dataKey="xLabel"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={<WeeklyXAxisTick />}
+                  padding={{ left: 10, right: 10 }}
+                  interval={0}
+                  orientation="bottom"
+                />
+              )}
               <YAxis
                 domain={[yMin, yMax]}
                 ticks={yGridTicks}
@@ -495,11 +531,13 @@ export function MetricTrendCharts() {
     );
 
     sortedHistory.forEach((point, index) => {
+      const timeValue = new Date(point.timestamp).getTime();
       const base = { 
         timestamp: point.timestamp, 
         hour: point.hour, 
         isNow: point.isNow, 
-        xLabel: "" 
+        xLabel: "",
+        timeValue
       };
       
       const isFirst = index === 0;
