@@ -474,7 +474,7 @@ export function MetricTrendCharts() {
     return result;
   }, [weeklyHistory]);
 
-  // Generate intraday data
+  // Generate intraday data - only include points where that specific metric changed
   const intradayChartData = useMemo(() => {
     const result: Record<MetricKey, IntradayChartDataPoint[]> = {
       readiness: [],
@@ -483,7 +483,18 @@ export function MetricTrendCharts() {
       reasoningQuality: [],
     };
 
-    intradayHistory.forEach((point) => {
+    // Track previous values for each metric to detect changes
+    let prevReadiness: number | null = null;
+    let prevSharpness: number | null = null;
+    let prevRecovery: number | null = null;
+    let prevReasoningQuality: number | null = null;
+
+    // Sort by timestamp first
+    const sortedHistory = [...intradayHistory].sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    sortedHistory.forEach((point, index) => {
       const base = { 
         timestamp: point.timestamp, 
         hour: point.hour, 
@@ -491,10 +502,36 @@ export function MetricTrendCharts() {
         xLabel: "" 
       };
       
-      result.readiness.push({ ...base, value: point.readiness });
-      result.sharpness.push({ ...base, value: point.sharpness });
-      result.recovery.push({ ...base, value: point.recovery });
-      result.reasoningQuality.push({ ...base, value: point.reasoningQuality });
+      const isFirst = index === 0;
+      const isLast = index === sortedHistory.length - 1;
+      
+      // Readiness: include if first point, value changed, or last (now) point
+      const readinessChanged = point.readiness !== null && (isFirst || point.readiness !== prevReadiness);
+      if (readinessChanged || (isLast && point.readiness !== null)) {
+        result.readiness.push({ ...base, value: point.readiness });
+      }
+      if (point.readiness !== null) prevReadiness = point.readiness;
+      
+      // Sharpness
+      const sharpnessChanged = point.sharpness !== null && (isFirst || point.sharpness !== prevSharpness);
+      if (sharpnessChanged || (isLast && point.sharpness !== null)) {
+        result.sharpness.push({ ...base, value: point.sharpness });
+      }
+      if (point.sharpness !== null) prevSharpness = point.sharpness;
+      
+      // Recovery
+      const recoveryChanged = point.recovery !== null && (isFirst || point.recovery !== prevRecovery);
+      if (recoveryChanged || (isLast && point.recovery !== null)) {
+        result.recovery.push({ ...base, value: point.recovery });
+      }
+      if (point.recovery !== null) prevRecovery = point.recovery;
+      
+      // Reasoning Quality
+      const rqChanged = point.reasoningQuality !== null && (isFirst || point.reasoningQuality !== prevReasoningQuality);
+      if (rqChanged || (isLast && point.reasoningQuality !== null)) {
+        result.reasoningQuality.push({ ...base, value: point.reasoningQuality });
+      }
+      if (point.reasoningQuality !== null) prevReasoningQuality = point.reasoningQuality;
     });
 
     return result;
