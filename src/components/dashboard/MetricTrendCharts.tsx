@@ -152,18 +152,19 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const yBaseline = 0;
   
   // Calculate yMax so that dataMin sits on line 2 (first line above baseline)
-  // 4 equidistant lines: 0, yMax/3, 2*yMax/3, yMax
-  // Line 2 = yMax/3 = dataMin → yMax = 3 * dataMin
+  // 5 equidistant lines: 0 (baseline), yMax/4, yMax/2, 3*yMax/4, yMax
+  // Line 2 = yMax/4 = dataMin → yMax = 4 * dataMin
   // But if dataMax > yMax, extend to fit all data
-  const yMaxFromMin = dataMin > 0 ? 3 * dataMin : 60; // fallback if dataMin is 0
+  const yMaxFromMin = dataMin > 0 ? 4 * dataMin : 80; // fallback if dataMin is 0
   const yMax = Math.max(yMaxFromMin, dataMax * 1.15);
   
-  // 4 equidistant lines from 0 to yMax
-  const bandHeight = yMax / 3;
+  // 5 equidistant lines from 0 to yMax (baseline drawn separately)
+  const bandHeight = yMax / 4;
   const yGridTicks = [
     bandHeight,        // Line 2 (≈ dataMin when dataMin > 0)
     bandHeight * 2,    // Line 3
-    yMax,              // Line 4 (top)
+    bandHeight * 3,    // Line 4
+    yMax,              // Line 5 (top)
   ];
 
   const yMin = yBaseline;
