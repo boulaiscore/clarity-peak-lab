@@ -59,7 +59,7 @@ import AdminUserDetail from "./pages/admin/AdminUserDetail";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import { AdminRoute } from "./components/admin/AdminRoute";
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 // Component that handles auto-seeding and notification initialization (outside Router)
 function AppInitProvider({ children }: { children: React.ReactNode }) {
