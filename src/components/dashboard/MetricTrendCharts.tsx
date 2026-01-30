@@ -112,8 +112,8 @@ const CustomDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: Ch
   );
 };
 
-// Custom label above each point
-const CustomLabel = ({ x, y, value }: { x?: number; y?: number; value?: number | null }) => {
+// Custom label above each point - only Recovery shows % suffix
+const CustomLabel = ({ x, y, value, isRecovery }: { x?: number; y?: number; value?: number | null; isRecovery?: boolean }) => {
   if (value === null || value === undefined || x === undefined || y === undefined) return null;
   
   return (
@@ -126,7 +126,7 @@ const CustomLabel = ({ x, y, value }: { x?: number; y?: number; value?: number |
       fontWeight={500}
       fontFamily="system-ui, -apple-system, sans-serif"
     >
-      {Math.round(value)}%
+      {Math.round(value)}{isRecovery ? "%" : ""}
     </text>
   );
 };
@@ -243,6 +243,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                     x={props.x}
                     y={props.y}
                     value={props.value}
+                    isRecovery={metric.key === "recovery"}
                   />
                 )}
                 isAnimationActive={false}
