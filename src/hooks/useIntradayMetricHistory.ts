@@ -106,8 +106,14 @@ export function useIntradayMetricHistory() {
     const dataPoints: IntradayDataPoint[] = [];
     
     // 1. Add midnight baseline point (from yesterday's last snapshot)
-    // If no previous day snapshot exists (new user), create a synthetic baseline
-    // using the FIRST intraday event values OR current values as approximation
+    // If no previous day snapshot exists (new user), we must NOT clone the first intraday
+    // event into 00:00. Doing so makes the first real event appear "unchanged" and the chart
+    // collapses to just (00:00) + (now).
+    //
+    // Instead:
+    // - If we have events: create a 00:00 anchor with NULL values so the line starts at the
+    //   first real event timestamp (connectNulls=true).
+    // - If we have no events: fall back to current live values (flat line is acceptable).
     if (midnightBaseline) {
       dataPoints.push({
         timestamp: todayStart.toISOString(),
@@ -120,19 +126,17 @@ export function useIntradayMetricHistory() {
         eventType: "midnight",
       });
     } else if (intradayEvents && intradayEvents.length > 0) {
-      // FALLBACK: For new profiles without previous day snapshot,
-      // use the first event's values as the midnight baseline
-      // This ensures a visible trend line from 00:00 to the first event
-      const firstEvent = intradayEvents[0];
+      // New profile: we have events today but no previous-day snapshot.
+      // Anchor 00:00 with nulls so the first real event is visible as a point.
       dataPoints.push({
         timestamp: todayStart.toISOString(),
         hour: "00:00",
-        readiness: firstEvent.readiness != null ? Math.round(firstEvent.readiness * 10) / 10 : null,
-        sharpness: firstEvent.sharpness != null ? Math.round(firstEvent.sharpness * 10) / 10 : null,
-        recovery: firstEvent.recovery != null ? Math.round(firstEvent.recovery * 10) / 10 : null,
-        reasoningQuality: firstEvent.reasoning_quality != null ? Math.round(firstEvent.reasoning_quality * 10) / 10 : null,
+        readiness: null,
+        sharpness: null,
+        recovery: null,
+        reasoningQuality: null,
         isNow: false,
-        eventType: "midnight-synthetic",
+        eventType: "midnight-null",
       });
     } else {
       // No events and no baseline - use current live values as synthetic baseline
@@ -178,7 +182,8 @@ export function useIntradayMetricHistory() {
     
     // Check if last event is very close to now (within 2 minutes) - don't duplicate
     const lastEvent = dataPoints[dataPoints.length - 1];
-    if (lastEvent && lastEvent.eventType !== "midnight") {
+    const isMidnightPoint = !!lastEvent?.eventType?.startsWith("midnight");
+    if (lastEvent && !isMidnightPoint) {
       const lastEventTime = parseISO(lastEvent.timestamp).getTime();
       const nowTime = now.getTime();
       const timeDiff = nowTime - lastEventTime;
