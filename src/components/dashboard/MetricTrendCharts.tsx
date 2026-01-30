@@ -191,11 +191,12 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
     // Every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
     const hourlyTicks = [0, 4, 8, 12, 16, 20].map(h => todayStart + h * 60 * 60 * 1000);
     
-    // Filter to only show passed times (excluding current hour block)
+    // Filter to only show passed times, but always include midnight (00:00)
     const passedTicks = hourlyTicks.filter(t => t <= now);
     
-    // Add current time as the last tick
-    const ticks = [...passedTicks, now];
+    // Ensure midnight is always first, then add current time as the last tick
+    const ticksWithMidnight = passedTicks.includes(todayStart) ? passedTicks : [todayStart, ...passedTicks];
+    const ticks = [...ticksWithMidnight, now];
     
     return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
   }, []);
