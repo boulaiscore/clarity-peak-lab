@@ -7,6 +7,8 @@
  * which contains real-time recorded events instead of
  * reconstructing/estimating values.
  * 
+ * v2.1: Added midnight baseline from previous day's last snapshot
+ * 
  * Events are logged when:
  * - Decay is applied (app foreground)
  * - Task is completed
@@ -20,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
-import { format, startOfDay, parseISO } from "date-fns";
+import { format, startOfDay, parseISO, subDays } from "date-fns";
 
 export interface IntradayDataPoint {
   timestamp: string;      // ISO timestamp
@@ -40,7 +42,35 @@ export function useIntradayMetricHistory() {
   
   const todayStart = startOfDay(new Date());
   const todayStr = format(todayStart, "yyyy-MM-dd");
+  const yesterdayStr = format(subDays(todayStart, 1), "yyyy-MM-dd");
   const now = new Date();
+
+  // Fetch yesterday's last snapshot for midnight baseline
+  const { data: midnightBaseline, isLoading: baselineLoading } = useQuery({
+    queryKey: ["midnight-baseline", user?.id, yesterdayStr],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      // Get the last snapshot from yesterday (end-of-day values)
+      const { data, error } = await supabase
+        .from("daily_metric_snapshots")
+        .select("readiness, sharpness, recovery, reasoning_quality, created_at")
+        .eq("user_id", user.id)
+        .eq("snapshot_date", yesterdayStr)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("[useIntradayMetricHistory] Error fetching midnight baseline:", error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes - doesn't change often
+  });
 
   // Fetch today's intraday events from the database
   const { data: intradayEvents, isLoading: eventsLoading } = useQuery({
@@ -77,7 +107,7 @@ export function useIntradayMetricHistory() {
     refetchInterval: 60_000, // Auto-refresh every minute
   });
 
-  const isLoading = eventsLoading || todayMetrics.isLoading || rqLoading;
+  const isLoading = eventsLoading || baselineLoading || todayMetrics.isLoading || rqLoading;
 
   // Convert events to chart data points
   const history: IntradayDataPoint[] = useMemo(() => {
@@ -85,7 +115,21 @@ export function useIntradayMetricHistory() {
     
     const dataPoints: IntradayDataPoint[] = [];
     
-    // Add all recorded events
+    // 1. Add midnight baseline point (from yesterday's last snapshot)
+    if (midnightBaseline) {
+      dataPoints.push({
+        timestamp: todayStart.toISOString(),
+        hour: "00:00",
+        readiness: midnightBaseline.readiness != null ? Math.round(midnightBaseline.readiness * 10) / 10 : null,
+        sharpness: midnightBaseline.sharpness != null ? Math.round(midnightBaseline.sharpness * 10) / 10 : null,
+        recovery: midnightBaseline.recovery != null ? Math.round(midnightBaseline.recovery * 10) / 10 : null,
+        reasoningQuality: midnightBaseline.reasoning_quality != null ? Math.round(midnightBaseline.reasoning_quality * 10) / 10 : null,
+        isNow: false,
+        eventType: "midnight",
+      });
+    }
+    
+    // 2. Add all recorded intraday events
     intradayEvents?.forEach((event) => {
       const timestamp = parseISO(event.event_timestamp);
       
@@ -101,7 +145,7 @@ export function useIntradayMetricHistory() {
       });
     });
     
-    // Always add current "now" point with live metrics
+    // 3. Always add current "now" point with live metrics
     const nowPoint: IntradayDataPoint = {
       timestamp: now.toISOString(),
       hour: format(now, "HH:mm"),
@@ -114,7 +158,7 @@ export function useIntradayMetricHistory() {
     
     // Check if last event is very close to now (within 2 minutes) - don't duplicate
     const lastEvent = dataPoints[dataPoints.length - 1];
-    if (lastEvent) {
+    if (lastEvent && lastEvent.eventType !== "midnight") {
       const lastEventTime = parseISO(lastEvent.timestamp).getTime();
       const nowTime = now.getTime();
       const timeDiff = nowTime - lastEventTime;
@@ -131,7 +175,7 @@ export function useIntradayMetricHistory() {
         lastEvent.reasoningQuality = currentRQ != null ? Math.round(currentRQ * 10) / 10 : null;
       }
     } else {
-      // No events today, just show current point
+      // No events today (or only midnight), add current point
       dataPoints.push(nowPoint);
     }
     
@@ -139,14 +183,17 @@ export function useIntradayMetricHistory() {
   }, [
     isLoading,
     intradayEvents,
+    midnightBaseline,
     todayMetrics,
     currentRQ,
     now,
+    todayStart,
   ]);
 
   return {
     history,
     isLoading,
     hasEvents: (intradayEvents?.length ?? 0) > 0,
+    hasMidnightBaseline: !!midnightBaseline,
   };
 }
