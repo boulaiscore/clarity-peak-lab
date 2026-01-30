@@ -366,7 +366,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                 hide
               />
               <Area
-                type="monotone"
+                type="linear"
                 dataKey="value"
                 stroke="none"
                 fill={`url(#gradient-${metric.key})`}
@@ -374,7 +374,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                 isAnimationActive={false}
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="value"
                 stroke={metric.color}
                 strokeWidth={1.5}

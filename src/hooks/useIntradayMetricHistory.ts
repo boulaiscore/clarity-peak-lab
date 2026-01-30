@@ -32,15 +32,7 @@ interface EventRecord {
   timestamp: string;
   type: 'game' | 'detox' | 'walking' | 'task';
   recoveryDelta?: number; // For detox/walking: minutes contributed
-  taskType?: 'podcast' | 'book' | 'article'; // For task completions
 }
-
-// Task base RQ contributions (before decay)
-const TASK_RQ_BASE: Record<string, number> = {
-  podcast: 5.0,
-  book: 5.5,
-  article: 3.5,
-};
 
 // Recovery decay formula: REC × 2^(-Δt_hours / 72)
 function applyRecoveryDecay(recValue: number, hoursElapsed: number): number {
@@ -151,13 +143,15 @@ export function useIntradayMetricHistory() {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      // Try yesterday's snapshot first
+      // Try yesterday's snapshot first - get the latest one (last updated)
       const yesterday = format(new Date(todayStart.getTime() - 86400000), "yyyy-MM-dd");
       const { data: snapshot } = await supabase
         .from("daily_metric_snapshots")
-        .select("recovery, sharpness, readiness, reasoning_quality")
+        .select("recovery, sharpness, readiness, reasoning_quality, created_at")
         .eq("user_id", user.id)
         .eq("snapshot_date", yesterday)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       
       if (snapshot?.recovery != null) {
@@ -198,7 +192,6 @@ export function useIntradayMetricHistory() {
       timestamp: Date;
       type: 'game' | 'detox' | 'walking' | 'task' | 'midnight' | 'now';
       recoveryDelta?: number;
-      taskType?: 'podcast' | 'book' | 'article';
     }> = [];
     
     // Add midnight point
@@ -241,16 +234,10 @@ export function useIntradayMetricHistory() {
     // Add task completion events (for RQ changes)
     todayTaskCompletions?.forEach(task => {
       if (task.completed_at && task.exercise_id) {
-        // Parse task type from exercise_id (e.g., "content-podcast-123")
-        const parts = task.exercise_id.split("-");
-        const taskType = parts[1] as 'podcast' | 'book' | 'article';
-        if (taskType && TASK_RQ_BASE[taskType]) {
-          events.push({
-            timestamp: parseISO(task.completed_at),
-            type: 'task',
-            taskType,
-          });
-        }
+        events.push({
+          timestamp: parseISO(task.completed_at),
+          type: 'task',
+        });
       }
     });
     
@@ -275,26 +262,26 @@ export function useIntradayMetricHistory() {
     // Reconstruct metric values at each point
     const dataPoints: IntradayDataPoint[] = [];
     
-    // Get midnight values from snapshot
-    const midnightRec = midnightRecovery?.recovery ?? todayMetrics.recovery;
-    const midnightSharpness = midnightRecovery?.sharpness ?? todayMetrics.sharpness;
-    const midnightReadiness = midnightRecovery?.readiness ?? todayMetrics.readiness;
+    // Get midnight values from snapshot (yesterday's end-of-day values)
+    const midnightRec = midnightRecovery?.recovery ?? null;
+    const midnightSharpness = midnightRecovery?.sharpness ?? null;
+    const midnightReadiness = midnightRecovery?.readiness ?? null;
     const midnightRQ = midnightRecovery?.reasoningQuality ?? null;
     
-    // Calculate how much RQ was gained today from tasks
-    // This is the delta between current RQ and midnight RQ
-    const totalTaskRQGainToday = todayTaskCompletions?.reduce((sum, task) => {
-      const parts = task.exercise_id.split("-");
-      const taskType = parts[1] as 'podcast' | 'book' | 'article';
-      // Full contribution for tasks completed today (no decay yet)
-      return sum + (TASK_RQ_BASE[taskType] || 0) * 0.20; // 0.20 weight from RQ formula
-    }, 0) || 0;
+    // Count task completions to track RQ progression
+    const taskEvents = dedupedEvents.filter(e => e.type === 'task');
+    let taskIndex = 0;
     
-    // Estimate midnight RQ if not available from snapshot
-    const estimatedMidnightRQ = midnightRQ ?? (currentRQ != null ? currentRQ - totalTaskRQGainToday : null);
+    // If we have tasks today, calculate the RQ delta per task
+    // RQ progression: starts at midnight value, ends at current value
+    // Each task adds an equal portion of the total delta
+    const totalTasksToday = taskEvents.length;
+    const rqDeltaPerTask = totalTasksToday > 0 && midnightRQ != null && currentRQ != null
+      ? (currentRQ - midnightRQ) / totalTasksToday
+      : 0;
     
     let currentRecovery = midnightRec;
-    let currentRQValue = estimatedMidnightRQ;
+    let currentRQValue = midnightRQ;
     let lastTimestamp = todayStart;
     
     dedupedEvents.forEach((event) => {
@@ -310,10 +297,10 @@ export function useIntradayMetricHistory() {
         currentRecovery = Math.min(100, currentRecovery + event.recoveryDelta);
       }
       
-      // Apply RQ gain from task completions
-      if (event.type === 'task' && event.taskType && currentRQValue != null) {
-        const taskContribution = (TASK_RQ_BASE[event.taskType] || 0) * 0.20;
-        currentRQValue = Math.min(100, currentRQValue + taskContribution);
+      // Apply RQ gain from task completions (proportional to actual delta)
+      if (event.type === 'task' && currentRQValue != null) {
+        currentRQValue = currentRQValue + rqDeltaPerTask;
+        taskIndex++;
       }
       
       // For "now", use actual current metrics for accuracy
