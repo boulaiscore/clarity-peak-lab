@@ -102,10 +102,22 @@ export function useRecordIntradayOnAction() {
         const sharpness = calculateSharpness(states, recoveryValue);
         const readiness = calculateReadiness(states, recoveryValue, null);
 
-        // Get RQ from cache or fresh fetch
-        let reasoningQuality = queryClient.getQueryData<number>(["reasoning-quality", userId]);
+        // Get RQ - for task/game events we need the LIVE calculated value, not persisted
+        // Since RQ depends on task completions (7d window), we must recalculate
+        // For simplicity, we fetch the persisted value from DB which is the closest we have
+        // The live calculation happens in useReasoningQuality hook which isn't available here
+        // Note: This may lag behind the true live RQ, but ensures data consistency
+        let reasoningQuality: number | null = null;
         
-        if (reasoningQuality === undefined) {
+        // First check cache with correct key
+        const cachedRQ = queryClient.getQueryData<{ reasoning_quality: number | null }>(
+          ["reasoning-quality-persisted", userId]
+        );
+        
+        if (cachedRQ?.reasoning_quality != null) {
+          reasoningQuality = cachedRQ.reasoning_quality;
+        } else {
+          // Fallback: fetch from DB
           const { data } = await supabase
             .from("user_cognitive_metrics")
             .select("reasoning_quality")
