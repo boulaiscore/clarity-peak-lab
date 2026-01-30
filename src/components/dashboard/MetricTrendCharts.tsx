@@ -32,8 +32,8 @@ const METRIC_COLORS = {
 };
 
 const METRICS: MetricConfig[] = [
-  { key: "readiness", label: "READINESS", icon: Target, color: METRIC_COLORS.readiness },
   { key: "sharpness", label: "SHARPNESS", icon: Zap, color: METRIC_COLORS.sharpness },
+  { key: "readiness", label: "READINESS", icon: Target, color: METRIC_COLORS.readiness },
   { key: "recovery", label: "RECOVERY", icon: Battery, color: METRIC_COLORS.recovery },
   { key: "reasoningQuality", label: "REASONING QUALITY", icon: Brain, color: METRIC_COLORS.reasoningQuality },
 ];
