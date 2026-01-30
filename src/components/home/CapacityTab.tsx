@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Leaf, Smartphone, Footprints, Battery, AlertCircle } from "lucide-react";
+import { Leaf, Smartphone, Footprints, Battery, AlertCircle, LineChart } from "lucide-react";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,15 +49,22 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8"
     >
-      {/* Today Header - Back to Overview */}
+      {/* Today Header - Back to Overview + Trend Link */}
       {onBackToOverview && (
-        <div className="flex justify-center">
+        <div className="flex items-center justify-between px-2">
           <button 
             onClick={onBackToOverview}
             className="px-4 py-1.5 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80 hover:bg-muted/60 transition-colors active:scale-[0.97]"
           >
             ← Today
           </button>
+          <Link 
+            to="/app/dashboard?tab=training&subtab=trends"
+            className="p-2 rounded-full bg-muted/40 hover:bg-muted/60 transition-colors active:scale-[0.97]"
+            title="View Trends"
+          >
+            <LineChart className="w-4 h-4 text-foreground/70" />
+          </Link>
         </div>
       )}
 
