@@ -16,6 +16,7 @@ import { useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRecordIntradayEvent } from "@/hooks/useRecordIntradayEvent";
 import {
   RecoveryState,
   getCurrentRecovery,
@@ -49,6 +50,7 @@ export function useRecoveryV2(): UseRecoveryV2Result {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
   const queryClient = useQueryClient();
+  const { recordEvent } = useRecordIntradayEvent();
   
   // Fetch recovery state from user_cognitive_metrics
   const { data: recoveryState, isLoading: stateLoading } = useQuery({
@@ -132,9 +134,28 @@ export function useRecoveryV2(): UseRecoveryV2Result {
       
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["recovery-v2-state", userId] });
       queryClient.invalidateQueries({ queryKey: ["today-metrics", userId] });
+      
+      // v1.8: Record intraday event for recovery action
+      // Determine event type based on which action was taken
+      const eventType = variables.walkMinutes > 0 ? 'walking' : 'detox';
+      
+      // We need to record with the NEW recovery value after the action
+      // Other metrics will be fetched fresh by the charts
+      recordEvent({
+        eventType,
+        readiness: null, // Will be recalculated by queries
+        sharpness: null, // Will be recalculated by queries
+        recovery: result.newRecValue,
+        reasoningQuality: null, // Doesn't change with recovery actions
+        eventDetails: {
+          detoxMinutes: variables.detoxMinutes,
+          walkMinutes: variables.walkMinutes,
+          previousRecovery: currentRecovery,
+        },
+      });
     },
   });
   

@@ -22,6 +22,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useRecordContentCompletion, useRemoveContentCompletion } from "@/hooks/useExerciseXP";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
 import { PODCASTS, getApplePodcastUrl, getSpotifySearchUrl } from "@/data/podcasts";
 import { READINGS } from "@/data/readings";
@@ -908,6 +909,7 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
   // XP tracking hooks
   const recordContentCompletion = useRecordContentCompletion();
   const removeContentCompletion = useRemoveContentCompletion();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
 
   const toggleMutation = useMutation({
     mutationFn: async ({ inputId, isCurrentlyLogged, xpEarned }: { inputId: string; isCurrentlyLogged: boolean; xpEarned: number }) => {
@@ -933,6 +935,12 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
         
         // Record XP earned
         await recordContentCompletion.mutateAsync({ contentId: inputId, contentType: type, xpEarned });
+        
+        // v1.9: Record intraday event for task completion
+        recordMetricsSnapshot('task', {
+          contentType: type,
+          contentId: inputId,
+        });
       }
     },
     onMutate: async ({ inputId, isCurrentlyLogged }) => {

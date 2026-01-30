@@ -2,6 +2,7 @@
  * TRIAGE SPRINT — Runner Page
  * v1.2: Added duration tracking + Manual-compliant session recording
  * v1.8: Added daily XP cap enforcement
+ * v1.9: Added intraday event recording after session completion
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -9,6 +10,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
 import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { toast } from "sonner";
 import { TriageSprintDrill } from "@/components/drills/focus-fast/TriageSprintDrill";
 import { ArrowLeft } from "lucide-react";
@@ -20,6 +22,7 @@ export default function TriageSprintRunner() {
   const { user, session } = useAuth();
   const recordGameSession = useRecordGameSession();
   const { gamesWithXPToday, dailyMax, isCapReached } = useDailyGamesXPCap();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const [isComplete, setIsComplete] = useState(false);
@@ -91,6 +94,14 @@ export default function TriageSprintRunner() {
         
         console.log("[TriageSprint] ✅ Session saved successfully");
         
+        // v1.9: Record intraday event for metrics tracking
+        recordMetricsSnapshot('game', {
+          gameName: 'triage_sprint',
+          gameType: 'S1-AE',
+          xpAwarded: actualXP,
+          score: results.score,
+          difficulty,
+        });
         // v1.8: Show appropriate toast based on cap status
         if (actualXP > 0) {
           toast.success(`+${actualXP} XP earned!`, { icon: "⭐" });

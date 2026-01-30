@@ -1,16 +1,14 @@
 /**
  * ============================================
- * NEUROLOOP PRO – GAMES GATING HOOK v1.7
+ * NEUROLOOP PRO – GAMES GATING ENGINE
  * ============================================
- * 
- * Enforces game availability based on:
- * - Cognitive metrics (Sharpness, Readiness, Recovery)
- * - Daily caps (S1: 3/day, S2: 1/day)
- * - Weekly caps (per plan)
- * - Plan-specific S2 threshold modifiers
  * 
  * v1.5: useRecordGameSession now also inserts into exercise_completions
  *       so that weekly XP is correctly tracked by useWeeklyProgress.
+ * 
+ * v1.8: Added intraday event recording via onMetricsSnapshot callback.
+ *       When a game session is completed, the hook can optionally record
+ *       the current metrics state to intraday_metric_events.
  * 
  * v1.6: Improved persistence reliability:
  *       - Session validation before saving
