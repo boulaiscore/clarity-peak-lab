@@ -145,26 +145,41 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-  // Baseline is ALWAYS 0 - if a value is 0, the dot sits on baseline
-  // First data line (line 2) = dataMin - minimum value dot sits here
-  // Exception: if dataMin = 0, it sits on baseline
+  // Y-axis layout with 5 equidistant lines:
+  // Line 1 (baseline) = 0
+  // Line 2 = dataMin (minimum value sits here)
+  // Line 3 = intermediate
+  // Line 4 = dataMax (maximum value sits here - penultimate line)
+  // Line 5 = yMax (top line - always empty)
   
   const yBaseline = 0;
   
-  // Calculate yMax so that dataMin sits on line 2 (first line above baseline)
-  // 5 equidistant lines: 0 (baseline), yMax/4, yMax/2, 3*yMax/4, yMax
-  // Line 2 = yMax/4 = dataMin → yMax = 4 * dataMin
-  // But if dataMax > yMax, extend to fit all data
-  const yMaxFromMin = dataMin > 0 ? 4 * dataMin : 80; // fallback if dataMin is 0
-  const yMax = Math.max(yMaxFromMin, dataMax * 1.15);
+  // Calculate yMax such that:
+  // - dataMin sits on Line 2 (25% of yMax)
+  // - dataMax sits on Line 4 (75% of yMax)
+  // 
+  // From the constraints:
+  // dataMin = yMax * 0.25 → yMax from min = dataMin * 4
+  // dataMax = yMax * 0.75 → yMax from max = dataMax / 0.75 = dataMax * 1.333
+  //
+  // We need yMax that satisfies both: max sits on line 4, min on line 2
+  // The dominant constraint is dataMax (must fit on penultimate line)
   
-  // 5 equidistant lines from 0 to yMax (baseline drawn separately)
+  const yMaxFromMax = dataMax / 0.75; // Ensures dataMax is at 75% (line 4)
+  const yMaxFromMin = dataMin > 0 ? dataMin * 4 : 80; // Ensures dataMin is at 25% (line 2)
+  
+  // Use the larger yMax to ensure both constraints are met
+  // If yMaxFromMax > yMaxFromMin, min will be below line 2 (acceptable)
+  // If yMaxFromMin > yMaxFromMax, max will be below line 4 (need adjustment)
+  const yMax = Math.max(yMaxFromMax, yMaxFromMin);
+  
+  // 4 grid lines above baseline (baseline drawn separately)
   const bandHeight = yMax / 4;
   const yGridTicks = [
-    bandHeight,        // Line 2 (≈ dataMin when dataMin > 0)
-    bandHeight * 2,    // Line 3
-    bandHeight * 3,    // Line 4
-    yMax,              // Line 5 (top)
+    bandHeight,        // Line 2 (target for dataMin)
+    bandHeight * 2,    // Line 3 (intermediate)
+    bandHeight * 3,    // Line 4 (target for dataMax - penultimate)
+    yMax,              // Line 5 (top - always empty)
   ];
 
   const yMin = yBaseline;
