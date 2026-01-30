@@ -115,7 +115,7 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
               "text-[8px] font-medium mt-0.5 tabular-nums",
               deltaIndicator.startsWith("+") ? "text-emerald-500" : deltaIndicator.startsWith("-") ? "text-rose-400" : "text-muted-foreground/60"
             )}>
-              {deltaIndicator} vs ieri
+              {deltaIndicator}
             </span>
           )}
         </div>

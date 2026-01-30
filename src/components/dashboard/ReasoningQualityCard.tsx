@@ -96,7 +96,7 @@ export function ReasoningQualityCard({
             "text-[10px] font-medium tabular-nums ml-1",
             deltaVsYesterday.startsWith("+") ? "text-emerald-500" : deltaVsYesterday.startsWith("-") ? "text-rose-400" : "text-muted-foreground/60"
           )}>
-            ({deltaVsYesterday} vs ieri)
+            {deltaVsYesterday}
           </span>
         )}
       </div>
