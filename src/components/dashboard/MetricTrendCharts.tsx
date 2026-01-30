@@ -65,8 +65,8 @@ interface IntradayChartDataPoint {
 
 interface SingleMetricChartProps {
   metric: MetricConfig;
-  data: ChartDataPoint[] | IntradayChartDataPoint[];
-  viewMode: ViewMode;
+  weeklyData: ChartDataPoint[];
+  intradayData: IntradayChartDataPoint[];
 }
 
 // Custom X-axis tick - WHOOP style for WEEKLY view (anchored to the baseline)
@@ -187,7 +187,10 @@ const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: numbe
   );
 };
 
-function SingleMetricChart({ metric, data, viewMode }: SingleMetricChartProps) {
+function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricChartProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
+  
+  const data = viewMode === 'week' ? weeklyData : intradayData;
   const hasAnyValue = data.some((d) => d.value !== null);
 
   // Prepare chart data with xLabel for axis based on viewMode
@@ -271,14 +274,51 @@ function SingleMetricChart({ metric, data, viewMode }: SingleMetricChartProps) {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-xl overflow-hidden bg-transparent"
     >
-      {/* Header with metric name */}
-      <div className="px-4 pt-3 pb-0">
+      {/* Header with metric name and toggle */}
+      <div className="px-4 pt-3 pb-0 flex items-center justify-between">
         <span 
           className="text-[11px] font-semibold tracking-wider"
           style={{ color: 'rgba(148, 163, 184, 0.95)' }}
         >
           {metric.label}
         </span>
+        
+        {/* Elegant On/Off style toggle */}
+        <div className="flex items-center gap-1.5">
+          <span 
+            className={`text-[10px] font-medium transition-colors ${
+              viewMode === 'week' ? 'text-foreground' : 'text-muted-foreground/50'
+            }`}
+          >
+            7d
+          </span>
+          <button
+            onClick={() => setViewMode(viewMode === 'week' ? 'today' : 'week')}
+            className={`
+              relative w-9 h-5 rounded-full transition-all duration-200
+              ${viewMode === 'today' 
+                ? 'bg-primary/80' 
+                : 'bg-muted/40'
+              }
+            `}
+            aria-label="Toggle view mode"
+          >
+            <span
+              className={`
+                absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm
+                transition-all duration-200 ease-out
+                ${viewMode === 'today' ? 'left-[18px]' : 'left-0.5'}
+              `}
+            />
+          </button>
+          <span 
+            className={`text-[10px] font-medium transition-colors ${
+              viewMode === 'today' ? 'text-foreground' : 'text-muted-foreground/50'
+            }`}
+          >
+            1d
+          </span>
+        </div>
       </div>
 
       {!hasAnyValue ? (
@@ -369,12 +409,10 @@ function SingleMetricChart({ metric, data, viewMode }: SingleMetricChartProps) {
 }
 
 export function MetricTrendCharts() {
-  const [viewMode, setViewMode] = useState<ViewMode>("week");
-  
   const { history: weeklyHistory, isLoading: weeklyLoading } = useMetricHistory({ days: 7 });
   const { history: intradayHistory, isLoading: intradayLoading } = useIntradayMetricHistory();
   
-  const isLoading = viewMode === 'week' ? weeklyLoading : intradayLoading;
+  const isLoading = weeklyLoading || intradayLoading;
 
   // Generate weekly data (7 days)
   const weeklyChartData = useMemo(() => {
@@ -452,50 +490,18 @@ export function MetricTrendCharts() {
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {/* Toggle skeleton */}
-        <div className="flex justify-center mb-4">
-          <div className="h-9 w-40 rounded-full animate-pulse bg-muted/20" />
-        </div>
         {[1, 2, 3, 4].map((i) => (
           <div 
             key={i} 
-            className="h-[175px] rounded-xl animate-pulse bg-muted/20"
+            className="h-[210px] rounded-xl animate-pulse bg-muted/20"
           />
         ))}
       </div>
     );
   }
 
-  const chartData = viewMode === 'week' ? weeklyChartData : intradayChartData;
-
   return (
     <div className="space-y-3">
-      {/* View mode toggle */}
-      <div className="flex justify-center mb-4">
-        <div className="inline-flex rounded-full p-1 bg-muted/30">
-          <button
-            onClick={() => setViewMode('week')}
-            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-              viewMode === 'week'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Week
-          </button>
-          <button
-            onClick={() => setViewMode('today')}
-            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-              viewMode === 'today'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Today
-          </button>
-        </div>
-      </div>
-
       {METRICS.map((metric, index) => (
         <motion.div
           key={metric.key}
@@ -505,8 +511,8 @@ export function MetricTrendCharts() {
         >
           <SingleMetricChart
             metric={metric}
-            data={chartData[metric.key]}
-            viewMode={viewMode}
+            weeklyData={weeklyChartData[metric.key]}
+            intradayData={intradayChartData[metric.key]}
           />
         </motion.div>
       ))}
