@@ -6,7 +6,7 @@ import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { OverviewCarousel } from "@/components/dashboard/OverviewCarousel";
 import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
-import { TrainingProgressHeader } from "@/components/dashboard/TrainingProgressHeader";
+
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
 import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
@@ -188,10 +188,7 @@ const Dashboard = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="space-y-4"
           >
-            {/* Progress Header with Animation */}
-            <TrainingProgressHeader />
 
             {/* Sub-tabs for Trends/Tasks/Detox/Games */}
             <div className="bg-muted/40 p-1 rounded-xl">
