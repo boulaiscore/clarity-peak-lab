@@ -20,17 +20,25 @@ interface MetricConfig {
   key: MetricKey;
   label: string;
   icon: React.ElementType;
+  color: string;
 }
 
+// Metric colors matching Home page
+const METRIC_COLORS = {
+  sharpness: "hsl(210, 100%, 60%)",     // Electric blue
+  readiness: "hsl(245, 58%, 65%)",      // Soft indigo
+  recovery: "hsl(174, 72%, 45%)",       // Teal
+  reasoningQuality: "hsl(258, 90%, 66%)", // Primary purple
+};
+
 const METRICS: MetricConfig[] = [
-  { key: "readiness", label: "READINESS", icon: Target },
-  { key: "sharpness", label: "SHARPNESS", icon: Zap },
-  { key: "recovery", label: "RECOVERY", icon: Battery },
-  { key: "reasoningQuality", label: "REASONING QUALITY", icon: Brain },
+  { key: "readiness", label: "READINESS", icon: Target, color: METRIC_COLORS.readiness },
+  { key: "sharpness", label: "SHARPNESS", icon: Zap, color: METRIC_COLORS.sharpness },
+  { key: "recovery", label: "RECOVERY", icon: Battery, color: METRIC_COLORS.recovery },
+  { key: "reasoningQuality", label: "REASONING QUALITY", icon: Brain, color: METRIC_COLORS.reasoningQuality },
 ];
 
-// WHOOP color palette
-const CHART_COLOR = "#7CB3E8";
+// Grid and text colors
 const GRID_COLOR = "rgba(100, 116, 139, 0.15)";
 const MUTED_TEXT = "rgba(100, 116, 139, 0.7)";
 const BRIGHT_TEXT = "rgba(226, 232, 240, 1)";
@@ -96,8 +104,8 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   );
 };
 
-// Custom dot - filled black circle
-const CustomDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: ChartDataPoint }) => {
+// Custom dot - filled black circle with metric color
+const CustomDot = ({ cx, cy, payload, color }: { cx?: number; cy?: number; payload?: ChartDataPoint; color: string }) => {
   if (!payload || payload.value === null || cx === undefined || cy === undefined) return null;
   
   return (
@@ -106,14 +114,14 @@ const CustomDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: Ch
       cy={cy}
       r={3.5}
       fill="#0f172a"
-      stroke={CHART_COLOR}
+      stroke={color}
       strokeWidth={1.5}
     />
   );
 };
 
 // Custom label above each point - only Recovery shows % suffix
-const CustomLabel = ({ x, y, value, isRecovery }: { x?: number; y?: number; value?: number | null; isRecovery?: boolean }) => {
+const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: number; value?: number | null; isRecovery?: boolean; color: string }) => {
   if (value === null || value === undefined || x === undefined || y === undefined) return null;
   
   return (
@@ -121,7 +129,7 @@ const CustomLabel = ({ x, y, value, isRecovery }: { x?: number; y?: number; valu
       x={x}
       y={y - 14}
       textAnchor="middle"
-      fill={CHART_COLOR}
+      fill={color}
       fontSize={11}
       fontWeight={500}
       fontFamily="system-ui, -apple-system, sans-serif"
@@ -254,7 +262,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke={CHART_COLOR}
+                stroke={metric.color}
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -264,6 +272,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                     cx={props.cx}
                     cy={props.cy}
                     payload={props.payload}
+                    color={metric.color}
                   />
                 )}
                 label={(props) => (
@@ -272,6 +281,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                     y={props.y}
                     value={props.value}
                     isRecovery={metric.key === "recovery"}
+                    color={metric.color}
                   />
                 )}
                 isAnimationActive={false}
