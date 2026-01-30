@@ -11,7 +11,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, subDays, parseISO, startOfDay } from "date-fns";
 import { useMetricHistory } from "@/hooks/useMetricHistory";
-import { Line, LineChart, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
+import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine, Area, ComposedChart } from "recharts";
 import { Target, Zap, Battery, Brain } from "lucide-react";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
@@ -230,7 +230,13 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
       ) : (
         <div className="h-[210px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 36, right: 16, left: 16, bottom: 32 }}>
+            <ComposedChart data={chartData} margin={{ top: 36, right: 16, left: 16, bottom: 32 }}>
+              <defs>
+                <linearGradient id={`gradient-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={metric.color} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={metric.color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid 
                 horizontal={true}
                 vertical={false}
@@ -259,6 +265,14 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 ticks={yGridTicks}
                 hide
               />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="none"
+                fill={`url(#gradient-${metric.key})`}
+                connectNulls
+                isAnimationActive={false}
+              />
               <Line
                 type="monotone"
                 dataKey="value"
@@ -286,7 +300,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 )}
                 isAnimationActive={false}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       )}
