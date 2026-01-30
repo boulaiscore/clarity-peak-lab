@@ -261,6 +261,9 @@ export function useRecordContentCompletion() {
       queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] });
       // Library refresh
       queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
+      // Home page metric refresh (RQ is persisted and used by Home)
+      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted"] });
     },
   });
 }
