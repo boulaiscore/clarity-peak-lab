@@ -30,9 +30,17 @@ export interface IntradayDataPoint {
 
 interface EventRecord {
   timestamp: string;
-  type: 'game' | 'detox' | 'walking';
+  type: 'game' | 'detox' | 'walking' | 'task';
   recoveryDelta?: number; // For detox/walking: minutes contributed
+  taskType?: 'podcast' | 'book' | 'article'; // For task completions
 }
+
+// Task base RQ contributions (before decay)
+const TASK_RQ_BASE: Record<string, number> = {
+  podcast: 5.0,
+  book: 5.5,
+  article: 3.5,
+};
 
 // Recovery decay formula: REC × 2^(-Δt_hours / 72)
 function applyRecoveryDecay(recValue: number, hoursElapsed: number): number {
@@ -116,6 +124,27 @@ export function useIntradayMetricHistory() {
     staleTime: 60_000,
   });
 
+  // Fetch today's task completions (for RQ changes)
+  const { data: todayTaskCompletions, isLoading: tasksLoading } = useQuery({
+    queryKey: ["intraday-tasks", user?.id, todayStr],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("exercise_completions")
+        .select("completed_at, exercise_id")
+        .eq("user_id", user.id)
+        .like("exercise_id", "content-%")
+        .gte("completed_at", todayStart.toISOString())
+        .order("completed_at", { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 60_000,
+  });
+
   // Fetch midnight recovery value (snapshot from yesterday or baseline)
   const { data: midnightRecovery, isLoading: midnightLoading } = useQuery({
     queryKey: ["intraday-midnight-recovery", user?.id, todayStr],
@@ -158,7 +187,7 @@ export function useIntradayMetricHistory() {
     staleTime: 5 * 60_000,
   });
 
-  const isLoading = gamesLoading || detoxLoading || walkingLoading || midnightLoading || todayMetrics.isLoading || rqLoading;
+  const isLoading = gamesLoading || detoxLoading || walkingLoading || tasksLoading || midnightLoading || todayMetrics.isLoading || rqLoading;
 
   // Reconstruct intraday timeline
   const history: IntradayDataPoint[] = useMemo(() => {
@@ -167,8 +196,9 @@ export function useIntradayMetricHistory() {
     // Collect all events with timestamps
     const events: Array<{
       timestamp: Date;
-      type: 'game' | 'detox' | 'walking' | 'midnight' | 'now';
+      type: 'game' | 'detox' | 'walking' | 'task' | 'midnight' | 'now';
       recoveryDelta?: number;
+      taskType?: 'podcast' | 'book' | 'article';
     }> = [];
     
     // Add midnight point
@@ -208,37 +238,67 @@ export function useIntradayMetricHistory() {
       }
     });
     
+    // Add task completion events (for RQ changes)
+    todayTaskCompletions?.forEach(task => {
+      if (task.completed_at && task.exercise_id) {
+        // Parse task type from exercise_id (e.g., "content-podcast-123")
+        const parts = task.exercise_id.split("-");
+        const taskType = parts[1] as 'podcast' | 'book' | 'article';
+        if (taskType && TASK_RQ_BASE[taskType]) {
+          events.push({
+            timestamp: parseISO(task.completed_at),
+            type: 'task',
+            taskType,
+          });
+        }
+      }
+    });
+    
     // Add current time point
     events.push({ timestamp: now, type: 'now' });
     
     // Sort by timestamp
     events.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     
-    // Remove duplicates (events within 1 minute of each other)
+    // Remove duplicates (events within 1 minute of each other, keep the more important one)
     const dedupedEvents = events.filter((event, index) => {
       if (index === 0) return true;
       const prevEvent = events[index - 1];
-      return Math.abs(event.timestamp.getTime() - prevEvent.timestamp.getTime()) > 60000;
+      const timeDiff = Math.abs(event.timestamp.getTime() - prevEvent.timestamp.getTime());
+      if (timeDiff <= 60000) {
+        // Keep task events as they affect RQ
+        return event.type === 'task' || event.type === 'now';
+      }
+      return true;
     });
     
     // Reconstruct metric values at each point
     const dataPoints: IntradayDataPoint[] = [];
     
-    // Get midnight values
+    // Get midnight values from snapshot
     const midnightRec = midnightRecovery?.recovery ?? todayMetrics.recovery;
+    const midnightSharpness = midnightRecovery?.sharpness ?? todayMetrics.sharpness;
+    const midnightReadiness = midnightRecovery?.readiness ?? todayMetrics.readiness;
+    const midnightRQ = midnightRecovery?.reasoningQuality ?? null;
     
-    // For Sharpness/Readiness/RQ: since they only change with games (XP),
-    // we use a simplified approach - current values for all points
-    // (In production, we'd need to track XP deltas per game)
-    const baseSharpness = todayMetrics.sharpness;
-    const baseReadiness = todayMetrics.readiness;
-    const baseRQ = currentRQ; // Use actual RQ from useReasoningQuality
+    // Calculate how much RQ was gained today from tasks
+    // This is the delta between current RQ and midnight RQ
+    const totalTaskRQGainToday = todayTaskCompletions?.reduce((sum, task) => {
+      const parts = task.exercise_id.split("-");
+      const taskType = parts[1] as 'podcast' | 'book' | 'article';
+      // Full contribution for tasks completed today (no decay yet)
+      return sum + (TASK_RQ_BASE[taskType] || 0) * 0.20; // 0.20 weight from RQ formula
+    }, 0) || 0;
+    
+    // Estimate midnight RQ if not available from snapshot
+    const estimatedMidnightRQ = midnightRQ ?? (currentRQ != null ? currentRQ - totalTaskRQGainToday : null);
     
     let currentRecovery = midnightRec;
+    let currentRQValue = estimatedMidnightRQ;
     let lastTimestamp = todayStart;
     
     dedupedEvents.forEach((event) => {
-      // Apply decay since last event
+      // Apply recovery decay since last event
       const hoursSinceLastEvent = (event.timestamp.getTime() - lastTimestamp.getTime()) / (1000 * 60 * 60);
       
       if (event.type !== 'midnight' && currentRecovery != null) {
@@ -250,17 +310,26 @@ export function useIntradayMetricHistory() {
         currentRecovery = Math.min(100, currentRecovery + event.recoveryDelta);
       }
       
-      // For "now", use actual current metrics
+      // Apply RQ gain from task completions
+      if (event.type === 'task' && event.taskType && currentRQValue != null) {
+        const taskContribution = (TASK_RQ_BASE[event.taskType] || 0) * 0.20;
+        currentRQValue = Math.min(100, currentRQValue + taskContribution);
+      }
+      
+      // For "now", use actual current metrics for accuracy
       const isNow = event.type === 'now';
       const recovery = isNow ? todayMetrics.recovery : currentRecovery;
+      const sharpness = isNow ? todayMetrics.sharpness : midnightSharpness;
+      const readiness = isNow ? todayMetrics.readiness : midnightReadiness;
+      const rq = isNow ? currentRQ : currentRQValue;
       
       dataPoints.push({
         timestamp: event.timestamp.toISOString(),
         hour: format(event.timestamp, "HH:mm"),
-        sharpness: baseSharpness,
-        readiness: baseReadiness,
+        sharpness,
+        readiness,
         recovery: recovery != null ? Math.round(recovery * 10) / 10 : null,
-        reasoningQuality: baseRQ,
+        reasoningQuality: rq != null ? Math.round(rq * 10) / 10 : null,
         isNow,
       });
       
@@ -273,6 +342,7 @@ export function useIntradayMetricHistory() {
     gameSessions,
     detoxSessions,
     walkingSessions,
+    todayTaskCompletions,
     midnightRecovery,
     todayMetrics,
     currentRQ,
