@@ -15,7 +15,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
-import { format, startOfDay, parseISO, differenceInHours } from "date-fns";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
+import { format, startOfDay, parseISO } from "date-fns";
 
 export interface IntradayDataPoint {
   timestamp: string;      // ISO timestamp
@@ -46,6 +47,7 @@ function calculateRecoveryGain(detoxMinutes: number, walkMinutes: number): numbe
 export function useIntradayMetricHistory() {
   const { user } = useAuth();
   const todayMetrics = useTodayMetrics();
+  const { rq: currentRQ, isLoading: rqLoading } = useReasoningQuality();
   
   const todayStart = startOfDay(new Date());
   const todayStr = format(todayStart, "yyyy-MM-dd");
@@ -156,7 +158,7 @@ export function useIntradayMetricHistory() {
     staleTime: 5 * 60_000,
   });
 
-  const isLoading = gamesLoading || detoxLoading || walkingLoading || midnightLoading || todayMetrics.isLoading;
+  const isLoading = gamesLoading || detoxLoading || walkingLoading || midnightLoading || todayMetrics.isLoading || rqLoading;
 
   // Reconstruct intraday timeline
   const history: IntradayDataPoint[] = useMemo(() => {
@@ -225,12 +227,12 @@ export function useIntradayMetricHistory() {
     // Get midnight values
     const midnightRec = midnightRecovery?.recovery ?? todayMetrics.recovery;
     
-    // For Sharpness/Readiness: since they only change with games (XP),
+    // For Sharpness/Readiness/RQ: since they only change with games (XP),
     // we use a simplified approach - current values for all points
     // (In production, we'd need to track XP deltas per game)
     const baseSharpness = todayMetrics.sharpness;
     const baseReadiness = todayMetrics.readiness;
-    const baseRQ = todayMetrics.S2 != null ? todayMetrics.S2 : null; // Reasoning Quality approximation
+    const baseRQ = currentRQ; // Use actual RQ from useReasoningQuality
     
     let currentRecovery = midnightRec;
     let lastTimestamp = todayStart;
@@ -273,6 +275,7 @@ export function useIntradayMetricHistory() {
     walkingSessions,
     midnightRecovery,
     todayMetrics,
+    currentRQ,
     todayStart,
     now,
   ]);
