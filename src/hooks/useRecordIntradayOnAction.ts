@@ -17,7 +17,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
 import type { IntradayEventType } from "@/hooks/useRecordIntradayEvent";
 import { getCurrentRecovery, RecoveryState } from "@/lib/recoveryV2";
@@ -26,11 +26,81 @@ import {
   calculateReadiness,
   clamp,
 } from "@/lib/cognitiveEngine";
+import { calculateRQ, type TaskCompletion } from "@/lib/reasoningQuality";
 
 export function useRecordIntradayOnAction() {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
   const queryClient = useQueryClient();
+
+  const fetchLiveReasoningQuality = useCallback(async (): Promise<number | null> => {
+    if (!userId) return null;
+
+    // 1) S2 inputs + decay tracking dates
+    const { data: metricsRow, error: metricsErr } = await supabase
+      .from("user_cognitive_metrics")
+      .select("critical_thinking_score, creativity, last_s2_game_at, last_task_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (metricsErr) throw metricsErr;
+
+    const CT = metricsRow?.critical_thinking_score ?? 50;
+    const IN = metricsRow?.creativity ?? 50;
+    const S2 = (CT + IN) / 2;
+
+    const lastS2GameAt = metricsRow?.last_s2_game_at ? parseISO(metricsRow.last_s2_game_at) : null;
+    const lastTaskAt = metricsRow?.last_task_at ? parseISO(metricsRow.last_task_at) : null;
+
+    // 2) Last 10 S2 game scores (chronological)
+    const { data: s2Games, error: s2Err } = await supabase
+      .from("game_sessions")
+      .select("score, completed_at")
+      .eq("user_id", userId)
+      .eq("system_type", "S2")
+      .order("completed_at", { ascending: false })
+      .limit(10);
+
+    if (s2Err) throw s2Err;
+
+    const s2GameScores = (s2Games ?? [])
+      .filter((g) => g.score !== null)
+      .map((g) => Number(g.score))
+      .reverse();
+
+    // 3) Last 7 days of task completions
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const { data: tasks, error: tasksErr } = await supabase
+      .from("exercise_completions")
+      .select("exercise_id, completed_at")
+      .eq("user_id", userId)
+      .like("exercise_id", "content-%")
+      .gte("completed_at", sevenDaysAgo.toISOString());
+
+    if (tasksErr) throw tasksErr;
+
+    const taskCompletions: TaskCompletion[] = (tasks ?? []).map((t) => {
+      const parts = t.exercise_id.split("-");
+      const type = (parts[1] as TaskCompletion["type"]) || "article";
+      return {
+        type,
+        completedAt: parseISO(t.completed_at),
+      };
+    });
+
+    // 4) Compute live RQ with the same engine as the UI
+    const rqResult = calculateRQ({
+      S2,
+      s2GameScores,
+      taskCompletions,
+      lastS2GameAt,
+      lastTaskAt,
+    });
+
+    return Math.round(rqResult.rq * 10) / 10;
+  }, [userId]);
 
   /**
    * Records a metric snapshot AFTER an action completes.
@@ -102,29 +172,32 @@ export function useRecordIntradayOnAction() {
         const sharpness = calculateSharpness(states, recoveryValue);
         const readiness = calculateReadiness(states, recoveryValue, null);
 
-        // Get RQ - for task/game events we need the LIVE calculated value, not persisted
-        // Since RQ depends on task completions (7d window), we must recalculate
-        // For simplicity, we fetch the persisted value from DB which is the closest we have
-        // The live calculation happens in useReasoningQuality hook which isn't available here
-        // Note: This may lag behind the true live RQ, but ensures data consistency
+        // Get RQ (LIVE) - required for correct intraday charts.
+        // Using persisted RQ here causes new profiles (and some edge cases) to show a flat line
+        // because persisted RQ may be null or already at the final value.
         let reasoningQuality: number | null = null;
-        
-        // First check cache with correct key
-        const cachedRQ = queryClient.getQueryData<{ reasoning_quality: number | null }>(
-          ["reasoning-quality-persisted", userId]
-        );
-        
-        if (cachedRQ?.reasoning_quality != null) {
-          reasoningQuality = cachedRQ.reasoning_quality;
-        } else {
-          // Fallback: fetch from DB
-          const { data } = await supabase
-            .from("user_cognitive_metrics")
-            .select("reasoning_quality")
-            .eq("user_id", userId)
-            .maybeSingle();
-          
-          reasoningQuality = data?.reasoning_quality ?? null;
+
+        try {
+          reasoningQuality = await fetchLiveReasoningQuality();
+        } catch (e) {
+          console.warn("[useRecordIntradayOnAction] Live RQ calc failed, falling back to persisted:", e);
+
+          // Fallback: persisted value (better than nothing, but may flatten the chart)
+          const cachedRQ = queryClient.getQueryData<{ reasoning_quality: number | null }>(
+            ["reasoning-quality-persisted", userId]
+          );
+
+          if (cachedRQ?.reasoning_quality != null) {
+            reasoningQuality = cachedRQ.reasoning_quality;
+          } else {
+            const { data } = await supabase
+              .from("user_cognitive_metrics")
+              .select("reasoning_quality")
+              .eq("user_id", userId)
+              .maybeSingle();
+
+            reasoningQuality = data?.reasoning_quality ?? null;
+          }
         }
 
         // Record the event
@@ -137,7 +210,7 @@ export function useRecordIntradayOnAction() {
           readiness: readiness != null ? Math.round(readiness * 10) / 10 : null,
           sharpness: sharpness != null ? Math.round(sharpness * 10) / 10 : null,
           recovery: recovery != null ? Math.round(recovery * 10) / 10 : null,
-          reasoning_quality: reasoningQuality != null ? Math.round(reasoningQuality * 10) / 10 : null,
+          reasoning_quality: reasoningQuality,
           event_details: (eventDetails ?? null) as Json,
         };
 
