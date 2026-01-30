@@ -935,12 +935,22 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
         
         // Record XP earned
         await recordContentCompletion.mutateAsync({ contentId: inputId, contentType: type, xpEarned });
-        
-        // v1.9: Record intraday event for task completion
-        recordMetricsSnapshot('task', {
-          contentType: type,
-          contentId: inputId,
-        });
+      }
+      
+      // Return action details for onSuccess
+      return { inputId, wasLogged: isCurrentlyLogged };
+    },
+    onSuccess: (data) => {
+      // v2.0: Record intraday event AFTER mutation success and cache updates
+      // Only record when adding (not removing)
+      if (!data.wasLogged) {
+        // Small delay to ensure cache invalidations propagate
+        setTimeout(() => {
+          recordMetricsSnapshot('task', {
+            contentType: type,
+            contentId: data.inputId,
+          });
+        }, 200);
       }
     },
     onMutate: async ({ inputId, isCurrentlyLogged }) => {
