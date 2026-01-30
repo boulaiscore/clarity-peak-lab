@@ -1,129 +1,97 @@
 
-# Fix Layout Grafico Trend WHOOP-Style
+# Plan: Fix Delta Display Format and Recovery Logic
 
-## Problema
-1. La linea piu bassa del grafico coincide attualmente con yMin (valore minimo)
-2. Le date (asse X) sono renderizzate sulla seconda linea invece che sulla prima (baseline)
-3. Il pallino del valore minimo non poggia correttamente sulla prima linea dati
+## Summary
+Update the delta indicators on the Home page to:
+1. Display only the percentage number (e.g., `+12%`) without extra text like "vs ieri"
+2. Calculate **percentage change** instead of absolute change
+3. Handle edge cases where yesterday's value is 0 or null
+4. Confirm Recovery minimum value behavior
 
-## Struttura Corretta (dal basso verso l'alto)
-```text
-Linea 4 (top)     ─────────────────────  (yMax o spazio sopra massimo)
-Linea 3           ─────────────────────  (valore intermedio)
-Linea 2           ────────O────────O──  (yMin = valore minimo, pallini qui)
-Linea 1 (base)    ─────────────────────  (baseline per date: Sat 24, Sun 25...)
+---
+
+## Analysis: Recovery Minimum Value
+
+Based on the codebase review, **Recovery CAN technically reach 0%** after initialization:
+
+- **Initialization**: RRI is clamped between 35-55% via `calculateRRI()` - users never START at 0%
+- **Decay**: The formula `REC = REC × 2^(-Δt_hours / 72)` asymptotically approaches 0%
+- **Current logic**: `applyRecoveryDecay()` uses `Math.max(0, ...)` which allows 0% but not negative
+
+So while users start between 35-55%, extended inactivity (many days without Detox/Walking) will decay the value toward 0%.
+
+---
+
+## Technical Changes
+
+### 1. Update `formatDeltaPercent` helper (useYesterdayMetrics.ts)
+
+**Current behavior**:
+```typescript
+const delta = current - previous;
+return `${sign}${Math.round(delta)}`; // Returns absolute difference
 ```
 
-## Soluzione Tecnica
+**New behavior**:
+```typescript
+// Return percentage change as string, e.g., "+12%"
+const percentChange = ((current - previous) / previous) * 100;
+return `${sign}${Math.round(percentChange)}%`;
+```
 
-### 1. Aggiungere una linea baseline separata
-La griglia deve avere 4 linee orizzontali, ma il dominio Y deve iniziare SOTTO il valore minimo per creare spazio per la baseline delle date.
+**Edge case handling**:
+- If `previous === null`: return `null` (no data)
+- If `previous === 0` AND `current > 0`: return `null` (cannot compute % from 0)
+- If `previous === 0` AND `current === 0`: return `null` (no change)
+- If delta is 0: return `null` (no meaningful change to show)
 
-Nuovo calcolo:
-- `yBaseline` = valore fittizio sotto yMin (es. yMin - baselineGap)
-- `yMin` = dataMin (valore minimo reale)
-- `yMax` = dataMax + padding
-- 4 linee: [yBaseline, yMin, yMid, yMax]
+### 2. Update ProgressRing display (Home.tsx)
 
-### 2. Modificare il dominio YAxis
+Remove "vs ieri" text from the delta display:
+
+**Current (line 118)**:
 ```tsx
-const baselineGap = (yMax - dataMin) * 0.25; // Gap per baseline
-const yBaseline = dataMin - baselineGap;
-
-// Domain ora include baseline
-domain={[yBaseline, yMax]}
-
-// 4 linee equidistanti
-const yTicks = [yBaseline, dataMin, (dataMin + dataMax) / 2, yMax];
+{deltaIndicator} vs ieri
 ```
 
-### 3. Spostare l'asse X alla baseline
-Configurare XAxis con posizione esplicita per allinearsi alla prima linea (yBaseline).
-
-### Modifiche File
-
-**File: `src/components/dashboard/MetricTrendCharts.tsx`**
-
-**Linee 143-166** - Ricalcolo dominio Y con baseline:
+**New**:
 ```tsx
-// Calculate min/max for dynamic Y axis
-const values = data.filter(d => d.value !== null).map(d => d.value as number);
-const dataMin = values.length > 0 ? Math.min(...values) : 50;
-const dataMax = values.length > 0 ? Math.max(...values) : 50;
-
-// Create 4 horizontal bands:
-// Line 1 (bottom): baseline for dates
-// Line 2: minimum value (data points rest here)
-// Line 3: middle
-// Line 4 (top): maximum + padding
-
-let yDataMin: number;
-let yDataMax: number;
-
-if (dataMin === dataMax) {
-  yDataMin = dataMin;
-  yDataMax = dataMin + 20;
-} else {
-  yDataMin = dataMin;
-  const range = dataMax - dataMin;
-  yDataMax = dataMax + range * 0.15;
-}
-
-// Baseline is below yDataMin to create space for date labels
-const bandHeight = (yDataMax - yDataMin) / 2; // 3 data bands above baseline
-const yBaseline = yDataMin - bandHeight;
-
-// 4 equidistant lines: baseline, min, mid, max
-const yTicks = [
-  yBaseline,                           // Line 1: baseline for dates
-  yDataMin,                            // Line 2: minimum value
-  yDataMin + bandHeight,               // Line 3: middle
-  yDataMax,                            // Line 4: top
-];
-
-const yMin = yBaseline;
-const yMax = yDataMax;
+{deltaIndicator}
 ```
 
-**Linee 193-216** - Aggiornare margin bottom e CartesianGrid:
+### 3. Update ReasoningQualityCard display (ReasoningQualityCard.tsx)
+
+Remove "(... vs ieri)" wrapper:
+
+**Current (line 99)**:
 ```tsx
-<LineChart data={chartData} margin={{ top: 32, right: 20, left: 20, bottom: 8 }}>
-  <CartesianGrid 
-    horizontal={true}
-    vertical={false}
-    stroke={GRID_COLOR}
-    strokeWidth={1}
-    horizontalCoordinatesGenerator={({ height, offset }) => {
-      const chartHeight = height;
-      const scale = chartHeight / (yMax - yMin);
-      return yTicks.map(tick => {
-        const yPixel = offset.top + (yMax - tick) * scale;
-        return yPixel;
-      });
-    }}
-  />
-  <XAxis
-    dataKey="xLabel"
-    axisLine={false}
-    tickLine={false}
-    tick={<CustomXAxisTick />}
-    interval={0}
-    orientation="bottom"
-  />
-  <YAxis
-    domain={[yMin, yMax]}
-    ticks={yTicks}
-    hide
-  />
+({deltaVsYesterday} vs ieri)
 ```
 
-**Linee 52-97** - Aggiornare CustomXAxisTick per allinearsi alla baseline:
-Il tick dell'asse X deve posizionarsi correttamente sulla prima linea orizzontale (baseline). Aggiustare le coordinate Y del rect highlight e del testo.
+**New**:
+```tsx
+{deltaVsYesterday}
+```
 
-## Risultato Atteso
-- 4 linee orizzontali equidistanti
-- Linea 1 (piu bassa): solo date (Sat 24, Sun 25, ecc.)
-- Linea 2: valore minimo - i pallini con valore 34 poggiano QUI
-- Linea 3: valore intermedio
-- Linea 4: valore massimo o spazio sopra
-- Le date sono sulla baseline, non sovrapposte ai dati
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/hooks/useYesterdayMetrics.ts` | Update `formatDeltaPercent` to calculate % change with edge case handling |
+| `src/pages/app/Home.tsx` | Remove "vs ieri" text from delta display |
+| `src/components/dashboard/ReasoningQualityCard.tsx` | Remove "(... vs ieri)" wrapper |
+
+---
+
+## Expected Result
+
+| Scenario | Yesterday | Today | Display |
+|----------|-----------|-------|---------|
+| Normal improvement | 50 | 60 | `+20%` (green) |
+| Normal decline | 50 | 40 | `-20%` (red) |
+| No change | 50 | 50 | (nothing shown) |
+| Yesterday was 0 | 0 | 30 | (nothing shown) |
+| Yesterday null | null | 50 | (nothing shown) |
+| Large improvement | 20 | 80 | `+300%` (green) |
