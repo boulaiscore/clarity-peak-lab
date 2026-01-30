@@ -941,16 +941,21 @@ export function CognitiveTasksSection({ type, title, compact = false }: Prescrip
       return { inputId, wasLogged: isCurrentlyLogged };
     },
     onSuccess: (data) => {
+      console.log("[CognitiveInputs] 🎯 onSuccess called:", data);
       // v2.0: Record intraday event AFTER mutation success and cache updates
       // Only record when adding (not removing)
       if (!data.wasLogged) {
+        console.log("[CognitiveInputs] 📝 Recording intraday event for task...");
         // Small delay to ensure cache invalidations propagate
         setTimeout(() => {
+          console.log("[CognitiveInputs] ⏰ Timeout fired, calling recordMetricsSnapshot");
           recordMetricsSnapshot('task', {
             contentType: type,
             contentId: data.inputId,
           });
         }, 200);
+      } else {
+        console.log("[CognitiveInputs] ⏭️ Skipping intraday event - wasLogged is true (removing)");
       }
     },
     onMutate: async ({ inputId, isCurrentlyLogged }) => {
