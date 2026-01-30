@@ -28,7 +28,7 @@ const METRIC_COLORS = {
   sharpness: "hsl(210, 100%, 60%)",     // Electric blue
   readiness: "hsl(245, 58%, 65%)",      // Soft indigo
   recovery: "hsl(174, 72%, 45%)",       // Teal
-  reasoningQuality: "hsl(258, 90%, 66%)", // Primary purple
+  reasoningQuality: "hsl(215, 45%, 42%)", // Primary steel blue (matches Home)
 };
 
 const METRICS: MetricConfig[] = [
