@@ -1,156 +1,83 @@
 
-# Piano: Grafici Trend Intraday (Oggi)
+
+# Piano: Asse X Temporale Proporzionale per Grafici Intraday
 
 ## Obiettivo
-Aggiungere una vista intraday nella sezione Analytics → Trends che mostra le variazioni orarie delle metriche cognitive per la giornata corrente, con lo stesso stile visivo WHOOP dei grafici settimanali esistenti.
+Modificare i grafici intraday (1d) in modo che:
+1. **Etichette fisse** sull'asse X: 00:00, 06:00, 12:00, 18:00 + orario corrente
+2. **Pallini posizionati al timestamp reale**: se un evento è alle 11:03, il pallino appare esattamente a quella posizione sulla timeline
 
----
+## Problema Attuale
+Il grafico usa una scala **categorica** dove ogni data point crea automaticamente un'etichetta e i pallini si allineano a queste etichette. Questo causa:
+- Tutti i grafici mostrano gli stessi orari (11:30, 13:00, ecc.)
+- I pallini non riflettono il momento esatto dell'evento
 
-## Analisi dello Stato Attuale
-
-### Dati Disponibili
-Attualmente il sistema non dispone di snapshot orari. I dati intraday devono essere **ricostruiti** a partire dagli eventi esistenti:
-
-| Fonte Dati | Tabella | Timestamp | Metriche Impattate |
-|------------|---------|-----------|-------------------|
-| Game sessions | `game_sessions` | `completed_at` | Sharpness (via S1/S2) |
-| Detox sessions | `detox_sessions` | `end_time` | Recovery |
-| Walking sessions | `walking_sessions` | `completed_at` | Recovery |
-| Recovery decay | `user_cognitive_metrics.rec_last_ts` | Continuo | Recovery (decadimento) |
-
-### Sfida Tecnica
-Il modello Recovery v2.0 è **event-driven con decadimento continuo**: il valore cambia costantemente nel tempo (formula: `REC × 2^(-Δt_hours / 72)`). Questo significa che possiamo calcolare il valore di Recovery a qualsiasi timestamp storico applicando il modello di decay/gain.
-
----
-
-## Proposta di Posizionamento UI
-
-**Opzione consigliata: Toggle Week/Today sopra i grafici**
+## Soluzione Tecnica
+Convertire l'XAxis da scala categorica a scala **numerica/temporale**:
 
 ```text
-┌─────────────────────────────────────────┐
-│  [●  Week  ] [  Today  ]     ← Toggle   │
-├─────────────────────────────────────────┤
-│                                         │
-│  SHARPNESS                              │
-│  ─────────────────────────────          │
-│  (grafico con X = ore/giorni)           │
-│                                         │
-│  READINESS                              │
-│  ─────────────────────────────          │
-│  ...                                    │
-└─────────────────────────────────────────┘
+ATTUALE (categorico):
+┌────────────────────────────────────────┐
+│  Punto1    Punto2    Punto3    Punto4  │
+│    ●         ●         ●         ●     │
+│  10:30    12:00     15:00     17:00    │ ← Etichette generate dai dati
+└────────────────────────────────────────┘
+
+NUOVO (temporale):
+┌────────────────────────────────────────┐
+│       ●        ●            ●      ●   │ ← Pallini a posizioni proporzionali
+│    (10:47)  (11:58)      (15:22) (17:03)│ ← Orari reali
+│  00:00    06:00    12:00    18:00  Now │ ← Etichette fisse
+└────────────────────────────────────────┘
 ```
 
-Il toggle permette di passare tra:
-- **Week**: Vista settimanale esistente (7 giorni)
-- **Today**: Vista intraday (ore della giornata)
+## Modifiche al Codice
 
----
+### 1. Aggiungere campo timestamp numerico ai dati (`MetricTrendCharts.tsx`)
 
-## Specifica Asse X (Intraday)
+Aggiungere `timeValue` (timestamp Unix in millisecondi) a ogni punto dati intraday per il posizionamento proporzionale.
 
-- **Prima ora**: 00:00 (mezzanotte)
-- **Ultima ora**: Ora corrente
-- **Punti mostrati**: Solo le ore in cui c'è stata una variazione (evento)
-- **Fallback**: Se nessun evento oggi, mostrare solo il valore corrente con label dell'ora attuale
-
-Esempio visivo:
-```text
-00:00    09:15    14:30    (ora corrente)
-  │        │        │           │
-  ●────────●────────●───────────●
-  45%     47%      52%        48%
-```
-
----
-
-## Implementazione Tecnica
-
-### 1. Nuovo Hook: `useIntradayMetricHistory`
-Calcola i valori delle metriche a ogni ora con variazione:
+### 2. Configurare XAxis come scala numerica
 
 ```typescript
-interface IntradayDataPoint {
-  timestamp: string;      // ISO timestamp
-  hour: string;           // "09:15" format
-  readiness: number | null;
-  sharpness: number | null;
-  recovery: number | null;
-  reasoningQuality: number | null;
-  isNow: boolean;         // Flag per highlight ora corrente
-}
+<XAxis
+  type="number"
+  dataKey="timeValue"              // Usa timestamp numerico
+  scale="time"                     // Scala temporale
+  domain={[midnightTimestamp, nowTimestamp]}  // Da mezzanotte a ora corrente
+  ticks={[00:00, 06:00, 12:00, 18:00, Now]}   // Etichette fisse
+  tickFormatter={(ts) => format(ts, "HH:mm")} // Formatta come orario
+/>
 ```
 
-**Strategia di ricostruzione**:
-1. Query degli eventi di oggi (game_sessions, detox_sessions, walking_sessions)
-2. Per ogni evento, calcolare il valore delle metriche al momento dell'evento
-3. Aggiungere un punto "now" con i valori correnti
-4. Recovery: applicare il modello di decay tra eventi consecutivi
+### 3. Aggiornare il componente IntradayXAxisTick
 
-### 2. Nuovo Componente: `IntradayMetricCharts`
-Riutilizza la struttura di `MetricTrendCharts` con adattamenti:
-- `CustomXAxisTick` mostra ore invece di giorni
-- Highlight sull'ultimo punto (ora corrente) con banda traslucida
-- Stessa palette colori, stessi dot, stessi gradient
+Modificare per ricevere un timestamp numerico invece di una stringa, e formattare l'orario dinamicamente. Evidenziare l'ultimo tick ("Now") con stile diverso.
 
-### 3. Modifica: `MetricTrendCharts`
-Aggiungere toggle per switch Week/Today:
-- State locale per `viewMode: 'week' | 'today'`
-- Render condizionale dei dati
+### 4. Calcolare i tick fissi
 
----
+```typescript
+const todayStart = startOfDay(new Date()).getTime();
+const nowTs = Date.now();
 
-## Flusso Dati
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        useIntradayMetricHistory                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. Fetch game_sessions (oggi)                                   │
-│     └─> timestamp + score → calcola Sharpness al momento        │
-│                                                                  │
-│  2. Fetch detox_sessions + walking_sessions (oggi)               │
-│     └─> timestamp + durata → calcola Recovery al momento        │
-│                                                                  │
-│  3. Calcola Recovery decay tra eventi                            │
-│     └─> Applica formula esponenziale per timestamp intermedi    │
-│                                                                  │
-│  4. Aggiungi punto "now" con valori correnti                    │
-│     └─> useTodayMetrics().sharpness, .readiness, .recovery      │
-│                                                                  │
-│  5. Ordina per timestamp e restituisci array                     │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+const fixedTicks = [
+  todayStart,                        // 00:00
+  todayStart + 6 * 60 * 60 * 1000,   // 06:00
+  todayStart + 12 * 60 * 60 * 1000,  // 12:00
+  todayStart + 18 * 60 * 60 * 1000,  // 18:00
+  nowTs                               // Ora corrente
+].filter(t => t <= nowTs);            // Mostra solo tick passati
 ```
 
----
+### 5. Aggiornare intradayChartData
 
-## File da Creare/Modificare
+Aggiungere il campo `timeValue` calcolato da `new Date(point.timestamp).getTime()`.
 
-| File | Azione | Descrizione |
-|------|--------|-------------|
-| `src/hooks/useIntradayMetricHistory.ts` | **Nuovo** | Hook per fetch e calcolo dati intraday |
-| `src/components/dashboard/MetricTrendCharts.tsx` | Modifica | Aggiungere toggle Week/Today e logica condizionale |
-| `src/components/dashboard/IntradayXAxisTick.tsx` | **Nuovo** (opzionale) | Custom tick per asse X orario |
+## File da Modificare
+- `src/components/dashboard/MetricTrendCharts.tsx`
 
----
-
-## Considerazioni Speciali
-
-1. **Recovery "phantom decay"**: Tra un evento e l'altro, Recovery decade continuamente. Per mostrare questo:
-   - Opzione A: Mostrare solo punti agli eventi (linea congiunge)
-   - Opzione B: Aggiungere punti interpolati ogni ora (più complesso)
-   - **Consiglio**: Opzione A per semplicità iniziale
-
-2. **Giorni senza eventi**: Se oggi non ci sono ancora eventi, mostrare solo il punto "now" o un messaggio "No activity yet today"
-
-3. **Sharpness/Readiness**: Queste metriche derivano da S1/S2/AE che cambiano solo con XP (games). Se nessun game oggi, il valore è costante → mostrare linea piatta con un solo punto.
-
----
-
-## Stima Complessità
-- **Bassa-Media**: Riutilizzo estensivo del componente chart esistente
-- **Rischio**: Ricostruzione accurata dei valori storici intraday (specialmente Recovery con decay)
+## Risultato Atteso
+- Sull'asse X: etichette fisse (00:00, 06:00, 12:00, 18:00, Now)
+- Pallini posizionati esattamente all'orario in cui è avvenuto l'evento
+- Se RQ è cambiata alle 17:03, il pallino sarà leggermente a sinistra di "18:00"
 
