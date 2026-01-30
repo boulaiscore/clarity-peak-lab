@@ -118,19 +118,36 @@ export function useDailyRecoverySnapshot() {
   
   // Mutation to update the daily snapshot
   const updateSnapshot = useMutation({
-    mutationFn: async (recovery: number) => {
+    mutationFn: async (recovery: number | null) => {
       if (!userId) throw new Error("No user ID");
+
+      // If recovery isn't initialized yet, do not persist a misleading 0
+      if (recovery === null || Number.isNaN(recovery)) {
+        console.log("[RecoverySnapshot] Recovery is null/NaN (not initialized), skipping");
+        return {
+          updated: false,
+          streakDays: snapshotData?.low_rec_streak_days ?? 0,
+        };
+      }
       
       const todayLocal = getUserLocalDate();
       const currentSnapshotDate = snapshotData?.rec_snapshot_date;
+      const currentSnapshotValue = snapshotData?.rec_snapshot_value;
       
-      // IDEMPOTENCY CHECK: If already updated today, do nothing
+      // IDEMPOTENCY CHECK:
+      // If already updated today, normally do nothing.
+      // BUT: if today's snapshot was written earlier as 0/null before REC finished loading,
+      // allow a corrective write.
       if (currentSnapshotDate === todayLocal) {
-        console.log("[RecoverySnapshot] Already updated today, skipping");
-        return { 
-          updated: false, 
-          streakDays: snapshotData?.low_rec_streak_days ?? 0 
-        };
+        const needsCorrection = (currentSnapshotValue === null || currentSnapshotValue === 0) && recovery > 0;
+        if (!needsCorrection) {
+          console.log("[RecoverySnapshot] Already updated today, skipping");
+          return {
+            updated: false,
+            streakDays: snapshotData?.low_rec_streak_days ?? 0,
+          };
+        }
+        console.log("[RecoverySnapshot] Correcting today's snapshot from 0/null");
       }
       
       // Calculate day difference for consecutive detection
@@ -181,7 +198,7 @@ export function useDailyRecoverySnapshot() {
    * @returns Object with { updated: boolean, streakDays: number }
    */
   const persistDailySnapshot = useCallback(
-    async (recovery: number) => {
+    async (recovery: number | null) => {
       return updateSnapshot.mutateAsync(recovery);
     },
     [updateSnapshot]

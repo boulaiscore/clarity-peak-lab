@@ -161,7 +161,8 @@ const Home = () => {
   const { suggestions: prioritizedSuggestions, isLoading: suggestionsLoading } = usePrioritizedSuggestions();
   
   // New cognitive engine metrics
-  const { sharpness, readiness, recovery: recoveryRaw, isLoading: metricsLoading } = useTodayMetrics();
+  // recoveryRaw: null until REC baseline exists and can be decayed (used for snapshots)
+  const { sharpness, readiness, recoveryRaw, isLoading: metricsLoading } = useTodayMetrics();
 
   // REC_effective for UI display (uses RRI until first real recovery activity)
   const {
@@ -214,6 +215,7 @@ const Home = () => {
     // Only run if metrics are loaded and snapshot hasn't been taken today
     if (!metricsLoading && !isSnapshotCurrentToday()) {
       // IMPORTANT: Snapshot must use real recovery (REC_raw), not RRI
+      // If not initialized yet, the hook will skip persisting.
       persistDailySnapshot(recoveryRaw).catch((err) => {
         console.error("[Home] Failed to persist daily snapshot:", err);
       });
