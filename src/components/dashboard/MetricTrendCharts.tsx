@@ -145,32 +145,43 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-  // Y-axis layout with 5 equidistant lines:
-  // Line 1 (baseline) = 0
-  // Line 2 = 25% of yMax
-  // Line 3 = 50% of yMax (intermediate)
-  // Line 4 = 75% of yMax (penultimate - where dataMax MUST be)
-  // Line 5 = 100% of yMax (top line - always empty)
+  // Y-axis layout with 5 equidistant lines where BOTH rules apply:
+  // - Line 2 (25% of range) = dataMin (minimum value sits here)
+  // - Line 4 (75% of range) = dataMax (maximum value sits here - penultimate)
+  // - Line 5 = yMax (top line - always empty)
+  // - Line 1 = yMin (baseline)
   
-  const yBaseline = 0;
+  // Mathematical derivation:
+  // If dataMin is at 25% and dataMax is at 75%, then:
+  // dataRange occupies 50% of the visual range (from 25% to 75%)
+  // Therefore: visualRange = 2 * dataRange
+  // yMin = dataMin - 0.5 * dataRange
+  // yMax = dataMax + 0.5 * dataRange
   
-  // PRIMARY CONSTRAINT: dataMax MUST sit on Line 4 (75% of yMax)
-  // yMax = dataMax / 0.75
-  // This is the only constraint that matters - the top line stays empty
-  // The min can fall wherever it naturally lands
+  const dataRange = dataMax - dataMin;
   
-  const yMax = dataMax > 0 ? dataMax / 0.75 : 100;
+  // Handle edge case where all values are the same
+  const effectiveRange = dataRange > 0 ? dataRange : dataMax * 0.2 || 10;
   
-  // 4 grid lines above baseline (baseline drawn separately)
-  const bandHeight = yMax / 4;
+  // Calculate yMin and yMax so that dataMin→line2, dataMax→line4
+  let yMin = dataMin - effectiveRange * 0.5;
+  let yMax = dataMax + effectiveRange * 0.5;
+  
+  // Ensure yMin doesn't go below 0 (these are percentage values)
+  if (yMin < 0) {
+    const shift = -yMin;
+    yMin = 0;
+    yMax += shift;
+  }
+  
+  // 4 grid lines (line 1 is baseline at yMin, drawn separately)
+  const totalRange = yMax - yMin;
   const yGridTicks = [
-    bandHeight,        // Line 2 (25%)
-    bandHeight * 2,    // Line 3 (50% - intermediate)
-    bandHeight * 3,    // Line 4 (75% - dataMax sits here)
-    yMax,              // Line 5 (100% - top, always empty)
+    yMin + totalRange * 0.25,  // Line 2 = dataMin
+    yMin + totalRange * 0.50,  // Line 3 = midpoint
+    yMin + totalRange * 0.75,  // Line 4 = dataMax (penultimate)
+    yMax,                       // Line 5 = top (always empty)
   ];
-
-  const yMin = yBaseline;
 
   return (
     <motion.div
@@ -211,7 +222,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 }}
               />
               {/* Baseline for dates (bottom-most line) */}
-              <ReferenceLine y={yBaseline} stroke={GRID_COLOR} strokeWidth={1} ifOverflow="extendDomain" />
+              <ReferenceLine y={yMin} stroke={GRID_COLOR} strokeWidth={1} ifOverflow="extendDomain" />
               <XAxis
                 dataKey="xLabel"
                 axisLine={false}
