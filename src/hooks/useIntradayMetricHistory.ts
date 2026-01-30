@@ -106,6 +106,8 @@ export function useIntradayMetricHistory() {
     const dataPoints: IntradayDataPoint[] = [];
     
     // 1. Add midnight baseline point (from yesterday's last snapshot)
+    // If no previous day snapshot exists (new user), create a synthetic baseline
+    // using the FIRST intraday event values OR current values as approximation
     if (midnightBaseline) {
       dataPoints.push({
         timestamp: todayStart.toISOString(),
@@ -116,6 +118,34 @@ export function useIntradayMetricHistory() {
         reasoningQuality: midnightBaseline.reasoning_quality != null ? Math.round(midnightBaseline.reasoning_quality * 10) / 10 : null,
         isNow: false,
         eventType: "midnight",
+      });
+    } else if (intradayEvents && intradayEvents.length > 0) {
+      // FALLBACK: For new profiles without previous day snapshot,
+      // use the first event's values as the midnight baseline
+      // This ensures a visible trend line from 00:00 to the first event
+      const firstEvent = intradayEvents[0];
+      dataPoints.push({
+        timestamp: todayStart.toISOString(),
+        hour: "00:00",
+        readiness: firstEvent.readiness != null ? Math.round(firstEvent.readiness * 10) / 10 : null,
+        sharpness: firstEvent.sharpness != null ? Math.round(firstEvent.sharpness * 10) / 10 : null,
+        recovery: firstEvent.recovery != null ? Math.round(firstEvent.recovery * 10) / 10 : null,
+        reasoningQuality: firstEvent.reasoning_quality != null ? Math.round(firstEvent.reasoning_quality * 10) / 10 : null,
+        isNow: false,
+        eventType: "midnight-synthetic",
+      });
+    } else {
+      // No events and no baseline - use current live values as synthetic baseline
+      // This gives a flat line from 00:00 to now, which is acceptable for brand new users
+      dataPoints.push({
+        timestamp: todayStart.toISOString(),
+        hour: "00:00",
+        readiness: todayMetrics.readiness,
+        sharpness: todayMetrics.sharpness,
+        recovery: todayMetrics.recovery != null ? Math.round(todayMetrics.recovery * 10) / 10 : null,
+        reasoningQuality: currentRQ != null ? Math.round(currentRQ * 10) / 10 : null,
+        isNow: false,
+        eventType: "midnight-synthetic",
       });
     }
     
