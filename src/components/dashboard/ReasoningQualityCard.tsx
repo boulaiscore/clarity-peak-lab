@@ -83,7 +83,7 @@ export function ReasoningQualityCard({
         <span className="text-3xl font-bold tabular-nums">
           {Math.round(rq)}
         </span>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-primary">
           {getMetricDisplayInfo(
             getReasoningQualityStatus(rq).label,
             getReasoningQualityStatus(rq).level,
