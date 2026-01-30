@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, ChevronLeft, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain, Clock, Headphones, BookOpen, FileText, Activity } from "lucide-react";
 import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
+import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
@@ -50,11 +51,12 @@ interface RingProps {
   label: string;
   displayValue: string;
   dynamicIndicator?: string;
+  deltaIndicator?: string | null;
   icon?: React.ReactNode;
   onClick?: () => void;
 }
 
-const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, dynamicIndicator, icon, onClick }: RingProps) => {
+const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValue, dynamicIndicator, deltaIndicator, icon, onClick }: RingProps) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = Math.min(value / max, 1);
@@ -106,6 +108,14 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
           {dynamicIndicator && (
             <span className="text-[9px] font-medium mt-0.5" style={{ color, opacity: 0.8 }}>
               {dynamicIndicator}
+            </span>
+          )}
+          {deltaIndicator && (
+            <span className={cn(
+              "text-[8px] font-medium mt-0.5 tabular-nums",
+              deltaIndicator.startsWith("+") ? "text-emerald-500" : deltaIndicator.startsWith("-") ? "text-rose-400" : "text-muted-foreground/60"
+            )}>
+              {deltaIndicator} vs ieri
             </span>
           )}
         </div>
@@ -243,6 +253,9 @@ const Home = () => {
     date: selectedDate,
   });
   
+  // Yesterday's metrics for delta calculation
+  const { yesterdayMetrics } = useYesterdayMetrics(selectedDate);
+  
   // Navigation handlers
   const handlePreviousDay = () => {
     if (canGoBack) {
@@ -272,6 +285,12 @@ const Home = () => {
     ? (metricsLoading || recoveryEffectiveLoading) 
     : historicalLoading;
   const hasHistoricalData = !isViewingToday && historicalMetrics !== null;
+  
+  // Calculate deltas vs yesterday (only show for today view)
+  const sharpnessDelta = isViewingToday ? formatDeltaPercent(sharpness, yesterdayMetrics?.sharpness ?? null) : null;
+  const readinessDelta = isViewingToday ? formatDeltaPercent(readiness, yesterdayMetrics?.readiness ?? null) : null;
+  const recoveryDelta = isViewingToday ? formatDeltaPercent(recoveryEffective, yesterdayMetrics?.recovery ?? null) : null;
+  const rqDelta = isViewingToday ? formatDeltaPercent(rq, yesterdayMetrics?.reasoningQuality ?? null) : null;
   
   // Tutorial state - shows after first onboarding completion
   const { showTutorial, markTutorialComplete } = useTutorialState();
@@ -488,7 +507,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  
+                  deltaIndicator={isDisplayLoading ? null : sharpnessDelta}
                   onClick={isViewingToday ? () => setActiveTab("intuition") : undefined}
                 />
                 <ProgressRing
@@ -505,7 +524,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  
+                  deltaIndicator={isDisplayLoading ? null : readinessDelta}
                   onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined}
                 />
                 <ProgressRing
@@ -522,7 +541,7 @@ const Home = () => {
                     null,
                     null
                   ).text}
-                  
+                  deltaIndicator={isDisplayLoading ? null : recoveryDelta}
                   onClick={isViewingToday ? () => setActiveTab("capacity") : undefined}
                 />
               </div>
@@ -548,6 +567,7 @@ const Home = () => {
                 taskPriming={displayTaskPriming}
                 isDecaying={isViewingToday ? rqIsDecaying : false}
                 isLoading={isDisplayLoading || (isViewingToday && rqLoading)}
+                deltaVsYesterday={rqDelta}
               />
               
               {/* Daily Briefing - only show for today */}

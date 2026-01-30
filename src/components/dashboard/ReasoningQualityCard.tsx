@@ -6,6 +6,7 @@
  */
 
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { Info, AlertTriangle, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
@@ -19,12 +20,14 @@ interface ReasoningQualityCardProps {
   taskPriming: number;
   isDecaying: boolean;
   isLoading?: boolean;
+  deltaVsYesterday?: string | null;
 }
 
 export function ReasoningQualityCard({
   rq,
   isDecaying,
   isLoading,
+  deltaVsYesterday,
 }: ReasoningQualityCardProps) {
   const navigate = useNavigate();
   
@@ -88,6 +91,14 @@ export function ReasoningQualityCard({
             null
           ).text}
         </span>
+        {deltaVsYesterday && (
+          <span className={cn(
+            "text-[10px] font-medium tabular-nums ml-1",
+            deltaVsYesterday.startsWith("+") ? "text-emerald-500" : deltaVsYesterday.startsWith("-") ? "text-rose-400" : "text-muted-foreground/60"
+          )}>
+            ({deltaVsYesterday} vs ieri)
+          </span>
+        )}
       </div>
       
       {/* Progress bar */}
