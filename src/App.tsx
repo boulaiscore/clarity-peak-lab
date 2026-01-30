@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
+import { IntradayEventsProvider } from "@/contexts/IntradayEventsContext";
 import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
@@ -443,23 +444,25 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SessionProvider>
-          <AppInitProvider>
-            <TooltipProvider>
-              {showSplash && (
-                <SplashScreen 
-                  duration={2500} 
-                  onComplete={() => setShowSplash(false)} 
-                />
-              )}
-              <Toaster />
-              <Sonner />
-              <HashRouter>
-                <DeepLinkHandler>
-                  <AppRoutes />
-                </DeepLinkHandler>
-              </HashRouter>
-            </TooltipProvider>
-          </AppInitProvider>
+          <IntradayEventsProvider>
+            <AppInitProvider>
+              <TooltipProvider>
+                {showSplash && (
+                  <SplashScreen 
+                    duration={2500} 
+                    onComplete={() => setShowSplash(false)} 
+                  />
+                )}
+                <Toaster />
+                <Sonner />
+                <HashRouter>
+                  <DeepLinkHandler>
+                    <AppRoutes />
+                  </DeepLinkHandler>
+                </HashRouter>
+              </TooltipProvider>
+            </AppInitProvider>
+          </IntradayEventsProvider>
         </SessionProvider>
       </AuthProvider>
     </QueryClientProvider>

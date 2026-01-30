@@ -33,6 +33,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
+import { useIntradayEvents } from "@/contexts/IntradayEventsContext";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { 
   GameType, 
