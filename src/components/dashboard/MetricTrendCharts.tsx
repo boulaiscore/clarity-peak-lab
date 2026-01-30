@@ -503,6 +503,8 @@ export function MetricTrendCharts() {
   }, [weeklyHistory]);
 
   // Generate intraday data - only include points where that specific metric changed
+  // v2.1: "isFirstWithValue" tracks whether we've seen any non-null value for this metric yet.
+  // This prevents the midnight-null anchor from hiding the first real event.
   const intradayChartData = useMemo(() => {
     const result: Record<MetricKey, IntradayChartDataPoint[]> = {
       readiness: [],
@@ -516,6 +518,12 @@ export function MetricTrendCharts() {
     let prevSharpness: number | null = null;
     let prevRecovery: number | null = null;
     let prevReasoningQuality: number | null = null;
+
+    // Track whether we've seen a non-null value yet (for "first with value" logic)
+    let seenReadiness = false;
+    let seenSharpness = false;
+    let seenRecovery = false;
+    let seenRQ = false;
 
     // Sort by timestamp first
     const sortedHistory = [...intradayHistory].sort((a, b) => 
@@ -532,36 +540,51 @@ export function MetricTrendCharts() {
         timeValue
       };
       
-      const isFirst = index === 0;
       const isLast = index === sortedHistory.length - 1;
       
-      // Readiness: include if first point, value changed, or last (now) point
-      const readinessChanged = point.readiness !== null && (isFirst || point.readiness !== prevReadiness);
-      if (readinessChanged || (isLast && point.readiness !== null)) {
-        result.readiness.push({ ...base, value: point.readiness });
+      // Readiness: include if first non-null point, value changed, or last (now) point
+      if (point.readiness !== null) {
+        const isFirstWithValue = !seenReadiness;
+        seenReadiness = true;
+        const changed = isFirstWithValue || point.readiness !== prevReadiness;
+        if (changed || isLast) {
+          result.readiness.push({ ...base, value: point.readiness });
+        }
+        prevReadiness = point.readiness;
       }
-      if (point.readiness !== null) prevReadiness = point.readiness;
       
       // Sharpness
-      const sharpnessChanged = point.sharpness !== null && (isFirst || point.sharpness !== prevSharpness);
-      if (sharpnessChanged || (isLast && point.sharpness !== null)) {
-        result.sharpness.push({ ...base, value: point.sharpness });
+      if (point.sharpness !== null) {
+        const isFirstWithValue = !seenSharpness;
+        seenSharpness = true;
+        const changed = isFirstWithValue || point.sharpness !== prevSharpness;
+        if (changed || isLast) {
+          result.sharpness.push({ ...base, value: point.sharpness });
+        }
+        prevSharpness = point.sharpness;
       }
-      if (point.sharpness !== null) prevSharpness = point.sharpness;
       
       // Recovery
-      const recoveryChanged = point.recovery !== null && (isFirst || point.recovery !== prevRecovery);
-      if (recoveryChanged || (isLast && point.recovery !== null)) {
-        result.recovery.push({ ...base, value: point.recovery });
+      if (point.recovery !== null) {
+        const isFirstWithValue = !seenRecovery;
+        seenRecovery = true;
+        const changed = isFirstWithValue || point.recovery !== prevRecovery;
+        if (changed || isLast) {
+          result.recovery.push({ ...base, value: point.recovery });
+        }
+        prevRecovery = point.recovery;
       }
-      if (point.recovery !== null) prevRecovery = point.recovery;
       
       // Reasoning Quality
-      const rqChanged = point.reasoningQuality !== null && (isFirst || point.reasoningQuality !== prevReasoningQuality);
-      if (rqChanged || (isLast && point.reasoningQuality !== null)) {
-        result.reasoningQuality.push({ ...base, value: point.reasoningQuality });
+      if (point.reasoningQuality !== null) {
+        const isFirstWithValue = !seenRQ;
+        seenRQ = true;
+        const changed = isFirstWithValue || point.reasoningQuality !== prevReasoningQuality;
+        if (changed || isLast) {
+          result.reasoningQuality.push({ ...base, value: point.reasoningQuality });
+        }
+        prevReasoningQuality = point.reasoningQuality;
       }
-      if (point.reasoningQuality !== null) prevReasoningQuality = point.reasoningQuality;
     });
 
     return result;
