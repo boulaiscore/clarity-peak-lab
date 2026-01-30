@@ -145,41 +145,55 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
-  // Y-axis layout with 5 equidistant lines where BOTH rules apply:
-  // - Line 2 (25% of range) = dataMin (minimum value sits here)
-  // - Line 4 (75% of range) = dataMax (maximum value sits here - penultimate)
-  // - Line 5 = yMax (top line - always empty)
+  // Y-axis layout with 5 equidistant lines:
   // - Line 1 = yMin (baseline)
-  
-  // Mathematical derivation:
-  // If dataMin is at 25% and dataMax is at 75%, then:
-  // dataRange occupies 50% of the visual range (from 25% to 75%)
-  // Therefore: visualRange = 2 * dataRange
-  // yMin = dataMin - 0.5 * dataRange
-  // yMax = dataMax + 0.5 * dataRange
+  // - Line 2 = 25% (dataMin should sit here)
+  // - Line 3 = 50% (intermediate)
+  // - Line 4 = 75% (dataMax should sit here - penultimate)
+  // - Line 5 = yMax (top line - always empty)
   
   const dataRange = dataMax - dataMin;
   
-  // Handle edge case where all values are the same
-  const effectiveRange = dataRange > 0 ? dataRange : dataMax * 0.2 || 10;
+  let yMin: number;
+  let yMax: number;
   
-  // Calculate yMin and yMax so that dataMin→line2, dataMax→line4
-  let yMin = dataMin - effectiveRange * 0.5;
-  let yMax = dataMax + effectiveRange * 0.5;
-  
-  // Ensure yMin doesn't go below 0 (these are percentage values)
-  if (yMin < 0) {
-    const shift = -yMin;
-    yMin = 0;
-    yMax += shift;
+  if (dataRange === 0) {
+    // CASE 1: All values are equal - treat as minimum (place on line 2)
+    // value should be at 25% of visual range
+    const padding = dataMax * 0.5 || 10;
+    yMax = dataMax + padding;
+    // To place value at 25%: value = yMin + totalRange * 0.25
+    // Solving: yMin = value - totalRange * 0.25 = value - (yMax - yMin) * 0.25
+    // 0.75 * yMin = value - 0.25 * yMax
+    // yMin = (value - 0.25 * yMax) / 0.75
+    yMin = (dataMax - 0.25 * yMax) / 0.75;
+  } else {
+    // CASE 2: Different values - place min at 25%, max at 75%
+    // Normal formula: visualRange = 2 * dataRange
+    const idealYMin = dataMin - dataRange * 0.5;
+    const idealYMax = dataMax + dataRange * 0.5;
+    
+    if (idealYMin >= 0) {
+      // Normal case - both constraints can be satisfied
+      yMin = idealYMin;
+      yMax = idealYMax;
+    } else {
+      // CASE 3: yMin would be negative (dataMin is close to 0)
+      // Clamp yMin to 0 and calculate yMax so dataMax is at 75%
+      yMin = 0;
+      yMax = dataMax / 0.75;
+    }
   }
   
-  // 4 grid lines (line 1 is baseline at yMin, drawn separately)
+  // Ensure yMin doesn't go below 0 (safety check)
+  if (yMin < 0) yMin = 0;
+  
+  // 4 grid lines (line 1 is yMin baseline, drawn separately)
   const totalRange = yMax - yMin;
   const yGridTicks = [
-    yMin + totalRange * 0.25,  // Line 2 = dataMin
-    yMin + totalRange * 0.50,  // Line 3 = midpoint
-    yMin + totalRange * 0.75,  // Line 4 = dataMax (penultimate)
+    yMin + totalRange * 0.25,  // Line 2 = 25% (dataMin position)
+    yMin + totalRange * 0.50,  // Line 3 = 50% (midpoint)
+    yMin + totalRange * 0.75,  // Line 4 = 75% (dataMax position - penultimate)
     yMax,                       // Line 5 = top (always empty)
   ];
 
