@@ -58,13 +58,13 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   
   return (
     <g transform={`translate(${x},${y})`}>
-      {/* Highlight band for last day (rightmost) - extends to top line */}
+      {/* Highlight band for last day (rightmost) - extends above top line */}
       {isLastBool && (
         <rect
           x={-22}
-          y={-118}
+          y={-148}
           width={44}
-          height={152}
+          height={182}
           fill="rgba(100, 116, 139, 0.12)"
           rx={6}
         />
