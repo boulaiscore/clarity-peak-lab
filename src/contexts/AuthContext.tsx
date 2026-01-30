@@ -357,9 +357,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    // Import dynamically to avoid circular dependency
+    const { queryClient } = await import("@/App");
+    
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    
+    // CRITICAL: Clear all cached queries so the next login starts fresh
+    queryClient.clear();
   };
 
   const updateUser = async (updates: Partial<User>) => {
