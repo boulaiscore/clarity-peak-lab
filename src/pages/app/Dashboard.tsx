@@ -268,19 +268,6 @@ const Dashboard = () => {
               </motion.div>
             </AnimatePresence>
 
-            {/* CTA - More subtle */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <Link to="/neuro-lab">
-                <Button variant="premium" className="w-full h-11 text-[13px] gap-2 shadow-lg">
-                  <Play className="w-4 h-4" />
-                  Start Training
-                </Button>
-              </Link>
-            </motion.div>
           </motion.div>
         ) : (
           <motion.div 
