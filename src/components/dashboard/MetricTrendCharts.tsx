@@ -213,6 +213,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 axisLine={false}
                 tickLine={false}
                 tick={<CustomXAxisTick />}
+                padding={{ left: 18, right: 18 }}
                 interval={0}
                 orientation="bottom"
               />
