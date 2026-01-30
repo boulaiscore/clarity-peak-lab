@@ -754,9 +754,11 @@ export function SpotifyTasksView() {
               >
                 <p className="text-lg font-semibold">Added to Library!</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {addedContentType === "podcast" && "+2.4% Reasoning Quality"}
-                  {addedContentType === "article" && "+3% Reasoning Quality"}
-                  {addedContentType === "book" && "+4% Reasoning Quality"}
+                  {addedContentType && (() => {
+                    const baseContribution = calculateSingleTaskRQContribution(addedContentType, null);
+                    const realRQDelta = Math.round(baseContribution * TASK_PRIMING_WEIGHT * 10) / 10;
+                    return `+${realRQDelta} RQ`;
+                  })()}
                 </p>
               </motion.div>
               
