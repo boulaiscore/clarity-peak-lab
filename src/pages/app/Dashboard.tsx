@@ -1,5 +1,5 @@
-import { useMemo, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState, useRef, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
@@ -21,8 +21,18 @@ import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"overview" | "training" | "report">("overview");
-  const [trainingSubTab, setTrainingSubTab] = useState<"trends" | "games" | "tasks" | "detox">("trends");
+  const [searchParams] = useSearchParams();
+  
+  // Initialize tabs from URL params
+  const initialTab = searchParams.get("tab") as "overview" | "training" | "report" | null;
+  const initialSubTab = searchParams.get("subtab") as "trends" | "games" | "tasks" | "detox" | null;
+  
+  const [activeTab, setActiveTab] = useState<"overview" | "training" | "report">(
+    initialTab && ["overview", "training", "report"].includes(initialTab) ? initialTab : "overview"
+  );
+  const [trainingSubTab, setTrainingSubTab] = useState<"trends" | "games" | "tasks" | "detox">(
+    initialSubTab && ["trends", "games", "tasks", "detox"].includes(initialSubTab) ? initialSubTab : "trends"
+  );
   
   const isPremium = user?.subscriptionStatus === "premium";
   

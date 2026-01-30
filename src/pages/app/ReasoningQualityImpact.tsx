@@ -9,7 +9,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LineChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
@@ -270,17 +270,26 @@ export default function ReasoningQualityImpact() {
     <AppShell>
       <div className="pb-6">
         {/* Page Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30">
-          <button
-            onClick={() => navigate("/app")}
-            className="p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-sm font-semibold tracking-wide uppercase">Reasoning Quality</h1>
-            <p className="text-[10px] text-muted-foreground">Impact Analysis</p>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/app")}
+              className="p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-sm font-semibold tracking-wide uppercase">Reasoning Quality</h1>
+              <p className="text-[10px] text-muted-foreground">Impact Analysis</p>
+            </div>
           </div>
+          <button
+            onClick={() => navigate("/app/dashboard?tab=training&subtab=trends")}
+            className="p-2 rounded-full bg-muted/40 hover:bg-muted/60 transition-colors active:scale-[0.97]"
+            title="View Trends"
+          >
+            <LineChart className="w-4 h-4 text-foreground/70" />
+          </button>
         </div>
 
         <div className="px-5 py-6 max-w-lg mx-auto">
