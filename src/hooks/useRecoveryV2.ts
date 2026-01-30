@@ -10,13 +10,16 @@
  * - Applies decay on foreground (via useMemo)
  * - Provides mutation for applying recovery actions (detox/walk)
  * - Handles RRI baseline initialization for new users
+ * 
+ * v2.1: Updated to use useRecordIntradayOnAction for complete metric snapshots
  */
 
 import { useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRecordIntradayEvent } from "@/hooks/useRecordIntradayEvent";
+import { format } from "date-fns";
+import type { Json } from "@/integrations/supabase/types";
 import {
   RecoveryState,
   getCurrentRecovery,
@@ -25,6 +28,10 @@ import {
   initializeRecoveryBaseline,
   calculateRRI,
 } from "@/lib/recoveryV2";
+import {
+  calculateSharpness,
+  calculateReadiness,
+} from "@/lib/cognitiveEngine";
 
 export interface UseRecoveryV2Result {
   /** Current recovery value with decay applied (0-100), null if not initialized */
@@ -50,7 +57,6 @@ export function useRecoveryV2(): UseRecoveryV2Result {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
   const queryClient = useQueryClient();
-  const { recordEvent } = useRecordIntradayEvent();
   
   // Fetch recovery state from user_cognitive_metrics
   const { data: recoveryState, isLoading: stateLoading } = useQuery({
@@ -110,6 +116,71 @@ export function useRecoveryV2(): UseRecoveryV2Result {
   
   const isInitialized = recoveryState ? hasValidRecoveryData(recoveryState) : false;
   
+  // Helper: Record intraday event with full metric snapshot
+  const recordIntradayEvent = useCallback(async (
+    eventType: 'detox' | 'walking',
+    newRecovery: number,
+    previousRecovery: number | null,
+    detoxMinutes: number,
+    walkMinutes: number
+  ) => {
+    if (!userId) return;
+    
+    try {
+      // Fetch fresh cognitive states for complete snapshot
+      const { data: cognitiveData } = await supabase
+        .from("user_cognitive_metrics")
+        .select("fast_thinking, reasoning_accuracy, critical_thinking_score, creativity, reasoning_quality")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      const AE = cognitiveData?.fast_thinking ?? 50;
+      const RA = cognitiveData?.reasoning_accuracy ?? 50;
+      const CT = cognitiveData?.critical_thinking_score ?? 50;
+      const IN = cognitiveData?.creativity ?? 50;
+      
+      const states = { AE, RA, CT, IN };
+      const sharpness = calculateSharpness(states, newRecovery);
+      const readiness = calculateReadiness(states, newRecovery, null);
+      const reasoningQuality = cognitiveData?.reasoning_quality ?? null;
+      
+      const today = format(new Date(), "yyyy-MM-dd");
+      
+      const { error } = await supabase
+        .from("intraday_metric_events")
+        .insert([{
+          user_id: userId,
+          event_date: today,
+          event_timestamp: new Date().toISOString(),
+          event_type: eventType,
+          readiness: readiness != null ? Math.round(readiness * 10) / 10 : null,
+          sharpness: sharpness != null ? Math.round(sharpness * 10) / 10 : null,
+          recovery: Math.round(newRecovery * 10) / 10,
+          reasoning_quality: reasoningQuality != null ? Math.round(reasoningQuality * 10) / 10 : null,
+          event_details: {
+            detoxMinutes,
+            walkMinutes,
+            previousRecovery,
+          } as Json,
+        }]);
+      
+      if (error) {
+        console.error("[useRecoveryV2] Error recording intraday event:", error);
+      } else {
+        console.log(`[useRecoveryV2] ✅ Recorded ${eventType} event:`, {
+          recovery: newRecovery.toFixed(1),
+          sharpness: sharpness?.toFixed(1),
+          readiness: readiness?.toFixed(1),
+        });
+        
+        // Invalidate intraday history
+        queryClient.invalidateQueries({ queryKey: ["intraday-events"] });
+      }
+    } catch (err) {
+      console.error("[useRecoveryV2] Error in recordIntradayEvent:", err);
+    }
+  }, [userId, queryClient]);
+  
   // Mutation: Apply recovery action (detox/walk)
   const applyActionMutation = useMutation({
     mutationFn: async ({ detoxMinutes, walkMinutes }: { detoxMinutes: number; walkMinutes: number }) => {
@@ -138,24 +209,15 @@ export function useRecoveryV2(): UseRecoveryV2Result {
       queryClient.invalidateQueries({ queryKey: ["recovery-v2-state", userId] });
       queryClient.invalidateQueries({ queryKey: ["today-metrics", userId] });
       
-      // v1.8: Record intraday event for recovery action
-      // Determine event type based on which action was taken
+      // v2.1: Record intraday event with complete metric snapshot
       const eventType = variables.walkMinutes > 0 ? 'walking' : 'detox';
-      
-      // We need to record with the NEW recovery value after the action
-      // Other metrics will be fetched fresh by the charts
-      recordEvent({
+      recordIntradayEvent(
         eventType,
-        readiness: null, // Will be recalculated by queries
-        sharpness: null, // Will be recalculated by queries
-        recovery: result.newRecValue,
-        reasoningQuality: null, // Doesn't change with recovery actions
-        eventDetails: {
-          detoxMinutes: variables.detoxMinutes,
-          walkMinutes: variables.walkMinutes,
-          previousRecovery: currentRecovery,
-        },
-      });
+        result.newRecValue,
+        currentRecovery,
+        variables.detoxMinutes,
+        variables.walkMinutes
+      );
     },
   });
   

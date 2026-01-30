@@ -83,14 +83,16 @@ export default function FocusSwitchRunner() {
         
         console.log("[FocusSwitch] ✅ Session saved successfully");
         
-        // v1.9: Record intraday event for metrics tracking
-        recordMetricsSnapshot('game', {
-          gameName: 'focus_switch',
-          gameType: 'S1-AE',
-          xpAwarded: actualXP,
-          score: results.score,
-          difficulty,
-        });
+        // v2.0: Record intraday event AFTER session saved (with delay for cache updates)
+        setTimeout(() => {
+          recordMetricsSnapshot('game', {
+            gameName: 'focus_switch',
+            gameType: 'S1-AE',
+            xpAwarded: actualXP,
+            score: results.score,
+            difficulty,
+          });
+        }, 200);
         // v1.8: Show appropriate toast based on cap status
         if (actualXP > 0) {
           toast.success(`+${actualXP} XP earned!`, { icon: "⭐" });
