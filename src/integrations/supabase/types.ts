@@ -338,6 +338,48 @@ export type Database = {
         }
         Relationships: []
       }
+      intraday_metric_events: {
+        Row: {
+          created_at: string
+          event_date: string
+          event_details: Json | null
+          event_timestamp: string
+          event_type: string
+          id: string
+          readiness: number | null
+          reasoning_quality: number | null
+          recovery: number | null
+          sharpness: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_date?: string
+          event_details?: Json | null
+          event_timestamp?: string
+          event_type: string
+          id?: string
+          readiness?: number | null
+          reasoning_quality?: number | null
+          recovery?: number | null
+          sharpness?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          event_details?: Json | null
+          event_timestamp?: string
+          event_type?: string
+          id?: string
+          readiness?: number | null
+          reasoning_quality?: number | null
+          recovery?: number | null
+          sharpness?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       monthly_content_assignments: {
         Row: {
           completed_at: string | null
