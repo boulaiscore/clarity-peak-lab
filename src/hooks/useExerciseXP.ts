@@ -258,12 +258,14 @@ export function useRecordContentCompletion() {
       queryClient.invalidateQueries({ queryKey: ["weekly-content-completions"] });
       queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
       // Task Priming for RQ - ensures RQ recalculates after complete
-      queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] });
+      queryClient.invalidateQueries({ queryKey: ["task-completions-7d", user?.id] });
       // Library refresh
-      queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
+      queryClient.invalidateQueries({ queryKey: ["logged-exposures", user?.id] });
       // Home page metric refresh (RQ is persisted and used by Home)
-      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
-      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted"] });
+      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
+      // Analytics intraday refresh
+      queryClient.invalidateQueries({ queryKey: ["intraday-events", user?.id] });
     },
   });
 }
@@ -313,12 +315,14 @@ export function useRemoveContentCompletion() {
       queryClient.invalidateQueries({ queryKey: ["weekly-content-completions"] });
       queryClient.invalidateQueries({ queryKey: ["tasks-history-14d"] });
       // Library query
-      queryClient.invalidateQueries({ queryKey: ["logged-exposures"] });
+      queryClient.invalidateQueries({ queryKey: ["logged-exposures", user?.id] });
       // Task Priming for RQ - ensures RQ recalculates after remove
-      queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] });
+      queryClient.invalidateQueries({ queryKey: ["task-completions-7d", user?.id] });
       // RQ display queries
-      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted"] });
-      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["cognitive-metrics", user?.id] });
+      // Analytics intraday refresh
+      queryClient.invalidateQueries({ queryKey: ["intraday-events", user?.id] });
     },
   });
 }

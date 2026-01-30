@@ -167,7 +167,8 @@ export function useReasoningQuality(): UseReasoningQualityResult {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted"] });
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", userId] });
+      queryClient.invalidateQueries({ queryKey: ["intraday-events", userId] });
     },
   });
   

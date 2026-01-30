@@ -635,11 +635,17 @@ export function SpotifyTasksView() {
       setShowAddedToLibrary(true);
       setTimeout(() => setShowAddedToLibrary(false), 2000);
 
-      queryClient.invalidateQueries({ queryKey: ["completed-content-ids"] });
-      queryClient.invalidateQueries({ queryKey: ["weekly-content-count"] });
-      queryClient.invalidateQueries({ queryKey: ["in-progress-content-ids"] });
-      queryClient.invalidateQueries({ queryKey: ["logged-exposures"] }); // For CognitiveLibrary
-      queryClient.invalidateQueries({ queryKey: ["task-completions-7d"] }); // For RQ Task Priming
+      // IMPORTANT: include userId in invalidations to guarantee correct refresh across sessions
+      queryClient.invalidateQueries({ queryKey: ["completed-content-ids", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["weekly-content-count", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["in-progress-content-ids", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["logged-exposures", user?.id] }); // For CognitiveLibrary
+      // RQ depends on the 7d task window
+      queryClient.invalidateQueries({ queryKey: ["task-completions-7d", user?.id] });
+      // Home reads live RQ but uses persisted timestamps; invalidate to refetch immediately
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
+      // Analytics 1d uses intraday events + "now" point
+      queryClient.invalidateQueries({ queryKey: ["intraday-events", user?.id] });
       setSelectedPodcast(null);
       setSelectedReading(null);
     },
