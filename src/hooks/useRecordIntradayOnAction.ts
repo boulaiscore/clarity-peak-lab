@@ -47,8 +47,10 @@ export function useRecordIntradayOnAction() {
       eventDetails?: Record<string, unknown>,
       delayMs: number = 100
     ) => {
+      console.log("[useRecordIntradayOnAction] 🎯 Called with:", { eventType, eventDetails, userId });
+      
       if (!userId) {
-        console.warn("[useRecordIntradayOnAction] No user ID, skipping event");
+        console.error("[useRecordIntradayOnAction] ❌ No user ID, skipping event");
         return;
       }
 
@@ -115,25 +117,31 @@ export function useRecordIntradayOnAction() {
 
         // Record the event
         const today = format(new Date(), "yyyy-MM-dd");
+        const eventPayload = {
+          user_id: userId,
+          event_date: today,
+          event_timestamp: new Date().toISOString(),
+          event_type: eventType,
+          readiness: readiness != null ? Math.round(readiness * 10) / 10 : null,
+          sharpness: sharpness != null ? Math.round(sharpness * 10) / 10 : null,
+          recovery: recovery != null ? Math.round(recovery * 10) / 10 : null,
+          reasoning_quality: reasoningQuality != null ? Math.round(reasoningQuality * 10) / 10 : null,
+          event_details: (eventDetails ?? null) as Json,
+        };
 
-        const { error } = await supabase
+        console.log("[useRecordIntradayOnAction] 📝 Inserting event:", eventPayload);
+
+        const { data: insertedData, error } = await supabase
           .from("intraday_metric_events")
-          .insert([{
-            user_id: userId,
-            event_date: today,
-            event_timestamp: new Date().toISOString(),
-            event_type: eventType,
-            readiness: readiness != null ? Math.round(readiness * 10) / 10 : null,
-            sharpness: sharpness != null ? Math.round(sharpness * 10) / 10 : null,
-            recovery: recovery != null ? Math.round(recovery * 10) / 10 : null,
-            reasoning_quality: reasoningQuality != null ? Math.round(reasoningQuality * 10) / 10 : null,
-            event_details: (eventDetails ?? null) as Json,
-          }]);
+          .insert([eventPayload])
+          .select();
 
         if (error) {
-          console.error("[useRecordIntradayOnAction] Error recording event:", error);
+          console.error("[useRecordIntradayOnAction] ❌ Error recording event:", error);
           return;
         }
+
+        console.log("[useRecordIntradayOnAction] ✅ Inserted successfully:", insertedData);
 
         console.log(`[useRecordIntradayOnAction] ✅ Recorded ${eventType}:`, {
           readiness: readiness?.toFixed(1),
