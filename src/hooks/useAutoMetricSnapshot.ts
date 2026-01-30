@@ -41,7 +41,8 @@ export function useAutoMetricSnapshot() {
   const { 
     sharpness, 
     readiness, 
-    recovery, 
+    recovery,
+    recoveryRaw,
     S1, 
     S2,
     AE,
@@ -76,7 +77,7 @@ export function useAutoMetricSnapshot() {
     const now = Date.now();
     if (now - lastSaveRef.current < 30_000) return;
     
-    const currentValues = { readiness, sharpness, recovery, rq };
+    const currentValues = { readiness, sharpness, recovery: recoveryRaw, rq };
     
     // Only save if values have changed meaningfully
     if (!valuesChanged(currentValues, todaySnapshot)) return;
@@ -86,7 +87,7 @@ export function useAutoMetricSnapshot() {
     saveSnapshot({
       readiness,
       sharpness,
-      recovery,
+      recovery: recoveryRaw, // Use raw value (null if not initialized) instead of 0 fallback
       reasoningQuality: rq,
       s1: S1,
       s2: S2,
