@@ -48,6 +48,8 @@ export interface UseTodayMetricsResult {
   sharpness: number;
   readiness: number;
   recovery: number;
+  /** Raw recovery value - null if not initialized (for snapshots) */
+  recoveryRaw: number | null;
   
   // Decay adjustments
   readinessDecay: number;
@@ -177,8 +179,10 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   
   const freshResult = useMemo((): UseTodayMetricsResult => {
     // Calculate Recovery (REC) using v2.0 continuous decay model
-    const recoveryRaw = recoveryV2State ? getCurrentRecovery(recoveryV2State) : null;
-    const recovery = recoveryRaw ?? 0;
+    // recoveryRawValue: null if not initialized (used for snapshots to avoid saving 0)
+    // recovery: always numeric (0 fallback) for calculations
+    const recoveryRawValue = recoveryV2State ? getCurrentRecovery(recoveryV2State) : null;
+    const recovery = recoveryRawValue ?? 0;
     const isRecoveryInitialized = recoveryV2State?.hasRecoveryBaseline ?? false;
     
     // Calculate Physio component (if wearable data available)
@@ -216,6 +220,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       sharpness,
       readiness,
       recovery,
+      recoveryRaw: recoveryRawValue,
       readinessDecay,
       consecutiveLowRecDays,
       hasWearableData: !!wearableSnapshot,
