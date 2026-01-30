@@ -92,10 +92,7 @@ export function ReasoningQualityCard({
           ).text}
         </span>
         {deltaVsYesterday && (
-          <span className={cn(
-            "text-[10px] font-medium tabular-nums ml-1",
-            deltaVsYesterday.startsWith("+") ? "text-emerald-500" : deltaVsYesterday.startsWith("-") ? "text-rose-400" : "text-muted-foreground/60"
-          )}>
+          <span className="text-[10px] font-medium tabular-nums ml-1 text-primary">
             {deltaVsYesterday}
           </span>
         )}
