@@ -70,12 +70,6 @@ export function SmartSuggestionCard({ suggestion, index = 0 }: SmartSuggestionCa
               <h3 className={cn("text-sm font-medium", getTextColor())}>
                 {suggestion.headline}
               </h3>
-              {suggestion.urgency === "critical" && (
-                <Zap className="w-3 h-3 text-red-500 animate-pulse" />
-              )}
-              {suggestion.urgency === "high" && (
-                <Zap className="w-3 h-3 text-amber-500 animate-pulse" />
-              )}
             </div>
             <p className="text-[10px] text-muted-foreground">{suggestion.body}</p>
           </div>
