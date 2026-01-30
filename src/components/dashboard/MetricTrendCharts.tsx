@@ -186,6 +186,9 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
   // Calculate fixed ticks for intraday view (every 4 hours + current time)
   const { fixedTicks, midnightTs, nowTs } = useMemo(() => {
     const todayStart = startOfDay(new Date()).getTime();
+    // IMPORTANT: do not freeze `now` at mount.
+    // If new intraday events arrive after the first render and `nowTs` is stale,
+    // Recharts will clamp all points beyond the domain max to the same X position ("now").
     const now = Date.now();
     
     // Every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
@@ -199,7 +202,9 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
     const ticks = [...passedTicks, now];
     
     return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
-  }, []);
+    // Recompute when switching to 1d or when new intraday points arrive.
+    // This keeps the X domain aligned with the latest event timestamps.
+  }, [viewMode, intradayData.length]);
   
   // For intraday, we process the timeline from midnight baseline to now
   const intradayChartData = useMemo(() => {
