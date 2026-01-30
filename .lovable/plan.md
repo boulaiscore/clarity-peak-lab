@@ -1,97 +1,156 @@
 
-# Plan: Fix Delta Display Format and Recovery Logic
+# Piano: Grafici Trend Intraday (Oggi)
 
-## Summary
-Update the delta indicators on the Home page to:
-1. Display only the percentage number (e.g., `+12%`) without extra text like "vs ieri"
-2. Calculate **percentage change** instead of absolute change
-3. Handle edge cases where yesterday's value is 0 or null
-4. Confirm Recovery minimum value behavior
+## Obiettivo
+Aggiungere una vista intraday nella sezione Analytics → Trends che mostra le variazioni orarie delle metriche cognitive per la giornata corrente, con lo stesso stile visivo WHOOP dei grafici settimanali esistenti.
 
 ---
 
-## Analysis: Recovery Minimum Value
+## Analisi dello Stato Attuale
 
-Based on the codebase review, **Recovery CAN technically reach 0%** after initialization:
+### Dati Disponibili
+Attualmente il sistema non dispone di snapshot orari. I dati intraday devono essere **ricostruiti** a partire dagli eventi esistenti:
 
-- **Initialization**: RRI is clamped between 35-55% via `calculateRRI()` - users never START at 0%
-- **Decay**: The formula `REC = REC × 2^(-Δt_hours / 72)` asymptotically approaches 0%
-- **Current logic**: `applyRecoveryDecay()` uses `Math.max(0, ...)` which allows 0% but not negative
+| Fonte Dati | Tabella | Timestamp | Metriche Impattate |
+|------------|---------|-----------|-------------------|
+| Game sessions | `game_sessions` | `completed_at` | Sharpness (via S1/S2) |
+| Detox sessions | `detox_sessions` | `end_time` | Recovery |
+| Walking sessions | `walking_sessions` | `completed_at` | Recovery |
+| Recovery decay | `user_cognitive_metrics.rec_last_ts` | Continuo | Recovery (decadimento) |
 
-So while users start between 35-55%, extended inactivity (many days without Detox/Walking) will decay the value toward 0%.
+### Sfida Tecnica
+Il modello Recovery v2.0 è **event-driven con decadimento continuo**: il valore cambia costantemente nel tempo (formula: `REC × 2^(-Δt_hours / 72)`). Questo significa che possiamo calcolare il valore di Recovery a qualsiasi timestamp storico applicando il modello di decay/gain.
 
 ---
 
-## Technical Changes
+## Proposta di Posizionamento UI
 
-### 1. Update `formatDeltaPercent` helper (useYesterdayMetrics.ts)
+**Opzione consigliata: Toggle Week/Today sopra i grafici**
 
-**Current behavior**:
+```text
+┌─────────────────────────────────────────┐
+│  [●  Week  ] [  Today  ]     ← Toggle   │
+├─────────────────────────────────────────┤
+│                                         │
+│  SHARPNESS                              │
+│  ─────────────────────────────          │
+│  (grafico con X = ore/giorni)           │
+│                                         │
+│  READINESS                              │
+│  ─────────────────────────────          │
+│  ...                                    │
+└─────────────────────────────────────────┘
+```
+
+Il toggle permette di passare tra:
+- **Week**: Vista settimanale esistente (7 giorni)
+- **Today**: Vista intraday (ore della giornata)
+
+---
+
+## Specifica Asse X (Intraday)
+
+- **Prima ora**: 00:00 (mezzanotte)
+- **Ultima ora**: Ora corrente
+- **Punti mostrati**: Solo le ore in cui c'è stata una variazione (evento)
+- **Fallback**: Se nessun evento oggi, mostrare solo il valore corrente con label dell'ora attuale
+
+Esempio visivo:
+```text
+00:00    09:15    14:30    (ora corrente)
+  │        │        │           │
+  ●────────●────────●───────────●
+  45%     47%      52%        48%
+```
+
+---
+
+## Implementazione Tecnica
+
+### 1. Nuovo Hook: `useIntradayMetricHistory`
+Calcola i valori delle metriche a ogni ora con variazione:
+
 ```typescript
-const delta = current - previous;
-return `${sign}${Math.round(delta)}`; // Returns absolute difference
+interface IntradayDataPoint {
+  timestamp: string;      // ISO timestamp
+  hour: string;           // "09:15" format
+  readiness: number | null;
+  sharpness: number | null;
+  recovery: number | null;
+  reasoningQuality: number | null;
+  isNow: boolean;         // Flag per highlight ora corrente
+}
 ```
 
-**New behavior**:
-```typescript
-// Return percentage change as string, e.g., "+12%"
-const percentChange = ((current - previous) / previous) * 100;
-return `${sign}${Math.round(percentChange)}%`;
-```
+**Strategia di ricostruzione**:
+1. Query degli eventi di oggi (game_sessions, detox_sessions, walking_sessions)
+2. Per ogni evento, calcolare il valore delle metriche al momento dell'evento
+3. Aggiungere un punto "now" con i valori correnti
+4. Recovery: applicare il modello di decay tra eventi consecutivi
 
-**Edge case handling**:
-- If `previous === null`: return `null` (no data)
-- If `previous === 0` AND `current > 0`: return `null` (cannot compute % from 0)
-- If `previous === 0` AND `current === 0`: return `null` (no change)
-- If delta is 0: return `null` (no meaningful change to show)
+### 2. Nuovo Componente: `IntradayMetricCharts`
+Riutilizza la struttura di `MetricTrendCharts` con adattamenti:
+- `CustomXAxisTick` mostra ore invece di giorni
+- Highlight sull'ultimo punto (ora corrente) con banda traslucida
+- Stessa palette colori, stessi dot, stessi gradient
 
-### 2. Update ProgressRing display (Home.tsx)
+### 3. Modifica: `MetricTrendCharts`
+Aggiungere toggle per switch Week/Today:
+- State locale per `viewMode: 'week' | 'today'`
+- Render condizionale dei dati
 
-Remove "vs ieri" text from the delta display:
+---
 
-**Current (line 118)**:
-```tsx
-{deltaIndicator} vs ieri
-```
+## Flusso Dati
 
-**New**:
-```tsx
-{deltaIndicator}
-```
-
-### 3. Update ReasoningQualityCard display (ReasoningQualityCard.tsx)
-
-Remove "(... vs ieri)" wrapper:
-
-**Current (line 99)**:
-```tsx
-({deltaVsYesterday} vs ieri)
-```
-
-**New**:
-```tsx
-{deltaVsYesterday}
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                        useIntradayMetricHistory                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Fetch game_sessions (oggi)                                   │
+│     └─> timestamp + score → calcola Sharpness al momento        │
+│                                                                  │
+│  2. Fetch detox_sessions + walking_sessions (oggi)               │
+│     └─> timestamp + durata → calcola Recovery al momento        │
+│                                                                  │
+│  3. Calcola Recovery decay tra eventi                            │
+│     └─> Applica formula esponenziale per timestamp intermedi    │
+│                                                                  │
+│  4. Aggiungi punto "now" con valori correnti                    │
+│     └─> useTodayMetrics().sharpness, .readiness, .recovery      │
+│                                                                  │
+│  5. Ordina per timestamp e restituisci array                     │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Files to Modify
+## File da Creare/Modificare
 
-| File | Change |
-|------|--------|
-| `src/hooks/useYesterdayMetrics.ts` | Update `formatDeltaPercent` to calculate % change with edge case handling |
-| `src/pages/app/Home.tsx` | Remove "vs ieri" text from delta display |
-| `src/components/dashboard/ReasoningQualityCard.tsx` | Remove "(... vs ieri)" wrapper |
+| File | Azione | Descrizione |
+|------|--------|-------------|
+| `src/hooks/useIntradayMetricHistory.ts` | **Nuovo** | Hook per fetch e calcolo dati intraday |
+| `src/components/dashboard/MetricTrendCharts.tsx` | Modifica | Aggiungere toggle Week/Today e logica condizionale |
+| `src/components/dashboard/IntradayXAxisTick.tsx` | **Nuovo** (opzionale) | Custom tick per asse X orario |
 
 ---
 
-## Expected Result
+## Considerazioni Speciali
 
-| Scenario | Yesterday | Today | Display |
-|----------|-----------|-------|---------|
-| Normal improvement | 50 | 60 | `+20%` (green) |
-| Normal decline | 50 | 40 | `-20%` (red) |
-| No change | 50 | 50 | (nothing shown) |
-| Yesterday was 0 | 0 | 30 | (nothing shown) |
-| Yesterday null | null | 50 | (nothing shown) |
-| Large improvement | 20 | 80 | `+300%` (green) |
+1. **Recovery "phantom decay"**: Tra un evento e l'altro, Recovery decade continuamente. Per mostrare questo:
+   - Opzione A: Mostrare solo punti agli eventi (linea congiunge)
+   - Opzione B: Aggiungere punti interpolati ogni ora (più complesso)
+   - **Consiglio**: Opzione A per semplicità iniziale
+
+2. **Giorni senza eventi**: Se oggi non ci sono ancora eventi, mostrare solo il punto "now" o un messaggio "No activity yet today"
+
+3. **Sharpness/Readiness**: Queste metriche derivano da S1/S2/AE che cambiano solo con XP (games). Se nessun game oggi, il valore è costante → mostrare linea piatta con un solo punto.
+
+---
+
+## Stima Complessità
+- **Bassa-Media**: Riutilizzo estensivo del componente chart esistente
+- **Rischio**: Ricostruzione accurata dei valori storici intraday (specialmente Recovery con decay)
+
