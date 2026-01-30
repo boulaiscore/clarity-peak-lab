@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain, Clock, Headphones, BookOpen, FileText, Activity } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain, Clock, Headphones, BookOpen, FileText, Activity } from "lucide-react";
+import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
+import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
@@ -213,6 +215,64 @@ const Home = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState<HomeTabId>("overview");
   
+  // Date navigation state - allows viewing past days (max 7 days back)
+  const [selectedDate, setSelectedDate] = useState<string>(() => format(new Date(), "yyyy-MM-dd"));
+  
+  // Calculate if we're viewing today or a past date
+  const isViewingToday = useMemo(() => {
+    try {
+      return isToday(parseISO(selectedDate));
+    } catch {
+      return true;
+    }
+  }, [selectedDate]);
+  
+  // Calculate if we can go further back (max 7 days)
+  const canGoBack = useMemo(() => {
+    try {
+      const minDate = startOfDay(subDays(new Date(), 7));
+      const currentDate = startOfDay(parseISO(selectedDate));
+      return isBefore(minDate, currentDate);
+    } catch {
+      return false;
+    }
+  }, [selectedDate]);
+  
+  // Historical metrics for past dates
+  const { metrics: historicalMetrics, isLoading: historicalLoading } = useHistoricalMetrics({
+    date: selectedDate,
+  });
+  
+  // Navigation handlers
+  const handlePreviousDay = () => {
+    if (canGoBack) {
+      const prevDate = subDays(parseISO(selectedDate), 1);
+      setSelectedDate(format(prevDate, "yyyy-MM-dd"));
+    }
+  };
+  
+  const handleNextDay = () => {
+    if (!isViewingToday) {
+      const nextDate = addDays(parseISO(selectedDate), 1);
+      setSelectedDate(format(nextDate, "yyyy-MM-dd"));
+    }
+  };
+  
+  // Get display label for current date
+  const dateDisplayLabel = useMemo(() => getDateDisplayLabel(selectedDate), [selectedDate]);
+  
+  // Determine which metrics to display (today's live metrics or historical snapshot)
+  const displaySharpness = isViewingToday ? sharpness : (historicalMetrics?.sharpness ?? 0);
+  const displayReadiness = isViewingToday ? readiness : (historicalMetrics?.readiness ?? 0);
+  const displayRecovery = isViewingToday ? recoveryEffective : (historicalMetrics?.recovery ?? 0);
+  const displayRQ = isViewingToday ? rq : (historicalMetrics?.reasoningQuality ?? 0);
+  const displayS2Core = isViewingToday ? s2Core : (historicalMetrics?.s2 ?? 0);
+  const displayTaskPriming = isViewingToday ? taskPriming : 0; // Historical doesn't store this separately
+  const isDisplayLoading = isViewingToday 
+    ? (metricsLoading || recoveryEffectiveLoading) 
+    : historicalLoading;
+  const hasHistoricalData = !isViewingToday && historicalMetrics !== null;
+  
   // Tutorial state - shows after first onboarding completion
   const { showTutorial, markTutorialComplete } = useTutorialState();
   
@@ -350,17 +410,61 @@ const Home = () => {
         {/* Tab Content */}
         {activeTab === "overview" && (
           <>
-            {/* Today Header - button-like */}
+            {/* Date Navigation Header */}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.02 }}
-              className="mb-4 flex justify-center"
+              className="mb-4 flex justify-center items-center gap-3"
             >
-              <span className="px-4 py-1.5 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80">
-                Today
+              {/* Left arrow - always visible but disabled at min date */}
+              <button
+                onClick={handlePreviousDay}
+                disabled={!canGoBack}
+                className={cn(
+                  "w-7 h-7 rounded-full flex items-center justify-center transition-all",
+                  canGoBack 
+                    ? "bg-muted/40 hover:bg-muted/60 active:scale-95" 
+                    : "opacity-30 cursor-not-allowed"
+                )}
+                aria-label="Previous day"
+              >
+                <ChevronLeft className="w-4 h-4 text-foreground/70" />
+              </button>
+              
+              {/* Date label */}
+              <span className="px-4 py-1.5 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80 min-w-[100px] text-center">
+                {dateDisplayLabel}
               </span>
+              
+              {/* Right arrow - only visible when viewing past date */}
+              <button
+                onClick={handleNextDay}
+                disabled={isViewingToday}
+                className={cn(
+                  "w-7 h-7 rounded-full flex items-center justify-center transition-all",
+                  !isViewingToday 
+                    ? "bg-muted/40 hover:bg-muted/60 active:scale-95" 
+                    : "opacity-30 cursor-not-allowed"
+                )}
+                aria-label="Next day"
+              >
+                <ChevronRight className="w-4 h-4 text-foreground/70" />
+              </button>
             </motion.section>
+            
+            {/* No data warning for historical dates */}
+            {!isViewingToday && !historicalLoading && !hasHistoricalData && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mb-4 text-center"
+              >
+                <p className="text-xs text-muted-foreground/60">
+                  No data recorded for this day
+                </p>
+              </motion.div>
+            )}
             
             {/* Three Rings with Cognitive Engine Metrics */}
             <motion.section
@@ -371,60 +475,60 @@ const Home = () => {
             >
               <div className="flex justify-center gap-6 mb-4">
                 <ProgressRing
-                  value={metricsLoading ? 0 : sharpness}
+                  value={isDisplayLoading ? 0 : displaySharpness}
                   max={100}
                   size={90}
                   strokeWidth={4}
                   color={sharpnessColor}
                   label="Sharpness"
-                  displayValue={metricsLoading ? "—" : `${Math.round(sharpness)}`}
-                  dynamicIndicator={metricsLoading ? undefined : getMetricDisplayInfo(
-                    getSharpnessStatus(sharpness).label,
-                    getSharpnessStatus(sharpness).level,
+                  displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`}
+                  dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(
+                    getSharpnessStatus(displaySharpness).label,
+                    getSharpnessStatus(displaySharpness).level,
                     null,
                     null
                   ).text}
                   
-                  onClick={() => setActiveTab("intuition")}
+                  onClick={isViewingToday ? () => setActiveTab("intuition") : undefined}
                 />
                 <ProgressRing
-                  value={readiness}
+                  value={displayReadiness}
                   max={100}
                   size={90}
                   strokeWidth={4}
                   color={readinessColor}
                   label="Readiness"
-                  displayValue={`${Math.round(readiness)}`}
-                  dynamicIndicator={getMetricDisplayInfo(
-                    getReadinessStatus(readiness).label,
-                    getReadinessStatus(readiness).level,
+                  displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`}
+                  dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(
+                    getReadinessStatus(displayReadiness).label,
+                    getReadinessStatus(displayReadiness).level,
                     null,
                     null
                   ).text}
                   
-                  onClick={() => setActiveTab("reasoning")}
+                  onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined}
                 />
                 <ProgressRing
-                  value={recoveryEffectiveLoading ? 0 : recoveryEffective}
+                  value={isDisplayLoading ? 0 : displayRecovery}
                   max={100}
                   size={90}
                   strokeWidth={4}
                   color={recoveryColor}
                   label="Recovery"
-                  displayValue={recoveryEffectiveLoading ? "—" : `${Math.round(recoveryEffective)}%`}
-                  dynamicIndicator={recoveryEffectiveLoading ? undefined : getMetricDisplayInfo(
-                    getRecoveryStatus(recoveryEffective).label,
-                    getRecoveryStatus(recoveryEffective).level,
+                  displayValue={isDisplayLoading ? "—" : `${Math.round(displayRecovery)}%`}
+                  dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(
+                    getRecoveryStatus(displayRecovery).label,
+                    getRecoveryStatus(displayRecovery).level,
                     null,
                     null
                   ).text}
                   
-                  onClick={() => setActiveTab("capacity")}
+                  onClick={isViewingToday ? () => setActiveTab("capacity") : undefined}
                 />
               </div>
               
-              {/* Goal Complete indicator - only shows when target reached */}
-              {totalProgress >= 100 && (
+              {/* Goal Complete indicator - only shows when target reached AND viewing today */}
+              {isViewingToday && totalProgress >= 100 && (
                 <div className="text-center mb-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -438,22 +542,24 @@ const Home = () => {
               
               {/* Reasoning Quality Card */}
               <ReasoningQualityCard
-                rq={rq}
-                s2Core={s2Core}
-                s2Consistency={s2Consistency}
-                taskPriming={taskPriming}
-                isDecaying={rqIsDecaying}
-                isLoading={rqLoading}
+                rq={displayRQ}
+                s2Core={displayS2Core}
+                s2Consistency={isViewingToday ? s2Consistency : 0}
+                taskPriming={displayTaskPriming}
+                isDecaying={isViewingToday ? rqIsDecaying : false}
+                isLoading={isDisplayLoading || (isViewingToday && rqLoading)}
               />
               
-              {/* Daily Briefing */}
-              <DailyBriefing
-                sharpness={sharpness}
-                readiness={readiness}
-                recovery={recoveryEffective}
-                rq={rq}
-                isLoading={metricsLoading || rqLoading}
-              />
+              {/* Daily Briefing - only show for today */}
+              {isViewingToday && (
+                <DailyBriefing
+                  sharpness={sharpness}
+                  readiness={readiness}
+                  recovery={recoveryEffective}
+                  rq={rq}
+                  isLoading={metricsLoading || rqLoading}
+                />
+              )}
             </motion.section>
 
         {/* Smart Prioritized Suggestions */}
