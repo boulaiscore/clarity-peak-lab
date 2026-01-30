@@ -190,29 +190,36 @@ const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: numbe
 function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   
-  const data = viewMode === 'week' ? weeklyData : intradayData;
+  // For intraday, we need to build a proper timeline from midnight to now
+  const intradayChartData = useMemo(() => {
+    if (intradayData.length === 0) return [];
+    
+    // Sort by timestamp
+    const sorted = [...intradayData].sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+    
+    // Mark the last point as "isNow" (rightmost, highlighted)
+    return sorted.map((d, idx) => ({
+      ...d,
+      isNow: idx === sorted.length - 1, // Last point is the current one
+      xLabel: `${d.hour}|${idx === sorted.length - 1}`,
+    }));
+  }, [intradayData]);
+  
+  const data = viewMode === 'week' ? weeklyData : intradayChartData;
   const hasAnyValue = data.some((d) => d.value !== null);
 
   // Prepare chart data with xLabel for axis based on viewMode
-  const chartData = data.map(d => {
-    if (viewMode === 'today' && 'hour' in d && 'isNow' in d) {
-      return {
-        ...d,
-        xLabel: `${d.hour}|${d.isNow}`,
-      };
-    }
-    // Weekly view
-    if ('dayName' in d && 'dayNum' in d && 'isLast' in d) {
-      return {
+  const chartData = viewMode === 'week' 
+    ? weeklyData.map(d => ({
         ...d,
         xLabel: `${d.dayName}|${d.dayNum}|${d.isLast}`,
-      };
-    }
-    return d;
-  });
+      }))
+    : intradayChartData;
 
-  // Calculate min/max for dynamic Y axis
-  const values = data.filter(d => d.value !== null).map(d => d.value as number);
+  // Calculate min/max for dynamic Y axis - use chartData which is properly processed
+  const values = chartData.filter(d => d.value !== null).map(d => d.value as number);
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
