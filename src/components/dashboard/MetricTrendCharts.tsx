@@ -5,16 +5,19 @@
  * 
  * Premium line charts for cognitive metrics.
  * Exact WHOOP/Oura visual specification.
+ * Supports both weekly (7-day) and intraday (today) views.
  */
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { format, subDays, parseISO, startOfDay } from "date-fns";
+import { format, subDays, startOfDay } from "date-fns";
 import { useMetricHistory } from "@/hooks/useMetricHistory";
+import { useIntradayMetricHistory } from "@/hooks/useIntradayMetricHistory";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine, Area, ComposedChart } from "recharts";
 import { Target, Zap, Battery, Brain } from "lucide-react";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
+type ViewMode = "week" | "today";
 
 interface MetricConfig {
   key: MetricKey;
@@ -52,13 +55,22 @@ interface ChartDataPoint {
   xLabel: string;
 }
 
-interface SingleMetricChartProps {
-  metric: MetricConfig;
-  data: ChartDataPoint[];
+interface IntradayChartDataPoint {
+  timestamp: string;
+  value: number | null;
+  hour: string;
+  isNow: boolean;
+  xLabel: string;
 }
 
-// Custom X-axis tick - WHOOP style (anchored to the baseline)
-const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
+interface SingleMetricChartProps {
+  metric: MetricConfig;
+  data: ChartDataPoint[] | IntradayChartDataPoint[];
+  viewMode: ViewMode;
+}
+
+// Custom X-axis tick - WHOOP style for WEEKLY view (anchored to the baseline)
+const WeeklyXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
   if (!payload || x === undefined || y === undefined) return null;
   
   const [dayName, dayNum, isLast] = payload.value.split('|');
@@ -104,8 +116,44 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   );
 };
 
+// Custom X-axis tick for INTRADAY view (shows hours)
+const IntradayXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
+  if (!payload || x === undefined || y === undefined) return null;
+  
+  const [hour, isNow] = payload.value.split('|');
+  const isNowBool = isNow === 'true';
+  
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {/* Highlight band for current time */}
+      {isNowBool && (
+        <rect
+          x={-18}
+          y={-132}
+          width={36}
+          height={162}
+          fill="rgba(100, 116, 139, 0.12)"
+          rx={6}
+        />
+      )}
+      {/* Hour label */}
+      <text
+        x={0}
+        y={14}
+        textAnchor="middle"
+        fill={isNowBool ? BRIGHT_TEXT : MUTED_TEXT}
+        fontSize={11}
+        fontWeight={isNowBool ? 600 : 400}
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        {hour}
+      </text>
+    </g>
+  );
+};
+
 // Custom dot - filled black circle with metric color
-const CustomDot = ({ cx, cy, payload, color }: { cx?: number; cy?: number; payload?: ChartDataPoint; color: string }) => {
+const CustomDot = ({ cx, cy, payload, color }: { cx?: number; cy?: number; payload?: { value: number | null }; color: string }) => {
   if (!payload || payload.value === null || cx === undefined || cy === undefined) return null;
   
   return (
@@ -139,14 +187,26 @@ const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: numbe
   );
 };
 
-function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
+function SingleMetricChart({ metric, data, viewMode }: SingleMetricChartProps) {
   const hasAnyValue = data.some((d) => d.value !== null);
 
-  // Prepare chart data with xLabel for axis
-  const chartData = data.map(d => ({
-    ...d,
-    xLabel: `${d.dayName}|${d.dayNum}|${d.isLast}`,
-  }));
+  // Prepare chart data with xLabel for axis based on viewMode
+  const chartData = data.map(d => {
+    if (viewMode === 'today' && 'hour' in d && 'isNow' in d) {
+      return {
+        ...d,
+        xLabel: `${d.hour}|${d.isNow}`,
+      };
+    }
+    // Weekly view
+    if ('dayName' in d && 'dayNum' in d && 'isLast' in d) {
+      return {
+        ...d,
+        xLabel: `${d.dayName}|${d.dayNum}|${d.isLast}`,
+      };
+    }
+    return d;
+  });
 
   // Calculate min/max for dynamic Y axis
   const values = data.filter(d => d.value !== null).map(d => d.value as number);
@@ -255,7 +315,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 dataKey="xLabel"
                 axisLine={false}
                 tickLine={false}
-                tick={<CustomXAxisTick />}
+                tick={viewMode === 'today' ? <IntradayXAxisTick /> : <WeeklyXAxisTick />}
                 padding={{ left: 10, right: 10 }}
                 interval={0}
                 orientation="bottom"
@@ -309,13 +369,17 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
 }
 
 export function MetricTrendCharts() {
-  const { history, isLoading } = useMetricHistory({ days: 7 });
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
+  
+  const { history: weeklyHistory, isLoading: weeklyLoading } = useMetricHistory({ days: 7 });
+  const { history: intradayHistory, isLoading: intradayLoading } = useIntradayMetricHistory();
+  
+  const isLoading = viewMode === 'week' ? weeklyLoading : intradayLoading;
 
-  // Generate exactly 7 days (today - 6 days ago) regardless of available data
-  const chartDataByMetric = useMemo(() => {
+  // Generate weekly data (7 days)
+  const weeklyChartData = useMemo(() => {
     const today = startOfDay(new Date());
     
-    // Create a map of existing data by date
     const dataByDate: Record<string, { 
       readiness: number | null; 
       sharpness: number | null; 
@@ -323,7 +387,7 @@ export function MetricTrendCharts() {
       reasoningQuality: number | null 
     }> = {};
     
-    history.forEach((point) => {
+    weeklyHistory.forEach((point) => {
       dataByDate[point.date] = {
         readiness: point.readiness,
         sharpness: point.sharpness,
@@ -339,7 +403,6 @@ export function MetricTrendCharts() {
       reasoningQuality: [],
     };
 
-    // Generate 7 days
     for (let i = 6; i >= 0; i--) {
       const date = subDays(today, i);
       const dateStr = format(date, "yyyy-MM-dd");
@@ -358,11 +421,41 @@ export function MetricTrendCharts() {
     }
 
     return result;
-  }, [history]);
+  }, [weeklyHistory]);
+
+  // Generate intraday data
+  const intradayChartData = useMemo(() => {
+    const result: Record<MetricKey, IntradayChartDataPoint[]> = {
+      readiness: [],
+      sharpness: [],
+      recovery: [],
+      reasoningQuality: [],
+    };
+
+    intradayHistory.forEach((point) => {
+      const base = { 
+        timestamp: point.timestamp, 
+        hour: point.hour, 
+        isNow: point.isNow, 
+        xLabel: "" 
+      };
+      
+      result.readiness.push({ ...base, value: point.readiness });
+      result.sharpness.push({ ...base, value: point.sharpness });
+      result.recovery.push({ ...base, value: point.recovery });
+      result.reasoningQuality.push({ ...base, value: point.reasoningQuality });
+    });
+
+    return result;
+  }, [intradayHistory]);
 
   if (isLoading) {
     return (
       <div className="space-y-3">
+        {/* Toggle skeleton */}
+        <div className="flex justify-center mb-4">
+          <div className="h-9 w-40 rounded-full animate-pulse bg-muted/20" />
+        </div>
         {[1, 2, 3, 4].map((i) => (
           <div 
             key={i} 
@@ -373,8 +466,36 @@ export function MetricTrendCharts() {
     );
   }
 
+  const chartData = viewMode === 'week' ? weeklyChartData : intradayChartData;
+
   return (
     <div className="space-y-3">
+      {/* View mode toggle */}
+      <div className="flex justify-center mb-4">
+        <div className="inline-flex rounded-full p-1 bg-muted/30">
+          <button
+            onClick={() => setViewMode('week')}
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
+              viewMode === 'week'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Week
+          </button>
+          <button
+            onClick={() => setViewMode('today')}
+            className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
+              viewMode === 'today'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Today
+          </button>
+        </div>
+      </div>
+
       {METRICS.map((metric, index) => (
         <motion.div
           key={metric.key}
@@ -384,7 +505,8 @@ export function MetricTrendCharts() {
         >
           <SingleMetricChart
             metric={metric}
-            data={chartDataByMetric[metric.key]}
+            data={chartData[metric.key]}
+            viewMode={viewMode}
           />
         </motion.div>
       ))}
