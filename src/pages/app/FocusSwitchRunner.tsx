@@ -2,6 +2,7 @@
  * FOCUS SWITCH — Runner Page
  * v1.2: Added duration tracking + Manual-compliant session recording
  * v1.8: Added daily XP cap enforcement
+ * v1.9: Added intraday event recording after session completion
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -9,6 +10,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
 import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { toast } from "sonner";
 import { FocusSwitchDrill, FocusSwitchFinalResults } from "@/components/games/focus-switch";
 import { ArrowLeft } from "lucide-react";
@@ -20,6 +22,7 @@ export default function FocusSwitchRunner() {
   const { user, session } = useAuth();
   const recordGameSession = useRecordGameSession();
   const { gamesWithXPToday, dailyMax, isCapReached } = useDailyGamesXPCap();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const [isComplete, setIsComplete] = useState(false);
@@ -80,6 +83,14 @@ export default function FocusSwitchRunner() {
         
         console.log("[FocusSwitch] ✅ Session saved successfully");
         
+        // v1.9: Record intraday event for metrics tracking
+        recordMetricsSnapshot('game', {
+          gameName: 'focus_switch',
+          gameType: 'S1-AE',
+          xpAwarded: actualXP,
+          score: results.score,
+          difficulty,
+        });
         // v1.8: Show appropriate toast based on cap status
         if (actualXP > 0) {
           toast.success(`+${actualXP} XP earned!`, { icon: "⭐" });
