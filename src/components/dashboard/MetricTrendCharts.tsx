@@ -126,7 +126,7 @@ const CustomLabel = ({ x, y, value }: { x?: number; y?: number; value?: number |
       fontWeight={500}
       fontFamily="system-ui, -apple-system, sans-serif"
     >
-      {Math.round(value)}
+      {Math.round(value)}%
     </text>
   );
 };
