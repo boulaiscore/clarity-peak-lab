@@ -62,9 +62,9 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
       {isLastBool && (
         <rect
           x={-22}
-          y={-130}
+          y={-118}
           width={44}
-          height={155}
+          height={152}
           fill="rgba(100, 116, 139, 0.12)"
           rx={6}
         />
