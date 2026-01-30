@@ -1,34 +1,30 @@
 /**
  * Hook that computes Today's metrics (Sharpness, Readiness, Recovery)
- * using the new cognitive engine formulas.
+ * using the cognitive engine formulas.
+ * 
+ * v2.0: Now uses Recovery v2.0 continuous decay model instead of weekly aggregates.
+ * Recovery is fetched from user_cognitive_metrics (rec_value, rec_last_ts)
+ * and decay is applied using getCurrentRecovery() from recoveryV2.ts.
  * 
  * v1.5: Added stability mechanism to prevent metrics flicker on refresh.
  * Uses useRef to cache the last valid computed values and only updates
  * when ALL data sources are loaded.
  * 
- * v1.4: Now includes Readiness decay adjustment.
- * Readiness decays if REC < 40 for 3+ consecutive days.
- * 
  * ⚠️ CRITICAL: This hook follows the MANDATORY computation order (Section D):
  * 
  * 1. Load persistent skills: AE, RA, CT, IN (from useCognitiveStates)
  * 2. Compute aggregates: S1 = (AE+RA)/2, S2 = (CT+IN)/2 (from useCognitiveStates)
- * 3. Compute Recovery: REC = min(100, (detox + 0.5×walk) / target × 100)
+ * 3. Compute Recovery: Using v2.0 exponential decay model (72h half-life)
  * 4. Compute Sharpness and Readiness from skill values and Recovery
  * 5. Apply Readiness decay if consecutive low REC days >= 3
  * 
- * METRICS READ ONLY FROM PERSISTENT SKILL STATE:
- * - NEVER from per-session game data (accuracy, reaction time, score)
- * - NEVER from baseline session records
- * 
  * SHARPNESS = 0.6×S1 + 0.4×S2, modulated by Recovery (0.75 + 0.25×REC/100)
  * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable) - decay
- * RECOVERY = min(100, (detox_min + 0.5×walk_min) / target × 100)
+ * RECOVERY = Continuous decay model: REC × 2^(-Δt_hours / 72)
  * 
  * DATA SOURCES:
  * - Cognitive States (AE, RA, CT, IN): from user_cognitive_metrics table
- * - Detox Minutes: from detox_completions table (weekly aggregate)
- * - Walking Minutes: from walking_sessions table (weekly aggregate)
+ * - Recovery: from user_cognitive_metrics (rec_value, rec_last_ts, has_recovery_baseline)
  * - Wearable Data: from wearable_snapshots table
  */
 
@@ -37,16 +33,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useAuth } from "@/contexts/AuthContext";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
+import { getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import {
   calculateSharpness,
   calculateReadiness,
-  calculateRecovery,
   calculatePhysioComponent,
   calculateReadinessDecay,
   clamp,
 } from "@/lib/cognitiveEngine";
+import { getCurrentRecovery, RecoveryState } from "@/lib/recoveryV2";
 
 export interface UseTodayMetricsResult {
   // Today metrics (0-100)
@@ -66,13 +61,9 @@ export interface UseTodayMetricsResult {
   S1: number;
   S2: number;
   
-  // Recovery breakdown (minutes)
-  weeklyDetoxMinutes: number;
-  weeklyWalkMinutes: number;
-  detoxTarget: number;
-  
   // Status
   hasWearableData: boolean;
+  isRecoveryInitialized: boolean;
   isLoading: boolean;
 }
 
@@ -90,56 +81,39 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   
   const { states, S1, S2, isLoading: statesLoading } = useCognitiveStates();
   
-  // Fetch weekly detox minutes from detox_completions - v2.0: rolling window
-  const { data: detoxData, isLoading: detoxLoading } = useQuery({
-    queryKey: ["weekly-detox-minutes", userId, rollingStart],
-    queryFn: async () => {
-      if (!userId) return { totalMinutes: 0 };
+  // Fetch Recovery v2 state from user_cognitive_metrics
+  const { data: recoveryV2State, isLoading: recoveryV2Loading } = useQuery({
+    queryKey: ["recovery-v2-state", userId],
+    queryFn: async (): Promise<RecoveryState | null> => {
+      if (!userId) return null;
       
-      // v2.0: Use rolling 7-day window - query by completed_at
-      const rollingStartDate = getMediumPeriodStart();
       const { data, error } = await supabase
-        .from("detox_completions")
-        .select("duration_minutes")
+        .from("user_cognitive_metrics")
+        .select("rec_value, rec_last_ts, has_recovery_baseline")
         .eq("user_id", userId)
-        .gte("completed_at", rollingStartDate.toISOString());
+        .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error("[useTodayMetrics] Error fetching recovery state:", error);
+        return null;
+      }
       
-      const totalMinutes = (data || []).reduce((sum, c) => sum + (c.duration_minutes || 0), 0);
-      return { totalMinutes };
+      if (!data) return null;
+      
+      return {
+        recValue: data.rec_value as number | null,
+        recLastTs: data.rec_last_ts as string | null,
+        hasRecoveryBaseline: data.has_recovery_baseline ?? false,
+      };
     },
     enabled: !!userId,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
   
-  // Fetch weekly walking minutes from walking_sessions - v2.0: rolling window
-  const { data: walkingData, isLoading: walkingLoading } = useQuery({
-    queryKey: ["weekly-walking-minutes", userId, rollingStart],
-    queryFn: async () => {
-      if (!userId) return { totalMinutes: 0 };
-      
-      // v2.0: Use rolling 7-day window - query by completed_at
-      const rollingStartDate = getMediumPeriodStart();
-      const { data, error } = await supabase
-        .from("walking_sessions")
-        .select("duration_minutes, status, completed_at")
-        .eq("user_id", userId)
-        .eq("status", "completed")
-        .gte("completed_at", rollingStartDate.toISOString());
-      
-      if (error) throw error;
-      
-      const totalMinutes = (data || []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
-      return { totalMinutes };
-    },
-    enabled: !!userId,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
+  // REMOVED: Old weekly detox/walking minutes queries
+  // Recovery is now calculated using the v2.0 continuous decay model
   
   // Fetch today's wearable snapshot
   const { data: wearableSnapshot, isLoading: wearableLoading } = useQuery({
@@ -195,27 +169,17 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     refetchOnMount: false,
   });
   
-  const weeklyDetoxMinutes = detoxData?.totalMinutes ?? 0;
-  const weeklyWalkMinutes = walkingData?.totalMinutes ?? 0;
-  
-  // Get detox target from training plan
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
-  const plan = TRAINING_PLANS[planId];
-  const detoxTarget = plan?.detox?.weeklyMinutes ?? 60;
-  
   // Check if all data sources are loaded
-  const allLoaded = !statesLoading && !detoxLoading && !walkingLoading && !wearableLoading && !decayLoading;
+  const allLoaded = !statesLoading && !recoveryV2Loading && !wearableLoading && !decayLoading;
   
   // Use ref to cache last valid result (prevents flicker during refetch)
   const cachedResultRef = useRef<UseTodayMetricsResult | null>(null);
   
   const freshResult = useMemo((): UseTodayMetricsResult => {
-    // Calculate Recovery (REC)
-    const recovery = calculateRecovery({
-      weeklyDetoxMinutes,
-      weeklyWalkMinutes,
-      detoxTarget,
-    });
+    // Calculate Recovery (REC) using v2.0 continuous decay model
+    const recoveryRaw = recoveryV2State ? getCurrentRecovery(recoveryV2State) : null;
+    const recovery = recoveryRaw ?? 0;
+    const isRecoveryInitialized = recoveryV2State?.hasRecoveryBaseline ?? false;
     
     // Calculate Physio component (if wearable data available)
     const physioComponent = wearableSnapshot ? calculatePhysioComponent({
@@ -255,18 +219,16 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       readinessDecay,
       consecutiveLowRecDays,
       hasWearableData: !!wearableSnapshot,
+      isRecoveryInitialized,
       AE: states.AE,
       RA: states.RA,
       CT: states.CT,
       IN: states.IN,
       S1,
       S2,
-      weeklyDetoxMinutes,
-      weeklyWalkMinutes,
-      detoxTarget,
       isLoading: !allLoaded,
     };
-  }, [states, S1, S2, weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget, wearableSnapshot, decayData, rollingStart, allLoaded]);
+  }, [states, S1, S2, recoveryV2State, wearableSnapshot, decayData, rollingStart, allLoaded]);
   
   // Update cached result only when all data is loaded
   if (allLoaded) {
