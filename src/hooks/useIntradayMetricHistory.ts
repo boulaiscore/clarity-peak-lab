@@ -79,7 +79,7 @@ export function useIntradayMetricHistory() {
       if (!user?.id) return [];
       
       const { data, error } = await supabase
-        .from("intraday_metric_events" as any)
+        .from("intraday_metric_events")
         .select("*")
         .eq("user_id", user.id)
         .eq("event_date", todayStr)
@@ -90,17 +90,7 @@ export function useIntradayMetricHistory() {
         throw error;
       }
       
-      // Type assertion for new table not yet in types
-      return (data || []) as unknown as Array<{
-        id: string;
-        event_timestamp: string;
-        event_type: string;
-        readiness: number | null;
-        sharpness: number | null;
-        recovery: number | null;
-        reasoning_quality: number | null;
-        event_details: Record<string, unknown> | null;
-      }>;
+      return data || [];
     },
     enabled: !!user?.id,
     staleTime: 30_000, // Refresh more frequently for real-time feel
