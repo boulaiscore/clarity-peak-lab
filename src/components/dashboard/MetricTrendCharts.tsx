@@ -145,34 +145,19 @@ const IntradayXAxisTick = ({ x, y, payload, nowTs }: { x?: number; y?: number; p
   );
 };
 
-// Custom dot - filled black circle with metric color, with highlight band on LAST point
-const CustomDot = ({ cx, cy, payload, color, index, dataLength }: { cx?: number; cy?: number; payload?: { value: number | null }; color: string; index?: number; dataLength?: number }) => {
+// Custom dot - filled black circle with metric color
+const CustomDot = ({ cx, cy, payload, color }: { cx?: number; cy?: number; payload?: { value: number | null }; color: string }) => {
   if (!payload || payload.value === null || cx === undefined || cy === undefined) return null;
   
-  const isLast = index !== undefined && dataLength !== undefined && index === dataLength - 1;
-  
   return (
-    <g>
-      {/* Highlight band for last point */}
-      {isLast && (
-        <rect
-          x={cx - 18}
-          y={cy - 100}
-          width={36}
-          height={130}
-          fill="rgba(100, 116, 139, 0.12)"
-          rx={6}
-        />
-      )}
-      <circle
-        cx={cx}
-        cy={cy}
-        r={3.5}
-        fill="#0f172a"
-        stroke={color}
-        strokeWidth={1.5}
-      />
-    </g>
+    <circle
+      cx={cx}
+      cy={cy}
+      r={3.5}
+      fill="#0f172a"
+      stroke={color}
+      strokeWidth={1.5}
+    />
   );
 };
 
@@ -440,8 +425,6 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                     cy={props.cy}
                     payload={props.payload}
                     color={metric.color}
-                    index={props.index}
-                    dataLength={chartData.length}
                   />
                 )}
                 label={(props) => (
