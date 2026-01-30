@@ -193,7 +193,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
       ) : (
         <div className="h-[190px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 36, right: 44, left: 44, bottom: 32 }}>
+            <LineChart data={chartData} margin={{ top: 36, right: 16, left: 16, bottom: 32 }}>
               <CartesianGrid 
                 horizontal={true}
                 vertical={false}
@@ -213,7 +213,7 @@ function SingleMetricChart({ metric, data }: SingleMetricChartProps) {
                 axisLine={false}
                 tickLine={false}
                 tick={<CustomXAxisTick />}
-                padding={{ left: 18, right: 18 }}
+                padding={{ left: 10, right: 10 }}
                 interval={0}
                 orientation="bottom"
               />
