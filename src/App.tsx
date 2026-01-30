@@ -1,3 +1,4 @@
+import { useState } from "react";
 import CognitiveReport from "@/pages/app/CognitiveReport";
 import ReportPreview from "@/pages/app/ReportPreview";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,6 +11,7 @@ import { SessionProvider } from "@/contexts/SessionContext";
 import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
+import { SplashScreen } from "@/components/app/SplashScreen";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/app/Home";
@@ -434,24 +436,34 @@ function AppRoutes() {
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <SessionProvider>
-        <AppInitProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <HashRouter>
-              <DeepLinkHandler>
-                <AppRoutes />
-              </DeepLinkHandler>
-            </HashRouter>
-          </TooltipProvider>
-        </AppInitProvider>
-      </SessionProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <SessionProvider>
+          <AppInitProvider>
+            <TooltipProvider>
+              {showSplash && (
+                <SplashScreen 
+                  duration={2500} 
+                  onComplete={() => setShowSplash(false)} 
+                />
+              )}
+              <Toaster />
+              <Sonner />
+              <HashRouter>
+                <DeepLinkHandler>
+                  <AppRoutes />
+                </DeepLinkHandler>
+              </HashRouter>
+            </TooltipProvider>
+          </AppInitProvider>
+        </SessionProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
