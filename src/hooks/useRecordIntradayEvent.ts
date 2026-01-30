@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import type { Json } from "@/integrations/supabase/types";
 
 export type IntradayEventType = 
   | 'decay'       // Automatic decay applied
@@ -44,10 +45,9 @@ export function useRecordIntradayEvent() {
 
       const today = format(new Date(), "yyyy-MM-dd");
 
-      // Use raw query to avoid type issues with new table
       const { error } = await supabase
-        .from("intraday_metric_events" as any)
-        .insert({
+        .from("intraday_metric_events")
+        .insert([{
           user_id: user.id,
           event_date: today,
           event_timestamp: new Date().toISOString(),
@@ -56,8 +56,8 @@ export function useRecordIntradayEvent() {
           sharpness: params.sharpness,
           recovery: params.recovery,
           reasoning_quality: params.reasoningQuality,
-          event_details: params.eventDetails ?? null,
-        } as any);
+          event_details: (params.eventDetails ?? null) as Json,
+        }]);
 
       if (error) {
         console.error("[useRecordIntradayEvent] Error recording event:", error);
