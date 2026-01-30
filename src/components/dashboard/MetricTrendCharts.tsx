@@ -104,10 +104,10 @@ const CustomDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: Ch
     <circle
       cx={cx}
       cy={cy}
-      r={5}
+      r={3.5}
       fill="#0f172a"
       stroke={CHART_COLOR}
-      strokeWidth={2}
+      strokeWidth={1.5}
     />
   );
 };
