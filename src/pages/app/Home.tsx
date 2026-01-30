@@ -111,10 +111,10 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
             </span>
           )}
           {deltaIndicator && (
-            <span className={cn(
-              "text-[8px] font-medium mt-0.5 tabular-nums",
-              deltaIndicator.startsWith("+") ? "text-emerald-500" : deltaIndicator.startsWith("-") ? "text-rose-400" : "text-muted-foreground/60"
-            )}>
+            <span 
+              className="text-[8px] font-medium mt-0.5 tabular-nums"
+              style={{ color, opacity: 0.85 }}
+            >
               {deltaIndicator}
             </span>
           )}
