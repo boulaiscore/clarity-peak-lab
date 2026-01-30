@@ -191,13 +191,12 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
     // Every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
     const hourlyTicks = [0, 4, 8, 12, 16, 20].map(h => todayStart + h * 60 * 60 * 1000);
 
-    // IMPORTANT: Recharts may auto-drop tick labels if it thinks they don't fit.
-    // We provide a stable, explicit set of tick positions (00:00 + every 4h) and
-    // add the current time as the final label.
-    // Ticks beyond `now` will be ignored by the XAxis domain.
-    const ticks = [...hourlyTicks, now]
-      .filter((v, i, arr) => arr.indexOf(v) === i)
-      .sort((a, b) => a - b);
+    // Filter to only show ticks BEFORE the current time (not equal or after)
+    // e.g. if now is 19:15, show 00:00, 04:00, 08:00, 12:00, 16:00 + current time
+    const passedTicks = hourlyTicks.filter(t => t < now);
+    
+    // Add current time as the last tick
+    const ticks = [...passedTicks, now];
     
     return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
   }, []);
