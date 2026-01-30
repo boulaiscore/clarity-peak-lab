@@ -190,13 +190,14 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
     
     // Every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
     const hourlyTicks = [0, 4, 8, 12, 16, 20].map(h => todayStart + h * 60 * 60 * 1000);
-    
-    // Filter to only show passed times, but always include midnight (00:00)
-    const passedTicks = hourlyTicks.filter(t => t <= now);
-    
-    // Ensure midnight is always first, then add current time as the last tick
-    const ticksWithMidnight = passedTicks.includes(todayStart) ? passedTicks : [todayStart, ...passedTicks];
-    const ticks = [...ticksWithMidnight, now];
+
+    // IMPORTANT: Recharts may auto-drop tick labels if it thinks they don't fit.
+    // We provide a stable, explicit set of tick positions (00:00 + every 4h) and
+    // add the current time as the final label.
+    // Ticks beyond `now` will be ignored by the XAxis domain.
+    const ticks = [...hourlyTicks, now]
+      .filter((v, i, arr) => arr.indexOf(v) === i)
+      .sort((a, b) => a - b);
     
     return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
   }, []);
@@ -386,6 +387,8 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                   axisLine={false}
                   tickLine={false}
                   tick={(props) => <IntradayXAxisTick {...props} nowTs={nowTs} />}
+                  interval={0}
+                  minTickGap={0}
                   padding={{ left: 10, right: 10 }}
                 />
               ) : (
