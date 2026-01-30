@@ -117,30 +117,18 @@ const WeeklyXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   );
 };
 
-// Custom X-axis tick for INTRADAY view (shows fixed hours + Now)
-const IntradayXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: number } }) => {
+// Custom X-axis tick for INTRADAY view (shows fixed hours + current time)
+const IntradayXAxisTick = ({ x, y, payload, nowTs }: { x?: number; y?: number; payload?: { value: number }; nowTs?: number }) => {
   if (!payload || x === undefined || y === undefined) return null;
   
   const timestamp = payload.value;
-  const now = Date.now();
-  const isNowTick = Math.abs(timestamp - now) < 60000; // Within 1 minute = "Now"
+  const isNowTick = nowTs && Math.abs(timestamp - nowTs) < 60000; // Within 1 minute = current time tick
   
   // Format the hour
   const hour = format(new Date(timestamp), "HH:mm");
   
   return (
     <g transform={`translate(${x},${y})`}>
-      {/* Highlight band for current time */}
-      {isNowTick && (
-        <rect
-          x={-18}
-          y={-132}
-          width={36}
-          height={162}
-          fill="rgba(100, 116, 139, 0.12)"
-          rx={6}
-        />
-      )}
       {/* Hour label */}
       <text
         x={0}
@@ -151,25 +139,40 @@ const IntradayXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?
         fontWeight={isNowTick ? 600 : 400}
         fontFamily="system-ui, -apple-system, sans-serif"
       >
-        {isNowTick ? "Now" : hour}
+        {hour}
       </text>
     </g>
   );
 };
 
-// Custom dot - filled black circle with metric color
-const CustomDot = ({ cx, cy, payload, color }: { cx?: number; cy?: number; payload?: { value: number | null }; color: string }) => {
+// Custom dot - filled black circle with metric color, with highlight band on LAST point
+const CustomDot = ({ cx, cy, payload, color, index, dataLength }: { cx?: number; cy?: number; payload?: { value: number | null }; color: string; index?: number; dataLength?: number }) => {
   if (!payload || payload.value === null || cx === undefined || cy === undefined) return null;
   
+  const isLast = index !== undefined && dataLength !== undefined && index === dataLength - 1;
+  
   return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={3.5}
-      fill="#0f172a"
-      stroke={color}
-      strokeWidth={1.5}
-    />
+    <g>
+      {/* Highlight band for last point */}
+      {isLast && (
+        <rect
+          x={cx - 18}
+          y={cy - 100}
+          width={36}
+          height={130}
+          fill="rgba(100, 116, 139, 0.12)"
+          rx={6}
+        />
+      )}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={3.5}
+        fill="#0f172a"
+        stroke={color}
+        strokeWidth={1.5}
+      />
+    </g>
   );
 };
 
@@ -195,18 +198,19 @@ const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: numbe
 function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   
-  // Calculate fixed ticks for intraday view
+  // Calculate fixed ticks for intraday view (every 4 hours + current time)
   const { fixedTicks, midnightTs, nowTs } = useMemo(() => {
     const todayStart = startOfDay(new Date()).getTime();
     const now = Date.now();
     
-    const ticks = [
-      todayStart,                        // 00:00
-      todayStart + 6 * 60 * 60 * 1000,   // 06:00
-      todayStart + 12 * 60 * 60 * 1000,  // 12:00
-      todayStart + 18 * 60 * 60 * 1000,  // 18:00
-      now                                 // Now
-    ].filter(t => t <= now);
+    // Every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
+    const hourlyTicks = [0, 4, 8, 12, 16, 20].map(h => todayStart + h * 60 * 60 * 1000);
+    
+    // Filter to only show passed times (excluding current hour block)
+    const passedTicks = hourlyTicks.filter(t => t <= now);
+    
+    // Add current time as the last tick
+    const ticks = [...passedTicks, now];
     
     return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
   }, []);
@@ -395,7 +399,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                   ticks={fixedTicks}
                   axisLine={false}
                   tickLine={false}
-                  tick={<IntradayXAxisTick />}
+                  tick={(props) => <IntradayXAxisTick {...props} nowTs={nowTs} />}
                   padding={{ left: 10, right: 10 }}
                 />
               ) : (
@@ -436,6 +440,8 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                     cy={props.cy}
                     payload={props.payload}
                     color={metric.color}
+                    index={props.index}
+                    dataLength={chartData.length}
                   />
                 )}
                 label={(props) => (
