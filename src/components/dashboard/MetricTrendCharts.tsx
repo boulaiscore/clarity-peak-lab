@@ -190,7 +190,7 @@ const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: numbe
 function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   
-  // For intraday, we need to build a proper timeline with start anchor + events + now
+  // For intraday, we process the timeline from midnight baseline to now
   const intradayChartData = useMemo(() => {
     if (intradayData.length === 0) return [];
     
@@ -199,45 +199,18 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
     
-    const result: Array<{
-      timestamp: string;
-      hour: string;
-      value: number | null;
-      isNow: boolean;
-      isAnchor: boolean;
-      xLabel: string;
-    }> = [];
-    
-    // Add midnight anchor point (00:00) with null value - just for X-axis structure
-    // Only if the first event is not already near midnight
-    const firstEvent = sorted[0];
-    const firstEventHour = firstEvent ? parseInt(firstEvent.hour.split(':')[0]) : 0;
-    
-    if (firstEventHour > 1) {
-      result.push({
-        timestamp: '',
-        hour: '00:00',
-        value: null, // No actual data, just anchor
-        isNow: false,
-        isAnchor: true,
-        xLabel: '00:00|false',
-      });
-    }
-    
-    // Add all actual data points
-    sorted.forEach((d, idx) => {
+    // Map to chart format - now all points have real values (from midnight baseline + events + now)
+    return sorted.map((d, idx) => {
       const isLast = idx === sorted.length - 1;
-      result.push({
+      return {
         timestamp: d.timestamp,
         hour: d.hour,
         value: d.value,
-        isNow: isLast,
+        isNow: d.isNow || isLast,
         isAnchor: false,
-        xLabel: `${d.hour}|${isLast}`,
-      });
+        xLabel: `${d.hour}|${d.isNow || isLast}`,
+      };
     });
-    
-    return result;
   }, [intradayData]);
   
   const data = viewMode === 'week' ? weeklyData : intradayChartData;
