@@ -13,7 +13,7 @@ import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Sparkles, LineChart } from "lucide-react";
+import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Sparkles, LineChart, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
@@ -169,7 +169,7 @@ const Dashboard = () => {
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Activity className="w-3.5 h-3.5" />
+            <TrendingUp className="w-3.5 h-3.5" />
             Analytics
           </button>
           <button
