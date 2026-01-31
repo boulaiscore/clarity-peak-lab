@@ -699,6 +699,24 @@ const Home = () => {
           </button>
         </motion.section>
 
+        {/* Fast Charge - Discrete Recovery Link */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.18 }}
+          className="mb-6"
+        >
+          <button
+            onClick={() => navigate("/recharging")}
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span className="font-medium">Fast Charge</span>
+            <span className="text-muted-foreground/60">•</span>
+            <span className="text-muted-foreground/80">Reset cognitive clarity</span>
+          </button>
+        </motion.div>
+
           </>
         )}
 
