@@ -162,8 +162,24 @@ const CustomDot = ({ cx, cy, payload, color }: { cx?: number; cy?: number; paylo
 };
 
 // Custom label above each point - only Recovery shows % suffix
-const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: number; value?: number | null; isRecovery?: boolean; color: string }) => {
+// Now supports visibility control for smart label pruning
+const CustomLabel = ({ 
+  x, 
+  y, 
+  value, 
+  isRecovery, 
+  color,
+  isVisible = true 
+}: { 
+  x?: number; 
+  y?: number; 
+  value?: number | null; 
+  isRecovery?: boolean; 
+  color: string;
+  isVisible?: boolean;
+}) => {
   if (value === null || value === undefined || x === undefined || y === undefined) return null;
+  if (!isVisible) return null;
   
   return (
     <text
@@ -179,6 +195,9 @@ const CustomLabel = ({ x, y, value, isRecovery, color }: { x?: number; y?: numbe
     </text>
   );
 };
+
+// Minimum horizontal distance (px) between visible labels
+const MIN_LABEL_DISTANCE = 40;
 
 function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
@@ -240,6 +259,58 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
         xLabel: `${d.dayName}|${d.dayNum}|${d.isLast}`,
       }))
     : intradayChartData;
+
+  // Pre-calculate which labels should be visible (Smart Label Pruning for 1d view)
+  // This runs once when chartData changes, not on every render
+  const visibleLabelIndices = useMemo(() => {
+    if (viewMode === 'week') {
+      // Weekly view: all labels visible
+      return new Set(chartData.map((_, i) => i));
+    }
+    
+    // Intraday view: apply smart pruning
+    const visible = new Set<number>();
+    const pointsWithValue = chartData
+      .map((d, i) => ({ index: i, value: d.value, timeValue: (d as IntradayChartDataPoint).timeValue }))
+      .filter(p => p.value !== null);
+    
+    if (pointsWithValue.length === 0) return visible;
+    
+    // First point always visible
+    visible.add(pointsWithValue[0].index);
+    
+    // Last point always visible
+    if (pointsWithValue.length > 1) {
+      visible.add(pointsWithValue[pointsWithValue.length - 1].index);
+    }
+    
+    // Calculate approximate X positions based on time domain
+    // Domain: midnightTs to nowTs, mapping to chart width (approx 300px usable)
+    const chartWidth = 300; // Approximate usable chart width in px
+    const timeRange = nowTs - midnightTs;
+    
+    if (timeRange <= 0) return visible;
+    
+    const getApproxX = (timeValue: number) => {
+      return ((timeValue - midnightTs) / timeRange) * chartWidth;
+    };
+    
+    // Track last visible label's X position
+    let lastVisibleX = getApproxX(pointsWithValue[0].timeValue);
+    
+    // Check intermediate points (skip first and last)
+    for (let i = 1; i < pointsWithValue.length - 1; i++) {
+      const point = pointsWithValue[i];
+      const currentX = getApproxX(point.timeValue);
+      
+      if (currentX - lastVisibleX >= MIN_LABEL_DISTANCE) {
+        visible.add(point.index);
+        lastVisibleX = currentX;
+      }
+    }
+    
+    return visible;
+  }, [chartData, viewMode, midnightTs, nowTs]);
 
   // Calculate min/max for dynamic Y axis - use chartData which is properly processed
   const values = chartData.filter(d => d.value !== null).map(d => d.value as number);
@@ -435,15 +506,20 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                     color={metric.color}
                   />
                 )}
-                label={(props) => (
-                  <CustomLabel
-                    x={props.x}
-                    y={props.y}
-                    value={props.value}
-                    isRecovery={metric.key === "recovery"}
-                    color={metric.color}
-                  />
-                )}
+                label={(props) => {
+                  const index = props.index as number;
+                  const isVisible = visibleLabelIndices.has(index);
+                  return (
+                    <CustomLabel
+                      x={props.x}
+                      y={props.y}
+                      value={props.value}
+                      isRecovery={metric.key === "recovery"}
+                      color={metric.color}
+                      isVisible={isVisible}
+                    />
+                  );
+                }}
                 isAnimationActive={false}
               />
             </ComposedChart>
