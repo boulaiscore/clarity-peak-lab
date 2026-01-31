@@ -66,7 +66,7 @@ export function RapidAssociationIcon({ className }: IconProps) {
 
 /**
  * S2-CT: Critical Thinking
- * Branching paths - decision tree / analysis
+ * Prism with light refraction - analysis & decomposition
  */
 export function CriticalThinkingIcon({ className }: IconProps) {
   return (
@@ -76,22 +76,17 @@ export function CriticalThinkingIcon({ className }: IconProps) {
       stroke="currentColor"
       strokeWidth="1.5"
       strokeLinecap="round"
+      strokeLinejoin="round"
       className={cn("w-4 h-4", className)}
     >
-      {/* Main stem */}
-      <line x1="12" y1="4" x2="12" y2="10" />
-      {/* Branches */}
-      <line x1="12" y1="10" x2="6" y2="16" />
-      <line x1="12" y1="10" x2="18" y2="16" />
-      {/* End nodes */}
-      <circle cx="12" cy="4" r="2" />
-      <circle cx="6" cy="16" r="2" />
-      <circle cx="18" cy="16" r="2" />
-      {/* Sub-branches */}
-      <line x1="6" y1="16" x2="4" y2="20" />
-      <line x1="6" y1="16" x2="8" y2="20" />
-      <line x1="18" y1="16" x2="16" y2="20" />
-      <line x1="18" y1="16" x2="20" y2="20" />
+      {/* Prism triangle */}
+      <polygon points="12,3 4,19 20,19" fill="none" />
+      {/* Light beam entering */}
+      <line x1="2" y1="10" x2="8" y2="12" />
+      {/* Refracted rays exiting */}
+      <line x1="16" y1="11" x2="22" y2="7" />
+      <line x1="17" y1="13" x2="22" y2="13" />
+      <line x1="16" y1="15" x2="22" y2="19" />
     </svg>
   );
 }
