@@ -65,7 +65,7 @@ export function ReasoningQualityCard({
       
       {/* Score row */}
       <div className="flex items-baseline gap-1.5 mb-1.5">
-        <span className="font-bold tabular-nums text-lg">
+        <span className="font-bold tabular-nums text-2xl">
           {Math.round(rq)}
         </span>
         <span className="text-[10px] text-primary">
