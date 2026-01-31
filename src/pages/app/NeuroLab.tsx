@@ -26,7 +26,7 @@ import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
-import { RechargingCard } from "@/components/recharging/RechargingCard";
+
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -306,10 +306,6 @@ export default function NeuroLab() {
         {/* Weekly Goal - Compact */}
         <WeeklyGoalCard compact />
 
-        {/* Recharging Card */}
-        <div className="mt-4">
-          <RechargingCard />
-        </div>
 
         {/* Training Section - Distinct Background */}
         <div className="bg-muted/20 -mx-4 px-4 py-4 mt-4 rounded-t-2xl">
