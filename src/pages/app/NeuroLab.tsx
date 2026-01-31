@@ -7,7 +7,7 @@ import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
 import { 
   ChevronRight, Dumbbell,
   BookMarked, CheckCircle2, Smartphone, Ban, Brain,
-  Zap, Battery, BatteryLow
+  Zap, Battery, BatteryLow, Settings2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,12 +20,13 @@ import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrainingPlanId } from "@/lib/trainingPlans";
+import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
+import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 
 
 // Map session types to recommended game areas
@@ -43,6 +44,22 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
 
 function TasksTabContent() {
   return <SpotifyTasksView />;
+}
+
+// Discrete protocol change link - elegant and non-invasive
+function ProtocolLink({ onOpen, planName }: { onOpen: () => void; planName: string }) {
+  return (
+    <button
+      onClick={onOpen}
+      className="w-full flex items-center justify-center gap-2 py-2.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <Settings2 className="w-3.5 h-3.5" />
+      <span>
+        Protocol: <span className="font-medium text-foreground/80">{planName}</span>
+      </span>
+      <ChevronRight className="w-3 h-3 opacity-50" />
+    </button>
+  );
 }
 
 export default function NeuroLab() {
@@ -137,6 +154,10 @@ export default function NeuroLab() {
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
+  const [showProtocolSheet, setShowProtocolSheet] = useState(false);
+  
+  // Current training plan for display
+  const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   
   // Read tab from URL query param, default to "games" (Training first)
   const tabFromUrl = searchParams.get("tab");
@@ -305,6 +326,12 @@ export default function NeuroLab() {
 
         {/* Weekly Goal - Compact */}
         <WeeklyGoalCard compact />
+        
+        {/* Protocol Change - Discrete Link */}
+        <ProtocolLink 
+          onOpen={() => setShowProtocolSheet(true)} 
+          planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} 
+        />
 
 
         {/* Training Section - Distinct Background */}
@@ -373,6 +400,11 @@ export default function NeuroLab() {
         contentDifficulty={sessionDifficulty}
         weeklyXPTarget={weeklyXPTarget}
         weeklyXPEarned={weeklyLoadXP}
+      />
+
+      <ProtocolChangeSheet
+        open={showProtocolSheet}
+        onOpenChange={setShowProtocolSheet}
       />
     </AppShell>
   );
