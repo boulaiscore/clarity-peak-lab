@@ -53,7 +53,7 @@ export function ReasoningQualityCard({
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Reasoning Quality</h3>
+          <h3 className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em]">Reasoning Quality</h3>
           {isDecaying && (
             <Popover>
               <PopoverTrigger asChild>
