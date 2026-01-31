@@ -82,7 +82,7 @@ export function FastChargeSwipeCard() {
       >
         <motion.div style={{ scale: iconScale }} className="flex items-center gap-1.5">
           <Zap className="w-4 h-4 text-primary" />
-          <span className="text-xs font-semibold text-foreground">Fast</span>
+          <span className="text-xs font-semibold text-foreground">Fast Recharge</span>
         </motion.div>
       </motion.button>
     </div>
