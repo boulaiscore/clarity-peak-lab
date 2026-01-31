@@ -6,7 +6,7 @@
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import meditationIcon from "@/assets/meditation-icon.png";
+import { MeditationIcon } from "@/components/icons/MeditationIcon";
 import { useNavigate } from "react-router-dom";
 export function FastChargeSwipeCard() {
   const navigate = useNavigate();
@@ -80,7 +80,7 @@ export function FastChargeSwipeCard() {
         <motion.div style={{
         scale: iconScale
       }} className="flex items-center gap-1.5">
-          <img src={meditationIcon} alt="Meditation" className="w-4 h-4 dark:invert" />
+          <MeditationIcon className="w-4 h-4 text-primary" />
           <span className="text-xs font-semibold text-foreground">Fast Recharge</span>
         </motion.div>
       </motion.button>
