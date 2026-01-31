@@ -55,17 +55,35 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     // Vitality factor: negative delta (younger brain) = more vitality
     // Normalize from 0 (delta >= 0) to 1 (delta <= -10)
     const vitalityFactor = Math.min(1, Math.max(0, -delta / 10));
-
-    // Colors matching the current design - adjust based on vitality
+    
+    // Calculate age difference for color mapping
+    // delta < 0 means younger (green), delta > 0 means older (red)
+    const ageDiff = chronologicalAge ? cognitiveAge - chronologicalAge : delta;
+    
+    // Map delta to hue: green (140) for younger, blue (210) for neutral, red (0) for older
+    // Range: -10 years = full green, 0 = blue, +10 years = full red
+    const normalizedDiff = Math.max(-10, Math.min(10, ageDiff));
+    let hue: number;
+    if (normalizedDiff <= 0) {
+      // Younger: interpolate from green (140) to blue (210)
+      const t = Math.abs(normalizedDiff) / 10; // 0 to 1
+      hue = 210 - t * 70; // 210 → 140
+    } else {
+      // Older: interpolate from blue (210) to red (0)
+      const t = normalizedDiff / 10; // 0 to 1
+      hue = 210 - t * 210; // 210 → 0
+    }
+    
+    // Brighter, more vibrant colors
     const connectionColor = { 
-      h: 210, 
-      s: 90, 
-      l: (isDarkMode ? 55 : 45) + vitalityFactor * 15 
+      h: hue, 
+      s: 100, 
+      l: isDarkMode ? 60 + Math.abs(normalizedDiff) * 1.5 : 50 + Math.abs(normalizedDiff) * 1.5
     };
     const nodeColor = { 
-      h: 35, 
+      h: hue, 
       s: 100, 
-      l: 60 + vitalityFactor * 10 
+      l: isDarkMode ? 65 + Math.abs(normalizedDiff) * 1.5 : 55 + Math.abs(normalizedDiff) * 1.5
     };
 
     // Create nodes arranged around the perimeter
@@ -155,21 +173,21 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       }
       ctx.closePath();
 
-      // Inner fill gradient - subtle glow near edges
+      // Inner fill gradient - vibrant glow near edges
       const innerFill = ctx.createRadialGradient(
         centerX, centerY, 0,
         centerX, centerY, baseRadius
       );
       innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      innerFill.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.02 : 0.01})`);
-      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.05 : 0.03})`);
-      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.08 : 0.05})`);
+      innerFill.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.04 : 0.02})`);
+      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.10 : 0.06})`);
+      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.15 : 0.10})`);
       ctx.fillStyle = innerFill;
       ctx.fill();
       
-      // Sharp, well-defined border stroke - NO blur
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.6 : 0.5})`;
-      ctx.lineWidth = 1.5;
+      // Sharp, well-defined border stroke - vibrant
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.8 : 0.7})`;
+      ctx.lineWidth = 2;
       ctx.stroke();
 
       // Update node positions and constrain to blob shape
@@ -261,7 +279,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         });
       });
 
-      // Draw nodes - crisp defined dots with vitality-based intensity
+      // Draw nodes - bright defined dots with vitality-based intensity
       const nodePulseSpeed = 0.7 + vitalityFactor * 0.4;
       const nodePulseAmplitude = 0.1 + vitalityFactor * 0.1;
 
@@ -271,18 +289,18 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         
         const pulse = Math.sin(time * nodePulseSpeed + node.pulsePhase);
         const currentRadius = node.radius * (0.95 + pulse * nodePulseAmplitude);
-        const glowIntensity = (0.8 + pulse * 0.2) * (1 + vitalityFactor * 0.2);
+        const glowIntensity = (0.9 + pulse * 0.1) * (1 + vitalityFactor * 0.2);
 
-        // Sharp bright dot - brighter with vitality
+        // Bright vibrant dot
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.9, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 15}%, ${Math.min(1, 0.95 * glowIntensity)})`;
+        ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20}%, ${Math.min(1, glowIntensity)})`;
         ctx.fill();
 
         // White hot center point
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.45, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(50, 100%, ${96 + vitalityFactor * 4}%, ${Math.min(1, 0.98 * glowIntensity)})`;
+        ctx.arc(node.x, node.y, currentRadius * 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${nodeColor.h}, 60%, 95%, ${Math.min(1, 0.95 * glowIntensity)})`;
         ctx.fill();
       });
 
@@ -292,7 +310,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     draw();
 
     return () => cancelAnimationFrame(animationId);
-  }, [theme, delta]);
+  }, [theme, delta, cognitiveAge, chronologicalAge]);
 
   // Calculate comparison text vs real age
   const getComparisonText = () => {
