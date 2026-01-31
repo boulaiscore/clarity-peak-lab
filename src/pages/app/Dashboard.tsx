@@ -46,48 +46,8 @@ const Dashboard = () => {
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
   
-  // Calculate Cognitive Age from metrics
-  const cognitiveAgeData = useMemo(() => {
-    // Get baseline cognitive age from initial assessment
-    const baselineCognitiveAge = metrics?.baseline_cognitive_age || user?.age || 30;
-    
-    // Calculate current performance scores (0-100)
-    const currentFast = metrics?.fast_thinking || 50;
-    const currentSlow = metrics?.slow_thinking || 50;
-    const currentFocus = metrics?.focus_stability || 50;
-    const currentReasoning = metrics?.reasoning_accuracy || 50;
-    const currentCreativity = metrics?.creativity || 50;
-    
-    // Calculate baseline performance scores
-    const baselineFast = metrics?.baseline_fast_thinking || 50;
-    const baselineSlow = metrics?.baseline_slow_thinking || 50;
-    const baselineFocus = metrics?.baseline_focus || 50;
-    const baselineReasoning = metrics?.baseline_reasoning || 50;
-    const baselineCreativity = metrics?.baseline_creativity || 50;
-    
-    // Average current and baseline performance
-    const currentAvg = (currentFast + currentSlow + currentFocus + currentReasoning + currentCreativity) / 5;
-    const baselineAvg = (baselineFast + baselineSlow + baselineFocus + baselineReasoning + baselineCreativity) / 5;
-    
-    // Calculate performance improvement (0-100 scale)
-    const performanceGain = currentAvg - baselineAvg;
-    
-    // Convert to age improvement: every 10 points of improvement = 1 year younger
-    const ageImprovement = performanceGain / 10;
-    
-    // Current cognitive age (lower is better)
-    const currentCognitiveAge = Math.round(baselineCognitiveAge - ageImprovement);
-    
-    // Delta: negative means improvement (younger cognitive age)
-    const delta = currentCognitiveAge - baselineCognitiveAge;
-    
-    return {
-      cognitiveAge: currentCognitiveAge,
-      baselineCognitiveAge,
-      delta,
-      chronologicalAge: user?.age
-    };
-  }, [metrics, user?.age]);
+  // NOTE: Cognitive Age is now a slow-moving weekly metric managed by useCognitiveAge hook
+  // The CognitiveAgeCard component handles its own data fetching
   
   // Get fast/slow thinking scores with deltas from baseline
   // S1 (Fast) = (AE + RA) / 2 = (focus_stability + fast_thinking) / 2
@@ -193,7 +153,6 @@ const Dashboard = () => {
         {/* Tab Content */}
         {activeTab === "overview" ? (
           <OverviewCarousel 
-            cognitiveAgeData={cognitiveAgeData}
             sci={sci}
             sciStatusText={sciStatusText}
             thinkingScores={thinkingScores}

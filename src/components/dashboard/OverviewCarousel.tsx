@@ -13,14 +13,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 import type { SCIBreakdown, BottleneckResult } from "@/lib/cognitiveNetworkScore";
 
 interface OverviewCarouselProps {
-  cognitiveAgeData: {
-    cognitiveAge: number;
-    delta: number;
-    chronologicalAge?: number;
-  };
   sci: SCIBreakdown | null;
   sciStatusText: string;
   thinkingScores: {
@@ -44,7 +40,6 @@ const cardTitles: Record<CardType, string> = {
 };
 
 export function OverviewCarousel({
-  cognitiveAgeData,
   sci,
   sciStatusText,
   thinkingScores,
@@ -52,6 +47,9 @@ export function OverviewCarousel({
 }: OverviewCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Get cognitive age data for NeuralGrowthAnimation
+  const { data: cognitiveAgeData } = useCognitiveAge();
   
   const swipeConfidenceThreshold = 10000;
   const swipePower = (offset: number, velocity: number) => {
