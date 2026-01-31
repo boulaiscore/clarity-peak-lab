@@ -74,7 +74,7 @@ export function CognitiveAgeCard() {
                 Calibrating...
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                Your Cognitive Age will stabilize as we collect more data. Keep training!
+                Your Cognitive Age will stabilize as we collect more data. 
               </p>
             </div>
           </div>
