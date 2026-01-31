@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
-import { generateBriefing } from "@/components/home/DailyBriefing";
+import { DailyBriefing } from "@/components/home/DailyBriefing";
 import { useMetricWeeklyChange } from "@/hooks/useMetricWeeklyChange";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -461,7 +461,7 @@ const Home = () => {
                   </p>
                 </div>}
               
-              {/* Reasoning Quality Card with integrated briefing */}
+              {/* Reasoning Quality Card */}
               <ReasoningQualityCard 
                 rq={displayRQ} 
                 s2Core={displayS2Core} 
@@ -470,9 +470,26 @@ const Home = () => {
                 isDecaying={isViewingToday ? rqIsDecaying : false} 
                 isLoading={isDisplayLoading || (isViewingToday && rqLoading)} 
                 deltaVsYesterday={rqDelta}
-                briefingText={isViewingToday ? generateBriefing(sharpness, readiness, recoveryEffective, rq) : undefined}
               />
             </motion.section>
+
+        {/* Daily Insight + Suggestions - Combined */}
+        {isViewingToday && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="mb-4 p-3.5 rounded-xl bg-muted/30 border border-border/40"
+          >
+            <DailyBriefing 
+              sharpness={sharpness} 
+              readiness={readiness} 
+              recovery={recoveryEffective} 
+              rq={rq} 
+              isLoading={metricsLoading || rqLoading} 
+            />
+          </motion.section>
+        )}
 
         {/* Smart Prioritized Suggestions */}
         {prioritizedSuggestions.slice(0, 2).map((suggestion, index) => <SmartSuggestionCard key={suggestion.id} suggestion={suggestion} index={index} />)}
