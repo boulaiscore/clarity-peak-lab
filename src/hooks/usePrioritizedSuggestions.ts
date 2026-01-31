@@ -16,7 +16,6 @@ import {
   BookMarked, 
   Smartphone, 
   Ban, 
-  Battery,
   Brain,
   Zap
 } from "lucide-react";
@@ -82,32 +81,31 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
     const detoxRemaining = Math.max(0, detoxXPTarget - rawDetoxXP);
     const detoxMinutesRemaining = Math.round(detoxRemaining / 2);
 
-    // Priority 1: CRITICAL RECOVERY (< 30%)
+    // Priority 1: CRITICAL RECOVERY (< 30%) - Suggest Fast Charge
     if (recoveryEffective < 30) {
       result.push({
         id: "recovery_critical",
         priority: 1,
-        headline: "Recovery critically low",
-        body: "Start a detox session to restore cognitive capacity.",
-        action: "Start Detox",
-        route: "/neuro-lab?tab=detox",
-        icon: Battery,
+        headline: "Fast Charge recommended",
+        body: "Recovery critically low — restore reasoning clarity.",
+        action: "Start Session",
+        route: "/recharging",
+        icon: Zap,
         colorClass: "from-red-500/15 via-red-500/5 to-transparent border-red-500/30 hover:border-red-500/50",
         urgency: "critical",
       });
     }
 
-    // Priority 2: LOW RECOVERY (< 45%) - Suggest recovery actions
+    // Priority 2: LOW RECOVERY (< 45%) - Suggest Fast Charge or detox
     if (recoveryEffective >= 30 && recoveryEffective < 45) {
       result.push({
         id: "recovery_low",
         priority: 2,
-        headline: "Today: recover first",
-        body: "Recovery is low — detox or passive reading recommended.",
-        action: "Start Recovery",
-        route: "/neuro-lab?tab=detox",
-        icon: Smartphone,
-        iconSecondary: Ban,
+        headline: "Try Fast Charge",
+        body: "Recovery is low — a quick reset can restore focus.",
+        action: "Start Session",
+        route: "/recharging",
+        icon: Zap,
         colorClass: "from-teal-500/10 via-teal-500/5 to-transparent border-teal-500/20 hover:border-teal-500/40",
         urgency: "high",
       });
