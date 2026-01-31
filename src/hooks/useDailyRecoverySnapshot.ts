@@ -182,9 +182,19 @@ export function useDailyRecoverySnapshot() {
       
       return { updated: true, streakDays: newStreak };
     },
-    onSuccess: () => {
-      // Invalidate queries that depend on decay tracking
-      queryClient.invalidateQueries({ queryKey: ["recovery-snapshot"] });
+    onSuccess: (result, recovery) => {
+      if (result.updated && userId) {
+        // Update cache directly instead of invalidating to prevent re-fetch loops
+        queryClient.setQueryData<RecoverySnapshotData | null>(
+          ["recovery-snapshot", userId],
+          (old) => ({
+            rec_snapshot_date: getUserLocalDate(),
+            rec_snapshot_value: recovery,
+            low_rec_streak_days: result.streakDays,
+          })
+        );
+      }
+      // Only invalidate decay tracking (not recovery-snapshot itself)
       queryClient.invalidateQueries({ queryKey: ["readiness-decay-tracking"] });
       queryClient.invalidateQueries({ queryKey: ["decay-tracking"] });
     },
