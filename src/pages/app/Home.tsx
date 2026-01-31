@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
-import { DailyBriefing } from "@/components/home/DailyBriefing";
+import { generateBriefing } from "@/components/home/DailyBriefing";
 import { useMetricWeeklyChange } from "@/hooks/useMetricWeeklyChange";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -461,11 +461,17 @@ const Home = () => {
                   </p>
                 </div>}
               
-              {/* Reasoning Quality Card */}
-              <ReasoningQualityCard rq={displayRQ} s2Core={displayS2Core} s2Consistency={isViewingToday ? s2Consistency : 0} taskPriming={displayTaskPriming} isDecaying={isViewingToday ? rqIsDecaying : false} isLoading={isDisplayLoading || isViewingToday && rqLoading} deltaVsYesterday={rqDelta} />
-              
-              {/* Daily Briefing - only show for today */}
-              {isViewingToday && <DailyBriefing sharpness={sharpness} readiness={readiness} recovery={recoveryEffective} rq={rq} isLoading={metricsLoading || rqLoading} />}
+              {/* Reasoning Quality Card with integrated briefing */}
+              <ReasoningQualityCard 
+                rq={displayRQ} 
+                s2Core={displayS2Core} 
+                s2Consistency={isViewingToday ? s2Consistency : 0} 
+                taskPriming={displayTaskPriming} 
+                isDecaying={isViewingToday ? rqIsDecaying : false} 
+                isLoading={isDisplayLoading || (isViewingToday && rqLoading)} 
+                deltaVsYesterday={rqDelta}
+                briefingText={isViewingToday ? generateBriefing(sharpness, readiness, recoveryEffective, rq) : undefined}
+              />
             </motion.section>
 
         {/* Smart Prioritized Suggestions */}
