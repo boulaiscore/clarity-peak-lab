@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, ChevronLeft, Check, Leaf, Target, Flame, Star, Dumbbell, BookMarked, Smartphone, Zap, Ban, Brain, Clock, Headphones, BookOpen, FileText, Activity } from "lucide-react";
+import { ChevronRight, ChevronLeft, Target, Zap, Brain, Clock, Headphones, BookOpen, FileText, Activity, Check } from "lucide-react";
 import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
@@ -20,7 +20,7 @@ import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
 import { useTutorialState } from "@/hooks/useTutorialState";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { cn } from "@/lib/utils";
-import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { TrainingPlanId } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { DailyBriefing } from "@/components/home/DailyBriefing";
@@ -29,8 +29,6 @@ import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { toast } from "@/hooks/use-toast";
 import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
 import { HomeTabId } from "@/components/home/HomeTabs";
 import { IntuitionTab } from "@/components/home/IntuitionTab";
@@ -129,11 +127,6 @@ const ProgressRing = ({ value, max, size, strokeWidth, color, label, displayValu
   );
 };
 
-const PLAN_ICONS: Record<TrainingPlanId, React.ElementType> = {
-  light: Leaf,
-  expert: Target,
-  superhuman: Flame,
-};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -223,9 +216,6 @@ const Home = () => {
     }
   }, [metricsLoading, recoveryRaw, persistDailySnapshot, isSnapshotCurrentToday]);
   
-  const [showProtocolSheet, setShowProtocolSheet] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<TrainingPlanId | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState<HomeTabId>("overview");
   
   // Date navigation state - allows viewing past days (max 7 days back)
@@ -311,35 +301,6 @@ const Home = () => {
     navigate("/neuro-lab");
   };
 
-  const handleOpenProtocolSheet = () => {
-    setSelectedPlan(currentPlan);
-    setShowProtocolSheet(true);
-  };
-
-  const handleConfirmProtocolChange = async () => {
-    if (!selectedPlan || selectedPlan === currentPlan) {
-      setShowProtocolSheet(false);
-      return;
-    }
-
-    setIsUpdating(true);
-    try {
-      await updateUser({ trainingPlan: selectedPlan });
-      toast({
-        title: "Protocol updated",
-        description: `Switched to ${TRAINING_PLANS[selectedPlan].name}`,
-      });
-      setShowProtocolSheet(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update protocol",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
 
 
@@ -651,36 +612,16 @@ const Home = () => {
           );
         })()}
 
-        {/* Quick Status Cards - Protocol as cause */}
+        {/* Optimal Zone Card - Full width */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="grid grid-cols-2 gap-3 mb-6"
+          className="mb-6"
         >
           <button 
-            onClick={handleOpenProtocolSheet}
-            className="p-4 rounded-xl bg-card border border-border/40 text-left hover:bg-muted/30 transition-colors active:scale-[0.98]"
-          >
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              Your Protocol
-            </p>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-medium text-primary uppercase tracking-wide">
-                  {TRAINING_PLANS[currentPlan].name.replace(" Training", "")}
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <p className="text-[10px] text-muted-foreground/70 leading-snug">
-              Balancing intuition speed and reasoning depth.
-            </p>
-          </button>
-          <button 
             onClick={() => navigate("/neuro-lab")}
-            className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-left hover:bg-emerald-500/10 transition-colors active:scale-[0.98]"
+            className="w-full p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-left hover:bg-emerald-500/10 transition-colors active:scale-[0.98]"
           >
             <p className="text-[10px] uppercase tracking-[0.12em] text-emerald-500 mb-1">
               Optimal Zone
@@ -718,118 +659,6 @@ const Home = () => {
         {activeTab === "capacity" && <CapacityTab onBackToOverview={() => setActiveTab("overview")} />}
       </main>
 
-      {/* Protocol Change Sheet */}
-      <Sheet open={showProtocolSheet} onOpenChange={setShowProtocolSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="text-lg">Change Protocol</SheetTitle>
-          </SheetHeader>
-          
-          <div className="space-y-3 mb-6">
-            {(Object.keys(TRAINING_PLANS) as TrainingPlanId[]).map((planId) => {
-              const plan = TRAINING_PLANS[planId];
-              const PlanIcon = PLAN_ICONS[planId];
-              const isSelected = selectedPlan === planId;
-              const isCurrent = currentPlan === planId;
-              
-              // Calculate XP breakdown using plan values (matches useCappedWeeklyProgress)
-              const detoxXPTarget = Math.round(plan.detox.weeklyMinutes * plan.detox.xpPerMinute);
-              const tasksXPTarget = plan.contentXPTarget;
-              const gamesXPTarget = Math.max(0, plan.weeklyXPTarget - tasksXPTarget - detoxXPTarget);
-              
-              return (
-                <button
-                  key={planId}
-                  onClick={() => setSelectedPlan(planId)}
-                  className={cn(
-                    "w-full p-4 rounded-xl border text-left transition-all",
-                    isSelected 
-                      ? "border-primary bg-primary/5" 
-                      : "border-border/40 bg-card hover:bg-muted/30"
-                  )}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                        isSelected ? "bg-primary/10" : "bg-muted/50"
-                      )}>
-                        <PlanIcon className={cn(
-                          "w-5 h-5",
-                          isSelected ? "text-primary" : "text-muted-foreground"
-                        )} />
-                      </div>
-                      <div>
-                        <p className={cn(
-                          "text-sm font-medium",
-                          isSelected && "text-primary"
-                        )}>
-                          {plan.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {plan.sessionDuration}/session
-                        </p>
-                      </div>
-                    </div>
-                    {isCurrent && (
-                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-0.5 rounded-full bg-muted/50">
-                        Current
-                      </span>
-                    )}
-                    {isSelected && !isCurrent && (
-                      <Check className="w-5 h-5 text-primary" />
-                    )}
-                  </div>
-                  
-                  {/* Capacity Breakdown */}
-                  <div className="ml-13 pl-13 border-t border-border/20 pt-2 mt-2">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Star className="w-3 h-3 text-amber-400" />
-                      <span className="text-[11px] font-medium text-amber-400">{plan.weeklyXPTarget} CC/week</span>
-                    </div>
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <BookMarked className="w-3 h-3 text-purple-400" />
-                        <span className="text-[10px] text-muted-foreground">
-                          Tasks: <span className="text-purple-400 font-medium">{tasksXPTarget}</span>
-                        </span>
-                      </div>
-                      {plan.detox && (
-                        <div className="flex items-center gap-1.5">
-                          <Smartphone className="w-3 h-3 text-teal-400" />
-                          <span className="text-[10px] text-muted-foreground">
-                            Walk & Detox: <span className="text-teal-400 font-medium">{detoxXPTarget}</span>
-                            <span className="text-muted-foreground/60"> ({Math.round(plan.detox.weeklyMinutes / 60)}h)</span>
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1.5">
-                        <Dumbbell className="w-3 h-3 text-blue-400" />
-                        <span className="text-[10px] text-muted-foreground">
-                          Training: <span className="text-blue-400 font-medium">{gamesXPTarget}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={handleConfirmProtocolChange}
-            disabled={isUpdating || selectedPlan === currentPlan}
-            className={cn(
-              "w-full py-4 rounded-xl text-base font-semibold transition-all",
-              selectedPlan && selectedPlan !== currentPlan
-                ? "bg-primary text-primary-foreground active:scale-[0.98]"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            )}
-          >
-            {isUpdating ? "Updating..." : "Confirm Change"}
-          </button>
-        </SheetContent>
-      </Sheet>
       
       {/* Onboarding Tutorial - appears once after first login post-onboarding */}
       <OnboardingTutorial 
