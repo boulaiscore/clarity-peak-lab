@@ -17,7 +17,7 @@ interface AppShellProps {
 const navItems = [
   { to: "/app", icon: Home, label: "Home" },
   { to: "/neuro-lab", icon: Activity, label: "Lab" },
-  { to: "/app/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/app/dashboard", icon: LayoutDashboard, label: "Monitor" },
   { to: "/app/health", icon: Layers, label: "Health" },
 ];
 
