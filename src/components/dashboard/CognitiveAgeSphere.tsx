@@ -127,13 +127,23 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       return baseRadius + wobble * 0.4 + breathe;
     };
 
+    // Helper to check if a point is inside the blob shape
+    const isInsideBlob = (px: number, py: number, t: number, margin: number = 0) => {
+      const dx = px - centerX;
+      const dy = py - centerY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+      const blobR = getBlobRadius(angle, t) - margin;
+      return dist < blobR;
+    };
+
     const draw = () => {
       time += 0.012;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const segments = 120;
 
-      // Primary glowing edge - single clean border
+      // Build the blob path
       ctx.beginPath();
       for (let i = 0; i <= segments; i++) {
         const angle = (i / segments) * Math.PI * 2;
@@ -144,33 +154,25 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      
-      // Soft glow on edge
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.25 : 0.18})`;
-      ctx.lineWidth = 6;
-      ctx.filter = 'blur(3px)';
-      ctx.stroke();
-      ctx.filter = 'none';
 
-      // Sharp inner edge
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.3 : 0.22})`;
+      // Inner fill gradient - subtle glow near edges
+      const innerFill = ctx.createRadialGradient(
+        centerX, centerY, 0,
+        centerX, centerY, baseRadius
+      );
+      innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
+      innerFill.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.02 : 0.01})`);
+      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.05 : 0.03})`);
+      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.08 : 0.05})`);
+      ctx.fillStyle = innerFill;
+      ctx.fill();
+      
+      // Sharp, well-defined border stroke - NO blur
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.6 : 0.5})`;
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Inner fill gradient - stronger glow near edges like Whoop
-      const innerFill = ctx.createRadialGradient(
-        centerX, centerY, 0,
-        centerX, centerY, baseRadius + 5
-      );
-      innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      innerFill.addColorStop(0.4, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.02 : 0.01})`);
-      innerFill.addColorStop(0.7, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.06 : 0.04})`);
-      innerFill.addColorStop(0.85, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.12 : 0.08})`);
-      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.18 : 0.12})`);
-      ctx.fillStyle = innerFill;
-      ctx.fill();
-
-      // Update node positions
+      // Update node positions and constrain to blob shape
       nodes.forEach((node) => {
         node.x += node.vx;
         node.y += node.vy;
@@ -180,6 +182,22 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         node.vy += dy * 0.006;
         node.vx *= 0.985;
         node.vy *= 0.985;
+        
+        // Strictly constrain nodes inside the blob with margin
+        if (!isInsideBlob(node.x, node.y, time, 8)) {
+          // Push back towards center
+          const ndx = node.x - centerX;
+          const ndy = node.y - centerY;
+          const dist = Math.sqrt(ndx * ndx + ndy * ndy);
+          const angle = Math.atan2(ndy, ndx);
+          const maxR = getBlobRadius(angle, time) - 10;
+          if (dist > maxR) {
+            node.x = centerX + Math.cos(angle) * maxR;
+            node.y = centerY + Math.sin(angle) * maxR;
+            node.vx *= -0.3;
+            node.vy *= -0.3;
+          }
+        }
       });
 
       // Draw connections - sharp crisp lines with vitality-based intensity
@@ -190,8 +208,14 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       const travelPulseProbability = 0.15 + vitalityFactor * 0.25;
 
       nodes.forEach((node, i) => {
+        // Skip if node is outside blob
+        if (!isInsideBlob(node.x, node.y, time, 3)) return;
+        
         node.connections.forEach((j) => {
           const other = nodes[j];
+          // Skip if other node is outside blob
+          if (!isInsideBlob(other.x, other.y, time, 3)) return;
+          
           const dx = other.x - node.x;
           const dy = other.y - node.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
@@ -203,9 +227,12 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           const midY = (node.y + other.y) / 2;
           const perpX = -dy / dist;
           const perpY = dx / dist;
-          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 10) + (Math.sin(time * 0.25 + i) * 3);
+          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 8) + (Math.sin(time * 0.25 + i) * 2);
           const ctrlX = midX + perpX * curveIntensity;
           const ctrlY = midY + perpY * curveIntensity;
+          
+          // Skip if control point is outside blob
+          if (!isInsideBlob(ctrlX, ctrlY, time, 3)) return;
           
           // Single sharp connection line - brighter with more vitality
           ctx.beginPath();
@@ -215,18 +242,21 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           ctx.lineWidth = 0.8 + vitalityFactor * 0.3;
           ctx.stroke();
 
-          // Traveling pulse - more frequent and brighter with vitality
+          // Traveling pulse - only if inside blob
           if (Math.random() < travelPulseProbability) {
             const pulsePos = (time * (0.2 + vitalityFactor * 0.15) + i * 0.12) % 1;
             const t = pulsePos;
             const px = (1-t)*(1-t)*node.x + 2*(1-t)*t*ctrlX + t*t*other.x;
             const py = (1-t)*(1-t)*node.y + 2*(1-t)*t*ctrlY + t*t*other.y;
             
-            const pulseSize = 1.2 + vitalityFactor * 0.6;
-            ctx.beginPath();
-            ctx.arc(px, py, pulseSize, 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20 + vitalityFactor * 10}%, ${opacity * (0.9 + vitalityFactor * 0.1)})`;
-            ctx.fill();
+            // Only draw pulse if inside blob
+            if (isInsideBlob(px, py, time, 5)) {
+              const pulseSize = 1.2 + vitalityFactor * 0.6;
+              ctx.beginPath();
+              ctx.arc(px, py, pulseSize, 0, Math.PI * 2);
+              ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20 + vitalityFactor * 10}%, ${opacity * (0.9 + vitalityFactor * 0.1)})`;
+              ctx.fill();
+            }
           }
         });
       });
@@ -236,6 +266,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       const nodePulseAmplitude = 0.1 + vitalityFactor * 0.1;
 
       nodes.forEach((node) => {
+        // Only draw nodes that are inside the blob
+        if (!isInsideBlob(node.x, node.y, time, 3)) return;
+        
         const pulse = Math.sin(time * nodePulseSpeed + node.pulsePhase);
         const currentRadius = node.radius * (0.95 + pulse * nodePulseAmplitude);
         const glowIntensity = (0.8 + pulse * 0.2) * (1 + vitalityFactor * 0.2);
