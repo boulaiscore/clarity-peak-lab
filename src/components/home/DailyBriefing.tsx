@@ -16,7 +16,7 @@ interface DailyBriefingProps {
   isLoading?: boolean;
 }
 
-function generateBriefing(
+export function generateBriefing(
   sharpness: number,
   readiness: number,
   recovery: number,

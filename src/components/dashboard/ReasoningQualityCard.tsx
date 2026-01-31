@@ -20,12 +20,14 @@ interface ReasoningQualityCardProps {
   isDecaying: boolean;
   isLoading?: boolean;
   deltaVsYesterday?: string | null;
+  briefingText?: string;
 }
 export function ReasoningQualityCard({
   rq,
   isDecaying,
   isLoading,
-  deltaVsYesterday
+  deltaVsYesterday,
+  briefingText
 }: ReasoningQualityCardProps) {
   const navigate = useNavigate();
   if (isLoading) {
@@ -88,5 +90,12 @@ export function ReasoningQualityCard({
         delay: 0.2
       }} />
       </div>
+      
+      {/* Integrated briefing */}
+      {briefingText && (
+        <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+          {briefingText}
+        </p>
+      )}
     </motion.button>;
 }
