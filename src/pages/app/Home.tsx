@@ -623,20 +623,17 @@ const Home = () => {
             onClick={() => navigate("/neuro-lab")}
             className="w-full p-4 rounded-xl bg-muted/40 border border-border/30 text-left hover:bg-muted/60 transition-colors active:scale-[0.98]"
           >
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-1">
-              Optimal Zone
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-2">
+              Today's Optimal Zone
             </p>
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5 text-foreground/70" />
-                <p className="text-sm font-semibold tabular-nums text-foreground">
-                  {optimalRange.min}–{optimalRange.max} <span className="text-muted-foreground font-normal">XP</span>
-                </p>
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-semibold tabular-nums text-foreground">
+                {optimalRange.min}–{optimalRange.max} <span className="text-muted-foreground font-normal">XP</span>
+              </p>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
-            <p className="text-[10px] text-muted-foreground/70 leading-snug">
-              Train within this range for best cognitive gains.
+            <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+              Your personalized training load based on current recovery and weekly capacity. Stay within this range for sustainable cognitive adaptation.
             </p>
           </button>
         </motion.section>
