@@ -67,7 +67,7 @@ export function FastChargeSwipeCard() {
       </div>
       
       {/* Draggable handle */}
-      <motion.button className="absolute left-1 top-1 bottom-1 w-20 rounded-lg bg-card border border-border/50 flex items-center justify-center shadow-sm cursor-grab active:cursor-grabbing touch-none gap-[16px]" style={{
+      <motion.button className="absolute left-1 top-1 bottom-1 w-32 rounded-lg bg-card border border-border/50 flex items-center justify-center shadow-sm cursor-grab active:cursor-grabbing touch-none" style={{
       x,
       opacity
     }} drag="x" dragConstraints={{
