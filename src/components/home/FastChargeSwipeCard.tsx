@@ -5,7 +5,7 @@
 
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Zap, ChevronRight } from "lucide-react";
+import { Flower2, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 export function FastChargeSwipeCard() {
   const navigate = useNavigate();
@@ -79,7 +79,7 @@ export function FastChargeSwipeCard() {
         <motion.div style={{
         scale: iconScale
       }} className="flex items-center gap-1.5">
-          <Zap className="w-4 h-4 text-primary" />
+          <Flower2 className="w-4 h-4 text-primary" />
           <span className="text-xs font-semibold text-foreground">Fast Recharge</span>
         </motion.div>
       </motion.button>
