@@ -157,6 +157,7 @@ const Home = () => {
   // Prioritized suggestions based on metrics and lab state
   const {
     suggestions: prioritizedSuggestions,
+    topSuggestion,
     isLoading: suggestionsLoading
   } = usePrioritizedSuggestions();
 
@@ -473,26 +474,70 @@ const Home = () => {
               />
             </motion.section>
 
-        {/* Daily Insight + Suggestions - Combined */}
-        {isViewingToday && (
+        {/* Daily Insight with Action - Combined premium box */}
+        {isViewingToday && topSuggestion && (
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="mb-4 p-3.5 rounded-xl bg-muted/30 border border-border/40"
+            className="mb-3"
           >
-            <DailyBriefing 
-              sharpness={sharpness} 
-              readiness={readiness} 
-              recovery={recoveryEffective} 
-              rq={rq} 
-              isLoading={metricsLoading || rqLoading} 
-            />
+            <button
+              onClick={() => navigate(topSuggestion.route)}
+              className={cn(
+                "w-full p-3.5 rounded-xl bg-gradient-to-br transition-all active:scale-[0.98] text-left",
+                topSuggestion.colorClass
+              )}
+            >
+              {/* Briefing text */}
+              <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
+                <DailyBriefing 
+                  sharpness={sharpness} 
+                  readiness={readiness} 
+                  recovery={recoveryEffective} 
+                  rq={rq} 
+                  isLoading={metricsLoading || rqLoading} 
+                />
+              </p>
+              
+              {/* Action CTA */}
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                  topSuggestion.urgency === "critical" ? "bg-red-500/15" :
+                  topSuggestion.urgency === "high" ? "bg-amber-500/15" :
+                  "bg-primary/15"
+                )}>
+                  <topSuggestion.icon className={cn(
+                    "w-4 h-4",
+                    topSuggestion.urgency === "critical" ? "text-red-500" :
+                    topSuggestion.urgency === "high" ? "text-amber-500" :
+                    "text-primary"
+                  )} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className={cn(
+                    "text-xs font-medium",
+                    topSuggestion.urgency === "critical" ? "text-red-600 dark:text-red-400" :
+                    topSuggestion.urgency === "high" ? "text-amber-600 dark:text-amber-400" :
+                    "text-primary"
+                  )}>
+                    {topSuggestion.action}
+                  </span>
+                </div>
+                <ChevronRight className={cn(
+                  "w-4 h-4 opacity-60",
+                  topSuggestion.urgency === "critical" ? "text-red-500" :
+                  topSuggestion.urgency === "high" ? "text-amber-500" :
+                  "text-primary"
+                )} />
+              </div>
+            </button>
           </motion.section>
         )}
 
-        {/* Smart Prioritized Suggestions */}
-        {prioritizedSuggestions.slice(0, 2).map((suggestion, index) => <SmartSuggestionCard key={suggestion.id} suggestion={suggestion} index={index} />)}
+        {/* Additional suggestions (skip first since it's in the combined box) */}
+        {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <SmartSuggestionCard key={suggestion.id} suggestion={suggestion} index={index} />)}
 
         {/* In-Progress Tasks Reminder - shown after priority suggestions */}
         {(() => {
