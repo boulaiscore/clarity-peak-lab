@@ -13,7 +13,7 @@ import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Dumbbell, BookMarked, Smartphone, Ban, Sparkles, LineChart } from "lucide-react";
+import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Sparkles, LineChart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
@@ -30,8 +30,14 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<"overview" | "training" | "report">(
     initialTab && ["overview", "training", "report"].includes(initialTab) ? initialTab : "overview"
   );
-  const [trainingSubTab, setTrainingSubTab] = useState<"trends" | "games" | "tasks" | "detox">(
-    initialSubTab && ["trends", "games", "tasks", "detox"].includes(initialSubTab) ? initialSubTab : "trends"
+  const [analyticsTab, setAnalyticsTab] = useState<"trends" | "activity">(
+    initialSubTab === "trends" ? "trends" : 
+    initialSubTab && ["games", "tasks", "detox"].includes(initialSubTab) ? "activity" : "trends"
+  );
+  const [activitySubTab, setActivitySubTab] = useState<"tasks" | "detox" | "training">(
+    initialSubTab === "games" ? "training" :
+    initialSubTab === "tasks" ? "tasks" :
+    initialSubTab === "detox" ? "detox" : "tasks"
   );
   
   const isPremium = user?.subscriptionStatus === "premium";
@@ -198,16 +204,17 @@ const Dashboard = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
+            className="space-y-4"
           >
 
-            {/* Sub-tabs for Trends/Tasks/Detox/Games */}
+            {/* Two main tabs: Trends | Activity */}
             <div className="bg-muted/40 p-1 rounded-xl">
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setTrainingSubTab("trends")}
+                  onClick={() => setAnalyticsTab("trends")}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                    trainingSubTab === "trends"
+                    analyticsTab === "trends"
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   )}
@@ -216,43 +223,16 @@ const Dashboard = () => {
                   <span>Trends</span>
                 </button>
                 <button
-                  onClick={() => setTrainingSubTab("tasks")}
+                  onClick={() => setAnalyticsTab("activity")}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                    trainingSubTab === "tasks"
+                    analyticsTab === "activity"
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <BookMarked className="w-3.5 h-3.5" />
-                  <span>Tasks</span>
-                </button>
-                <button
-                  onClick={() => setTrainingSubTab("detox")}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                    trainingSubTab === "detox"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <div className="relative">
-                    <Smartphone className="w-3.5 h-3.5" />
-                    <Ban className="w-2 h-2 absolute -bottom-0.5 -right-1" />
-                  </div>
-                  <span>Detox</span>
-                </button>
-                <button
-                  onClick={() => setTrainingSubTab("games")}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                    trainingSubTab === "games"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Dumbbell className="w-3.5 h-3.5" />
-                  <span>Training</span>
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Activity</span>
                 </button>
               </div>
             </div>
@@ -260,20 +240,74 @@ const Dashboard = () => {
             {/* Tab Content with animation */}
             <AnimatePresence mode="wait">
               <motion.div
-                key={trainingSubTab}
+                key={analyticsTab}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
               >
-                {trainingSubTab === "trends" ? (
+                {analyticsTab === "trends" ? (
                   <MetricTrendCharts />
-                ) : trainingSubTab === "tasks" ? (
-                  <TrainingTasks />
-                ) : trainingSubTab === "detox" ? (
-                  <DetoxStats />
                 ) : (
-                  <GamesStats />
+                  <div className="space-y-4">
+                    {/* WHOOP-style segmented control for Activity breakdown */}
+                    <div className="flex items-center justify-center">
+                      <div className="inline-flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/30">
+                        <button
+                          onClick={() => setActivitySubTab("tasks")}
+                          className={cn(
+                            "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
+                            activitySubTab === "tasks"
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Tasks
+                        </button>
+                        <button
+                          onClick={() => setActivitySubTab("detox")}
+                          className={cn(
+                            "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
+                            activitySubTab === "detox"
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Detox
+                        </button>
+                        <button
+                          onClick={() => setActivitySubTab("training")}
+                          className={cn(
+                            "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
+                            activitySubTab === "training"
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Training
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Activity sub-content */}
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activitySubTab}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        {activitySubTab === "tasks" ? (
+                          <TrainingTasks />
+                        ) : activitySubTab === "detox" ? (
+                          <DetoxStats />
+                        ) : (
+                          <GamesStats />
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>
