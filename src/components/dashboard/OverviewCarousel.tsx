@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
+import { CognitiveAgeCard } from "./CognitiveAgeCard";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
 import { ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
@@ -218,11 +218,7 @@ export function OverviewCarousel({
           >
             {/* Card content based on current index */}
             {CARDS[currentIndex] === "cognitive-age" && (
-              <CognitiveAgeSphere 
-                cognitiveAge={cognitiveAgeData.cognitiveAge} 
-                delta={cognitiveAgeData.delta}
-                chronologicalAge={cognitiveAgeData.chronologicalAge}
-              />
+              <CognitiveAgeCard />
             )}
             
             {CARDS[currentIndex] === "cognitive-network" && (

@@ -76,6 +76,7 @@ export type Database = {
           ae: number | null
           created_at: string
           ct: number | null
+          did_training: boolean | null
           id: string
           in_score: number | null
           ra: number | null
@@ -92,6 +93,7 @@ export type Database = {
           ae?: number | null
           created_at?: string
           ct?: number | null
+          did_training?: boolean | null
           id?: string
           in_score?: number | null
           ra?: number | null
@@ -108,6 +110,7 @@ export type Database = {
           ae?: number | null
           created_at?: string
           ct?: number | null
+          did_training?: boolean | null
           id?: string
           in_score?: number | null
           ra?: number | null
@@ -770,6 +773,96 @@ export type Database = {
         }
         Relationships: []
       }
+      user_cognitive_age_weekly: {
+        Row: {
+          cap_applied: boolean | null
+          cognitive_age: number | null
+          created_at: string
+          id: string
+          improvement_points: number | null
+          last_regression_trigger_at: string | null
+          regression_risk: string | null
+          regression_streak_days: number | null
+          regression_triggered: boolean | null
+          rq_30d: number | null
+          rq_90d: number | null
+          score_30d: number | null
+          score_90d: number | null
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          cap_applied?: boolean | null
+          cognitive_age?: number | null
+          created_at?: string
+          id?: string
+          improvement_points?: number | null
+          last_regression_trigger_at?: string | null
+          regression_risk?: string | null
+          regression_streak_days?: number | null
+          regression_triggered?: boolean | null
+          rq_30d?: number | null
+          rq_90d?: number | null
+          score_30d?: number | null
+          score_90d?: number | null
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          cap_applied?: boolean | null
+          cognitive_age?: number | null
+          created_at?: string
+          id?: string
+          improvement_points?: number | null
+          last_regression_trigger_at?: string | null
+          regression_risk?: string | null
+          regression_streak_days?: number | null
+          regression_triggered?: boolean | null
+          rq_30d?: number | null
+          rq_90d?: number | null
+          score_30d?: number | null
+          score_90d?: number | null
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      user_cognitive_baselines: {
+        Row: {
+          baseline_end_date: string | null
+          baseline_rq_90d: number | null
+          baseline_score_90d: number | null
+          baseline_start_date: string | null
+          chrono_age_at_onboarding: number
+          created_at: string
+          is_baseline_calibrated: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baseline_end_date?: string | null
+          baseline_rq_90d?: number | null
+          baseline_score_90d?: number | null
+          baseline_start_date?: string | null
+          chrono_age_at_onboarding?: number
+          created_at?: string
+          is_baseline_calibrated?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baseline_end_date?: string | null
+          baseline_rq_90d?: number | null
+          baseline_score_90d?: number | null
+          baseline_start_date?: string | null
+          chrono_age_at_onboarding?: number
+          created_at?: string
+          is_baseline_calibrated?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_cognitive_metrics: {
         Row: {
           baseline_cal_fast_thinking: number | null
@@ -817,6 +910,7 @@ export type Database = {
           last_in_xp_at: string | null
           last_low_rec_check_date: string | null
           last_ra_xp_at: string | null
+          last_regression_trigger_at: string | null
           last_s2_game_at: string | null
           last_session_at: string | null
           last_task_at: string | null
@@ -836,6 +930,7 @@ export type Database = {
           rec_snapshot_date: string | null
           rec_snapshot_value: number | null
           rec_value: number | null
+          regression_risk: string | null
           rq_last_updated_at: string | null
           sci_decay_applied: number | null
           sci_decay_week_start: string | null
@@ -895,6 +990,7 @@ export type Database = {
           last_in_xp_at?: string | null
           last_low_rec_check_date?: string | null
           last_ra_xp_at?: string | null
+          last_regression_trigger_at?: string | null
           last_s2_game_at?: string | null
           last_session_at?: string | null
           last_task_at?: string | null
@@ -914,6 +1010,7 @@ export type Database = {
           rec_snapshot_date?: string | null
           rec_snapshot_value?: number | null
           rec_value?: number | null
+          regression_risk?: string | null
           rq_last_updated_at?: string | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
@@ -973,6 +1070,7 @@ export type Database = {
           last_in_xp_at?: string | null
           last_low_rec_check_date?: string | null
           last_ra_xp_at?: string | null
+          last_regression_trigger_at?: string | null
           last_s2_game_at?: string | null
           last_session_at?: string | null
           last_task_at?: string | null
@@ -992,6 +1090,7 @@ export type Database = {
           rec_snapshot_date?: string | null
           rec_snapshot_value?: number | null
           rec_value?: number | null
+          regression_risk?: string | null
           rq_last_updated_at?: string | null
           sci_decay_applied?: number | null
           sci_decay_week_start?: string | null
