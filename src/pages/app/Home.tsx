@@ -544,9 +544,15 @@ const Home = () => {
               Today's Optimal Zone
             </p>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold tabular-nums text-foreground">
-                {optimalRange.min}–{optimalRange.max} <span className="text-muted-foreground font-normal">XP</span>
-              </p>
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-semibold tabular-nums text-foreground">
+                  {totalWeeklyXP} <span className="text-muted-foreground font-normal">XP</span>
+                </p>
+                <span className="text-muted-foreground/50">|</span>
+                <p className="text-sm tabular-nums text-muted-foreground">
+                  {optimalRange.min}–{optimalRange.max} <span className="font-normal">target</span>
+                </p>
+              </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
             <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
