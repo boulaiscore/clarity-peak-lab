@@ -2,10 +2,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
-import { CognitiveAgeSphere } from "@/components/dashboard/CognitiveAgeSphere";
 import { OverviewCarousel } from "@/components/dashboard/OverviewCarousel";
-import { NeuralGrowthAnimation } from "@/components/dashboard/NeuralGrowthAnimation";
-import { FastSlowBrainMap } from "@/components/dashboard/FastSlowBrainMap";
 
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
@@ -17,6 +14,7 @@ import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Sparkles,
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
+import { useInitializeCognitiveBaseline } from "@/hooks/useInitializeCognitiveBaseline";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
@@ -41,6 +39,9 @@ const Dashboard = () => {
   );
   
   const isPremium = user?.subscriptionStatus === "premium";
+  
+  // Initialize cognitive baseline on app load
+  useInitializeCognitiveBaseline();
   
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
