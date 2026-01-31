@@ -106,7 +106,7 @@ export function DailyBriefing({
   
   if (isLoading) {
     return (
-      <div className="mt-4 px-1 animate-pulse">
+      <div className="animate-pulse">
         <div className="h-3 bg-muted rounded w-full mb-2" />
         <div className="h-3 bg-muted rounded w-3/4" />
       </div>
@@ -117,8 +117,8 @@ export function DailyBriefing({
     <motion.p
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 0.2 }}
-      className="mt-4 text-sm text-muted-foreground leading-relaxed px-1"
+      transition={{ delay: 0.1 }}
+      className="text-[11px] text-muted-foreground leading-relaxed"
     >
       {briefingText}
     </motion.p>
