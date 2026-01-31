@@ -66,11 +66,11 @@ export function CognitiveAgeCard() {
     }} animate={{
       opacity: 1,
       y: 0
-    }} className="mx-2 p-3 border bg-muted border-muted rounded-sm">
+    }} className="mx-2 p-3 border border-muted rounded-sm bg-card">
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+              <p className="text-xs font-medium text-primary-foreground">
                 Calibrating...
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
