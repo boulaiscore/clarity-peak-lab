@@ -323,7 +323,7 @@ export function WeeklyGoalCard({
           <CollapsibleTrigger className="w-full">
             {/* Goal reminder */}
             <p className="text-[10px] text-muted-foreground mb-2 pb-2 border-b border-border/30">
-              <span className="font-medium text-foreground/80">Your goal:</span> Stay within the <span className="text-emerald-400 font-medium">Optimal Zone</span> for sustainable cognitive gains.
+              <span className="font-medium text-foreground/80">Your goal:</span> Stay within the <span className="text-emerald-400 font-medium">Optimal Zone</span> for sustainable gains.
             </p>
             
             {/* Header Row - Label + XP + Status */}
