@@ -296,17 +296,6 @@ export default function ReasoningQualityImpact() {
         </div>
 
         <div className="px-5 py-6 max-w-lg mx-auto">
-        {/* Meta info */}
-        <div className="mb-6">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-2">
-            Updated daily
-          </p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Understand how your behaviors and training patterns have shaped your reasoning quality over the past 90 days.
-            <br />
-            <span className="text-muted-foreground/60">Tap any factor to explore details.</span>
-          </p>
-        </div>
 
         {/* Main RQ Ring */}
         {(() => {
@@ -363,6 +352,18 @@ export default function ReasoningQualityImpact() {
             </motion.div>
           );
         })()}
+
+        {/* Meta info - moved below the ring */}
+        <div className="mb-6 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-2">
+            Updated daily
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Understand how your behaviors and training patterns have shaped your reasoning quality over the past 90 days.
+            <br />
+            <span className="text-muted-foreground/60">Tap any factor to explore details.</span>
+          </p>
+        </div>
 
         {/* Component Details */}
         <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3 px-1">
