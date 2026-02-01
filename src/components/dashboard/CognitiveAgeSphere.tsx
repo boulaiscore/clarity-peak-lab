@@ -179,15 +179,15 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         centerX, centerY, baseRadius
       );
       innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      innerFill.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.04 : 0.02})`);
-      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.10 : 0.06})`);
-      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.15 : 0.10})`);
+      innerFill.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.06 : 0.03})`);
+      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.15 : 0.10})`);
+      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.25 : 0.18})`);
       ctx.fillStyle = innerFill;
       ctx.fill();
       
-      // Sharp, well-defined border stroke - vibrant
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.8 : 0.7})`;
-      ctx.lineWidth = 2;
+      // Sharp, well-defined border stroke - more vibrant and defined
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.95 : 0.85})`;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
 
       // Update node positions and constrain to blob shape
@@ -221,9 +221,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       // Draw connections - sharp crisp lines with vitality-based intensity
       ctx.lineCap = 'round';
       const basePulseSpeed = 0.7 + vitalityFactor * 0.5;
-      const basePulseAmplitude = 0.1 + vitalityFactor * 0.15;
-      const baseOpacity = 0.7 + vitalityFactor * 0.25;
-      const travelPulseProbability = 0.15 + vitalityFactor * 0.25;
+      const basePulseAmplitude = 0.12 + vitalityFactor * 0.18;
+      const baseOpacity = 0.85 + vitalityFactor * 0.15;
+      const travelPulseProbability = 0.18 + vitalityFactor * 0.28;
 
       nodes.forEach((node, i) => {
         // Skip if node is outside blob
@@ -256,8 +256,8 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.quadraticCurveTo(ctrlX, ctrlY, other.x, other.y);
-          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${opacity * baseOpacity})`;
-          ctx.lineWidth = 0.8 + vitalityFactor * 0.3;
+          ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${opacity * baseOpacity})`;
+          ctx.lineWidth = 1.0 + vitalityFactor * 0.4;
           ctx.stroke();
 
           // Traveling pulse - only if inside blob
@@ -269,10 +269,10 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
             
             // Only draw pulse if inside blob
             if (isInsideBlob(px, py, time, 5)) {
-              const pulseSize = 1.2 + vitalityFactor * 0.6;
+              const pulseSize = 1.5 + vitalityFactor * 0.8;
               ctx.beginPath();
               ctx.arc(px, py, pulseSize, 0, Math.PI * 2);
-              ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20 + vitalityFactor * 10}%, ${opacity * (0.9 + vitalityFactor * 0.1)})`;
+              ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 25 + vitalityFactor * 10}%, ${opacity * (0.95 + vitalityFactor * 0.05)})`;
               ctx.fill();
             }
           }
@@ -291,16 +291,16 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         const currentRadius = node.radius * (0.95 + pulse * nodePulseAmplitude);
         const glowIntensity = (0.9 + pulse * 0.1) * (1 + vitalityFactor * 0.2);
 
-        // Bright vibrant dot
+        // Bright vibrant dot - sharper and more defined
         ctx.beginPath();
         ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 20}%, ${Math.min(1, glowIntensity)})`;
+        ctx.fillStyle = `hsla(${nodeColor.h}, ${nodeColor.s}%, ${nodeColor.l + 25}%, ${Math.min(1, glowIntensity)})`;
         ctx.fill();
 
-        // White hot center point
+        // White hot center point - more prominent
         ctx.beginPath();
-        ctx.arc(node.x, node.y, currentRadius * 0.5, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${nodeColor.h}, 60%, 95%, ${Math.min(1, 0.95 * glowIntensity)})`;
+        ctx.arc(node.x, node.y, currentRadius * 0.55, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${nodeColor.h}, 50%, 98%, ${Math.min(1, 0.98 * glowIntensity)})`;
         ctx.fill();
       });
 
