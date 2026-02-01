@@ -285,7 +285,7 @@ export default function NeuroLab() {
         {/* NeuroLoop Explanation - Expandable WHOOP-style */}
         <Collapsible className="mb-4">
           <div className="border border-border/30 bg-background">
-            <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors text-muted border-muted">
+            <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors text-muted border-muted pb-[12px] mb-[5px]">
               <div className="flex items-center gap-3">
                 <NLOOPLogo size={20} className="text-foreground" />
                 <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
@@ -374,7 +374,7 @@ export default function NeuroLab() {
         </Collapsible>
 
         {/* Cognitive Load Guidance - Dynamic based on Recovery */}
-        <div className="mb-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+        <div className="p-3 rounded-xl bg-muted/30 border border-border/40 mb-px">
           <div className="flex items-start gap-3">
             <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
               <recoveryGuidance.icon className="w-5 h-5" />
