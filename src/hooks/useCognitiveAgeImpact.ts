@@ -196,43 +196,55 @@ export function useCognitiveAgeImpact() {
   const trendData = useMemo((): TrendDataPoint[] => {
     if (!snapshots90d) return [];
 
-    const cutoffDate = format(subDays(new Date(), timeRange), "yyyy-MM-dd");
-    const filteredSnapshots = snapshots90d.filter(s => s.snapshot_date >= cutoffDate);
+    const now = new Date();
+    const cutoffDate = subDays(now, timeRange);
+    
+    // Create a map of existing snapshots by date
+    const snapshotMap = new Map(
+      snapshots90d.map(s => [s.snapshot_date, s])
+    );
 
-    // Format date labels based on time range - always use numeric d/M format
-    const formatLabel = (dateStr: string, index: number, total: number) => {
-      const date = new Date(dateStr);
-      const numericDate = format(date, "d/M"); // e.g., "15/1" for Jan 15
+    // Generate all days in the range
+    const allDays: TrendDataPoint[] = [];
+    for (let i = timeRange - 1; i >= 0; i--) {
+      const date = subDays(now, i);
+      const dateStr = format(date, "yyyy-MM-dd");
+      const snapshot = snapshotMap.get(dateStr);
+      
+      // Format label based on time range
+      let dateLabel = "";
+      const dayIndex = timeRange - 1 - i;
+      const total = timeRange;
       
       if (timeRange === 7) {
         // 7d: show all dates
-        return numericDate;
+        dateLabel = format(date, "d/M");
       } else if (timeRange === 30) {
-        // 30d: show first, middle, last
-        const isFirst = index === 0;
-        const isLast = index === total - 1;
-        const isMid = index === Math.floor(total / 2);
-        return (isFirst || isLast || isMid) ? numericDate : "";
+        // 30d: show ~5 evenly spaced labels
+        const step = Math.floor(total / 4);
+        if (dayIndex === 0 || dayIndex === step || dayIndex === step * 2 || dayIndex === step * 3 || dayIndex === total - 1) {
+          dateLabel = format(date, "d/M");
+        }
       } else {
-        // 90d: show first, 1/3, 2/3, last
-        const isFirst = index === 0;
-        const isLast = index === total - 1;
-        const isThird = index === Math.floor(total / 3);
-        const isTwoThirds = index === Math.floor((2 * total) / 3);
-        return (isFirst || isLast || isThird || isTwoThirds) ? numericDate : "";
+        // 90d: show ~5 evenly spaced labels
+        const step = Math.floor(total / 4);
+        if (dayIndex === 0 || dayIndex === step || dayIndex === step * 2 || dayIndex === step * 3 || dayIndex === total - 1) {
+          dateLabel = format(date, "d/M");
+        }
       }
-    };
 
-    const total = filteredSnapshots.length;
-    return filteredSnapshots.map((s, index) => ({
-      date: s.snapshot_date,
-      dateLabel: formatLabel(s.snapshot_date, index, total),
-      ae: s.ae ? Number(s.ae) : null,
-      ra: s.ra ? Number(s.ra) : null,
-      ct: s.ct ? Number(s.ct) : null,
-      in: s.in_score ? Number(s.in_score) : null,
-      s2: s.s2 ? Number(s.s2) : null,
-    }));
+      allDays.push({
+        date: dateStr,
+        dateLabel,
+        ae: snapshot?.ae ? Number(snapshot.ae) : null,
+        ra: snapshot?.ra ? Number(snapshot.ra) : null,
+        ct: snapshot?.ct ? Number(snapshot.ct) : null,
+        in: snapshot?.in_score ? Number(snapshot.in_score) : null,
+        s2: snapshot?.s2 ? Number(snapshot.s2) : null,
+      });
+    }
+
+    return allDays;
   }, [snapshots90d, timeRange]);
 
   return {
