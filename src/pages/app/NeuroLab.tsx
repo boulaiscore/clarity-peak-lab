@@ -284,7 +284,7 @@ export default function NeuroLab() {
 
         {/* NeuroLoop Explanation - Expandable WHOOP-style */}
         <Collapsible className="mb-4">
-          <div className="border-2 border-foreground/90 bg-background">
+          <div className="border border-border/30 bg-background">
             <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors text-muted border-muted">
               <div className="flex items-center gap-3">
                 <NLOOPLogo size={20} className="text-foreground" />
