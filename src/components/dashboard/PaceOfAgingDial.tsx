@@ -114,16 +114,7 @@ export function PaceOfAgingDial({
   const needleY = centerY + Math.sin(needleAngle) * config.needleLength;
   
   if (pace === null) {
-    return (
-      <div className={cn(
-        "flex flex-col items-center justify-center",
-        config.container,
-      )}>
-        <span className="text-[10px] text-muted-foreground/50">
-          Calculating...
-        </span>
-      </div>
-    );
+    return null;
   }
   
   return (
