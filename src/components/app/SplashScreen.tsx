@@ -39,7 +39,7 @@ export function SplashScreen({ onComplete, duration = 2500 }: SplashScreenProps)
         height={80}
         viewBox="0 0 24 24"
         fill="none"
-        className="text-white"
+        className="text-white animate-pulse"
       >
         <path
           d="M12 3C7.029 3 3 7.029 3 12s4.029 9 9 9 9-4.029 9-9"
