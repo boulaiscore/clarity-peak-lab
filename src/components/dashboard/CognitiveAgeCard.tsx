@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Clock, Activity, TrendingDown, TrendingUp, Info, Loader2 } from "lucide-react";
 import { useCognitiveAge, getRegressionRiskLabel, getRegressionRiskColor } from "@/hooks/useCognitiveAge";
 import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
+import { CognitiveAgeImpact } from "./CognitiveAgeImpact";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 export function CognitiveAgeCard() {
@@ -129,6 +130,9 @@ export function CognitiveAgeCard() {
 
       {/* Baseline visual section */}
       {hasWeeklyData && data.baselineScore90d !== null && <BaselineVisual baselineScore={data.baselineScore90d} score30d={data.score30d} score90d={data.score90d} />}
+
+      {/* Impact breakdown + trend chart */}
+      <CognitiveAgeImpact />
 
       {/* Next update countdown */}
       {data.daysUntilNextUpdate !== null && <p className="text-center text-[10px] text-muted-foreground/60">
