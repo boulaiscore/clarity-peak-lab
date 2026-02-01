@@ -35,8 +35,27 @@ export function CapacityTab({
   const progress = showNoDataFallback ? 0 : Math.min(recovery / 100, 1);
   const strokeDashoffset = circumference - progress * circumference;
 
-  // Premium functional color - Teal for Recovery (fixed, not status-based)
-  const ringColor = showNoDataFallback ? "hsl(var(--muted))" : "hsl(174, 72%, 45%)";
+  // Dynamic color based on recovery value (same logic as battery)
+  // Low (0-35): dark orange/yellow → Medium (35-65): yellow-green → High (65-100): bright green
+  const getRecoveryColor = (value: number): string => {
+    if (value <= 35) {
+      // Dark orange to yellow (hue 25-50)
+      const hue = 25 + (value / 35) * 25;
+      return `hsl(${hue}, 85%, 45%)`;
+    } else if (value <= 65) {
+      // Yellow to yellow-green (hue 50-90)
+      const progressVal = (value - 35) / 30;
+      const hue = 50 + progressVal * 40;
+      return `hsl(${hue}, 80%, 45%)`;
+    } else {
+      // Yellow-green to bright green (hue 90-140)
+      const progressVal = (value - 65) / 35;
+      const hue = 90 + progressVal * 50;
+      return `hsl(${hue}, 75%, 45%)`;
+    }
+  };
+  
+  const ringColor = showNoDataFallback ? "hsl(var(--muted))" : getRecoveryColor(recovery);
   return <motion.div initial={{
     opacity: 0,
     y: 12
