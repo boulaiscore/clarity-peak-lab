@@ -371,6 +371,26 @@ export default function NeuroLab() {
           </div>
         </Collapsible>
 
+        {/* Cognitive Load Guidance - Dynamic based on Recovery */}
+        <div className="mb-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+          <div className="flex items-start gap-3">
+            <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
+              <recoveryGuidance.icon className="w-5 h-5" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-[14px] font-semibold text-foreground leading-tight">
+                {recoveryGuidance.headline}
+              </p>
+              <p className="text-[12px] text-foreground/70 leading-relaxed">
+                {recoveryGuidance.message}
+              </p>
+              <p className="text-[12px] text-foreground/90 leading-relaxed font-medium">
+                {recoveryGuidance.action}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && <motion.div initial={{
         opacity: 0,
@@ -397,26 +417,6 @@ export default function NeuroLab() {
               </button>
             </div>
           </motion.div>}
-
-        {/* Cognitive Load Guidance - Dynamic based on Recovery */}
-        <div className="mb-4 p-3 rounded-xl bg-muted/30 border border-border/40">
-          <div className="flex items-start gap-3">
-            <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
-              <recoveryGuidance.icon className="w-5 h-5" />
-            </div>
-            <div className="flex-1 space-y-1">
-              <p className="text-[14px] font-semibold text-foreground leading-tight">
-                {recoveryGuidance.headline}
-              </p>
-              <p className="text-[12px] text-foreground/70 leading-relaxed">
-                {recoveryGuidance.message}
-              </p>
-              <p className="text-[12px] text-foreground/90 leading-relaxed font-medium">
-                {recoveryGuidance.action}
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Weekly Goal - Compact */}
         <div className="mt-2">
