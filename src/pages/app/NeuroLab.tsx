@@ -289,7 +289,7 @@ export default function NeuroLab() {
               <div className="flex items-center gap-3">
                 <LumaLogo size={20} className="text-foreground" />
                 <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
-                  How Luma Lab Works
+                  How LUMA Lab Works
                 </span>
               </div>
               <ChevronRight className="w-4 h-4 text-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />

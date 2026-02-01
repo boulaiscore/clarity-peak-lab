@@ -100,7 +100,7 @@ export function AppShell({ children }: AppShellProps) {
             
             <Link to="/app" className="flex items-center gap-2">
               <LumaLogo size={24} className="text-foreground" />
-              <span className="font-semibold tracking-tight text-sm">Luma</span>
+              <span className="font-semibold tracking-tight text-sm">LUMA</span>
             </Link>
             
             <Link to="/app/install" className="w-8 flex justify-end">
