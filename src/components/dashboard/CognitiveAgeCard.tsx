@@ -40,9 +40,7 @@ export function CognitiveAgeCard() {
   }
   return <div className="py-2 space-y-4">
       {/* Header with update info */}
-      <div className="flex items-center justify-between px-2">
-        <h3 className="label-uppercase">Cognitive Age</h3>
-        
+      <div className="flex items-center justify-end px-2">
         <div className="flex items-center gap-2">
           {/* Calibrating badge */}
           {data.isCalibrating && <span className="px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
