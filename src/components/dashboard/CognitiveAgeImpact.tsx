@@ -311,7 +311,14 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 9, fill: "rgba(148, 163, 184, 0.5)" }}
-              width={25}
+              width={30}
+              label={{ 
+                value: 'Score', 
+                angle: -90, 
+                position: 'insideLeft',
+                offset: 10,
+                style: { fontSize: 8, fill: 'rgba(148, 163, 184, 0.6)', textAnchor: 'middle' }
+              }}
             />
             {hasData && (
               <Tooltip
