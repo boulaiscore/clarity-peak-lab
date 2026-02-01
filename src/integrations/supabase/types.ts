@@ -773,14 +773,65 @@ export type Database = {
         }
         Relationships: []
       }
+      user_cognitive_age_daily: {
+        Row: {
+          below_threshold: boolean | null
+          calc_date: string
+          created_at: string
+          id: string
+          perf_180d: number | null
+          perf_21d: number | null
+          perf_30d: number | null
+          perf_daily: number | null
+          regression_streak_days: number | null
+          rq_today: number | null
+          sessions_today: number | null
+          user_id: string
+        }
+        Insert: {
+          below_threshold?: boolean | null
+          calc_date: string
+          created_at?: string
+          id?: string
+          perf_180d?: number | null
+          perf_21d?: number | null
+          perf_30d?: number | null
+          perf_daily?: number | null
+          regression_streak_days?: number | null
+          rq_today?: number | null
+          sessions_today?: number | null
+          user_id: string
+        }
+        Update: {
+          below_threshold?: boolean | null
+          calc_date?: string
+          created_at?: string
+          id?: string
+          perf_180d?: number | null
+          perf_21d?: number | null
+          perf_30d?: number | null
+          perf_daily?: number | null
+          regression_streak_days?: number | null
+          rq_today?: number | null
+          sessions_today?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_cognitive_age_weekly: {
         Row: {
           cap_applied: boolean | null
           cognitive_age: number | null
           created_at: string
+          engagement_index: number | null
           id: string
           improvement_points: number | null
           last_regression_trigger_at: string | null
+          pace_of_aging_x: number | null
+          perf_long_180d: number | null
+          perf_short_30d: number | null
+          pre_regression_warning: Json | null
+          regression_penalty_years: number | null
           regression_risk: string | null
           regression_streak_days: number | null
           regression_triggered: boolean | null
@@ -788,6 +839,7 @@ export type Database = {
           rq_90d: number | null
           score_30d: number | null
           score_90d: number | null
+          sessions_30d: number | null
           user_id: string
           week_start: string
         }
@@ -795,9 +847,15 @@ export type Database = {
           cap_applied?: boolean | null
           cognitive_age?: number | null
           created_at?: string
+          engagement_index?: number | null
           id?: string
           improvement_points?: number | null
           last_regression_trigger_at?: string | null
+          pace_of_aging_x?: number | null
+          perf_long_180d?: number | null
+          perf_short_30d?: number | null
+          pre_regression_warning?: Json | null
+          regression_penalty_years?: number | null
           regression_risk?: string | null
           regression_streak_days?: number | null
           regression_triggered?: boolean | null
@@ -805,6 +863,7 @@ export type Database = {
           rq_90d?: number | null
           score_30d?: number | null
           score_90d?: number | null
+          sessions_30d?: number | null
           user_id: string
           week_start: string
         }
@@ -812,9 +871,15 @@ export type Database = {
           cap_applied?: boolean | null
           cognitive_age?: number | null
           created_at?: string
+          engagement_index?: number | null
           id?: string
           improvement_points?: number | null
           last_regression_trigger_at?: string | null
+          pace_of_aging_x?: number | null
+          perf_long_180d?: number | null
+          perf_short_30d?: number | null
+          pre_regression_warning?: Json | null
+          regression_penalty_years?: number | null
           regression_risk?: string | null
           regression_streak_days?: number | null
           regression_triggered?: boolean | null
@@ -822,6 +887,7 @@ export type Database = {
           rq_90d?: number | null
           score_30d?: number | null
           score_90d?: number | null
+          sessions_30d?: number | null
           user_id?: string
           week_start?: string
         }

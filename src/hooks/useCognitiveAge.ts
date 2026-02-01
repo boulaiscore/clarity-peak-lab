@@ -1,32 +1,53 @@
 /**
  * ============================================
- * COGNITIVE AGE HOOK (v1.1)
+ * COGNITIVE AGE HOOK (v2)
  * ============================================
  * 
- * Slow-moving metric updated weekly.
- * Reads from user_cognitive_age_weekly + user_cognitive_baselines.
- * Computes live regression_risk from daily snapshots.
+ * Slow-moving metric updated daily/weekly.
+ * Reads from user_cognitive_age_weekly + user_cognitive_age_daily + user_cognitive_baselines.
+ * 
+ * v2 Changes:
+ * - 4 variables (AE, RA, CT, IN) × 25% weight (no S2 double-counting)
+ * - 180d main window for slow-moving age
+ * - 30d window for Pace calculation
+ * - Daily streak tracking for regression warnings
+ * - Cumulative regression penalty (max 1/month)
  */
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { subDays, format, differenceInDays, parseISO } from "date-fns";
+import { subDays, format } from "date-fns";
 
 // ==========================================
 // TYPES
 // ==========================================
 
+export interface PreRegressionWarning {
+  streakDays: number;
+  daysToRegression: number;
+  message: string;
+}
+
 export interface CognitiveAgeData {
   // Weekly snapshot (slow-moving)
   cognitiveAge: number | null;
-  score90d: number | null;
+  score90d: number | null; // Now actually 180d for v2
   score30d: number | null;
   rq30d: number | null;
   rq90d: number | null;
   improvementPoints: number | null;
   weekStart: string | null;
+  
+  // v2 fields
+  perf30d: number | null;
+  perf180d: number | null;
+  paceOfAgingX: number | null;
+  engagementIndex: number | null;
+  sessions30d: number;
+  regressionPenaltyYears: number;
+  preRegressionWarning: PreRegressionWarning | null;
   
   // Baseline info
   chronoAgeAtOnboarding: number | null;
@@ -51,8 +72,8 @@ export interface CognitiveAgeData {
 // ==========================================
 
 const REGRESSION_THRESHOLD_POINTS = 10;
-const STREAK_LOW_MAX = 9;
-const STREAK_MEDIUM_MAX = 20;
+const STREAK_WARNING_START = 14;
+const STREAK_REGRESSION = 21;
 
 // ==========================================
 // MAIN HOOK
@@ -82,7 +103,28 @@ export function useCognitiveAge() {
     staleTime: 5 * 60_000,
   });
 
-  // 2) Fetch baseline data
+  // 2) Fetch latest daily record (for real-time streak)
+  const { data: dailyRecord, isLoading: dailyLoading } = useQuery({
+    queryKey: ["cognitive-age-daily", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data, error } = await supabase
+        .from("user_cognitive_age_daily")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("calc_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 60_000,
+  });
+
+  // 3) Fetch baseline data
   const { data: baseline, isLoading: baselineLoading } = useQuery({
     queryKey: ["cognitive-baselines", user?.id],
     queryFn: async () => {
@@ -101,7 +143,7 @@ export function useCognitiveAge() {
     staleTime: 5 * 60_000,
   });
 
-  // 3) Fetch recent daily snapshots for live regression calculation
+  // 4) Fallback: Fetch recent daily snapshots for live regression calculation if no daily record
   const { data: recentSnapshots, isLoading: snapshotsLoading } = useQuery({
     queryKey: ["daily-snapshots-30d", user?.id],
     queryFn: async () => {
@@ -111,7 +153,7 @@ export function useCognitiveAge() {
 
       const { data, error } = await supabase
         .from("daily_metric_snapshots")
-        .select("snapshot_date, ae, ra, ct, in_score, s2")
+        .select("snapshot_date, ae, ra, ct, in_score")
         .eq("user_id", user.id)
         .gte("snapshot_date", startDate)
         .order("snapshot_date", { ascending: false });
@@ -119,12 +161,25 @@ export function useCognitiveAge() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !dailyRecord,
     staleTime: 60_000,
   });
 
-  // 4) Calculate live regression risk from daily data
+  // 5) Calculate live regression risk from daily data (fallback)
   const liveRegressionData = useMemo(() => {
+    // Prefer daily record if available
+    if (dailyRecord) {
+      const streak = dailyRecord.regression_streak_days ?? 0;
+      let risk: "low" | "medium" | "high" = "low";
+      if (streak >= STREAK_REGRESSION) {
+        risk = "high";
+      } else if (streak >= STREAK_WARNING_START) {
+        risk = "medium";
+      }
+      return { risk, streak };
+    }
+
+    // Fallback to calculating from snapshots
     if (!recentSnapshots || !baseline?.baseline_score_90d) {
       return { risk: "low" as const, streak: 0 };
     }
@@ -132,16 +187,15 @@ export function useCognitiveAge() {
     const baselineScore = Number(baseline.baseline_score_90d);
     const threshold = baselineScore - REGRESSION_THRESHOLD_POINTS;
 
-    // Calculate daily skill averages and count consecutive days below threshold
     let streak = 0;
     
     for (const snapshot of recentSnapshots) {
-      const skills = [snapshot.ae, snapshot.ra, snapshot.ct, snapshot.in_score, snapshot.s2]
+      // v2: Calculate perf without S2 (use only AE, RA, CT, IN)
+      const skills = [snapshot.ae, snapshot.ra, snapshot.ct, snapshot.in_score]
         .filter((v): v is number => v !== null)
         .map(Number);
       
       if (skills.length === 0) {
-        // No data for this day - break streak
         break;
       }
       
@@ -150,26 +204,46 @@ export function useCognitiveAge() {
       if (dailyAvg <= threshold) {
         streak++;
       } else {
-        // Day above threshold - break streak
         break;
       }
     }
 
     let risk: "low" | "medium" | "high" = "low";
-    if (streak >= STREAK_MEDIUM_MAX + 1) {
+    if (streak >= STREAK_REGRESSION) {
       risk = "high";
-    } else if (streak >= STREAK_LOW_MAX + 1) {
+    } else if (streak >= STREAK_WARNING_START) {
       risk = "medium";
     }
 
     return { risk, streak };
-  }, [recentSnapshots, baseline]);
+  }, [recentSnapshots, baseline, dailyRecord]);
 
-  // 5) Compose final data
+  // 6) Parse pre-regression warning from weekly data
+  const preRegressionWarning = useMemo((): PreRegressionWarning | null => {
+    if (!weeklySnapshot?.pre_regression_warning) return null;
+    
+    try {
+      const warning = weeklySnapshot.pre_regression_warning as unknown;
+      if (
+        typeof warning === "object" && 
+        warning !== null &&
+        "streakDays" in warning &&
+        "daysToRegression" in warning &&
+        "message" in warning
+      ) {
+        return warning as PreRegressionWarning;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }, [weeklySnapshot]);
+
+  // 7) Compose final data
   const cognitiveAgeData: CognitiveAgeData = useMemo(() => {
     const chronoAge = baseline?.chrono_age_at_onboarding 
       ? Number(baseline.chrono_age_at_onboarding)
-      : (user?.age ?? 30);
+      : 30;
     
     const isCalibrated = baseline?.is_baseline_calibrated ?? false;
     
@@ -194,6 +268,15 @@ export function useCognitiveAge() {
         : null,
       weekStart: weeklySnapshot?.week_start ?? null,
       
+      // v2 fields
+      perf30d: weeklySnapshot?.perf_short_30d ? Number(weeklySnapshot.perf_short_30d) : null,
+      perf180d: weeklySnapshot?.perf_long_180d ? Number(weeklySnapshot.perf_long_180d) : null,
+      paceOfAgingX: weeklySnapshot?.pace_of_aging_x ? Number(weeklySnapshot.pace_of_aging_x) : null,
+      engagementIndex: weeklySnapshot?.engagement_index ? Number(weeklySnapshot.engagement_index) : null,
+      sessions30d: weeklySnapshot?.sessions_30d ?? 0,
+      regressionPenaltyYears: weeklySnapshot?.regression_penalty_years ?? 0,
+      preRegressionWarning,
+      
       // Baseline
       chronoAgeAtOnboarding: chronoAge,
       baselineScore90d: baseline?.baseline_score_90d 
@@ -204,7 +287,7 @@ export function useCognitiveAge() {
         : null,
       isBaselineCalibrated: isCalibrated,
       
-      // Regression (use live calculation, fallback to weekly snapshot)
+      // Regression (use live calculation from daily record or snapshots)
       regressionRisk: liveRegressionData.risk,
       regressionStreakDays: liveRegressionData.streak,
       regressionTriggered: weeklySnapshot?.regression_triggered ?? false,
@@ -215,13 +298,14 @@ export function useCognitiveAge() {
       delta: cogAge !== null ? cogAge - chronoAge : 0,
       daysUntilNextUpdate: daysUntilSunday,
     };
-  }, [weeklySnapshot, baseline, liveRegressionData, user?.age]);
+  }, [weeklySnapshot, baseline, liveRegressionData, preRegressionWarning]);
 
   return {
     data: cognitiveAgeData,
-    isLoading: weeklyLoading || baselineLoading || snapshotsLoading,
+    isLoading: weeklyLoading || baselineLoading || dailyLoading || snapshotsLoading,
     hasWeeklyData: !!weeklySnapshot,
     hasBaseline: !!baseline,
+    hasDailyData: !!dailyRecord,
   };
 }
 
@@ -253,4 +337,22 @@ export function getRegressionRiskColor(risk: "low" | "medium" | "high"): string 
     default:
       return "text-muted-foreground";
   }
+}
+
+// ==========================================
+// UTILITY: Get pace label
+// ==========================================
+
+export function getPaceLabel(pace: number | null): string {
+  if (pace === null) return "Calculating...";
+  if (pace <= 0.9) return "Aging Slower";
+  if (pace <= 1.1) return "Stable";
+  return "Aging Faster";
+}
+
+export function getPaceColor(pace: number | null): string {
+  if (pace === null) return "text-muted-foreground";
+  if (pace <= 0.9) return "text-emerald-500";
+  if (pace <= 1.1) return "text-muted-foreground";
+  return "text-red-500";
 }
