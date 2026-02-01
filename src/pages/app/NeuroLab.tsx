@@ -419,7 +419,9 @@ export default function NeuroLab() {
         </div>
 
         {/* Weekly Goal - Compact */}
-        <WeeklyGoalCard compact />
+        <div className="mt-2">
+          <WeeklyGoalCard compact />
+        </div>
         
         {/* Protocol Change - Discrete Link */}
         <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
