@@ -260,7 +260,7 @@ export function ReportSCI({ metrics }: ReportSCIProps) {
                 : "The participant's cognitive profile indicates significant potential for enhancement through targeted training. Research supports that deliberate practice and structured cognitive exercises can significantly improve cognitive function across all age groups (Jaeggi et al., 2008)."}
             </li>
             <li>
-              The NLOOP assessment protocol utilizes adaptive difficulty algorithms to maintain optimal challenge levels 
+              The Luma assessment protocol utilizes adaptive difficulty algorithms to maintain optimal challenge levels 
               (Zone of Proximal Development), maximizing training transfer to real-world cognitive demands.
             </li>
             <li>

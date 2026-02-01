@@ -15,7 +15,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-const TEST_MODE_KEY = "NLOOP_TEST_MODE";
+const TEST_MODE_KEY = "LUMA_TEST_MODE";
 
 /**
  * Hook to check if test mode is enabled.

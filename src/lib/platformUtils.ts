@@ -36,11 +36,11 @@ export function isAndroid(): boolean {
 /**
  * URL scheme for deep linking
  */
-export const URL_SCHEME = 'nloop';
+export const URL_SCHEME = 'luma';
 
 /**
  * Get platform-aware redirect URL
- * On native: uses custom URL scheme (nloop://)
+ * On native: uses custom URL scheme (luma://)
  * On web: uses window.location.origin
  */
 export function getRedirectUrl(path: string = ''): string {

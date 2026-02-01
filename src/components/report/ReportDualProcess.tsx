@@ -258,7 +258,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
       <div className="scientific-note">
         <strong>Key Reference:</strong> Kahneman, D. (2011). <em>Thinking, Fast and Slow</em>. Farrar, Straus and Giroux. 
         This framework has been validated across diverse cognitive assessment contexts and forms the theoretical 
-        foundation for the NLOOP dual-process training protocol.
+        foundation for the Luma dual-process training protocol.
       </div>
     </section>
   );

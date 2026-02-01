@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.nloop.pro',
-  appName: 'NLOOP Pro',
+  appId: 'com.luma.pro',
+  appName: 'Luma Pro',
   webDir: 'dist',
   server: {
     url: "https://clarity-peak-lab.vercel.app",
@@ -30,7 +30,7 @@ const config: CapacitorConfig = {
   },
   // iOS-specific configuration
   ios: {
-    scheme: 'nloop',
+    scheme: 'luma',
     contentInset: 'automatic',
   },
   // Android-specific configuration  
