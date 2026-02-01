@@ -303,7 +303,8 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 9, fill: "rgba(148, 163, 184, 0.7)" }}
-              interval="preserveStartEnd"
+              interval={0}
+              tickFormatter={(value) => value || ""}
             />
             <YAxis
               domain={[yMin, yMax]}

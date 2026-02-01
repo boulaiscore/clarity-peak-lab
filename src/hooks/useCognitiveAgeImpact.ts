@@ -199,9 +199,33 @@ export function useCognitiveAgeImpact() {
     const cutoffDate = format(subDays(new Date(), timeRange), "yyyy-MM-dd");
     const filteredSnapshots = snapshots90d.filter(s => s.snapshot_date >= cutoffDate);
 
-    return filteredSnapshots.map(s => ({
+    // Format date labels based on time range
+    const formatLabel = (dateStr: string, index: number, total: number) => {
+      const date = new Date(dateStr);
+      
+      if (timeRange === 7) {
+        // 7d: show day name for all (Fri, Sat, Sun, etc.)
+        return format(date, "EEE");
+      } else if (timeRange === 30) {
+        // 30d: show "MMM d" only for first, middle, last
+        const isFirst = index === 0;
+        const isLast = index === total - 1;
+        const isMid = index === Math.floor(total / 2);
+        return (isFirst || isLast || isMid) ? format(date, "MMM d") : "";
+      } else {
+        // 90d: show "MMM d" only for first, 1/3, 2/3, last
+        const isFirst = index === 0;
+        const isLast = index === total - 1;
+        const isThird = index === Math.floor(total / 3);
+        const isTwoThirds = index === Math.floor((2 * total) / 3);
+        return (isFirst || isLast || isThird || isTwoThirds) ? format(date, "MMM d") : "";
+      }
+    };
+
+    const total = filteredSnapshots.length;
+    return filteredSnapshots.map((s, index) => ({
       date: s.snapshot_date,
-      dateLabel: format(new Date(s.snapshot_date), timeRange <= 7 ? "EEE" : "MMM d"),
+      dateLabel: formatLabel(s.snapshot_date, index, total),
       ae: s.ae ? Number(s.ae) : null,
       ra: s.ra ? Number(s.ra) : null,
       ct: s.ct ? Number(s.ct) : null,
