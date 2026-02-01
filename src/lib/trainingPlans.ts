@@ -212,11 +212,11 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "Complete a Detox or Walking session"
     },
     whatYouDo: [
-      "4-5 games S1 a settimana (Easy/Medium)",
-      "S2 sbloccati con Recovery ≥ 50%",
-      "Contenuti opzionali"
+      "4-5 S1 games/week (Easy/Medium)",
+      "S2 unlocked when Recovery ≥ 50%",
+      "Tasks optional — boost Reasoning Quality"
     ],
-    forWhom: "Chi inizia o ha tempo variabile",
+    forWhom: "Beginners or variable schedules",
     sessions: [
       {
         id: "fast-focus",
@@ -310,11 +310,11 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "Maintain consistent Detox/Walking habit"
     },
     whatYouDo: [
-      "6-7 games bilanciati S1+S2 a settimana",
-      "Difficoltà Medium standard",
-      "2 contenuti prescritti a settimana"
+      "6-7 balanced S1+S2 games/week",
+      "Medium difficulty standard",
+      "2 tasks/week — build Reasoning Quality"
     ],
-    forWhom: "Chi ha routine stabile e vuole progredire",
+    forWhom: "Consistent schedule, progression-focused",
     sessions: [
       {
         id: "fast-control",
@@ -408,11 +408,11 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "28h/week Detox + Walking required"
     },
     whatYouDo: [
-      "8-10 games intensivi S1+S2 a settimana",
-      "Difficoltà Medium/Hard preferita",
-      "3 contenuti obbligatori a settimana"
+      "8-10 intensive S1+S2 games/week",
+      "Medium/Hard difficulty preferred",
+      "3 mandatory tasks/week — maximize Reasoning Quality"
     ],
-    forWhom: "Chi punta a massima performance",
+    forWhom: "Peak performance seekers",
     sessions: [
       {
         id: "heavy-slow",
