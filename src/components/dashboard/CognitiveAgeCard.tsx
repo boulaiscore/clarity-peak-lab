@@ -58,26 +58,6 @@ export function CognitiveAgeCard() {
       {/* Main sphere visualization */}
       <CognitiveAgeSphere cognitiveAge={displayAge} delta={delta} chronologicalAge={chronoAge} />
 
-      {/* Calibrating message */}
-      {data.isCalibrating && <motion.div initial={{
-      opacity: 0,
-      y: 4
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} className="mx-2 p-3 border border-muted rounded-sm bg-secondary">
-          <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-medium text-primary-foreground">
-                Calibrating...
-              </p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                Your Cognitive Age will stabilize as we collect more data. 
-              </p>
-            </div>
-          </div>
-        </motion.div>}
 
       {/* Warning when cognitive age > chronological age */}
       {isOlderThanChrono && !data.isCalibrating && <motion.div initial={{
