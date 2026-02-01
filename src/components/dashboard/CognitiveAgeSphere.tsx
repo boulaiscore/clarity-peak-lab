@@ -173,21 +173,21 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       }
       ctx.closePath();
 
-      // Inner fill gradient - vibrant glow near edges
+      // Inner fill gradient - subtle glow near edges (WHOOP-inspired)
       const innerFill = ctx.createRadialGradient(
         centerX, centerY, 0,
         centerX, centerY, baseRadius
       );
       innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      innerFill.addColorStop(0.5, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.06 : 0.03})`);
-      innerFill.addColorStop(0.8, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.15 : 0.10})`);
-      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.25 : 0.18})`);
+      innerFill.addColorStop(0.6, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.03 : 0.02})`);
+      innerFill.addColorStop(0.85, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`);
+      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.15 : 0.10})`);
       ctx.fillStyle = innerFill;
       ctx.fill();
       
-      // Sharp, well-defined border stroke - more vibrant and defined
-      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 20}%, ${isDarkMode ? 0.95 : 0.85})`;
-      ctx.lineWidth = 2.5;
+      // Elegant thin border stroke - WHOOP-inspired subtle edge
+      ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.4 : 0.35})`;
+      ctx.lineWidth = 1;
       ctx.stroke();
 
       // Update node positions and constrain to blob shape
