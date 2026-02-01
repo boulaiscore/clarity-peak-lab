@@ -321,6 +321,11 @@ export function WeeklyGoalCard({
         duration: 0.3
       }} aria-busy={isSyncing} className="p-3 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4 mx-0 py-[13px] mt-[5px]">
           <CollapsibleTrigger className="w-full">
+            {/* Goal reminder */}
+            <p className="text-[10px] text-muted-foreground mb-2 pb-2 border-b border-border/30">
+              <span className="font-medium text-foreground/80">Your goal:</span> Stay within the <span className="text-emerald-400 font-medium">Optimal Zone</span> for sustainable cognitive gains.
+            </p>
+            
             {/* Header Row - Label + XP + Status */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
