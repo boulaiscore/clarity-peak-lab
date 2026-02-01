@@ -274,6 +274,21 @@ export default function NeuroLab() {
     <AppShell>
       <div className="px-4 py-4 max-w-md mx-auto space-y-0">
 
+        {/* NeuroLoop Explanation - How it works */}
+        <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-2">
+            The NeuroLoop
+          </h3>
+          <p className="text-[12px] text-foreground/80 leading-relaxed">
+            <span className="font-semibold text-foreground">Train</span> your cognitive skills with games targeting Fast (S1) and Slow (S2) thinking. 
+            <span className="font-semibold text-foreground"> Recover</span> through detox sessions and walking breaks. 
+            <span className="font-semibold text-foreground"> Repeat</span> — your brain adapts best with consistent, spaced practice.
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-2 italic">
+            High recovery = push harder. Low recovery = prioritize rest.
+          </p>
+        </div>
+
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && (
           <motion.div
