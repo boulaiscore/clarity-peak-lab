@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { isNative } from "@/lib/platformUtils";
 import CognitiveReport from "@/pages/app/CognitiveReport";
 import ReportPreview from "@/pages/app/ReportPreview";
 import { Toaster } from "@/components/ui/toaster";
@@ -438,7 +439,8 @@ function AppRoutes() {
 }
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  // Skip React splash on native - Capacitor shows the native splash screen
+  const [showSplash, setShowSplash] = useState(!isNative());
 
   return (
     <QueryClientProvider client={queryClient}>
