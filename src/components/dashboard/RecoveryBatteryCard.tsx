@@ -57,7 +57,7 @@ export function RecoveryBatteryCard({
       {/* Header row */}
       <div className="flex items-center justify-between mb-1">
         <h3 className="text-[10px] font-medium text-foreground/80 uppercase tracking-[0.12em]">
-          Recovery
+          Cognitive Recovery
         </h3>
         <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
       </div>
