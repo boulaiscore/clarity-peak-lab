@@ -43,24 +43,12 @@ export function CognitiveAgeImpact() {
       className="mx-2"
     >
       {/* Impact Bars Section - show only if we have data */}
-      {hasEnoughData ? (
+      {hasEnoughData && (
         <ImpactBars 
           contributions={contributions} 
           totalImprovementPoints={totalImprovementPoints}
           isCalibrated={isCalibrated}
         />
-      ) : (
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-          <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="text-xs font-medium text-foreground">Collecting data...</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                Need at least 7 days of training to show impact breakdown.
-              </p>
-            </div>
-          </div>
-        </div>
       )}
     </motion.div>
   );
