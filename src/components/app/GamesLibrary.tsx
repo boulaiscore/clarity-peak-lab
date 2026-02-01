@@ -117,6 +117,14 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-3">
+      {/* XP Explanation */}
+      <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/30">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <span className="font-medium text-foreground">Training games award XP</span> (15-42 per game) toward your Weekly Cognitive Load. 
+          S1 games are fast & intuitive. S2 games are slow & deliberate.
+        </p>
+      </div>
+
       {/* System Cards - Side by Side Layout */}
       <div className="grid grid-cols-2 gap-3">
         {(["fast", "slow"] as ThinkingSystem[]).map((system) => {

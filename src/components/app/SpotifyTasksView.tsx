@@ -62,6 +62,18 @@ import { format, startOfWeek, subDays } from "date-fns";
 // Status type for tracking task progress
 type TaskStatus = "not_started" | "in_progress" | "completed";
 
+// XP Explanation component for Tasks tab
+function TasksXPExplanation() {
+  return (
+    <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/30 mb-4">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <span className="font-medium text-foreground">Tasks don't award XP</span> — they improve your <span className="font-medium text-foreground">Reasoning Quality (RQ)</span>, 
+        which measures cognitive priming depth. Use tasks when Recovery is low.
+      </p>
+    </div>
+  );
+}
+
 // Gradient backgrounds for cards - Spotify-inspired
 const PODCAST_GRADIENTS = [
   "from-violet-600/80 to-indigo-800/80",
@@ -730,6 +742,9 @@ export function SpotifyTasksView() {
   
   return (
     <div className="space-y-6 pb-4 relative">
+      {/* XP Explanation for Tasks */}
+      <TasksXPExplanation />
+      
       {/* Added to Library Animation Overlay */}
       <AnimatePresence>
         {showAddedToLibrary && (

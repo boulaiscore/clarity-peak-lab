@@ -262,6 +262,14 @@ export function DetoxChallengeTab() {
 
   return (
     <div className="space-y-5 -mx-4 px-4 py-4 bg-teal-500/5 rounded-xl">
+      {/* XP Explanation */}
+      <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/30">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <span className="font-medium text-foreground">Detox & Walking award small XP</span> and restore your <span className="font-medium text-foreground">Recovery</span>. 
+          Higher recovery unlocks S2 games and improves cognitive performance.
+        </p>
+      </div>
+
       {/* Active Session, Completed, or Start */}
       {isActive || justCompleted ? (
         <motion.div
