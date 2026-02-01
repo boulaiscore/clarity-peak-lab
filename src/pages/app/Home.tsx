@@ -606,7 +606,7 @@ const Home = () => {
           y: 0
         }} transition={{
           delay: 0.15
-        }} className="mb-6">
+        }} className="mb-3">
           <button onClick={() => navigate("/neuro-lab")} className="w-full p-4 rounded-xl bg-muted/40 border border-border/30 text-left hover:bg-muted/60 transition-colors active:scale-[0.98]">
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-2">
               Today's Optimal Zone
