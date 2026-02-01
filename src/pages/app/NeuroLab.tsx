@@ -375,6 +375,11 @@ export default function NeuroLab() {
 
         {/* Cognitive Load Guidance - Dynamic based on Recovery */}
         <div className="p-3 rounded-xl bg-muted/30 border border-border/40 mb-px">
+          {/* Goal reminder */}
+          <p className="text-[10px] text-muted-foreground mb-2 pb-2 border-b border-border/30">
+            <span className="font-medium text-foreground/80">Your goal:</span> Stay within the <span className="text-emerald-400 font-medium">Optimal Zone</span> for sustainable cognitive gains.
+          </p>
+          
           <div className="flex items-start gap-3">
             <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
               <recoveryGuidance.icon className="w-5 h-5" />
