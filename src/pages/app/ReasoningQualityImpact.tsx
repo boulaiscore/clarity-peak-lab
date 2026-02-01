@@ -270,19 +270,14 @@ export default function ReasoningQualityImpact() {
     <AppShell>
       <div className="pb-6">
         {/* Page Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/app")}
-              className="p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-sm font-semibold tracking-wide uppercase">Reasoning Quality</h1>
-              <p className="text-[10px] text-muted-foreground">Impact Analysis</p>
-            </div>
-          </div>
+        {/* Navigation row */}
+        <div className="flex items-center justify-between px-2 pt-3">
+          <button 
+            onClick={() => navigate("/app")}
+            className="px-4 py-1.5 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80 hover:bg-muted/60 transition-colors active:scale-[0.97]"
+          >
+            ← Today
+          </button>
           <button
             onClick={() => navigate("/app/dashboard?tab=training&subtab=trends")}
             className="p-2 rounded-full bg-muted/40 hover:bg-muted/60 transition-colors active:scale-[0.97]"
@@ -290,6 +285,14 @@ export default function ReasoningQualityImpact() {
           >
             <LineChart className="w-4 h-4 text-foreground/70" />
           </button>
+        </div>
+
+        {/* Centered title and description */}
+        <div className="text-center space-y-2 pt-2">
+          <h2 className="text-xl font-semibold tracking-tight">Reasoning Quality</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
+            Your consistency and stability in deliberate thinking
+          </p>
         </div>
 
         <div className="px-5 py-6 max-w-lg mx-auto">
@@ -357,10 +360,6 @@ export default function ReasoningQualityImpact() {
                 </div>
               </div>
               
-              {/* Description */}
-              <p className="text-[11px] text-muted-foreground text-center mt-3 max-w-xs">
-                Consistency, accuracy, and stability in deliberate thinking
-              </p>
             </motion.div>
           );
         })()}
