@@ -20,6 +20,7 @@ import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
@@ -274,20 +275,94 @@ export default function NeuroLab() {
     <AppShell>
       <div className="px-4 py-4 max-w-md mx-auto space-y-0">
 
-        {/* NeuroLoop Explanation - How it works */}
-        <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
-          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-2">
-            The NeuroLoop
-          </h3>
-          <p className="text-[12px] text-foreground/80 leading-relaxed">
-            <span className="font-semibold text-foreground">Train</span> your cognitive skills with games targeting Fast (S1) and Slow (S2) thinking. 
-            <span className="font-semibold text-foreground"> Recover</span> through detox sessions and walking breaks. 
-            <span className="font-semibold text-foreground"> Repeat</span> — your brain adapts best with consistent, spaced practice.
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-2 italic">
-            High recovery = push harder. Low recovery = prioritize rest.
-          </p>
-        </div>
+        {/* NeuroLoop Explanation - Expandable WHOOP-style */}
+        <Collapsible className="mb-4">
+          <div className="border-2 border-foreground/90 bg-background">
+            <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
+              <div className="flex items-center gap-3">
+                <Brain className="w-5 h-5 text-foreground" />
+                <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
+                  How NeuroLoop Works
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent>
+              <div className="px-4 pb-4 space-y-4 border-t border-foreground/20 pt-4">
+                
+                {/* Step 1: The Cycle */}
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    Step 1 — The Training Cycle
+                  </h4>
+                  <p className="text-[12px] text-foreground/80 leading-relaxed">
+                    <span className="font-semibold text-foreground">Train</span> with cognitive games targeting Fast (S1) and Slow (S2) thinking systems.{" "}
+                    <span className="font-semibold text-foreground">Recover</span> through digital detox and walking sessions.{" "}
+                    <span className="font-semibold text-foreground">Repeat</span> — your brain adapts best with consistent, spaced practice.
+                  </p>
+                </div>
+
+                {/* Step 2: Cognitive Load & Optimal Zone */}
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    Step 2 — Cognitive Load & Optimal Zone
+                  </h4>
+                  <p className="text-[12px] text-foreground/80 leading-relaxed">
+                    <span className="font-semibold text-foreground">Cognitive Load</span> measures your weekly training volume in XP. 
+                    The <span className="font-semibold text-foreground">Optimal Zone</span> is your personalized target range — 
+                    stay within it for sustainable cognitive gains without burnout. 
+                    Too little = no adaptation. Too much = diminishing returns.
+                  </p>
+                </div>
+
+                {/* Step 3: Games & Systems */}
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    Step 3 — Training Games (S1 & S2)
+                  </h4>
+                  <p className="text-[12px] text-foreground/80 leading-relaxed">
+                    <span className="font-semibold text-foreground">S1 Games</span> train fast, intuitive thinking (attention, reaction, pattern recognition).{" "}
+                    <span className="font-semibold text-foreground">S2 Games</span> train slow, deliberate thinking (reasoning, analysis, problem-solving).
+                    Games improve your core metrics: <span className="italic">Attentional Efficiency, Reasoning Accuracy, Cognitive Throughput, and Insight.</span>
+                  </p>
+                </div>
+
+                {/* Step 4: Locked Games */}
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    Step 4 — Why Some Games Are Locked
+                  </h4>
+                  <p className="text-[12px] text-foreground/80 leading-relaxed">
+                    <span className="font-semibold text-foreground">S2 games require higher Recovery</span> because they demand more cognitive resources. 
+                    When your Recovery is low, intense reasoning work can backfire. 
+                    The system protects you by gating S2 games until you're ready.
+                    <span className="italic text-muted-foreground"> Premium unlocks all games regardless of recovery level.</span>
+                  </p>
+                </div>
+
+                {/* Step 5: Tasks */}
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    Step 5 — Tasks & Recovery
+                  </h4>
+                  <p className="text-[12px] text-foreground/80 leading-relaxed">
+                    <span className="font-semibold text-foreground">Tasks</span> are low-intensity activities (reading, podcasts, journaling) that contribute to your weekly XP while being gentler on cognitive resources.
+                    They're ideal when Recovery is low. <span className="font-semibold text-foreground">Detox & Walking</span> sessions actively restore your Recovery score — think of them as "cognitive rest days."
+                  </p>
+                </div>
+
+                {/* Key Insight */}
+                <div className="mt-3 pt-3 border-t border-foreground/10">
+                  <p className="text-[11px] text-foreground/70 italic">
+                    <span className="font-semibold text-foreground not-italic">Key insight:</span>{" "}
+                    High recovery → push hard with S2 games. Low recovery → prioritize tasks, detox, and walking.
+                  </p>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
 
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && (
