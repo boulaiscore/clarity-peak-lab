@@ -351,11 +351,13 @@ export default function NeuroLab() {
                 {/* Step 5: Tasks */}
                 <div className="space-y-2">
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                    Step 5 — Tasks & Recovery
+                    Step 5 — Tasks & Reasoning Quality
                   </h4>
                   <p className="text-[12px] text-foreground/80 leading-relaxed">
-                    <span className="font-semibold text-foreground">Tasks</span> are low-intensity activities (reading, podcasts, journaling) that contribute to your weekly XP while being gentler on cognitive resources.
-                    They're ideal when Recovery is low. <span className="font-semibold text-foreground">Detox & Walking</span> sessions actively restore your Recovery score — think of them as "cognitive rest days."
+                    <span className="font-semibold text-foreground">Tasks</span> (reading, podcasts, journaling) don't give XP—they boost your{" "}
+                    <span className="font-semibold text-foreground">Reasoning Quality (RQ)</span>, which measures cognitive priming depth.
+                    RQ improves your thinking quality over time. <span className="font-semibold text-foreground">Detox & Walking</span> restore Recovery and{" "}
+                    <span className="italic">do</span> award small XP bonuses. Use Tasks when Recovery is low to maintain RQ without draining energy.
                   </p>
                 </div>
 
