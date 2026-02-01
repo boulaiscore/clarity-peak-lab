@@ -21,6 +21,9 @@ import {
   REC_DEFAULT_RRI,
   REC_RRI_MIN,
   REC_RRI_MAX,
+  NIGHT_START_HOUR,
+  NIGHT_END_HOUR,
+  NIGHT_DECAY_MULTIPLIER,
 } from "@/lib/decayConstants";
 
 // ============================================
@@ -71,12 +74,79 @@ export function calculateRRI(
 }
 
 // ============================================
+// NIGHT HOURS HELPER
+// ============================================
+
+/**
+ * Check if a given hour (0-23) falls within the night period.
+ * Night is defined as NIGHT_START_HOUR (23) to NIGHT_END_HOUR (7).
+ */
+function isNightHour(hour: number): boolean {
+  // Night spans midnight: 23, 0, 1, 2, 3, 4, 5, 6
+  if (NIGHT_START_HOUR > NIGHT_END_HOUR) {
+    return hour >= NIGHT_START_HOUR || hour < NIGHT_END_HOUR;
+  }
+  return hour >= NIGHT_START_HOUR && hour < NIGHT_END_HOUR;
+}
+
+/**
+ * Calculate effective decay hours between two timestamps.
+ * Night hours (23:00-07:00) are weighted by NIGHT_DECAY_MULTIPLIER (0.2).
+ * Day hours are weighted at 1.0.
+ * 
+ * @param startTs ISO timestamp of start
+ * @param endTs ISO timestamp of end
+ * @returns Effective decay hours (reduced for night periods)
+ */
+export function calculateEffectiveDecayHours(
+  startTs: string,
+  endTs: string
+): number {
+  const startDate = new Date(startTs);
+  const endDate = new Date(endTs);
+  
+  const totalMs = endDate.getTime() - startDate.getTime();
+  if (totalMs <= 0) return 0;
+  
+  // For very short periods (< 1 hour), use simple calculation
+  const totalHours = totalMs / (1000 * 60 * 60);
+  if (totalHours < 1) {
+    const midpointHour = startDate.getHours();
+    const multiplier = isNightHour(midpointHour) ? NIGHT_DECAY_MULTIPLIER : 1;
+    return totalHours * multiplier;
+  }
+  
+  // Iterate hour by hour for accurate calculation
+  let effectiveHours = 0;
+  let currentTime = new Date(startDate);
+  
+  while (currentTime < endDate) {
+    const currentHour = currentTime.getHours();
+    const multiplier = isNightHour(currentHour) ? NIGHT_DECAY_MULTIPLIER : 1;
+    
+    // Calculate time remaining in this hour
+    const nextHour = new Date(currentTime);
+    nextHour.setHours(currentHour + 1, 0, 0, 0);
+    
+    // Don't go past endDate
+    const hourEnd = nextHour > endDate ? endDate : nextHour;
+    const hourFraction = (hourEnd.getTime() - currentTime.getTime()) / (1000 * 60 * 60);
+    
+    effectiveHours += hourFraction * multiplier;
+    currentTime = nextHour;
+  }
+  
+  return effectiveHours;
+}
+
+// ============================================
 // DECAY FUNCTION
 // ============================================
 
 /**
  * Apply exponential decay to recovery value.
- * Formula: REC = REC × 2^(-Δt_hours / 72)
+ * Uses effective hours that account for reduced decay during night (23:00-07:00).
+ * Formula: REC = REC × 2^(-effectiveHours / 72)
  * 
  * @param currentRec Current recovery value (0-100)
  * @param lastTs ISO timestamp of last update
@@ -90,13 +160,11 @@ export function applyRecoveryDecay(
 ): number {
   if (currentRec <= 0) return 0;
   
-  const lastDate = new Date(lastTs);
-  const nowDate = new Date(nowTs);
-  const deltaHours = (nowDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+  const effectiveHours = calculateEffectiveDecayHours(lastTs, nowTs);
   
-  if (deltaHours <= 0) return currentRec;
+  if (effectiveHours <= 0) return currentRec;
   
-  const decayedRec = currentRec * Math.pow(2, -deltaHours / REC_HALF_LIFE_HOURS);
+  const decayedRec = currentRec * Math.pow(2, -effectiveHours / REC_HALF_LIFE_HOURS);
   return Math.max(0, Math.round(decayedRec * 10) / 10);
 }
 
