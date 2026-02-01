@@ -1,123 +1,70 @@
 
 
-# Piano: Gestione Sovrapposizione Punti nel Grafico Daily (1d)
+# Piano: Decay Recovery Ridotto durante le Ore Notturne
 
-## Problema Identificato
-
-Quando più eventi (task, game, detox) avvengono in orari ravvicinati (es. 12:20, 12:22, 12:23), i datapoint si sovrappongono visivamente perché:
-- L'asse X va da 00:00 a "ora" (circa 12+ ore)
-- Pochi minuti di differenza sono impercettibili su questa scala
-- Ogni punto mostra un label numerico sopra, creando sovrapposizione
-
-## Opzioni Proposte
-
-### Opzione 1: Smart Label Pruning (Consigliata)
-
-Mostrare le label solo per:
-- **Primo punto** (baseline)
-- **Ultimo punto** (stato attuale)
-- **Punti con distanza X sufficiente** (min 40px tra label)
-
-I punti intermedi mantengono i pallini ma senza numeri, evitando il clutter visivo. Un tooltip al tap potrebbe rivelare il valore esatto.
-
-**Pro:**
-- Mantiene la fedeltà temporale dei punti
-- Aspetto pulito e premium
-- Nessuna perdita di informazione (pallini visibili)
-
-**Contro:**
-- Richiede logica per calcolare distanza pixel
-
-### Opzione 2: Collapsing/Bucketing (Aggregazione)
-
-Aggregare eventi che occorrono entro una finestra temporale (es. 5-10 minuti) in un singolo punto che mostra solo il valore finale.
-
-**Pro:**
-- Grafico più semplice
-
-**Contro:**
-- Perdita di granularità (non vedi i singoli step)
-- Meno fedele alla realtà degli eventi
-
-### Opzione 3: Dominio X Dinamico (Zoom Automatico)
-
-Invece di 00:00 → now, il dominio X parte da "primo evento - padding" fino a "now + padding", espandendo visivamente la timeline attiva.
-
-**Pro:**
-- Massima separazione visiva tra punti
-
-**Contro:**
-- Perde il contesto della giornata intera
-- Inconsistente con la filosofia WHOOP (sempre 24h view)
-
-### Opzione 4: Label Verticali Sfalsate
-
-Alternare la posizione delle label (sopra/sotto) per punti vicini.
-
-**Pro:**
-- Semplice da implementare
-
-**Contro:**
-- Visivamente caotico, non premium
-
----
-
-## Raccomandazione: Opzione 1 (Smart Label Pruning)
-
-È il pattern usato da WHOOP: tutti i punti sono visibili come pallini, ma solo quelli con sufficiente distanza orizzontale mostrano la label numerica. Il primo e l'ultimo punto mostrano sempre la label.
-
----
-
-## Implementazione Tecnica
-
-### File da modificare
-
-`src/components/dashboard/MetricTrendCharts.tsx`
-
-### Modifiche
-
-1. **Calcolo distanze X nel CustomLabel**  
-   Passare al componente `CustomLabel` un array con tutte le coordinate X dei punti e l'indice corrente, per determinare se la label deve essere nascosta.
-
-2. **Logica di visibilità**  
-   ```
-   Una label è visibile se:
-   - È il primo punto con valore
-   - È l'ultimo punto
-   - La distanza dal punto precedente visibile è ≥ MIN_LABEL_DISTANCE (es. 40px)
-   ```
-
-3. **Pre-calcolo coordinate**  
-   Usare `useMemo` per calcolare quali punti devono mostrare la label prima del rendering, basandosi sul layout del grafico.
-
-4. **Pallini sempre visibili**  
-   I `CustomDot` rimangono invariati, tutti i punti mantengono il pallino colorato.
-
-### Pseudo-implementazione
-
-```text
-1. Ordinare i punti per timeValue
-2. Creare Set di indici "labelVisible"
-3. Primo punto con valore → visibile
-4. Ultimo punto → visibile
-5. Per ogni punto intermedio:
-   - Calcolare distanza X dal precedente labelVisible
-   - Se distanza ≥ 40px → aggiungere a labelVisible
-6. Passare labelVisible a CustomLabel via props
+## Contesto Attuale
+Il sistema Recovery usa un modello di decay esponenziale con half-life di 72 ore, applicato uniformemente 24/7:
+```
+REC = REC × 2^(-Δt_hours / 72)
 ```
 
-### Note
+## Obiettivo
+Ridurre significativamente il decay durante le ore notturne (quando l'utente dorme), riconoscendo che il sonno è un momento di recupero naturale, non di consumo.
 
-- La logica di pruning si applica solo alla vista 1d (intraday)
-- La vista 7d mantiene il comportamento attuale (1 punto per giorno, nessun overlap)
-- I pallini (dots) rimangono sempre visibili per mantenere la fedeltà dei dati
+## Soluzione Proposta
 
----
+### Nuove Costanti in `decayConstants.ts`
+```
+NIGHT_START_HOUR = 23      // Inizio fascia notturna (23:00)
+NIGHT_END_HOUR = 7         // Fine fascia notturna (07:00)  
+NIGHT_DECAY_MULTIPLIER = 0.2  // Decay al 20% rispetto al giorno
+```
 
-## Risultato Atteso
+### Logica Modificata in `applyRecoveryDecay()`
+1. Calcolare separatamente le ore diurne e notturne nel periodo tra `lastTs` e `nowTs`
+2. Applicare il decay completo solo alle ore diurne
+3. Applicare un decay ridotto (20%) alle ore notturne
+4. Formula risultante:
+   ```
+   effectiveHours = dayHours + (nightHours × 0.2)
+   REC = REC × 2^(-effectiveHours / 72)
+   ```
 
-Il grafico mostrerà:
-- Tutti i pallini ai loro orari corretti
-- Label solo dove c'è spazio sufficiente (primo, ultimo, e intermedi distanziati)
-- Aspetto pulito, premium, in linea con WHOOP
+### Esempio Pratico
+Se passano 8 ore di notte (23:00 - 07:00):
+- **Prima**: decay per 8 ore complete
+- **Dopo**: decay equivalente a 1.6 ore (8 × 0.2)
+
+Questo significa che dormire 8 ore causa una perdita di recovery quasi trascurabile.
+
+## File da Modificare
+
+| File | Modifica |
+|------|----------|
+| `src/lib/decayConstants.ts` | Aggiungere costanti per fascia notturna e moltiplicatore |
+| `src/lib/recoveryV2.ts` | Creare helper `calculateEffectiveDecayHours()` e aggiornare `applyRecoveryDecay()` |
+
+## Dettagli Tecnici
+
+### Helper Function: `calculateEffectiveDecayHours()`
+```typescript
+function calculateEffectiveDecayHours(
+  startTs: string,
+  endTs: string
+): number {
+  // Itera ora per ora tra start e end
+  // Se l'ora è tra NIGHT_START e NIGHT_END: conta × 0.2
+  // Altrimenti: conta × 1.0
+  // Ritorna il totale delle "ore effettive"
+}
+```
+
+### Considerazioni Timezone
+- Usare l'ora locale del dispositivo per determinare giorno/notte
+- Il profilo utente ha già un campo `timezone` che potrebbe essere usato per maggiore precisione
+
+## Impatto
+- **Notte (8h di sonno)**: decay equivalente a ~1.6 ore invece di 8
+- **Giorno (16h di veglia)**: decay normale
+- **Totale 24h**: decay effettivo ~17.6 ore invece di 24 (riduzione del ~27%)
 
