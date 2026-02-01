@@ -291,7 +291,7 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
           </div>
         )}
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={hasData ? data : []} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+          <ComposedChart data={hasData ? data : []} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="rgba(100, 116, 139, 0.15)"
@@ -310,15 +310,8 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
               ticks={yTicks}
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 9, fill: "rgba(148, 163, 184, 0.5)" }}
-              width={30}
-              label={{ 
-                value: 'Score', 
-                angle: -90, 
-                position: 'insideLeft',
-                offset: 10,
-                style: { fontSize: 8, fill: 'rgba(148, 163, 184, 0.6)', textAnchor: 'middle' }
-              }}
+              tick={{ fontSize: 10, fill: "rgba(148, 163, 184, 0.8)" }}
+              width={28}
             />
             {hasData && (
               <Tooltip
