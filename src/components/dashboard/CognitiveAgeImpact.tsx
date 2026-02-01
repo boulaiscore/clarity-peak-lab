@@ -36,20 +36,22 @@ export function CognitiveAgeImpact() {
     );
   }
 
+  // Don't render the empty container if no data
+  if (!hasEnoughData || contributions.length === 0) {
+    return null;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       className="mx-2"
     >
-      {/* Impact Bars Section - show only if we have data */}
-      {hasEnoughData && (
-        <ImpactBars 
-          contributions={contributions} 
-          totalImprovementPoints={totalImprovementPoints}
-          isCalibrated={isCalibrated}
-        />
-      )}
+      <ImpactBars 
+        contributions={contributions} 
+        totalImprovementPoints={totalImprovementPoints}
+        isCalibrated={isCalibrated}
+      />
     </motion.div>
   );
 }

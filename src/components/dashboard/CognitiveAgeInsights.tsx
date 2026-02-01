@@ -6,13 +6,13 @@
  * Premium insight cards showing:
  * - Trajectory (30d vs 180d trend)
  * - Regression risk status
- * - Biggest improvement lever
+ * - Biggest improvement lever / Top performer
  */
 
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Target, ChevronRight } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Target, Sparkles, ChevronRight } from "lucide-react";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
-import { useCognitiveAgeImpact, VARIABLE_CONFIG, type VariableKey } from "@/hooks/useCognitiveAgeImpact";
+import { useCognitiveAgeImpact, VARIABLE_CONFIG } from "@/hooks/useCognitiveAgeImpact";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
@@ -32,47 +32,68 @@ export function CognitiveAgeInsights() {
     
     // Fallback: use totalImprovementPoints from contributions
     if (hasEnoughData && contributions.length > 0) {
-      if (totalImprovementPoints > 1) return { status: "improving" as const, diff: totalImprovementPoints };
-      if (totalImprovementPoints < -1) return { status: "declining" as const, diff: totalImprovementPoints };
+      if (totalImprovementPoints > 0.5) return { status: "improving" as const, diff: totalImprovementPoints };
+      if (totalImprovementPoints < -0.5) return { status: "declining" as const, diff: totalImprovementPoints };
       return { status: "stable" as const, diff: totalImprovementPoints };
+    }
+    
+    // Default to stable if we have any data
+    if (hasEnoughData) {
+      return { status: "stable" as const, diff: 0 };
     }
     
     return null;
   };
 
   // Find biggest negative contributor (biggest lever for improvement)
-  const getBiggestLever = () => {
+  // OR find best performer if all are positive/neutral
+  const getDriverInfo = () => {
     if (!contributions || contributions.length === 0) return null;
     
     // Find the variable with most negative contribution
-    const negativeContributions = contributions.filter(c => c.contribution < 0);
-    if (negativeContributions.length === 0) return null;
+    const negativeContributions = contributions.filter(c => c.contribution < -0.1);
     
-    // Sort by most negative
-    const sorted = [...negativeContributions].sort((a, b) => a.contribution - b.contribution);
-    const biggest = sorted[0];
+    if (negativeContributions.length > 0) {
+      // Sort by most negative
+      const sorted = [...negativeContributions].sort((a, b) => a.contribution - b.contribution);
+      const biggest = sorted[0];
+      
+      // Calculate potential years impact (10 pts = 1 year)
+      const potentialYears = Math.abs(biggest.delta) * 0.25 / 10;
+      
+      return {
+        type: "lever" as const,
+        variable: biggest,
+        potentialYears,
+        ptsToRecover: Math.abs(Math.round(biggest.delta)),
+      };
+    }
     
-    // Calculate potential years impact (10 pts = 1 year)
-    const potentialYears = Math.abs(biggest.delta) * 0.25 / 10;
+    // No negative contributors - find best performer
+    const positiveContributions = contributions.filter(c => c.contribution > 0.1);
+    if (positiveContributions.length > 0) {
+      const sorted = [...positiveContributions].sort((a, b) => b.contribution - a.contribution);
+      const best = sorted[0];
+      
+      return {
+        type: "performer" as const,
+        variable: best,
+        potentialYears: best.delta * 0.25 / 10,
+        ptsGained: Math.round(best.delta),
+      };
+    }
     
-    return {
-      ...biggest,
-      potentialYears,
-      ptsToRecover: Math.abs(Math.round(biggest.delta)),
-    };
+    return null;
   };
 
   const trajectory = getTrajectory();
-  const biggestLever = getBiggestLever();
+  const driverInfo = getDriverInfo();
   const regressionRisk = data.regressionRisk;
   const streakDays = data.regressionStreakDays;
   const daysToRegression = Math.max(0, 21 - streakDays);
 
-  // Show if we have any meaningful data
-  const hasAnyData = hasWeeklyData || hasEnoughData || trajectory !== null;
-  
-  // Don't render if no data at all
-  if (!hasAnyData) return null;
+  // Don't render if no trajectory available
+  if (!trajectory) return null;
 
   return (
     <motion.div
@@ -80,50 +101,48 @@ export function CognitiveAgeInsights() {
       animate={{ opacity: 1, y: 0 }}
       className="mx-2 space-y-2"
     >
-      {/* Trajectory Card */}
-      {trajectory && (
-        <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
-          <div className="flex items-start gap-3">
-            <div className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-              trajectory.status === "improving" && "bg-emerald-500/10",
-              trajectory.status === "declining" && "bg-red-500/10",
-              trajectory.status === "stable" && "bg-blue-500/10"
-            )}>
-              {trajectory.status === "improving" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
-              {trajectory.status === "declining" && <TrendingDown className="w-4 h-4 text-red-400" />}
-              {trajectory.status === "stable" && <Minus className="w-4 h-4 text-blue-400" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5">
-                Trajectory
-              </p>
-              <p className="text-xs text-foreground leading-relaxed">
-                {trajectory.status === "improving" && (
-                  <>
-                    <span className="font-semibold text-emerald-500">Improving</span>
-                    <span className="text-muted-foreground"> — your last 30 days are above your 6-month line.</span>
-                  </>
-                )}
-                {trajectory.status === "declining" && (
-                  <>
-                    <span className="font-semibold text-red-400">Declining</span>
-                    <span className="text-muted-foreground"> — your last 30 days are below your 6-month line.</span>
-                  </>
-                )}
-                {trajectory.status === "stable" && (
-                  <>
-                    <span className="font-semibold text-blue-400">Steady</span>
-                    <span className="text-muted-foreground"> — your 30-day and 6-month trends are aligned.</span>
-                  </>
-                )}
-              </p>
-            </div>
+      {/* Trajectory Card - Always show if we have trajectory */}
+      <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
+        <div className="flex items-start gap-3">
+          <div className={cn(
+            "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+            trajectory.status === "improving" && "bg-emerald-500/10",
+            trajectory.status === "declining" && "bg-red-500/10",
+            trajectory.status === "stable" && "bg-blue-500/10"
+          )}>
+            {trajectory.status === "improving" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
+            {trajectory.status === "declining" && <TrendingDown className="w-4 h-4 text-red-400" />}
+            {trajectory.status === "stable" && <Minus className="w-4 h-4 text-blue-400" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5">
+              Trajectory
+            </p>
+            <p className="text-xs text-foreground leading-relaxed">
+              {trajectory.status === "improving" && (
+                <>
+                  <span className="font-semibold text-emerald-500">Improving</span>
+                  <span className="text-muted-foreground"> — your recent performance is above baseline.</span>
+                </>
+              )}
+              {trajectory.status === "declining" && (
+                <>
+                  <span className="font-semibold text-red-400">Declining</span>
+                  <span className="text-muted-foreground"> — your recent performance is below baseline.</span>
+                </>
+              )}
+              {trajectory.status === "stable" && (
+                <>
+                  <span className="font-semibold text-blue-400">Steady</span>
+                  <span className="text-muted-foreground"> — your performance is stable and aligned with baseline.</span>
+                </>
+              )}
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Regression Risk Card */}
+      {/* Regression Risk Card - Only show if risk is medium or high */}
       {regressionRisk !== "low" && streakDays > 0 && (
         <div className={cn(
           "p-3 rounded-xl border",
@@ -155,7 +174,7 @@ export function CognitiveAgeInsights() {
                 <span className="text-muted-foreground">
                   {regressionRisk === "high" 
                     ? ` — regression applied. ${data.regressionPenaltyYears} year(s) added.`
-                    : ` — ${streakDays} days below baseline −10. ${daysToRegression} days to a +1y penalty.`
+                    : ` — ${streakDays} days below baseline. ${daysToRegression} days to +1y penalty.`
                   }
                 </span>
               </p>
@@ -164,30 +183,49 @@ export function CognitiveAgeInsights() {
         </div>
       )}
 
-      {/* Biggest Lever Card */}
-      {biggestLever && biggestLever.ptsToRecover >= 3 && (
+      {/* Driver Card - Lever or Top Performer */}
+      {driverInfo && (
         <Link 
           to="/app/training"
-          className="block p-3 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors group"
+          className={cn(
+            "block p-3 rounded-xl border transition-colors group",
+            driverInfo.type === "lever" 
+              ? "bg-amber-500/5 border-amber-500/10 hover:bg-amber-500/10"
+              : "bg-emerald-500/5 border-emerald-500/10 hover:bg-emerald-500/10"
+          )}
         >
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Target className="w-4 h-4 text-primary" />
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+              driverInfo.type === "lever" ? "bg-amber-500/10" : "bg-emerald-500/10"
+            )}>
+              {driverInfo.type === "lever" 
+                ? <Target className="w-4 h-4 text-amber-500" />
+                : <Sparkles className="w-4 h-4 text-emerald-500" />
+              }
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5">
-                Biggest Lever
+                {driverInfo.type === "lever" ? "Biggest Lever" : "Top Performer"}
               </p>
               <p className="text-xs text-foreground leading-relaxed">
-                <span className="font-semibold" style={{ color: biggestLever.color }}>
-                  {biggestLever.fullLabel}
+                <span className="font-semibold" style={{ color: driverInfo.variable.color }}>
+                  {driverInfo.variable.fullLabel}
                 </span>
                 <span className="text-muted-foreground">
-                  {" "}— recover +{biggestLever.ptsToRecover} pts to remove ~{biggestLever.potentialYears.toFixed(1)} years of pressure.
+                  {driverInfo.type === "lever" 
+                    ? ` — recover +${driverInfo.ptsToRecover} pts to remove ~${driverInfo.potentialYears.toFixed(1)}y pressure.`
+                    : ` — contributing +${driverInfo.ptsGained} pts to your cognitive youth.`
+                  }
                 </span>
               </p>
             </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-2" />
+            <ChevronRight className={cn(
+              "w-4 h-4 flex-shrink-0 mt-2 transition-colors",
+              driverInfo.type === "lever" 
+                ? "text-muted-foreground group-hover:text-amber-500"
+                : "text-muted-foreground group-hover:text-emerald-500"
+            )} />
           </div>
         </Link>
       )}
