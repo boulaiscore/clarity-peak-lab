@@ -109,10 +109,19 @@ export function RecoveryBatteryCard({
           className="relative flex-1 h-5 rounded-sm border-2 overflow-hidden"
           style={{ borderColor: `${recoveryColor}60` }}
         >
-          {/* Battery fill */}
+          {/* Battery fill with gradient */}
           <motion.div
             className="absolute inset-y-0 left-0 rounded-sm"
-            style={{ backgroundColor: recoveryColor }}
+            style={{ 
+              background: `linear-gradient(to right, 
+                hsl(25, 85%, 45%) 0%, 
+                hsl(45, 85%, 50%) 35%, 
+                hsl(70, 80%, 45%) 50%, 
+                hsl(100, 75%, 45%) 75%, 
+                hsl(140, 75%, 45%) 100%
+              )`,
+              backgroundSize: `${100 / (fillPercent / 100)}% 100%`
+            }}
             initial={{ width: 0 }}
             animate={{ width: `${fillPercent}%` }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
