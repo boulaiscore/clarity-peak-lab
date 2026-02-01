@@ -64,36 +64,34 @@ export function CognitiveAgeImpact() {
     );
   }
 
-  if (!hasEnoughData) {
-    return (
-      <div className="mx-2 p-3 rounded-xl bg-muted/30 border border-border/30">
-        <div className="flex items-start gap-2">
-          <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="text-xs font-medium text-foreground">Collecting data...</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              Need at least 7 days of training to show impact analysis.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       className="mx-2 space-y-4"
     >
-      {/* Impact Bars Section */}
-      <ImpactBars 
-        contributions={contributions} 
-        totalImprovementPoints={totalImprovementPoints}
-        isCalibrated={isCalibrated}
-      />
+      {/* Impact Bars Section - show only if we have data */}
+      {hasEnoughData ? (
+        <ImpactBars 
+          contributions={contributions} 
+          totalImprovementPoints={totalImprovementPoints}
+          isCalibrated={isCalibrated}
+        />
+      ) : (
+        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-xs font-medium text-foreground">Collecting data...</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Need at least 7 days of training to show impact breakdown.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Trend Chart Section */}
+      {/* Trend Chart Section - always visible */}
       <TrendChart
         data={trendData}
         timeRange={timeRange}
@@ -228,8 +226,12 @@ interface TrendChartProps {
 }
 
 function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVariable }: TrendChartProps) {
+  const hasData = data.length > 0;
+
   // Calculate Y-axis domain
   const { yMin, yMax } = useMemo(() => {
+    if (!hasData) return { yMin: 0, yMax: 100 };
+    
     const allValues = data.flatMap(d => [d.ae, d.ra, d.ct, d.in, d.s2]).filter((v): v is number => v !== null);
     if (allValues.length === 0) return { yMin: 0, yMax: 100 };
     
@@ -243,17 +245,13 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
       yMin: Math.max(0, Math.floor(min - padding)),
       yMax: Math.min(100, Math.ceil(max + padding)),
     };
-  }, [data]);
+  }, [data, hasData]);
 
   // Generate Y ticks (5 horizontal lines)
   const yTicks = useMemo(() => {
     const step = (yMax - yMin) / 4;
     return [yMin, yMin + step, yMin + 2 * step, yMin + 3 * step, yMax].map(Math.round);
   }, [yMin, yMax]);
-
-  if (data.length === 0) {
-    return null;
-  }
 
   return (
     <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
@@ -283,9 +281,17 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
       </div>
 
       {/* Chart */}
-      <div className="h-[140px]">
+      <div className="h-[140px] relative">
+        {!hasData && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="text-center">
+              <p className="text-[10px] text-muted-foreground">No data yet</p>
+              <p className="text-[9px] text-muted-foreground/60 mt-0.5">Complete training sessions to see trends</p>
+            </div>
+          </div>
+        )}
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+          <ComposedChart data={hasData ? data : []} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="rgba(100, 116, 139, 0.15)"
@@ -307,18 +313,20 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
               tick={{ fontSize: 9, fill: "rgba(148, 163, 184, 0.5)" }}
               width={25}
             />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--popover))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-                fontSize: "11px",
-              }}
-              labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
-            />
+            {hasData && (
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--popover))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                  fontSize: "11px",
+                }}
+                labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
+              />
+            )}
 
             {/* Lines for each variable */}
-            {(["ae", "ra", "ct", "in", "s2"] as VariableKey[]).map((key) => (
+            {hasData && (["ae", "ra", "ct", "in", "s2"] as VariableKey[]).map((key) => (
               !hiddenVariables.has(key) && (
                 <Line
                   key={key}
