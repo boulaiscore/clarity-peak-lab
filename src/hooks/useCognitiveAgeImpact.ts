@@ -185,7 +185,7 @@ export function useCognitiveAgeImpact() {
     contributions,
     totalImprovementPoints,
     isLoading: baselineLoading || snapshotsLoading,
-    hasEnoughData: (snapshots90d?.length ?? 0) >= 7,
+    hasEnoughData: (snapshots90d?.length ?? 0) >= 3,
     isCalibrated: baseline?.is_baseline_calibrated ?? false,
   };
 }

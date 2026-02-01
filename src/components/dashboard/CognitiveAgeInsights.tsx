@@ -18,19 +18,26 @@ import { Link } from "react-router-dom";
 
 export function CognitiveAgeInsights() {
   const { data, hasWeeklyData } = useCognitiveAge();
-  const { contributions, hasEnoughData } = useCognitiveAgeImpact();
+  const { contributions, hasEnoughData, totalImprovementPoints } = useCognitiveAgeImpact();
 
-  // Don't show if no data
-  if (!hasWeeklyData && !hasEnoughData) return null;
-
-  // Calculate trajectory
+  // Calculate trajectory from contributions data if weekly data not available
   const getTrajectory = () => {
-    if (data.perf30d === null || data.perf180d === null) return null;
+    // First try weekly data
+    if (data.perf30d !== null && data.perf180d !== null) {
+      const diff = data.perf30d - data.perf180d;
+      if (diff > 2) return { status: "improving" as const, diff };
+      if (diff < -2) return { status: "declining" as const, diff };
+      return { status: "stable" as const, diff };
+    }
     
-    const diff = data.perf30d - data.perf180d;
-    if (diff > 2) return { status: "improving", diff };
-    if (diff < -2) return { status: "declining", diff };
-    return { status: "stable", diff };
+    // Fallback: use totalImprovementPoints from contributions
+    if (hasEnoughData && contributions.length > 0) {
+      if (totalImprovementPoints > 1) return { status: "improving" as const, diff: totalImprovementPoints };
+      if (totalImprovementPoints < -1) return { status: "declining" as const, diff: totalImprovementPoints };
+      return { status: "stable" as const, diff: totalImprovementPoints };
+    }
+    
+    return null;
   };
 
   // Find biggest negative contributor (biggest lever for improvement)
@@ -60,6 +67,12 @@ export function CognitiveAgeInsights() {
   const regressionRisk = data.regressionRisk;
   const streakDays = data.regressionStreakDays;
   const daysToRegression = Math.max(0, 21 - streakDays);
+
+  // Show if we have any meaningful data
+  const hasAnyData = hasWeeklyData || hasEnoughData || trajectory !== null;
+  
+  // Don't render if no data at all
+  if (!hasAnyData) return null;
 
   return (
     <motion.div
