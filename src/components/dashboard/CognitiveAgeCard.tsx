@@ -189,10 +189,6 @@ export function CognitiveAgeCard() {
       {/* Impact breakdown + trend chart */}
       <CognitiveAgeImpact />
 
-      {/* Next update info */}
-      <p className="text-center text-[10px] text-muted-foreground/60">
-        Updated daily • Pace based on 30d vs 180d trend
-      </p>
     </div>
   );
 }
