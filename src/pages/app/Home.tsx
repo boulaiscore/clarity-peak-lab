@@ -21,7 +21,7 @@ import { useTutorialState } from "@/hooks/useTutorialState";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
-import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus } from "@/lib/metricStatusLabels";
+import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { DailyBriefing } from "@/components/home/DailyBriefing";
 import { useMetricWeeklyChange } from "@/hooks/useMetricWeeklyChange";
@@ -33,7 +33,7 @@ import { HomeTabId } from "@/components/home/HomeTabs";
 import { IntuitionTab } from "@/components/home/IntuitionTab";
 import { ReasoningTab } from "@/components/home/ReasoningTab";
 import { CapacityTab } from "@/components/home/CapacityTab";
-import { ReasoningQualityCard } from "@/components/dashboard/ReasoningQualityCard";
+import { RecoveryBatteryCard } from "@/components/dashboard/RecoveryBatteryCard";
 import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
@@ -313,7 +313,7 @@ const Home = () => {
   // Low values are communicated by arc length and copy, not color
   const sharpnessColor = "hsl(210, 100%, 60%)"; // Electric blue
   const readinessColor = "hsl(245, 58%, 65%)"; // Soft indigo
-  const recoveryColor = "hsl(174, 72%, 45%)"; // Teal
+  const rqColor = "hsl(207, 44%, 55%)"; // Steel Blue for RQ
 
   const handleStartSession = () => {
     navigate("/neuro-lab");
@@ -448,7 +448,7 @@ const Home = () => {
               <div className="flex justify-center gap-6 mb-4">
                 <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={90} strokeWidth={4} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
                 <ProgressRing value={displayReadiness} max={100} size={90} strokeWidth={4} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
-                <ProgressRing value={isDisplayLoading ? 0 : displayRecovery} max={100} size={90} strokeWidth={4} color={recoveryColor} label="Recovery" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRecovery)}%`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getRecoveryStatus(displayRecovery).label, getRecoveryStatus(displayRecovery).level, null, null).text} deltaIndicator={isDisplayLoading ? null : recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} />
+                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={90} strokeWidth={4} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
               
               {/* Goal Complete indicator - only shows when target reached AND viewing today */}
@@ -462,15 +462,12 @@ const Home = () => {
                   </p>
                 </div>}
               
-              {/* Reasoning Quality Card */}
-              <ReasoningQualityCard 
-                rq={displayRQ} 
-                s2Core={displayS2Core} 
-                s2Consistency={isViewingToday ? s2Consistency : 0} 
-                taskPriming={displayTaskPriming} 
-                isDecaying={isViewingToday ? rqIsDecaying : false} 
-                isLoading={isDisplayLoading || (isViewingToday && rqLoading)} 
-                deltaVsYesterday={rqDelta}
+              {/* Recovery Battery Card */}
+              <RecoveryBatteryCard 
+                recovery={displayRecovery} 
+                isLoading={isDisplayLoading || recoveryEffectiveLoading} 
+                deltaVsYesterday={recoveryDelta}
+                onClick={isViewingToday ? () => setActiveTab("capacity") : undefined}
               />
             </motion.section>
 
