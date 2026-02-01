@@ -305,37 +305,65 @@ export default function ReasoningQualityImpact() {
           </p>
         </div>
 
-        {/* Main RQ Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-card border border-border/40 mb-6"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold mb-1">Reasoning Quality (RQ)</h2>
-              <p className="text-[11px] text-muted-foreground">
+        {/* Main RQ Ring */}
+        {(() => {
+          const ringSize = 180;
+          const ringStrokeWidth = 10;
+          const ringRadius = (ringSize - ringStrokeWidth) / 2;
+          const ringCircumference = ringRadius * 2 * Math.PI;
+          const ringProgress = Math.min(rq / 100, 1);
+          const ringStrokeDashoffset = ringCircumference - ringProgress * ringCircumference;
+          const rqColor = "hsl(207, 44%, 55%)"; // Steel Blue for RQ
+          
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center mb-6"
+            >
+              {/* Ring */}
+              <div className="relative" style={{ width: ringSize, height: ringSize }}>
+                <svg className="absolute inset-0 -rotate-90" width={ringSize} height={ringSize}>
+                  <circle
+                    cx={ringSize / 2}
+                    cy={ringSize / 2}
+                    r={ringRadius}
+                    fill="none"
+                    stroke="hsl(var(--muted)/0.25)"
+                    strokeWidth={ringStrokeWidth}
+                  />
+                </svg>
+                <svg className="absolute inset-0 -rotate-90" width={ringSize} height={ringSize}>
+                  <circle
+                    cx={ringSize / 2}
+                    cy={ringSize / 2}
+                    r={ringRadius}
+                    fill="none"
+                    stroke={rqColor}
+                    strokeWidth={ringStrokeWidth}
+                    strokeLinecap="round"
+                    strokeDasharray={ringCircumference}
+                    strokeDashoffset={ringStrokeDashoffset}
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-5xl font-bold tabular-nums text-foreground">
+                    {rq.toFixed(1)}
+                  </span>
+                  <span className={cn("text-xs font-medium mt-1", status.color)}>
+                    {status.label}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Description */}
+              <p className="text-[11px] text-muted-foreground text-center mt-3 max-w-xs">
                 Consistency, accuracy, and stability in deliberate thinking
               </p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold tabular-nums">
-                {rq.toFixed(1)}
-              </div>
-              <span className={cn("text-xs font-medium", status.color)}>
-                {status.label}
-              </span>
-            </div>
-          </div>
-          <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden mt-4">
-            <motion.div
-              className="h-full bg-primary/60 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${rq}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-          </div>
-        </motion.div>
+            </motion.div>
+          );
+        })()}
 
         {/* Component Details */}
         <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3 px-1">
