@@ -74,16 +74,16 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       hue = 210 - t * 210; // 210 → 0
     }
     
-    // Brighter, more vibrant colors
+    // Brighter, more vibrant colors - enhanced brilliance
     const connectionColor = { 
       h: hue, 
       s: 100, 
-      l: isDarkMode ? 60 + Math.abs(normalizedDiff) * 1.5 : 50 + Math.abs(normalizedDiff) * 1.5
+      l: isDarkMode ? 70 + Math.abs(normalizedDiff) * 2 : 60 + Math.abs(normalizedDiff) * 2
     };
     const nodeColor = { 
       h: hue, 
       s: 100, 
-      l: isDarkMode ? 65 + Math.abs(normalizedDiff) * 1.5 : 55 + Math.abs(normalizedDiff) * 1.5
+      l: isDarkMode ? 75 + Math.abs(normalizedDiff) * 2 : 65 + Math.abs(normalizedDiff) * 2
     };
 
     // Create nodes arranged around the perimeter
