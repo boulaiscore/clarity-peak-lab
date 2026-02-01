@@ -80,10 +80,31 @@ export function CapacityTab({
         height: size
       }}>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
+            {/* Gradient definition for recovery ring */}
+            <defs>
+              <linearGradient id="recoveryRingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="hsl(25, 85%, 45%)" />
+                <stop offset="35%" stopColor="hsl(45, 85%, 50%)" />
+                <stop offset="50%" stopColor="hsl(70, 80%, 45%)" />
+                <stop offset="75%" stopColor="hsl(100, 75%, 45%)" />
+                <stop offset="100%" stopColor="hsl(140, 75%, 45%)" />
+              </linearGradient>
+            </defs>
             <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted)/0.3)" strokeWidth={strokeWidth} />
           </svg>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-            <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={ringColor} strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000 ease-out" />
+            <circle 
+              cx={size / 2} 
+              cy={size / 2} 
+              r={radius} 
+              fill="none" 
+              stroke={showNoDataFallback ? ringColor : "url(#recoveryRingGradient)"} 
+              strokeWidth={strokeWidth} 
+              strokeLinecap="round" 
+              strokeDasharray={circumference} 
+              strokeDashoffset={strokeDashoffset} 
+              className="transition-all duration-1000 ease-out" 
+            />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             {isLoading ? <span className="text-4xl font-bold text-muted-foreground">—</span> : showNoDataFallback ? <>
