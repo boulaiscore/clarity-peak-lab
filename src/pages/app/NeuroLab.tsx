@@ -4,11 +4,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
-import { 
-  ChevronRight, Dumbbell,
-  BookMarked, CheckCircle2, Smartphone, Ban, Brain,
-  Zap, Battery, BatteryLow, Settings2
-} from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Brain, Zap, Battery, BatteryLow, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
@@ -30,7 +26,6 @@ import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 import { NLOOPLogo } from "@/components/ui/NLOOPLogo";
 
-
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
   "fast-focus": ["focus"],
@@ -41,29 +36,28 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
   "dual-process": ["focus", "reasoning"],
   "heavy-slow": ["reasoning", "creativity"],
   "dual-stress": ["focus", "reasoning"],
-  "reflection": ["reasoning", "creativity"],
+  "reflection": ["reasoning", "creativity"]
 };
-
 function TasksTabContent() {
   return <SpotifyTasksView />;
 }
 
 // Discrete protocol change link - elegant and non-invasive
-function ProtocolLink({ onOpen, planName }: { onOpen: () => void; planName: string }) {
-  return (
-    <button
-      onClick={onOpen}
-      className="w-full flex items-center justify-center gap-2 py-2.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-    >
+function ProtocolLink({
+  onOpen,
+  planName
+}: {
+  onOpen: () => void;
+  planName: string;
+}) {
+  return <button onClick={onOpen} className="w-full flex items-center justify-center gap-2 py-2.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors">
       <Settings2 className="w-3.5 h-3.5" />
       <span>
         Protocol: <span className="font-medium text-foreground/80">{planName}</span>
       </span>
       <ChevronRight className="w-3 h-3 opacity-50" />
-    </button>
-  );
+    </button>;
 }
-
 export default function NeuroLab() {
   // Scroll to top on mount
   useEffect(() => {
@@ -71,18 +65,45 @@ export default function NeuroLab() {
   }, []);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
-  const { isPremium, isAreaLocked, canStartSession, remainingSessions, maxDailySessions } = usePremiumGating();
-  const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
-  const { isDailyCompleted, isInReminderWindow, reminderTime } = useDailyTraining();
-  const { getNextSession, completedSessionTypes, sessionsCompleted, sessionsRequired, plan, weeklyXPTarget } = useWeeklyProgress();
+  const {
+    user
+  } = useAuth();
+  const {
+    isPremium,
+    isAreaLocked,
+    canStartSession,
+    remainingSessions,
+    maxDailySessions
+  } = usePremiumGating();
+  const {
+    isCalibrated,
+    isLoading: baselineLoading
+  } = useBaselineStatus();
+  const {
+    isDailyCompleted,
+    isInReminderWindow,
+    reminderTime
+  } = useDailyTraining();
+  const {
+    getNextSession,
+    completedSessionTypes,
+    sessionsCompleted,
+    sessionsRequired,
+    plan,
+    weeklyXPTarget
+  } = useWeeklyProgress();
   // Use capped progress for the Weekly Load total (excess beyond category targets doesn't count)
-  const { cappedTotalXP } = useCappedWeeklyProgress();
+  const {
+    cappedTotalXP
+  } = useCappedWeeklyProgress();
   const weeklyLoadXP = cappedTotalXP;
-  
+
   // Recovery for dynamic guidance
-  const { recoveryEffective, isLoading: recoveryLoading } = useRecoveryEffective();
-  
+  const {
+    recoveryEffective,
+    isLoading: recoveryLoading
+  } = useRecoveryEffective();
+
   // Dynamic guidance based on Recovery level
   const recoveryGuidance = useMemo(() => {
     if (recoveryLoading) {
@@ -91,12 +112,11 @@ export default function NeuroLab() {
         iconColor: "text-muted-foreground",
         headline: "Loading your status...",
         message: "",
-        action: "",
+        action: ""
       };
     }
-    
     const rec = recoveryEffective;
-    
+
     // Peak (80+): Full intensity
     if (rec >= 80) {
       return {
@@ -104,10 +124,10 @@ export default function NeuroLab() {
         iconColor: "text-emerald-400",
         headline: `Recovery ${Math.round(rec)}% — You're primed.`,
         message: "Your brain is ready for peak performance.",
-        action: "Push hard with S2 games. This is your window for deep reasoning work.",
+        action: "Push hard with S2 games. This is your window for deep reasoning work."
       };
     }
-    
+
     // Sharp (65-79): Good to go
     if (rec >= 65) {
       return {
@@ -115,10 +135,10 @@ export default function NeuroLab() {
         iconColor: "text-emerald-400",
         headline: `Recovery ${Math.round(rec)}% — Strong.`,
         message: "Good energy for cognitive training.",
-        action: "S2 games are unlocked. Balance intensity with a task or walk if needed.",
+        action: "S2 games are unlocked. Balance intensity with a task or walk if needed."
       };
     }
-    
+
     // Steady (50-64): Moderate, be strategic
     if (rec >= 50) {
       return {
@@ -126,10 +146,10 @@ export default function NeuroLab() {
         iconColor: "text-amber-400",
         headline: `Recovery ${Math.round(rec)}% — Moderate.`,
         message: "You can train, but don't overdo it.",
-        action: "S1 games + Tasks are ideal. Consider a detox or walk to boost recovery.",
+        action: "S1 games + Tasks are ideal. Consider a detox or walk to boost recovery."
       };
     }
-    
+
     // Foggy (35-49): Low, focus on recovery
     if (rec >= 35) {
       return {
@@ -137,48 +157,46 @@ export default function NeuroLab() {
         iconColor: "text-amber-500",
         headline: `Recovery ${Math.round(rec)}% — Low.`,
         message: "Your brain needs rest to perform.",
-        action: "Skip intense training. Focus on detox, walking, or light tasks to rebuild.",
+        action: "Skip intense training. Focus on detox, walking, or light tasks to rebuild."
       };
     }
-    
+
     // Drained (<35): Very low, prioritize recovery
     return {
       icon: BatteryLow,
       iconColor: "text-red-400",
       headline: `Recovery ${Math.round(rec)}% — Depleted.`,
       message: "Training now may backfire. Your brain needs recovery.",
-      action: "Detox and walk to rebuild. Tasks are fine. Save games for when you're recharged.",
+      action: "Detox and walk to rebuild. Tasks are fine. Save games for when you're recharged."
     };
   }, [recoveryEffective, recoveryLoading]);
-  
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
-  
+
   // Current training plan for display
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
-  
+
   // Read tab from URL query param, default to "games" (Training first)
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(() => {
     if (tabFromUrl === "tasks" || tabFromUrl === "detox") return tabFromUrl;
     return "games"; // Training as default
   });
-  
+
   // Sync activeTab when URL changes
   useEffect(() => {
     if (tabFromUrl === "tasks" || tabFromUrl === "detox" || tabFromUrl === "games") {
       setActiveTab(tabFromUrl);
     }
   }, [tabFromUrl]);
-  
+
   // Auto-open session picker if continuing session
   const continueSession = searchParams.get("continueSession") === "true";
   const [showSessionPicker, setShowSessionPicker] = useState(continueSession);
-
   const trainingPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const nextSession = getNextSession();
   const recommendedAreas = nextSession ? SESSION_TO_AREAS[nextSession.id] || [] : [];
@@ -194,10 +212,9 @@ export default function NeuroLab() {
     "dual-process": "medium",
     "heavy-slow": "dense",
     "dual-stress": "medium",
-    "reflection": "dense",
+    "reflection": "dense"
   };
   const sessionDifficulty = nextSession ? SESSION_DIFFICULTY[nextSession.id] || "medium" : "medium";
-
   const handleEnterArea = (areaId: NeuroLabArea) => {
     if (!canStartSession()) {
       setPaywallFeature("session-limit");
@@ -205,7 +222,6 @@ export default function NeuroLab() {
       setShowPaywall(true);
       return;
     }
-    
     if (isAreaLocked(areaId)) {
       const area = NEURO_LAB_AREAS.find(a => a.id === areaId);
       setPaywallFeature("area");
@@ -213,21 +229,17 @@ export default function NeuroLab() {
       setShowPaywall(true);
       return;
     }
-    
     if (!isDailyCompleted && !isInReminderWindow && reminderTime) {
       setPendingAreaId(areaId);
       setShowDailyConfirm(true);
       return;
     }
-    
     navigateToArea(areaId);
   };
-
   const navigateToArea = (areaId: NeuroLabArea) => {
     const isDailyTraining = !isDailyCompleted;
     navigate(`/neuro-lab/${areaId}?daily=${isDailyTraining}`);
   };
-
   const handleConfirmDailyTraining = () => {
     if (pendingAreaId) {
       navigateToArea(pendingAreaId);
@@ -235,8 +247,6 @@ export default function NeuroLab() {
       setPendingAreaId(null);
     }
   };
-
-
   const handleStartRecommended = () => {
     if (nextSession && recommendedAreas.length > 0) {
       setShowSessionPicker(true);
@@ -245,13 +255,15 @@ export default function NeuroLab() {
 
   // SANITY CHECK: Block Games and Tasks if baseline not completed
   if (!baselineLoading && !isCalibrated) {
-    return (
-      <AppShell>
+    return <AppShell>
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 10
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }}>
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
               <Brain className="w-7 h-7 text-primary" />
             </div>
@@ -259,21 +271,15 @@ export default function NeuroLab() {
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
               Complete your baseline calibration before accessing training and tasks.
             </p>
-            <button
-              onClick={() => navigate("/app/calibration")}
-              className="inline-flex items-center px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
-            >
+            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
               Begin Calibration
               <ChevronRight className="w-4 h-4 ml-2" />
             </button>
           </motion.div>
         </div>
-      </AppShell>
-    );
+      </AppShell>;
   }
-
-  return (
-    <AppShell>
+  return <AppShell>
       <div className="px-4 py-4 max-w-md mx-auto space-y-0">
 
         {/* NeuroLoop Explanation - Expandable WHOOP-style */}
@@ -283,7 +289,7 @@ export default function NeuroLab() {
               <div className="flex items-center gap-3">
                 <NLOOPLogo size={20} className="text-foreground" />
                 <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
-                  How NeuroLoop Works
+                  How NLOOP Works
                 </span>
               </div>
               <ChevronRight className="w-4 h-4 text-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
@@ -366,12 +372,13 @@ export default function NeuroLab() {
         </Collapsible>
 
         {/* Week Complete Banner - Success styling with actionable CTA */}
-        {isWeekComplete && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30"
-          >
+        {isWeekComplete && <motion.div initial={{
+        opacity: 0,
+        y: -10
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} className="mb-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
@@ -384,16 +391,12 @@ export default function NeuroLab() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => navigate("/app/report")}
-                className="text-[10px] font-medium text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1"
-              >
+              <button onClick={() => navigate("/app/report")} className="text-[10px] font-medium text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1">
                 View Report
                 <ChevronRight className="w-3 h-3" />
               </button>
             </div>
-          </motion.div>
-        )}
+          </motion.div>}
 
         {/* Cognitive Load Guidance - Dynamic based on Recovery */}
         <div className="mb-4 p-3 rounded-xl bg-muted/30 border border-border/40">
@@ -419,10 +422,7 @@ export default function NeuroLab() {
         <WeeklyGoalCard compact />
         
         {/* Protocol Change - Discrete Link */}
-        <ProtocolLink 
-          onOpen={() => setShowProtocolSheet(true)} 
-          planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} 
-        />
+        <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
 
 
         {/* Training Section - Distinct Background */}
@@ -449,9 +449,7 @@ export default function NeuroLab() {
 
             {/* Training Tab (Games) */}
             <TabsContent value="games" className="mt-0">
-              <GamesLibrary 
-                onStartGame={handleEnterArea}
-              />
+              <GamesLibrary onStartGame={handleEnterArea} />
             </TabsContent>
 
             {/* Tasks Tab */}
@@ -467,36 +465,12 @@ export default function NeuroLab() {
         </div>
       </div>
 
-      <PremiumPaywall 
-        open={showPaywall} 
-        onOpenChange={setShowPaywall}
-        feature={paywallFeature}
-        featureName={paywallFeatureName}
-      />
+      <PremiumPaywall open={showPaywall} onOpenChange={setShowPaywall} feature={paywallFeature} featureName={paywallFeatureName} />
 
-      <DailyTrainingConfirmDialog
-        open={showDailyConfirm}
-        onOpenChange={setShowDailyConfirm}
-        reminderTime={reminderTime || "08:00"}
-        onConfirm={handleConfirmDailyTraining}
-      />
+      <DailyTrainingConfirmDialog open={showDailyConfirm} onOpenChange={setShowDailyConfirm} reminderTime={reminderTime || "08:00"} onConfirm={handleConfirmDailyTraining} />
 
-      <SessionPicker
-        open={showSessionPicker}
-        onOpenChange={setShowSessionPicker}
-        sessionName={nextSession?.name || "Training Session"}
-        sessionDescription={nextSession?.description || ""}
-        sessionType={nextSession?.id || null}
-        recommendedAreas={recommendedAreas}
-        contentDifficulty={sessionDifficulty}
-        weeklyXPTarget={weeklyXPTarget}
-        weeklyXPEarned={weeklyLoadXP}
-      />
+      <SessionPicker open={showSessionPicker} onOpenChange={setShowSessionPicker} sessionName={nextSession?.name || "Training Session"} sessionDescription={nextSession?.description || ""} sessionType={nextSession?.id || null} recommendedAreas={recommendedAreas} contentDifficulty={sessionDifficulty} weeklyXPTarget={weeklyXPTarget} weeklyXPEarned={weeklyLoadXP} />
 
-      <ProtocolChangeSheet
-        open={showProtocolSheet}
-        onOpenChange={setShowProtocolSheet}
-      />
-    </AppShell>
-  );
+      <ProtocolChangeSheet open={showProtocolSheet} onOpenChange={setShowProtocolSheet} />
+    </AppShell>;
 }
