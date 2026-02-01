@@ -192,7 +192,7 @@ const Onboarding = () => {
                 <span className="text-foreground font-semibold text-xl">L</span>
               </div>
               <h1 className="text-2xl font-semibold mb-3 tracking-tight leading-tight">
-                Welcome to Luma
+                Welcome to LUMA
               </h1>
               <p className="text-[15px] text-muted-foreground mb-2 leading-relaxed">
                 Unlock elite reasoning.

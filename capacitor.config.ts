@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.luma.pro',
-  appName: 'Luma Pro',
+  appName: 'LUMA Pro',
   webDir: 'dist',
   server: {
     url: "https://clarity-peak-lab.vercel.app",

@@ -9,12 +9,12 @@ const corsHeaders = {
 // Tier configuration
 const TIERS = {
   premium: {
-    name: 'Luma Pro',
+    name: 'LUMA Pro',
     description: 'Complete cognitive training with monthly report.',
     amount: 1990, // $19.90
   },
   pro: {
-    name: 'Luma Elite',
+    name: 'LUMA Elite',
     description: 'Master-level cognitive training with advanced insights.',
     amount: 2990, // $29.90
   },

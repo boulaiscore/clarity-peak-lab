@@ -24,7 +24,7 @@ export function ReportPage({
       <div className="report-body">{children}</div>
 
       <footer className="report-footer">
-        <div>Luma Pro | Cognitive Fitness for Elite Minds</div>
+        <div>LUMA Pro | Cognitive Fitness for Elite Minds</div>
         <div className="report-pagehint">Confidential</div>
       </footer>
     </section>

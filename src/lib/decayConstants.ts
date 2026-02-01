@@ -3,7 +3,7 @@
  * LUMA PRO – DECAY CONSTANTS
  * ============================================
  * 
- * Quantitative decay rules from Luma Decay & Dynamics Manual.
+ * Quantitative decay rules from LUMA Decay & Dynamics Manual.
  * All thresholds and rates are centralized here for maintainability.
  */
 

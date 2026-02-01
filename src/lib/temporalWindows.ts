@@ -4,7 +4,7 @@
  * ============================================
  * 
  * OFFICIAL RULES:
- * Luma NON usa settimane di calendario.
+ * LUMA NON usa settimane di calendario.
  * Usa SOLO rolling windows.
  * 
  * PERIODS:
