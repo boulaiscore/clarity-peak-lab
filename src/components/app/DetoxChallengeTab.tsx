@@ -265,8 +265,8 @@ export function DetoxChallengeTab() {
       {/* XP Explanation */}
       <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/30">
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Detox & Walking award small XP</span> and restore your <span className="font-medium text-foreground">Recovery</span>. 
-          Higher recovery unlocks S2 games and improves cognitive performance.
+          <span className="font-medium text-foreground">Detox & Walking award XP</span> (0.05 XP/min — e.g., 60 min = 3 XP) and restore <span className="font-medium text-foreground">Recovery</span>. 
+          Walking 30+ min unlocks full XP; otherwise 50%. Higher recovery unlocks S2 games.
         </p>
       </div>
 
