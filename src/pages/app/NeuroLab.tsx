@@ -28,6 +28,7 @@ import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
+import { NLOOPLogo } from "@/components/ui/NLOOPLogo";
 
 
 // Map session types to recommended game areas
@@ -280,7 +281,7 @@ export default function NeuroLab() {
           <div className="border-2 border-foreground/90 bg-background">
             <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
               <div className="flex items-center gap-3">
-                <Brain className="w-5 h-5 text-foreground" />
+                <NLOOPLogo size={20} className="text-foreground" />
                 <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
                   How NeuroLoop Works
                 </span>
