@@ -444,7 +444,7 @@ const Home = () => {
           y: 0
         }} transition={{
           delay: 0.05
-        }} className="mb-6">
+        }} className="mb-3">
               <div className="flex justify-center gap-6 mb-4">
                 <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={90} strokeWidth={4} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
                 <ProgressRing value={displayReadiness} max={100} size={90} strokeWidth={4} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
