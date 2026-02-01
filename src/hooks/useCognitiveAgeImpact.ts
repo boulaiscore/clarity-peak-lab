@@ -199,26 +199,27 @@ export function useCognitiveAgeImpact() {
     const cutoffDate = format(subDays(new Date(), timeRange), "yyyy-MM-dd");
     const filteredSnapshots = snapshots90d.filter(s => s.snapshot_date >= cutoffDate);
 
-    // Format date labels based on time range
+    // Format date labels based on time range - always use numeric d/M format
     const formatLabel = (dateStr: string, index: number, total: number) => {
       const date = new Date(dateStr);
+      const numericDate = format(date, "d/M"); // e.g., "15/1" for Jan 15
       
       if (timeRange === 7) {
-        // 7d: show day name for all (Fri, Sat, Sun, etc.)
-        return format(date, "EEE");
+        // 7d: show all dates
+        return numericDate;
       } else if (timeRange === 30) {
-        // 30d: show "MMM d" only for first, middle, last
+        // 30d: show first, middle, last
         const isFirst = index === 0;
         const isLast = index === total - 1;
         const isMid = index === Math.floor(total / 2);
-        return (isFirst || isLast || isMid) ? format(date, "MMM d") : "";
+        return (isFirst || isLast || isMid) ? numericDate : "";
       } else {
-        // 90d: show "MMM d" only for first, 1/3, 2/3, last
+        // 90d: show first, 1/3, 2/3, last
         const isFirst = index === 0;
         const isLast = index === total - 1;
         const isThird = index === Math.floor(total / 3);
         const isTwoThirds = index === Math.floor((2 * total) / 3);
-        return (isFirst || isLast || isThird || isTwoThirds) ? format(date, "MMM d") : "";
+        return (isFirst || isLast || isThird || isTwoThirds) ? numericDate : "";
       }
     };
 
