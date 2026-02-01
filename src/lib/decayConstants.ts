@@ -122,6 +122,28 @@ export const REC_RRI_MIN = 35;
 export const REC_RRI_MAX = 55;
 
 // ============================================
+// NIGHT DECAY REDUCTION
+// ============================================
+
+/**
+ * Hour when night period starts (23:00 local time).
+ * During night hours, decay is significantly reduced.
+ */
+export const NIGHT_START_HOUR = 23;
+
+/**
+ * Hour when night period ends (07:00 local time).
+ */
+export const NIGHT_END_HOUR = 7;
+
+/**
+ * Multiplier for decay during night hours.
+ * 0.2 means decay is reduced to 20% of normal rate.
+ * Example: 8 hours of sleep = 1.6 effective decay hours.
+ */
+export const NIGHT_DECAY_MULTIPLIER = 0.2;
+
+// ============================================
 // LEGACY RECOVERY TARGET (for UI breakdown display only)
 // ============================================
 
