@@ -30,14 +30,14 @@ export function ReportOverview({ profile, generatedAt }: ReportOverviewProps) {
     <section className="report-page">
       <h2 className="report-section-title">Assessment Overview</h2>
       <p className="report-subtitle">
-        {profile.name || "Participant"} completed the NLOOP Cognitive Assessment Battery (CAB) on {generatedAt.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.
+        {profile.name || "Participant"} completed the Luma Cognitive Assessment Battery (CAB) on {generatedAt.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.
       </p>
 
       {/* Description Box */}
       <div className="overview-description">
-        <h3>ABOUT THE NLOOP COGNITIVE ASSESSMENT</h3>
+        <h3>ABOUT THE LUMA COGNITIVE ASSESSMENT</h3>
         <p>
-          The NLOOP Cognitive Assessment Battery (CAB) is a comprehensive neurocognitive evaluation system 
+          The Luma Cognitive Assessment Battery (CAB) is a comprehensive neurocognitive evaluation system
           designed to measure cognitive performance across multiple domains. Based on evidence-based principles 
           from cognitive neuroscience, this assessment evaluates both <strong>System 1 (intuitive, fast)</strong> and 
           <strong> System 2 (analytical, slow)</strong> cognitive processing, along with domain-specific capabilities.

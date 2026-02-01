@@ -24,7 +24,7 @@ import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
-import { NLOOPLogo } from "@/components/ui/NLOOPLogo";
+import { LumaLogo } from "@/components/ui/LumaLogo";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -287,9 +287,9 @@ export default function NeuroLab() {
           <div className="border border-border/30 bg-background">
             <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors text-muted border-muted pb-[12px] mb-[5px]">
               <div className="flex items-center gap-3">
-                <NLOOPLogo size={20} className="text-foreground" />
+                <LumaLogo size={20} className="text-foreground" />
                 <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
-                  How NLOOP Lab Works
+                  How Luma Lab Works
                 </span>
               </div>
               <ChevronRight className="w-4 h-4 text-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />

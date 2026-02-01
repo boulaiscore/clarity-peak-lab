@@ -189,10 +189,10 @@ const Onboarding = () => {
           {step === 1 && (
             <div className="text-center animate-fade-in">
               <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center mx-auto mb-6">
-                <span className="text-foreground font-semibold text-xl">N</span>
+                <span className="text-foreground font-semibold text-xl">L</span>
               </div>
               <h1 className="text-2xl font-semibold mb-3 tracking-tight leading-tight">
-                Welcome to NLOOP
+                Welcome to Luma
               </h1>
               <p className="text-[15px] text-muted-foreground mb-2 leading-relaxed">
                 Unlock elite reasoning.

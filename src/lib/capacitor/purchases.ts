@@ -8,11 +8,11 @@ import { isIOS, isAndroid, isNative } from '@/lib/platformUtils';
 
 // RevenueCat Product IDs - must match App Store Connect
 export const PRODUCT_IDS = {
-  PREMIUM_MONTHLY: 'nloop_premium_monthly',
-  PRO_MONTHLY: 'nloop_pro_monthly',
-  REPORT_SINGLE: 'nloop_report_single',
-  REPORT_PACK_5: 'nloop_report_pack_5',
-  REPORT_PACK_10: 'nloop_report_pack_10',
+  PREMIUM_MONTHLY: 'luma_premium_monthly',
+  PRO_MONTHLY: 'luma_pro_monthly',
+  REPORT_SINGLE: 'luma_report_single',
+  REPORT_PACK_5: 'luma_report_pack_5',
+  REPORT_PACK_10: 'luma_report_pack_10',
 } as const;
 
 // Entitlement identifiers in RevenueCat

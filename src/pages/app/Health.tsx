@@ -139,7 +139,7 @@ const Health = () => {
             </div>
             <h1 className="text-2xl font-semibold mb-2">Enhance your cognitive metrics</h1>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-              Connect your wearable to unlock deeper insights. Your physiological data refines NLOOP's readiness calculations and personalizes training recommendations.
+              Connect your wearable to unlock deeper insights. Your physiological data refines Luma's readiness calculations and personalizes training recommendations.
             </p>
           </div>
 

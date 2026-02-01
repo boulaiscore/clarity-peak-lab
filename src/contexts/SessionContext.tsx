@@ -29,7 +29,7 @@ interface SessionContextType {
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
-const SESSIONS_STORAGE_KEY = "nloop_sessions";
+const SESSIONS_STORAGE_KEY = "luma_sessions";
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>(() => {

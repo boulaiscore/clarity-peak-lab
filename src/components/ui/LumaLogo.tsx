@@ -1,9 +1,9 @@
-interface NLOOPLogoProps {
+interface LumaLogoProps {
   size?: number;
   className?: string;
 }
 
-export function NLOOPLogo({ size = 24, className }: NLOOPLogoProps) {
+export function LumaLogo({ size = 24, className }: LumaLogoProps) {
   return (
     <svg
       width={size}
