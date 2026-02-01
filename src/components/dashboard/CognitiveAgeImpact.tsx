@@ -347,21 +347,21 @@ function TrendChart({ data, timeRange, setTimeRange, hiddenVariables, toggleVari
       </div>
 
       {/* Interactive legend */}
-      <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
+      <div className="flex items-center justify-center gap-x-3 gap-y-1.5 mt-3 flex-wrap">
         {(["ae", "ra", "ct", "in", "s2"] as VariableKey[]).map((key) => (
           <button
             key={key}
             onClick={() => toggleVariable(key)}
             className={cn(
-              "flex items-center gap-1 text-[10px] transition-opacity",
+              "flex items-center gap-1.5 text-[9px] transition-opacity px-1.5 py-0.5 rounded-md hover:bg-muted/50",
               hiddenVariables.has(key) ? "opacity-40" : "opacity-100"
             )}
           >
             <span
-              className="w-2 h-2 rounded-full"
+              className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ backgroundColor: VARIABLE_CONFIG[key].color }}
             />
-            <span className="text-muted-foreground">{VARIABLE_CONFIG[key].label}</span>
+            <span className="text-muted-foreground whitespace-nowrap">{VARIABLE_CONFIG[key].fullLabel}</span>
           </button>
         ))}
       </div>
