@@ -3,5 +3,8 @@ project_id = "rqdmhhhkzpwceeznpftn"
 [functions.compute-cognitive-age-weekly]
 verify_jwt = false
 
+[functions.compute-cognitive-age-daily]
+verify_jwt = false
+
 [functions.initialize-cognitive-baseline]
 verify_jwt = false
