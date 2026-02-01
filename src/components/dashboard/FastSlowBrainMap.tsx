@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Zap, Timer, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { motion } from "framer-motion";
+import { DualProcessTrendChart } from "./DualProcessTrendChart";
 
 interface FastSlowBrainMapProps {
   fastScore: number;
@@ -620,6 +621,9 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
       <p className="text-[8px] text-muted-foreground/60 text-center leading-relaxed mt-2">
         Functional cognitive systems based on Kahneman's dual-process theory.
       </p>
+
+      {/* S1 vs S2 Trend Chart */}
+      <DualProcessTrendChart />
     </div>
   );
 }
