@@ -16,6 +16,7 @@ import { AlertTriangle, Clock, Activity, TrendingDown, Info, Loader2 } from "luc
 import { useCognitiveAge, getRegressionRiskLabel, getRegressionRiskColor } from "@/hooks/useCognitiveAge";
 import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
 import { CognitiveAgeImpact } from "./CognitiveAgeImpact";
+import { CognitiveAgeInsights } from "./CognitiveAgeInsights";
 import { PaceOfAgingDial } from "./PaceOfAgingDial";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -186,7 +187,10 @@ export function CognitiveAgeCard() {
         />
       )}
 
-      {/* Impact breakdown + trend chart */}
+      {/* WHOOP-style insights */}
+      <CognitiveAgeInsights />
+
+      {/* Impact breakdown */}
       <CognitiveAgeImpact />
 
     </div>
