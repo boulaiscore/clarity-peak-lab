@@ -168,15 +168,16 @@ export function CognitiveAgeTrendChart() {
       ? Number(weeklyData.baseline.chrono_age_at_onboarding)
       : 30;
     
-    // Get the real age (use the first data point's real age or fallback)
+    // Get the real age with 1 decimal precision
     const rawRealAge = chartData.length > 0 ? chartData[0].realAge : fallbackAge;
-    const centerAge = Math.round(rawRealAge); // Integer value for centering
+    const centerAge = Math.round(rawRealAge * 10) / 10; // Keep 1 decimal
+    const centerAgeInt = Math.round(rawRealAge); // Integer for Y-axis ticks
     
     if (!hasData) {
       // Default range centered around the user's real age with 5 ticks
-      const min = centerAge - 2;
-      const max = centerAge + 2;
-      const ticks = [min, min + 1, centerAge, max - 1, max];
+      const min = centerAgeInt - 2;
+      const max = centerAgeInt + 2;
+      const ticks = [min, min + 1, centerAgeInt, max - 1, max];
       return { yMin: min, yMax: max, yGridTicks: ticks, centeredRealAge: centerAge };
     }
 
@@ -189,20 +190,20 @@ export function CognitiveAgeTrendChart() {
     const cognitiveMax = Math.max(...cognitiveAges);
     
     // Calculate distance from center (real age) to furthest cognitive age
-    const distanceToMin = centerAge - Math.floor(cognitiveMin);
-    const distanceToMax = Math.ceil(cognitiveMax) - centerAge;
+    const distanceToMin = centerAgeInt - Math.floor(cognitiveMin);
+    const distanceToMax = Math.ceil(cognitiveMax) - centerAgeInt;
     const maxDistance = Math.max(distanceToMin, distanceToMax, 2); // At least 2 years on each side
     
     // Create symmetric range around real age
-    const min = centerAge - maxDistance;
-    const max = centerAge + maxDistance;
+    const min = centerAgeInt - maxDistance;
+    const max = centerAgeInt + maxDistance;
     
     // Create exactly 5 ticks with real age exactly in the middle
     const ticks = [
       min,
-      centerAge - Math.floor(maxDistance / 2),
-      centerAge,
-      centerAge + Math.floor(maxDistance / 2),
+      centerAgeInt - Math.floor(maxDistance / 2),
+      centerAgeInt,
+      centerAgeInt + Math.floor(maxDistance / 2),
       max
     ];
     
