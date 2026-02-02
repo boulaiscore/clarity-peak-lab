@@ -337,74 +337,85 @@ export default function NeuroLab() {
                       </svg>
                     </motion.div>
                     
-                    {/* Icons positioned ON the circle circumference - centered on the edge */}
-                    {/* Container is 208px, circle radius 42/50 = 84%, so circle edge is at 8% = 16.6px from edge */}
-                    {/* Icons are 36px (w-9), so icon center should be at 16.6px from container edge */}
+                    {/* Icons positioned ON the circle circumference (SVG circle: cx=50, r=42 => edge at 8% / 92%) */}
+                    {/* Important: position the ICON center on the circumference; keep labels separately so they don't shift the icon. */}
                     <div className="absolute inset-0">
-                      {/* Train - Top (12 o'clock) - centered on circle edge */}
-                      <motion.div 
-                        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5"
-                        style={{ top: 'calc(8% - 18px)' }}
+                      {/* Train - 12 o'clock */}
+                      <motion.div
+                        className="absolute left-1/2 top-[8%] -translate-x-1/2 -translate-y-1/2"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2 }}
                       >
-                        <div className="w-9 h-9 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
-                          <Dumbbell className="w-4 h-4 text-primary" />
+                        <div className="relative">
+                          <div className="w-9 h-9 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
+                            <Dumbbell className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-primary">
+                            Train
+                          </span>
                         </div>
-                        <span className="text-[7px] font-bold uppercase tracking-wider text-primary">Train</span>
                       </motion.div>
-                      
-                      {/* Learn - Left (9 o'clock) - centered on circle edge */}
-                      <motion.div 
-                        className="absolute top-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-1"
-                        style={{ left: 'calc(8% - 18px)' }}
+
+                      {/* Learn - 9 o'clock */}
+                      <motion.div
+                        className="absolute left-[8%] top-1/2 -translate-x-1/2 -translate-y-1/2"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
                       >
-                        <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                          <BookMarked className="w-4 h-4 text-blue-400" />
+                        <div className="relative">
+                          <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                            <BookMarked className="w-4 h-4 text-blue-400" />
+                          </div>
+                          <span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
+                            Learn
+                          </span>
                         </div>
-                        <span className="text-[7px] font-bold uppercase tracking-wider text-blue-400">Learn</span>
                       </motion.div>
-                      
-                      {/* Repeat - Bottom (6 o'clock) - centered on circle edge */}
-                      <motion.div 
-                        className="absolute left-1/2 -translate-x-1/2 flex flex-col-reverse items-center gap-0.5"
-                        style={{ bottom: 'calc(8% - 18px)' }}
+
+                      {/* Repeat - 6 o'clock */}
+                      <motion.div
+                        className="absolute left-1/2 top-[92%] -translate-x-1/2 -translate-y-1/2"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.6 }}
                       >
-                        <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                          <RefreshCw className="w-4 h-4 text-blue-400" />
+                        <div className="relative">
+                          <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                            <RefreshCw className="w-4 h-4 text-blue-400" />
+                          </div>
+                          <span className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
+                            Repeat
+                          </span>
                         </div>
-                        <span className="text-[7px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
                       </motion.div>
-                      
-                      {/* Recover - Right (3 o'clock) - centered on circle edge */}
-                      <motion.div 
-                        className="absolute top-1/2 -translate-y-1/2 flex flex-row items-center gap-1"
-                        style={{ right: 'calc(8% - 20px)' }}
+
+                      {/* Recover - 3 o'clock */}
+                      <motion.div
+                        className="absolute left-[92%] top-1/2 -translate-x-1/2 -translate-y-1/2"
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
                       >
-                        <motion.div 
-                          className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
-                          animate={{ 
-                            boxShadow: [
-                              "0 0 10px rgba(16, 185, 129, 0.2)",
-                              "0 0 20px rgba(16, 185, 129, 0.4)",
-                              "0 0 10px rgba(16, 185, 129, 0.2)"
-                            ]
-                          }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                        >
-                          <Battery className="w-5 h-5 text-emerald-500" />
-                        </motion.div>
-                        <span className="text-[7px] font-bold uppercase tracking-wider text-emerald-500">Recover</span>
+                        <div className="relative">
+                          <motion.div
+                            className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+                            animate={{
+                              boxShadow: [
+                                "0 0 10px rgba(16, 185, 129, 0.2)",
+                                "0 0 20px rgba(16, 185, 129, 0.4)",
+                                "0 0 10px rgba(16, 185, 129, 0.2)",
+                              ],
+                            }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          >
+                            <Battery className="w-5 h-5 text-emerald-500" />
+                          </motion.div>
+                          <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500">
+                            Recover
+                          </span>
+                        </div>
                       </motion.div>
                     </div>
 
