@@ -116,7 +116,7 @@ export function LoomaTrainingLoop() {
             </motion.div>
             <span className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500 max-w-[80px]">
               Recover
-              <span className="block font-normal normal-case tracking-normal text-[6px] text-emerald-500/70 mt-0.5">
+              <span className="block font-normal normal-case tracking-normal text-[8px] text-emerald-500/70 mt-0.5">
                 Digital detox or walk
               </span>
             </span>
@@ -141,7 +141,7 @@ export function LoomaTrainingLoop() {
                 {key === "train" && (
                   <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-center">
                     Train
-                    <span className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mt-0.5">
+                    <span className="block font-normal normal-case tracking-normal text-[8px] text-blue-400/70 mt-0.5">
                       Boost Readiness & Sharpness
                     </span>
                   </span>
@@ -149,7 +149,7 @@ export function LoomaTrainingLoop() {
                 {key === "learn" && (
                   <span className="absolute right-full top-1/2 mr-3 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[90px] text-right">
                     Reason
-                    <span className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mt-0.5">
+                    <span className="block font-normal normal-case tracking-normal text-[8px] text-blue-400/70 mt-0.5">
                       Quality time with books & podcasts
                     </span>
                   </span>
