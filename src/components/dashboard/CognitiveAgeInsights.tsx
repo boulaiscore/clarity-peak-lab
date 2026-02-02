@@ -127,19 +127,14 @@ export function CognitiveAgeInsights() {
                 </span>
               )}
             </div>
-            {isCollectingData && (
-              <div className="w-full h-1.5 bg-muted/50 rounded-full overflow-hidden mb-1.5">
-                <div 
-                  className="h-full bg-primary/40 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(100, (daysWithData / daysRequired) * 100)}%` }}
-                />
-              </div>
-            )}
-            <p className="text-xs text-foreground leading-relaxed">
+            <p className={cn(
+              "leading-relaxed",
+              isCollectingData ? "text-[10px]" : "text-xs"
+            )}>
               {isCollectingData ? (
                 <>
-                  <span className="font-semibold text-muted-foreground">Collecting data</span>
-                  <span className="text-muted-foreground/70"> — need {daysRequired - daysWithData} more day{daysRequired - daysWithData !== 1 ? 's' : ''} to analyze trajectory.</span>
+                  <span className="font-medium text-muted-foreground">Collecting data</span>
+                  <span className="text-muted-foreground/70"> — need {daysRequired - daysWithData} more day{daysRequired - daysWithData !== 1 ? 's' : ''} to analyze.</span>
                 </>
               ) : (
                 <>
