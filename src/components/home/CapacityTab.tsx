@@ -36,21 +36,21 @@ export function CapacityTab({
   const strokeDashoffset = circumference - progress * circumference;
 
   // Dynamic color based on recovery value (same logic as battery)
-  // Low (0-35): dark orange/yellow → Medium (35-65): yellow-green → High (65-100): bright green
+  // Low (0-35): red/dark orange → Medium (35-65): yellow/yellow-green → High (65-100): bright green
   const getRecoveryColor = (value: number): string => {
     if (value <= 35) {
-      // Dark orange to yellow (hue 25-50)
-      const hue = 25 + (value / 35) * 25;
+      // Red to orange (hue 0-30)
+      const hue = 0 + (value / 35) * 30;
       return `hsl(${hue}, 85%, 45%)`;
     } else if (value <= 65) {
-      // Yellow to yellow-green (hue 50-90)
+      // Orange to yellow-green (hue 30-70)
       const progressVal = (value - 35) / 30;
-      const hue = 50 + progressVal * 40;
-      return `hsl(${hue}, 80%, 45%)`;
+      const hue = 30 + progressVal * 40;
+      return `hsl(${hue}, 80%, 48%)`;
     } else {
-      // Yellow-green to bright green (hue 90-140)
+      // Yellow-green to bright green (hue 70-140)
       const progressVal = (value - 65) / 35;
-      const hue = 90 + progressVal * 50;
+      const hue = 70 + progressVal * 70;
       return `hsl(${hue}, 75%, 45%)`;
     }
   };
@@ -88,10 +88,12 @@ export function CapacityTab({
                   // Scale factor: at 50% recovery, we want to show colors 0-50% of the spectrum
                   const scaleFactor = recovery / 100;
                   const stops = [
-                    { offset: 0, hue: 25, sat: 85, light: 45 },      // 0% - orange
-                    { offset: 35, hue: 45, sat: 85, light: 50 },     // 35% - yellow
-                    { offset: 50, hue: 70, sat: 80, light: 45 },     // 50% - yellow-green
-                    { offset: 75, hue: 100, sat: 75, light: 45 },    // 75% - green
+                    { offset: 0, hue: 0, sat: 85, light: 45 },       // 0% - red
+                    { offset: 20, hue: 20, sat: 85, light: 45 },     // 20% - dark orange
+                    { offset: 35, hue: 35, sat: 85, light: 48 },     // 35% - orange
+                    { offset: 50, hue: 50, sat: 80, light: 48 },     // 50% - yellow
+                    { offset: 65, hue: 70, sat: 75, light: 45 },     // 65% - yellow-green
+                    { offset: 85, hue: 110, sat: 75, light: 45 },    // 85% - green
                     { offset: 100, hue: 140, sat: 75, light: 45 },   // 100% - bright green
                   ];
                   

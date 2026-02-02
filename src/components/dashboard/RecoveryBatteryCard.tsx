@@ -30,21 +30,21 @@ export function RecoveryBatteryCard({
   const fillPercent = Math.min(Math.max(recovery, 0), 100);
   
   // Dynamic color based on recovery value
-  // Low (0-35): dark orange/yellow → Medium (35-65): yellow-green → High (65-100): bright green
+  // Low (0-35): red/dark orange → Medium (35-65): yellow/yellow-green → High (65-100): bright green
   const getRecoveryColor = (value: number): string => {
     if (value <= 35) {
-      // Dark orange to yellow (hue 25-50)
-      const hue = 25 + (value / 35) * 25;
+      // Red to orange (hue 0-30)
+      const hue = 0 + (value / 35) * 30;
       return `hsl(${hue}, 85%, 45%)`;
     } else if (value <= 65) {
-      // Yellow to yellow-green (hue 50-90)
+      // Orange to yellow-green (hue 30-70)
       const progress = (value - 35) / 30;
-      const hue = 50 + progress * 40;
-      return `hsl(${hue}, 80%, 45%)`;
+      const hue = 30 + progress * 40;
+      return `hsl(${hue}, 80%, 48%)`;
     } else {
-      // Yellow-green to bright green (hue 90-140)
+      // Yellow-green to bright green (hue 70-140)
       const progress = (value - 65) / 35;
-      const hue = 90 + progress * 50;
+      const hue = 70 + progress * 70;
       return `hsl(${hue}, 75%, 45%)`;
     }
   };
@@ -114,10 +114,12 @@ export function RecoveryBatteryCard({
             className="absolute inset-y-0 left-0 rounded-sm"
             style={{ 
               background: `linear-gradient(to right, 
-                hsl(25, 85%, 45%) 0%, 
-                hsl(45, 85%, 50%) 35%, 
-                hsl(70, 80%, 45%) 50%, 
-                hsl(100, 75%, 45%) 75%, 
+                hsl(0, 85%, 45%) 0%, 
+                hsl(20, 85%, 45%) 20%, 
+                hsl(35, 85%, 48%) 35%, 
+                hsl(50, 80%, 48%) 50%, 
+                hsl(70, 75%, 45%) 65%, 
+                hsl(110, 75%, 45%) 85%, 
                 hsl(140, 75%, 45%) 100%
               )`,
               backgroundSize: `${100 / (fillPercent / 100)}% 100%`
