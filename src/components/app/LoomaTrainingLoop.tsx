@@ -1,6 +1,7 @@
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Battery, BookMarked, Dumbbell } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
+import { useEffect } from "react";
 
 type Step = {
   key: "train" | "learn" | "repeat";
@@ -22,7 +23,6 @@ function polarToPercent(cx: number, cy: number, r: number, angleDeg: number) {
 }
 
 function arcPath(cx: number, cy: number, r: number, startDeg: number, endDeg: number) {
-  // Draw arc from start -> end (clockwise if end > start when normalized)
   const start = polarToCartesian(cx, cy, r, startDeg);
   const end = polarToCartesian(cx, cy, r, endDeg);
   const delta = (((endDeg - startDeg) % 360) + 360) % 360;
@@ -36,21 +36,90 @@ function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
 }
 
+// Helper to interpolate HSL colors
+function interpolateColor(progress: number): string {
+  // 0 = green (140), 0.33 = yellow (60), 0.66 = orange (30), 1 = red (0)
+  // Then back: 1+ wraps to green again
+  const normalizedProgress = progress % 1;
+  
+  let hue: number;
+  if (normalizedProgress < 0.33) {
+    // Green to Yellow (140 -> 60)
+    hue = 140 - (normalizedProgress / 0.33) * 80;
+  } else if (normalizedProgress < 0.66) {
+    // Yellow to Orange (60 -> 30)
+    hue = 60 - ((normalizedProgress - 0.33) / 0.33) * 30;
+  } else {
+    // Orange to Red (30 -> 0)
+    hue = 30 - ((normalizedProgress - 0.66) / 0.34) * 30;
+  }
+  
+  return `hsl(${Math.max(0, hue)}, 85%, 50%)`;
+}
+
+// Determine which icon is "active" based on gap position
+function getActiveIcon(rotationDeg: number): "recover" | "train" | "reason" {
+  // Gap is at -20° initially, rotates clockwise
+  // Normalize the effective gap position
+  const gapPosition = ((-20 + rotationDeg) % 360 + 360) % 360;
+  
+  // Train is at 100°, Reason is at 220° (which is -140° normalized)
+  // Recover is at 340° (which is -20° normalized)
+  
+  // Define zones (each icon "owns" ~120° of the circle)
+  // Recover zone: 280° - 40° (crossing 0)
+  // Train zone: 40° - 160°
+  // Reason zone: 160° - 280°
+  
+  if (gapPosition >= 40 && gapPosition < 160) {
+    return "train";
+  } else if (gapPosition >= 160 && gapPosition < 280) {
+    return "reason";
+  } else {
+    return "recover";
+  }
+}
+
 export function LoomaTrainingLoop() {
-  // SVG viewBox is 0..100. Using % positioning maps 1:1 to the viewBox.
   const cx = 50;
   const cy = 50;
   const r = 42;
 
-  // Recover sits at the "end" of the open loop (top-right), like the LOOMA logo dot.
   const recoverAngle = -20;
   const gapDeg = 70;
 
   const startDeg = recoverAngle + gapDeg / 2;
-  const endDeg = recoverAngle - gapDeg / 2 + 360; // ensure positive sweep
+  const endDeg = recoverAngle - gapDeg / 2 + 360;
 
   const loopD = arcPath(cx, cy, r, startDeg, endDeg);
   const recoverPos = polarToPercent(cx, cy, r, recoverAngle);
+
+  // Motion value for rotation (0 to 360)
+  const rotation = useMotionValue(0);
+  
+  // Derive which icon is active
+  const activeIcon = useTransform(rotation, (r) => getActiveIcon(r));
+  
+  // Derive recover color based on rotation progress
+  const recoverColor = useTransform(rotation, (r) => {
+    const active = getActiveIcon(r);
+    if (active === "recover") {
+      return "hsl(140, 85%, 50%)"; // Bright green when active
+    }
+    // Calculate color based on how far we are from recover
+    const progress = ((r % 360) / 360);
+    return interpolateColor(progress);
+  });
+
+  // Animate rotation continuously
+  useEffect(() => {
+    const controls = animate(rotation, 360, {
+      duration: 20,
+      repeat: Infinity,
+      ease: "linear",
+    });
+    return controls.stop;
+  }, [rotation]);
 
   return (
     <div className="py-6 pl-8 pr-4 flex flex-col items-center overflow-hidden ml-1">
@@ -58,8 +127,7 @@ export function LoomaTrainingLoop() {
         {/* Rotating arc only - z-0 to stay behind icons */}
         <motion.div
           className="absolute inset-0 z-0"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          style={{ rotate: rotation }}
         >
           <svg className="w-full h-full" viewBox="0 0 100 100" aria-hidden="true">
             {/* Subtle reference circle */}
@@ -93,72 +161,137 @@ export function LoomaTrainingLoop() {
         <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={recoverPos}>
           <div className="relative">
             <motion.div
-              className="w-10 h-10 rounded-full bg-background border-2 border-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30"
-              animate={{
-                boxShadow: [
-                  "0 0 10px rgba(16, 185, 129, 0.2)",
-                  "0 0 20px rgba(16, 185, 129, 0.4)",
-                  "0 0 10px rgba(16, 185, 129, 0.2)",
-                ],
+              className="w-10 h-10 rounded-full bg-background flex items-center justify-center"
+              style={{
+                borderWidth: 2,
+                borderStyle: "solid",
+                borderColor: recoverColor,
+                boxShadow: useTransform(recoverColor, (c) => `0 0 15px ${c}40`),
               }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Battery className="w-5 h-5 text-emerald-500" />
+              <motion.div style={{ color: recoverColor }}>
+                <Battery className="w-5 h-5" />
+              </motion.div>
             </motion.div>
-            <span className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500 max-w-[80px]">
+            <motion.span 
+              className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider max-w-[80px]"
+              style={{ color: recoverColor }}
+            >
               Recover
-              <span className="block font-normal normal-case tracking-normal text-[8px] text-emerald-500/70 mt-0.5">
+              <motion.span 
+                className="block font-normal normal-case tracking-normal text-[8px] mt-0.5"
+                style={{ color: useTransform(recoverColor, (c) => c.replace('50%)', '35%)')) }}
+              >
                 Digital detox or walk
-              </span>
-            </span>
+              </motion.span>
+            </motion.span>
           </div>
         </div>
 
-        {/* Other steps placed exactly on circumference */}
-        {STEPS.map(({ key, label, Icon, angleDeg }) => {
-          const pos = polarToPercent(cx, cy, r, angleDeg);
-          return (
-            <div key={key} className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={pos}>
-              <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                  <Icon className="w-4 h-4 text-blue-400" />
-                </div>
+        {/* Train icon */}
+        <motion.div 
+          className="absolute z-10 -translate-x-1/2 -translate-y-1/2" 
+          style={polarToPercent(cx, cy, r, 100)}
+        >
+          <div className="relative">
+            <motion.div
+              className="w-9 h-9 rounded-full bg-background flex items-center justify-center"
+              style={{
+                borderWidth: 2,
+                borderStyle: "solid",
+                borderColor: useTransform(activeIcon, (icon) => 
+                  icon === "train" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"
+                ),
+                boxShadow: useTransform(activeIcon, (icon) => 
+                  icon === "train" ? "0 0 20px rgba(59, 130, 246, 0.5)" : "0 0 10px rgba(59, 130, 246, 0.1)"
+                ),
+              }}
+            >
+              <motion.div
+                style={{
+                  color: useTransform(activeIcon, (icon) => 
+                    icon === "train" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"
+                  ),
+                }}
+              >
+                <Dumbbell className="w-4 h-4" />
+              </motion.div>
+            </motion.div>
+            <motion.span 
+              className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider whitespace-nowrap text-center"
+              style={{
+                color: useTransform(activeIcon, (icon) => 
+                  icon === "train" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"
+                ),
+              }}
+            >
+              Train
+              <motion.span 
+                className="block font-normal normal-case tracking-normal text-[8px] mt-0.5"
+                style={{
+                  color: useTransform(activeIcon, (icon) => 
+                    icon === "train" ? "hsl(210, 100%, 50%)" : "hsl(210, 40%, 40%)"
+                  ),
+                }}
+              >
+                Boost Readiness & Sharpness
+              </motion.span>
+            </motion.span>
+          </div>
+        </motion.div>
 
-                {/* Labels positioned based on angle */}
-                {key === "train" && (
-                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-center">
-                    Train
-                    <span className="block font-normal normal-case tracking-normal text-[8px] text-blue-400/70 mt-0.5">
-                      Boost Readiness & Sharpness
-                    </span>
-                  </span>
-                )}
-                {key === "learn" && (
-                  <span
-                    className="
-                      absolute right-full top-1/3 mr-1.5 -translate-y-1/2
-                      text-[7px] font-bold uppercase tracking-wider text-blue-400
-                      w-[90px] text-right
-                    "
-                  >
-                    REASON
-                    <span
-                      className="
-                        block mt-0.5
-                        text-[8px] font-normal normal-case tracking-normal
-                        text-blue-400/70
-                        leading-tight
-                      "
-                    >
-                      Quality time with
-                      <span className="block">books &amp; podcasts</span>
-                    </span>
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {/* Reason icon */}
+        <motion.div 
+          className="absolute z-10 -translate-x-1/2 -translate-y-1/2" 
+          style={polarToPercent(cx, cy, r, -140)}
+        >
+          <div className="relative">
+            <motion.div
+              className="w-9 h-9 rounded-full bg-background flex items-center justify-center"
+              style={{
+                borderWidth: 2,
+                borderStyle: "solid",
+                borderColor: useTransform(activeIcon, (icon) => 
+                  icon === "reason" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"
+                ),
+                boxShadow: useTransform(activeIcon, (icon) => 
+                  icon === "reason" ? "0 0 20px rgba(59, 130, 246, 0.5)" : "0 0 10px rgba(59, 130, 246, 0.1)"
+                ),
+              }}
+            >
+              <motion.div
+                style={{
+                  color: useTransform(activeIcon, (icon) => 
+                    icon === "reason" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"
+                  ),
+                }}
+              >
+                <BookMarked className="w-4 h-4" />
+              </motion.div>
+            </motion.div>
+            <motion.span
+              className="absolute right-full top-1/3 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider w-[90px] text-right"
+              style={{
+                color: useTransform(activeIcon, (icon) => 
+                  icon === "reason" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"
+                ),
+              }}
+            >
+              REASON
+              <motion.span
+                className="block mt-0.5 text-[8px] font-normal normal-case tracking-normal leading-tight"
+                style={{
+                  color: useTransform(activeIcon, (icon) => 
+                    icon === "reason" ? "hsl(210, 100%, 50%)" : "hsl(210, 40%, 40%)"
+                  ),
+                }}
+              >
+                Quality time with
+                <span className="block">books &amp; podcasts</span>
+              </motion.span>
+            </motion.span>
+          </div>
+        </motion.div>
 
         {/* Center: LOOMA Logo */}
         <div className="relative z-10 flex items-center justify-center">
