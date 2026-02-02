@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAuth, TrainingGoal, Gender, WorkType, EducationLevel, DegreeDiscipline, RRISleepHours, RRIDetoxHours, RRIMentalState } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Zap, Brain, Calendar as CalendarIcon, ArrowRight, User, Briefcase, GraduationCap, Bell, Leaf, Target, Flame, Moon, Smartphone, Battery } from "lucide-react";
+import { LumaLogo } from "@/components/ui/LumaLogo";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { computeRRI, RRI_SLEEP_OPTIONS, RRI_DETOX_OPTIONS, RRI_MENTAL_STATE_OPTIONS } from "@/lib/recoveryReadinessInit";
 
@@ -189,7 +190,7 @@ const Onboarding = () => {
           {step === 1 && (
             <div className="text-center animate-fade-in">
               <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center mx-auto mb-6">
-                <span className="text-foreground font-semibold text-xl">L</span>
+                <LumaLogo size={32} className="text-foreground" />
               </div>
               <h1 className="text-2xl font-semibold mb-3 tracking-tight leading-tight">
                 Welcome to LUMA
