@@ -453,10 +453,7 @@ export function DetoxChallengeTab() {
             </div>
           </div>
 
-          {/* Impact on Your System Block */}
-          <ImpactBlock mode={selectedMode} duration={selectedDuration} />
-
-          {/* CTA - Premium Style */}
+          {/* CTA - Premium Style - Moved right after duration */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -479,6 +476,9 @@ export function DetoxChallengeTab() {
               Start {selectedMode === "detox" ? "Detox" : "Walk"} • {selectedDuration} min
             </Button>
           </motion.div>
+
+          {/* Impact on Your System Block */}
+          <ImpactBlock mode={selectedMode} duration={selectedDuration} />
 
           {/* Expandable Sections */}
           <div className="space-y-3 pt-2">
