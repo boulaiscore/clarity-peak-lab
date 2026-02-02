@@ -151,9 +151,8 @@ export function LoomaTrainingLoop() {
         })}
 
         {/* Center: LOOMA Logo */}
-        <div className="relative z-10 flex flex-col items-center">
-          <LoomaLogo size={28} className="text-foreground/80" />
-          <span className="text-[9px] font-bold tracking-widest text-foreground/50 mt-1">LOOP</span>
+        <div className="relative z-10 flex items-center justify-center">
+          <LoomaLogo size={32} className="text-foreground/80" />
         </div>
       </div>
 
