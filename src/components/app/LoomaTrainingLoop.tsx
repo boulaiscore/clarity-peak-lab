@@ -302,7 +302,7 @@ export function LoomaTrainingLoop() {
               </motion.div>
             </motion.div>
             <motion.span
-              className="absolute right-full top-1/3 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider w-[90px] text-right"
+              className="absolute right-full top-1/3 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider w-[70px] text-right"
               style={{
                 color: useTransform(activeIcon, (icon) => 
                   icon === "reason" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"
