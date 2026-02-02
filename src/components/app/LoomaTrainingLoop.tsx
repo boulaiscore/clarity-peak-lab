@@ -150,7 +150,8 @@ export function LoomaTrainingLoop() {
                         line-clamp-2
                       "
                     >
-                      Quality time with books & podcasts
+                      Quality time with books
+                      <span className="block">&amp; podcasts</span>
                     </span>
                   </span>
                 )}
