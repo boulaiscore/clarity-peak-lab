@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, parseISO, differenceInDays } from "date-fns";
-import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart } from "recharts";
+import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart, LabelList } from "recharts";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 // Colors
 const COGNITIVE_AGE_GOOD_COLOR = "hsl(142, 76%, 45%)"; // Emerald green - younger than real age
@@ -328,7 +328,7 @@ export function CognitiveAgeTrendChart() {
       {/* Chart */}
       <div className="h-[160px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={displayData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
+          <ComposedChart data={displayData} margin={{ top: 20, right: 35, left: 10, bottom: 20 }}>
             <CartesianGrid 
               horizontal={true}
               vertical={false}
@@ -361,7 +361,30 @@ export function CognitiveAgeTrendChart() {
               strokeDasharray="4 4"
               dot={false}
               isAnimationActive={false}
-            />
+            >
+              <LabelList
+                dataKey="realAge"
+                position="right"
+                offset={8}
+                fill={REAL_AGE_COLOR}
+                fontSize={10}
+                fontWeight={600}
+                formatter={(value: number, entry: { index: number }) => {
+                  // Only show label on last point
+                  const lastIndex = displayData.length - 1;
+                  return entry?.index === lastIndex ? value.toFixed(1) : '';
+                }}
+                content={({ x, y, value, index }: { x?: number; y?: number; value?: number; index?: number }) => {
+                  const lastIndex = displayData.length - 1;
+                  if (index !== lastIndex || !value || x === undefined || y === undefined) return null;
+                  return (
+                    <text x={x + 8} y={y + 3} fill={REAL_AGE_COLOR} fontSize={10} fontWeight={600}>
+                      {value.toFixed(1)}
+                    </text>
+                  );
+                }}
+              />
+            </Line>
             {/* Cognitive Age - color based on comparison */}
             <Line
               type="linear"
@@ -373,7 +396,34 @@ export function CognitiveAgeTrendChart() {
               connectNulls
               dot={(props) => <CustomDot {...props} dataKey="cognitiveAge" />}
               isAnimationActive={false}
-            />
+            >
+              <LabelList
+                dataKey="cognitiveAge"
+                position="right"
+                offset={8}
+                fontSize={10}
+                fontWeight={600}
+                content={({ x, y, value, index }: { x?: number; y?: number; value?: number | null; index?: number }) => {
+                  // Find last non-null cognitive age index
+                  let lastValidIndex = -1;
+                  for (let i = displayData.length - 1; i >= 0; i--) {
+                    if (displayData[i].cognitiveAge !== null) {
+                      lastValidIndex = i;
+                      break;
+                    }
+                  }
+                  if (index !== lastValidIndex || value === null || value === undefined || x === undefined || y === undefined) return null;
+                  
+                  const realAge = displayData[lastValidIndex]?.realAge ?? 0;
+                  const color = value <= realAge ? COGNITIVE_AGE_GOOD_COLOR : COGNITIVE_AGE_BAD_COLOR;
+                  return (
+                    <text x={x + 8} y={y + 3} fill={color} fontSize={10} fontWeight={600}>
+                      {value.toFixed(1)}
+                    </text>
+                  );
+                }}
+              />
+            </Line>
           </ComposedChart>
         </ResponsiveContainer>
       </div>
