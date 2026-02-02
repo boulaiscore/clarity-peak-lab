@@ -113,7 +113,7 @@ export function LoomaTrainingLoop() {
   const cy = 50;
   const r = 42;
 
-  const recoverAngle = -50; // Rotated 30° counter-clockwise from -20°
+  const recoverAngle = -45; // Rotated 5° clockwise from -50°
   const gapDeg = 70;
 
   const startDeg = recoverAngle + gapDeg / 2;
@@ -220,10 +220,10 @@ export function LoomaTrainingLoop() {
           </div>
         </div>
 
-        {/* Train icon - rotated 30° counter-clockwise from 100° to 70° */}
+        {/* Train icon - at 75° */}
         <motion.div 
           className="absolute z-10 -translate-x-1/2 -translate-y-1/2" 
-          style={polarToPercent(cx, cy, r, 70)}
+          style={polarToPercent(cx, cy, r, 75)}
         >
           <div className="relative">
             <motion.div
@@ -272,10 +272,10 @@ export function LoomaTrainingLoop() {
           </div>
         </motion.div>
 
-        {/* Reason icon - rotated 30° counter-clockwise from -140° to -170° */}
+        {/* Reason icon - at -165° */}
         <motion.div 
           className="absolute z-10 -translate-x-1/2 -translate-y-1/2" 
-          style={polarToPercent(cx, cy, r, -170)}
+          style={polarToPercent(cx, cy, r, -165)}
         >
           <div className="relative">
             <motion.div
