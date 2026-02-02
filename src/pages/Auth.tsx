@@ -393,7 +393,7 @@ const Auth = () => {
           {/* Tagline */}
           <div className="mt-12 text-center">
             <p className="text-xs text-muted-foreground">
-              Train your mind for elite reasoning.
+              Built for clearer thinking in a noisy world.
             </p>
           </div>
         </div>
