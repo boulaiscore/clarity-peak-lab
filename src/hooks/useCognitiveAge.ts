@@ -162,7 +162,7 @@ export function useCognitiveAge() {
     staleTime: 5 * 60_000,
   });
 
-  // 4) Fallback: Fetch recent daily snapshots for live regression calculation if no daily record
+  // 4) Fetch recent daily snapshots for live performance calculation
   const { data: recentSnapshots, isLoading: snapshotsLoading } = useQuery({
     queryKey: ["daily-snapshots-30d", user?.id],
     queryFn: async () => {
@@ -180,8 +180,30 @@ export function useCognitiveAge() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id && !dailyRecord,
+    enabled: !!user?.id,
     staleTime: 60_000,
+  });
+
+  // 4b) Fetch 180-day snapshots for long-term average
+  const { data: snapshots180d } = useQuery({
+    queryKey: ["daily-snapshots-180d", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const startDate = format(subDays(new Date(), 180), "yyyy-MM-dd");
+
+      const { data, error } = await supabase
+        .from("daily_metric_snapshots")
+        .select("snapshot_date, ae, ra, ct, in_score")
+        .eq("user_id", user.id)
+        .gte("snapshot_date", startDate)
+        .order("snapshot_date", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
   });
 
   // 5) Calculate live regression risk from daily data (fallback)
@@ -258,6 +280,92 @@ export function useCognitiveAge() {
     return null;
   }, [weeklySnapshot]);
 
+  // 6b) Calculate live Cognitive Age during calibration
+  const liveCalibrationAge = useMemo(() => {
+    // If already calibrated and has weekly data, don't use live calculation
+    if (baseline?.is_baseline_calibrated && weeklySnapshot?.cognitive_age) {
+      return null;
+    }
+
+    // Calculate current real age
+    let currentRealAge: number;
+    if (profile?.birth_date) {
+      const birthDate = parseISO(profile.birth_date);
+      const today = new Date();
+      const ageInDays = differenceInDays(today, birthDate);
+      currentRealAge = Math.round((ageInDays / 365.25) * 10) / 10;
+    } else {
+      currentRealAge = baseline?.chrono_age_at_onboarding 
+        ? Number(baseline.chrono_age_at_onboarding)
+        : 30;
+    }
+
+    // Need at least one snapshot to calculate
+    if (!recentSnapshots || recentSnapshots.length === 0) {
+      return { cognitiveAge: currentRealAge, perf30d: null, perf180d: null };
+    }
+
+    // Calculate current performance (latest snapshot)
+    const latestSnapshot = recentSnapshots[0];
+    const skills = [latestSnapshot.ae, latestSnapshot.ra, latestSnapshot.ct, latestSnapshot.in_score]
+      .filter((v): v is number => v !== null)
+      .map(Number);
+    
+    if (skills.length === 0) {
+      return { cognitiveAge: currentRealAge, perf30d: null, perf180d: null };
+    }
+
+    // perf = 0.25 × (AE + RA + CT + IN)
+    const currentPerf = skills.reduce((a, b) => a + b, 0) * 0.25;
+
+    // Calculate 30-day average
+    const perf30dValues = recentSnapshots.map(s => {
+      const vals = [s.ae, s.ra, s.ct, s.in_score].filter((v): v is number => v !== null).map(Number);
+      return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) * 0.25 : null;
+    }).filter((v): v is number => v !== null);
+    
+    const perf30d = perf30dValues.length > 0 
+      ? perf30dValues.reduce((a, b) => a + b, 0) / perf30dValues.length 
+      : null;
+
+    // Calculate 180-day average (or use all available data as baseline)
+    let perf180d: number | null = null;
+    if (snapshots180d && snapshots180d.length > 0) {
+      const perf180dValues = snapshots180d.map(s => {
+        const vals = [s.ae, s.ra, s.ct, s.in_score].filter((v): v is number => v !== null).map(Number);
+        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) * 0.25 : null;
+      }).filter((v): v is number => v !== null);
+      
+      perf180d = perf180dValues.length > 0 
+        ? perf180dValues.reduce((a, b) => a + b, 0) / perf180dValues.length 
+        : null;
+    }
+
+    // Use baseline if available, otherwise use 50 as neutral baseline
+    // During calibration, baseline is the average of all performance so far
+    const calibrationBaseline = baseline?.baseline_score_90d 
+      ? Number(baseline.baseline_score_90d)
+      : (perf180d ?? 50); // Use 180d average as temporary baseline, or 50 as neutral
+
+    // Calculate improvement points
+    // Each 10 points above baseline = -1 year cognitive age
+    // Each 10 points below baseline = +1 year cognitive age
+    const perfDiff = currentPerf - calibrationBaseline;
+    const improvementPoints = perfDiff / 10; // 10 points = 1 year
+
+    // Calculate cognitive age
+    const cognitiveAge = Math.round((currentRealAge - improvementPoints) * 10) / 10;
+
+    return { 
+      cognitiveAge, 
+      perf30d: perf30d ? Math.round(perf30d * 10) / 10 : null, 
+      perf180d: perf180d ? Math.round(perf180d * 10) / 10 : null,
+      currentPerf: Math.round(currentPerf * 10) / 10,
+      calibrationBaseline: Math.round(calibrationBaseline * 10) / 10,
+      improvementPoints: Math.round(improvementPoints * 10) / 10
+    };
+  }, [recentSnapshots, snapshots180d, baseline, profile, weeklySnapshot]);
+
   // 7) Compose final data
   const cognitiveAgeData: CognitiveAgeData = useMemo(() => {
     // Calculate current real age from birth_date (with 1 decimal precision)
@@ -276,10 +384,27 @@ export function useCognitiveAge() {
     
     const isCalibrated = baseline?.is_baseline_calibrated ?? false;
     
-    // Round cognitive age to 1 decimal for consistency
-    const cogAge = weeklySnapshot?.cognitive_age 
-      ? Math.round(Number(weeklySnapshot.cognitive_age) * 10) / 10
-      : null;
+    // Use weekly snapshot if calibrated and available, otherwise use live calculation
+    let cogAge: number | null;
+    let perf30d: number | null;
+    let perf180d: number | null;
+    
+    if (isCalibrated && weeklySnapshot?.cognitive_age) {
+      // Use stable weekly data
+      cogAge = Math.round(Number(weeklySnapshot.cognitive_age) * 10) / 10;
+      perf30d = weeklySnapshot?.perf_short_30d ? Number(weeklySnapshot.perf_short_30d) : null;
+      perf180d = weeklySnapshot?.perf_long_180d ? Number(weeklySnapshot.perf_long_180d) : null;
+    } else if (liveCalibrationAge) {
+      // Use live calculation during calibration
+      cogAge = liveCalibrationAge.cognitiveAge;
+      perf30d = liveCalibrationAge.perf30d;
+      perf180d = liveCalibrationAge.perf180d;
+    } else {
+      // Fallback: cognitive age = real age
+      cogAge = currentRealAge;
+      perf30d = null;
+      perf180d = null;
+    }
     
     // Calculate days until next Sunday
     const now = new Date();
@@ -298,9 +423,9 @@ export function useCognitiveAge() {
         : null,
       weekStart: weeklySnapshot?.week_start ?? null,
       
-      // v2 fields
-      perf30d: weeklySnapshot?.perf_short_30d ? Number(weeklySnapshot.perf_short_30d) : null,
-      perf180d: weeklySnapshot?.perf_long_180d ? Number(weeklySnapshot.perf_long_180d) : null,
+      // v2 fields - use live calculation during calibration
+      perf30d: perf30d,
+      perf180d: perf180d,
       paceOfAgingX: weeklySnapshot?.pace_of_aging_x ? Number(weeklySnapshot.pace_of_aging_x) : null,
       engagementIndex: weeklySnapshot?.engagement_index ? Number(weeklySnapshot.engagement_index) : null,
       sessions30d: weeklySnapshot?.sessions_30d ?? 0,
@@ -328,7 +453,7 @@ export function useCognitiveAge() {
       delta: cogAge !== null ? Math.round((cogAge - currentRealAge) * 10) / 10 : 0,
       daysUntilNextUpdate: daysUntilSunday,
     };
-  }, [weeklySnapshot, baseline, profile, liveRegressionData, preRegressionWarning]);
+  }, [weeklySnapshot, baseline, profile, liveRegressionData, preRegressionWarning, liveCalibrationAge]);
 
   return {
     data: cognitiveAgeData,
