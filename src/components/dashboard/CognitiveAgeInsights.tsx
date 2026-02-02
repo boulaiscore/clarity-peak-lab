@@ -10,7 +10,7 @@
  */
 
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Target, Sparkles, ChevronRight } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Target, Sparkles, ChevronRight, Loader2 } from "lucide-react";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 import { useCognitiveAgeImpact, VARIABLE_CONFIG } from "@/hooks/useCognitiveAgeImpact";
 import { cn } from "@/lib/utils";
@@ -92,8 +92,8 @@ export function CognitiveAgeInsights() {
   const streakDays = data.regressionStreakDays;
   const daysToRegression = Math.max(0, 21 - streakDays);
 
-  // Don't render if no trajectory available
-  if (!trajectory) return null;
+  // Check if we're still collecting data
+  const isCollectingData = !hasEnoughData || !trajectory;
 
   return (
     <motion.div
@@ -101,40 +101,51 @@ export function CognitiveAgeInsights() {
       animate={{ opacity: 1, y: 0 }}
       className="mx-2 space-y-2"
     >
-      {/* Trajectory Card - Always show if we have trajectory */}
+      {/* Trajectory Card - Always show */}
       <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
         <div className="flex items-start gap-3">
           <div className={cn(
             "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-            trajectory.status === "improving" && "bg-emerald-500/10",
-            trajectory.status === "declining" && "bg-red-500/10",
-            trajectory.status === "stable" && "bg-blue-500/10"
+            isCollectingData && "bg-muted/30",
+            !isCollectingData && trajectory?.status === "improving" && "bg-emerald-500/10",
+            !isCollectingData && trajectory?.status === "declining" && "bg-red-500/10",
+            !isCollectingData && trajectory?.status === "stable" && "bg-blue-500/10"
           )}>
-            {trajectory.status === "improving" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
-            {trajectory.status === "declining" && <TrendingDown className="w-4 h-4 text-red-400" />}
-            {trajectory.status === "stable" && <Minus className="w-4 h-4 text-blue-400" />}
+            {isCollectingData && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
+            {!isCollectingData && trajectory?.status === "improving" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
+            {!isCollectingData && trajectory?.status === "declining" && <TrendingDown className="w-4 h-4 text-red-400" />}
+            {!isCollectingData && trajectory?.status === "stable" && <Minus className="w-4 h-4 text-blue-400" />}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5">
               Trajectory
             </p>
             <p className="text-xs text-foreground leading-relaxed">
-              {trajectory.status === "improving" && (
+              {isCollectingData ? (
                 <>
-                  <span className="font-semibold text-emerald-500">Improving</span>
-                  <span className="text-muted-foreground"> — your recent performance is above baseline.</span>
+                  <span className="font-semibold text-muted-foreground">Collecting data...</span>
+                  <span className="text-muted-foreground/70"> — need 7+ days of training to analyze your trajectory.</span>
                 </>
-              )}
-              {trajectory.status === "declining" && (
+              ) : (
                 <>
-                  <span className="font-semibold text-red-400">Declining</span>
-                  <span className="text-muted-foreground"> — your recent performance is below baseline.</span>
-                </>
-              )}
-              {trajectory.status === "stable" && (
-                <>
-                  <span className="font-semibold text-blue-400">Steady</span>
-                  <span className="text-muted-foreground"> — your performance is stable and aligned with baseline.</span>
+                  {trajectory?.status === "improving" && (
+                    <>
+                      <span className="font-semibold text-emerald-500">Improving</span>
+                      <span className="text-muted-foreground"> — your recent performance is above baseline.</span>
+                    </>
+                  )}
+                  {trajectory?.status === "declining" && (
+                    <>
+                      <span className="font-semibold text-red-400">Declining</span>
+                      <span className="text-muted-foreground"> — your recent performance is below baseline.</span>
+                    </>
+                  )}
+                  {trajectory?.status === "stable" && (
+                    <>
+                      <span className="font-semibold text-blue-400">Steady</span>
+                      <span className="text-muted-foreground"> — your performance is stable and aligned with baseline.</span>
+                    </>
+                  )}
                 </>
               )}
             </p>
