@@ -25,6 +25,7 @@ import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
+import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -297,145 +298,9 @@ export default function NeuroLab() {
             
             <CollapsibleContent>
               <div className="px-4 pb-4 space-y-4 border-t border-foreground/20 pt-4">
-                
-                {/* Visual Training Loop - Perfect Circle */}
-                <div className="py-6 flex flex-col items-center">
-                  <div className="relative w-52 h-52 flex items-center justify-center">
-                    {/* Perfect circle - rotating */}
-                    <motion.div
-                      className="absolute inset-0"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    >
-                      <svg className="w-full h-full" viewBox="0 0 100 100">
-                        {/* Background dashed circle */}
-                        <circle 
-                          cx="50" cy="50" r="42" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="0.5" 
-                          className="text-muted/20" 
-                          strokeDasharray="3 3" 
-                        />
-                        {/* Gradient circle */}
-                        <circle
-                          cx="50" cy="50" r="42"
-                          fill="none"
-                          stroke="url(#loopCircleGradient)"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                        <defs>
-                          <linearGradient id="loopCircleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="hsl(var(--primary))" />
-                            <stop offset="25%" stopColor="hsl(210, 80%, 55%)" />
-                            <stop offset="50%" stopColor="hsl(142, 71%, 45%)" />
-                            <stop offset="75%" stopColor="hsl(210, 80%, 55%)" />
-                            <stop offset="100%" stopColor="hsl(var(--primary))" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    </motion.div>
-                    
-                    {/* Icons positioned ON the circle circumference (SVG circle: cx=50, r=42 => edge at 8% / 92%) */}
-                    {/* Important: position the ICON center on the circumference; keep labels separately so they don't shift the icon. */}
-                    <div className="absolute inset-0">
-                      {/* Train - 12 o'clock */}
-                      <motion.div
-                        className="absolute left-1/2 top-[8%] -translate-x-1/2 -translate-y-1/2"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <div className="relative">
-                          <div className="w-9 h-9 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
-                            <Dumbbell className="w-4 h-4 text-primary" />
-                          </div>
-                          <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-primary">
-                            Train
-                          </span>
-                        </div>
-                      </motion.div>
 
-                      {/* Learn - 9 o'clock */}
-                      <motion.div
-                        className="absolute left-[8%] top-1/2 -translate-x-1/2 -translate-y-1/2"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <div className="relative">
-                          <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                            <BookMarked className="w-4 h-4 text-blue-400" />
-                          </div>
-                          <span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
-                            Learn
-                          </span>
-                        </div>
-                      </motion.div>
-
-                      {/* Repeat - 6 o'clock */}
-                      <motion.div
-                        className="absolute left-1/2 top-[92%] -translate-x-1/2 -translate-y-1/2"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.6 }}
-                      >
-                        <div className="relative">
-                          <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                            <RefreshCw className="w-4 h-4 text-blue-400" />
-                          </div>
-                          <span className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
-                            Repeat
-                          </span>
-                        </div>
-                      </motion.div>
-
-                      {/* Recover - 3 o'clock */}
-                      <motion.div
-                        className="absolute left-[92%] top-1/2 -translate-x-1/2 -translate-y-1/2"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
-                      >
-                        <div className="relative">
-                          <motion.div
-                            className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
-                            animate={{
-                              boxShadow: [
-                                "0 0 10px rgba(16, 185, 129, 0.2)",
-                                "0 0 20px rgba(16, 185, 129, 0.4)",
-                                "0 0 10px rgba(16, 185, 129, 0.2)",
-                              ],
-                            }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                          >
-                            <Battery className="w-5 h-5 text-emerald-500" />
-                          </motion.div>
-                          <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500">
-                            Recover
-                          </span>
-                        </div>
-                      </motion.div>
-                    </div>
-
-                    {/* Center: LOOMA Logo */}
-                    <motion.div 
-                      className="relative z-10 flex flex-col items-center"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <LoomaLogo size={28} className="text-foreground/80" />
-                      <span className="text-[9px] font-bold tracking-widest text-foreground/50 mt-1">LOOP</span>
-                    </motion.div>
-                  </div>
-                  
-                  {/* Caption */}
-                  <p className="text-[10px] text-muted-foreground/60 text-center mt-3 uppercase tracking-wider">
-                    The LOOMA Training Cycle
-                  </p>
-                </div>
+                {/* Visual Training Loop - Open circle like the LOOMA logo */}
+                <LoomaTrainingLoop />
 
                 {/* Step 1: The Cycle - Now just text explanation */}
                 <div className="space-y-2">
