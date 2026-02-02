@@ -334,9 +334,9 @@ export default function NeuroLab() {
                     
                     {/* Loop nodes on the arc */}
                     <div className="absolute inset-0">
-                      {/* Train - Top of arc */}
+                      {/* Train - Top-left of arc */}
                       <motion.div 
-                        className="absolute left-1/2 top-[2%] -translate-x-1/2 flex flex-col items-center gap-1"
+                        className="absolute left-[28%] top-[8%] -translate-x-1/2 flex flex-col items-center gap-1"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2 }}
