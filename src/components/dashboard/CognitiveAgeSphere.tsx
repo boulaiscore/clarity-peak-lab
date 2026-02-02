@@ -61,16 +61,17 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     const ageDiff = chronologicalAge ? cognitiveAge - chronologicalAge : delta;
     
     // Map delta to hue: green (140) for younger, blue (210) for neutral, red (0) for older
-    // Range: -10 years = full green, 0 = blue, +10 years = full red
-    const normalizedDiff = Math.max(-10, Math.min(10, ageDiff));
+    // Adjusted scale: -3 years = full green, 0 = blue, +3 years = full red
+    // This makes the color shift more responsive to small improvements
+    const normalizedDiff = Math.max(-3, Math.min(3, ageDiff));
     let hue: number;
     if (normalizedDiff <= 0) {
       // Younger: interpolate from green (140) to blue (210)
-      const t = Math.abs(normalizedDiff) / 10; // 0 to 1
+      const t = Math.abs(normalizedDiff) / 3; // 0 to 1 over 3 years
       hue = 210 - t * 70; // 210 → 140
     } else {
       // Older: interpolate from blue (210) to red (0)
-      const t = normalizedDiff / 10; // 0 to 1
+      const t = normalizedDiff / 3; // 0 to 1 over 3 years
       hue = 210 - t * 210; // 210 → 0
     }
     
