@@ -222,7 +222,7 @@ const Dashboard = () => {
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
-                          Tasks
+                          Reason
                         </button>
                         <button
                           onClick={() => setActivitySubTab("detox")}
@@ -233,7 +233,7 @@ const Dashboard = () => {
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
-                          Detox
+                          Recover
                         </button>
                         <button
                           onClick={() => setActivitySubTab("training")}
@@ -244,7 +244,7 @@ const Dashboard = () => {
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
-                          Training
+                          Train
                         </button>
                       </div>
                     </div>

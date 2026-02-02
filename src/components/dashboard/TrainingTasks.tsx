@@ -739,11 +739,11 @@ export function TrainingTasks() {
                 </div>
                 
                 <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
-                  <p className="text-[8px] text-muted-foreground mb-1">Why Tasks Matter</p>
+                  <p className="text-[8px] text-muted-foreground mb-1">Why Reason Matters</p>
                   <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
                     Quality content builds cognitive reserve. Podcasts, readings, 
                     and books prime System 2 thinking, improving Reasoning Accuracy 
-                    and Conceptual Depth. Tasks are cognitive inputs, not rewards.
+                    and Conceptual Depth. Reason is cognitive input, not rewards.
                   </p>
                 </div>
               </div>
@@ -756,8 +756,8 @@ export function TrainingTasks() {
       {completedCount >= planContentTarget && planContentTarget > 0 && (
         <div className="text-center py-4">
           <CheckCircle2 className="h-8 w-8 text-green-500/60 mx-auto mb-2" />
-          <p className="text-sm font-medium text-green-500">All tasks completed!</p>
-          <p className="text-[10px] text-muted-foreground">{completedCount} tasks completed this week</p>
+          <p className="text-sm font-medium text-green-500">All Reason activities completed!</p>
+          <p className="text-[10px] text-muted-foreground">{completedCount} Reason activities completed this week</p>
         </div>
       )}
     </motion.div>
