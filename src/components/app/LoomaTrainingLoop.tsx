@@ -181,17 +181,8 @@ export function LoomaTrainingLoop() {
               strokeDasharray="3 3"
             />
 
-            {/* Open loop (like LOOMA logo) */}
-            <path d={loopD} fill="none" stroke="url(#loomaLoopGradient)" strokeWidth="2.25" strokeLinecap="round" />
-
-            <defs>
-              <linearGradient id="loomaLoopGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="hsl(var(--primary))" />
-                <stop offset="35%" stopColor="hsl(210, 80%, 55%)" />
-                <stop offset="70%" stopColor="hsl(142, 71%, 45%)" />
-                <stop offset="100%" stopColor="hsl(var(--primary))" />
-              </linearGradient>
-            </defs>
+            {/* Open loop (like LOOMA logo) - white color */}
+            <path d={loopD} fill="none" stroke="white" strokeWidth="2.25" strokeLinecap="round" opacity="0.9" />
           </svg>
         </motion.div>
 
