@@ -56,6 +56,7 @@ export function LoomaTrainingLoop() {
   return (
     <div className="py-6 flex flex-col items-center">
       <div className="relative w-52 h-52 flex items-center justify-center">
+        {/* Rotating arc only */}
         <motion.div
           className="absolute inset-0"
           animate={{ rotate: 360 }}
@@ -92,76 +93,77 @@ export function LoomaTrainingLoop() {
               </linearGradient>
             </defs>
           </svg>
-
-          {/* Recover replaces the LOOMA dot (on the arc end) */}
-          <div
-            className="absolute -translate-x-1/2 -translate-y-1/2"
-            style={recoverPos}
-          >
-            <div className="relative">
-              <motion.div
-                className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
-                animate={{
-                  boxShadow: [
-                    "0 0 10px rgba(16, 185, 129, 0.2)",
-                    "0 0 20px rgba(16, 185, 129, 0.4)",
-                    "0 0 10px rgba(16, 185, 129, 0.2)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Battery className="w-5 h-5 text-emerald-500" />
-              </motion.div>
-              <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500">
-                Recover
-              </span>
-            </div>
-          </div>
-
-          {/* Other steps placed exactly on circumference */}
-          {STEPS.map(({ key, label, Icon, angleDeg }) => {
-            const pos = polarToPercent(cx, cy, r, angleDeg);
-            const isTrain = key === "train";
-            return (
-              <div
-                key={key}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                style={pos}
-              >
-                <div className="relative">
-                  <div
-                    className={
-                      isTrain
-                        ? "w-9 h-9 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10"
-                        : "w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10"
-                    }
-                  >
-                    <Icon className={isTrain ? "w-4 h-4 text-primary" : "w-4 h-4 text-blue-400"} />
-                  </div>
-
-                  {/* Labels (kept outside so they never push the icon off the arc) */}
-                  {key === "train" && (
-                    <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-primary">
-                      {label}
-                    </span>
-                  )}
-                  {key === "learn" && (
-                    <span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
-                      {label}
-                    </span>
-                  )}
-                  {key === "repeat" && (
-                    <span className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
-                      {label}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
         </motion.div>
 
-        {/* Center: LOOMA Logo (stays centered, rotates with loop by design) */}
+        {/* Static icons on circumference */}
+        {/* Recover - at the gap end (like LOOMA dot) */}
+        <div
+          className="absolute -translate-x-1/2 -translate-y-1/2"
+          style={recoverPos}
+        >
+          <div className="relative">
+            <motion.div
+              className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+              animate={{
+                boxShadow: [
+                  "0 0 10px rgba(16, 185, 129, 0.2)",
+                  "0 0 20px rgba(16, 185, 129, 0.4)",
+                  "0 0 10px rgba(16, 185, 129, 0.2)",
+                ],
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Battery className="w-5 h-5 text-emerald-500" />
+            </motion.div>
+            <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500">
+              Recover
+            </span>
+          </div>
+        </div>
+
+        {/* Other steps placed exactly on circumference */}
+        {STEPS.map(({ key, label, Icon, angleDeg }) => {
+          const pos = polarToPercent(cx, cy, r, angleDeg);
+          const isTrain = key === "train";
+          return (
+            <div
+              key={key}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={pos}
+            >
+              <div className="relative">
+                <div
+                  className={
+                    isTrain
+                      ? "w-9 h-9 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10"
+                      : "w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10"
+                  }
+                >
+                  <Icon className={isTrain ? "w-4 h-4 text-primary" : "w-4 h-4 text-blue-400"} />
+                </div>
+
+                {/* Labels */}
+                {key === "train" && (
+                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-primary">
+                    {label}
+                  </span>
+                )}
+                {key === "learn" && (
+                  <span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
+                    {label}
+                  </span>
+                )}
+                {key === "repeat" && (
+                  <span className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
+                    {label}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Center: LOOMA Logo */}
         <div className="relative z-10 flex flex-col items-center">
           <LoomaLogo size={28} className="text-foreground/80" />
           <span className="text-[9px] font-bold tracking-widest text-foreground/50 mt-1">LOOP</span>
