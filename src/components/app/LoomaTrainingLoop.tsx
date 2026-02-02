@@ -36,75 +36,72 @@ function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
 }
 
-// Helper to interpolate HSL colors based on rotation
-// Full cycle: recover (green) -> train (yellow) -> reason (orange/red) -> recover (back to green)
-function getRecoverColor(rotationDeg: number): string {
-  // Normalize rotation to 0-360
+// Icon positions (in degrees, 0° = right, clockwise positive in screen coords)
+const RECOVER_ANGLE = 340; // -20° normalized
+const TRAIN_ANGLE = 100;
+const REASON_ANGLE = 220; // -140° normalized
+
+// Gap is 70°, so leading edge is 35° ahead of gap center (-20°)
+// Leading edge starts at: -20 + 35 = 15°
+// As rotation R increases, leading edge is at: (15 + R) % 360
+
+// Icon becomes active when leading edge reaches it:
+// - Train (100°): 15 + R = 100 → R = 85°
+// - Reason (220°): 15 + R = 220 → R = 205°  
+// - Recover (340°): 15 + R = 340 → R = 325°
+
+function getActiveIcon(rotationDeg: number): "recover" | "train" | "reason" {
   const rot = ((rotationDeg % 360) + 360) % 360;
   
-  // Gap starts at recover (-20° = 340°), moves clockwise
-  // Key positions (where gap center arrives):
-  // - 0° rotation: gap at recover (340°) - GREEN
-  // - ~120° rotation: gap at train (100°) - gap has left recover, heading to train - YELLOW
-  // - ~240° rotation: gap at reason (220°) - ORANGE/RED  
-  // - ~360° rotation: gap back at recover - transitioning back to GREEN
+  // Active zones based on when leading edge touches each icon:
+  // Recover: [325, 360) ∪ [0, 85) - leading edge at recover until it reaches train
+  // Train: [85, 205) - leading edge at train until it reaches reason
+  // Reason: [205, 325) - leading edge at reason until it reaches recover
   
-  // Phase 1: 0-30° - Recover is active, bright green fading slightly
-  // Phase 2: 30-150° - Traveling through train zone, green -> yellow
-  // Phase 3: 150-280° - Traveling through reason zone, yellow -> orange -> red
-  // Phase 4: 280-360° - Approaching recover, red -> orange -> yellow -> green
+  if (rot >= 85 && rot < 205) {
+    return "train";
+  } else if (rot >= 205 && rot < 325) {
+    return "reason";
+  } else {
+    return "recover"; // [325, 360) ∪ [0, 85)
+  }
+}
+
+// Recover color follows the full cycle
+function getRecoverColor(rotationDeg: number): string {
+  const rot = ((rotationDeg % 360) + 360) % 360;
   
   let hue: number;
   let saturation = 85;
   let lightness = 50;
   
-  if (rot < 30) {
-    // Just left recover - still bright green, slowly starting to fade
-    hue = 140 - (rot / 30) * 20; // 140 -> 120
+  if (rot < 85) {
+    // Recover zone - bright green fading toward yellow
+    const t = rot / 85;
+    hue = 140 - t * 50; // 140 (green) -> 90 (yellow-green)
     saturation = 85;
-    lightness = 50 - (rot / 30) * 5; // 50 -> 45
-  } else if (rot < 150) {
-    // Train zone - green/yellow fading to yellow
-    const t = (rot - 30) / 120;
-    hue = 120 - t * 60; // 120 -> 60 (yellow)
-    saturation = 85 - t * 10; // slightly desaturate
+    lightness = 50 - t * 5;
+  } else if (rot < 205) {
+    // Train zone - yellow-green to orange
+    const t = (rot - 85) / 120;
+    hue = 90 - t * 50; // 90 -> 40 (orange)
+    saturation = 80;
     lightness = 45;
-  } else if (rot < 280) {
-    // Reason zone - yellow to orange to red
-    const t = (rot - 150) / 130;
-    hue = 60 - t * 60; // 60 -> 0 (red)
+  } else if (rot < 325) {
+    // Reason zone - orange to red
+    const t = (rot - 205) / 120;
+    hue = 40 - t * 40; // 40 -> 0 (red)
     saturation = 75;
     lightness = 45;
   } else {
-    // Approaching recover - red transitioning back to green
-    const t = (rot - 280) / 80; // 0 to 1 as we approach recover
-    // Transition from red (0) through orange/yellow back to green (140)
-    // Use a curve that goes: red -> orange -> yellow -> green
-    hue = t * 140; // 0 -> 140
-    saturation = 75 + t * 10; // 75 -> 85
-    lightness = 45 + t * 5; // 45 -> 50
+    // Approaching recover - red back to green
+    const t = (rot - 325) / 35; // 0 to 1 as we complete the cycle
+    hue = t * 140; // 0 (red) -> 140 (green)
+    saturation = 75 + t * 10;
+    lightness = 45 + t * 5;
   }
   
   return `hsl(${Math.max(0, Math.min(140, hue))}, ${saturation}%, ${lightness}%)`;
-}
-
-// Determine which icon is "active" based on gap position
-function getActiveIcon(rotationDeg: number): "recover" | "train" | "reason" {
-  const rot = ((rotationDeg % 360) + 360) % 360;
-  
-  // Based on where the gap is in its rotation:
-  // 0-40°: recover zone (gap near recover)
-  // 40-160°: train zone (gap near train)
-  // 160-280°: reason zone (gap near reason)
-  // 280-360°: approaching recover again
-  
-  if (rot < 40 || rot >= 320) {
-    return "recover";
-  } else if (rot >= 40 && rot < 160) {
-    return "train";
-  } else {
-    return "reason";
-  }
 }
 
 export function LoomaTrainingLoop() {
