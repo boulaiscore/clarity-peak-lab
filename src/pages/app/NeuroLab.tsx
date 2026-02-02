@@ -354,10 +354,10 @@ export default function NeuroLab() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-background border-2 border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/10">
-                          <BookMarked className="w-4 h-4 text-amber-500" />
+                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                          <BookMarked className="w-4 h-4 text-blue-400" />
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-amber-500">Learn</span>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400">Learn</span>
                       </motion.div>
                       
                       {/* Repeat - Bottom of arc */}
