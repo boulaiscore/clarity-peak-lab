@@ -322,14 +322,15 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const getComparisonText = () => {
     if (!chronologicalAge) return null;
     const diff = chronologicalAge - cognitiveAge;
-    const absDiff = Math.abs(Math.round(diff));
+    const absDiff = Math.abs(diff);
+    const formattedDiff = absDiff.toFixed(1);
 
-    if (absDiff === 0) {
+    if (absDiff < 0.05) {
       return { text: "Same as your chronological age", color: "text-muted-foreground" };
     } else if (diff > 0) {
-      return { text: `${absDiff}y younger than your chronological age`, color: "text-emerald-500" };
+      return { text: `${formattedDiff}y younger than your chronological age`, color: "text-emerald-500" };
     } else {
-      return { text: `${absDiff}y older than your chronological age`, color: "text-amber-500" };
+      return { text: `${formattedDiff}y older than your chronological age`, color: "text-amber-500" };
     }
   };
 
