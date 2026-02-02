@@ -162,7 +162,6 @@ export function CognitiveAgeTrendChart() {
     return (
       <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
         <div className="flex items-center gap-2 mb-3">
-          <Brain className="w-4 h-4 text-primary" />
           <span className="text-[11px] font-semibold tracking-wider text-muted-foreground">
             AGE COMPARISON
           </span>
@@ -181,7 +180,6 @@ export function CognitiveAgeTrendChart() {
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Brain className="w-4 h-4 text-primary" />
           <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
             Age Comparison
           </span>
