@@ -298,95 +298,119 @@ export default function NeuroLab() {
             <CollapsibleContent>
               <div className="px-4 pb-4 space-y-4 border-t border-foreground/20 pt-4">
                 
-                {/* Visual Training Loop */}
+                {/* Visual Training Loop - LUMA Logo Style */}
                 <div className="py-4 flex flex-col items-center">
-                  <div className="relative w-52 h-52 flex items-center justify-center">
-                    {/* Circular track with animated gradient */}
-                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                      {/* Background dashed circle */}
-                      <circle 
-                        cx="50" cy="50" r="40" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="0.5" 
-                        className="text-muted/30" 
-                        strokeDasharray="3 3" 
+                  <div className="relative w-56 h-48 flex items-center justify-center">
+                    {/* Open arc (like LUMA logo) */}
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 120 100">
+                      {/* Background dashed arc */}
+                      <path
+                        d="M 95 75 A 35 35 0 1 0 95 25"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="0.8"
+                        className="text-muted/20"
+                        strokeDasharray="3 3"
                       />
-                      {/* Animated progress circle */}
-                      <motion.circle
-                        cx="50" cy="50" r="40" 
-                        fill="none" 
-                        stroke="url(#loopGradient)" 
-                        strokeWidth="1.5" 
+                      {/* Animated gradient arc */}
+                      <motion.path
+                        d="M 95 75 A 35 35 0 1 0 95 25"
+                        fill="none"
+                        stroke="url(#lumaLoopGradient)"
+                        strokeWidth="2"
                         strokeLinecap="round"
-                        initial={{ pathLength: 0, opacity: 0.3 }}
+                        initial={{ pathLength: 0, opacity: 0.4 }}
                         animate={{ pathLength: 1, opacity: 1 }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatType: "reverse" }}
                       />
                       <defs>
-                        <linearGradient id="loopGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <linearGradient id="lumaLoopGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                           <stop offset="0%" stopColor="hsl(var(--primary))" />
-                          <stop offset="50%" stopColor="hsl(142, 71%, 45%)" />
-                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                          <stop offset="50%" stopColor="hsl(200, 80%, 55%)" />
+                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
                         </linearGradient>
                       </defs>
                     </svg>
                     
-                    {/* Loop nodes positioned on circle */}
+                    {/* Loop nodes on the arc */}
                     <div className="absolute inset-0">
-                      {/* Train - Top */}
+                      {/* Train - Top of arc */}
                       <motion.div 
-                        className="absolute left-1/2 top-[4%] -translate-x-1/2 flex flex-col items-center gap-1.5"
+                        className="absolute left-1/2 top-[2%] -translate-x-1/2 flex flex-col items-center gap-1"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2 }}
                       >
-                        <div className="w-11 h-11 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
-                          <Dumbbell className="w-5 h-5 text-primary" />
+                        <div className="w-10 h-10 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
+                          <Dumbbell className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Train</span>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-primary">Train</span>
                       </motion.div>
                       
-                      {/* Recover - Bottom Right */}
+                      {/* Learn - Left side of arc */}
                       <motion.div 
-                        className="absolute left-[82%] top-[68%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5"
+                        className="absolute left-[8%] top-[50%] -translate-y-1/2 flex flex-col items-center gap-1"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
                       >
-                        <div className="w-11 h-11 rounded-full bg-background border-2 border-emerald-500/50 flex items-center justify-center shadow-lg shadow-emerald-500/10">
-                          <Battery className="w-5 h-5 text-emerald-500" />
+                        <div className="w-10 h-10 rounded-full bg-background border-2 border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/10">
+                          <BookMarked className="w-4 h-4 text-amber-500" />
                         </div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-500">Recover</span>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-amber-500">Learn</span>
                       </motion.div>
                       
-                      {/* Repeat - Bottom Left */}
+                      {/* Repeat - Bottom of arc */}
                       <motion.div 
-                        className="absolute left-[18%] top-[68%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5"
+                        className="absolute left-1/2 bottom-[2%] -translate-x-1/2 flex flex-col items-center gap-1"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.6 }}
                       >
-                        <div className="w-11 h-11 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                          <RefreshCw className="w-5 h-5 text-blue-400" />
+                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                          <RefreshCw className="w-4 h-4 text-blue-400" />
                         </div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
+                      </motion.div>
+                      
+                      {/* Recover - Detached dot (like LUMA logo) - Top Right */}
+                      <motion.div 
+                        className="absolute right-[8%] top-[18%] flex flex-col items-center gap-1"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
+                      >
+                        <motion.div 
+                          className="w-11 h-11 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+                          animate={{ 
+                            boxShadow: [
+                              "0 0 10px rgba(16, 185, 129, 0.2)",
+                              "0 0 20px rgba(16, 185, 129, 0.4)",
+                              "0 0 10px rgba(16, 185, 129, 0.2)"
+                            ]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <Battery className="w-5 h-5 text-emerald-500" />
+                        </motion.div>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-500">Recover</span>
                       </motion.div>
                     </div>
 
-                    {/* Center: LUMA Logo */}
+                    {/* Center: LUMA text */}
                     <motion.div 
-                      className="relative z-10 w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/20"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1 }}
+                      className="relative z-10 flex flex-col items-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
                     >
-                      <LumaLogo size={28} className="text-primary" />
+                      <LumaLogo size={24} className="text-foreground/80" />
+                      <span className="text-[10px] font-bold tracking-widest text-foreground/60 mt-1">LOOP</span>
                     </motion.div>
                   </div>
                   
                   {/* Caption */}
-                  <p className="text-[10px] text-muted-foreground/70 text-center mt-2 uppercase tracking-wider">
+                  <p className="text-[10px] text-muted-foreground/60 text-center mt-1 uppercase tracking-wider">
                     The LUMA Training Cycle
                   </p>
                 </div>
