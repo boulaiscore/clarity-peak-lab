@@ -262,7 +262,7 @@ const SLIDES: TutorialSlide[] = [
   {
     id: "s1s2",
     title: "Two Thinking Systems",
-    subtitle: "The science behind NeuroLoop",
+    subtitle: "The science behind LUMA",
     description: "System 1 is fast, intuitive, automatic. System 2 is slow, deliberate, analytical. Training both creates cognitive balance.",
     icon: <LumaLogo size={20} className="text-foreground" />,
     visual: <S1S2Visual />,
