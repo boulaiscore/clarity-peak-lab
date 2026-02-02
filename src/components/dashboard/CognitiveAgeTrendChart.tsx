@@ -75,11 +75,11 @@ export function CognitiveAgeTrendChart() {
   const { data: weeklyData, isLoading } = useQuery({
     queryKey: ["cognitive-age-trend", user?.id],
     queryFn: async () => {
-      if (!user?.id) return { weekly: [], baseline: null };
+      if (!user?.id) return { weekly: [], baseline: null, profile: null };
 
       const thirtyDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd");
 
-      const [weeklyResult, baselineResult] = await Promise.all([
+      const [weeklyResult, baselineResult, profileResult] = await Promise.all([
         supabase
           .from("user_cognitive_age_weekly")
           .select("week_start, cognitive_age")
@@ -90,6 +90,11 @@ export function CognitiveAgeTrendChart() {
           .from("user_cognitive_baselines")
           .select("chrono_age_at_onboarding")
           .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("birth_date")
+          .eq("user_id", user.id)
           .maybeSingle()
       ]);
 
@@ -97,27 +102,63 @@ export function CognitiveAgeTrendChart() {
       
       return {
         weekly: weeklyResult.data || [],
-        baseline: baselineResult.data
+        baseline: baselineResult.data,
+        profile: profileResult.data
       };
     },
     enabled: !!user?.id,
     staleTime: 5 * 60_000,
   });
 
+  // Helper function to calculate age at a specific date
+  const calculateAgeAtDate = (birthDate: string, targetDate: string): number => {
+    const birth = parseISO(birthDate);
+    const target = parseISO(targetDate);
+    
+    let age = target.getFullYear() - birth.getFullYear();
+    const monthDiff = target.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && target.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    // Add fractional year based on days since last birthday
+    const lastBirthday = new Date(target.getFullYear(), birth.getMonth(), birth.getDate());
+    if (lastBirthday > target) {
+      lastBirthday.setFullYear(lastBirthday.getFullYear() - 1);
+    }
+    const nextBirthday = new Date(lastBirthday);
+    nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
+    
+    const daysSinceLastBirthday = Math.floor((target.getTime() - lastBirthday.getTime()) / (1000 * 60 * 60 * 24));
+    const daysInYear = Math.floor((nextBirthday.getTime() - lastBirthday.getTime()) / (1000 * 60 * 60 * 24));
+    
+    const fractionalAge = age + (daysSinceLastBirthday / daysInYear);
+    return Math.round(fractionalAge * 10) / 10; // Round to 1 decimal
+  };
+
   const chartData = useMemo((): ChartDataPoint[] => {
     if (!weeklyData?.weekly || weeklyData.weekly.length === 0) return [];
     
-    const realAge = weeklyData.baseline?.chrono_age_at_onboarding 
+    const birthDate = weeklyData.profile?.birth_date;
+    const fallbackAge = weeklyData.baseline?.chrono_age_at_onboarding 
       ? Number(weeklyData.baseline.chrono_age_at_onboarding)
       : 30;
 
-    return weeklyData.weekly.map((w) => ({
-      weekLabel: format(parseISO(w.week_start), "d MMM"),
-      cognitiveAge: w.cognitive_age ? Number(w.cognitive_age) : null,
-      realAge: realAge,
-      weekStart: w.week_start,
-    }));
-  }, [weeklyData]);
+    return weeklyData.weekly.map((w) => {
+      // Calculate real age at this week's date
+      const realAge = birthDate 
+        ? calculateAgeAtDate(birthDate, w.week_start)
+        : fallbackAge;
+      
+      return {
+        weekLabel: format(parseISO(w.week_start), "d MMM"),
+        cognitiveAge: w.cognitive_age ? Number(w.cognitive_age) : null,
+        realAge: realAge,
+        weekStart: w.week_start,
+      };
+    });
+  }, [weeklyData, calculateAgeAtDate]);
 
   const hasData = chartData.some(d => d.cognitiveAge !== null);
 
@@ -160,7 +201,8 @@ export function CognitiveAgeTrendChart() {
 
   // Generate placeholder data if no real data exists
   const displayData = hasData ? chartData : (() => {
-    const realAge = weeklyData?.baseline?.chrono_age_at_onboarding 
+    const birthDate = weeklyData?.profile?.birth_date;
+    const fallbackAge = weeklyData?.baseline?.chrono_age_at_onboarding 
       ? Number(weeklyData.baseline.chrono_age_at_onboarding)
       : 30;
     
@@ -169,11 +211,16 @@ export function CognitiveAgeTrendChart() {
     const placeholderWeeks = [];
     for (let i = 3; i >= 0; i--) {
       const weekDate = subDays(today, i * 7);
+      const weekDateStr = format(weekDate, "yyyy-MM-dd");
+      const realAge = birthDate 
+        ? calculateAgeAtDate(birthDate, weekDateStr)
+        : fallbackAge;
+      
       placeholderWeeks.push({
         weekLabel: format(weekDate, "d MMM"),
         cognitiveAge: null,
         realAge: realAge,
-        weekStart: format(weekDate, "yyyy-MM-dd"),
+        weekStart: weekDateStr,
       });
     }
     return placeholderWeeks;
