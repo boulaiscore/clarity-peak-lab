@@ -652,6 +652,8 @@ export function useRecordGameSession() {
         queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
         queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
         queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
+        // CRITICAL: Invalidate intraday events for Analytics 1d charts to update immediately
+        queryClient.invalidateQueries({ queryKey: ["intraday-events", userId] });
         
         console.log("[GameSession] ✅ Session recorded successfully:", data.id);
         return data;
