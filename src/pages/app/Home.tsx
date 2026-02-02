@@ -355,8 +355,8 @@ const Home = () => {
           opacity: 1,
           y: 0
         }} className="text-center max-w-sm">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-              <LumaLogo size={32} className="text-primary" />
+            <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center mx-auto mb-6">
+              <LumaLogo size={32} className="text-white" />
             </div>
             <h1 className="text-xl font-semibold mb-2">Complete Calibration</h1>
             <p className="text-sm text-muted-foreground/70 mb-8 leading-relaxed">
