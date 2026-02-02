@@ -338,8 +338,8 @@ const Home = () => {
     }
     return {
       title: "Today: recover",
-      body: "Readiness is low — do Recover or light Reason instead.",
-      action: "Start Recover"
+      body: "Readiness is low — do Recharge or light Reason instead.",
+      action: "Start Recharge"
     };
   };
   const insight = getInsight();
