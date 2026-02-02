@@ -133,7 +133,7 @@ export function LoomaTrainingLoop() {
 
   // Animate rotation continuously using requestAnimationFrame for smooth looping
   const lastTimeRef = useRef<number | null>(null);
-  const ROTATION_DURATION = 12000; // 12 seconds per full rotation
+  const ROTATION_DURATION = 13200; // ~13.2 seconds per full rotation (10% slower)
   
   useEffect(() => {
     let animationId: number;
