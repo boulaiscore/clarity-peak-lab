@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { Battery, BookMarked, Dumbbell } from "lucide-react";
+import { Smartphone, Ban, BookMarked, Dumbbell } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { useEffect, useRef } from "react";
 
@@ -201,8 +201,9 @@ export function LoomaTrainingLoop() {
                 boxShadow: useTransform(recoverColor, (c) => `0 0 15px ${c}40`),
               }}
             >
-              <motion.div style={{ color: recoverColor }}>
-                <Battery className="w-5 h-5" />
+              <motion.div style={{ color: recoverColor }} className="relative">
+                <Smartphone className="w-5 h-5" />
+                <Ban className="w-5 h-5 absolute inset-0" />
               </motion.div>
             </motion.div>
             <motion.span 
