@@ -312,13 +312,13 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     return () => cancelAnimationFrame(animationId);
   }, [theme, delta, cognitiveAge, chronologicalAge]);
 
-  // Calculate comparison text vs real age
+  // Calculate comparison text vs real age (with 1 decimal)
   const getComparisonText = () => {
     if (!chronologicalAge) return null;
     const diff = chronologicalAge - cognitiveAge;
-    const absDiff = Math.abs(Math.round(diff));
+    const absDiff = Math.abs(Math.round(diff * 10) / 10).toFixed(1);
     
-    if (absDiff === 0) {
+    if (Math.abs(diff) < 0.05) {
       return { text: "Same as your real age", color: "text-muted-foreground" };
     } else if (diff > 0) {
       return { text: `${absDiff}y younger than your real age`, color: "text-emerald-500" };
@@ -348,7 +348,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
             <div className="flex items-baseline gap-1">
               <span className="text-3xl font-semibold text-foreground number-display">
-                {Math.round(animatedAge)}
+                {animatedAge.toFixed(1)}
               </span>
               <span className="text-sm text-muted-foreground">years</span>
             </div>
