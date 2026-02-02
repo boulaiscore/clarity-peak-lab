@@ -162,21 +162,18 @@ export function CognitiveAgeTrendChart() {
 
   const hasData = chartData.some(d => d.cognitiveAge !== null);
 
-  // Calculate Y-axis domain with 1-year increments
+  // Calculate Y-axis domain with exactly 5 ticks
   const { yMin, yMax, yGridTicks } = useMemo(() => {
     const fallbackAge = weeklyData?.baseline?.chrono_age_at_onboarding 
       ? Number(weeklyData.baseline.chrono_age_at_onboarding)
       : 30;
     
     if (!hasData) {
-      // Default range centered around the user's age with 1-year steps
+      // Default range centered around the user's age with 5 ticks
       const centerAge = Math.round(fallbackAge);
-      const min = centerAge - 3;
-      const max = centerAge + 3;
-      const ticks = [];
-      for (let i = min; i <= max; i++) {
-        ticks.push(i);
-      }
+      const min = centerAge - 2;
+      const max = centerAge + 2;
+      const ticks = [min, min + 1, centerAge, max - 1, max];
       return { yMin: min, yMax: max, yGridTicks: ticks };
     }
 
@@ -187,15 +184,20 @@ export function CognitiveAgeTrendChart() {
     const dataMin = Math.min(...allValues);
     const dataMax = Math.max(...allValues);
     
-    // Round to integers and add 2 years padding
-    const min = Math.floor(dataMin) - 2;
-    const max = Math.ceil(dataMax) + 2;
+    // Round to integers and add padding
+    const min = Math.floor(dataMin) - 1;
+    const max = Math.ceil(dataMax) + 1;
     
-    // Create ticks with 1-year increments
-    const ticks = [];
-    for (let i = min; i <= max; i++) {
-      ticks.push(i);
-    }
+    // Create exactly 5 ticks evenly distributed
+    const range = max - min;
+    const step = range / 4;
+    const ticks = [
+      Math.round(min),
+      Math.round(min + step),
+      Math.round(min + step * 2),
+      Math.round(min + step * 3),
+      Math.round(max)
+    ];
     
     return { yMin: min, yMax: max, yGridTicks: ticks };
   }, [chartData, hasData, weeklyData]);
