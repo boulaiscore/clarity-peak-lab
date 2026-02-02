@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { LumaLogo } from "@/components/ui/LumaLogo";
 import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
 import { toast } from "@/hooks/use-toast";
+import authBackground from "@/assets/auth-background.png";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -250,11 +251,14 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-radial from-primary/8 via-transparent to-transparent" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[150px]" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-[150px]" />
+    <div className="min-h-screen flex flex-col relative">
+      {/* Background image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${authBackground})` }}
+      />
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/60" />
 
       {/* Header - removed back button for app-only prototype */}
 
