@@ -80,14 +80,17 @@ export function CapacityTab({
         height: size
       }}>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-            {/* Dynamic gradient definition for recovery ring - scaled to current value */}
+            {/* Gradient definition matching battery exactly */}
             <defs>
-              <linearGradient id="recoveryRingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                {/* Scale gradient stops based on recovery value, same as battery */}
+              {/* Use a conic gradient simulation via multiple arc segments for true arc gradient */}
+              {/* For simplicity, use linear gradient rotated to match arc direction */}
+              <linearGradient id="recoveryRingGradient" gradientUnits="userSpaceOnUse" 
+                x1={size / 2} y1={size} x2={size / 2} y2={0}>
+                {/* Same gradient as battery, scaled to recovery value */}
+                {/* At recovery %, we show colors from 0% to recovery% of the full spectrum */}
                 {(() => {
-                  // Scale factor: at 50% recovery, we want to show colors 0-50% of the spectrum
-                  const scaleFactor = recovery / 100;
-                  const stops = [
+                  // Full gradient stops (same as battery)
+                  const fullStops = [
                     { offset: 0, hue: 0, sat: 85, light: 45 },       // 0% - red
                     { offset: 20, hue: 20, sat: 85, light: 45 },     // 20% - dark orange
                     { offset: 35, hue: 35, sat: 85, light: 48 },     // 35% - orange
@@ -97,22 +100,22 @@ export function CapacityTab({
                     { offset: 100, hue: 140, sat: 75, light: 45 },   // 100% - bright green
                   ];
                   
-                  // Filter and scale stops up to the current recovery value
-                  return stops
-                    .filter(s => s.offset <= recovery)
-                    .map((s, i, arr) => {
-                      // Scale offset to fill the visible arc (0% to 100% of the drawn arc)
-                      const scaledOffset = recovery > 0 ? (s.offset / recovery) * 100 : 0;
-                      return (
-                        <stop 
-                          key={i} 
-                          offset={`${Math.min(scaledOffset, 100)}%`} 
-                          stopColor={`hsl(${s.hue}, ${s.sat}%, ${s.light}%)`} 
-                        />
-                      );
-                    });
+                  // Filter stops up to current recovery value, then scale them to fill the visible arc
+                  const visibleStops = fullStops.filter(s => s.offset <= recovery);
+                  
+                  return visibleStops.map((s, i) => {
+                    // Scale: if recovery=50%, offset 0 stays 0%, offset 50 becomes 100%
+                    const scaledOffset = recovery > 0 ? (s.offset / recovery) * 100 : 0;
+                    return (
+                      <stop 
+                        key={i} 
+                        offset={`${Math.min(scaledOffset, 100)}%`} 
+                        stopColor={`hsl(${s.hue}, ${s.sat}%, ${s.light}%)`} 
+                      />
+                    );
+                  });
                 })()}
-                {/* Add final stop at current recovery color */}
+                {/* Final stop at current recovery color */}
                 <stop offset="100%" stopColor={ringColor} />
               </linearGradient>
             </defs>
@@ -129,7 +132,6 @@ export function CapacityTab({
               strokeLinecap="round" 
               strokeDasharray={circumference} 
               strokeDashoffset={strokeDashoffset} 
-              className="transition-all duration-1000 ease-out" 
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
