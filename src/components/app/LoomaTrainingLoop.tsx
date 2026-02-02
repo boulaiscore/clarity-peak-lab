@@ -193,7 +193,7 @@ export function LoomaTrainingLoop() {
         <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={recoverPos}>
           <div className="relative">
             <motion.div
-              className="w-10 h-10 rounded-full bg-background flex items-center justify-center"
+              className="w-9 h-9 rounded-full bg-background flex items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: "solid",
@@ -202,8 +202,8 @@ export function LoomaTrainingLoop() {
               }}
             >
               <motion.div style={{ color: recoverColor }} className="relative">
-                <Smartphone className="w-5 h-5" />
-                <Ban className="w-5 h-5 absolute inset-0" />
+                <Smartphone className="w-4 h-4" />
+                <Ban className="w-4 h-4 absolute inset-0" />
               </motion.div>
             </motion.div>
             <motion.span 
