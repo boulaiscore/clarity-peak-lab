@@ -337,11 +337,14 @@ export default function NeuroLab() {
                       </svg>
                     </motion.div>
                     
-                    {/* Icons positioned ON the circle circumference */}
+                    {/* Icons positioned ON the circle circumference - centered on the edge */}
+                    {/* Container is 208px, circle radius 42/50 = 84%, so circle edge is at 8% = 16.6px from edge */}
+                    {/* Icons are 36px (w-9), so icon center should be at 16.6px from container edge */}
                     <div className="absolute inset-0">
-                      {/* Train - Top (12 o'clock) - on the circle edge */}
+                      {/* Train - Top (12 o'clock) - centered on circle edge */}
                       <motion.div 
-                        className="absolute left-1/2 top-[4px] -translate-x-1/2 flex flex-col items-center gap-0.5"
+                        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5"
+                        style={{ top: 'calc(8% - 18px)' }}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2 }}
@@ -352,9 +355,10 @@ export default function NeuroLab() {
                         <span className="text-[7px] font-bold uppercase tracking-wider text-primary">Train</span>
                       </motion.div>
                       
-                      {/* Learn - Left (9 o'clock) - on the circle edge */}
+                      {/* Learn - Left (9 o'clock) - centered on circle edge */}
                       <motion.div 
-                        className="absolute left-[4px] top-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-1"
+                        className="absolute top-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-1"
+                        style={{ left: 'calc(8% - 18px)' }}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
@@ -365,9 +369,10 @@ export default function NeuroLab() {
                         <span className="text-[7px] font-bold uppercase tracking-wider text-blue-400">Learn</span>
                       </motion.div>
                       
-                      {/* Repeat - Bottom (6 o'clock) - on the circle edge */}
+                      {/* Repeat - Bottom (6 o'clock) - centered on circle edge */}
                       <motion.div 
-                        className="absolute left-1/2 bottom-[4px] -translate-x-1/2 flex flex-col-reverse items-center gap-0.5"
+                        className="absolute left-1/2 -translate-x-1/2 flex flex-col-reverse items-center gap-0.5"
+                        style={{ bottom: 'calc(8% - 18px)' }}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.6 }}
@@ -378,9 +383,10 @@ export default function NeuroLab() {
                         <span className="text-[7px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
                       </motion.div>
                       
-                      {/* Recover - Right (3 o'clock) - on the circle edge */}
+                      {/* Recover - Right (3 o'clock) - centered on circle edge */}
                       <motion.div 
-                        className="absolute right-[4px] top-1/2 -translate-y-1/2 flex flex-row items-center gap-1"
+                        className="absolute top-1/2 -translate-y-1/2 flex flex-row items-center gap-1"
+                        style={{ right: 'calc(8% - 20px)' }}
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
