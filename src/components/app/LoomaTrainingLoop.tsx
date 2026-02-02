@@ -318,7 +318,7 @@ export function LoomaTrainingLoop() {
                   ),
                 }}
               >
-                Quality time with
+                <span className="block">Quality time with</span>
                 <span className="block">books &amp; podcasts</span>
               </motion.span>
             </motion.span>
