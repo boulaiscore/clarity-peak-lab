@@ -271,7 +271,7 @@ const Auth = () => {
               <LumaLogo size={48} className="text-foreground" />
             </div>
             <h1 className="text-2xl font-semibold mb-2">
-              {isLogin ? "Welcome back" : "Start training"}
+              {isLogin ? "Welcome back" : "Start your journey with LUMA"}
             </h1>
             <p className="text-muted-foreground text-sm">
               {isLogin
