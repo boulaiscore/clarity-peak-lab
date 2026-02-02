@@ -136,7 +136,7 @@ export function LoomaTrainingLoop() {
                 {key === "learn" && (
                   <span
                     className="
-                      absolute right-full top-1/2 mr-0.5 -translate-y-1/2
+                      absolute right-full top-1/3 mr-0.5 -translate-y-1/2
                       text-[7px] font-bold uppercase tracking-wider text-blue-400
                       w-[90px] text-right
                     "
