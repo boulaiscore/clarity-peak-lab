@@ -101,7 +101,9 @@ export function useBaselineStatus(): BaselineStatus {
     enabled: !!user?.id,
     staleTime: 60_000, // 1 minute - prevents flicker during games
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    // IMPORTANT: allows immediate UI transition after completing/skipping calibration.
+    // We still keep window-focus refetch disabled to avoid flicker during gameplay.
+    refetchOnMount: true,
   });
   
   // Get calibration status with fallback logic
