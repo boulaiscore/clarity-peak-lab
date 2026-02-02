@@ -1,7 +1,7 @@
 <svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Black background -->
   <rect width="192" height="192" fill="#0a0b0f"/>
-  <!-- LUMA logo centered - scaled from 24x24 to fit 192x192 with padding -->
+  <!-- LOOMA logo centered - scaled from 24x24 to fit 192x192 with padding -->
   <g transform="translate(48, 48) scale(4)">
     <!-- Open circle / loop logo - elegant thin stroke -->
     <path

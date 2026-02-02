@@ -47,7 +47,7 @@ interface ReadingCompletion {
   timestamp: string;
 }
 
-const READING_COMPLETIONS_KEY = "luma_reading_completions";
+const READING_COMPLETIONS_KEY = "looma_reading_completions";
 
 function getReadingCompletions(): { todayCount: number; weeklyBookCount: number } {
   try {

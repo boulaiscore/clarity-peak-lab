@@ -5,7 +5,7 @@ type Theme = "dark" | "light";
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check localStorage first
-    const stored = localStorage.getItem("luma-theme");
+    const stored = localStorage.getItem("looma-theme");
     if (stored === "light" || stored === "dark") {
       return stored;
     }
@@ -21,7 +21,7 @@ export function useTheme() {
       root.classList.remove("light");
     }
     
-    localStorage.setItem("luma-theme", theme);
+    localStorage.setItem("looma-theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {

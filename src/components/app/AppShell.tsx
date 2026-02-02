@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Home, LayoutDashboard, Bell, BellOff, Activity, Sun, Moon, Menu, X, Layers, User, Settings, CreditCard, LogOut } from "lucide-react";
-import { LumaLogo } from "@/components/ui/LumaLogo";
+import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { useDecayNotificationInit } from "@/hooks/useDecayNotificationInit";
@@ -99,8 +99,8 @@ export function AppShell({ children }: AppShellProps) {
             </button>
             
             <Link to="/app" className="flex items-center gap-2">
-              <LumaLogo size={24} className="text-foreground" />
-              <span className="font-semibold tracking-tight text-sm">LUMA</span>
+              <LoomaLogo size={24} className="text-foreground" />
+              <span className="font-semibold tracking-tight text-sm">LOOMA</span>
             </Link>
             
             <Link to="/app/install" className="w-8 flex justify-end">
