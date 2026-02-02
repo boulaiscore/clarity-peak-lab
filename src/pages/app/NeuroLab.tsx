@@ -337,56 +337,56 @@ export default function NeuroLab() {
                       </svg>
                     </motion.div>
                     
-                    {/* Icons positioned on the circle - fixed positions, don't rotate */}
+                    {/* Icons positioned ON the circle circumference */}
                     <div className="absolute inset-0">
-                      {/* Train - Top (12 o'clock) */}
+                      {/* Train - Top (12 o'clock) - on the circle edge */}
                       <motion.div 
-                        className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1"
+                        className="absolute left-1/2 top-[4px] -translate-x-1/2 flex flex-col items-center gap-0.5"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2 }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
+                        <div className="w-9 h-9 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
                           <Dumbbell className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-primary mt-0.5">Train</span>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-primary">Train</span>
                       </motion.div>
                       
-                      {/* Learn - Left (9 o'clock) */}
+                      {/* Learn - Left (9 o'clock) - on the circle edge */}
                       <motion.div 
-                        className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-1.5"
+                        className="absolute left-[4px] top-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-1"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                        <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
                           <BookMarked className="w-4 h-4 text-blue-400" />
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400">Learn</span>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-blue-400">Learn</span>
                       </motion.div>
                       
-                      {/* Repeat - Bottom (6 o'clock) */}
+                      {/* Repeat - Bottom (6 o'clock) - on the circle edge */}
                       <motion.div 
-                        className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 flex flex-col-reverse items-center gap-1"
+                        className="absolute left-1/2 bottom-[4px] -translate-x-1/2 flex flex-col-reverse items-center gap-0.5"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.6 }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                        <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
                           <RefreshCw className="w-4 h-4 text-blue-400" />
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400 mb-0.5">Repeat</span>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
                       </motion.div>
                       
-                      {/* Recover - Right (3 o'clock) */}
+                      {/* Recover - Right (3 o'clock) - on the circle edge */}
                       <motion.div 
-                        className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 flex flex-row items-center gap-1.5"
+                        className="absolute right-[4px] top-1/2 -translate-y-1/2 flex flex-row items-center gap-1"
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
                       >
                         <motion.div 
-                          className="w-11 h-11 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+                          className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
                           animate={{ 
                             boxShadow: [
                               "0 0 10px rgba(16, 185, 129, 0.2)",
@@ -398,7 +398,7 @@ export default function NeuroLab() {
                         >
                           <Battery className="w-5 h-5 text-emerald-500" />
                         </motion.div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-500">Recover</span>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-emerald-500">Recover</span>
                       </motion.div>
                     </div>
 
