@@ -56,9 +56,9 @@ export function LoomaTrainingLoop() {
   return (
     <div className="py-6 flex flex-col items-center">
       <div className="relative w-52 h-52 flex items-center justify-center">
-        {/* Rotating arc only */}
+        {/* Rotating arc only - z-0 to stay behind icons */}
         <motion.div
-          className="absolute inset-0"
+          className="absolute inset-0 z-0"
           animate={{ rotate: 360 }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         >
@@ -95,10 +95,10 @@ export function LoomaTrainingLoop() {
           </svg>
         </motion.div>
 
-        {/* Static icons on circumference */}
+        {/* Static icons on circumference - z-10 to stay above arc */}
         {/* Recover - at the gap end (like LOOMA dot) */}
         <div
-          className="absolute -translate-x-1/2 -translate-y-1/2"
+          className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
           style={recoverPos}
         >
           <div className="relative">
@@ -128,7 +128,7 @@ export function LoomaTrainingLoop() {
           return (
             <div
               key={key}
-              className="absolute -translate-x-1/2 -translate-y-1/2"
+              className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
               style={pos}
             >
               <div className="relative">
