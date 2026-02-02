@@ -157,7 +157,7 @@ export function LoomaTrainingLoop() {
       </div>
 
       <p className="text-[10px] text-muted-foreground/60 text-center mt-3 uppercase tracking-wider">
-        The LOOMA Training Cycle
+        The LOOMA Loop
       </p>
     </div>
   );
