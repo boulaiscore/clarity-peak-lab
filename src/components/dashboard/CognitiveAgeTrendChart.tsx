@@ -288,6 +288,7 @@ export function CognitiveAgeTrendChart() {
             <YAxis
               domain={[yMin, yMax]}
               ticks={yGridTicks}
+              interval={0}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 9, fill: MUTED_TEXT }}
