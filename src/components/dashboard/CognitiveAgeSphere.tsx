@@ -348,7 +348,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           {/* Content overlay - age centered */}
           <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-semibold text-foreground number-display">{Math.round(animatedAge)}</span>
+              <span className="text-3xl font-semibold text-foreground number-display">{animatedAge.toFixed(1)}</span>
               <span className="text-sm text-muted-foreground">years</span>
             </div>
           </div>
