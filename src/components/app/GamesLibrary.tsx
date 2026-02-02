@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Zap } from "lucide-react";
 import {
   AttentionalEfficiencyIcon,
   RapidAssociationIcon,
@@ -136,7 +136,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
             ? "border-area-fast/30 bg-area-fast/5" 
             : "border-area-slow/30 bg-area-slow/5";
           const iconColor = system === "fast" ? "text-area-fast" : "text-area-slow";
-          const SystemIcon = system === "fast" ? System1Icon : System2Icon;
+          const SystemIcon = system === "fast" ? Zap : System2Icon;
           
           return (
             <div
