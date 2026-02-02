@@ -83,7 +83,7 @@ const S2_GAME_WINDOW = 10; // Last 10 S2 sessions
 const S2_GAME_FALLBACK_CONSISTENCY = 50; // When < 5 sessions
 const TASK_WINDOW_DAYS = 7;
 const DECAY_INACTIVITY_DAYS = 14;
-const DECAY_PER_WEEK = 1;
+const DECAY_PER_WEEK = 2;
 
 // ============================================
 // S2_CORE
