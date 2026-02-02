@@ -43,8 +43,8 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
+
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const isDarkMode = theme === "dark";
@@ -55,49 +55,48 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     // Vitality factor: negative delta (younger brain) = more vitality
     // Normalize from 0 (delta >= 0) to 1 (delta <= -10)
     const vitalityFactor = Math.min(1, Math.max(0, -delta / 10));
-    
+
     // Calculate age difference for color mapping
     // delta < 0 means younger (green), delta > 0 means older (red)
     const ageDiff = chronologicalAge ? cognitiveAge - chronologicalAge : delta;
-    
+
     // Map delta to hue: green (140) for younger, blue (210) for neutral, red (0) for older
-    // Adjusted scale: -3 years = full green, 0 = blue, +3 years = full red
-    // This makes the color shift more responsive to small improvements
-    const normalizedDiff = Math.max(-3, Math.min(3, ageDiff));
+    // Range: -10 years = full green, 0 = blue, +10 years = full red
+    const normalizedDiff = Math.max(-10, Math.min(10, ageDiff));
     let hue: number;
     if (normalizedDiff <= 0) {
       // Younger: interpolate from green (140) to blue (210)
-      const t = Math.abs(normalizedDiff) / 3; // 0 to 1 over 3 years
+      const t = Math.abs(normalizedDiff) / 10; // 0 to 1
       hue = 210 - t * 70; // 210 → 140
     } else {
       // Older: interpolate from blue (210) to red (0)
-      const t = normalizedDiff / 3; // 0 to 1 over 3 years
+      const t = normalizedDiff / 10; // 0 to 1
       hue = 210 - t * 210; // 210 → 0
     }
-    
+
     // Brighter, more vibrant colors - enhanced brilliance
-    const connectionColor = { 
-      h: hue, 
-      s: 100, 
-      l: isDarkMode ? 70 + Math.abs(normalizedDiff) * 2 : 60 + Math.abs(normalizedDiff) * 2
+    const connectionColor = {
+      h: hue,
+      s: 100,
+      l: isDarkMode ? 70 + Math.abs(normalizedDiff) * 2 : 60 + Math.abs(normalizedDiff) * 2,
     };
-    const nodeColor = { 
-      h: hue, 
-      s: 100, 
-      l: isDarkMode ? 75 + Math.abs(normalizedDiff) * 2 : 65 + Math.abs(normalizedDiff) * 2
+    const nodeColor = {
+      h: hue,
+      s: 100,
+      l: isDarkMode ? 75 + Math.abs(normalizedDiff) * 2 : 65 + Math.abs(normalizedDiff) * 2,
     };
 
     // Create nodes arranged around the perimeter
     const nodes: Node[] = [];
     const nodeCount = 130;
-    
+
     for (let i = 0; i < nodeCount; i++) {
       const angle = (i / nodeCount) * Math.PI * 2 + Math.random() * 0.3;
       const radiusVariation = 0.55 + Math.random() * 0.45;
       const r = baseRadius * radiusVariation;
       const x = centerX + Math.cos(angle) * r;
       const y = centerY + Math.sin(angle) * r;
-      
+
       nodes.push({
         x,
         y,
@@ -175,17 +174,23 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       ctx.closePath();
 
       // Inner fill gradient - subtle glow near edges (WHOOP-inspired)
-      const innerFill = ctx.createRadialGradient(
-        centerX, centerY, 0,
-        centerX, centerY, baseRadius
-      );
+      const innerFill = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, baseRadius);
       innerFill.addColorStop(0, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, 0)`);
-      innerFill.addColorStop(0.6, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.03 : 0.02})`);
-      innerFill.addColorStop(0.85, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`);
-      innerFill.addColorStop(1, `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.15 : 0.10})`);
+      innerFill.addColorStop(
+        0.6,
+        `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.03 : 0.02})`,
+      );
+      innerFill.addColorStop(
+        0.85,
+        `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l}%, ${isDarkMode ? 0.08 : 0.05})`,
+      );
+      innerFill.addColorStop(
+        1,
+        `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 10}%, ${isDarkMode ? 0.15 : 0.1})`,
+      );
       ctx.fillStyle = innerFill;
       ctx.fill();
-      
+
       // Elegant thin border stroke - WHOOP-inspired subtle edge
       ctx.strokeStyle = `hsla(${connectionColor.h}, ${connectionColor.s}%, ${connectionColor.l + 15}%, ${isDarkMode ? 0.4 : 0.35})`;
       ctx.lineWidth = 1;
@@ -201,7 +206,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         node.vy += dy * 0.006;
         node.vx *= 0.985;
         node.vy *= 0.985;
-        
+
         // Strictly constrain nodes inside the blob with margin
         if (!isInsideBlob(node.x, node.y, time, 8)) {
           // Push back towards center
@@ -220,7 +225,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       });
 
       // Draw connections - sharp crisp lines with vitality-based intensity
-      ctx.lineCap = 'round';
+      ctx.lineCap = "round";
       const basePulseSpeed = 0.7 + vitalityFactor * 0.5;
       const basePulseAmplitude = 0.12 + vitalityFactor * 0.18;
       const baseOpacity = 0.85 + vitalityFactor * 0.15;
@@ -229,30 +234,30 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       nodes.forEach((node, i) => {
         // Skip if node is outside blob
         if (!isInsideBlob(node.x, node.y, time, 3)) return;
-        
+
         node.connections.forEach((j) => {
           const other = nodes[j];
           // Skip if other node is outside blob
           if (!isInsideBlob(other.x, other.y, time, 3)) return;
-          
+
           const dx = other.x - node.x;
           const dy = other.y - node.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          
+
           const pulse = 0.2 + Math.sin(time * basePulseSpeed + node.pulsePhase) * basePulseAmplitude;
           const opacity = Math.max(0, pulse * (1 - dist / connectionDistance)) * (1 + vitalityFactor * 0.5);
-          
+
           const midX = (node.x + other.x) / 2;
           const midY = (node.y + other.y) / 2;
           const perpX = -dy / dist;
           const perpY = dx / dist;
-          const curveIntensity = (Math.sin(i * 1.7 + j * 0.9) * 8) + (Math.sin(time * 0.25 + i) * 2);
+          const curveIntensity = Math.sin(i * 1.7 + j * 0.9) * 8 + Math.sin(time * 0.25 + i) * 2;
           const ctrlX = midX + perpX * curveIntensity;
           const ctrlY = midY + perpY * curveIntensity;
-          
+
           // Skip if control point is outside blob
           if (!isInsideBlob(ctrlX, ctrlY, time, 3)) return;
-          
+
           // Single sharp connection line - brighter with more vitality
           ctx.beginPath();
           ctx.moveTo(node.x, node.y);
@@ -265,9 +270,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           if (Math.random() < travelPulseProbability) {
             const pulsePos = (time * (0.2 + vitalityFactor * 0.15) + i * 0.12) % 1;
             const t = pulsePos;
-            const px = (1-t)*(1-t)*node.x + 2*(1-t)*t*ctrlX + t*t*other.x;
-            const py = (1-t)*(1-t)*node.y + 2*(1-t)*t*ctrlY + t*t*other.y;
-            
+            const px = (1 - t) * (1 - t) * node.x + 2 * (1 - t) * t * ctrlX + t * t * other.x;
+            const py = (1 - t) * (1 - t) * node.y + 2 * (1 - t) * t * ctrlY + t * t * other.y;
+
             // Only draw pulse if inside blob
             if (isInsideBlob(px, py, time, 5)) {
               const pulseSize = 1.5 + vitalityFactor * 0.8;
@@ -287,7 +292,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       nodes.forEach((node) => {
         // Only draw nodes that are inside the blob
         if (!isInsideBlob(node.x, node.y, time, 3)) return;
-        
+
         const pulse = Math.sin(time * nodePulseSpeed + node.pulsePhase);
         const currentRadius = node.radius * (0.95 + pulse * nodePulseAmplitude);
         const glowIntensity = (0.9 + pulse * 0.1) * (1 + vitalityFactor * 0.2);
@@ -313,55 +318,44 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
     return () => cancelAnimationFrame(animationId);
   }, [theme, delta, cognitiveAge, chronologicalAge]);
 
-  // Calculate comparison text vs real age (with 1 decimal)
+  // Calculate comparison text vs chronological age
   const getComparisonText = () => {
     if (!chronologicalAge) return null;
     const diff = chronologicalAge - cognitiveAge;
-    const absDiff = Math.abs(Math.round(diff * 10) / 10).toFixed(1);
-    
-    if (Math.abs(diff) < 0.05) {
-      return { text: "Same as your real age", color: "text-muted-foreground" };
+    const absDiff = Math.abs(Math.round(diff));
+
+    if (absDiff === 0) {
+      return { text: "Same as your chronological age", color: "text-muted-foreground" };
     } else if (diff > 0) {
-      return { text: `${absDiff}y younger than your real age`, color: "text-emerald-500" };
+      return { text: `${absDiff}y younger than your chronological age`, color: "text-emerald-500" };
     } else {
-      return { text: `${absDiff}y older than your real age`, color: "text-amber-500" };
+      return { text: `${absDiff}y older than your chronological age`, color: "text-amber-500" };
     }
   };
-  
+
   const comparison = getComparisonText();
 
   return (
     <div className="py-2">
       <h3 className="label-uppercase text-center mb-6">Cognitive Age</h3>
-      
+
       <div className="relative flex flex-col items-center justify-center mt-2">
         {/* Main sphere container */}
         <div className="relative">
           {/* Canvas for neural network */}
-          <canvas
-            ref={canvasRef}
-            width={250}
-            height={250}
-            className="absolute -inset-[25px]"
-          />
+          <canvas ref={canvasRef} width={250} height={250} className="absolute -inset-[25px]" />
 
           {/* Content overlay - age centered */}
           <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-semibold text-foreground number-display">
-                {animatedAge.toFixed(1)}
-              </span>
+              <span className="text-3xl font-semibold text-foreground number-display">{Math.round(animatedAge)}</span>
               <span className="text-sm text-muted-foreground">years</span>
             </div>
           </div>
         </div>
-        
+
         {/* Comparison text below circle */}
-        {comparison && (
-          <p className={`text-sm font-medium mt-4 ${comparison.color}`}>
-            {comparison.text}
-          </p>
-        )}
+        {comparison && <p className={`text-sm font-medium mt-4 ${comparison.color}`}>{comparison.text}</p>}
       </div>
     </div>
   );
