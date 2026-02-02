@@ -11,9 +11,8 @@ import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, subDays, parseISO, startOfWeek } from "date-fns";
-import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine, ComposedChart, Legend } from "recharts";
-import { Brain, User } from "lucide-react";
+import { format, subDays, parseISO } from "date-fns";
+import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart } from "recharts";
 
 // Colors
 const COGNITIVE_AGE_COLOR = "hsl(210, 100%, 60%)"; // Electric blue (like sharpness)
@@ -137,20 +136,25 @@ export function CognitiveAgeTrendChart() {
     return Math.round(fractionalAge * 10) / 10; // Round to 1 decimal
   };
 
-  const chartData = useMemo((): ChartDataPoint[] => {
-    if (!weeklyData?.weekly || weeklyData.weekly.length === 0) return [];
-    
-    const birthDate = weeklyData.profile?.birth_date;
-    const fallbackAge = weeklyData.baseline?.chrono_age_at_onboarding 
+  // Calculate current real age from birth_date (dynamic, 1 decimal)
+  const currentRealAge = useMemo(() => {
+    const birthDate = weeklyData?.profile?.birth_date;
+    if (birthDate) {
+      const birth = parseISO(birthDate);
+      const today = new Date();
+      const ageInDays = Math.floor((today.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.round((ageInDays / 365.25) * 10) / 10;
+    }
+    // Fallback to chrono_age_at_onboarding if no birth_date
+    return weeklyData?.baseline?.chrono_age_at_onboarding 
       ? Number(weeklyData.baseline.chrono_age_at_onboarding)
       : 30;
+  }, [weeklyData?.profile?.birth_date, weeklyData?.baseline?.chrono_age_at_onboarding]);
+
+  const chartData = useMemo((): ChartDataPoint[] => {
+    if (!weeklyData?.weekly || weeklyData.weekly.length === 0) return [];
 
     return weeklyData.weekly.map((w) => {
-      // Calculate real age at this week's date (1 decimal precision)
-      const realAge = birthDate 
-        ? calculateAgeAtDate(birthDate, w.week_start)
-        : fallbackAge;
-      
       // Round cognitive age to 1 decimal for consistency
       const cogAge = w.cognitive_age 
         ? Math.round(Number(w.cognitive_age) * 10) / 10 
@@ -159,11 +163,11 @@ export function CognitiveAgeTrendChart() {
       return {
         weekLabel: format(parseISO(w.week_start), "d MMM"),
         cognitiveAge: cogAge,
-        realAge: realAge,
+        realAge: currentRealAge, // Use dynamic current real age
         weekStart: w.week_start,
       };
     });
-  }, [weeklyData, calculateAgeAtDate]);
+  }, [weeklyData?.weekly, currentRealAge]);
 
   const hasData = chartData.some(d => d.cognitiveAge !== null);
 
