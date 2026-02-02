@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Brain, Zap, Timer, Target, Leaf, Calendar, 
+  Zap, Timer, Target, Leaf, Calendar, 
   ChevronRight, ChevronLeft, X, Sparkles, Activity, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LumaLogo } from "@/components/ui/LumaLogo";
 
 interface OnboardingTutorialProps {
   show: boolean;
@@ -222,7 +223,7 @@ const MetricsVisual = () => (
         className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20"
       >
         <div className="flex items-center gap-2 mb-1">
-          <Brain className="w-4 h-4 text-violet-400" />
+          <LumaLogo size={16} className="text-violet-400" />
           <span className="text-[10px] font-semibold text-violet-400">Reasoning Quality</span>
         </div>
         <p className="text-[8px] text-muted-foreground leading-tight">
@@ -243,7 +244,7 @@ const GetStartedVisual = () => (
     <div className="relative">
       <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
       <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-        <Brain className="w-10 h-10 text-white" />
+        <LumaLogo size={40} className="text-white" />
       </div>
     </div>
     <motion.p
@@ -263,7 +264,7 @@ const SLIDES: TutorialSlide[] = [
     title: "Two Thinking Systems",
     subtitle: "The science behind NeuroLoop",
     description: "System 1 is fast, intuitive, automatic. System 2 is slow, deliberate, analytical. Training both creates cognitive balance.",
-    icon: <Brain className="w-5 h-5" />,
+    icon: <LumaLogo size={20} className="text-foreground" />,
     visual: <S1S2Visual />,
     accent: "from-amber-500/20 to-violet-500/20",
   },
