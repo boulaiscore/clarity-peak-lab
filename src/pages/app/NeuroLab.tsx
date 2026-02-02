@@ -300,85 +300,47 @@ export default function NeuroLab() {
                 
                 {/* Visual Training Loop - LUMA Logo Style */}
                 <div className="py-4 flex flex-col items-center">
-                  <div className="relative w-56 h-48 flex items-center justify-center">
-                    {/* Open arc (like LUMA logo) */}
-                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 120 100">
-                      {/* Background dashed arc */}
+                  <div className="relative w-64 h-56 flex items-center justify-center">
+                    {/* SVG with arc passing through nodes */}
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 140 120">
+                      {/* Background dashed arc - starts from Recover position, goes through Train, Learn, Repeat */}
                       <path
-                        d="M 95 75 A 35 35 0 1 0 95 25"
+                        d="M 115 30 C 85 5, 35 5, 20 40 C 5 75, 35 105, 70 105 C 105 105, 120 75, 115 30"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="0.8"
-                        className="text-muted/20"
-                        strokeDasharray="3 3"
+                        className="text-muted/30"
+                        strokeDasharray="4 4"
                       />
                       {/* Animated gradient arc */}
                       <motion.path
-                        d="M 95 75 A 35 35 0 1 0 95 25"
+                        d="M 115 30 C 85 5, 35 5, 20 40 C 5 75, 35 105, 70 105 C 105 105, 120 75, 115 30"
                         fill="none"
                         stroke="url(#lumaLoopGradient)"
-                        strokeWidth="2"
+                        strokeWidth="2.5"
                         strokeLinecap="round"
-                        initial={{ pathLength: 0, opacity: 0.4 }}
+                        initial={{ pathLength: 0, opacity: 0.3 }}
                         animate={{ pathLength: 1, opacity: 1 }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatType: "reverse" }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatType: "loop" }}
                       />
                       <defs>
-                        <linearGradient id="lumaLoopGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="hsl(var(--primary))" />
-                          <stop offset="50%" stopColor="hsl(200, 80%, 55%)" />
-                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
+                        <linearGradient id="lumaLoopGradient" x1="100%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="hsl(142, 71%, 45%)" />
+                          <stop offset="33%" stopColor="hsl(var(--primary))" />
+                          <stop offset="66%" stopColor="hsl(210, 80%, 55%)" />
+                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
                         </linearGradient>
                       </defs>
                     </svg>
                     
-                    {/* Loop nodes on the arc */}
+                    {/* Loop nodes positioned on the arc path */}
                     <div className="absolute inset-0">
-                      {/* Train - Top-left of arc */}
+                      {/* Recover - Starting point (top right, like LUMA logo dot) */}
                       <motion.div 
-                        className="absolute left-[28%] top-[8%] -translate-x-1/2 flex flex-col items-center gap-1"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
-                          <Dumbbell className="w-4 h-4 text-primary" />
-                        </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-primary">Train</span>
-                      </motion.div>
-                      
-                      {/* Learn - Left side of arc */}
-                      <motion.div 
-                        className="absolute left-[8%] top-[50%] -translate-y-1/2 flex flex-col items-center gap-1"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                          <BookMarked className="w-4 h-4 text-blue-400" />
-                        </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400">Learn</span>
-                      </motion.div>
-                      
-                      {/* Repeat - Bottom of arc */}
-                      <motion.div 
-                        className="absolute left-1/2 bottom-[2%] -translate-x-1/2 flex flex-col items-center gap-1"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.6 }}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
-                          <RefreshCw className="w-4 h-4 text-blue-400" />
-                        </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
-                      </motion.div>
-                      
-                      {/* Recover - Detached dot (like LUMA logo) - Top Right */}
-                      <motion.div 
-                        className="absolute right-[8%] top-[18%] flex flex-col items-center gap-1"
+                        className="absolute right-[10%] top-[12%] flex flex-col items-center gap-1"
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
+                        transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
                       >
                         <motion.div 
                           className="w-11 h-11 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
@@ -395,6 +357,45 @@ export default function NeuroLab() {
                         </motion.div>
                         <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-500">Recover</span>
                       </motion.div>
+                      
+                      {/* Train - Top of arc (after Recover) */}
+                      <motion.div 
+                        className="absolute left-[32%] top-[5%] -translate-x-1/2 flex flex-col items-center gap-1"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
+                          <Dumbbell className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-primary">Train</span>
+                      </motion.div>
+                      
+                      {/* Learn - Left side of arc */}
+                      <motion.div 
+                        className="absolute left-[4%] top-[45%] -translate-y-1/2 flex flex-col items-center gap-1"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                          <BookMarked className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400">Learn</span>
+                      </motion.div>
+                      
+                      {/* Repeat - Bottom of arc */}
+                      <motion.div 
+                        className="absolute left-1/2 bottom-[2%] -translate-x-1/2 flex flex-col items-center gap-1"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.7 }}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                          <RefreshCw className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
+                      </motion.div>
                     </div>
 
                     {/* Center: LUMA text */}
@@ -402,7 +403,7 @@ export default function NeuroLab() {
                       className="relative z-10 flex flex-col items-center"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
+                      transition={{ delay: 0.2 }}
                     >
                       <LumaLogo size={24} className="text-foreground/80" />
                       <span className="text-[10px] font-bold tracking-widest text-foreground/60 mt-1">LOOP</span>
