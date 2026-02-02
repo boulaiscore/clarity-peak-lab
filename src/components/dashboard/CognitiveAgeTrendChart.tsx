@@ -11,9 +11,9 @@ import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, subDays, parseISO } from "date-fns";
+import { format, subDays, parseISO, differenceInDays } from "date-fns";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart } from "recharts";
-
+import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 // Colors
 const COGNITIVE_AGE_COLOR = "hsl(210, 100%, 60%)"; // Electric blue (like sharpness)
 const REAL_AGE_COLOR = "hsl(0, 0%, 50%)"; // Gray for real age baseline
@@ -69,6 +69,7 @@ const CustomDot = ({ cx, cy, payload, dataKey }: { cx?: number; cy?: number; pay
 
 export function CognitiveAgeTrendChart() {
   const { user } = useAuth();
+  const { data: cognitiveAgeData } = useCognitiveAge();
 
   // Fetch weekly cognitive age data (last 30 days = ~4 weeks)
   const { data: weeklyData, isLoading } = useQuery({
@@ -216,20 +217,38 @@ export function CognitiveAgeTrendChart() {
   }, [currentRealAge, chartData, hasData]);
 
   // Override real age in chart data to use the centered integer value
-  // Show real data only - no fake sample values
+  // Include live cognitive age during calibration
   const displayData = useMemo(() => {
+    const today = new Date();
+    const todayStr = format(today, "yyyy-MM-dd");
+    const todayLabel = format(today, "d MMM");
+    
+    // Get current live cognitive age from the hook
+    const liveCognitiveAge = cognitiveAgeData?.cognitiveAge ?? null;
+    
     if (hasData) {
       // Use real data with centered real age
-      return chartData.map(d => ({
+      const data = chartData.map(d => ({
         ...d,
         realAge: centeredRealAge
       }));
+      
+      // Add today's live value if not already in the data
+      const hasToday = data.some(d => d.weekStart === todayStr);
+      if (!hasToday && liveCognitiveAge !== null) {
+        data.push({
+          weekLabel: todayLabel,
+          cognitiveAge: liveCognitiveAge,
+          realAge: centeredRealAge,
+          weekStart: todayStr,
+        });
+      }
+      
+      return data;
     }
     
-    // No real cognitive age data - show placeholder weeks with null cognitive age
-    // This will show only the Real Age line, with no Cognitive Age dots
-    const today = new Date();
-    const placeholderWeeks = [];
+    // No weekly data - show placeholder weeks with today's live cognitive age
+    const placeholderWeeks: ChartDataPoint[] = [];
     
     for (let i = 3; i >= 0; i--) {
       const weekDate = subDays(today, i * 7);
@@ -237,13 +256,14 @@ export function CognitiveAgeTrendChart() {
       
       placeholderWeeks.push({
         weekLabel: format(weekDate, "d MMM"),
-        cognitiveAge: null, // No fake data - only show dot when we have real data
+        // Only show live value for today (i === 0)
+        cognitiveAge: i === 0 ? liveCognitiveAge : null,
         realAge: centeredRealAge,
         weekStart: weekDateStr,
       });
     }
     return placeholderWeeks;
-  }, [hasData, chartData, centeredRealAge]);
+  }, [hasData, chartData, centeredRealAge, cognitiveAgeData?.cognitiveAge]);
 
   if (isLoading) {
     return (
