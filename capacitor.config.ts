@@ -1,28 +1,28 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.luma.pro',
-  appName: 'LUMA',
-  webDir: 'dist',
+  appId: "com.looma",
+  appName: "LOOMA",
+  webDir: "dist",
   server: {
     url: "https://clarity-peak-lab.vercel.app",
-    cleartext: false
+    cleartext: false,
   },
   plugins: {
     App: {
       // Deep link handling
     },
     LocalNotifications: {
-      smallIcon: 'ic_stat_icon_config_sample',
-      iconColor: '#6366f1',
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#6366f1",
     },
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,
       launchFadeOutDuration: 500,
-      backgroundColor: '#0f0f1a',
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
+      backgroundColor: "#0f0f1a",
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true,
@@ -30,10 +30,10 @@ const config: CapacitorConfig = {
   },
   // iOS-specific configuration
   ios: {
-    scheme: 'luma',
-    contentInset: 'automatic',
+    scheme: "luma",
+    contentInset: "automatic",
   },
-  // Android-specific configuration  
+  // Android-specific configuration
   android: {
     allowMixedContent: false,
   },
