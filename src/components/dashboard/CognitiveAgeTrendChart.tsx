@@ -319,7 +319,7 @@ export function CognitiveAgeTrendChart() {
                 className="w-2.5 h-2.5 rounded-full border border-dashed" 
                 style={{ borderColor: REAL_AGE_COLOR, backgroundColor: 'transparent' }}
               />
-              <span className="text-[9px] text-muted-foreground">Real Age</span>
+              <span className="text-[9px] text-muted-foreground">Chronological Age</span>
             </div>
           </div>
         );
@@ -380,7 +380,7 @@ export function CognitiveAgeTrendChart() {
 
       {/* Footer */}
       <p className="text-[9px] text-muted-foreground/60 text-center mt-1">
-        Weekly cognitive age vs chronological age
+        Weekly cognitive vs chronological age
       </p>
     </div>
   );
