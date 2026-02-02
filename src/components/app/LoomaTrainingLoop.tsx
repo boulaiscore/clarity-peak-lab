@@ -41,29 +41,32 @@ const RECOVER_ANGLE = 340; // -20° normalized
 const TRAIN_ANGLE = 100;
 const REASON_ANGLE = 220; // -140° normalized
 
-// Gap is 70°, so leading edge is 35° ahead of gap center (-20°)
-// Leading edge starts at: -20 + 35 = 15°
-// As rotation R increases, leading edge is at: (15 + R) % 360
-
-// Icon becomes active when leading edge reaches it:
-// - Train (100°): 15 + R = 100 → R = 85°
-// - Reason (220°): 15 + R = 220 → R = 205°  
-// - Recover (340°): 15 + R = 340 → R = 325°
+// Gap is 70°, centered at -20° (340°)
+// Leading edge: gapCenter + 35° = 15° (at rotation 0)
+// Trailing edge: gapCenter - 35° = 305° (at rotation 0)
+// 
+// Activity starts when TRAILING edge passes the icon (gap has fully passed)
+// At rotation R, trailing edge is at: (305 + R) % 360
+//
+// Activation points (when trailing edge reaches icon):
+// - Recover (340°): R = 340 - 305 = 35°
+// - Train (100°): R = 100 - 305 + 360 = 155°  
+// - Reason (220°): R = 220 - 305 + 360 = 275°
 
 function getActiveIcon(rotationDeg: number): "recover" | "train" | "reason" {
   const rot = ((rotationDeg % 360) + 360) % 360;
   
-  // Active zones based on when leading edge touches each icon:
-  // Recover: [325, 360) ∪ [0, 85) - leading edge at recover until it reaches train
-  // Train: [85, 205) - leading edge at train until it reaches reason
-  // Reason: [205, 325) - leading edge at reason until it reaches recover
+  // Active zones based on when trailing edge passes each icon:
+  // Recover: [35, 155) - after gap passes recover, until gap passes train
+  // Train: [155, 275) - after gap passes train, until gap passes reason
+  // Reason: [275, 360) ∪ [0, 35) - after gap passes reason, until gap passes recover
   
-  if (rot >= 85 && rot < 205) {
+  if (rot >= 35 && rot < 155) {
+    return "recover";
+  } else if (rot >= 155 && rot < 275) {
     return "train";
-  } else if (rot >= 205 && rot < 325) {
-    return "reason";
   } else {
-    return "recover"; // [325, 360) ∪ [0, 85)
+    return "reason"; // [275, 360) ∪ [0, 35)
   }
 }
 
@@ -75,27 +78,27 @@ function getRecoverColor(rotationDeg: number): string {
   let saturation = 85;
   let lightness = 50;
   
-  if (rot < 85) {
-    // Recover zone - bright green fading toward yellow
-    const t = rot / 85;
-    hue = 140 - t * 50; // 140 (green) -> 90 (yellow-green)
+  if (rot >= 35 && rot < 155) {
+    // Recover zone - bright green, slowly fading toward end
+    const t = (rot - 35) / 120;
+    hue = 140 - t * 30; // 140 (green) -> 110 (yellow-green)
     saturation = 85;
-    lightness = 50 - t * 5;
-  } else if (rot < 205) {
+    lightness = 50;
+  } else if (rot >= 155 && rot < 275) {
     // Train zone - yellow-green to orange
-    const t = (rot - 85) / 120;
-    hue = 90 - t * 50; // 90 -> 40 (orange)
+    const t = (rot - 155) / 120;
+    hue = 110 - t * 70; // 110 -> 40 (orange)
     saturation = 80;
     lightness = 45;
-  } else if (rot < 325) {
-    // Reason zone - orange to red
-    const t = (rot - 205) / 120;
+  } else if (rot >= 275) {
+    // Reason zone (275-360) - orange to red
+    const t = (rot - 275) / 85;
     hue = 40 - t * 40; // 40 -> 0 (red)
     saturation = 75;
     lightness = 45;
   } else {
-    // Approaching recover - red back to green
-    const t = (rot - 325) / 35; // 0 to 1 as we complete the cycle
+    // Approaching recover (0-35) - red transitioning back to green
+    const t = rot / 35; // 0 to 1 as we approach activation
     hue = t * 140; // 0 (red) -> 140 (green)
     saturation = 75 + t * 10;
     lightness = 45 + t * 5;
