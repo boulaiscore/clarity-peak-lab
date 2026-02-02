@@ -117,11 +117,16 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-3">
-      {/* XP Explanation */}
-      <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/30">
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Training games award XP</span> (15-42 per game) toward your Weekly Cognitive Load. 
-          S1 games are fast & intuitive. S2 games are slow & deliberate.
+      {/* XP Explanation - Premium Typography */}
+      <div className="px-4 py-3 rounded-xl bg-muted/20 border border-border/20">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 leading-relaxed">
+          <span className="font-semibold text-foreground/90">Training games award XP</span>
+          <span className="mx-1.5 opacity-40">•</span>
+          15–42 per session
+          <span className="mx-1.5 opacity-40">•</span>
+          S1 fast & intuitive
+          <span className="mx-1.5 opacity-40">•</span>
+          S2 slow & deliberate
         </p>
       </div>
 
@@ -155,9 +160,9 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   <SystemIcon className={cn("w-3.5 h-3.5", iconColor)} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className={cn("text-[11px] font-semibold", iconColor)}>{systemLabel}</span>
-                    <span className={cn("text-[9px]", system === "fast" ? "text-area-fast/80" : "text-area-slow/80")}>• {systemDesc}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={cn("text-[10px] font-bold uppercase tracking-wider", iconColor)}>{systemLabel}</span>
+                    <span className={cn("text-[9px] uppercase tracking-wide opacity-70", system === "fast" ? "text-area-fast/80" : "text-area-slow/80")}>{systemDesc}</span>
                   </div>
                 </div>
               </div>
@@ -193,7 +198,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                         )}>
                           <AreaIcon className={cn("w-4 h-4", iconColor)} />
                         </div>
-                        <h4 className="flex-1 text-xs font-medium text-foreground">
+                        <h4 className="flex-1 text-[11px] font-semibold uppercase tracking-wide text-foreground/90">
                           {area.name}
                         </h4>
                         <ChevronRight className={cn("w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity", iconColor)} />
