@@ -54,7 +54,7 @@ export function LoomaTrainingLoop() {
 
   return (
     <div className="py-6 px-4 flex flex-col items-center overflow-hidden">
-      <div className="relative w-44 h-44 flex items-center justify-center">
+      <div className="relative w-48 h-48 flex items-center justify-center">
         {/* Rotating arc only - z-0 to stay behind icons */}
         <motion.div
           className="absolute inset-0 z-0"
@@ -114,9 +114,9 @@ export function LoomaTrainingLoop() {
             >
               <Battery className="w-5 h-5 text-emerald-500" />
             </motion.div>
-            <span className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500 max-w-[70px]">
+            <span className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500 whitespace-nowrap">
               Recover
-              <span className="block font-normal normal-case tracking-normal text-[5px] text-emerald-500/70 mt-0.5 leading-tight">
+              <span className="block font-normal normal-case tracking-normal text-[5px] text-emerald-500/70 mt-0.5">
                 Digital detox or walk
               </span>
             </span>
@@ -139,17 +139,17 @@ export function LoomaTrainingLoop() {
 
                 {/* Labels positioned based on angle */}
                 {key === "train" && (
-                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[90px] text-center">
+                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-center">
                     Train
-                    <span className="block font-normal normal-case tracking-normal text-[5px] text-blue-400/70 mt-0.5 leading-tight">
+                    <span className="block font-normal normal-case tracking-normal text-[5px] text-blue-400/70 mt-0.5">
                       Boost Readiness & Sharpness
                     </span>
                   </span>
                 )}
                 {key === "learn" && (
-                  <span className="absolute right-full top-1/2 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[80px] text-right">
+                  <span className="absolute right-full top-1/2 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-right">
                     Learn
-                    <span className="block font-normal normal-case tracking-normal text-[5px] text-blue-400/70 mt-0.5 leading-tight">
+                    <span className="block font-normal normal-case tracking-normal text-[5px] text-blue-400/70 mt-0.5">
                       Reason with books & podcasts
                     </span>
                   </span>
