@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Battery, BookMarked, Dumbbell, RefreshCw } from "lucide-react";
+import { Battery, BookMarked, Dumbbell } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 
 type Step = {
@@ -10,9 +10,8 @@ type Step = {
 };
 
 const STEPS: Step[] = [
-  { key: "train", label: "Train", Icon: Dumbbell, angleDeg: -90 },
-  { key: "learn", label: "Learn", Icon: BookMarked, angleDeg: 180 },
-  { key: "repeat", label: "Repeat", Icon: RefreshCw, angleDeg: 90 },
+  { key: "train", label: "Train", Icon: Dumbbell, angleDeg: 100 },      // SW
+  { key: "learn", label: "Learn", Icon: BookMarked, angleDeg: -140 },   // NW
 ];
 
 function polarToPercent(cx: number, cy: number, r: number, angleDeg: number) {
@@ -142,18 +141,13 @@ export function LoomaTrainingLoop() {
                   <Icon className={isTrain ? "w-4 h-4 text-primary" : "w-4 h-4 text-blue-400"} />
                 </div>
 
-                {/* Labels */}
+                {/* Labels positioned based on angle */}
                 {key === "train" && (
                   <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-primary">
                     {label}
                   </span>
                 )}
                 {key === "learn" && (
-                  <span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
-                    {label}
-                  </span>
-                )}
-                {key === "repeat" && (
                   <span className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
                     {label}
                   </span>
