@@ -181,11 +181,20 @@ export function useCognitiveAgeImpact() {
     return contributions.reduce((sum, c) => sum + c.contribution, 0);
   }, [contributions]);
 
+  // 7) Count unique days with data
+  const daysWithData = useMemo(() => {
+    if (!snapshots90d) return 0;
+    const uniqueDates = new Set(snapshots90d.map(s => s.snapshot_date));
+    return uniqueDates.size;
+  }, [snapshots90d]);
+
   return {
     contributions,
     totalImprovementPoints,
     isLoading: baselineLoading || snapshotsLoading,
     hasEnoughData: (snapshots90d?.length ?? 0) >= 3,
     isCalibrated: baseline?.is_baseline_calibrated ?? false,
+    daysWithData,
+    daysRequired: 7,
   };
 }
