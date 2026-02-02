@@ -10,7 +10,7 @@
  */
 
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Target, Sparkles, ChevronRight, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Target, Sparkles, ChevronRight, Clock } from "lucide-react";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 import { useCognitiveAgeImpact, VARIABLE_CONFIG } from "@/hooks/useCognitiveAgeImpact";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ import { Link } from "react-router-dom";
 
 export function CognitiveAgeInsights() {
   const { data, hasWeeklyData } = useCognitiveAge();
-  const { contributions, hasEnoughData, totalImprovementPoints } = useCognitiveAgeImpact();
+  const { contributions, hasEnoughData, totalImprovementPoints, daysWithData, daysRequired } = useCognitiveAgeImpact();
 
   // Calculate trajectory from contributions data if weekly data not available
   const getTrajectory = () => {
@@ -111,20 +111,35 @@ export function CognitiveAgeInsights() {
             !isCollectingData && trajectory?.status === "declining" && "bg-red-500/10",
             !isCollectingData && trajectory?.status === "stable" && "bg-blue-500/10"
           )}>
-            {isCollectingData && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
+            {isCollectingData && <Clock className="w-4 h-4 text-muted-foreground" />}
             {!isCollectingData && trajectory?.status === "improving" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
             {!isCollectingData && trajectory?.status === "declining" && <TrendingDown className="w-4 h-4 text-red-400" />}
             {!isCollectingData && trajectory?.status === "stable" && <Minus className="w-4 h-4 text-blue-400" />}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5">
-              Trajectory
-            </p>
+            <div className="flex items-center justify-between mb-0.5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                Trajectory
+              </p>
+              {isCollectingData && (
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {daysWithData}/{daysRequired} days
+                </span>
+              )}
+            </div>
+            {isCollectingData && (
+              <div className="w-full h-1.5 bg-muted/50 rounded-full overflow-hidden mb-1.5">
+                <div 
+                  className="h-full bg-primary/40 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, (daysWithData / daysRequired) * 100)}%` }}
+                />
+              </div>
+            )}
             <p className="text-xs text-foreground leading-relaxed">
               {isCollectingData ? (
                 <>
-                  <span className="font-semibold text-muted-foreground">Collecting data...</span>
-                  <span className="text-muted-foreground/70"> — need 7+ days of training to analyze your trajectory.</span>
+                  <span className="font-semibold text-muted-foreground">Collecting data</span>
+                  <span className="text-muted-foreground/70"> — need {daysRequired - daysWithData} more day{daysRequired - daysWithData !== 1 ? 's' : ''} to analyze trajectory.</span>
                 </>
               ) : (
                 <>
