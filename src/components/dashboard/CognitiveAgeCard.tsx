@@ -60,11 +60,21 @@ export function CognitiveAgeCard() {
         
         {/* Right: Status badges */}
         <div className="flex items-center gap-2">
-          {/* Calibrating badge */}
-          {data.isCalibrating && (
-            <span className="px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
-              Calibrating
-            </span>
+          {/* Baseline type indicator */}
+          {data.isCalibrating ? (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-[9px] font-medium text-amber-500 uppercase tracking-wider">
+                Temp Baseline
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[9px] font-medium text-emerald-500 uppercase tracking-wider">
+                Stable Baseline
+              </span>
+            </div>
           )}
           
           {/* Weekly update indicator */}
