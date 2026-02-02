@@ -79,17 +79,17 @@ function getRecoverColor(rotationDeg: number): string {
   let lightness = 50;
   
   if (rot >= 35 && rot < 155) {
-    // Recover zone - bright green, slowly fading toward end
+    // Recover zone - starts transitioning from red TO green when trailing edge touches
     const t = (rot - 35) / 120;
-    hue = 140 - t * 30; // 140 (green) -> 110 (yellow-green)
-    saturation = 85;
-    lightness = 50;
+    hue = t * 140; // 0 (red) -> 140 (green) - starts red, becomes green
+    saturation = 75 + t * 10; // 75 -> 85
+    lightness = 45 + t * 5; // 45 -> 50
   } else if (rot >= 155 && rot < 275) {
-    // Train zone - yellow-green to orange
+    // Train zone - green fading to orange
     const t = (rot - 155) / 120;
-    hue = 110 - t * 70; // 110 -> 40 (orange)
-    saturation = 80;
-    lightness = 45;
+    hue = 140 - t * 100; // 140 (green) -> 40 (orange)
+    saturation = 85 - t * 10; // 85 -> 75
+    lightness = 50 - t * 5; // 50 -> 45
   } else if (rot >= 275) {
     // Reason zone (275-360) - orange to red
     const t = (rot - 275) / 85;
@@ -97,11 +97,10 @@ function getRecoverColor(rotationDeg: number): string {
     saturation = 75;
     lightness = 45;
   } else {
-    // Approaching recover (0-35) - red transitioning back to green
-    const t = rot / 35; // 0 to 1 as we approach activation
-    hue = t * 140; // 0 (red) -> 140 (green)
-    saturation = 75 + t * 10;
-    lightness = 45 + t * 5;
+    // Before recover activates (0-35) - stays red
+    hue = 0;
+    saturation = 75;
+    lightness = 45;
   }
   
   return `hsl(${Math.max(0, Math.min(140, hue))}, ${saturation}%, ${lightness}%)`;
