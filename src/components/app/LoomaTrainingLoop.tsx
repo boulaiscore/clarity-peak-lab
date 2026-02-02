@@ -10,8 +10,8 @@ type Step = {
 };
 
 const STEPS: Step[] = [
-  { key: "train", label: "Train", Icon: Dumbbell, angleDeg: 100 },      // SW
-  { key: "learn", label: "Learn", Icon: BookMarked, angleDeg: -140 },   // NW
+  { key: "train", label: "Train", Icon: Dumbbell, angleDeg: 100 }, // SW
+  { key: "learn", label: "Learn", Icon: BookMarked, angleDeg: -140 }, // NW
 ];
 
 function polarToPercent(cx: number, cy: number, r: number, angleDeg: number) {
@@ -25,7 +25,7 @@ function arcPath(cx: number, cy: number, r: number, startDeg: number, endDeg: nu
   // Draw arc from start -> end (clockwise if end > start when normalized)
   const start = polarToCartesian(cx, cy, r, startDeg);
   const end = polarToCartesian(cx, cy, r, endDeg);
-  const delta = ((endDeg - startDeg) % 360 + 360) % 360;
+  const delta = (((endDeg - startDeg) % 360) + 360) % 360;
   const largeArcFlag = delta > 180 ? 1 : 0;
   const sweepFlag = 1;
   return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${end.x} ${end.y}`;
@@ -75,13 +75,7 @@ export function LoomaTrainingLoop() {
             />
 
             {/* Open loop (like LOOMA logo) */}
-            <path
-              d={loopD}
-              fill="none"
-              stroke="url(#loomaLoopGradient)"
-              strokeWidth="2.25"
-              strokeLinecap="round"
-            />
+            <path d={loopD} fill="none" stroke="url(#loomaLoopGradient)" strokeWidth="2.25" strokeLinecap="round" />
 
             <defs>
               <linearGradient id="loomaLoopGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -96,10 +90,7 @@ export function LoomaTrainingLoop() {
 
         {/* Static icons on circumference - z-10 to stay above arc */}
         {/* Recover - at the gap end (like LOOMA dot) */}
-        <div
-          className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
-          style={recoverPos}
-        >
+        <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={recoverPos}>
           <div className="relative">
             <motion.div
               className="w-10 h-10 rounded-full bg-background border-2 border-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30"
@@ -127,11 +118,7 @@ export function LoomaTrainingLoop() {
         {STEPS.map(({ key, label, Icon, angleDeg }) => {
           const pos = polarToPercent(cx, cy, r, angleDeg);
           return (
-            <div
-              key={key}
-              className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
-              style={pos}
-            >
+            <div key={key} className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={pos}>
               <div className="relative">
                 <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
                   <Icon className="w-4 h-4 text-blue-400" />
@@ -147,9 +134,22 @@ export function LoomaTrainingLoop() {
                   </span>
                 )}
                 {key === "learn" && (
-                  <span className="absolute right-full top-1/2 mr-3 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[55px] text-right">
+                  <span
+                    className="
+                      absolute right-full top-1/2 mr-3 -translate-y-1/2
+                      text-[7px] font-bold uppercase tracking-wider text-blue-400
+                      w-[90px] text-right
+                    "
+                  >
                     Reason
-                    <span className="block font-normal normal-case tracking-normal text-[8px] text-blue-400/70 mt-0.5 line-clamp-3">
+                    <span
+                      className="
+                        block mt-0.5
+                        text-[8px] font-normal normal-case tracking-normal
+                        text-blue-400/70
+                        line-clamp-2
+                      "
+                    >
                       Quality time with books & podcasts
                     </span>
                   </span>
@@ -165,9 +165,7 @@ export function LoomaTrainingLoop() {
         </div>
       </div>
 
-      <p className="text-[10px] text-muted-foreground/60 text-center mt-8 uppercase tracking-wider">
-        The LOOMA Loop
-      </p>
+      <p className="text-[10px] text-muted-foreground/60 text-center mt-8 uppercase tracking-wider">The LOOMA Loop</p>
     </div>
   );
 }
