@@ -298,30 +298,32 @@ export function CognitiveAgeTrendChart() {
         <span className="text-[9px] text-muted-foreground/60">Last 30 days</span>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-4 mb-3">
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-0.5">
-            <div 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: COGNITIVE_AGE_GOOD_COLOR }}
-            />
-            <span className="text-[8px] text-muted-foreground/60">/</span>
-            <div 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: COGNITIVE_AGE_BAD_COLOR }}
-            />
+      {/* Legend - dynamic color based on current cognitive age vs real age */}
+      {(() => {
+        // Get latest cognitive age comparison
+        const latestData = displayData.find(d => d.cognitiveAge !== null);
+        const isYounger = latestData && latestData.cognitiveAge !== null && latestData.cognitiveAge <= latestData.realAge;
+        const legendColor = isYounger ? COGNITIVE_AGE_GOOD_COLOR : COGNITIVE_AGE_BAD_COLOR;
+        
+        return (
+          <div className="flex items-center gap-4 mb-3">
+            <div className="flex items-center gap-1.5">
+              <div 
+                className="w-2.5 h-2.5 rounded-full" 
+                style={{ backgroundColor: legendColor }}
+              />
+              <span className="text-[9px] text-muted-foreground">Cognitive Age</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div 
+                className="w-2.5 h-2.5 rounded-full border border-dashed" 
+                style={{ borderColor: REAL_AGE_COLOR, backgroundColor: 'transparent' }}
+              />
+              <span className="text-[9px] text-muted-foreground">Real Age</span>
+            </div>
           </div>
-          <span className="text-[9px] text-muted-foreground">Cognitive Age</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div 
-            className="w-2.5 h-2.5 rounded-full border border-dashed" 
-            style={{ borderColor: REAL_AGE_COLOR, backgroundColor: 'transparent' }}
-          />
-          <span className="text-[9px] text-muted-foreground">Real Age</span>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Chart */}
       <div className="h-[160px] w-full">
