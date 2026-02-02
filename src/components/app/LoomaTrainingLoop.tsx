@@ -148,9 +148,9 @@ export function LoomaTrainingLoop() {
                 )}
                 {key === "learn" && (
                   <span className="absolute right-full top-1/2 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[90px] text-right">
-                    Learn
+                    Reason
                     <span className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mt-0.5">
-                      Reason with books & podcasts
+                      Quality time with books & podcasts
                     </span>
                   </span>
                 )}
