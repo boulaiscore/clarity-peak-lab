@@ -141,17 +141,17 @@ export function LoomaTrainingLoop() {
                       w-[90px] text-right
                     "
                   >
-                    Reason
+                    REASON
                     <span
                       className="
                         block mt-0.5
                         text-[8px] font-normal normal-case tracking-normal
                         text-blue-400/70
-                        line-clamp-2
+                        leading-tight
                       "
                     >
-                      Quality time with books
-                      <span className="block">&amp; podcasts</span>
+                      Quality time with
+                      <span className="block">books &amp; podcasts</span>
                     </span>
                   </span>
                 )}
