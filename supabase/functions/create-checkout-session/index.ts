@@ -2,51 +2,51 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 // Tier configuration
 const TIERS = {
   premium: {
-    name: 'LUMA Pro',
-    description: 'Complete cognitive training with monthly report.',
+    name: "LOOMA Pro",
+    description: "Complete cognitive training with monthly report.",
     amount: 1990, // $19.90
   },
   pro: {
-    name: 'LUMA Elite',
-    description: 'Master-level cognitive training with advanced insights.',
+    name: "LOOMA Elite",
+    description: "Master-level cognitive training with advanced insights.",
     amount: 2990, // $29.90
   },
 };
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeSecretKey) {
-      console.error('STRIPE_SECRET_KEY is not configured');
-      throw new Error('Stripe is not configured');
+      console.error("STRIPE_SECRET_KEY is not configured");
+      throw new Error("Stripe is not configured");
     }
 
     const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16',
+      apiVersion: "2023-10-16",
     });
 
-    const { userId, userEmail, successUrl, cancelUrl, tier = 'premium' } = await req.json();
+    const { userId, userEmail, successUrl, cancelUrl, tier = "premium" } = await req.json();
 
     // Validate tier
-    if (!['premium', 'pro'].includes(tier)) {
+    if (!["premium", "pro"].includes(tier)) {
       throw new Error('Invalid tier. Must be "premium" or "pro".');
     }
 
     const tierConfig = TIERS[tier as keyof typeof TIERS];
 
-    console.log('Creating checkout session for user:', userId, 'email:', userEmail, 'tier:', tier);
+    console.log("Creating checkout session for user:", userId, "email:", userEmail, "tier:", tier);
 
     // Check if customer already exists
     let customerId: string | undefined;
@@ -55,19 +55,19 @@ serve(async (req) => {
         email: userEmail,
         limit: 1,
       });
-      
+
       if (existingCustomers.data.length > 0) {
         customerId = existingCustomers.data[0].id;
-        console.log('Found existing customer:', customerId);
+        console.log("Found existing customer:", customerId);
       }
     }
 
     // Find or create the product for this tier
     const products = await stripe.products.list({ limit: 100 });
     let product = products.data.find((p: Stripe.Product) => p.name === tierConfig.name);
-    
+
     if (!product) {
-      console.log('Creating new product:', tierConfig.name);
+      console.log("Creating new product:", tierConfig.name);
       product = await stripe.products.create({
         name: tierConfig.name,
         description: tierConfig.description,
@@ -80,21 +80,20 @@ serve(async (req) => {
       active: true,
       limit: 100,
     });
-    
-    let price = prices.data.find((p: Stripe.Price) => 
-      p.unit_amount === tierConfig.amount && 
-      p.currency === 'usd' && 
-      p.recurring?.interval === 'month'
+
+    let price = prices.data.find(
+      (p: Stripe.Price) =>
+        p.unit_amount === tierConfig.amount && p.currency === "usd" && p.recurring?.interval === "month",
     );
-    
+
     if (!price) {
-      console.log('Creating new price for', tierConfig.name);
+      console.log("Creating new price for", tierConfig.name);
       price = await stripe.prices.create({
         product: product.id,
         unit_amount: tierConfig.amount,
-        currency: 'usd',
+        currency: "usd",
         recurring: {
-          interval: 'month',
+          interval: "month",
         },
       });
     }
@@ -109,9 +108,9 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: 'subscription',
-      success_url: successUrl || `${req.headers.get('origin')}/app/premium?success=true`,
-      cancel_url: cancelUrl || `${req.headers.get('origin')}/app/premium?canceled=true`,
+      mode: "subscription",
+      success_url: successUrl || `${req.headers.get("origin")}/app/premium?success=true`,
+      cancel_url: cancelUrl || `${req.headers.get("origin")}/app/premium?canceled=true`,
       subscription_data: {
         trial_period_days: 7,
         metadata: {
@@ -125,24 +124,18 @@ serve(async (req) => {
       },
     });
 
-    console.log('Checkout session created:', session.id, 'for tier:', tier);
+    console.log("Checkout session created:", session.id, "for tier:", tier);
 
-    return new Response(
-      JSON.stringify({ url: session.url, sessionId: session.id }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+    return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error: unknown) {
-    console.error('Error creating checkout session:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    console.error("Error creating checkout session:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
