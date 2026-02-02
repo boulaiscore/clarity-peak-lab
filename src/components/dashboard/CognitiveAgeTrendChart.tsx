@@ -158,22 +158,26 @@ export function CognitiveAgeTrendChart() {
     );
   }
 
-  if (!hasData) {
-    return (
-      <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[11px] font-semibold tracking-wider text-muted-foreground">
-            AGE COMPARISON
-          </span>
-        </div>
-        <div className="h-[140px] flex items-center justify-center">
-          <p className="text-[11px] text-muted-foreground">
-            Complete more sessions to see your trend
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Generate placeholder data if no real data exists
+  const displayData = hasData ? chartData : (() => {
+    const realAge = weeklyData?.baseline?.chrono_age_at_onboarding 
+      ? Number(weeklyData.baseline.chrono_age_at_onboarding)
+      : 30;
+    
+    // Create 4 placeholder weeks
+    const today = new Date();
+    const placeholderWeeks = [];
+    for (let i = 3; i >= 0; i--) {
+      const weekDate = subDays(today, i * 7);
+      placeholderWeeks.push({
+        weekLabel: format(weekDate, "d MMM"),
+        cognitiveAge: null,
+        realAge: realAge,
+        weekStart: format(weekDate, "yyyy-MM-dd"),
+      });
+    }
+    return placeholderWeeks;
+  })();
 
   return (
     <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
@@ -208,7 +212,7 @@ export function CognitiveAgeTrendChart() {
       {/* Chart */}
       <div className="h-[160px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
+          <ComposedChart data={displayData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
             <CartesianGrid 
               horizontal={true}
               vertical={false}
