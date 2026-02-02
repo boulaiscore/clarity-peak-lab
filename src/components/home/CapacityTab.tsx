@@ -51,7 +51,7 @@ export function CapacityTab({
       // Yellow-green to bright green (hue 70-140)
       const progressVal = (value - 65) / 35;
       const hue = 70 + progressVal * 70;
-      return `hsl(${hue}, 75%, 45%)`;
+      return `hsl(${hue}, 90%, 50%)`;
     }
   };
   
@@ -94,9 +94,9 @@ export function CapacityTab({
                     { offset: 20, hue: 20, sat: 85, light: 45 },     // 20% - dark orange
                     { offset: 35, hue: 35, sat: 85, light: 48 },     // 35% - orange
                     { offset: 50, hue: 50, sat: 80, light: 48 },     // 50% - yellow
-                    { offset: 65, hue: 70, sat: 75, light: 45 },     // 65% - yellow-green
-                    { offset: 85, hue: 110, sat: 75, light: 45 },    // 85% - green
-                    { offset: 100, hue: 140, sat: 75, light: 45 },   // 100% - bright green
+                    { offset: 65, hue: 70, sat: 85, light: 48 },     // 65% - yellow-green
+                    { offset: 85, hue: 110, sat: 90, light: 50 },    // 85% - green
+                    { offset: 100, hue: 140, sat: 90, light: 50 },   // 100% - bright green
                   ];
                   
                   // Filter stops up to current recovery value, then scale them to fill the visible arc

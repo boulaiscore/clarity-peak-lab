@@ -45,7 +45,7 @@ export function RecoveryBatteryCard({
       // Yellow-green to bright green (hue 70-140)
       const progress = (value - 65) / 35;
       const hue = 70 + progress * 70;
-      return `hsl(${hue}, 75%, 45%)`;
+      return `hsl(${hue}, 90%, 50%)`;
     }
   };
   
@@ -118,9 +118,9 @@ export function RecoveryBatteryCard({
                 hsl(20, 85%, 45%) 20%, 
                 hsl(35, 85%, 48%) 35%, 
                 hsl(50, 80%, 48%) 50%, 
-                hsl(70, 75%, 45%) 65%, 
-                hsl(110, 75%, 45%) 85%, 
-                hsl(140, 75%, 45%) 100%
+                hsl(70, 85%, 48%) 65%, 
+                hsl(110, 90%, 50%) 85%, 
+                hsl(140, 90%, 50%) 100%
               )`,
               backgroundSize: `${100 / (fillPercent / 100)}% 100%`
             }}
