@@ -326,7 +326,7 @@ const Home = () => {
       return {
         title: "Today: train hard",
         body: "Your readiness is high — push intensity for maximum gains.",
-        action: "Start training"
+        action: "Start Train"
       };
     }
     if (readiness >= 55) {
@@ -338,8 +338,8 @@ const Home = () => {
     }
     return {
       title: "Today: recover",
-      body: "Readiness is low — do a detox or light reading instead.",
-      action: "Start recovery"
+      body: "Readiness is low — do Recover or light Reason instead.",
+      action: "Start Recover"
     };
   };
   const insight = getInsight();
@@ -360,7 +360,7 @@ const Home = () => {
             </div>
             <h1 className="text-xl font-semibold mb-2">Complete Calibration</h1>
             <p className="text-sm text-muted-foreground/70 mb-8 leading-relaxed">
-              A 2-minute cognitive baseline is required before training begins. 
+              A 2-minute cognitive baseline is required before Train begins. 
               This establishes your personalized skill references.
             </p>
             <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center px-6 py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-lg hover:shadow-xl transition-all active:scale-[0.98]">
