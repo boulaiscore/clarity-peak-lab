@@ -127,10 +127,10 @@ export function LoomaTrainingLoop() {
   // Derive recover color based on rotation progress - now gradual throughout
   const recoverColor = useTransform(rotation, (r) => getRecoverColor(r));
 
-  // Animate rotation continuously
+  // Animate rotation continuously - faster (8 seconds per rotation)
   useEffect(() => {
     const controls = animate(rotation, 360, {
-      duration: 20,
+      duration: 8,
       repeat: Infinity,
       ease: "linear",
     });
