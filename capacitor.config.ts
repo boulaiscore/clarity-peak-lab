@@ -30,7 +30,7 @@ const config: CapacitorConfig = {
   },
   // iOS-specific configuration
   ios: {
-    scheme: "luma",
+    scheme: "looma",
     contentInset: "automatic",
   },
   // Android-specific configuration
