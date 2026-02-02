@@ -49,7 +49,7 @@ export function useBaselineStatus(): BaselineStatus {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
+      const { data: metricsData, error: metricsError } = await supabase
         .from("user_cognitive_metrics")
         .select(`
           baseline_captured_at,
@@ -70,13 +70,33 @@ export function useBaselineStatus(): BaselineStatus {
           baseline_focus,
           baseline_fast_thinking,
           baseline_reasoning,
-          baseline_slow_thinking
+          baseline_slow_thinking,
+          total_sessions
         `)
         .eq("user_id", user.id)
         .maybeSingle();
       
-      if (error) throw error;
-      return data;
+      if (metricsError) throw metricsError;
+      
+      // For legacy users: check if they have existing game sessions
+      // This indicates they used the app before calibration was required
+      let hasLegacySessions = false;
+      if (metricsData && !metricsData.baseline_captured_at && !metricsData.calibration_status) {
+        // Check total_sessions first (fast path)
+        if (metricsData.total_sessions && metricsData.total_sessions > 0) {
+          hasLegacySessions = true;
+        } else {
+          // Fallback: check game_sessions table
+          const { count } = await supabase
+            .from("game_sessions")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .limit(1);
+          hasLegacySessions = (count ?? 0) > 0;
+        }
+      }
+      
+      return { ...metricsData, hasLegacySessions };
     },
     enabled: !!user?.id,
     staleTime: 60_000, // 1 minute - prevents flicker during games
@@ -95,11 +115,15 @@ export function useBaselineStatus(): BaselineStatus {
   const CT0_eff = data?.baseline_eff_reasoning ?? data?.baseline_reasoning ?? null;
   const IN0_eff = data?.baseline_eff_slow_thinking ?? data?.baseline_slow_thinking ?? null;
   
+  // Legacy users with existing sessions should be considered calibrated
+  // This prevents blocking old users who used the app before calibration existed
+  const isLegacyCalibrated = data?.hasLegacySessions === true;
+  
   return {
-    isCalibrated: !!data?.baseline_captured_at,
+    isCalibrated: !!data?.baseline_captured_at || isLegacyCalibrated,
     calibrationStatus,
     baselineCapturedAt: data?.baseline_captured_at ?? null,
-    isEstimated: data?.baseline_is_estimated ?? true,
+    isEstimated: isLegacyCalibrated ? false : (data?.baseline_is_estimated ?? true),
     
     // Effective baselines
     AE0_eff,
