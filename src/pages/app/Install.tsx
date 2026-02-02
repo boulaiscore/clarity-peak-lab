@@ -4,13 +4,20 @@ import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff, Download, Check, ArrowLeft } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const InstallPage = () => {
   const navigate = useNavigate();
-  const { permission, isSupported, isLoading, requestPermission } = useNotifications();
+  const { permission, isSupported, isLoading, requestPermission, setDailyReminder } = useNotifications();
+  const { user, updateUser } = useAuth();
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isMuting, setIsMuting] = useState(false);
+  
+  // Check if reminders are enabled in profile
+  const remindersEnabled = user?.reminderEnabled ?? false;
 
   // Listen for the beforeinstallprompt event
   useEffect(() => {
@@ -42,7 +49,24 @@ const InstallPage = () => {
   };
 
   const handleEnableNotifications = async () => {
-    await requestPermission();
+    const result = await requestPermission();
+    if (result === "granted") {
+      // Enable reminders in profile
+      await updateUser({ reminderEnabled: true });
+      toast.success("Notifications enabled!");
+    }
+  };
+
+  const handleMuteNotifications = async () => {
+    setIsMuting(true);
+    try {
+      // Disable reminders in profile and cancel scheduled notifications
+      setDailyReminder(false, null, "");
+      await updateUser({ reminderEnabled: false });
+      toast.success("Notifications muted");
+    } finally {
+      setIsMuting(false);
+    }
   };
 
   return (
@@ -123,9 +147,37 @@ const InstallPage = () => {
               </p>
             </div>
           ) : permission === "granted" ? (
-            <div className="flex items-center gap-2 text-primary">
-              <Check className="w-4 h-4" />
-              <span className="text-sm font-medium">Notifications enabled</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-primary">
+                <Check className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {remindersEnabled ? "Notifications enabled" : "Notifications muted"}
+                </span>
+              </div>
+              {remindersEnabled ? (
+                <Button
+                  variant="outline"
+                  onClick={handleMuteNotifications}
+                  disabled={isMuting}
+                  className="w-full"
+                >
+                  <BellOff className="w-4 h-4 mr-2" />
+                  {isMuting ? "Muting..." : "Mute Notifications"}
+                </Button>
+              ) : (
+                <Button
+                  variant="premium"
+                  onClick={async () => {
+                    setDailyReminder(true, user?.reminderTime ?? "09:00", user?.dailyTimeCommitment ?? "10min");
+                    await updateUser({ reminderEnabled: true });
+                    toast.success("Notifications enabled!");
+                  }}
+                  className="w-full"
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Enable Notifications
+                </Button>
+              )}
             </div>
           ) : permission === "denied" ? (
             <div className="p-3 rounded-lg bg-destructive/10">
