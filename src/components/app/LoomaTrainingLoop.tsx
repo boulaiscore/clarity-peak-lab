@@ -114,9 +114,9 @@ export function LoomaTrainingLoop() {
             >
               <Battery className="w-5 h-5 text-emerald-500" />
             </motion.div>
-            <span className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500 whitespace-nowrap">
+            <span className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500 max-w-[80px]">
               Recover
-              <span className="block font-normal normal-case tracking-normal text-[5px] text-emerald-500/70 mt-0.5">
+              <span className="block font-normal normal-case tracking-normal text-[6px] text-emerald-500/70 mt-0.5">
                 Digital detox or walk
               </span>
             </span>
@@ -141,15 +141,15 @@ export function LoomaTrainingLoop() {
                 {key === "train" && (
                   <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-center">
                     Train
-                    <span className="block font-normal normal-case tracking-normal text-[5px] text-blue-400/70 mt-0.5">
+                    <span className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mt-0.5">
                       Boost Readiness & Sharpness
                     </span>
                   </span>
                 )}
                 {key === "learn" && (
-                  <span className="absolute right-full top-1/2 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-right">
+                  <span className="absolute right-full top-1/2 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[90px] text-right">
                     Learn
-                    <span className="block font-normal normal-case tracking-normal text-[5px] text-blue-400/70 mt-0.5">
+                    <span className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mt-0.5">
                       Reason with books & podcasts
                     </span>
                   </span>
