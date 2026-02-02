@@ -283,18 +283,18 @@ export function WeeklyGoalCard({
       case "building":
         return {
           trackBg: "bg-slate-600/40",
-          optimalZoneBg: "bg-teal-500/30",
-          optimalZoneBorder: "border-teal-400/50",
+          optimalZoneBg: "bg-emerald-500/40",
+          optimalZoneBorder: "border-emerald-400/60",
           markerBg: "bg-white",
           markerBorder: "border-white/50"
         };
       case "within":
         return {
           trackBg: "bg-slate-600/40",
-          optimalZoneBg: "bg-teal-500/40",
-          optimalZoneBorder: "border-teal-400/60",
-          markerBg: "bg-teal-400",
-          markerBorder: "border-teal-300/80"
+          optimalZoneBg: "bg-emerald-500/50",
+          optimalZoneBorder: "border-emerald-400/70",
+          markerBg: "bg-emerald-400",
+          markerBorder: "border-emerald-300/80"
         };
       case "above":
         return {
