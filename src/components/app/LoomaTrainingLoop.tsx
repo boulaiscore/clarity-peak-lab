@@ -1,7 +1,7 @@
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Battery, BookMarked, Dumbbell } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type Step = {
   key: "train" | "learn" | "repeat";
@@ -127,14 +127,35 @@ export function LoomaTrainingLoop() {
   // Derive recover color based on rotation progress - now gradual throughout
   const recoverColor = useTransform(rotation, (r) => getRecoverColor(r));
 
-  // Animate rotation continuously - faster (8 seconds per rotation)
+  // Animate rotation continuously using requestAnimationFrame for smooth looping
+  const lastTimeRef = useRef<number | null>(null);
+  const ROTATION_DURATION = 8000; // 8 seconds per full rotation
+  
   useEffect(() => {
-    const controls = animate(rotation, 360, {
-      duration: 8,
-      repeat: Infinity,
-      ease: "linear",
-    });
-    return controls.stop;
+    let animationId: number;
+    
+    const animate = (currentTime: number) => {
+      if (lastTimeRef.current === null) {
+        lastTimeRef.current = currentTime;
+      }
+      
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+      
+      // Calculate how much to rotate based on time elapsed
+      const degreesPerMs = 360 / ROTATION_DURATION;
+      const newRotation = (rotation.get() + deltaTime * degreesPerMs) % 360;
+      rotation.set(newRotation);
+      
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    animationId = requestAnimationFrame(animate);
+    
+    return () => {
+      cancelAnimationFrame(animationId);
+      lastTimeRef.current = null;
+    };
   }, [rotation]);
 
   return (
