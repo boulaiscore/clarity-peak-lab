@@ -18,7 +18,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { subDays, format } from "date-fns";
+import { subDays, format, parseISO, differenceInDays } from "date-fns";
 
 // ==========================================
 // TYPES
@@ -143,6 +143,25 @@ export function useCognitiveAge() {
     staleTime: 5 * 60_000,
   });
 
+  // 3b) Fetch user profile for birth_date
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile-birthdate", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("birth_date")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
+
   // 4) Fallback: Fetch recent daily snapshots for live regression calculation if no daily record
   const { data: recentSnapshots, isLoading: snapshotsLoading } = useQuery({
     queryKey: ["daily-snapshots-30d", user?.id],
@@ -241,14 +260,25 @@ export function useCognitiveAge() {
 
   // 7) Compose final data
   const cognitiveAgeData: CognitiveAgeData = useMemo(() => {
-    const chronoAge = baseline?.chrono_age_at_onboarding 
-      ? Number(baseline.chrono_age_at_onboarding)
-      : 30;
+    // Calculate current real age from birth_date (with 1 decimal precision)
+    let currentRealAge: number;
+    if (profile?.birth_date) {
+      const birthDate = parseISO(profile.birth_date);
+      const today = new Date();
+      const ageInDays = differenceInDays(today, birthDate);
+      currentRealAge = Math.round((ageInDays / 365.25) * 10) / 10; // 1 decimal precision
+    } else {
+      // Fallback to chrono_age_at_onboarding if no birth_date
+      currentRealAge = baseline?.chrono_age_at_onboarding 
+        ? Number(baseline.chrono_age_at_onboarding)
+        : 30;
+    }
     
     const isCalibrated = baseline?.is_baseline_calibrated ?? false;
     
+    // Round cognitive age to 1 decimal for consistency
     const cogAge = weeklySnapshot?.cognitive_age 
-      ? Number(weeklySnapshot.cognitive_age)
+      ? Math.round(Number(weeklySnapshot.cognitive_age) * 10) / 10
       : null;
     
     // Calculate days until next Sunday
@@ -277,8 +307,8 @@ export function useCognitiveAge() {
       regressionPenaltyYears: weeklySnapshot?.regression_penalty_years ?? 0,
       preRegressionWarning,
       
-      // Baseline
-      chronoAgeAtOnboarding: chronoAge,
+      // Baseline - now using dynamic current real age
+      chronoAgeAtOnboarding: currentRealAge,
       baselineScore90d: baseline?.baseline_score_90d 
         ? Number(baseline.baseline_score_90d) 
         : null,
@@ -295,14 +325,14 @@ export function useCognitiveAge() {
       
       // UI helpers
       isCalibrating: !isCalibrated,
-      delta: cogAge !== null ? cogAge - chronoAge : 0,
+      delta: cogAge !== null ? Math.round((cogAge - currentRealAge) * 10) / 10 : 0,
       daysUntilNextUpdate: daysUntilSunday,
     };
-  }, [weeklySnapshot, baseline, liveRegressionData, preRegressionWarning]);
+  }, [weeklySnapshot, baseline, profile, liveRegressionData, preRegressionWarning]);
 
   return {
     data: cognitiveAgeData,
-    isLoading: weeklyLoading || baselineLoading || dailyLoading || snapshotsLoading,
+    isLoading: weeklyLoading || baselineLoading || profileLoading || dailyLoading || snapshotsLoading,
     hasWeeklyData: !!weeklySnapshot,
     hasBaseline: !!baseline,
     hasDailyData: !!dailyRecord,
