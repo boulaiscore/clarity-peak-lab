@@ -210,6 +210,8 @@ export function CognitiveAgeTrendChart() {
   }, [chartData, hasData, weeklyData]);
 
   // Override real age in chart data to use the centered integer value
+  // Override real age in chart data to use the centered integer value
+  // Also generate sample cognitive age data when no real data exists
   const displayData = useMemo(() => {
     if (hasData) {
       return chartData.map(d => ({
@@ -218,23 +220,31 @@ export function CognitiveAgeTrendChart() {
       }));
     }
     
-    // Generate placeholder data
-    const birthDate = weeklyData?.profile?.birth_date;
+    // Generate placeholder data with sample cognitive age values
     const today = new Date();
     const placeholderWeeks = [];
+    
+    // Sample cognitive age trend: slightly better than real age with small variations
+    const sampleCognitiveAges = [
+      centeredRealAge - 1.2,
+      centeredRealAge - 0.8,
+      centeredRealAge - 1.5,
+      centeredRealAge - 1.0
+    ];
+    
     for (let i = 3; i >= 0; i--) {
       const weekDate = subDays(today, i * 7);
       const weekDateStr = format(weekDate, "yyyy-MM-dd");
       
       placeholderWeeks.push({
         weekLabel: format(weekDate, "d MMM"),
-        cognitiveAge: null,
+        cognitiveAge: sampleCognitiveAges[3 - i],
         realAge: centeredRealAge,
         weekStart: weekDateStr,
       });
     }
     return placeholderWeeks;
-  }, [hasData, chartData, centeredRealAge, weeklyData]);
+  }, [hasData, chartData, centeredRealAge]);
 
   if (isLoading) {
     return (
