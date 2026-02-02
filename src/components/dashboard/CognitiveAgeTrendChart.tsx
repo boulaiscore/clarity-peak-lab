@@ -146,14 +146,19 @@ export function CognitiveAgeTrendChart() {
       : 30;
 
     return weeklyData.weekly.map((w) => {
-      // Calculate real age at this week's date
+      // Calculate real age at this week's date (1 decimal precision)
       const realAge = birthDate 
         ? calculateAgeAtDate(birthDate, w.week_start)
         : fallbackAge;
       
+      // Round cognitive age to 1 decimal for consistency
+      const cogAge = w.cognitive_age 
+        ? Math.round(Number(w.cognitive_age) * 10) / 10 
+        : null;
+      
       return {
         weekLabel: format(parseISO(w.week_start), "d MMM"),
-        cognitiveAge: w.cognitive_age ? Number(w.cognitive_age) : null,
+        cognitiveAge: cogAge,
         realAge: realAge,
         weekStart: w.week_start,
       };
