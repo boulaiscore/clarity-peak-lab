@@ -147,7 +147,7 @@ export function LoomaTrainingLoop() {
                   </span>
                 )}
                 {key === "learn" && (
-                  <span className="absolute right-full top-1/2 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[65px] text-right">
+                  <span className="absolute right-full top-1/2 mr-3 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 max-w-[70px] text-right">
                     Reason
                     <span
                       className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mt-0.5 overflow-hidden"
