@@ -304,9 +304,7 @@ export default function NeuroLab() {
 
                 {/* Step 1: The Cycle - Now just text explanation */}
                 <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                    Step 1 — The Train Cycle
-                  </h4>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">STEP 1 — THE LOOMA LOOP</h4>
                   <p className="text-[12px] text-foreground/80 leading-relaxed">
                     <span className="font-semibold text-foreground">Train</span> with cognitive games targeting Fast (S1) and Slow (S2) thinking systems.{" "}
                     <span className="font-semibold text-foreground">Recover</span> through digital detox and walking sessions.{" "}
