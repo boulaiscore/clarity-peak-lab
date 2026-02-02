@@ -342,10 +342,11 @@ export function useCognitiveAge() {
     }
 
     // Use baseline if available, otherwise use 50 as neutral baseline
-    // During calibration, baseline is the average of all performance so far
+    // During calibration, use 50 (population average) as reference point
+    // This allows showing improvement even from the first session
     const calibrationBaseline = baseline?.baseline_score_90d 
       ? Number(baseline.baseline_score_90d)
-      : (perf180d ?? 50); // Use 180d average as temporary baseline, or 50 as neutral
+      : 50; // Always use 50 as neutral baseline during calibration
 
     // Calculate improvement points
     // Each 10 points above baseline = -1 year cognitive age
