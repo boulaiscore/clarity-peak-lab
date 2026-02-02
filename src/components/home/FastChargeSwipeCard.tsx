@@ -61,7 +61,7 @@ export function FastChargeSwipeCard() {
       </div>
       
       {/* Center label - offset to avoid button overlap */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none pl-36">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none pl-32">
         <span className="text-xs text-muted-foreground/70 uppercase tracking-wider font-medium">
           Swipe to reset
         </span>
