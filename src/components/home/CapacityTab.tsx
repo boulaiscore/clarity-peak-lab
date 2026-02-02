@@ -80,14 +80,38 @@ export function CapacityTab({
         height: size
       }}>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-            {/* Gradient definition for recovery ring */}
+            {/* Dynamic gradient definition for recovery ring - scaled to current value */}
             <defs>
               <linearGradient id="recoveryRingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="hsl(25, 85%, 45%)" />
-                <stop offset="35%" stopColor="hsl(45, 85%, 50%)" />
-                <stop offset="50%" stopColor="hsl(70, 80%, 45%)" />
-                <stop offset="75%" stopColor="hsl(100, 75%, 45%)" />
-                <stop offset="100%" stopColor="hsl(140, 75%, 45%)" />
+                {/* Scale gradient stops based on recovery value, same as battery */}
+                {(() => {
+                  // Scale factor: at 50% recovery, we want to show colors 0-50% of the spectrum
+                  const scaleFactor = recovery / 100;
+                  const stops = [
+                    { offset: 0, hue: 25, sat: 85, light: 45 },      // 0% - orange
+                    { offset: 35, hue: 45, sat: 85, light: 50 },     // 35% - yellow
+                    { offset: 50, hue: 70, sat: 80, light: 45 },     // 50% - yellow-green
+                    { offset: 75, hue: 100, sat: 75, light: 45 },    // 75% - green
+                    { offset: 100, hue: 140, sat: 75, light: 45 },   // 100% - bright green
+                  ];
+                  
+                  // Filter and scale stops up to the current recovery value
+                  return stops
+                    .filter(s => s.offset <= recovery)
+                    .map((s, i, arr) => {
+                      // Scale offset to fill the visible arc (0% to 100% of the drawn arc)
+                      const scaledOffset = recovery > 0 ? (s.offset / recovery) * 100 : 0;
+                      return (
+                        <stop 
+                          key={i} 
+                          offset={`${Math.min(scaledOffset, 100)}%`} 
+                          stopColor={`hsl(${s.hue}, ${s.sat}%, ${s.light}%)`} 
+                        />
+                      );
+                    });
+                })()}
+                {/* Add final stop at current recovery color */}
+                <stop offset="100%" stopColor={ringColor} />
               </linearGradient>
             </defs>
             <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted)/0.3)" strokeWidth={strokeWidth} />
