@@ -103,7 +103,7 @@ export function LoomaTrainingLoop() {
         >
           <div className="relative">
             <motion.div
-              className="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 flex items-center justify-center shadow-lg shadow-emerald-500/20"
+              className="w-10 h-10 rounded-full bg-background border-2 border-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30"
               animate={{
                 boxShadow: [
                   "0 0 10px rgba(16, 185, 129, 0.2)",
