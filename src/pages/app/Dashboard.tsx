@@ -233,7 +233,7 @@ const Dashboard = () => {
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
-                          Recover
+                          Recharge
                         </button>
                         <button
                           onClick={() => setActivitySubTab("training")}

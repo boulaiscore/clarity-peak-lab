@@ -147,7 +147,7 @@ export default function NeuroLab() {
         iconColor: "text-amber-400",
         headline: `Recovery ${Math.round(rec)}% — Moderate.`,
         message: "You can train, but don't overdo it.",
-        action: "S1 games + Reason are ideal. Consider Recover to boost recovery."
+        action: "S1 games + Reason are ideal. Consider Recharge to boost recovery."
       };
     }
 
@@ -158,7 +158,7 @@ export default function NeuroLab() {
         iconColor: "text-amber-500",
         headline: `Recovery ${Math.round(rec)}% — Low.`,
         message: "Your brain needs rest to perform.",
-        action: "Skip intense training. Focus on Recover or light Reason to rebuild."
+        action: "Skip intense training. Focus on Recharge or light Reason to rebuild."
       };
     }
 
@@ -168,7 +168,7 @@ export default function NeuroLab() {
       iconColor: "text-red-400",
       headline: `Recovery ${Math.round(rec)}% — Depleted.`,
       message: "Training now may backfire. Your brain needs recovery.",
-      action: "Recover to rebuild. Reason is fine. Save Train for when you're recharged."
+      action: "Recharge to rebuild. Reason is fine. Save Train for when you're recharged."
     };
   }, [recoveryEffective, recoveryLoading]);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -307,7 +307,7 @@ export default function NeuroLab() {
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">STEP 1 — THE LOOMA LOOP</h4>
                   <p className="text-[12px] text-foreground/80 leading-relaxed">
                     <span className="font-semibold text-foreground">Train</span> with cognitive games targeting Fast (S1) and Slow (S2) thinking systems.{" "}
-                    <span className="font-semibold text-foreground">Recover</span> through digital detox and walking sessions.{" "}
+                    <span className="font-semibold text-foreground">Recharge</span> through digital detox and walking sessions.{" "}
                     <span className="font-semibold text-foreground">Repeat</span> — your brain adapts best with consistent, spaced practice.
                   </p>
                 </div>
@@ -358,7 +358,7 @@ export default function NeuroLab() {
                   <p className="text-[12px] text-foreground/80 leading-relaxed">
                     <span className="font-semibold text-foreground">Reason</span> (reading, podcasts, journaling) doesn't give XP—it boosts your{" "}
                     <span className="font-semibold text-foreground">Reasoning Quality (RQ)</span>, which measures cognitive priming depth.
-                    RQ improves your thinking quality over time. <span className="font-semibold text-foreground">Recover</span> restores Recovery and{" "}
+                    RQ improves your thinking quality over time. <span className="font-semibold text-foreground">Recharge</span> restores Recovery and{" "}
                     <span className="italic">does</span> award small XP bonuses. Use Reason when Recovery is low to maintain RQ without draining energy.
                   </p>
                 </div>
@@ -449,7 +449,7 @@ export default function NeuroLab() {
                   <Smartphone className="w-3.5 h-3.5" />
                   <Ban className="w-3.5 h-3.5 absolute inset-0" />
                 </div>
-                Recover
+                Recharge
               </TabsTrigger>
             </TabsList>
 
