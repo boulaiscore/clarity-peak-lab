@@ -15,7 +15,8 @@ import { format, subDays, parseISO, differenceInDays } from "date-fns";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart } from "recharts";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 // Colors
-const COGNITIVE_AGE_COLOR = "hsl(210, 100%, 60%)"; // Electric blue (like sharpness)
+const COGNITIVE_AGE_GOOD_COLOR = "hsl(142, 76%, 45%)"; // Emerald green - younger than real age
+const COGNITIVE_AGE_BAD_COLOR = "hsl(0, 84%, 60%)"; // Red - older than real age
 const REAL_AGE_COLOR = "hsl(0, 0%, 50%)"; // Gray for real age baseline
 const GRID_COLOR = "rgba(100, 116, 139, 0.15)";
 const MUTED_TEXT = "rgba(100, 116, 139, 0.7)";
@@ -47,13 +48,23 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
   );
 };
 
-// Custom dot
+// Custom dot - color based on comparison with real age
 const CustomDot = ({ cx, cy, payload, dataKey }: { cx?: number; cy?: number; payload?: Record<string, number | null>; dataKey?: string }) => {
   if (!payload || cx === undefined || cy === undefined || !dataKey) return null;
   const value = payload[dataKey];
   if (value === null || value === undefined) return null;
   
-  const color = dataKey === 'cognitiveAge' ? COGNITIVE_AGE_COLOR : REAL_AGE_COLOR;
+  let color: string;
+  if (dataKey === 'cognitiveAge') {
+    const cogAge = payload.cognitiveAge;
+    const realAge = payload.realAge;
+    // Green if cognitive age <= real age, red if older
+    color = (cogAge !== null && realAge !== null && cogAge <= realAge) 
+      ? COGNITIVE_AGE_GOOD_COLOR 
+      : COGNITIVE_AGE_BAD_COLOR;
+  } else {
+    color = REAL_AGE_COLOR;
+  }
   
   return (
     <circle
@@ -290,10 +301,17 @@ export function CognitiveAgeTrendChart() {
       {/* Legend */}
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center gap-1.5">
-          <div 
-            className="w-2.5 h-2.5 rounded-full" 
-            style={{ backgroundColor: COGNITIVE_AGE_COLOR }}
-          />
+          <div className="flex items-center gap-0.5">
+            <div 
+              className="w-2 h-2 rounded-full" 
+              style={{ backgroundColor: COGNITIVE_AGE_GOOD_COLOR }}
+            />
+            <span className="text-[8px] text-muted-foreground/60">/</span>
+            <div 
+              className="w-2 h-2 rounded-full" 
+              style={{ backgroundColor: COGNITIVE_AGE_BAD_COLOR }}
+            />
+          </div>
           <span className="text-[9px] text-muted-foreground">Cognitive Age</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -342,11 +360,11 @@ export function CognitiveAgeTrendChart() {
               dot={false}
               isAnimationActive={false}
             />
-            {/* Cognitive Age - solid line */}
+            {/* Cognitive Age - color based on comparison */}
             <Line
               type="linear"
               dataKey="cognitiveAge"
-              stroke={COGNITIVE_AGE_COLOR}
+              stroke={COGNITIVE_AGE_GOOD_COLOR}
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
