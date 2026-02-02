@@ -173,12 +173,8 @@ export function CognitiveAgeTrendChart() {
 
   // Calculate Y-axis domain with exactly 5 ticks, centered on real age
   const { yMin, yMax, yGridTicks, centeredRealAge } = useMemo(() => {
-    const fallbackAge = weeklyData?.baseline?.chrono_age_at_onboarding 
-      ? Number(weeklyData.baseline.chrono_age_at_onboarding)
-      : 30;
-    
-    // Get the real age with 1 decimal precision
-    const rawRealAge = chartData.length > 0 ? chartData[0].realAge : fallbackAge;
+    // Always use currentRealAge (dynamically calculated from birth_date)
+    const rawRealAge = currentRealAge;
     const centerAge = Math.round(rawRealAge * 10) / 10; // Keep 1 decimal
     const centerAgeInt = Math.round(rawRealAge); // Integer for Y-axis ticks
     
@@ -217,7 +213,7 @@ export function CognitiveAgeTrendChart() {
     ];
     
     return { yMin: min, yMax: max, yGridTicks: ticks, centeredRealAge: centerAge };
-  }, [chartData, hasData, weeklyData]);
+  }, [currentRealAge, chartData, hasData]);
 
   // Override real age in chart data to use the centered integer value
   // Show real data only - no fake sample values
