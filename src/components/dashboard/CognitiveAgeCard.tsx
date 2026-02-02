@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Clock, Activity, TrendingDown, Info, Loader2 } from "lucide-react";
 import { useCognitiveAge, getRegressionRiskLabel, getRegressionRiskColor } from "@/hooks/useCognitiveAge";
 import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
+import { CognitiveAgeTrendChart } from "./CognitiveAgeTrendChart";
 import { CognitiveAgeImpact } from "./CognitiveAgeImpact";
 import { CognitiveAgeInsights } from "./CognitiveAgeInsights";
 import { PaceOfAgingDial } from "./PaceOfAgingDial";
@@ -186,6 +187,9 @@ export function CognitiveAgeCard() {
           perf180d={data.perf180d}
         />
       )}
+
+      {/* Age comparison trend chart */}
+      <CognitiveAgeTrendChart />
 
       {/* WHOOP-style insights */}
       <CognitiveAgeInsights />
