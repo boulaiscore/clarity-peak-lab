@@ -41,17 +41,19 @@ const RECOVER_ANGLE = 340; // -20° normalized
 const TRAIN_ANGLE = 100;
 const REASON_ANGLE = 220; // -140° normalized
 
-// Gap is 70°, centered at -20° (340°)
-// Leading edge: gapCenter + 35° = 15° (at rotation 0)
-// Trailing edge: gapCenter - 35° = 305° (at rotation 0)
+// Gap is 70°, centered at -50° (310°) after rotating icons 30° counter-clockwise
+// Leading edge: gapCenter + 35° = -15° = 345° (at rotation 0)
+// Trailing edge: gapCenter - 35° = -85° = 275° (at rotation 0)
 // 
-// Activity starts when TRAILING edge passes the icon (gap has fully passed)
-// At rotation R, trailing edge is at: (305 + R) % 360
+// Icon positions (rotated 30° counter-clockwise from original):
+// - Recover: -20° - 30° = -50° (310°)
+// - Train: 100° - 30° = 70°
+// - Reason: -140° - 30° = -170° (190°)
 //
 // Activation points (when trailing edge reaches icon):
-// - Recover (340°): R = 340 - 305 = 35°
-// - Train (100°): R = 100 - 305 + 360 = 155°  
-// - Reason (220°): R = 220 - 305 + 360 = 275°
+// - Recover (310°): R = 310 - 275 = 35°
+// - Train (70°): R = 70 - 275 + 360 = 155°  
+// - Reason (190°): R = 190 - 275 + 360 = 275°
 
 function getActiveIcon(rotationDeg: number): "recover" | "train" | "reason" {
   const rot = ((rotationDeg % 360) + 360) % 360;
@@ -111,7 +113,7 @@ export function LoomaTrainingLoop() {
   const cy = 50;
   const r = 42;
 
-  const recoverAngle = -20;
+  const recoverAngle = -50; // Rotated 30° counter-clockwise from -20°
   const gapDeg = 70;
 
   const startDeg = recoverAngle + gapDeg / 2;
@@ -218,10 +220,10 @@ export function LoomaTrainingLoop() {
           </div>
         </div>
 
-        {/* Train icon */}
+        {/* Train icon - rotated 30° counter-clockwise from 100° to 70° */}
         <motion.div 
           className="absolute z-10 -translate-x-1/2 -translate-y-1/2" 
-          style={polarToPercent(cx, cy, r, 100)}
+          style={polarToPercent(cx, cy, r, 70)}
         >
           <div className="relative">
             <motion.div
@@ -270,10 +272,10 @@ export function LoomaTrainingLoop() {
           </div>
         </motion.div>
 
-        {/* Reason icon */}
+        {/* Reason icon - rotated 30° counter-clockwise from -140° to -170° */}
         <motion.div 
           className="absolute z-10 -translate-x-1/2 -translate-y-1/2" 
-          style={polarToPercent(cx, cy, r, -140)}
+          style={polarToPercent(cx, cy, r, -170)}
         >
           <div className="relative">
             <motion.div
