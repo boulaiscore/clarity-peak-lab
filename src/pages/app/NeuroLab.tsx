@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Brain, Zap, Battery, BatteryLow, Settings2 } from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Brain, Zap, Battery, BatteryLow, Settings2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
@@ -298,7 +298,100 @@ export default function NeuroLab() {
             <CollapsibleContent>
               <div className="px-4 pb-4 space-y-4 border-t border-foreground/20 pt-4">
                 
-                {/* Step 1: The Cycle */}
+                {/* Visual Training Loop */}
+                <div className="py-4 flex flex-col items-center">
+                  <div className="relative w-52 h-52 flex items-center justify-center">
+                    {/* Circular track with animated gradient */}
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      {/* Background dashed circle */}
+                      <circle 
+                        cx="50" cy="50" r="40" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="0.5" 
+                        className="text-muted/30" 
+                        strokeDasharray="3 3" 
+                      />
+                      {/* Animated progress circle */}
+                      <motion.circle
+                        cx="50" cy="50" r="40" 
+                        fill="none" 
+                        stroke="url(#loopGradient)" 
+                        strokeWidth="1.5" 
+                        strokeLinecap="round"
+                        initial={{ pathLength: 0, opacity: 0.3 }}
+                        animate={{ pathLength: 1, opacity: 1 }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                      />
+                      <defs>
+                        <linearGradient id="loopGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="hsl(var(--primary))" />
+                          <stop offset="50%" stopColor="hsl(142, 71%, 45%)" />
+                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    
+                    {/* Loop nodes positioned on circle */}
+                    <div className="absolute inset-0">
+                      {/* Train - Top */}
+                      <motion.div 
+                        className="absolute left-1/2 top-[4%] -translate-x-1/2 flex flex-col items-center gap-1.5"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <div className="w-11 h-11 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10">
+                          <Dumbbell className="w-5 h-5 text-primary" />
+                        </div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Train</span>
+                      </motion.div>
+                      
+                      {/* Recover - Bottom Right */}
+                      <motion.div 
+                        className="absolute left-[82%] top-[68%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <div className="w-11 h-11 rounded-full bg-background border-2 border-emerald-500/50 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                          <Battery className="w-5 h-5 text-emerald-500" />
+                        </div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-500">Recover</span>
+                      </motion.div>
+                      
+                      {/* Repeat - Bottom Left */}
+                      <motion.div 
+                        className="absolute left-[18%] top-[68%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.6 }}
+                      >
+                        <div className="w-11 h-11 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                          <RefreshCw className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-blue-400">Repeat</span>
+                      </motion.div>
+                    </div>
+
+                    {/* Center: LUMA Logo */}
+                    <motion.div 
+                      className="relative z-10 w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/20"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <LumaLogo size={28} className="text-primary" />
+                    </motion.div>
+                  </div>
+                  
+                  {/* Caption */}
+                  <p className="text-[10px] text-muted-foreground/70 text-center mt-2 uppercase tracking-wider">
+                    The LUMA Training Cycle
+                  </p>
+                </div>
+
+                {/* Step 1: The Cycle - Now just text explanation */}
                 <div className="space-y-2">
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
                     Step 1 — The Training Cycle
