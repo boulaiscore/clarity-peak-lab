@@ -53,7 +53,7 @@ export function LoomaTrainingLoop() {
   const recoverPos = polarToPercent(cx, cy, r, recoverAngle);
 
   return (
-    <div className="py-6 px-4 flex flex-col items-center overflow-hidden">
+    <div className="py-6 px-4 flex flex-col items-center overflow-hidden ml-1">
       <div className="relative w-48 h-48 flex items-center justify-center">
         {/* Rotating arc only - z-0 to stay behind icons */}
         <motion.div
