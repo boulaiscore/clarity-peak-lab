@@ -1,9 +1,9 @@
-interface LumaLogoProps {
+interface LoomaLogoProps {
   size?: number;
   className?: string;
 }
 
-export function LumaLogo({ size = 24, className }: LumaLogoProps) {
+export function LoomaLogo({ size = 24, className }: LoomaLogoProps) {
   return (
     <svg
       width={size}

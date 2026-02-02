@@ -81,7 +81,7 @@ const InstallPage = () => {
           </Link>
           <div>
             <h1 className="text-lg font-semibold text-foreground tracking-tight">
-              Install LUMA
+              Install LOOMA
             </h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
               Get the full experience
@@ -99,7 +99,7 @@ const InstallPage = () => {
             Install to Home Screen
           </h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Add LUMA to your home screen for faster access and an app-like experience.
+            Add LOOMA to your home screen for faster access and an app-like experience.
           </p>
 
           {isInstalled ? (

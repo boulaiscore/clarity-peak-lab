@@ -1,10 +1,10 @@
 /**
  * ============================================
- * LUMA TEMPORAL WINDOWS — ROLLING ONLY
+ * LOOMA TEMPORAL WINDOWS — ROLLING ONLY
  * ============================================
  * 
  * OFFICIAL RULES:
- * LUMA NON usa settimane di calendario.
+ * LOOMA NON usa settimane di calendario.
  * Usa SOLO rolling windows.
  * 
  * PERIODS:

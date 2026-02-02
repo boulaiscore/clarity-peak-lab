@@ -24,7 +24,7 @@ import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
-import { LumaLogo } from "@/components/ui/LumaLogo";
+import { LoomaLogo } from "@/components/ui/LoomaLogo";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -287,9 +287,9 @@ export default function NeuroLab() {
           <div className="border border-border/30 bg-background">
             <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors text-muted border-muted pb-[12px] mb-[5px]">
               <div className="flex items-center gap-3">
-                <LumaLogo size={20} className="text-foreground" />
+                <LoomaLogo size={20} className="text-foreground" />
                 <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
-                  How LUMA Lab Works
+                  How LOOMA Lab Works
                 </span>
               </div>
               <ChevronRight className="w-4 h-4 text-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
@@ -402,21 +402,21 @@ export default function NeuroLab() {
                       </motion.div>
                     </div>
 
-                    {/* Center: LUMA Logo */}
+                    {/* Center: LOOMA Logo */}
                     <motion.div 
                       className="relative z-10 flex flex-col items-center"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <LumaLogo size={28} className="text-foreground/80" />
+                      <LoomaLogo size={28} className="text-foreground/80" />
                       <span className="text-[9px] font-bold tracking-widest text-foreground/50 mt-1">LOOP</span>
                     </motion.div>
                   </div>
                   
                   {/* Caption */}
                   <p className="text-[10px] text-muted-foreground/60 text-center mt-3 uppercase tracking-wider">
-                    The LUMA Training Cycle
+                    The LOOMA Training Cycle
                   </p>
                 </div>
 

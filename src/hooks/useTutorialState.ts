@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const TUTORIAL_SEEN_KEY = "luma-tutorial-seen";
+const TUTORIAL_SEEN_KEY = "looma-tutorial-seen";
 
 function getTutorialSeenKey(userId: string): string {
   return `${TUTORIAL_SEEN_KEY}:${userId}`;

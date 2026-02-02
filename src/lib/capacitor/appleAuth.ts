@@ -31,7 +31,7 @@ export async function signInWithApple(): Promise<AppleAuthResult> {
       provider: 'apple',
       options: {
         redirectTo: isNative() 
-          ? 'luma://auth/callback' 
+          ? 'looma://auth/callback' 
           : `${window.location.origin}/#/auth`,
         skipBrowserRedirect: isNative(),
       },

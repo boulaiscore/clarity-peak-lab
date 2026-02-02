@@ -5,7 +5,7 @@ import {
   ChevronRight, ChevronLeft, X, Sparkles, Activity, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LumaLogo } from "@/components/ui/LumaLogo";
+import { LoomaLogo } from "@/components/ui/LoomaLogo";
 
 interface OnboardingTutorialProps {
   show: boolean;
@@ -223,7 +223,7 @@ const MetricsVisual = () => (
         className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20"
       >
         <div className="flex items-center gap-2 mb-1">
-          <LumaLogo size={16} className="text-violet-400" />
+          <LoomaLogo size={16} className="text-violet-400" />
           <span className="text-[10px] font-semibold text-violet-400">Reasoning Quality</span>
         </div>
         <p className="text-[8px] text-muted-foreground leading-tight">
@@ -244,7 +244,7 @@ const GetStartedVisual = () => (
     <div className="relative">
       <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
       <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-        <LumaLogo size={40} className="text-white" />
+        <LoomaLogo size={40} className="text-white" />
       </div>
     </div>
     <motion.p
@@ -262,9 +262,9 @@ const SLIDES: TutorialSlide[] = [
   {
     id: "s1s2",
     title: "Two Thinking Systems",
-    subtitle: "The science behind LUMA",
+    subtitle: "The science behind LOOMA",
     description: "System 1 is fast, intuitive, automatic. System 2 is slow, deliberate, analytical. Training both creates cognitive balance.",
-    icon: <LumaLogo size={20} className="text-foreground" />,
+    icon: <LoomaLogo size={20} className="text-foreground" />,
     visual: <S1S2Visual />,
     accent: "from-amber-500/20 to-violet-500/20",
   },

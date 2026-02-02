@@ -14,7 +14,7 @@ export function ReportPage({
     <section className="report-page report-shell">
       <header className="report-header">
         <div>
-          <div className="report-brand">LUMA PRO</div>
+          <div className="report-brand">LOOMA PRO</div>
           <h2 className="report-title">{title}</h2>
           {subtitle ? <div className="report-subtitle">{subtitle}</div> : null}
         </div>
@@ -24,7 +24,7 @@ export function ReportPage({
       <div className="report-body">{children}</div>
 
       <footer className="report-footer">
-        <div>LUMA Pro | Cognitive Fitness for Elite Minds</div>
+        <div>LOOMA Pro | Cognitive Fitness for Elite Minds</div>
         <div className="report-pagehint">Confidential</div>
       </footer>
     </section>

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, ChevronLeft, Target, Zap, Clock, Headphones, BookOpen, FileText, Activity, Check } from "lucide-react";
-import { LumaLogo } from "@/components/ui/LumaLogo";
+import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
@@ -356,7 +356,7 @@ const Home = () => {
           y: 0
         }} className="text-center max-w-sm">
             <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center mx-auto mb-6">
-              <LumaLogo size={32} className="text-white" />
+              <LoomaLogo size={32} className="text-white" />
             </div>
             <h1 className="text-xl font-semibold mb-2">Complete Calibration</h1>
             <p className="text-sm text-muted-foreground/70 mb-8 leading-relaxed">
