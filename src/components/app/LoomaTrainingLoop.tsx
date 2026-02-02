@@ -114,8 +114,11 @@ export function LoomaTrainingLoop() {
             >
               <Battery className="w-5 h-5 text-emerald-500" />
             </motion.div>
-            <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500">
+            <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider text-emerald-500 whitespace-nowrap">
               Recover
+              <span className="block font-normal normal-case tracking-normal text-[6px] text-emerald-500/70 mt-0.5">
+                Digital detox or walk
+              </span>
             </span>
           </div>
         </div>
@@ -136,13 +139,19 @@ export function LoomaTrainingLoop() {
 
                 {/* Labels positioned based on angle */}
                 {key === "train" && (
-                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
-                    {label}
+                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-center">
+                    Train
+                    <span className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mt-0.5">
+                      Boost Readiness & Sharpness
+                    </span>
                   </span>
                 )}
                 {key === "learn" && (
-                  <span className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
-                    {label}
+                  <span className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400 whitespace-nowrap text-center">
+                    Learn
+                    <span className="block font-normal normal-case tracking-normal text-[6px] text-blue-400/70 mb-0.5">
+                      Reason with books & podcasts
+                    </span>
                   </span>
                 )}
               </div>
