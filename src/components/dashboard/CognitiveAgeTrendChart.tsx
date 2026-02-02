@@ -163,21 +163,21 @@ export function CognitiveAgeTrendChart() {
   const hasData = chartData.some(d => d.cognitiveAge !== null);
 
   // Calculate Y-axis domain with exactly 5 ticks, centered on real age
-  const { yMin, yMax, yGridTicks } = useMemo(() => {
+  const { yMin, yMax, yGridTicks, centeredRealAge } = useMemo(() => {
     const fallbackAge = weeklyData?.baseline?.chrono_age_at_onboarding 
       ? Number(weeklyData.baseline.chrono_age_at_onboarding)
       : 30;
     
     // Get the real age (use the first data point's real age or fallback)
-    const realAge = chartData.length > 0 ? chartData[0].realAge : fallbackAge;
-    const centerAge = Math.round(realAge);
+    const rawRealAge = chartData.length > 0 ? chartData[0].realAge : fallbackAge;
+    const centerAge = Math.round(rawRealAge); // Integer value for centering
     
     if (!hasData) {
       // Default range centered around the user's real age with 5 ticks
       const min = centerAge - 2;
       const max = centerAge + 2;
       const ticks = [min, min + 1, centerAge, max - 1, max];
-      return { yMin: min, yMax: max, yGridTicks: ticks };
+      return { yMin: min, yMax: max, yGridTicks: ticks, centeredRealAge: centerAge };
     }
 
     // Get cognitive age values to determine needed range
@@ -197,18 +197,44 @@ export function CognitiveAgeTrendChart() {
     const min = centerAge - maxDistance;
     const max = centerAge + maxDistance;
     
-    // Create exactly 5 ticks with real age in the middle
-    const step = maxDistance / 2;
+    // Create exactly 5 ticks with real age exactly in the middle
     const ticks = [
-      Math.round(min),
-      Math.round(centerAge - step),
+      min,
+      centerAge - Math.floor(maxDistance / 2),
       centerAge,
-      Math.round(centerAge + step),
-      Math.round(max)
+      centerAge + Math.floor(maxDistance / 2),
+      max
     ];
     
-    return { yMin: min, yMax: max, yGridTicks: ticks };
+    return { yMin: min, yMax: max, yGridTicks: ticks, centeredRealAge: centerAge };
   }, [chartData, hasData, weeklyData]);
+
+  // Override real age in chart data to use the centered integer value
+  const displayData = useMemo(() => {
+    if (hasData) {
+      return chartData.map(d => ({
+        ...d,
+        realAge: centeredRealAge // Use the exact center value
+      }));
+    }
+    
+    // Generate placeholder data
+    const birthDate = weeklyData?.profile?.birth_date;
+    const today = new Date();
+    const placeholderWeeks = [];
+    for (let i = 3; i >= 0; i--) {
+      const weekDate = subDays(today, i * 7);
+      const weekDateStr = format(weekDate, "yyyy-MM-dd");
+      
+      placeholderWeeks.push({
+        weekLabel: format(weekDate, "d MMM"),
+        cognitiveAge: null,
+        realAge: centeredRealAge,
+        weekStart: weekDateStr,
+      });
+    }
+    return placeholderWeeks;
+  }, [hasData, chartData, centeredRealAge, weeklyData]);
 
   if (isLoading) {
     return (
@@ -219,33 +245,6 @@ export function CognitiveAgeTrendChart() {
       </div>
     );
   }
-
-  // Generate placeholder data if no real data exists
-  const displayData = hasData ? chartData : (() => {
-    const birthDate = weeklyData?.profile?.birth_date;
-    const fallbackAge = weeklyData?.baseline?.chrono_age_at_onboarding 
-      ? Number(weeklyData.baseline.chrono_age_at_onboarding)
-      : 30;
-    
-    // Create 4 placeholder weeks
-    const today = new Date();
-    const placeholderWeeks = [];
-    for (let i = 3; i >= 0; i--) {
-      const weekDate = subDays(today, i * 7);
-      const weekDateStr = format(weekDate, "yyyy-MM-dd");
-      const realAge = birthDate 
-        ? calculateAgeAtDate(birthDate, weekDateStr)
-        : fallbackAge;
-      
-      placeholderWeeks.push({
-        weekLabel: format(weekDate, "d MMM"),
-        cognitiveAge: null,
-        realAge: realAge,
-        weekStart: weekDateStr,
-      });
-    }
-    return placeholderWeeks;
-  })();
 
   return (
     <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
