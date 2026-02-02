@@ -123,7 +123,6 @@ export function LoomaTrainingLoop() {
         {/* Other steps placed exactly on circumference */}
         {STEPS.map(({ key, label, Icon, angleDeg }) => {
           const pos = polarToPercent(cx, cy, r, angleDeg);
-          const isTrain = key === "train";
           return (
             <div
               key={key}
@@ -131,19 +130,13 @@ export function LoomaTrainingLoop() {
               style={pos}
             >
               <div className="relative">
-                <div
-                  className={
-                    isTrain
-                      ? "w-9 h-9 rounded-full bg-background border-2 border-primary/50 flex items-center justify-center shadow-lg shadow-primary/10"
-                      : "w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10"
-                  }
-                >
-                  <Icon className={isTrain ? "w-4 h-4 text-primary" : "w-4 h-4 text-blue-400"} />
+                <div className="w-9 h-9 rounded-full bg-background border-2 border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-400/10">
+                  <Icon className="w-4 h-4 text-blue-400" />
                 </div>
 
                 {/* Labels positioned based on angle */}
                 {key === "train" && (
-                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-primary">
+                  <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-blue-400">
                     {label}
                   </span>
                 )}
