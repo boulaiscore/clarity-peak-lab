@@ -162,40 +162,48 @@ export function CognitiveAgeTrendChart() {
 
   const hasData = chartData.some(d => d.cognitiveAge !== null);
 
-  // Calculate Y-axis domain with exactly 5 ticks
+  // Calculate Y-axis domain with exactly 5 ticks, centered on real age
   const { yMin, yMax, yGridTicks } = useMemo(() => {
     const fallbackAge = weeklyData?.baseline?.chrono_age_at_onboarding 
       ? Number(weeklyData.baseline.chrono_age_at_onboarding)
       : 30;
     
+    // Get the real age (use the first data point's real age or fallback)
+    const realAge = chartData.length > 0 ? chartData[0].realAge : fallbackAge;
+    const centerAge = Math.round(realAge);
+    
     if (!hasData) {
-      // Default range centered around the user's age with 5 ticks
-      const centerAge = Math.round(fallbackAge);
+      // Default range centered around the user's real age with 5 ticks
       const min = centerAge - 2;
       const max = centerAge + 2;
       const ticks = [min, min + 1, centerAge, max - 1, max];
       return { yMin: min, yMax: max, yGridTicks: ticks };
     }
 
-    const allValues = chartData
+    // Get cognitive age values to determine needed range
+    const cognitiveAges = chartData
       .filter(d => d.cognitiveAge !== null)
-      .flatMap(d => [d.cognitiveAge!, d.realAge]);
+      .map(d => d.cognitiveAge!);
     
-    const dataMin = Math.min(...allValues);
-    const dataMax = Math.max(...allValues);
+    const cognitiveMin = Math.min(...cognitiveAges);
+    const cognitiveMax = Math.max(...cognitiveAges);
     
-    // Round to integers and add padding
-    const min = Math.floor(dataMin) - 1;
-    const max = Math.ceil(dataMax) + 1;
+    // Calculate distance from center (real age) to furthest cognitive age
+    const distanceToMin = centerAge - Math.floor(cognitiveMin);
+    const distanceToMax = Math.ceil(cognitiveMax) - centerAge;
+    const maxDistance = Math.max(distanceToMin, distanceToMax, 2); // At least 2 years on each side
     
-    // Create exactly 5 ticks evenly distributed
-    const range = max - min;
-    const step = range / 4;
+    // Create symmetric range around real age
+    const min = centerAge - maxDistance;
+    const max = centerAge + maxDistance;
+    
+    // Create exactly 5 ticks with real age in the middle
+    const step = maxDistance / 2;
     const ticks = [
       Math.round(min),
-      Math.round(min + step),
-      Math.round(min + step * 2),
-      Math.round(min + step * 3),
+      Math.round(centerAge - step),
+      centerAge,
+      Math.round(centerAge + step),
       Math.round(max)
     ];
     
