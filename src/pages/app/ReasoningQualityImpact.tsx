@@ -238,7 +238,7 @@ export default function ReasoningQualityImpact() {
           period: "14+ days inactivity",
           frequency: `-${decayContribution.toFixed(1)} points`,
           direction: "Negative",
-          note: "RQ decays at -2 points per week of inactivity beyond 14 days. Floor: S2 Core - 10.",
+          note: "RQ decays at -1 point per week of inactivity beyond 14 days. Floor: S2 Core - 10.",
         },
       });
     }
