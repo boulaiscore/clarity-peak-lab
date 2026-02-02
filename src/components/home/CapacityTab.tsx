@@ -80,14 +80,13 @@ export function CapacityTab({
         height: size
       }}>
           <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-            {/* Gradient definition matching battery exactly */}
+            {/* Gradient definition matching battery - direction follows clockwise arc */}
             <defs>
-              {/* Use a conic gradient simulation via multiple arc segments for true arc gradient */}
-              {/* For simplicity, use linear gradient rotated to match arc direction */}
+              {/* Gradient goes from arc start (right in pre-rotation = top in visual) clockwise */}
+              {/* Using x1=size (right) to x2=0 (left) in pre-rotation coords = top-to-bottom clockwise in visual */}
               <linearGradient id="recoveryRingGradient" gradientUnits="userSpaceOnUse" 
-                x1={size / 2} y1={size} x2={size / 2} y2={0}>
+                x1={size} y1={size / 2} x2={0} y2={size / 2}>
                 {/* Same gradient as battery, scaled to recovery value */}
-                {/* At recovery %, we show colors from 0% to recovery% of the full spectrum */}
                 {(() => {
                   // Full gradient stops (same as battery)
                   const fullStops = [
