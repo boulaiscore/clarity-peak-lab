@@ -267,7 +267,7 @@ const Health = () => {
               <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
               <p className="text-xs text-muted-foreground leading-relaxed">
                 NeuroLoop does not provide medical insights or diagnoses. Health data is used solely to enhance
-                cognitive readiness calculations and personalize your training experience.
+                cognitive metrics calculations and personalize your training experience.
               </p>
             </div>
           </div>
