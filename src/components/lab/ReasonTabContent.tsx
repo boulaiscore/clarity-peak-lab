@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
   useActiveReasonSession,
+  SessionType,
 } from "@/hooks/useReasonSessions";
 import { ReasonSessionTimer } from "./ReasonSessionTimer";
 import { ReasonContentSelector } from "./ReasonContentSelector";
@@ -29,6 +30,7 @@ import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
 
 export function ReasonTabContent() {
   const [showSelector, setShowSelector] = useState(false);
+  const [selectorMode, setSelectorMode] = useState<SessionType>("reading");
   const [showLegacyLibrary, setShowLegacyLibrary] = useState(false);
   
   const { data: activeSession, isLoading } = useActiveReasonSession();
@@ -82,7 +84,7 @@ export function ReasonTabContent() {
         
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => setShowSelector(true)}
+            onClick={() => { setSelectorMode("reading"); setShowSelector(true); }}
             className="group flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-500/40 transition-all"
           >
             <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -99,7 +101,7 @@ export function ReasonTabContent() {
           </button>
           
           <button
-            onClick={() => setShowSelector(true)}
+            onClick={() => { setSelectorMode("listening"); setShowSelector(true); }}
             className="group flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 hover:border-violet-500/40 transition-all"
           >
             <div className="w-14 h-14 rounded-2xl bg-violet-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -152,6 +154,7 @@ export function ReasonTabContent() {
         open={showSelector}
         onClose={() => setShowSelector(false)}
         onSessionStarted={() => setShowSelector(false)}
+        initialSessionType={selectorMode}
       />
     </div>
   );
