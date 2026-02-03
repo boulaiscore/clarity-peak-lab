@@ -276,13 +276,6 @@ const Health = () => {
                         {wearableSync.isSyncing ? "Connecting..." : "Connect"}
                       </button>
                     )}
-
-                    {/* Web fallback for primary item */}
-                    {isPrimary && !isNative && !isFreeUser && (
-                      <span className="text-xs text-muted-foreground">
-                        Native app required
-                      </span>
-                    )}
                   </div>
                 </div>
               );
