@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Watch, Activity, Heart, Moon, Check, ExternalLink, Lock, Sparkles } from "lucide-react";
+import { AppleHealthIcon, WhoopIcon, OuraIcon, GarminIcon, OtherWearableIcon } from "@/components/icons/WearableIcons";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ interface WearableItem {
   name: string;
   subLabel: string;
   type: "primary" | "system_sync" | "other";
+  icon: React.ComponentType<{ className?: string; size?: number }>;
 }
 
 const WEARABLE_ITEMS: WearableItem[] = [
@@ -23,30 +24,35 @@ const WEARABLE_ITEMS: WearableItem[] = [
     name: "Apple Health",
     subLabel: "Includes Apple Watch and compatible wearables",
     type: "primary",
+    icon: AppleHealthIcon,
   },
   {
     id: "whoop",
     name: "WHOOP",
     subLabel: "Available via Apple Health or Health Connect",
     type: "system_sync",
+    icon: WhoopIcon,
   },
   {
     id: "oura",
     name: "Oura Ring",
     subLabel: "Available via Apple Health or Health Connect",
     type: "system_sync",
+    icon: OuraIcon,
   },
   {
     id: "garmin",
     name: "Garmin",
     subLabel: "Available via Apple Health or Health Connect",
     type: "system_sync",
+    icon: GarminIcon,
   },
   {
     id: "other",
     name: "Other wearable",
     subLabel: "Works if synced with Apple Health or Health Connect",
     type: "other",
+    icon: OtherWearableIcon,
   },
 ];
 
@@ -235,11 +241,10 @@ const Health = () => {
                       isPrimary ? "bg-primary/10" : "bg-muted/30"
                     )}
                   >
-                    {isPrimary ? (
-                      <Watch className={cn("w-5 h-5", isPrimary ? "text-primary" : "text-muted-foreground")} />
-                    ) : (
-                      <Activity className="w-5 h-5 text-muted-foreground" />
-                    )}
+                    <item.icon 
+                      size={20} 
+                      className={cn(isPrimary ? "text-primary" : "text-muted-foreground")} 
+                    />
                   </div>
 
                   {/* Content */}
