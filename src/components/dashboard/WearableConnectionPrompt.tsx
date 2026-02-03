@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Watch, ChevronRight, Activity, Moon, Heart } from "lucide-react";
 import { useWearableSync } from "@/hooks/useWearableSync";
 import { useAuth } from "@/contexts/AuthContext";
-import { isNativePlatform } from "@/lib/capacitor/health";
 
 /**
  * WearableConnectionPrompt
@@ -12,14 +11,13 @@ import { isNativePlatform } from "@/lib/capacitor/health";
  */
 export function WearableConnectionPrompt() {
   const { user } = useAuth();
-  const { isConnected, isAvailable } = useWearableSync();
-  const isNative = isNativePlatform();
+  const { isConnected } = useWearableSync();
 
   // Don't show if already connected
   if (isConnected) return null;
 
-  // Don't show on web (no wearable support)
-  if (!isNative && !isAvailable) return null;
+  // Always show the prompt to encourage wearable connection
+  // (works on web as preview, and on native for actual connection)
 
   return (
     <Link 
