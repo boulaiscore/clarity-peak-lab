@@ -243,21 +243,28 @@ export function ReasonContentSelector({
                     filteredLibrary.map((item) => (
                       <div
                         key={item.id}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all"
+                        className="w-full p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all"
                       >
-                        <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-                          item.format === "podcast" && "bg-violet-500/10",
-                          item.format === "reading" && "bg-cyan-500/10",
-                          item.format === "book" && "bg-amber-500/10",
-                        )}>
-                          {item.format === "podcast" && <Headphones className="w-5 h-5 text-violet-500" />}
-                          {item.format === "reading" && <FileText className="w-5 h-5 text-cyan-500" />}
-                          {item.format === "book" && <BookOpen className="w-5 h-5 text-amber-500" />}
+                        {/* Top row: icon + title */}
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={cn(
+                            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                            item.format === "podcast" && "bg-violet-500/10",
+                            item.format === "reading" && "bg-cyan-500/10",
+                            item.format === "book" && "bg-amber-500/10",
+                          )}>
+                            {item.format === "podcast" && <Headphones className="w-4 h-4 text-violet-500" />}
+                            {item.format === "reading" && <FileText className="w-4 h-4 text-cyan-500" />}
+                            {item.format === "book" && <BookOpen className="w-4 h-4 text-amber-500" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.title}</p>
-                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        
+                        {/* Bottom row: metadata + actions */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                             <span className="capitalize">{item.format}</span>
                             <span>•</span>
                             <span>{item.durationMinutes} min</span>
@@ -266,34 +273,34 @@ export function ReasonContentSelector({
                               {LOOMA_ITEM_WEIGHTS[item.format]?.toFixed(1) || "1.0"}×
                             </span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!item.url) return;
-                              window.open(item.url, "_blank", "noopener,noreferrer");
-                            }}
-                            disabled={!item.url}
-                            className="h-8 px-2.5 text-xs font-medium"
-                            title={item.url ? "Open content" : "No link available"}
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                            <span className="ml-1">Open</span>
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleStartLoomaSession(item)}
-                            disabled={startSession.isPending}
-                            className="h-8 px-3 text-xs font-medium"
-                          >
-                            Start
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!item.url) return;
+                                window.open(item.url, "_blank", "noopener,noreferrer");
+                              }}
+                              disabled={!item.url}
+                              className="h-7 px-2 text-[10px] font-medium"
+                              title={item.url ? "Open content" : "No link available"}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                              Open
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleStartLoomaSession(item)}
+                              disabled={startSession.isPending}
+                              className="h-7 px-3 text-[10px] font-medium"
+                            >
+                              Start
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))
