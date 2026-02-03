@@ -1,104 +1,74 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { Watch, Moon, Footprints, Heart, Activity, Flame, Info, Check, Clock, Bell, RefreshCw, Link2, AlertTriangle } from "lucide-react";
+import { Watch, Activity, Heart, Moon, Check, ExternalLink, Lock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth, PrimaryDevice } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useWearableSync } from "@/hooks/useWearableSync";
-import { getPlatform, isNativePlatform } from "@/lib/capacitor/health";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { getPlatform, isNativePlatform, openHealthSettings } from "@/lib/capacitor/health";
+import { usePremiumGating } from "@/hooks/usePremiumGating";
+import { useNavigate } from "react-router-dom";
 
-interface DeviceOption {
-  id: PrimaryDevice;
+// Wearable brands that sync via system health platforms
+interface WearableItem {
+  id: string;
   name: string;
-  icon: React.ElementType;
-  status: "available" | "coming_soon";
-  metrics: string[];
+  subLabel: string;
+  type: "primary" | "system_sync" | "other";
 }
 
-const DEVICES: DeviceOption[] = [
+const WEARABLE_ITEMS: WearableItem[] = [
   {
     id: "apple_health",
-    name: "Apple Watch / Apple Health",
-    icon: Watch,
-    status: "coming_soon",
-    metrics: ["Sleep Analysis", "Step Count", "Heart Rate", "HRV", "Active Energy"],
+    name: "Apple Health",
+    subLabel: "Includes Apple Watch and compatible wearables",
+    type: "primary",
   },
   {
     id: "whoop",
-    name: "Whoop",
-    icon: Activity,
-    status: "coming_soon",
-    metrics: ["HRV", "Sleep", "Strain", "Recovery"],
+    name: "WHOOP",
+    subLabel: "Available via Apple Health or Health Connect",
+    type: "system_sync",
   },
   {
     id: "oura",
     name: "Oura Ring",
-    icon: Activity,
-    status: "coming_soon",
-    metrics: ["Sleep", "Readiness", "Activity", "HRV"],
+    subLabel: "Available via Apple Health or Health Connect",
+    type: "system_sync",
   },
   {
     id: "garmin",
     name: "Garmin",
-    icon: Watch,
-    status: "coming_soon",
-    metrics: ["Heart Rate", "Sleep", "Stress", "Steps", "HRV"],
+    subLabel: "Available via Apple Health or Health Connect",
+    type: "system_sync",
   },
   {
     id: "other",
-    name: "Other",
-    icon: Activity,
-    status: "coming_soon",
-    metrics: [],
+    name: "Other wearable",
+    subLabel: "Works if synced with Apple Health or Health Connect",
+    type: "other",
   },
 ];
 
-const METRIC_ICONS: Record<string, React.ElementType> = {
-  "Sleep Analysis": Moon,
-  "Sleep": Moon,
-  "Step Count": Footprints,
-  "Steps": Footprints,
-  "Heart Rate": Heart,
-  "HRV": Activity,
-  "Active Energy": Flame,
-  "Strain": Flame,
-  "Recovery": Activity,
-  "Readiness": Activity,
-  "Activity": Flame,
-  "Stress": Activity,
-};
-
 const Health = () => {
-  const { user, updateUser } = useAuth();
-  const [selectedDevice, setSelectedDevice] = useState<PrimaryDevice | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [pendingDevice, setPendingDevice] = useState<PrimaryDevice | null>(null);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { isPremium } = usePremiumGating();
+  
   // Wearable sync hook for native platforms
   const wearableSync = useWearableSync();
   const platform = getPlatform();
   const isNative = isNativePlatform();
 
-  // Load initial device from user profile
-  useEffect(() => {
-    if (user?.primaryDevice) {
-      setSelectedDevice(user.primaryDevice);
-    }
-  }, [user?.primaryDevice]);
+  // Determine user state for premium gating
+  // For MVP: Free users see upsell, Premium users can connect
+  // Trial logic can be added later
+  const subscriptionStatus = user?.subscriptionStatus || "free";
+  const isFreeUser = subscriptionStatus === "free";
+  const isConnected = wearableSync.isConnected;
 
   // Handle native health connection
-  const handleNativeConnect = async () => {
+  const handleConnect = async () => {
     if (!wearableSync.isAvailable) {
       toast.error("Health data not available on this device");
       return;
@@ -106,14 +76,9 @@ const Health = () => {
 
     const connected = await wearableSync.connect();
     if (connected) {
-      toast.success("Successfully connected to health data!", {
-        description: "Your wearable data will now sync automatically."
+      toast.success("Successfully connected!", {
+        description: "Your health data will now sync automatically."
       });
-      // Also update the profile with the correct device
-      const deviceId = platform === "ios" ? "apple_health" : "other";
-      await updateUser({ primaryDevice: deviceId as PrimaryDevice });
-      setSelectedDevice(deviceId as PrimaryDevice);
-      // Trigger initial sync
       wearableSync.forceSync();
     } else if (wearableSync.error) {
       toast.error("Connection failed", {
@@ -122,326 +87,218 @@ const Health = () => {
     }
   };
 
-  // Handle manual sync
-  const handleManualSync = async () => {
-    if (!wearableSync.isConnected) return;
-    
-    const success = await wearableSync.forceSync();
-    if (success) {
-      toast.success("Data synced successfully");
-    } else {
-      toast.error("Sync failed", {
-        description: wearableSync.error || "Please try again later"
-      });
-    }
+  // Handle manage permissions (open system settings)
+  const handleManagePermissions = () => {
+    openHealthSettings();
   };
 
-  const handleDeviceClick = (deviceId: PrimaryDevice) => {
-    // If already selected, do nothing
-    if (selectedDevice === deviceId) return;
-    
-    // Show confirmation dialog
-    setPendingDevice(deviceId);
-    setShowConfirmDialog(true);
+  // Handle upgrade/trial CTA
+  const handleUpgrade = () => {
+    navigate("/app/account");
   };
 
-  const handleConfirmWaitlist = async () => {
-    if (!pendingDevice) return;
-    
-    setIsSaving(true);
-    setShowConfirmDialog(false);
-
-    try {
-      await updateUser({ primaryDevice: pendingDevice });
-      setSelectedDevice(pendingDevice);
-      toast.success("You've been added to the waiting list!", {
-        description: "We'll notify you when the integration is ready."
-      });
-    } catch (error) {
-      console.error("Failed to save device preference:", error);
-      toast.error("Failed to save preference");
-    } finally {
-      setIsSaving(false);
-      setPendingDevice(null);
-    }
+  // Format last sync time
+  const formatLastSync = (timestamp: Date | string | null) => {
+    if (!timestamp) return null;
+    const date = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  const handleCancelWaitlist = () => {
-    setShowConfirmDialog(false);
-    setPendingDevice(null);
-  };
-
-  const selectedDeviceData = DEVICES.find((d) => d.id === selectedDevice);
-  const pendingDeviceData = DEVICES.find((d) => d.id === pendingDevice);
+  const platformName = platform === "ios" ? "Apple Health" : "Health Connect";
 
   return (
     <AppShell>
       <div className="container px-6 py-10 sm:py-16">
         <div className="max-w-lg mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
               <Watch className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-semibold mb-2">Enhance your cognitive metrics</h1>
-            <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-              Connect your wearable to unlock deeper insights. Your physiological data refines LOOMA's readiness calculations and personalizes training recommendations.
+            <h1 className="text-2xl font-semibold mb-3">
+              Enhance your cognitive metrics
+            </h1>
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto">
+              Connect your wearable to unlock deeper insights.
+              LOOMA uses physiological data such as sleep, heart rate variability,
+              and resting heart rate to refine Cognitive Readiness and personalize
+              daily focus and recovery.
             </p>
           </div>
 
-          {/* Device Cards */}
-          <div className="space-y-2 mb-6">
-            {DEVICES.map((device) => {
-              const Icon = device.icon;
-              const isSelected = selectedDevice === device.id;
-              const isAvailable = device.status === "available";
-              const isPending = pendingDevice === device.id;
-
-              return (
-                <button
-                  key={device.id}
-                  onClick={() => handleDeviceClick(device.id)}
-                  disabled={isSaving || isSelected}
-                  className={cn(
-                    "w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 text-left",
-                    isSelected
-                      ? "border-primary bg-primary/5"
-                      : "border-border/50 bg-card/50 hover:border-border hover:bg-card"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
-                      isSelected ? "bg-primary/10" : "bg-muted/30"
-                    )}
-                  >
-                    <Icon
-                      className={cn(
-                        "w-5 h-5",
-                        isSelected ? "text-primary" : "text-muted-foreground"
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={cn("text-sm font-medium", isSelected && "text-foreground")}>
-                      {device.name}
-                    </p>
-                    {device.id === "other" && (
-                      <p className="text-xs text-muted-foreground">Specify later</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isAvailable ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400">
-                        Available
+          {/* Connected State */}
+          {isConnected && !isFreeUser && (
+            <div className="mb-8 animate-fade-in">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-green-500/5 to-green-500/10 border border-green-500/20">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-semibold">Wearable connected</h2>
+                  <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    <span>Connected</span>
+                    {wearableSync.lastSyncAt && (
+                      <span className="text-muted-foreground">
+                        · Last sync {formatLastSync(wearableSync.lastSyncAt)}
                       </span>
-                    ) : device.id !== "other" ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted/50 text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        Coming soon
-                      </span>
-                    ) : null}
-                    {isSelected && (
-                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-3 h-3 text-primary-foreground" />
-                      </div>
                     )}
                   </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Metrics Preview (if device selected) */}
-          {selectedDeviceData && selectedDeviceData.metrics.length > 0 && (
-            <div className="mb-6 animate-fade-in">
-              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                Metrics from {selectedDeviceData.name}
-              </h2>
-              <div className="p-4 rounded-xl bg-card border border-border">
-                <div className="grid grid-cols-2 gap-3">
-                  {selectedDeviceData.metrics.map((metric) => {
-                    const MetricIcon = METRIC_ICONS[metric] || Activity;
-                    return (
-                      <div key={metric} className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center flex-shrink-0">
-                          <MetricIcon className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                        <span className="text-sm text-foreground">{metric}</span>
-                      </div>
-                    );
-                  })}
                 </div>
+
+                {/* Data Sources */}
+                <div className="mb-4">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                    Data sources
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/50 text-xs">
+                      <Moon className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span>Sleep</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/50 text-xs">
+                      <Activity className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span>Heart Rate Variability</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/50 text-xs">
+                      <Heart className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span>Resting Heart Rate</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <p className="text-xs text-muted-foreground mb-4">
+                  LOOMA reads only the data required to calculate Cognitive Readiness.
+                  You can revoke access at any time from system settings.
+                </p>
+
+                {/* Manage Permissions */}
+                <button
+                  onClick={handleManagePermissions}
+                  className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Manage permissions</span>
+                </button>
               </div>
             </div>
           )}
 
-          {/* Native Health Connection (iOS/Android) */}
-          {isNative && wearableSync.isAvailable && (
-            <div className="mb-6 animate-fade-in">
-              {wearableSync.isConnected ? (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/5 to-green-500/10 border border-green-500/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                        <Link2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {platform === "ios" ? "Apple Health" : "Health Connect"} Connected
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {wearableSync.lastSyncAt 
-                            ? `Last sync: ${new Date(wearableSync.lastSyncAt).toLocaleTimeString()}`
-                            : "Syncing automatically"
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleManualSync}
-                      disabled={wearableSync.isSyncing}
-                      className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <RefreshCw className={cn(
-                        "w-4 h-4 text-muted-foreground",
-                        wearableSync.isSyncing && "animate-spin"
-                      )} />
-                    </button>
+          {/* Free User Upsell */}
+          {isFreeUser && (
+            <div className="mb-8 animate-fade-in">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-primary" />
                   </div>
-                  {wearableSync.permissions && (
-                    <div className="flex flex-wrap gap-2">
-                      {wearableSync.permissions.sleep === "granted" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400">
-                          Sleep ✓
-                        </span>
-                      )}
-                      {wearableSync.permissions.hrv === "granted" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400">
-                          HRV ({platform === "ios" ? "SDNN" : "RMSSD"}) ✓
-                        </span>
-                      )}
-                      {wearableSync.permissions.restingHr === "granted" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400">
-                          Resting HR ✓
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Activity className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">
-                        Connect {platform === "ios" ? "Apple Health" : "Health Connect"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Sync sleep, HRV, and heart rate data
-                      </p>
-                    </div>
+                  <div>
+                    <h3 className="text-sm font-semibold">Unlock wearable insights</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Start a 7-day free trial to connect your wearable
+                      and unlock Cognitive Readiness.
+                    </p>
                   </div>
-                  <button
-                    onClick={handleNativeConnect}
-                    disabled={wearableSync.isSyncing}
-                    className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                  >
-                    {wearableSync.isSyncing ? "Connecting..." : "Connect Now"}
-                  </button>
-                  {wearableSync.error && (
-                    <div className="mt-2 flex items-center gap-2 text-xs text-destructive">
-                      <AlertTriangle className="w-3 h-3" />
-                      {wearableSync.error}
-                    </div>
-                  )}
                 </div>
-              )}
+                <button
+                  onClick={handleUpgrade}
+                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Start free trial
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Action Section (Web/Coming Soon) */}
-          {(!isNative || !wearableSync.isAvailable) && selectedDeviceData && (
-            <div className="mb-6 animate-fade-in">
-              {selectedDeviceData.status === "available" ? (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/5 to-green-500/10 border border-green-500/20">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Apple Health integration available</p>
-                      <p className="text-xs text-muted-foreground">Install the native app to connect</p>
-                    </div>
-                  </div>
-                  <button
-                    disabled
-                    className="w-full py-2.5 rounded-lg bg-primary/20 text-primary text-sm font-medium cursor-not-allowed opacity-60"
+          {/* Connection List */}
+          <div className="space-y-2 mb-8">
+            {WEARABLE_ITEMS.map((item) => {
+              const isPrimary = item.type === "primary";
+              const isSystemSync = item.type === "system_sync";
+              const showConnectButton = isPrimary && !isFreeUser && !isConnected && isNative;
+              const showConnectedBadge = isPrimary && isConnected && !isFreeUser;
+              const showLockIcon = isPrimary && isFreeUser;
+
+              return (
+                <div
+                  key={item.id}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-xl border transition-all",
+                    isPrimary && !isFreeUser
+                      ? "border-primary/30 bg-primary/5"
+                      : "border-border/50 bg-card/30"
+                  )}
+                >
+                  {/* Icon */}
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                      isPrimary ? "bg-primary/10" : "bg-muted/30"
+                    )}
                   >
-                    Available in Native App
-                  </button>
-                </div>
-              ) : selectedDevice !== "other" ? (
-                <div className="p-4 rounded-xl bg-muted/20 border border-border/50">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-muted/30 flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Integration not available yet</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        You'll be notified when {selectedDeviceData.name} support is ready.
-                      </p>
-                    </div>
+                    {isPrimary ? (
+                      <Watch className={cn("w-5 h-5", isPrimary ? "text-primary" : "text-muted-foreground")} />
+                    ) : (
+                      <Activity className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">{item.subLabel}</p>
+                  </div>
+
+                  {/* Actions/Badges */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {isSystemSync && (
+                      <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-muted/50 text-muted-foreground">
+                        System sync
+                      </span>
+                    )}
+
+                    {showLockIcon && (
+                      <Lock className="w-4 h-4 text-muted-foreground" />
+                    )}
+
+                    {showConnectedBadge && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium">
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Connected</span>
+                      </div>
+                    )}
+
+                    {showConnectButton && (
+                      <button
+                        onClick={handleConnect}
+                        disabled={wearableSync.isSyncing}
+                        className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      >
+                        {wearableSync.isSyncing ? "Connecting..." : "Connect"}
+                      </button>
+                    )}
+
+                    {/* Web fallback for primary item */}
+                    {isPrimary && !isNative && !isFreeUser && (
+                      <span className="text-xs text-muted-foreground">
+                        Native app required
+                      </span>
+                    )}
                   </div>
                 </div>
-              ) : null}
-            </div>
-          )}
+              );
+            })}
+          </div>
 
           {/* Disclaimer */}
-          <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
-            <div className="flex items-start gap-3">
-              <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                NeuroLoop does not provide medical insights or diagnoses. Health data is used solely to enhance cognitive readiness calculations and personalize your training experience.
-              </p>
-            </div>
+          <div className="p-4 rounded-xl bg-muted/10 border border-border/30">
+            <p className="text-xs text-muted-foreground leading-relaxed text-center">
+              LOOMA does not provide medical advice or diagnoses.
+              Health data is used solely to estimate Cognitive Readiness
+              and personalize cognitive training and recovery.
+            </p>
           </div>
         </div>
       </div>
-
-      {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
-              <Bell className="w-6 h-6 text-primary" />
-            </div>
-            <AlertDialogTitle className="text-center">
-              Join the waiting list?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              {pendingDeviceData && (
-                <>
-                  You'll be notified when <span className="font-medium text-foreground">{pendingDeviceData.name}</span> integration is ready. 
-                  Your physiological data will help NeuroLoop deliver more accurate cognitive insights.
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-center gap-2">
-            <AlertDialogCancel onClick={handleCancelWaitlist}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmWaitlist}>
-              Notify me
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppShell>
   );
 };
