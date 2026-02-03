@@ -1,6 +1,8 @@
 /**
  * Smart Suggestions Engine
  * Prioritizes home page CTAs based on metrics, lab progress, and cognitive state
+ * 
+ * Design: All suggestions use unified neutral styling (no colored gradients)
  */
 
 import { useMemo } from "react";
@@ -40,7 +42,7 @@ export interface Suggestion {
   route: string;
   icon: React.ElementType;
   iconSecondary?: React.ElementType;
-  colorClass: string;        // Tailwind gradient classes
+  colorClass: string;        // Unified neutral style
   urgency: "critical" | "high" | "medium" | "low";
   progress?: number;         // Optional progress bar (0-100)
 }
@@ -50,6 +52,9 @@ interface UsePrioritizedSuggestionsResult {
   topSuggestion: Suggestion | null;
   isLoading: boolean;
 }
+
+// Unified neutral style class for all suggestions
+const NEUTRAL_STYLE = "from-muted/30 to-transparent border-border/30 hover:border-border/50";
 
 export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
   const { user } = useAuth();
@@ -92,7 +97,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         route: "/neuro-lab?tab=detox",
         icon: Smartphone,
         iconSecondary: Ban,
-        colorClass: "from-red-500/15 via-red-500/5 to-transparent border-red-500/30 hover:border-red-500/50",
+        colorClass: NEUTRAL_STYLE,
         urgency: "critical",
       });
     }
@@ -108,7 +113,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         route: "/neuro-lab?tab=detox",
         icon: Smartphone,
         iconSecondary: Ban,
-        colorClass: "from-teal-500/10 via-teal-500/5 to-transparent border-teal-500/20 hover:border-teal-500/40",
+        colorClass: NEUTRAL_STYLE,
         urgency: "high",
       });
     }
@@ -123,7 +128,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         action: "Start Training",
         route: "/neuro-lab",
         icon: Dumbbell,
-        colorClass: "from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/20 hover:border-amber-500/40",
+        colorClass: NEUTRAL_STYLE,
         urgency: "high",
       });
     }
@@ -138,7 +143,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         action: "Start Training",
         route: "/neuro-lab",
         icon: Dumbbell,
-        colorClass: "from-blue-500/10 via-blue-500/5 to-transparent border-blue-500/20 hover:border-blue-500/40",
+        colorClass: NEUTRAL_STYLE,
         urgency: "medium",
       });
     }
@@ -154,7 +159,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         route: "/neuro-lab?tab=detox",
         icon: Smartphone,
         iconSecondary: Ban,
-        colorClass: "from-primary/10 via-primary/5 to-transparent border-primary/20 hover:border-primary/40",
+        colorClass: NEUTRAL_STYLE,
         urgency: "medium",
         progress: detoxProgress,
       });
@@ -170,7 +175,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         action: "Train S2",
         route: "/neuro-lab",
         icon: Brain,
-        colorClass: "from-indigo-500/10 via-indigo-500/5 to-transparent border-indigo-500/20 hover:border-indigo-500/40",
+        colorClass: NEUTRAL_STYLE,
         urgency: "low",
       });
     }
@@ -185,7 +190,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         action: "View Tasks",
         route: "/neuro-lab?tab=tasks",
         icon: BookMarked,
-        colorClass: "from-emerald-500/10 via-emerald-500/5 to-transparent border-emerald-500/20 hover:border-emerald-500/40",
+        colorClass: NEUTRAL_STYLE,
         urgency: "low",
       });
     }
@@ -200,7 +205,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         action: "View Lab",
         route: "/neuro-lab",
         icon: Zap,
-        colorClass: "from-green-500/10 via-green-500/5 to-transparent border-green-500/20 hover:border-green-500/40",
+        colorClass: NEUTRAL_STYLE,
         urgency: "low",
       });
     }
@@ -215,7 +220,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
         action: "Continue",
         route: "/neuro-lab",
         icon: Dumbbell,
-        colorClass: "from-muted/30 via-muted/10 to-transparent border-border/40 hover:border-border/60",
+        colorClass: NEUTRAL_STYLE,
         urgency: "low",
       });
     }
