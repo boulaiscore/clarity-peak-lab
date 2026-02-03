@@ -18,7 +18,7 @@ const navItems = [
   { to: "/app", icon: Home, label: "Home" },
   { to: "/neuro-lab", icon: Activity, label: "Lab" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Monitor" },
-  { to: "/app/health", icon: Layers, label: "Health" },
+  { to: "/app/wearable", icon: Layers, label: "Wearable" },
 ];
 
 const menuItems = [

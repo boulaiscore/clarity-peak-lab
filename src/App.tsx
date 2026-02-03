@@ -30,7 +30,7 @@ import TrainingRunner from "./pages/app/TrainingRunner";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
 import InstallPage from "./pages/app/Install";
 import NeuroLab from "./pages/app/NeuroLab";
-import Health from "./pages/app/Health";
+import Wearable from "./pages/app/Wearable";
 import NeuroLabArea from "./pages/app/NeuroLabArea";
 import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
 import TriageSprintRunner from "./pages/app/TriageSprintRunner";
@@ -411,10 +411,10 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/app/health"
+        path="/app/wearable"
         element={
           <ProtectedRoute>
-            <Health />
+            <Wearable />
           </ProtectedRoute>
         }
       />
