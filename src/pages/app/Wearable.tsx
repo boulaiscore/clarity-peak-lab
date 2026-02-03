@@ -27,6 +27,13 @@ const WEARABLE_ITEMS: WearableItem[] = [
     icon: AppleHealthIcon,
   },
   {
+    id: "garmin",
+    name: "Garmin",
+    subLabel: "Available via Apple Health or Health Connect",
+    type: "system_sync",
+    icon: GarminIcon,
+  },
+  {
     id: "whoop",
     name: "WHOOP",
     subLabel: "Available via Apple Health or Health Connect",
@@ -39,13 +46,6 @@ const WEARABLE_ITEMS: WearableItem[] = [
     subLabel: "Available via Apple Health or Health Connect",
     type: "system_sync",
     icon: OuraIcon,
-  },
-  {
-    id: "garmin",
-    name: "Garmin",
-    subLabel: "Available via Apple Health or Health Connect",
-    type: "system_sync",
-    icon: GarminIcon,
   },
   {
     id: "other",
