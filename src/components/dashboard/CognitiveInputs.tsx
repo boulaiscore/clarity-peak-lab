@@ -24,7 +24,7 @@ import { useRecordContentCompletion, useRemoveContentCompletion } from "@/hooks/
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { WEEKLY_GOAL_MESSAGES } from "@/lib/cognitiveFeedback";
-import { PODCASTS, getApplePodcastUrl, getSpotifySearchUrl } from "@/data/podcasts";
+import { PODCASTS, getApplePodcastUrl, getSpotifyShowUrl } from "@/data/podcasts";
 import { READINGS } from "@/data/readings";
 
 type InputType = "podcast" | "book" | "article";
@@ -1552,7 +1552,7 @@ export function CognitiveLibrary() {
       duration: "",
       cognitivePurpose: "",
       reflectionPrompt: "",
-      primaryUrl: getSpotifySearchUrl(p.spotifyQuery),
+      primaryUrl: getSpotifyShowUrl(p.spotifyShowId),
       secondaryUrl: getApplePodcastUrl(p.applePodcastId),
       difficulty: p.demand === "LOW" ? 1 : p.demand === "MEDIUM" ? 2 : p.demand === "HIGH" ? 3 : 4,
       thinkingSystem: "S2",

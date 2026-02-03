@@ -13,7 +13,7 @@ export interface Podcast {
   demand: PodcastDemand;
   intent: string;
   applePodcastId: string;
-  spotifyQuery: string;
+  spotifyShowId: string; // Spotify show ID for embed player
 }
 
 export const PODCASTS: Podcast[] = [
@@ -25,7 +25,7 @@ export const PODCASTS: Podcast[] = [
     demand: "LOW",
     intent: "Accessible economics + behavioral insights. Easy entry point.",
     applePodcastId: "354668519",
-    spotifyQuery: "Freakonomics Radio",
+    spotifyShowId: "6z4NLXyHPga1UmSJsPK7G1",
   },
   {
     id: "hidden-brain",
@@ -33,7 +33,7 @@ export const PODCASTS: Podcast[] = [
     demand: "LOW",
     intent: "Light psychology with narrative structure. Minimal cognitive overhead.",
     applePodcastId: "1028908750",
-    spotifyQuery: "Hidden Brain NPR",
+    spotifyShowId: "20Gf4IAauFrfj7RBkjcWxh",
   },
   {
     id: "radiolab",
@@ -41,7 +41,7 @@ export const PODCASTS: Podcast[] = [
     demand: "LOW",
     intent: "Narrative science storytelling. Concept delivery through story.",
     applePodcastId: "152249110",
-    spotifyQuery: "Radiolab",
+    spotifyShowId: "2hmkzUtix0qTqvtpPcMzEL",
   },
 
   // ==================== MEDIUM DEMAND PODCASTS ====================
@@ -51,7 +51,7 @@ export const PODCASTS: Podcast[] = [
     demand: "MEDIUM",
     intent: "Fast access to strong ideas (clean primitives, low overhead).",
     applePodcastId: "659155419",
-    spotifyQuery: "Philosophize This",
+    spotifyShowId: "2Shpxw7dPoxRJCdfFXTWLE",
   },
   {
     id: "throughline",
@@ -59,7 +59,7 @@ export const PODCASTS: Podcast[] = [
     demand: "MEDIUM",
     intent: "Context building: connect present problems to historical roots.",
     applePodcastId: "1451109634",
-    spotifyQuery: "Throughline NPR",
+    spotifyShowId: "0oBVAYSFlrfNEZJcHPNdv1",
   },
   {
     id: "planet-money",
@@ -67,7 +67,7 @@ export const PODCASTS: Podcast[] = [
     demand: "MEDIUM",
     intent: "Trade-offs + incentives; decision models via real cases.",
     applePodcastId: "290783428",
-    spotifyQuery: "Planet Money",
+    spotifyShowId: "4FYpq3lSeQMAhqNI81O0Cn",
   },
 
   // ==================== HIGH DEMAND PODCASTS ====================
@@ -77,7 +77,7 @@ export const PODCASTS: Podcast[] = [
     demand: "HIGH",
     intent: "Concept compression + rigor (philosophy/history/science).",
     applePodcastId: "73330895",
-    spotifyQuery: "In Our Time BBC",
+    spotifyShowId: "6qjCjjYaUSVNw8rGDBgLqv",
   },
   {
     id: "intelligence-squared",
@@ -85,7 +85,7 @@ export const PODCASTS: Podcast[] = [
     demand: "HIGH",
     intent: "Debate structure + counterargument (steelman training).",
     applePodcastId: "708371900",
-    spotifyQuery: "Intelligence Squared",
+    spotifyShowId: "5vH2RpF6gCxLMYHfmqGqbR",
   },
   {
     id: "revolutions",
@@ -93,7 +93,7 @@ export const PODCASTS: Podcast[] = [
     demand: "HIGH",
     intent: "Causal reasoning + systems thinking through historical sequences.",
     applePodcastId: "703889772",
-    spotifyQuery: "Revolutions Mike Duncan",
+    spotifyShowId: "3ictIqfumbmEuWdt9wA5L1",
   },
   {
     id: "fall-of-civilizations",
@@ -101,7 +101,7 @@ export const PODCASTS: Podcast[] = [
     demand: "HIGH",
     intent: "Deep context + inference; long-form thinking without noise.",
     applePodcastId: "1449884495",
-    spotifyQuery: "Fall of Civilizations",
+    spotifyShowId: "44sq6FHe0gsLT0MlCRzBMB",
   },
   {
     id: "the-intelligence",
@@ -109,7 +109,7 @@ export const PODCASTS: Podcast[] = [
     demand: "HIGH",
     intent: "Synthesis + signal detection; current events without doomscrolling.",
     applePodcastId: "1449631195",
-    spotifyQuery: "The Intelligence The Economist",
+    spotifyShowId: "12zKAMNyS2GNAg7l5jbPxs",
   },
 
   // ==================== VERY HIGH DEMAND PODCASTS ====================
@@ -119,7 +119,7 @@ export const PODCASTS: Podcast[] = [
     demand: "VERY_HIGH",
     intent: "Argument chain building (Socrates → Plato → Aristotle → …).",
     applePodcastId: "396903391",
-    spotifyQuery: "History of Philosophy Without Any Gaps",
+    spotifyShowId: "4oi0E17SxnFbDGjZYWU8r5",
   },
   {
     id: "partially-examined-life",
@@ -127,7 +127,7 @@ export const PODCASTS: Podcast[] = [
     demand: "VERY_HIGH",
     intent: "Text-driven critical reading (real argumentation, not summaries).",
     applePodcastId: "318345767",
-    spotifyQuery: "Partially Examined Life",
+    spotifyShowId: "0ws03V8m7DkMprFLFqGNSP",
   },
 ];
 
@@ -152,8 +152,12 @@ export function getApplePodcastUrl(applePodcastId: string): string {
   return `https://podcasts.apple.com/podcast/id${applePodcastId}`;
 }
 
-export function getSpotifySearchUrl(spotifyQuery: string): string {
-  return `https://open.spotify.com/search/${encodeURIComponent(spotifyQuery)}`;
+export function getSpotifyShowUrl(spotifyShowId: string): string {
+  return `https://open.spotify.com/show/${spotifyShowId}`;
+}
+
+export function getSpotifyEmbedUrl(spotifyShowId: string): string {
+  return `https://open.spotify.com/embed/show/${spotifyShowId}?utm_source=generator&theme=0`;
 }
 
 // "When to use" copy by demand level

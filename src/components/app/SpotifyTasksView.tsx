@@ -45,7 +45,7 @@ import { useReadingPermissioning, ReadingEligibility } from "@/hooks/useReadingP
 import { CognitiveLibrary } from "@/components/dashboard/CognitiveInputs";
 import { 
   getApplePodcastUrl, 
-  getSpotifySearchUrl, 
+  getSpotifyShowUrl, 
   PodcastDemand 
 } from "@/data/podcasts";
 import { ReadingType, ReadingDemand, getReadingTypeCopy } from "@/data/readings";
@@ -348,7 +348,7 @@ function PodcastDetailsDialog({
   if (!podcast) return null;
   
   const appleUrl = getApplePodcastUrl(podcast.podcast.applePodcastId);
-  const spotifyUrl = getSpotifySearchUrl(podcast.podcast.spotifyQuery);
+  const spotifyUrl = getSpotifyShowUrl(podcast.podcast.spotifyShowId);
   
   const handleExternalOpen = (url: string) => {
     onOpenExternal(podcast.podcast.id, "podcast");

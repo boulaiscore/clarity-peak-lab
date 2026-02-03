@@ -40,7 +40,7 @@ import { useTaskOverride } from "@/hooks/useTaskOverride";
 import { TaskOverrideModal, PostOverrideNotice } from "@/components/app/TaskOverrideModal";
 import { 
   getApplePodcastUrl, 
-  getSpotifySearchUrl, 
+  getSpotifyShowUrl, 
   getWhenToUse,
   PodcastDemand,
   DEMAND_THRESHOLDS 
@@ -215,7 +215,7 @@ function PodcastDetailsDialog({
   
   const { podcast } = eligibility;
   const appleUrl = getApplePodcastUrl(podcast.applePodcastId);
-  const spotifyUrl = getSpotifySearchUrl(podcast.spotifyQuery);
+  const spotifyUrl = getSpotifyShowUrl(podcast.spotifyShowId);
   const whenToUse = getWhenToUse(podcast.demand);
   
   return (

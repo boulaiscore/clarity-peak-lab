@@ -16,7 +16,9 @@ import {
   ChevronRight,
   Library,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  X,
+  Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +43,7 @@ import {
 import { usePodcastPermissioning } from "@/hooks/usePodcastPermissioning";
 import { useReadingPermissioning } from "@/hooks/useReadingPermissioning";
 import { CONTENT_LIBRARY, ContentItem } from "@/lib/contentLibrary";
+import { SpotifyEmbed } from "@/components/ui/SpotifyEmbed";
 import { toast } from "sonner";
 
 interface ReasonContentSelectorProps {
@@ -50,7 +53,7 @@ interface ReasonContentSelectorProps {
   initialSessionType?: SessionType;
 }
 
-type SelectionMode = "choose" | "looma" | "custom";
+type SelectionMode = "choose" | "looma" | "custom" | "preview";
 
 export function ReasonContentSelector({ 
   open, 
@@ -60,6 +63,7 @@ export function ReasonContentSelector({
 }: ReasonContentSelectorProps) {
   const [mode, setMode] = useState<SelectionMode>("choose");
   const [sessionType, setSessionType] = useState<SessionType>(initialSessionType);
+  const [previewItem, setPreviewItem] = useState<ContentItem | null>(null);
   
   // Custom item state
   const [customTitle, setCustomTitle] = useState("");
@@ -72,6 +76,7 @@ export function ReasonContentSelector({
   // Reset state when dialog closes
   const handleClose = () => {
     setMode("choose");
+    setPreviewItem(null);
     setCustomTitle("");
     setCustomAuthor("");
     setDifficulty(3);
@@ -154,6 +159,7 @@ export function ReasonContentSelector({
             {mode === "choose" && (initialSessionType === "listening" ? "Start Listening" : "Start Reading")}
             {mode === "looma" && "LOOMA Library"}
             {mode === "custom" && "Custom Content"}
+            {mode === "preview" && previewItem?.title}
           </DialogTitle>
           <DialogDescription>
             {mode === "choose" && (initialSessionType === "listening" 
@@ -165,6 +171,7 @@ export function ReasonContentSelector({
             {mode === "custom" && (initialSessionType === "listening"
               ? "Track your own podcast or audiobook."
               : "Track your own book, article, or paper.")}
+            {mode === "preview" && "Preview this podcast, then start your session."}
           </DialogDescription>
         </DialogHeader>
         
@@ -274,22 +281,41 @@ export function ReasonContentSelector({
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!item.url) return;
-                                window.open(item.url, "_blank", "noopener,noreferrer");
-                              }}
-                              disabled={!item.url}
-                              className="h-7 px-2 text-[10px] font-medium"
-                              title={item.url ? "Open content" : "No link available"}
-                            >
-                              <ExternalLink className="w-3.5 h-3.5 mr-1" />
-                              Open
-                            </Button>
+                            {/* Preview button for podcasts with Spotify embed */}
+                            {item.format === "podcast" && item.spotifyShowId && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewItem(item);
+                                  setMode("preview");
+                                }}
+                                className="h-7 px-2 text-[10px] font-medium"
+                                title="Preview podcast"
+                              >
+                                <Play className="w-3.5 h-3.5 mr-1" />
+                                Preview
+                              </Button>
+                            )}
+                            {/* External link for non-podcast or no Spotify ID */}
+                            {(item.format !== "podcast" || !item.spotifyShowId) && item.url && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(item.url, "_blank", "noopener,noreferrer");
+                                }}
+                                className="h-7 px-2 text-[10px] font-medium"
+                                title="Open content"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                                Open
+                              </Button>
+                            )}
                             <Button
                               type="button"
                               size="sm"
@@ -437,6 +463,64 @@ export function ReasonContentSelector({
                 size="lg"
                 onClick={handleStartCustomSession}
                 disabled={!customTitle.trim() || startSession.isPending}
+              >
+                {startSession.isPending ? "Starting..." : "Start Session"}
+              </Button>
+            </motion.div>
+          )}
+          
+          {/* Podcast Preview with Spotify Embed */}
+          {mode === "preview" && previewItem && (
+            <motion.div
+              key="preview"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-4"
+            >
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setMode("looma");
+                  setPreviewItem(null);
+                }}
+                className="mb-1 -ml-2"
+              >
+                ← Back to Library
+              </Button>
+              
+              {/* Podcast info */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                  <Headphones className="w-5 h-5 text-violet-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">{previewItem.author}</p>
+                  <p className="text-sm font-medium text-primary">
+                    {LOOMA_ITEM_WEIGHTS[previewItem.format]?.toFixed(1) || "1.0"}× weight
+                  </p>
+                </div>
+              </div>
+              
+              {/* Spotify Embed Player */}
+              {previewItem.spotifyShowId && (
+                <SpotifyEmbed 
+                  spotifyShowId={previewItem.spotifyShowId}
+                  height={232}
+                />
+              )}
+              
+              <p className="text-xs text-muted-foreground text-center">
+                Listen to a preview, then start your session when ready.
+              </p>
+              
+              {/* Start Session Button */}
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => handleStartLoomaSession(previewItem)}
+                disabled={startSession.isPending}
               >
                 {startSession.isPending ? "Starting..." : "Start Session"}
               </Button>
