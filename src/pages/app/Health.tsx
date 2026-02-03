@@ -139,7 +139,7 @@ const Health = () => {
             </div>
             <h1 className="text-2xl font-semibold mb-2">Enhance your cognitive metrics</h1>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-              Connect your wearable to unlock deeper insights. Your physiological data refines LOOMA's readiness
+              Connect your wearable to unlock deeper insights. Your physiological data refines LOOMA's metrics
               calculations and personalizes training recommendations.
             </p>
           </div>
@@ -266,8 +266,8 @@ const Health = () => {
             <div className="flex items-start gap-3">
               <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                LOOMA does not provide medical insights or diagnoses. Health data is used solely to enhance cognitive
-                readiness calculations and personalize your training experience.
+                NeuroLoop does not provide medical insights or diagnoses. Health data is used solely to enhance
+                cognitive readiness calculations and personalize your training experience.
               </p>
             </div>
           </div>
@@ -286,7 +286,7 @@ const Health = () => {
               {pendingDeviceData && (
                 <>
                   You'll be notified when <span className="font-medium text-foreground">{pendingDeviceData.name}</span>{" "}
-                  integration is ready. Your physiological data will help LOOMA deliver more accurate cognitive
+                  integration is ready. Your physiological data will help NeuroLoop deliver more accurate cognitive
                   insights.
                 </>
               )}
