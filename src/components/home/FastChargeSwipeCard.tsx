@@ -81,7 +81,7 @@ export function FastChargeSwipeCard() {
         scale: iconScale
       }} className="flex items-center gap-1.5">
           <MeditationIcon className="w-4 h-4 text-muted-foreground" />
-          <span className="text-xs font-semibold text-foreground">Fast Recharge</span>
+          <span className="text-xs font-semibold text-foreground">Fast Recover</span>
         </motion.div>
       </motion.button>
     </div>;

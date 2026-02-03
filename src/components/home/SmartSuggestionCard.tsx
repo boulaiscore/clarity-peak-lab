@@ -1,10 +1,10 @@
 /**
  * SmartSuggestionCard - Renders a prioritized suggestion CTA
- * Premium UI with gradient backgrounds and micro-animations
+ * Premium unified neutral style - no colored gradients
  */
 
 import { motion } from "framer-motion";
-import { ChevronRight, Zap } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Suggestion } from "@/hooks/usePrioritizedSuggestions";
 import { cn } from "@/lib/utils";
@@ -19,24 +19,6 @@ export function SmartSuggestionCard({ suggestion, index = 0 }: SmartSuggestionCa
   const Icon = suggestion.icon;
   const IconSecondary = suggestion.iconSecondary;
 
-  const getIconColor = () => {
-    switch (suggestion.urgency) {
-      case "critical": return "text-red-500";
-      case "high": return "text-amber-500";
-      case "medium": return "text-primary";
-      case "low": return "text-muted-foreground";
-    }
-  };
-
-  const getTextColor = () => {
-    switch (suggestion.urgency) {
-      case "critical": return "text-red-600 dark:text-red-400";
-      case "high": return "text-amber-600 dark:text-amber-400";
-      case "medium": return "text-primary";
-      case "low": return "text-foreground";
-    }
-  };
-
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -46,41 +28,33 @@ export function SmartSuggestionCard({ suggestion, index = 0 }: SmartSuggestionCa
     >
       <button
         onClick={() => navigate(suggestion.route)}
-        className={cn(
-          "w-full p-3.5 rounded-xl bg-gradient-to-br transition-all active:scale-[0.98] text-left",
-          suggestion.colorClass
-        )}
+        className="w-full p-3.5 rounded-xl bg-muted/30 border border-border/30 hover:border-border/50 transition-all active:scale-[0.98] text-left"
       >
         <div className="flex items-center gap-3">
-          <div className={cn(
-            "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
-            suggestion.urgency === "critical" ? "bg-red-500/15" :
-            suggestion.urgency === "high" ? "bg-amber-500/15" :
-            "bg-primary/15"
-          )}>
+          <div className="w-9 h-9 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
             <div className="relative">
-              <Icon className={cn("w-4 h-4", getIconColor())} />
+              <Icon className="w-4 h-4 text-muted-foreground" />
               {IconSecondary && (
-                <IconSecondary className={cn("w-4 h-4 absolute inset-0", getIconColor())} />
+                <IconSecondary className="w-4 h-4 absolute inset-0 text-muted-foreground" />
               )}
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className={cn("text-sm font-medium", getTextColor())}>
+              <h3 className="text-sm font-medium text-foreground">
                 {suggestion.headline}
               </h3>
             </div>
             <p className="text-[10px] text-muted-foreground">{suggestion.body}</p>
           </div>
-          <ChevronRight className={cn("w-4 h-4 opacity-60", getIconColor())} />
+          <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
         </div>
         
         {/* Optional progress bar */}
         {suggestion.progress !== undefined && (
-          <div className="mt-2.5 h-1 bg-primary/10 rounded-full overflow-hidden">
+          <div className="mt-2.5 h-1 bg-muted/50 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-primary rounded-full"
+              className="h-full bg-foreground/30 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(100, suggestion.progress)}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
