@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { Watch, Moon, Footprints, Heart, Activity, Flame, Info, Check, Clock, Bell } from "lucide-react";
+import { Watch, Moon, Footprints, Heart, Activity, Flame, Info, Check, Clock, Bell, RefreshCw, Link2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, PrimaryDevice } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useWearableSync } from "@/hooks/useWearableSync";
+import { getPlatform, isNativePlatform } from "@/lib/capacitor/health";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,12 +85,56 @@ const Health = () => {
   const [pendingDevice, setPendingDevice] = useState<PrimaryDevice | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // Wearable sync hook for native platforms
+  const wearableSync = useWearableSync();
+  const platform = getPlatform();
+  const isNative = isNativePlatform();
+
   // Load initial device from user profile
   useEffect(() => {
     if (user?.primaryDevice) {
       setSelectedDevice(user.primaryDevice);
     }
   }, [user?.primaryDevice]);
+
+  // Handle native health connection
+  const handleNativeConnect = async () => {
+    if (!wearableSync.isAvailable) {
+      toast.error("Health data not available on this device");
+      return;
+    }
+
+    const connected = await wearableSync.connect();
+    if (connected) {
+      toast.success("Successfully connected to health data!", {
+        description: "Your wearable data will now sync automatically."
+      });
+      // Also update the profile with the correct device
+      const deviceId = platform === "ios" ? "apple_health" : "other";
+      await updateUser({ primaryDevice: deviceId as PrimaryDevice });
+      setSelectedDevice(deviceId as PrimaryDevice);
+      // Trigger initial sync
+      wearableSync.forceSync();
+    } else if (wearableSync.error) {
+      toast.error("Connection failed", {
+        description: wearableSync.error
+      });
+    }
+  };
+
+  // Handle manual sync
+  const handleManualSync = async () => {
+    if (!wearableSync.isConnected) return;
+    
+    const success = await wearableSync.forceSync();
+    if (success) {
+      toast.success("Data synced successfully");
+    } else {
+      toast.error("Sync failed", {
+        description: wearableSync.error || "Please try again later"
+      });
+    }
+  };
 
   const handleDeviceClick = (deviceId: PrimaryDevice) => {
     // If already selected, do nothing
@@ -230,8 +276,94 @@ const Health = () => {
             </div>
           )}
 
-          {/* Action Section */}
-          {selectedDeviceData && (
+          {/* Native Health Connection (iOS/Android) */}
+          {isNative && wearableSync.isAvailable && (
+            <div className="mb-6 animate-fade-in">
+              {wearableSync.isConnected ? (
+                <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/5 to-green-500/10 border border-green-500/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                        <Link2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {platform === "ios" ? "Apple Health" : "Health Connect"} Connected
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {wearableSync.lastSyncAt 
+                            ? `Last sync: ${new Date(wearableSync.lastSyncAt).toLocaleTimeString()}`
+                            : "Syncing automatically"
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleManualSync}
+                      disabled={wearableSync.isSyncing}
+                      className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <RefreshCw className={cn(
+                        "w-4 h-4 text-muted-foreground",
+                        wearableSync.isSyncing && "animate-spin"
+                      )} />
+                    </button>
+                  </div>
+                  {wearableSync.permissions && (
+                    <div className="flex flex-wrap gap-2">
+                      {wearableSync.permissions.sleep === "granted" && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400">
+                          Sleep ✓
+                        </span>
+                      )}
+                      {wearableSync.permissions.hrv === "granted" && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400">
+                          HRV ({platform === "ios" ? "SDNN" : "RMSSD"}) ✓
+                        </span>
+                      )}
+                      {wearableSync.permissions.restingHr === "granted" && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600 dark:text-green-400">
+                          Resting HR ✓
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Activity className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        Connect {platform === "ios" ? "Apple Health" : "Health Connect"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Sync sleep, HRV, and heart rate data
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleNativeConnect}
+                    disabled={wearableSync.isSyncing}
+                    className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    {wearableSync.isSyncing ? "Connecting..." : "Connect Now"}
+                  </button>
+                  {wearableSync.error && (
+                    <div className="mt-2 flex items-center gap-2 text-xs text-destructive">
+                      <AlertTriangle className="w-3 h-3" />
+                      {wearableSync.error}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Action Section (Web/Coming Soon) */}
+          {(!isNative || !wearableSync.isAvailable) && selectedDeviceData && (
             <div className="mb-6 animate-fade-in">
               {selectedDeviceData.status === "available" ? (
                 <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/5 to-green-500/10 border border-green-500/20">
@@ -241,14 +373,14 @@ const Health = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium">Apple Health integration available</p>
-                      <p className="text-xs text-muted-foreground">Connect to enhance cognitive predictions</p>
+                      <p className="text-xs text-muted-foreground">Install the native app to connect</p>
                     </div>
                   </div>
                   <button
                     disabled
                     className="w-full py-2.5 rounded-lg bg-primary/20 text-primary text-sm font-medium cursor-not-allowed opacity-60"
                   >
-                    Connect Apple Health — Coming Soon
+                    Available in Native App
                   </button>
                 </div>
               ) : selectedDevice !== "other" ? (
