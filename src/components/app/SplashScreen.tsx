@@ -26,25 +26,30 @@ const LoomaLogoIcon = ({ size = 32 }: { size?: number }) => (
   </svg>
 );
 
-export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps) {
-  const [phase, setPhase] = useState<"logo" | "text" | "fadeout">("logo");
+export function SplashScreen({ onComplete, duration = 5000 }: SplashScreenProps) {
+  const [phase, setPhase] = useState<"logo" | "text" | "hold" | "fadeout">("logo");
   const [isVisible, setIsVisible] = useState(true);
 
   const logoSize = 36;
   const letterHeight = "36px";
 
   useEffect(() => {
-    // Phase 1: Logo grows (0-1600ms) - even slower
+    // Phase 1: Logo grows (0-1200ms)
     const textTimer = setTimeout(() => {
       setPhase("text");
-    }, 1600);
+    }, 1200);
 
-    // Phase 2: Show full text, then fade out
+    // Phase 2: Letters animate in (~1300ms), then hold for 2s
+    const holdTimer = setTimeout(() => {
+      setPhase("hold");
+    }, 2500);
+
+    // Phase 3: Start fade after 2s hold (2500 + 2000 = 4500ms)
     const fadeTimer = setTimeout(() => {
       setPhase("fadeout");
-    }, duration - 700);
+    }, 4500);
 
-    // Phase 3: Complete and hide
+    // Phase 4: Complete and hide
     const hideTimer = setTimeout(() => {
       setIsVisible(false);
       onComplete();
@@ -52,6 +57,7 @@ export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps)
 
     return () => {
       clearTimeout(textTimer);
+      clearTimeout(holdTimer);
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
     };
@@ -64,7 +70,7 @@ export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps)
     fontFamily: "'DM Sans', sans-serif",
     fontSize: letterHeight,
     lineHeight: 1,
-    fontWeight: 300, // Light weight for thin strokes
+    fontWeight: 300,
   };
 
   return (
@@ -74,7 +80,7 @@ export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps)
         style={{ backgroundColor: "#0a0b0f" }}
         initial={{ opacity: 1 }}
         animate={{ opacity: phase === "fadeout" ? 0 : 1 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
       >
         <div className="flex items-center justify-center">
           {/* Phase 1: Logo only, centered and growing */}
@@ -83,33 +89,33 @@ export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps)
               initial={{ scale: 0.4, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ 
-                duration: 1.4, 
-                ease: [0.16, 1, 0.3, 1]
+                duration: 1.1, 
+                ease: [0.16, 1, 0.3, 1] as const
               }}
             >
               <LoomaLogoIcon size={logoSize} />
             </motion.div>
           )}
 
-          {/* Phase 2: Logo transforms into first O of LOOMA */}
+          {/* Phase 2: Letters slowly come together to form LOOMA */}
           {phase === "text" && (
             <div className="flex items-center" style={{ gap: "6px" }}>
-              {/* L */}
+              {/* L - comes from far left */}
               <motion.span
-                initial={{ opacity: 0, x: -30 }}
+                initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
                 className="text-white"
                 style={letterStyle}
               >
                 L
               </motion.span>
 
-              {/* First O - The logo icon */}
+              {/* First O - The logo icon, scales down */}
               <motion.div
-                initial={{ scale: 1.3, opacity: 0.7 }}
+                initial={{ scale: 1.4, opacity: 0.6 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 className="flex items-center justify-center"
               >
                 <LoomaLogoIcon size={logoSize} />
@@ -117,30 +123,30 @@ export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps)
 
               {/* Second O - Also the logo icon */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.7 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                 className="flex items-center justify-center"
               >
                 <LoomaLogoIcon size={logoSize} />
               </motion.div>
 
-              {/* M */}
+              {/* M - comes from right */}
               <motion.span
-                initial={{ opacity: 0, x: 30 }}
+                initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.9, delay: 0.4, ease: "easeOut" }}
                 className="text-white"
                 style={letterStyle}
               >
                 M
               </motion.span>
 
-              {/* A */}
+              {/* A - comes from far right */}
               <motion.span
-                initial={{ opacity: 0, x: 30 }}
+                initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.9, delay: 0.6, ease: "easeOut" }}
                 className="text-white"
                 style={letterStyle}
               >
@@ -149,8 +155,8 @@ export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps)
             </div>
           )}
 
-          {/* Phase 3: Same as text but fading */}
-          {phase === "fadeout" && (
+          {/* Phase 3 & 4: Hold and fadeout - static display */}
+          {(phase === "hold" || phase === "fadeout") && (
             <div className="flex items-center" style={{ gap: "6px" }}>
               <span className="text-white" style={letterStyle}>L</span>
               <div className="flex items-center justify-center">
