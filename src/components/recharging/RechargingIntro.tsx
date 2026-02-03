@@ -19,7 +19,7 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
       >
         {/* Title */}
         <h1 className="text-2xl font-semibold tracking-tight text-white mb-2">
-          Fast Charge
+          Fast Recover
         </h1>
         
         {/* Subtitle */}
@@ -63,7 +63,7 @@ export function RechargingIntro({ onBegin }: RechargingIntroProps) {
           className="w-full py-4 rounded-xl bg-white/10 text-white font-semibold text-sm tracking-wide border border-white/10 hover:bg-white/15 transition-colors"
           whileTap={{ scale: 0.98 }}
         >
-          Start Recharging
+          Start Recovery
         </motion.button>
         
         {/* Footer note */}

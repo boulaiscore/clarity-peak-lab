@@ -149,7 +149,7 @@ export function RechargingResults({ result, onFinish }: RechargingResultsProps) 
           transition={{ delay: 0.7 }}
           className="text-xs text-white/30 text-center mb-8"
         >
-          Recharging reflects short-term recovery of reasoning clarity.
+          Recovery reflects short-term restoration of reasoning clarity.
         </motion.p>
 
         {/* Finish button */}
