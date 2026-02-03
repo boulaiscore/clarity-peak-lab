@@ -17,6 +17,7 @@ export interface ContentItem {
   topics: string[];
   source?: string;
   url?: string;
+  spotifyShowId?: string; // For podcast embeds
 }
 
 // Curated content library
@@ -33,6 +34,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     description: "Introduction to dual-process theory and how it affects daily decisions",
     topics: ["decision-making", "cognitive-bias", "system1", "system2"],
     url: "https://www.hubermanlab.com/podcast",
+    spotifyShowId: "79CkJF3UJTHFV8Dse3Oy0P", // Huberman Lab
   },
   {
     id: "pod-focus-deep-work",
@@ -45,6 +47,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     description: "Practical strategies for sustained concentration in a distracted world",
     topics: ["focus", "productivity", "attention"],
     url: "https://www.calnewport.com/podcast/",
+    spotifyShowId: "0e4YhKhToZ0EZ9PJG5IHZm", // Deep Questions with Cal Newport
   },
   {
     id: "pod-intuition-business",
@@ -57,6 +60,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     description: "How successful executives use intuition alongside analysis",
     topics: ["intuition", "business", "decision-making"],
     url: "https://hbr.org/podcasts",
+    spotifyShowId: "4gtLggLdhnZiDiJjo1CP40", // HBR IdeaCast
   },
   
   // PODCASTS - Medium
@@ -71,6 +75,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     description: "Understanding and optimizing mental bandwidth for complex tasks",
     topics: ["cognitive-load", "attention", "productivity"],
     url: "https://lexfridman.com/podcast/",
+    spotifyShowId: "2MAi0BvDc6GTFvKFPXnkCL", // Lex Fridman Podcast
   },
   {
     id: "pod-mental-models",
@@ -83,6 +88,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     description: "Building a latticework of mental models for better thinking",
     topics: ["mental-models", "reasoning", "decision-making"],
     url: "https://fs.blog/the-knowledge-project-podcast/",
+    spotifyShowId: "1VyK52NSZHaDKeMJzT4jJr", // The Knowledge Project
   },
   
   // READINGS - Light
