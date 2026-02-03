@@ -48,7 +48,8 @@ import { clamp } from "@/lib/cognitiveEngine";
 export interface RQInput {
   S2: number; // (CT + IN) / 2, from CognitiveStates
   s2GameScores: number[]; // Last N S2 game scores (0-100 each)
-  taskCompletions: TaskCompletion[]; // Last 7 days of tasks
+  taskCompletions: TaskCompletion[]; // Last 7 days of LOOMA tasks (legacy)
+  customWeightedMinutes?: number; // Custom session weighted minutes (new system)
   lastS2GameAt: Date | null;
   lastTaskAt: Date | null;
   today?: Date;
@@ -177,27 +178,22 @@ export function getS2ConsistencyDelta(sessionQuality: number): number {
 }
 
 // ============================================
-// TASK_PRIMING
+// TASK_PRIMING (HYBRID SYSTEM v2.0)
 // ============================================
 
 /**
  * Task_Priming measures conceptual priming from cognitive Tasks.
  * 
- * Formula (structural):
- * Task_Priming = clamp(40 × depth_weight × continuity_factor, 0, 100)
+ * HYBRID FORMULA (v2.0):
+ * Task_Priming = 0.5 × LOOMA_completions_score + 0.5 × custom_session_score
  * 
- * TEMPORARY RULES (stub):
- * - If no task in last 7 days → Task_Priming = 0
- * - If >= 1 task → use placeholder values:
- *   depth_weight = 0.6
- *   continuity_factor = 1.0
+ * - LOOMA completions: Instant-complete items from curated library (legacy system)
+ * - Custom sessions: Duration-weighted reading/listening tracked via timer (new system)
  * 
- * TODO: Define editorial coefficients for:
- * - Podcast (light / deep)
- * - Reading (essay / scientific / philosophy)
- * - Book (classic philosophy, modern, fiction)
+ * Both components are normalized to [0, 100] before combining.
  */
-// Base weights for task types
+
+// Base weights for LOOMA task types (instant completion)
 export const TASK_TYPE_WEIGHTS: Record<string, number> = {
   podcast: 12,   // Lighter content
   article: 15,   // Medium depth
@@ -205,7 +201,7 @@ export const TASK_TYPE_WEIGHTS: Record<string, number> = {
 };
 
 /**
- * Calculate the RQ contribution for a SINGLE task.
+ * Calculate the RQ contribution for a SINGLE LOOMA task (legacy).
  * Returns the exact points this task contributes.
  * 
  * If completedAt is provided, applies recency decay.
@@ -231,7 +227,10 @@ export function calculateSingleTaskRQContribution(
   return Math.round(baseScore * recencyWeight * 10) / 10;
 }
 
-export function calculateTaskPriming(
+/**
+ * Calculate LOOMA completions score (legacy system component)
+ */
+export function calculateLoomaCompletionsScore(
   tasks: TaskCompletion[],
   today: Date = new Date()
 ): number {
@@ -252,11 +251,44 @@ export function calculateTaskPriming(
   }
   
   // Cap at 100, with diminishing returns after 5 tasks
-  // First 5 tasks contribute fully, additional tasks at 50%
   const effectiveTasks = Math.min(recentTasks.length, 5) + Math.max(0, recentTasks.length - 5) * 0.5;
   const normalized = Math.min(totalScore, effectiveTasks * 20);
   
   return clamp(normalized, 0, 100);
+}
+
+/**
+ * Calculate custom session score (new timer-based system)
+ * 
+ * Formula: (weighted_minutes / 60) normalized to [0, 100]
+ * 60 weighted minutes = 100 points (full score)
+ */
+export function calculateCustomSessionScore(weightedMinutes: number): number {
+  // 60 weighted minutes = full score (100)
+  const normalized = (weightedMinutes / 60) * 100;
+  return clamp(normalized, 0, 100);
+}
+
+/**
+ * Calculate Task Priming using HYBRID formula
+ * 
+ * Task_Priming = 0.5 × LOOMA_score + 0.5 × Custom_score
+ */
+export function calculateTaskPriming(
+  tasks: TaskCompletion[],
+  today: Date = new Date(),
+  customWeightedMinutes: number = 0
+): number {
+  // Component 1: LOOMA completions (legacy instant-complete)
+  const loomaScore = calculateLoomaCompletionsScore(tasks, today);
+  
+  // Component 2: Custom sessions (timer-tracked)
+  const customScore = calculateCustomSessionScore(customWeightedMinutes);
+  
+  // Hybrid formula: 50% each
+  const hybridScore = 0.5 * loomaScore + 0.5 * customScore;
+  
+  return clamp(hybridScore, 0, 100);
 }
 
 // ============================================
@@ -324,8 +356,8 @@ export function calculateRQ(input: RQInput): RQResult {
   // 2. S2_Consistency
   const s2Consistency = calculateS2Consistency(input.s2GameScores);
   
-  // 3. Task_Priming
-  const taskPriming = calculateTaskPriming(input.taskCompletions, today);
+  // 3. Task_Priming (hybrid: LOOMA completions + custom weighted minutes)
+  const taskPriming = calculateTaskPriming(input.taskCompletions, today, input.customWeightedMinutes || 0);
   
   // 4. Calculate contributions (raw, for display consistency)
   const s2CoreContribution = s2Core * 0.50;
