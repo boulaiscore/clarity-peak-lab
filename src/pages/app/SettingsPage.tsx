@@ -319,7 +319,7 @@ const SettingsPage = () => {
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => window.open("https://neuroloop.ai/support", "_blank")}
+                  onClick={() => window.open("https://www.neurolooplabs.com/#/support", "_blank")}
                 >
                   <Mail className="w-4 h-4" />
                   Contact Support
@@ -339,7 +339,7 @@ const SettingsPage = () => {
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => window.open("https://neuroloop.ai/privacy", "_blank")}
+                  onClick={() => window.open("https://www.neurolooplabs.com/#/privacy", "_blank")}
                 >
                   <Shield className="w-4 h-4" />
                   Privacy Policy
@@ -349,7 +349,7 @@ const SettingsPage = () => {
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => window.open("https://neuroloop.ai/terms", "_blank")}
+                  onClick={() => window.open("https://www.neurolooplabs.com/#/terms", "_blank")}
                 >
                   <FileText className="w-4 h-4" />
                   Terms of Service
@@ -359,7 +359,7 @@ const SettingsPage = () => {
                   variant="outline"
                   size="sm"
                   className="w-full justify-start text-destructive hover:text-destructive"
-                  onClick={() => window.open("https://neuroloop.ai/delete-account", "_blank")}
+                  onClick={() => window.open("https://www.neurolooplabs.com/#/delete-account", "_blank")}
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete Account
