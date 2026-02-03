@@ -11,12 +11,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  BookOpen, 
-  Headphones, 
   Play,
   Library,
   ChevronRight
 } from "lucide-react";
+import reasonReadingImg from "@/assets/reason-reading.jpg";
+import reasonListeningImg from "@/assets/reason-listening.jpg";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
@@ -85,16 +85,19 @@ export function ReasonTabContent() {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => { setSelectorMode("reading"); setShowSelector(true); }}
-            className="group flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-500/40 transition-all"
+            className="group relative flex flex-col items-center justify-end gap-2 p-4 pt-24 rounded-2xl border border-amber-500/20 hover:border-amber-500/40 transition-all overflow-hidden"
           >
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <BookOpen className="w-7 h-7 text-amber-500" />
+            <img 
+              src={reasonReadingImg} 
+              alt="Reading" 
+              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            <div className="relative z-10 text-center">
+              <p className="font-semibold text-sm text-white">Start Reading</p>
+              <p className="text-[10px] text-white/70">Books, articles, papers</p>
             </div>
-            <div className="text-center">
-              <p className="font-semibold text-sm">Start Reading</p>
-              <p className="text-[10px] text-muted-foreground">Books, articles, papers</p>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="relative z-10 flex items-center gap-1 text-xs text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
               <Play className="w-3 h-3" />
               <span>Begin</span>
             </div>
@@ -102,16 +105,19 @@ export function ReasonTabContent() {
           
           <button
             onClick={() => { setSelectorMode("listening"); setShowSelector(true); }}
-            className="group flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 hover:border-violet-500/40 transition-all"
+            className="group relative flex flex-col items-center justify-end gap-2 p-4 pt-24 rounded-2xl border border-violet-500/20 hover:border-violet-500/40 transition-all overflow-hidden"
           >
-            <div className="w-14 h-14 rounded-2xl bg-violet-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Headphones className="w-7 h-7 text-violet-500" />
+            <img 
+              src={reasonListeningImg} 
+              alt="Listening" 
+              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            <div className="relative z-10 text-center">
+              <p className="font-semibold text-sm text-white">Start Listening</p>
+              <p className="text-[10px] text-white/70">Podcasts, audiobooks</p>
             </div>
-            <div className="text-center">
-              <p className="font-semibold text-sm">Start Listening</p>
-              <p className="text-[10px] text-muted-foreground">Podcasts, audiobooks</p>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-violet-500 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="relative z-10 flex items-center gap-1 text-xs text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
               <Play className="w-3 h-3" />
               <span>Begin</span>
             </div>
