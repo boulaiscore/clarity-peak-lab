@@ -35,7 +35,7 @@ export function SplashScreen({ onComplete, duration = 6000 }: SplashScreenProps)
   const gap = 6;
 
   useEffect(() => {
-    // Phase 1: Logo grows alone (0-1200ms)
+    // Phase 1: Logo appears alone (0-1200ms) - no animation, just static
     const formingTimer = setTimeout(() => {
       setPhase("forming");
     }, 1200);
@@ -84,21 +84,14 @@ export function SplashScreen({ onComplete, duration = 6000 }: SplashScreenProps)
         animate={{ opacity: phase === "fadeout" ? 0 : 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        {/* Phase 1: Logo only, centered and growing */}
+        {/* Phase 1: Second O logo only, centered, NO animation - just appears */}
         {phase === "logo" && (
-          <motion.div
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ 
-              duration: 1.1, 
-              ease: [0.16, 1, 0.3, 1] as const
-            }}
-          >
+          <div className="flex items-center justify-center">
             <LoomaLogoIcon size={logoSize} />
-          </motion.div>
+          </div>
         )}
 
-        {/* Phase 2: Letters come towards the stationary first O logo */}
+        {/* Phase 2: Letters come towards the stationary second O logo */}
         {phase === "forming" && (
           <div className="flex items-center" style={{ gap: `${gap}px` }}>
             {/* L - comes from far left */}
@@ -112,24 +105,20 @@ export function SplashScreen({ onComplete, duration = 6000 }: SplashScreenProps)
               L
             </motion.span>
 
-            {/* First O - The original logo, stays in place (no animation) */}
+            {/* First O - comes from left */}
             <motion.div
-              initial={{ opacity: 1, scale: 1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center justify-center"
-            >
-              <LoomaLogoIcon size={logoSize} />
-            </motion.div>
-
-            {/* Second O - comes from right */}
-            <motion.div
-              initial={{ opacity: 0, x: 80 }}
+              initial={{ opacity: 0, x: -60 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
               className="flex items-center justify-center"
             >
               <LoomaLogoIcon size={logoSize} />
             </motion.div>
+
+            {/* Second O - The original logo, stays in place (no animation) */}
+            <div className="flex items-center justify-center">
+              <LoomaLogoIcon size={logoSize} />
+            </div>
 
             {/* M - comes from right */}
             <motion.span
