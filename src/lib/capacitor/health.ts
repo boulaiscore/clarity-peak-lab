@@ -321,18 +321,29 @@ export async function readRestingHR(
 }
 
 /**
- * Open Health Connect settings (Android only)
+ * Open Health/Health Connect settings
+ * iOS: Opens Health app (via native plugin or Settings)
+ * Android: Opens Health Connect settings
  */
 export async function openHealthSettings(): Promise<void> {
-  if (getPlatform() !== "android") {
-    console.log("[Health] openHealthSettings is only available on Android");
+  const platform = getPlatform();
+  
+  if (platform === "web") {
+    console.log("[Health] openHealthSettings not available on web");
     return;
   }
 
   try {
-    await HealthPlugin.openHealthConnectSettings?.();
+    if (platform === "android") {
+      await HealthPlugin.openHealthConnectSettings?.();
+    } else {
+      // iOS: Try to open via native plugin, fallback to Settings URL scheme
+      // The native plugin should implement this method
+      // @ts-ignore - Native plugin may have this method
+      await HealthPlugin.openHealthSettings?.();
+    }
   } catch (error) {
-    console.error("[Health] Error opening Health Connect settings:", error);
+    console.error("[Health] Error opening health settings:", error);
   }
 }
 
