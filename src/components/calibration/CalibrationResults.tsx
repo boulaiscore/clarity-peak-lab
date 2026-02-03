@@ -167,7 +167,7 @@ export function CalibrationResults({
             className="w-full py-6 text-sm font-semibold"
             size="lg"
           >
-            {isSaving ? "Saving..." : "Enter NeuroLoop"}
+            {isSaving ? "Saving..." : "Enter LOOMA"}
             {!isSaving && <ChevronRight className="w-4 h-4 ml-2" />}
           </Button>
         </motion.div>

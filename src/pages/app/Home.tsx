@@ -37,7 +37,7 @@ import { CapacityTab } from "@/components/home/CapacityTab";
 import { RecoveryBatteryCard } from "@/components/dashboard/RecoveryBatteryCard";
 import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
-import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
+
 import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
 import { WearableConnectionPrompt } from "@/components/dashboard/WearableConnectionPrompt";
 
@@ -628,8 +628,6 @@ const Home = () => {
       {/* Onboarding Tutorial - appears once after first login post-onboarding */}
       <OnboardingTutorial show={showTutorial} onComplete={markTutorialComplete} />
       
-      {/* DEV: Test Mode Toggle - remove this line to hide */}
-      <TestModeFloatingToggle />
     </AppShell>;
 };
 export default Home;
