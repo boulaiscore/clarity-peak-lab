@@ -593,6 +593,63 @@ export type Database = {
         }
         Relationships: []
       }
+      reason_sessions: {
+        Row: {
+          background_interrupts: number
+          created_at: string
+          custom_author: string | null
+          custom_title: string | null
+          duration_seconds: number
+          ended_at: string | null
+          id: string
+          is_valid_for_rq: boolean
+          item_id: string | null
+          proof_level: string
+          session_type: string
+          source: string
+          started_at: string
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          background_interrupts?: number
+          created_at?: string
+          custom_author?: string | null
+          custom_title?: string | null
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          is_valid_for_rq?: boolean
+          item_id?: string | null
+          proof_level?: string
+          session_type: string
+          source: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          background_interrupts?: number
+          created_at?: string
+          custom_author?: string | null
+          custom_title?: string | null
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          is_valid_for_rq?: boolean
+          item_id?: string | null
+          proof_level?: string
+          session_type?: string
+          source?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       report_credit_purchases: {
         Row: {
           amount_cents: number

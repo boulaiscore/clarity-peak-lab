@@ -118,7 +118,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
     staleTime: 5 * 60_000,
   });
   
-  // Fetch last 7 days of task completions
+  // Fetch last 7 days of LOOMA task completions (legacy instant-complete)
   const { data: taskCompletions, isLoading: tasksLoading } = useQuery({
     queryKey: ["task-completions-7d", userId],
     queryFn: async () => {
@@ -146,6 +146,39 @@ export function useReasoningQuality(): UseReasoningQualityResult {
           completedAt: parseISO(item.completed_at),
         };
       });
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+  
+  // Fetch custom session weighted minutes (new timer-based system)
+  const { data: customWeightedMinutes, isLoading: customLoading } = useQuery({
+    queryKey: ["custom-weighted-minutes-7d", userId],
+    queryFn: async () => {
+      if (!userId) return 0;
+      
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const { data, error } = await supabase
+        .from("reason_sessions")
+        .select("duration_seconds, weight")
+        .eq("user_id", userId)
+        .eq("source", "custom")
+        .eq("is_valid_for_rq", true)
+        .gte("started_at", sevenDaysAgo.toISOString())
+        .not("ended_at", "is", null);
+      
+      if (error) throw error;
+      
+      // Calculate total weighted minutes
+      let total = 0;
+      for (const session of data || []) {
+        const minutes = (session.duration_seconds || 0) / 60;
+        total += minutes * (session.weight || 1);
+      }
+      
+      return total;
     },
     enabled: !!userId,
     staleTime: 5 * 60_000,
@@ -234,7 +267,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
   }, [taskCompletions]);
   
   const result = useMemo(() => {
-    const isLoadingState = statesLoading || persistedLoading || scoresLoading || tasksLoading;
+    const isLoadingState = statesLoading || persistedLoading || scoresLoading || tasksLoading || customLoading;
     
     if (isLoadingState && !cachedResultRef.current) {
       return {
@@ -262,13 +295,14 @@ export function useReasoningQuality(): UseReasoningQualityResult {
       S2,
       s2GameScores: s2GameScores || [],
       taskCompletions: taskCompletions || [],
+      customWeightedMinutes: customWeightedMinutes || 0,
       lastS2GameAt,
       lastTaskAt,
     });
     
     cachedResultRef.current = computed;
     return computed;
-  }, [S2, s2GameScores, taskCompletions, persistedData, statesLoading, persistedLoading, scoresLoading, tasksLoading]);
+  }, [S2, s2GameScores, taskCompletions, customWeightedMinutes, persistedData, statesLoading, persistedLoading, scoresLoading, tasksLoading, customLoading]);
   
   // Check if today's RQ is already persisted
   const isPersisted = useMemo(() => {
@@ -292,7 +326,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
     lastUpdatedAt: persistedData?.rq_last_updated_at 
       ? parseISO(persistedData.rq_last_updated_at) 
       : null,
-    isLoading: statesLoading || persistedLoading || scoresLoading || tasksLoading,
+    isLoading: statesLoading || persistedLoading || scoresLoading || tasksLoading || customLoading,
     persistRQ,
   };
 }

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
-import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
+import { ReasonTabContent } from "@/components/lab";
 import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Brain, Zap, Battery, BatteryLow, Settings2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,7 +40,7 @@ const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
   "reflection": ["reasoning", "creativity"]
 };
 function TasksTabContent() {
-  return <SpotifyTasksView />;
+  return <ReasonTabContent />;
 }
 
 // Discrete protocol change link - elegant and non-invasive
