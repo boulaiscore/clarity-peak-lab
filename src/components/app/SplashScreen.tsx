@@ -26,23 +26,23 @@ const LoomaLogoIcon = ({ size = 32 }: { size?: number }) => (
   </svg>
 );
 
-export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps) {
+export function SplashScreen({ onComplete, duration = 4200 }: SplashScreenProps) {
   const [phase, setPhase] = useState<"logo" | "text" | "fadeout">("logo");
   const [isVisible, setIsVisible] = useState(true);
 
-  const logoSize = 36; // Base size for logo icons
-  const letterHeight = "36px"; // Letters match logo height
+  const logoSize = 36;
+  const letterHeight = "36px";
 
   useEffect(() => {
-    // Phase 1: Logo grows (0-1200ms) - slower
+    // Phase 1: Logo grows (0-1600ms) - even slower
     const textTimer = setTimeout(() => {
       setPhase("text");
-    }, 1200);
+    }, 1600);
 
     // Phase 2: Show full text, then fade out
     const fadeTimer = setTimeout(() => {
       setPhase("fadeout");
-    }, duration - 600);
+    }, duration - 700);
 
     // Phase 3: Complete and hide
     const hideTimer = setTimeout(() => {
@@ -59,10 +59,12 @@ export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps)
 
   if (!isVisible) return null;
 
+  // Thin font weight to match the 1.5px stroke of the logo
   const letterStyle = {
     fontFamily: "'DM Sans', sans-serif",
     fontSize: letterHeight,
     lineHeight: 1,
+    fontWeight: 300, // Light weight for thin strokes
   };
 
   return (
@@ -72,16 +74,16 @@ export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps)
         style={{ backgroundColor: "#0a0b0f" }}
         initial={{ opacity: 1 }}
         animate={{ opacity: phase === "fadeout" ? 0 : 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
       >
         <div className="flex items-center justify-center">
           {/* Phase 1: Logo only, centered and growing */}
           {phase === "logo" && (
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
+              initial={{ scale: 0.4, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ 
-                duration: 1, 
+                duration: 1.4, 
                 ease: [0.16, 1, 0.3, 1]
               }}
             >
@@ -96,8 +98,8 @@ export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps)
               <motion.span
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="text-white font-semibold"
+                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                className="text-white"
                 style={letterStyle}
               >
                 L
@@ -107,17 +109,17 @@ export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps)
               <motion.div
                 initial={{ scale: 1.3, opacity: 0.7 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 className="flex items-center justify-center"
               >
                 <LoomaLogoIcon size={logoSize} />
               </motion.div>
 
-              {/* Second O - Also the logo icon for consistency */}
+              {/* Second O - Also the logo icon */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="flex items-center justify-center"
               >
                 <LoomaLogoIcon size={logoSize} />
@@ -127,8 +129,8 @@ export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps)
               <motion.span
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="text-white font-semibold"
+                transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="text-white"
                 style={letterStyle}
               >
                 M
@@ -138,8 +140,8 @@ export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps)
               <motion.span
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="text-white font-semibold"
+                transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="text-white"
                 style={letterStyle}
               >
                 A
@@ -150,15 +152,15 @@ export function SplashScreen({ onComplete, duration = 3500 }: SplashScreenProps)
           {/* Phase 3: Same as text but fading */}
           {phase === "fadeout" && (
             <div className="flex items-center" style={{ gap: "6px" }}>
-              <span className="text-white font-semibold" style={letterStyle}>L</span>
+              <span className="text-white" style={letterStyle}>L</span>
               <div className="flex items-center justify-center">
                 <LoomaLogoIcon size={logoSize} />
               </div>
               <div className="flex items-center justify-center">
                 <LoomaLogoIcon size={logoSize} />
               </div>
-              <span className="text-white font-semibold" style={letterStyle}>M</span>
-              <span className="text-white font-semibold" style={letterStyle}>A</span>
+              <span className="text-white" style={letterStyle}>M</span>
+              <span className="text-white" style={letterStyle}>A</span>
             </div>
           )}
         </div>
