@@ -15,7 +15,8 @@ import {
   Plus,
   ChevronRight,
   Library,
-  Sparkles
+  Sparkles,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -240,14 +241,12 @@ export function ReasonContentSelector({
                     </p>
                   ) : (
                     filteredLibrary.map((item) => (
-                      <button
+                      <div
                         key={item.id}
-                        onClick={() => handleStartLoomaSession(item)}
-                        disabled={startSession.isPending}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all text-left"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all"
                       >
                         <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center",
+                          "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
                           item.format === "podcast" && "bg-violet-500/10",
                           item.format === "reading" && "bg-cyan-500/10",
                           item.format === "book" && "bg-amber-500/10",
@@ -264,11 +263,34 @@ export function ReasonContentSelector({
                             <span>{item.durationMinutes} min</span>
                             <span>•</span>
                             <span className="font-medium text-primary">
-                              {LOOMA_ITEM_WEIGHTS[item.format]?.toFixed(1) || "1.0"}× weight
+                              {LOOMA_ITEM_WEIGHTS[item.format]?.toFixed(1) || "1.0"}×
                             </span>
                           </div>
                         </div>
-                      </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {item.url && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(item.url, "_blank", "noopener,noreferrer");
+                              }}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                              title="Open content"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleStartLoomaSession(item)}
+                            disabled={startSession.isPending}
+                            className="h-8 px-3 text-xs font-medium"
+                          >
+                            Start
+                          </Button>
+                        </div>
+                      </div>
                     ))
                   )}
                 </div>

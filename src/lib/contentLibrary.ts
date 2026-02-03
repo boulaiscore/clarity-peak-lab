@@ -32,6 +32,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 15,
     description: "Introduction to dual-process theory and how it affects daily decisions",
     topics: ["decision-making", "cognitive-bias", "system1", "system2"],
+    url: "https://www.hubermanlab.com/podcast",
   },
   {
     id: "pod-focus-deep-work",
@@ -43,6 +44,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 20,
     description: "Practical strategies for sustained concentration in a distracted world",
     topics: ["focus", "productivity", "attention"],
+    url: "https://www.calnewport.com/podcast/",
   },
   {
     id: "pod-intuition-business",
@@ -54,6 +56,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 12,
     description: "How successful executives use intuition alongside analysis",
     topics: ["intuition", "business", "decision-making"],
+    url: "https://hbr.org/podcasts",
   },
   
   // PODCASTS - Medium
@@ -67,6 +70,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 25,
     description: "Understanding and optimizing mental bandwidth for complex tasks",
     topics: ["cognitive-load", "attention", "productivity"],
+    url: "https://lexfridman.com/podcast/",
   },
   {
     id: "pod-mental-models",
@@ -78,6 +82,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 30,
     description: "Building a latticework of mental models for better thinking",
     topics: ["mental-models", "reasoning", "decision-making"],
+    url: "https://fs.blog/the-knowledge-project-podcast/",
   },
   
   // READINGS - Light
@@ -91,6 +96,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 8,
     description: "Short article on attention management strategies",
     topics: ["attention", "digital-wellness", "focus"],
+    url: "https://www.technologyreview.com/",
   },
   {
     id: "read-cognitive-rest",
@@ -102,6 +108,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 10,
     description: "Why rest is essential for cognitive performance",
     topics: ["rest", "recovery", "performance"],
+    url: "https://www.scientificamerican.com/",
   },
   
   // READINGS - Medium/Dense
@@ -115,6 +122,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 15,
     description: "Understanding the limits of human reasoning in complex decisions",
     topics: ["rationality", "decision-making", "cognitive-limits"],
+    url: "https://hbr.org/search?term=bounded+rationality",
   },
   {
     id: "read-strategic-intuition",
@@ -126,6 +134,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 20,
     description: "How breakthrough ideas emerge from the intersection of analysis and intuition",
     topics: ["innovation", "intuition", "strategy"],
+    url: "https://www8.gsb.columbia.edu/",
   },
   
   // BOOKS (Extracts)
@@ -139,6 +148,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 25,
     description: "The Two Systems - Introduction to automatic and deliberate thinking",
     topics: ["dual-process", "cognition", "psychology"],
+    url: "https://www.amazon.com/Thinking-Fast-Slow-Daniel-Kahneman/dp/0374533555",
   },
   {
     id: "book-gigerenzer-gut",
@@ -150,6 +160,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 20,
     description: "Why intuition is smarter than we think",
     topics: ["intuition", "heuristics", "decision-making"],
+    url: "https://www.amazon.com/Gut-Feelings-Intelligence-Unconscious-Gigerenzer/dp/0143113763",
   },
   {
     id: "book-stanovich-rationality",
@@ -161,6 +172,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 30,
     description: "Deep dive into reflective thinking and cognitive decoupling",
     topics: ["rationality", "reflection", "metacognition"],
+    url: "https://www.amazon.com/Rationality-Reflective-Mind-Keith-Stanovich/dp/0195341147",
   },
   {
     id: "book-klein-sources",
@@ -172,6 +184,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 25,
     description: "Recognition-primed decision making in high-stakes environments",
     topics: ["expertise", "intuition", "decision-making"],
+    url: "https://www.amazon.com/Sources-Power-People-Make-Decisions/dp/0262611465",
   },
   {
     id: "book-tetlock-superforecasting",
@@ -183,6 +196,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     durationMinutes: 30,
     description: "How to calibrate predictions and improve judgment",
     topics: ["forecasting", "calibration", "judgment"],
+    url: "https://www.amazon.com/Superforecasting-Science-Prediction-Philip-Tetlock/dp/0804136718",
   },
 ];
 
