@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 
 /**
- * Fast Charge Card - Entry point for the cognitive reset feature
+ * Fast Recover Card - Entry point for the cognitive reset feature
  * Displayed in the NeuroLab page
  */
 export function RechargingCard() {
@@ -16,7 +16,7 @@ export function RechargingCard() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-0.5">
-            Fast Charge
+            Fast Recover
           </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Restore reasoning clarity after cognitive overload.

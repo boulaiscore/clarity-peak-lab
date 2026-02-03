@@ -54,7 +54,7 @@ export function RechargingVoiceModeSelect({ onSelect }: RechargingVoiceModeSelec
       >
         {/* Title */}
         <h1 className="text-2xl font-medium text-white text-center mb-2">
-          Recharging mode
+          Recovery mode
         </h1>
         <p className="text-sm text-white/50 text-center mb-8">
           Choose your audio experience

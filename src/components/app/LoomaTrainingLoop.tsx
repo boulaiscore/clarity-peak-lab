@@ -66,20 +66,20 @@ const REASON_ANGLE = 220; // -140° normalized
 // - Train (70°): R = 70 - 275 + 360 = 155°  
 // - Reason (190°): R = 190 - 275 + 360 = 275°
 
-function getActiveIcon(rotationDeg: number): "recover" | "train" | "reason" {
+function getActiveIcon(rotationDeg: number): "recover" | "train" | "reflect" {
   const rot = (rotationDeg % 360 + 360) % 360;
 
   // Active zones based on when trailing edge passes each icon:
   // Recover: [35, 155) - after gap passes recover, until gap passes train
-  // Train: [155, 275) - after gap passes train, until gap passes reason
-  // Reason: [275, 360) ∪ [0, 35) - after gap passes reason, until gap passes recover
+  // Train: [155, 275) - after gap passes train, until gap passes reflect
+  // Reflect: [275, 360) ∪ [0, 35) - after gap passes reflect, until gap passes recover
 
   if (rot >= 35 && rot < 155) {
     return "recover";
   } else if (rot >= 155 && rot < 275) {
     return "train";
   } else {
-    return "reason"; // [275, 360) ∪ [0, 35)
+    return "reflect"; // [275, 360) ∪ [0, 35)
   }
 }
 
@@ -195,7 +195,7 @@ export function LoomaTrainingLoop() {
             <motion.span className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider max-w-[80px]" style={{
             color: recoverColor
           }}>
-              Recharge
+              Recover
               <motion.span className="block font-normal normal-case tracking-normal text-[8px] mt-0.5" style={{
               color: useTransform(recoverColor, c => c.replace('50%)', '35%)'))
             }}>
@@ -233,27 +233,27 @@ export function LoomaTrainingLoop() {
           </div>
         </motion.div>
 
-        {/* Reason icon - at -165° */}
+        {/* Reflect icon - at -165° */}
         <motion.div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={polarToPercent(cx, cy, r, -165)}>
           <div className="relative">
             <motion.div className="w-9 h-9 rounded-full bg-background flex items-center justify-center" style={{
             borderWidth: 2,
             borderStyle: "solid",
-            borderColor: useTransform(activeIcon, icon => icon === "reason" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"),
-            boxShadow: useTransform(activeIcon, icon => icon === "reason" ? "0 0 20px rgba(59, 130, 246, 0.5)" : "0 0 10px rgba(59, 130, 246, 0.1)")
+            borderColor: useTransform(activeIcon, icon => icon === "reflect" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)"),
+            boxShadow: useTransform(activeIcon, icon => icon === "reflect" ? "0 0 20px rgba(59, 130, 246, 0.5)" : "0 0 10px rgba(59, 130, 246, 0.1)")
           }}>
               <motion.div style={{
-              color: useTransform(activeIcon, icon => icon === "reason" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)")
+              color: useTransform(activeIcon, icon => icon === "reflect" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)")
             }}>
                 <BookMarked className="w-4 h-4" />
               </motion.div>
             </motion.div>
             <motion.span className="absolute right-full top-1/3 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider w-[70px] text-right" style={{
-            color: useTransform(activeIcon, icon => icon === "reason" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)")
+            color: useTransform(activeIcon, icon => icon === "reflect" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)")
           }}>
-              REASON
+              REFLECT
               <motion.span className="block mt-0.5 text-[8px] font-normal normal-case tracking-normal leading-tight" style={{
-              color: useTransform(activeIcon, icon => icon === "reason" ? "hsl(210, 100%, 50%)" : "hsl(210, 40%, 40%)")
+              color: useTransform(activeIcon, icon => icon === "reflect" ? "hsl(210, 100%, 50%)" : "hsl(210, 40%, 40%)")
             }}>
                 <span className="block">Quality time with</span>
                 <span className="block">books &amp; podcasts</span>
