@@ -290,9 +290,9 @@ const Health = () => {
           {/* Disclaimer */}
           <div className="p-4 rounded-xl bg-muted/10 border border-border/30">
             <p className="text-xs text-muted-foreground leading-relaxed text-center">
-              LOOMA does not provide medical advice or diagnoses.
-              Health data is used solely to estimate Cognitive Readiness
-              and personalize cognitive training and recovery.
+            LOOMA does not provide medical advice or diagnoses.
+            Health data is used solely to estimate LOOMA's metrics
+            and personalize cognitive training and recovery.
             </p>
           </div>
         </div>
