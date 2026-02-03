@@ -268,19 +268,24 @@ export function ReasonContentSelector({
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          {item.url && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(item.url, "_blank", "noopener,noreferrer");
-                              }}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                              title="Open content"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                            </button>
-                          )}
                           <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!item.url) return;
+                              window.open(item.url, "_blank", "noopener,noreferrer");
+                            }}
+                            disabled={!item.url}
+                            className="h-8 px-2.5 text-xs font-medium"
+                            title={item.url ? "Open content" : "No link available"}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            <span className="ml-1">Open</span>
+                          </Button>
+                          <Button
+                            type="button"
                             size="sm"
                             variant="ghost"
                             onClick={() => handleStartLoomaSession(item)}
