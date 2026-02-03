@@ -253,12 +253,18 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
   const hasAnyValue = data.some((d) => d.value !== null);
 
   // Prepare chart data with xLabel for axis based on viewMode
+  // IMPORTANT: Round values to integers so that points displayed with the same
+  // integer label are positioned at the exact same Y coordinate
   const chartData = viewMode === 'week' 
     ? weeklyData.map(d => ({
         ...d,
+        value: d.value !== null ? Math.round(d.value) : null,
         xLabel: `${d.dayName}|${d.dayNum}|${d.isLast}`,
       }))
-    : intradayChartData;
+    : intradayChartData.map(d => ({
+        ...d,
+        value: d.value !== null ? Math.round(d.value) : null,
+      }));
 
   // Pre-calculate which labels should be visible (Smart Label Pruning for 1d view)
   // This runs once when chartData changes, not on every render
@@ -313,7 +319,9 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
   }, [chartData, viewMode, midnightTs, nowTs]);
 
   // Calculate min/max for dynamic Y axis - use chartData which is properly processed
-  const values = chartData.filter(d => d.value !== null).map(d => d.value as number);
+  // IMPORTANT: Round values to integers for Y-axis calculations to ensure
+  // that values displayed as the same integer appear at the same Y position
+  const values = chartData.filter(d => d.value !== null).map(d => Math.round(d.value as number));
   const dataMin = values.length > 0 ? Math.min(...values) : 50;
   const dataMax = values.length > 0 ? Math.max(...values) : 50;
 
