@@ -65,7 +65,7 @@ export async function signInWithApple(): Promise<AppleAuthResult> {
 export async function handleAppleAuthCallback(url: string): Promise<AppleAuthResult> {
   try {
     // Extract the tokens from the URL
-    const urlObj = new URL(url.replace('nloop://', 'https://app.'));
+    const urlObj = new URL(url.replace('looma://', 'https://app.'));
     const accessToken = urlObj.searchParams.get('access_token');
     const refreshToken = urlObj.searchParams.get('refresh_token');
 

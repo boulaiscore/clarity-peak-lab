@@ -324,7 +324,7 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
           <div className="clinical-logo">
             <Brain size={28} />
             <div className="clinical-logo-text">
-              <span className="clinical-logo-name">NeuroLoop</span>
+              <span className="clinical-logo-name">LOOMA</span>
               <span className="clinical-logo-sub">Cognitive Performance Laboratory</span>
             </div>
           </div>
@@ -825,7 +825,7 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
               </li>
               <li>
                 <strong>Normalization:</strong> Raw scores are normalized against age-adjusted reference 
-                distributions derived from the NeuroLoop user population.
+                distributions derived from the LOOMA user population.
               </li>
               <li>
                 <strong>Longitudinal Tracking:</strong> Trend analysis incorporates historical performance 
