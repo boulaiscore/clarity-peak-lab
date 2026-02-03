@@ -26,7 +26,7 @@ const LoomaLogoIcon = ({ size = 32 }: { size?: number }) => (
   </svg>
 );
 
-export function SplashScreen({ onComplete, duration = 6000 }: SplashScreenProps) {
+export function SplashScreen({ onComplete, duration = 6500 }: SplashScreenProps) {
   const [phase, setPhase] = useState<"logo" | "forming" | "hold" | "fadeout">("logo");
   const [isVisible, setIsVisible] = useState(true);
 
@@ -40,18 +40,18 @@ export function SplashScreen({ onComplete, duration = 6000 }: SplashScreenProps)
       setPhase("forming");
     }, 1200);
 
-    // Phase 2: Letters form around the logo (~1500ms animation)
-    // After animation completes, hold for 3 seconds
+    // Phase 2: Letters animate in (1.2s duration + 0.6s max delay = 1.8s total)
+    // Hold phase starts after animation completes: 1200 + 1800 = 3000ms
     const holdTimer = setTimeout(() => {
       setPhase("hold");
-    }, 2700); // 1200 + 1500
+    }, 3000);
 
-    // Phase 3: Start fade after 3s hold
+    // Phase 3: Hold for 3 seconds, then start fade: 3000 + 3000 = 6000ms
     const fadeTimer = setTimeout(() => {
       setPhase("fadeout");
-    }, 5700); // 2700 + 3000
+    }, 6000);
 
-    // Phase 4: Complete and hide
+    // Phase 4: Complete and hide after fadeout (500ms): 6000 + 500 = 6500ms
     const hideTimer = setTimeout(() => {
       setIsVisible(false);
       onComplete();
