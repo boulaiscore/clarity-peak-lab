@@ -46,6 +46,7 @@ interface ReasonContentSelectorProps {
   open: boolean;
   onClose: () => void;
   onSessionStarted: () => void;
+  initialSessionType?: SessionType;
 }
 
 type SelectionMode = "choose" | "looma" | "custom";
@@ -53,10 +54,11 @@ type SelectionMode = "choose" | "looma" | "custom";
 export function ReasonContentSelector({ 
   open, 
   onClose, 
-  onSessionStarted 
+  onSessionStarted,
+  initialSessionType = "reading"
 }: ReasonContentSelectorProps) {
   const [mode, setMode] = useState<SelectionMode>("choose");
-  const [sessionType, setSessionType] = useState<SessionType>("reading");
+  const [sessionType, setSessionType] = useState<SessionType>(initialSessionType);
   
   // Custom item state
   const [customTitle, setCustomTitle] = useState("");
@@ -73,8 +75,19 @@ export function ReasonContentSelector({
     setCustomAuthor("");
     setDifficulty(3);
     setFocus(3);
+    setSessionType(initialSessionType);
     onClose();
   };
+  
+  // Filter library based on session type
+  const filteredLibrary = CONTENT_LIBRARY.filter(item => {
+    if (initialSessionType === "listening") {
+      return item.format === "podcast";
+    } else {
+      // reading - show books and readings, not podcasts
+      return item.format === "book" || item.format === "reading";
+    }
+  });
   
   // Start session with LOOMA content
   const handleStartLoomaSession = async (item: ContentItem) => {
@@ -137,14 +150,20 @@ export function ReasonContentSelector({
       <DialogContent className="max-w-sm max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {mode === "choose" && "Start a Reason Session"}
+            {mode === "choose" && (initialSessionType === "listening" ? "Start Listening" : "Start Reading")}
             {mode === "looma" && "LOOMA Library"}
             {mode === "custom" && "Custom Content"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "choose" && "Choose content to track your reading or listening time."}
-            {mode === "looma" && "Select from curated content with optimized weights."}
-            {mode === "custom" && "Track your own book, podcast, or article."}
+            {mode === "choose" && (initialSessionType === "listening" 
+              ? "Choose a podcast to track your listening time."
+              : "Choose content to track your reading time.")}
+            {mode === "looma" && (initialSessionType === "listening"
+              ? "Select from curated podcasts with optimized weights."
+              : "Select from curated books and readings with optimized weights.")}
+            {mode === "custom" && (initialSessionType === "listening"
+              ? "Track your own podcast or audiobook."
+              : "Track your own book, article, or paper.")}
           </DialogDescription>
         </DialogHeader>
         
@@ -215,37 +234,43 @@ export function ReasonContentSelector({
               
               <ScrollArea className="h-[50vh]">
                 <div className="space-y-2 pr-4">
-                  {CONTENT_LIBRARY.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleStartLoomaSession(item)}
-                      disabled={startSession.isPending}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all text-left"
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center",
-                        item.format === "podcast" && "bg-violet-500/10",
-                        item.format === "reading" && "bg-cyan-500/10",
-                        item.format === "book" && "bg-amber-500/10",
-                      )}>
-                        {item.format === "podcast" && <Headphones className="w-5 h-5 text-violet-500" />}
-                        {item.format === "reading" && <FileText className="w-5 h-5 text-cyan-500" />}
-                        {item.format === "book" && <BookOpen className="w-5 h-5 text-amber-500" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.title}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                          <span className="capitalize">{item.format}</span>
-                          <span>•</span>
-                          <span>{item.durationMinutes} min</span>
-                          <span>•</span>
-                          <span className="font-medium text-primary">
-                            {LOOMA_ITEM_WEIGHTS[item.format]?.toFixed(1) || "1.0"}× weight
-                          </span>
+                  {filteredLibrary.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No {initialSessionType === "listening" ? "podcasts" : "books or readings"} available yet.
+                    </p>
+                  ) : (
+                    filteredLibrary.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleStartLoomaSession(item)}
+                        disabled={startSession.isPending}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all text-left"
+                      >
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center",
+                          item.format === "podcast" && "bg-violet-500/10",
+                          item.format === "reading" && "bg-cyan-500/10",
+                          item.format === "book" && "bg-amber-500/10",
+                        )}>
+                          {item.format === "podcast" && <Headphones className="w-5 h-5 text-violet-500" />}
+                          {item.format === "reading" && <FileText className="w-5 h-5 text-cyan-500" />}
+                          {item.format === "book" && <BookOpen className="w-5 h-5 text-amber-500" />}
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{item.title}</p>
+                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <span className="capitalize">{item.format}</span>
+                            <span>•</span>
+                            <span>{item.durationMinutes} min</span>
+                            <span>•</span>
+                            <span className="font-medium text-primary">
+                              {LOOMA_ITEM_WEIGHTS[item.format]?.toFixed(1) || "1.0"}× weight
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
                 </div>
               </ScrollArea>
             </motion.div>
