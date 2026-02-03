@@ -39,6 +39,7 @@ import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
 import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
+import { WearableConnectionPrompt } from "@/components/dashboard/WearableConnectionPrompt";
 
 // Circular progress ring component with icon and status inside
 interface RingProps {
@@ -558,6 +559,18 @@ const Home = () => {
               </button>
             </motion.section>;
         })()}
+
+        {/* Wearable Connection Prompt - shows when not connected */}
+        {isViewingToday && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.14 }}
+            className="mb-3"
+          >
+            <WearableConnectionPrompt />
+          </motion.section>
+        )}
 
         {/* Optimal Zone Card - Full width */}
         <motion.section initial={{
