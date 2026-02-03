@@ -26,28 +26,30 @@ const LoomaLogoIcon = ({ size = 32 }: { size?: number }) => (
   </svg>
 );
 
-export function SplashScreen({ onComplete, duration = 5000 }: SplashScreenProps) {
-  const [phase, setPhase] = useState<"logo" | "text" | "hold" | "fadeout">("logo");
+export function SplashScreen({ onComplete, duration = 6000 }: SplashScreenProps) {
+  const [phase, setPhase] = useState<"logo" | "forming" | "hold" | "fadeout">("logo");
   const [isVisible, setIsVisible] = useState(true);
 
   const logoSize = 36;
   const letterHeight = "36px";
+  const gap = 6;
 
   useEffect(() => {
-    // Phase 1: Logo grows (0-1200ms)
-    const textTimer = setTimeout(() => {
-      setPhase("text");
+    // Phase 1: Logo grows alone (0-1200ms)
+    const formingTimer = setTimeout(() => {
+      setPhase("forming");
     }, 1200);
 
-    // Phase 2: Letters animate in (~1300ms), then hold for 2s
+    // Phase 2: Letters form around the logo (~1500ms animation)
+    // After animation completes, hold for 3 seconds
     const holdTimer = setTimeout(() => {
       setPhase("hold");
-    }, 2500);
+    }, 2700); // 1200 + 1500
 
-    // Phase 3: Start fade after 2s hold (2500 + 2000 = 4500ms)
+    // Phase 3: Start fade after 3s hold
     const fadeTimer = setTimeout(() => {
       setPhase("fadeout");
-    }, 4500);
+    }, 5700); // 2700 + 3000
 
     // Phase 4: Complete and hide
     const hideTimer = setTimeout(() => {
@@ -56,7 +58,7 @@ export function SplashScreen({ onComplete, duration = 5000 }: SplashScreenProps)
     }, duration);
 
     return () => {
-      clearTimeout(textTimer);
+      clearTimeout(formingTimer);
       clearTimeout(holdTimer);
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
@@ -82,94 +84,91 @@ export function SplashScreen({ onComplete, duration = 5000 }: SplashScreenProps)
         animate={{ opacity: phase === "fadeout" ? 0 : 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="flex items-center justify-center">
-          {/* Phase 1: Logo only, centered and growing */}
-          {phase === "logo" && (
+        {/* Phase 1: Logo only, centered and growing */}
+        {phase === "logo" && (
+          <motion.div
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ 
+              duration: 1.1, 
+              ease: [0.16, 1, 0.3, 1] as const
+            }}
+          >
+            <LoomaLogoIcon size={logoSize} />
+          </motion.div>
+        )}
+
+        {/* Phase 2: Letters come towards the stationary first O logo */}
+        {phase === "forming" && (
+          <div className="flex items-center" style={{ gap: `${gap}px` }}>
+            {/* L - comes from far left */}
+            <motion.span
+              initial={{ opacity: 0, x: -80 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
+              className="text-white"
+              style={letterStyle}
+            >
+              L
+            </motion.span>
+
+            {/* First O - The original logo, stays in place (no animation) */}
             <motion.div
-              initial={{ scale: 0.4, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ 
-                duration: 1.1, 
-                ease: [0.16, 1, 0.3, 1] as const
-              }}
+              initial={{ opacity: 1, scale: 1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center justify-center"
             >
               <LoomaLogoIcon size={logoSize} />
             </motion.div>
-          )}
 
-          {/* Phase 2: Letters slowly come together to form LOOMA */}
-          {phase === "text" && (
-            <div className="flex items-center" style={{ gap: "6px" }}>
-              {/* L - comes from far left */}
-              <motion.span
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
-                className="text-white"
-                style={letterStyle}
-              >
-                L
-              </motion.span>
+            {/* Second O - comes from right */}
+            <motion.div
+              initial={{ opacity: 0, x: 80 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+              className="flex items-center justify-center"
+            >
+              <LoomaLogoIcon size={logoSize} />
+            </motion.div>
 
-              {/* First O - The logo icon, scales down */}
-              <motion.div
-                initial={{ scale: 1.4, opacity: 0.6 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="flex items-center justify-center"
-              >
-                <LoomaLogoIcon size={logoSize} />
-              </motion.div>
+            {/* M - comes from right */}
+            <motion.span
+              initial={{ opacity: 0, x: 80 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+              className="text-white"
+              style={letterStyle}
+            >
+              M
+            </motion.span>
 
-              {/* Second O - Also the logo icon */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                className="flex items-center justify-center"
-              >
-                <LoomaLogoIcon size={logoSize} />
-              </motion.div>
+            {/* A - comes from far right */}
+            <motion.span
+              initial={{ opacity: 0, x: 80 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
+              className="text-white"
+              style={letterStyle}
+            >
+              A
+            </motion.span>
+          </div>
+        )}
 
-              {/* M - comes from right */}
-              <motion.span
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.9, delay: 0.4, ease: "easeOut" }}
-                className="text-white"
-                style={letterStyle}
-              >
-                M
-              </motion.span>
-
-              {/* A - comes from far right */}
-              <motion.span
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.9, delay: 0.6, ease: "easeOut" }}
-                className="text-white"
-                style={letterStyle}
-              >
-                A
-              </motion.span>
+        {/* Phase 3 & 4: Hold and fadeout - static display */}
+        {(phase === "hold" || phase === "fadeout") && (
+          <div className="flex items-center" style={{ gap: `${gap}px` }}>
+            <span className="text-white" style={letterStyle}>L</span>
+            <div className="flex items-center justify-center">
+              <LoomaLogoIcon size={logoSize} />
             </div>
-          )}
-
-          {/* Phase 3 & 4: Hold and fadeout - static display */}
-          {(phase === "hold" || phase === "fadeout") && (
-            <div className="flex items-center" style={{ gap: "6px" }}>
-              <span className="text-white" style={letterStyle}>L</span>
-              <div className="flex items-center justify-center">
-                <LoomaLogoIcon size={logoSize} />
-              </div>
-              <div className="flex items-center justify-center">
-                <LoomaLogoIcon size={logoSize} />
-              </div>
-              <span className="text-white" style={letterStyle}>M</span>
-              <span className="text-white" style={letterStyle}>A</span>
+            <div className="flex items-center justify-center">
+              <LoomaLogoIcon size={logoSize} />
             </div>
-          )}
-        </div>
+            <span className="text-white" style={letterStyle}>M</span>
+            <span className="text-white" style={letterStyle}>A</span>
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
