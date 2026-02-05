@@ -18,13 +18,14 @@ import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
+import { useCognitiveInsights } from "@/hooks/useCognitiveInsights";
 import { useTutorialState } from "@/hooks/useTutorialState";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
-import { DailyBriefing } from "@/components/home/DailyBriefing";
+import { CognitiveInsightCard } from "@/components/home/CognitiveInsightCard";
 import { useMetricWeeklyChange } from "@/hooks/useMetricWeeklyChange";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -188,6 +189,14 @@ const Home = () => {
     isDecaying: rqIsDecaying,
     isLoading: rqLoading
   } = useReasoningQuality();
+
+  // Cognitive decision insights - must be after metrics are defined
+  const cognitiveInsights = useCognitiveInsights({
+    sharpness,
+    readiness,
+    recovery: recoveryEffective,
+    rq,
+  });
 
   // Fetch completed content IDs to filter out from in-progress
   const {
@@ -468,36 +477,27 @@ const Home = () => {
               <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} />
             </motion.section>
 
-        {/* Daily Insight with Action - Unified neutral box */}
-        {isViewingToday && topSuggestion && <motion.section initial={{
-          opacity: 0,
-          y: 12
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.08
-        }} className="mb-3">
-            <button onClick={() => navigate(topSuggestion.route)} className="w-full p-3.5 rounded-xl bg-muted/30 border border-border/30 hover:border-border/50 transition-all active:scale-[0.98] text-left">
-              {/* Briefing text */}
-              <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
-                <DailyBriefing sharpness={sharpness} readiness={readiness} recovery={recoveryEffective} rq={rq} isLoading={metricsLoading || rqLoading} />
-              </p>
-              
-              {/* Action CTA */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
-                  <topSuggestion.icon className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium text-foreground">
-                    {topSuggestion.action}
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
-              </div>
-            </button>
-          </motion.section>}
+        {/* Cognitive Decision Insight Card */}
+        {isViewingToday && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="mb-3"
+          >
+            <CognitiveInsightCard
+              primaryInsight={cognitiveInsights.primaryInsight}
+              secondaryInsight={cognitiveInsights.secondaryInsight}
+              decisionReadiness={cognitiveInsights.decisionReadiness}
+              isLoading={metricsLoading || rqLoading || cognitiveInsights.isLoading}
+            />
+          </motion.section>
+        )}
+
+        {/* Top action suggestion */}
+        {isViewingToday && topSuggestion && (
+          <SmartSuggestionCard suggestion={topSuggestion} index={0} />
+        )}
 
         {/* Additional suggestions (skip first since it's in the combined box) */}
         {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <SmartSuggestionCard key={suggestion.id} suggestion={suggestion} index={index} />)}
