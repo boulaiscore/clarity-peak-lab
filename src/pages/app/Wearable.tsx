@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app/AppShell";
-import { Watch, Activity, Heart, Moon, Check, ExternalLink, Lock, Sparkles } from "lucide-react";
+import { Activity, Heart, Moon, Check, ExternalLink, Lock, Sparkles } from "lucide-react";
 import { AppleHealthIcon, WhoopIcon, OuraIcon, GarminIcon, OtherWearableIcon } from "@/components/icons/WearableIcons";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -119,7 +119,7 @@ const Health = () => {
           {/* Header */}
           <div className="text-center mb-10">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
-              <Watch className="w-8 h-8 text-primary" />
+              <WhoopIcon className="text-primary" size={32} />
             </div>
             <h1 className="text-2xl font-semibold mb-3">
               Enhance your cognitive metrics
