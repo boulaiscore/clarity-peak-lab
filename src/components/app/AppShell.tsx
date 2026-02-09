@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Home, LayoutDashboard, Bell, BellOff, Activity, Sun, Moon, Menu, X, User, Settings, CreditCard, LogOut } from "lucide-react";
-import { WhoopIcon } from "@/components/icons/WearableIcons";
+import { GarminIcon } from "@/components/icons/WearableIcons";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
@@ -19,7 +19,7 @@ const navItems = [
   { to: "/app", icon: Home, label: "Home" },
   { to: "/neuro-lab", icon: Activity, label: "Lab" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Monitor" },
-  { to: "/app/wearable", icon: ({ className }: { className?: string }) => <WhoopIcon className={className} size={20} />, label: "Wearable" },
+  { to: "/app/wearable", icon: ({ className }: { className?: string }) => <GarminIcon className={className} size={20} />, label: "Wearable" },
 ];
 
 const menuItems = [
