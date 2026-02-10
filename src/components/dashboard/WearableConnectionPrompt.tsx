@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ChevronRight, Activity, Moon, Heart } from "lucide-react";
-import { WhoopIcon } from "@/components/icons/WearableIcons";
+import { GarminIcon } from "@/components/icons/WearableIcons";
 import { useWearableSync } from "@/hooks/useWearableSync";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -32,7 +32,7 @@ export function WearableConnectionPrompt() {
         <div className="relative z-10 flex items-start gap-3">
           {/* Icon */}
           <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 flex-shrink-0">
-            <WhoopIcon className="w-4 h-4 text-primary" size={16} />
+            <GarminIcon className="w-4 h-4 text-primary" size={16} />
           </div>
           
           {/* Content */}
