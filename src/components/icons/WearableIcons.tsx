@@ -52,7 +52,7 @@ export const OuraIcon = ({ className, size = 24 }: IconProps) => (
   </svg>
 );
 
-// Garmin-style sports watch icon
+// Smartwatch with heart icon (wearable health tracker)
 export const GarminIcon = ({ className, size = 24 }: IconProps) => (
   <svg
     width={size}
@@ -65,20 +65,16 @@ export const GarminIcon = ({ className, size = 24 }: IconProps) => (
     strokeLinejoin="round"
     className={cn("", className)}
   >
-    {/* Watch straps */}
-    <path d="M12 4V2" />
-    <path d="M12 22v-2" />
-    {/* Rugged watch case */}
-    <rect x="6" y="5" width="12" height="14" rx="3" />
-    {/* Screen bezel */}
-    <rect x="8" y="7" width="8" height="10" rx="1.5" />
-    {/* Simple data display lines */}
-    <path d="M10 10h4" />
-    <path d="M10 12.5h4" />
-    <path d="M10 15h2" />
-    {/* Side buttons */}
-    <path d="M18 9h1" />
-    <path d="M18 12h1" />
+    {/* Watch band top */}
+    <rect x="9" y="2" width="6" height="4" rx="1" />
+    {/* Watch band bottom */}
+    <rect x="9" y="18" width="6" height="4" rx="1" />
+    {/* Watch case (circle) */}
+    <circle cx="12" cy="12" r="6.5" />
+    {/* Side button/crown */}
+    <path d="M18.5 11v2" strokeWidth="2" />
+    {/* Heart icon inside */}
+    <path d="M12 15.5C12 15.5 8.5 13 8.5 10.8C8.5 9.5 9.5 8.8 10.5 8.8C11.3 8.8 12 9.4 12 9.4C12 9.4 12.7 8.8 13.5 8.8C14.5 8.8 15.5 9.5 15.5 10.8C15.5 13 12 15.5 12 15.5Z" />
   </svg>
 );
 
