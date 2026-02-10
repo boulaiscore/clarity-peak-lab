@@ -1,11 +1,9 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, LayoutDashboard, Bell, BellOff, Activity, Sun, Moon, Menu, X, User, Settings, CreditCard, LogOut } from "lucide-react";
+import { Home, LayoutDashboard, Activity, Menu, X, User, Settings, CreditCard, LogOut } from "lucide-react";
 import { GarminIcon } from "@/components/icons/WearableIcons";
-import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useTheme } from "@/hooks/useTheme";
 import { useDecayNotificationInit } from "@/hooks/useDecayNotificationInit";
 import { useAutoMetricSnapshot } from "@/hooks/useAutoMetricSnapshot";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,8 +29,7 @@ const menuItems = [
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { permission, isSupported, checkReminders } = useNotifications();
-  const { theme, toggleTheme } = useTheme();
+  const { permission, checkReminders } = useNotifications();
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   
@@ -82,42 +79,6 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30">
-        <div className="container px-4">
-          <div className="flex items-center justify-between h-12">
-            {/* Theme toggle */}
-            <button 
-              onClick={toggleTheme}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors"
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
-              ) : (
-                <Moon className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
-              )}
-            </button>
-            
-            <Link to="/app" className="flex items-center gap-2">
-              <LoomaLogo size={24} className="text-foreground" />
-              <span className="font-semibold tracking-tight text-sm">LOOMA</span>
-            </Link>
-            
-            <Link to="/app/install" className="w-8 flex justify-end">
-              {isSupported && permission !== "granted" ? (
-                <BellOff className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <Bell className={cn(
-                  "w-4 h-4",
-                  permission === "granted" ? "text-primary" : "text-muted-foreground"
-                )} />
-              )}
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Main content with swipe */}
       <main 
         className="flex-1 pb-20"

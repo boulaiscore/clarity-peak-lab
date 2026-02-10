@@ -357,7 +357,7 @@ const Home = () => {
   // Baseline calibration not completed - show CTA to complete it
   if (!baselineLoading && !isCalibrated) {
     return <AppShell>
-        <main className="flex flex-col items-center justify-center min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-6">
+        <main className="flex flex-col items-center justify-center min-h-[calc(100dvh-theme(spacing.14))] px-6">
           <motion.div initial={{
           opacity: 0,
           y: 10
@@ -385,7 +385,7 @@ const Home = () => {
   // No protocol configured
   if (!hasProtocol) {
     return <AppShell>
-        <main className="flex flex-col items-center justify-center min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-6">
+        <main className="flex flex-col items-center justify-center min-h-[calc(100dvh-theme(spacing.14))] px-6">
           <motion.div initial={{
           opacity: 0,
           y: 10
@@ -405,7 +405,12 @@ const Home = () => {
       </AppShell>;
   }
   return <AppShell>
-      <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.12)-theme(spacing.14))] px-5 py-4 max-w-md mx-auto">
+      <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-3 pb-4 max-w-md mx-auto">
+
+        {/* LOOMA logo - top left */}
+        <div className="mb-2">
+          <LoomaLogo size={20} className="text-foreground/40" />
+        </div>
 
         {/* Tab Content */}
         {activeTab === "overview" && <>
