@@ -47,7 +47,7 @@ export function CognitiveInsightCard({
 }: CognitiveInsightCardProps) {
   if (isLoading) {
     return (
-      <div className="p-4 rounded-xl bg-muted/30 border border-border/30 animate-pulse">
+      <div className="p-3.5 rounded-xl bg-muted/15 border border-border/20 animate-pulse">
         <div className="h-3 bg-muted rounded w-3/4 mb-3" />
         <div className="h-2.5 bg-muted rounded w-full mb-1.5" />
         <div className="h-2.5 bg-muted rounded w-5/6" />
@@ -60,7 +60,7 @@ export function CognitiveInsightCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="p-4 rounded-xl bg-muted/30 border border-border/30"
+      className="p-3.5 rounded-xl bg-muted/15 border border-border/20"
     >
       {/* Header with readiness indicator */}
       <div className="flex items-start justify-between gap-3 mb-2">
