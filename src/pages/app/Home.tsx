@@ -483,7 +483,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="mb-3"
+            className="mb-5"
           >
             <CognitiveInsightCard
               primaryInsight={cognitiveInsights.primaryInsight}
@@ -500,7 +500,7 @@ const Home = () => {
         )}
 
         {/* Additional suggestions (skip first since it's in the combined box) */}
-        {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <SmartSuggestionCard key={suggestion.id} suggestion={suggestion} index={index} />)}
+        {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <div key={suggestion.id} className="mb-4"><SmartSuggestionCard suggestion={suggestion} index={index} /></div>)}
 
         {/* In-Progress Tasks Reminder - shown after priority suggestions */}
         {(() => {
@@ -566,7 +566,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.14 }}
-            className="mb-3"
+            className="mb-5"
           >
             <WearableConnectionPrompt />
           </motion.section>
@@ -581,26 +581,23 @@ const Home = () => {
           y: 0
         }} transition={{
           delay: 0.15
-        }} className="mb-3">
-          <button onClick={() => navigate("/neuro-lab")} className="w-full p-4 rounded-xl bg-muted/40 border border-border/30 text-left hover:bg-muted/60 transition-colors active:scale-[0.98]">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-2">
-              Today's Optimal Zone
+        }} className="mb-5">
+          <button onClick={() => navigate("/neuro-lab")} className="w-full p-3.5 rounded-xl bg-muted/20 border border-border/20 text-left hover:bg-muted/30 transition-colors active:scale-[0.98]">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 mb-1.5">
+              Optimal Zone
             </p>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <p className="text-sm font-semibold tabular-nums text-foreground">
-                  {totalWeeklyXP} <span className="text-muted-foreground font-normal">XP</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <p className="text-sm font-medium tabular-nums text-foreground/80">
+                  {totalWeeklyXP} <span className="text-muted-foreground/60 font-normal text-xs">XP</span>
                 </p>
-                <span className="text-muted-foreground/50">|</span>
-                <p className="text-sm tabular-nums text-muted-foreground">
-                  {optimalRange.min}–{optimalRange.max} <span className="font-normal">target</span>
+                <span className="text-muted-foreground/30">·</span>
+                <p className="text-xs tabular-nums text-muted-foreground/60">
+                  {optimalRange.min}–{optimalRange.max} target
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
             </div>
-            <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
-              Your optimal cognitive load based on current recovery and weekly capacity. Try to stay within this range for sustainable cognitive adaptation.                      
-            </p>
           </button>
         </motion.section>
 
@@ -613,7 +610,7 @@ const Home = () => {
           y: 0
         }} transition={{
           delay: 0.18
-        }} className="mb-6">
+        }} className="mb-8">
           <FastChargeSwipeCard />
         </motion.div>
 
