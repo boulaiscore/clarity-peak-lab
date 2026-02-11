@@ -572,34 +572,6 @@ const Home = () => {
           </motion.section>
         )}
 
-        {/* Optimal Zone Card - Full width */}
-        <motion.section initial={{
-          opacity: 0,
-          y: 12
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.15
-        }} className="mb-5">
-          <button onClick={() => navigate("/neuro-lab")} className="w-full p-3.5 rounded-xl bg-muted/20 border border-border/20 text-left hover:bg-muted/30 transition-colors active:scale-[0.98]">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 mb-1.5">
-              Optimal Zone
-            </p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <p className="text-sm font-medium tabular-nums text-foreground/80">
-                  {totalWeeklyXP} <span className="text-muted-foreground/60 font-normal text-xs">XP</span>
-                </p>
-                <span className="text-muted-foreground/30">·</span>
-                <p className="text-xs tabular-nums text-muted-foreground/60">
-                  {optimalRange.min}–{optimalRange.max} target
-                </p>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
-            </div>
-          </button>
-        </motion.section>
 
         {/* Fast Charge - WHOOP-style swipe card */}
         <motion.div initial={{
