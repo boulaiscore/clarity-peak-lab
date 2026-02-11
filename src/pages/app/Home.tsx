@@ -407,11 +407,6 @@ const Home = () => {
   return <AppShell>
       <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-3 pb-4 max-w-md mx-auto">
 
-        {/* LOOMA logo - top left */}
-        <div className="mb-2">
-          <LoomaLogo size={20} className="text-foreground/40" />
-        </div>
-
         {/* Tab Content */}
         {activeTab === "overview" && <>
             {/* Date Navigation Header */}
