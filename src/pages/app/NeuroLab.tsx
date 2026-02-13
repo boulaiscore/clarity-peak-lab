@@ -281,19 +281,19 @@ export default function NeuroLab() {
       </AppShell>;
   }
   return <AppShell>
-      <div className="px-4 py-4 max-w-md mx-auto space-y-0">
+      <div className="px-4 py-5 max-w-md mx-auto space-y-0">
 
         {/* NeuroLoop Explanation - Expandable WHOOP-style */}
-        <Collapsible className="mb-4">
-          <div className="border border-border/30 bg-background">
-            <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors text-muted border-muted pb-[12px] mb-[5px]">
+        <Collapsible className="mb-5">
+          <div className="border border-border/20 bg-muted/10 rounded-xl overflow-hidden">
+            <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors">
               <div className="flex items-center gap-3">
-                <LoomaLogo size={20} className="text-foreground" />
-                <span className="text-[13px] font-bold uppercase tracking-wide text-foreground">
+                <LoomaLogo size={18} className="text-foreground/70" />
+                <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
                   How LOOMA Lab Works
                 </span>
               </div>
-              <ChevronRight className="w-4 h-4 text-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
             </CollapsibleTrigger>
             
             <CollapsibleContent>
@@ -376,20 +376,17 @@ export default function NeuroLab() {
         </Collapsible>
 
         {/* Cognitive Load Guidance - Dynamic based on Recovery */}
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/40 mb-px">
+        <div className="p-3.5 rounded-xl bg-muted/15 border border-border/20 mb-1">
           <div className="flex items-start gap-3">
             <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
-              <recoveryGuidance.icon className="w-5 h-5" />
+              <recoveryGuidance.icon className="w-4.5 h-4.5" />
             </div>
-            <div className="flex-1 space-y-1">
-              <p className="text-[14px] font-semibold text-foreground leading-tight">
+            <div className="flex-1 space-y-1.5">
+              <p className="text-[13px] font-semibold text-foreground/90 leading-tight">
                 {recoveryGuidance.headline}
               </p>
-              <p className="text-[12px] text-foreground/70 leading-relaxed">
-                {recoveryGuidance.message}
-              </p>
-              <p className="text-[12px] text-foreground/90 leading-relaxed font-medium">
-                {recoveryGuidance.action}
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                {recoveryGuidance.message} {recoveryGuidance.action}
               </p>
             </div>
           </div>
@@ -423,16 +420,17 @@ export default function NeuroLab() {
           </motion.div>}
 
         {/* Weekly Goal - Compact */}
-        <div className="mt-2">
+        <div className="mt-5">
           <WeeklyGoalCard compact />
         </div>
         
         {/* Protocol Change - Discrete Link */}
-        <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
-
+        <div className="mt-1 mb-2">
+          <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
+        </div>
 
         {/* Training Section - Distinct Background */}
-        <div className="bg-muted/20 -mx-4 px-4 py-4 mt-4 rounded-t-2xl">
+        <div className="bg-muted/10 -mx-4 px-4 py-5 mt-5 rounded-t-2xl border-t border-border/15">
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full grid grid-cols-3 h-10 mb-3 bg-background/60">
