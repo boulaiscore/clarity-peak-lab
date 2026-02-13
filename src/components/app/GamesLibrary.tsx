@@ -188,7 +188,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                       onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
                       className={cn(
                         "group relative w-full p-3 rounded-xl border transition-all text-left",
-                        "bg-background/60 hover:bg-background border-border/40 hover:border-primary/30 active:scale-[0.98]"
+                        system === "fast"
+                          ? "bg-blue-500/[0.05] border-blue-400/[0.08] hover:bg-blue-500/[0.08] hover:border-blue-400/[0.15]"
+                          : "bg-indigo-500/[0.05] border-indigo-400/[0.08] hover:bg-indigo-500/[0.08] hover:border-indigo-400/[0.15]",
+                        "active:scale-[0.98]"
                       )}
                     >
                       <div className="flex items-center gap-3">
