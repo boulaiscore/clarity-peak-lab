@@ -339,160 +339,174 @@ export function WeeklyGoalCard({
         y: 0
       }} transition={{
         duration: 0.3
-      }} aria-busy={isSyncing} className="rounded-xl bg-muted/10 border border-border/15 overflow-hidden">
+      }} aria-busy={isSyncing} className="space-y-3">
           
+          {/* MAIN CARD — Ring + Status */}
           <CollapsibleTrigger className="w-full">
-            {/* Hero section: Ring + Status */}
-            <div className="p-5 flex items-center gap-5">
-              {/* Progress Ring */}
-              <div className="relative w-[92px] h-[92px] shrink-0">
-                <svg viewBox="0 0 92 92" className="w-full h-full -rotate-90">
-                  {/* Track */}
-                  <circle cx="46" cy="46" r={ringRadius} fill="none" strokeWidth="5" className="stroke-muted/20" />
-                  {/* Optimal zone arc */}
-                  {!goalReached && <circle cx="46" cy="46" r={ringRadius} fill="none" strokeWidth="5" className="stroke-emerald-500/20" strokeDasharray={ringCircumference} strokeDashoffset={ringCircumference - ((optimalRangePercent.max - optimalRangePercent.min) / 100) * ringCircumference} style={{ transform: `rotate(${(optimalRangePercent.min / 100) * 360}deg)`, transformOrigin: '46px 46px' }} strokeLinecap="round" />}
-                  {/* Progress */}
-                  <motion.circle cx="46" cy="46" r={ringRadius} fill="none" strokeWidth="5" className={getRingColor()} strokeDasharray={ringCircumference} initial={false} animate={{ strokeDashoffset: ringOffset }} transition={{ duration: 0.8, ease: "easeOut" }} strokeLinecap="round" />
-                </svg>
-                {/* Center value */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-[22px] font-bold text-foreground tabular-nums leading-none">
-                    {Math.round(rawGamesXP)}
-                  </span>
-                  <span className="text-[9px] text-muted-foreground/50 font-medium mt-0.5">
-                    / {weeklyXPTarget} XP
-                  </span>
+            <div className="rounded-2xl bg-gradient-to-br from-[hsl(var(--muted)/0.12)] to-[hsl(var(--muted)/0.04)] border border-border/20 p-5">
+              <div className="flex items-center gap-5">
+                {/* Progress Ring */}
+                <div className="relative w-[96px] h-[96px] shrink-0">
+                  <svg viewBox="0 0 96 96" className="w-full h-full -rotate-90">
+                    <circle cx="48" cy="48" r={ringRadius} fill="none" strokeWidth="4.5" className="stroke-white/[0.06]" />
+                    {!goalReached && <circle cx="48" cy="48" r={ringRadius} fill="none" strokeWidth="4.5" className="stroke-emerald-500/15" strokeDasharray={ringCircumference} strokeDashoffset={ringCircumference - ((optimalRangePercent.max - optimalRangePercent.min) / 100) * ringCircumference} style={{ transform: `rotate(${(optimalRangePercent.min / 100) * 360}deg)`, transformOrigin: '48px 48px' }} strokeLinecap="round" />}
+                    <motion.circle cx="48" cy="48" r={ringRadius} fill="none" strokeWidth="5" className={getRingColor()} strokeDasharray={ringCircumference} initial={false} animate={{ strokeDashoffset: ringOffset }} transition={{ duration: 0.8, ease: "easeOut" }} strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-[24px] font-bold text-foreground tabular-nums leading-none">
+                      {Math.round(rawGamesXP)}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground/60 font-medium mt-1">
+                      of {weeklyXPTarget}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Status + metrics */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Activity className="w-3.5 h-3.5 text-muted-foreground/50" />
-                  <span className="text-[11px] text-muted-foreground/60 font-medium uppercase tracking-wider">Cognitive Load</span>
-                </div>
-                <p className={`text-[14px] font-semibold mb-2 ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
-                  {goalReached ? "Target Reached" : adaptiveStatus.copy.label}
-                </p>
-                
-                {/* Compact S1/S2 summary */}
-                <div className="flex gap-4">
-                  <div>
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <Zap className="w-3 h-3 text-muted-foreground/40" />
-                      <span className="text-[10px] text-muted-foreground/50">S1</span>
-                    </div>
-                    <span className="text-[13px] font-semibold text-foreground/80 tabular-nums">{s1Earned}</span>
-                    <span className="text-[10px] text-muted-foreground/40 ml-0.5">/{s1Target}</span>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <Timer className="w-3 h-3 text-muted-foreground/40" />
-                      <span className="text-[10px] text-muted-foreground/50">S2</span>
-                    </div>
-                    <span className="text-[13px] font-semibold text-foreground/80 tabular-nums">{s2Earned}</span>
-                    <span className="text-[10px] text-muted-foreground/40 ml-0.5">/{s2Target}</span>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <Leaf className="w-3 h-3 text-muted-foreground/40" />
-                      <span className="text-[10px] text-muted-foreground/50">Rec</span>
-                    </div>
-                    <span className="text-[13px] font-semibold text-foreground/80 tabular-nums">{formatRecoveryTime(recoveryMinutesEarned)}</span>
+                {/* Right side */}
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-muted-foreground/50 font-semibold uppercase tracking-[0.12em] block mb-1">Weekly Load</span>
+                  <p className={`text-[16px] font-bold leading-tight mb-3 ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
+                    {goalReached ? "Target Reached" : adaptiveStatus.copy.label}
+                  </p>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] w-fit">
+                    <span className="text-[10px] text-muted-foreground/50">Optimal</span>
+                    <span className="text-[11px] font-semibold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max}</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Chevron */}
-              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="shrink-0">
-                <ChevronDown className="w-4 h-4 text-muted-foreground/30" />
-              </motion.div>
+                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="shrink-0 self-start mt-1">
+                  <ChevronDown className="w-4 h-4 text-muted-foreground/30" />
+                </motion.div>
+              </div>
             </div>
           </CollapsibleTrigger>
 
-          <CollapsibleContent>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-5 pb-5 space-y-4">
-              
-              {/* Optimal Range indicator */}
-              <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-muted/8 border border-border/10">
-                <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-medium">Optimal Zone</span>
-                <span className="text-[12px] font-semibold text-foreground/70 tabular-nums">
-                  {optimalRangeXP.min} – {optimalRangeXP.max} <span className="text-[10px] text-muted-foreground/40 font-normal">XP</span>
-                </span>
+          {/* COLLAPSED SUMMARY — 3 metric pills */}
+          {!isExpanded && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl bg-blue-500/[0.06] border border-blue-400/[0.08] px-3 py-2.5 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Zap className="w-3 h-3 text-blue-400/60" />
+                  <span className="text-[9px] text-blue-300/50 font-semibold uppercase tracking-wider">S1</span>
+                </div>
+                <span className="text-[15px] font-bold text-blue-300/90 tabular-nums">{s1Earned}</span>
+                <span className="text-[10px] text-blue-400/30 font-medium">/{s1Target}</span>
               </div>
+              <div className="rounded-xl bg-indigo-500/[0.06] border border-indigo-400/[0.08] px-3 py-2.5 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Timer className="w-3 h-3 text-indigo-400/60" />
+                  <span className="text-[9px] text-indigo-300/50 font-semibold uppercase tracking-wider">S2</span>
+                </div>
+                <span className="text-[15px] font-bold text-indigo-300/90 tabular-nums">{s2Earned}</span>
+                <span className="text-[10px] text-indigo-400/30 font-medium">/{s2Target}</span>
+              </div>
+              <div className="rounded-xl bg-teal-500/[0.06] border border-teal-400/[0.08] px-3 py-2.5 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Leaf className="w-3 h-3 text-teal-400/60" />
+                  <span className="text-[9px] text-teal-300/50 font-semibold uppercase tracking-wider">Rec</span>
+                </div>
+                <span className="text-[15px] font-bold text-teal-300/90 tabular-nums">{formatRecoveryTime(recoveryMinutesEarned)}</span>
+              </div>
+            </div>
+          )}
 
-              {/* S1 Breakdown */}
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <Zap className="w-3.5 h-3.5 text-muted-foreground/50" />
-                  <span className="text-[11px] font-semibold text-foreground/70 uppercase tracking-wider">System 1</span>
-                  <span className="text-[10px] text-muted-foreground/40 tabular-nums ml-auto">{s1Earned} / {s1Target} XP</span>
+          <CollapsibleContent>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+              
+              {/* S1 CARD */}
+              <div className="rounded-2xl bg-blue-500/[0.05] border border-blue-400/[0.08] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/[0.12] flex items-center justify-center">
+                      <Zap className="w-3.5 h-3.5 text-blue-400/80" />
+                    </div>
+                    <div>
+                      <span className="text-[12px] font-bold text-foreground/90 block leading-tight">System 1</span>
+                      <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Fast Thinking</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[16px] font-bold text-blue-300/90 tabular-nums">{s1Earned}</span>
+                    <span className="text-[11px] text-blue-400/30 font-medium ml-0.5">/{s1Target}</span>
+                  </div>
                 </div>
                 <div className="space-y-2.5">
                   {s1Areas.map(area => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
                     const pct = Math.min(100, area.progress);
-                    return <div key={area.area}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <AreaIcon className="w-3 h-3 text-muted-foreground/35" />
-                          <span className="text-[10px] text-muted-foreground/60 capitalize font-medium">{area.area}</span>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground/40 tabular-nums">{Math.round(area.cappedXP)}/{Math.round(area.target)}</span>
+                    return <div key={area.area} className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 w-[72px] shrink-0">
+                        <AreaIcon className="w-3 h-3 text-blue-400/40" />
+                        <span className="text-[11px] text-foreground/60 capitalize font-medium">{area.area}</span>
                       </div>
-                      <div className="h-1.5 bg-muted/15 rounded-full overflow-hidden">
-                        <motion.div className="h-full rounded-full bg-foreground/20" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                      <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                        <motion.div className="h-full rounded-full bg-blue-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
+                      <span className="text-[10px] text-foreground/50 tabular-nums w-12 text-right font-medium">
+                        {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                      </span>
                     </div>;
                   })}
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-border/15" />
-
-              {/* S2 Breakdown */}
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <Timer className="w-3.5 h-3.5 text-muted-foreground/50" />
-                  <span className="text-[11px] font-semibold text-foreground/70 uppercase tracking-wider">System 2</span>
-                  <span className="text-[10px] text-muted-foreground/40 tabular-nums ml-auto">{s2Earned} / {s2Target} XP</span>
+              {/* S2 CARD */}
+              <div className="rounded-2xl bg-indigo-500/[0.05] border border-indigo-400/[0.08] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-500/[0.12] flex items-center justify-center">
+                      <Timer className="w-3.5 h-3.5 text-indigo-400/80" />
+                    </div>
+                    <div>
+                      <span className="text-[12px] font-bold text-foreground/90 block leading-tight">System 2</span>
+                      <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Deep Thinking</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[16px] font-bold text-indigo-300/90 tabular-nums">{s2Earned}</span>
+                    <span className="text-[11px] text-indigo-400/30 font-medium ml-0.5">/{s2Target}</span>
+                  </div>
                 </div>
                 <div className="space-y-2.5">
                   {s2Areas.map(area => {
                     const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
                     const pct = Math.min(100, area.progress);
-                    return <div key={area.area}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <AreaIcon className="w-3 h-3 text-muted-foreground/35" />
-                          <span className="text-[10px] text-muted-foreground/60 capitalize font-medium">{area.area}</span>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground/40 tabular-nums">{Math.round(area.cappedXP)}/{Math.round(area.target)}</span>
+                    return <div key={area.area} className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 w-[72px] shrink-0">
+                        <AreaIcon className="w-3 h-3 text-indigo-400/40" />
+                        <span className="text-[11px] text-foreground/60 capitalize font-medium">{area.area}</span>
                       </div>
-                      <div className="h-1.5 bg-muted/15 rounded-full overflow-hidden">
-                        <motion.div className="h-full rounded-full bg-foreground/20" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                      <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                        <motion.div className="h-full rounded-full bg-indigo-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
+                      <span className="text-[10px] text-foreground/50 tabular-nums w-12 text-right font-medium">
+                        {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                      </span>
                     </div>;
                   })}
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-border/15" />
-
-              {/* Recovery */}
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <Leaf className="w-3.5 h-3.5 text-muted-foreground/50" />
-                  <span className="text-[11px] font-semibold text-foreground/70 uppercase tracking-wider">Recovery</span>
-                  <CategoryCompleteBadge show={recoveryComplete} />
-                  <span className="text-[10px] text-muted-foreground/40 tabular-nums ml-auto">
-                    {formatRecoveryTime(recoveryMinutesEarned)} / {formatRecoveryTime(recoveryMinutesTarget)}
-                  </span>
+              {/* RECOVERY CARD */}
+              <div className="rounded-2xl bg-teal-500/[0.05] border border-teal-400/[0.08] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-teal-500/[0.12] flex items-center justify-center">
+                      <Leaf className="w-3.5 h-3.5 text-teal-400/80" />
+                    </div>
+                    <div>
+                      <span className="text-[12px] font-bold text-foreground/90 block leading-tight">Recovery</span>
+                      <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Detox & Walking</span>
+                    </div>
+                  </div>
+                  <div className="text-right flex items-center gap-1.5">
+                    <CategoryCompleteBadge show={recoveryComplete} />
+                    <span className="text-[16px] font-bold text-teal-300/90 tabular-nums">{formatRecoveryTime(recoveryMinutesEarned)}</span>
+                    <span className="text-[11px] text-teal-400/30 font-medium">/{formatRecoveryTime(recoveryMinutesTarget)}</span>
+                  </div>
                 </div>
-                <div className="h-2 bg-muted/15 rounded-full overflow-hidden">
-                  <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-teal-400/50" : "bg-foreground/20"}`} initial={false} animate={{ width: `${Math.min(100, recoveryProgress)}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
+                  <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-teal-400/60" : "bg-teal-400/35"}`} initial={false} animate={{ width: `${Math.min(100, recoveryProgress)}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                 </div>
               </div>
             </motion.div>
