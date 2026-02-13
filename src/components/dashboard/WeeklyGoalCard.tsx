@@ -319,48 +319,40 @@ export function WeeklyGoalCard({
         y: 0
       }} transition={{
         duration: 0.3
-      }} aria-busy={isSyncing} className="p-3 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 mb-4 mx-0 py-[13px] mt-[5px]">
+      }} aria-busy={isSyncing} className="p-4 rounded-xl bg-muted/15 border border-border/20">
           <CollapsibleTrigger className="w-full">
-            {/* Goal reminder */}
-            <p className="text-[10px] text-muted-foreground mb-2 pb-2 border-b border-border/30">
-              <span className="font-medium text-foreground/80">Your goal:</span> Stay within the <span className="text-emerald-400 font-medium">Optimal Zone</span> for sustainable gains.
-            </p>
-            
-            {/* Header Row - Label + XP + Status */}
-            <div className="flex items-center justify-between mb-2">
+            {/* Header: Cognitive Load + XP */}
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Activity className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold">Cognitive Load</span>
+                <Activity className="w-4 h-4 text-primary/70" />
+                <span className="text-[12px] font-semibold text-foreground/90">Cognitive Load</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium tabular-nums">
-                  {Math.round(rawGamesXP)} / {weeklyXPTarget} XP
+                <span className="text-[11px] font-medium tabular-nums text-foreground/70">
+                  {Math.round(rawGamesXP)} <span className="text-muted-foreground/50">/ {weeklyXPTarget}</span>
                 </span>
                 <motion.div animate={{
                 rotate: isExpanded ? 180 : 0
               }} transition={{
                 duration: 0.2
               }}>
-                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                 </motion.div>
               </div>
             </div>
 
-            {/* Main Progress Bar with Optimal Range */}
-            <div className={`relative h-2.5 ${goalReached ? "bg-emerald-500/30" : barStyles.trackBg} rounded-full`}>
-              {/* Optimal Range Band */}
+            {/* Progress Bar with Optimal Range */}
+            <div className={`relative h-2 ${goalReached ? "bg-emerald-500/20" : barStyles.trackBg} rounded-full`}>
               {!goalReached && <div className={`absolute h-full ${barStyles.optimalZoneBg} border-l border-r ${barStyles.optimalZoneBorder} rounded-sm`} style={{
               left: `${optimalRangePercent.min}%`,
               width: `${optimalRangePercent.max - optimalRangePercent.min}%`
             }} />}
-              {/* Progress fill when goal reached */}
-              {goalReached && <motion.div className="absolute top-0 left-0 h-full bg-emerald-400/60 rounded-full" initial={false} animate={{
+              {goalReached && <motion.div className="absolute top-0 left-0 h-full bg-emerald-400/50 rounded-full" initial={false} animate={{
               width: `${Math.min(100, progressPercent)}%`
             }} transition={{
               duration: 0.5,
               ease: "easeOut"
             }} />}
-              {/* Current Position Marker */}
               {!goalReached && <motion.div className={`absolute top-0 h-full w-0.5 ${barStyles.markerBg} rounded-full shadow-sm`} style={{
               left: `calc(${progressPercent}% - 1px)`
             }} initial={false} animate={{
@@ -371,12 +363,12 @@ export function WeeklyGoalCard({
             }} />}
             </div>
             
-            {/* Status Label - Inline below bar */}
-            <div className="flex items-center justify-between mt-1.5">
+            {/* Status + Optimal Range */}
+            <div className="flex items-center justify-between mt-2">
               <span className={`text-[10px] font-medium ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
                 {goalReached ? "Weekly target reached ✓" : adaptiveStatus.copy.label}
               </span>
-              <span className="text-[9px] text-muted-foreground/60">
+              <span className="text-[9px] text-muted-foreground/40 tabular-nums">
                 Optimal: {optimalRangeXP.min}–{optimalRangeXP.max}
               </span>
             </div>
@@ -387,145 +379,137 @@ export function WeeklyGoalCard({
             opacity: 0
           }} animate={{
             opacity: 1
-          }} className="mt-3 pt-3 border-t border-border/30">
-              {/* XP explanation - minimal */}
-              <p className="text-[8px] text-muted-foreground/50 mb-3">
-                XP only show how much you trained — not how good you are.
-              </p>
+          }} className="mt-4 pt-4 border-t border-border/15 space-y-4">
               
-              {/* Training mix - Cognitive Balance header */}
-              <div className="mb-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Dumbbell className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Cognitive Balance (this week)</span>
+              {/* Cognitive Balance */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-2.5">
+                  <Dumbbell className="w-3 h-3 text-muted-foreground/50" />
+                  <span className="text-[10px] text-muted-foreground/70 font-medium">Cognitive Balance</span>
                 </div>
                 
-                <div className="grid grid-cols-[130px_1fr_1fr] gap-1 mb-1">
-                  <div className="flex items-center justify-between gap-0.5">
-                    <div className="flex items-center gap-0.5">
-                      <Zap className="w-2 h-2 text-muted-foreground/50" />
-                      <span className="text-[8px] text-muted-foreground font-medium">Fast (S1)</span>
-                    </div>
-                    <span className="text-[7px] text-muted-foreground/70 tabular-nums">
-                      {Math.round(gamesSubTargets[0]?.earned ?? 0)} XP
-                    </span>
+                {/* S1 Row */}
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-1 w-16 shrink-0">
+                    <Zap className="w-2.5 h-2.5 text-muted-foreground/40" />
+                    <span className="text-[9px] text-muted-foreground/60">S1</span>
                   </div>
-                  {s1Areas.map(area => {
-                  const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
-                  return <button key={area.area} onClick={e => {
-                    e.stopPropagation();
-                    setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`);
-                  }} className="h-auto bg-muted/30 rounded flex flex-col items-stretch px-1 py-0.5 transition-all">
-                        <div className="flex items-center gap-1">
-                          <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
-                          <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                            <motion.div className="h-full rounded-full bg-muted-foreground/40" initial={false} animate={{
-                          width: `${Math.min(100, area.progress)}%`
-                        }} transition={{
-                          duration: 0.4,
-                          ease: "easeOut"
-                        }} />
+                  <div className="flex-1 flex items-center gap-1.5">
+                    {s1Areas.map(area => {
+                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+                    return <button key={area.area} onClick={e => {
+                      e.stopPropagation();
+                      setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`);
+                    }} className="flex-1 flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1">
+                            <AreaIcon className="w-2.5 h-2.5 text-muted-foreground/30" />
+                            <div className="flex-1 h-1 bg-muted/20 rounded-full overflow-hidden">
+                              <motion.div className="h-full rounded-full bg-muted-foreground/30" initial={false} animate={{
+                            width: `${Math.min(100, area.progress)}%`
+                          }} transition={{
+                            duration: 0.4,
+                            ease: "easeOut"
+                          }} />
+                            </div>
                           </div>
-                        </div>
-                        <AnimatePresence>
-                          {expandedCell === `s1-${area.area}` && <motion.div initial={{
-                        height: 0,
-                        opacity: 0
-                      }} animate={{
-                        height: "auto",
-                        opacity: 1
-                      }} exit={{
-                        height: 0,
-                        opacity: 0
-                      }} transition={{
-                        duration: 0.15
-                      }} className="text-[7px] text-muted-foreground/70 tabular-nums text-center mt-0.5">
-                              {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
-                            </motion.div>}
-                        </AnimatePresence>
-                      </button>;
-                })}
-                </div>
-                
-                <div className="grid grid-cols-[130px_1fr_1fr] gap-1">
-                  <div className="flex items-center justify-between gap-0.5">
-                    <div className="flex items-center gap-0.5">
-                      <Timer className="w-2 h-2 text-muted-foreground/50" />
-                      <span className="text-[8px] text-muted-foreground font-medium">Reasoned (S2)</span>
-                    </div>
-                    <span className="text-[7px] text-muted-foreground/70 tabular-nums">
-                      {Math.round(gamesSubTargets[1]?.earned ?? 0)} XP
-                    </span>
+                          <AnimatePresence>
+                            {expandedCell === `s1-${area.area}` && <motion.div initial={{
+                          height: 0,
+                          opacity: 0
+                        }} animate={{
+                          height: "auto",
+                          opacity: 1
+                        }} exit={{
+                          height: 0,
+                          opacity: 0
+                        }} transition={{
+                          duration: 0.15
+                        }} className="text-[8px] text-muted-foreground/50 tabular-nums text-center">
+                                {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                              </motion.div>}
+                          </AnimatePresence>
+                        </button>;
+                  })}
                   </div>
-                  {s2Areas.map(area => {
-                  const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
-                  return <button key={area.area} onClick={e => {
-                    e.stopPropagation();
-                    setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`);
-                  }} className="h-auto bg-muted/30 rounded flex flex-col items-stretch px-1 py-0.5 transition-all">
-                        <div className="flex items-center gap-1">
-                          <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
-                          <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                            <motion.div className="h-full rounded-full bg-muted-foreground/40" initial={false} animate={{
-                          width: `${Math.min(100, area.progress)}%`
-                        }} transition={{
-                          duration: 0.4,
-                          ease: "easeOut"
-                        }} />
+                  <span className="text-[8px] text-muted-foreground/40 tabular-nums w-10 text-right">
+                    {Math.round(gamesSubTargets[0]?.earned ?? 0)} XP
+                  </span>
+                </div>
+
+                {/* S2 Row */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 w-16 shrink-0">
+                    <Timer className="w-2.5 h-2.5 text-muted-foreground/40" />
+                    <span className="text-[9px] text-muted-foreground/60">S2</span>
+                  </div>
+                  <div className="flex-1 flex items-center gap-1.5">
+                    {s2Areas.map(area => {
+                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+                    return <button key={area.area} onClick={e => {
+                      e.stopPropagation();
+                      setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`);
+                    }} className="flex-1 flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1">
+                            <AreaIcon className="w-2.5 h-2.5 text-muted-foreground/30" />
+                            <div className="flex-1 h-1 bg-muted/20 rounded-full overflow-hidden">
+                              <motion.div className="h-full rounded-full bg-muted-foreground/30" initial={false} animate={{
+                            width: `${Math.min(100, area.progress)}%`
+                          }} transition={{
+                            duration: 0.4,
+                            ease: "easeOut"
+                          }} />
+                            </div>
                           </div>
-                        </div>
-                        <AnimatePresence>
-                          {expandedCell === `s2-${area.area}` && <motion.div initial={{
-                        height: 0,
-                        opacity: 0
-                      }} animate={{
-                        height: "auto",
-                        opacity: 1
-                      }} exit={{
-                        height: 0,
-                        opacity: 0
-                      }} transition={{
-                        duration: 0.15
-                      }} className="text-[7px] text-muted-foreground/70 tabular-nums text-center mt-0.5">
-                              {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
-                            </motion.div>}
-                        </AnimatePresence>
-                      </button>;
-                })}
+                          <AnimatePresence>
+                            {expandedCell === `s2-${area.area}` && <motion.div initial={{
+                          height: 0,
+                          opacity: 0
+                        }} animate={{
+                          height: "auto",
+                          opacity: 1
+                        }} exit={{
+                          height: 0,
+                          opacity: 0
+                        }} transition={{
+                          duration: 0.15
+                        }} className="text-[8px] text-muted-foreground/50 tabular-nums text-center">
+                                {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                              </motion.div>}
+                          </AnimatePresence>
+                        </button>;
+                  })}
+                  </div>
+                  <span className="text-[8px] text-muted-foreground/40 tabular-nums w-10 text-right">
+                    {Math.round(gamesSubTargets[1]?.earned ?? 0)} XP
+                  </span>
                 </div>
                 
-                {/* S2 balance hint - only if S2 XP = 0 */}
-                {Math.round(gamesSubTargets[1]?.earned ?? 0) === 0 && <p className="text-[7px] text-muted-foreground/50 italic mt-1.5">
+                {Math.round(gamesSubTargets[1]?.earned ?? 0) === 0 && <p className="text-[8px] text-muted-foreground/40 italic mt-2 ml-[72px]">
                     Add one S2 session to stabilize gains.
                   </p>}
               </div>
 
-              {/* Recovery Budget Section */}
-              <div className="pt-3 border-t border-border/30">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <div className="flex items-center gap-0.5">
-                    <Leaf className="w-3 h-3 text-muted-foreground/50" />
-                    <Footprints className="w-2.5 h-2.5 text-muted-foreground/50" />
+              {/* Recovery Budget */}
+              <div className="pt-3 border-t border-border/15">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <Leaf className="w-3 h-3 text-muted-foreground/40" />
+                    <span className="text-[10px] text-muted-foreground/70 font-medium">Recovery Budget</span>
+                    <CategoryCompleteBadge show={recoveryComplete} />
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-medium">Recovery Budget</span>
-                  <span className="text-[8px] text-muted-foreground/60 tabular-nums">
-                    {formatRecoveryTime(recoveryMinutesEarned)}/{formatRecoveryTime(recoveryMinutesTarget)}
+                  <span className="text-[9px] text-muted-foreground/40 tabular-nums">
+                    {formatRecoveryTime(recoveryMinutesEarned)} / {formatRecoveryTime(recoveryMinutesTarget)}
                   </span>
-                  <CategoryCompleteBadge show={recoveryComplete} />
                 </div>
-                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-                  <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-muted-foreground/50" : "bg-muted-foreground/40"}`} initial={false} animate={{
+                <div className="h-1.5 bg-muted/20 rounded-full overflow-hidden">
+                  <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`} initial={false} animate={{
                   width: `${Math.min(100, recoveryProgress)}%`
                 }} transition={{
                   duration: 0.5,
                   ease: "easeOut"
                 }} />
                 </div>
-                <p className="text-[8px] text-muted-foreground/50 mt-1">
-                  Recovery doesn't add XP. It helps training turn into real gains.
-                </p>
-                {/* No recovery logged hint */}
-                {recoveryMinutesEarned === 0 && <p className="text-[7px] text-muted-foreground/40 italic mt-0.5">
+                {recoveryMinutesEarned === 0 && <p className="text-[8px] text-muted-foreground/35 italic mt-1.5">
                     No recovery logged yet.
                   </p>}
               </div>
