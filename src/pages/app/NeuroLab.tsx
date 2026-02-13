@@ -297,77 +297,72 @@ export default function NeuroLab() {
             </CollapsibleTrigger>
             
             <CollapsibleContent>
-              <div className="px-4 pb-4 space-y-4 border-t border-foreground/20 pt-4">
+              <div className="px-4 pb-4 space-y-5 border-t border-border/20 pt-4">
 
-                {/* Visual Training Loop - Open circle like the LOOMA logo */}
+                {/* Visual Training Loop */}
                 <LoomaTrainingLoop />
 
-                {/* Step 1: The Cycle - Now just text explanation */}
-                <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">STEP 1 — THE LOOMA LOOP</h4>
-                  <p className="text-[12px] text-foreground/80 leading-relaxed">
-                    <span className="font-semibold text-foreground">Train</span> with cognitive games targeting Fast (S1) and Slow (S2) thinking systems.{" "}
-                    <span className="font-semibold text-foreground">Recover</span> through digital detox and walking sessions.{" "}
-                    <span className="font-semibold text-foreground">Repeat</span> — your brain adapts best with consistent, spaced practice.
-                  </p>
-                </div>
+                {/* Concept cards - scannable, one idea each */}
+                <div className="space-y-3">
+                  
+                  {/* The Loop */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Train → Recover → Repeat</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Cognitive games build sharpness. Detox and walking restore energy. Consistency drives adaptation.
+                      </p>
+                    </div>
+                  </div>
 
-                {/* Step 2: Cognitive Load & Optimal Zone */}
-                <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                    Step 2 — Cognitive Load & Optimal Zone
-                  </h4>
-                  <p className="text-[12px] text-foreground/80 leading-relaxed">
-                    <span className="font-semibold text-foreground">Cognitive Load</span> measures your weekly training volume in XP. 
-                    The <span className="font-semibold text-foreground">Optimal Zone</span> is your personalized target range — 
-                    stay within it for sustainable cognitive gains without burnout. 
-                    Too little = no adaptation. Too much = diminishing returns.
-                  </p>
-                </div>
+                  {/* Cognitive Load */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Zap className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Cognitive Load & Optimal Zone</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Weekly XP measures your training volume. Stay in the Optimal Zone — too little means no growth, too much leads to diminishing returns.
+                      </p>
+                    </div>
+                  </div>
 
-                {/* Step 3: Games & Systems */}
-                <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                    Step 3 — Train Games (S1 & S2)
-                  </h4>
-                  <p className="text-[12px] text-foreground/80 leading-relaxed">
-                    <span className="font-semibold text-foreground">S1 Games</span> train fast, intuitive thinking (attention, reaction, pattern recognition).{" "}
-                    <span className="font-semibold text-foreground">S2 Games</span> train slow, deliberate thinking (reasoning, analysis, problem-solving).
-                    Games improve your core metrics: <span className="italic">Attentional Efficiency, Reasoning Accuracy, Cognitive Throughput, and Insight.</span>
-                  </p>
-                </div>
+                  {/* S1 & S2 */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Dumbbell className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">S1 & S2 Game Systems</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        S1 trains fast thinking (attention, reaction). S2 trains slow thinking (reasoning, analysis). S2 games require higher Recovery to unlock.
+                      </p>
+                    </div>
+                  </div>
 
-                {/* Step 4: Locked Games */}
-                <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                    Step 4 — Why Some Games Are Locked
-                  </h4>
-                  <p className="text-[12px] text-foreground/80 leading-relaxed">
-                    <span className="font-semibold text-foreground">S2 games require higher Recovery</span> because they demand more cognitive resources. 
-                    When your Recovery is low, intense reasoning work can backfire. 
-                    The system protects you by gating S2 games until you're ready.
-                    <span className="italic text-muted-foreground"> Premium unlocks all games regardless of recovery level.</span>
-                  </p>
-                </div>
-
-                {/* Step 5: Reflect */}
-                <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                    Step 5 — Reflect & Reasoning Quality
-                  </h4>
-                  <p className="text-[12px] text-foreground/80 leading-relaxed">
-                    <span className="font-semibold text-foreground">Reflect</span> (reading, podcasts, journaling) doesn't give XP—it boosts your{" "}
-                    <span className="font-semibold text-foreground">Reasoning Quality (RQ)</span>, which measures cognitive priming depth.
-                    RQ improves your thinking quality over time. <span className="font-semibold text-foreground">Recover</span> restores Recovery and{" "}
-                    <span className="italic">does</span> award small XP bonuses. Use Reflect when Recovery is low to maintain RQ without draining energy.
-                  </p>
+                  {/* Reflect & RQ */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <BookMarked className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Reflect → Reasoning Quality</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Reading and listening don't earn XP — they boost your RQ score, which measures cognitive priming depth over time.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Key Insight */}
-                <div className="mt-3 pt-3 border-t border-foreground/10">
-                  <p className="text-[11px] text-foreground/70 italic">
-                    <span className="font-semibold text-foreground not-italic">Key insight:</span>{" "}
-                    High recovery → push hard with S2 games. Low recovery → prioritize tasks, detox, and walking.
+                <div className="pt-3 border-t border-border/15">
+                  <p className="text-[10px] text-muted-foreground">
+                    <span className="font-semibold text-foreground/80">Key:</span>{" "}
+                    High recovery → push S2 games. Low recovery → Reflect & Recover.
                   </p>
                 </div>
               </div>
