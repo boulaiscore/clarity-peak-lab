@@ -379,139 +379,108 @@ export function WeeklyGoalCard({
             opacity: 0
           }} animate={{
             opacity: 1
-          }} className="mt-4 pt-4 border-t border-border/15 space-y-4">
+          }} className="mt-5 pt-5 border-t border-border/25 space-y-5">
               
               {/* Cognitive Balance */}
               <div>
-                <div className="flex items-center gap-1.5 mb-2.5">
-                  <Dumbbell className="w-3 h-3 text-muted-foreground/50" />
-                  <span className="text-[10px] text-muted-foreground/70 font-medium">Cognitive Balance</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <Dumbbell className="w-3.5 h-3.5 text-muted-foreground/60" />
+                  <span className="text-[11px] text-muted-foreground/80 font-semibold">Cognitive Balance</span>
                 </div>
                 
-                {/* S1 Row */}
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex items-center gap-1 w-16 shrink-0">
-                    <Zap className="w-2.5 h-2.5 text-muted-foreground/40" />
-                    <span className="text-[9px] text-muted-foreground/60">S1</span>
+                {/* S1 Card */}
+                <div className="rounded-lg bg-muted/10 border border-border/15 p-3 mb-2.5">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5 text-muted-foreground/50" />
+                      <span className="text-[11px] font-medium text-foreground/70">System 1</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground/50 tabular-nums font-medium">
+                      {Math.round(gamesSubTargets[0]?.earned ?? 0)} XP
+                    </span>
                   </div>
-                  <div className="flex-1 flex items-center gap-1.5">
+                  <div className="space-y-2">
                     {s1Areas.map(area => {
-                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
-                    return <button key={area.area} onClick={e => {
-                      e.stopPropagation();
-                      setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`);
-                    }} className="flex-1 flex flex-col gap-0.5">
-                          <div className="flex items-center gap-1">
-                            <AreaIcon className="w-2.5 h-2.5 text-muted-foreground/30" />
-                            <div className="flex-1 h-1 bg-muted/20 rounded-full overflow-hidden">
-                              <motion.div className="h-full rounded-full bg-muted-foreground/30" initial={false} animate={{
+                      const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+                      return <div key={area.area} className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-1.5 w-20 shrink-0">
+                          <AreaIcon className="w-3 h-3 text-muted-foreground/40" />
+                          <span className="text-[10px] text-muted-foreground/60 capitalize">{area.area}</span>
+                        </div>
+                        <div className="flex-1 h-1.5 bg-muted/20 rounded-full overflow-hidden">
+                          <motion.div className="h-full rounded-full bg-muted-foreground/30" initial={false} animate={{
                             width: `${Math.min(100, area.progress)}%`
                           }} transition={{
                             duration: 0.4,
                             ease: "easeOut"
                           }} />
-                            </div>
-                          </div>
-                          <AnimatePresence>
-                            {expandedCell === `s1-${area.area}` && <motion.div initial={{
-                          height: 0,
-                          opacity: 0
-                        }} animate={{
-                          height: "auto",
-                          opacity: 1
-                        }} exit={{
-                          height: 0,
-                          opacity: 0
-                        }} transition={{
-                          duration: 0.15
-                        }} className="text-[8px] text-muted-foreground/50 tabular-nums text-center">
-                                {Math.round(area.cappedXP)}/{Math.round(area.target)}
-                              </motion.div>}
-                          </AnimatePresence>
-                        </button>;
-                  })}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground/45 tabular-nums w-14 text-right">
+                          {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                        </span>
+                      </div>;
+                    })}
                   </div>
-                  <span className="text-[8px] text-muted-foreground/40 tabular-nums w-10 text-right">
-                    {Math.round(gamesSubTargets[0]?.earned ?? 0)} XP
-                  </span>
                 </div>
 
-                {/* S2 Row */}
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 w-16 shrink-0">
-                    <Timer className="w-2.5 h-2.5 text-muted-foreground/40" />
-                    <span className="text-[9px] text-muted-foreground/60">S2</span>
+                {/* S2 Card */}
+                <div className="rounded-lg bg-muted/10 border border-border/15 p-3">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Timer className="w-3.5 h-3.5 text-muted-foreground/50" />
+                      <span className="text-[11px] font-medium text-foreground/70">System 2</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground/50 tabular-nums font-medium">
+                      {Math.round(gamesSubTargets[1]?.earned ?? 0)} XP
+                    </span>
                   </div>
-                  <div className="flex-1 flex items-center gap-1.5">
+                  <div className="space-y-2">
                     {s2Areas.map(area => {
-                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
-                    return <button key={area.area} onClick={e => {
-                      e.stopPropagation();
-                      setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`);
-                    }} className="flex-1 flex flex-col gap-0.5">
-                          <div className="flex items-center gap-1">
-                            <AreaIcon className="w-2.5 h-2.5 text-muted-foreground/30" />
-                            <div className="flex-1 h-1 bg-muted/20 rounded-full overflow-hidden">
-                              <motion.div className="h-full rounded-full bg-muted-foreground/30" initial={false} animate={{
+                      const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+                      return <div key={area.area} className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-1.5 w-20 shrink-0">
+                          <AreaIcon className="w-3 h-3 text-muted-foreground/40" />
+                          <span className="text-[10px] text-muted-foreground/60 capitalize">{area.area}</span>
+                        </div>
+                        <div className="flex-1 h-1.5 bg-muted/20 rounded-full overflow-hidden">
+                          <motion.div className="h-full rounded-full bg-muted-foreground/30" initial={false} animate={{
                             width: `${Math.min(100, area.progress)}%`
                           }} transition={{
                             duration: 0.4,
                             ease: "easeOut"
                           }} />
-                            </div>
-                          </div>
-                          <AnimatePresence>
-                            {expandedCell === `s2-${area.area}` && <motion.div initial={{
-                          height: 0,
-                          opacity: 0
-                        }} animate={{
-                          height: "auto",
-                          opacity: 1
-                        }} exit={{
-                          height: 0,
-                          opacity: 0
-                        }} transition={{
-                          duration: 0.15
-                        }} className="text-[8px] text-muted-foreground/50 tabular-nums text-center">
-                                {Math.round(area.cappedXP)}/{Math.round(area.target)}
-                              </motion.div>}
-                          </AnimatePresence>
-                        </button>;
-                  })}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground/45 tabular-nums w-14 text-right">
+                          {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                        </span>
+                      </div>;
+                    })}
                   </div>
-                  <span className="text-[8px] text-muted-foreground/40 tabular-nums w-10 text-right">
-                    {Math.round(gamesSubTargets[1]?.earned ?? 0)} XP
-                  </span>
                 </div>
-                
-                {Math.round(gamesSubTargets[1]?.earned ?? 0) === 0 && <p className="text-[8px] text-muted-foreground/40 italic mt-2 ml-[72px]">
-                    Add one S2 session to stabilize gains.
-                  </p>}
               </div>
 
               {/* Recovery Budget */}
-              <div className="pt-3 border-t border-border/15">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <Leaf className="w-3 h-3 text-muted-foreground/40" />
-                    <span className="text-[10px] text-muted-foreground/70 font-medium">Recovery Budget</span>
-                    <CategoryCompleteBadge show={recoveryComplete} />
+              <div className="pt-5 border-t border-border/25">
+                <div className="rounded-lg bg-muted/10 border border-border/15 p-3">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Leaf className="w-3.5 h-3.5 text-muted-foreground/50" />
+                      <span className="text-[11px] text-muted-foreground/80 font-semibold">Recovery Budget</span>
+                      <CategoryCompleteBadge show={recoveryComplete} />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground/50 tabular-nums font-medium">
+                      {formatRecoveryTime(recoveryMinutesEarned)} / {formatRecoveryTime(recoveryMinutesTarget)}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-muted-foreground/40 tabular-nums">
-                    {formatRecoveryTime(recoveryMinutesEarned)} / {formatRecoveryTime(recoveryMinutesTarget)}
-                  </span>
+                  <div className="h-2 bg-muted/20 rounded-full overflow-hidden">
+                    <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`} initial={false} animate={{
+                      width: `${Math.min(100, recoveryProgress)}%`
+                    }} transition={{
+                      duration: 0.5,
+                      ease: "easeOut"
+                    }} />
+                  </div>
                 </div>
-                <div className="h-1.5 bg-muted/20 rounded-full overflow-hidden">
-                  <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`} initial={false} animate={{
-                  width: `${Math.min(100, recoveryProgress)}%`
-                }} transition={{
-                  duration: 0.5,
-                  ease: "easeOut"
-                }} />
-                </div>
-                {recoveryMinutesEarned === 0 && <p className="text-[8px] text-muted-foreground/35 italic mt-1.5">
-                    No recovery logged yet.
-                  </p>}
               </div>
             </motion.div>
           </CollapsibleContent>
