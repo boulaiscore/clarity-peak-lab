@@ -1,127 +1,40 @@
 
-# Piano: Cognitive Decision Insights per Home Page
 
-## Obiettivo
-Aggiungere un sistema di **insight decisionali** sulla Home che aiuti l'utente a capire **quando la sua mente è pronta per decisioni importanti** — non semplici CTA per fare training, ma veri consigli cognitive-performance-oriented.
+## Redesign: Cognitive Load Expanded View
 
-## Differenza vs DailyBriefing esistente
-| Attuale (DailyBriefing) | Nuovo (Cognitive Insights) |
-|------------------------|---------------------------|
-| "Recovery è bassa, fai detox" | "Mente sovraccarica: rimanda decisioni importanti" |
-| "Forte giornata cognitiva, allena" | "Stato cognitivo ottimale per strategie complesse" |
-| Focus su training | Focus su decision-making professionale |
+The current expanded state is cluttered with tiny 8-9px text, barely visible icons, and cramped spacing. The S1/S2 rows with micro progress bars are nearly impossible to read, and the whole section feels like a data dump rather than a premium dashboard.
 
-## Esempi di Insight
+### Design Direction
 
-### Peak States (alta performance)
-- **"Peak cognitive state today — optimal for complex decisions and strategic thinking."**
-- **"High reasoning quality — ideal for negotiations and evaluations."**
-- **"Processing speed high — rapid decisions will be accurate."**
+Replace the current dense grid layout with a clean, vertically stacked card system that prioritizes readability and breathing space.
 
-### Warning States (evitare decisioni)
-- **"Cognitive load high — avoid major decisions today."**
-- **"Reasoning depth limited — stick to routine tasks."**
-- **"Recovery below threshold — postpone complex analysis."**
+### Changes (all in `src/components/dashboard/WeeklyGoalCard.tsx`, compact mode only)
 
-### Trend Insights (long-term)
-- **"Cognitive Age improving: 1.2 years younger this month."**
-- **"Reasoning Quality building steadily — deep work capacity expanding."**
-- **"Sustained high recovery — you're managing cognitive load well."**
+**1. Cognitive Balance Section -- Complete Redesign**
+- Replace the cramped horizontal S1/S2 rows (with inline micro-bars and 8px text) with two distinct horizontal cards
+- Each card: system icon + label on the left, two area progress indicators stacked vertically, XP total on the right
+- Increase text to 10-11px minimum, icons to w-3.5 h-3.5
+- Area progress bars become taller (h-1.5) with area labels visible by default (no tap-to-reveal)
+- Add subtle background tint per card (e.g., `bg-muted/10`) for visual separation
+- Remove the expandedCell tap-to-reveal pattern -- show XP values directly as small labels next to each bar
 
-## Architettura
+**2. Recovery Budget -- Visual Upgrade**
+- Increase progress bar height to h-2 for consistency with the main bar
+- Bump text sizes to 10-11px
+- Add a subtle background container matching the S1/S2 cards for visual unity
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│                 useCognitiveInsights()                  │
-├─────────────────────────────────────────────────────────┤
-│  Input:                                                 │
-│  • Sharpness, Readiness, Recovery, RQ                   │
-│  • Cognitive Age (delta, trend, pace)                   │
-│  • Weekly progress                                      │
-│                                                         │
-│  Output:                                                │
-│  • primaryInsight: { headline, body, type }             │
-│  • secondaryInsight: { headline, body, type } | null    │
-│  • decisionReadiness: "peak" | "good" | "caution" | "avoid" │
-└─────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│              CognitiveInsightCard.tsx                   │
-│  (Nuovo componente nella Home)                          │
-├─────────────────────────────────────────────────────────┤
-│  • Visualizzazione premium: bg-muted/30, border-border  │
-│  • Primary insight con headline + body                  │
-│  • Optional secondary insight (trend-based)             │
-│  • Indicatore "Decision Readiness" visivo               │
-└─────────────────────────────────────────────────────────┘
-```
+**3. Spacing and Typography**
+- Increase `space-y` from 4 to 5-6 between sections
+- Section headers: 11px semibold (up from 10px)
+- Value labels: 10px tabular (up from 8-9px)
+- Remove italic helper text ("Add one S2 session...") when at 0 -- replace with nothing (less noise)
+- Remove "No recovery logged yet." italic text -- the empty bar is self-explanatory
 
-## File da creare/modificare
+**4. Section Dividers**
+- Replace thin `border-t border-border/15` with slightly more visible `border-border/25` and more generous `pt-5` padding
 
-### 1. Nuovo Hook: `src/hooks/useCognitiveInsights.ts`
-Logica di prioritizzazione per generare insight decisionali:
+### Technical Scope
+- Single file edit: `src/components/dashboard/WeeklyGoalCard.tsx`
+- Only the `CollapsibleContent` block inside the `compact` branch (lines ~377-516)
+- No data logic changes, no hook changes, no new dependencies
 
-**Categorie di insight (in ordine di priorità):**
-
-| Priorità | Condizione | Headline |
-|----------|-----------|----------|
-| 1 | Recovery < 35 | "Cognitive overload — avoid important decisions" |
-| 2 | Recovery < 50 & RQ < 45 | "Mental capacity limited — postpone complex analysis" |
-| 3 | Sharpness ≥75 & Readiness ≥75 & RQ ≥60 | "Peak state — optimal for strategic decisions" |
-| 4 | Sharpness ≥70 & Readiness ≥70 | "Strong clarity — tackle your hardest problems" |
-| 5 | RQ ≥65 & Recovery ≥55 | "High reasoning quality — ideal for deep analysis" |
-| 6 | Sharpness ≥70 & Readiness < 55 | "Quick bursts available — short decisions only" |
-| 7 | Readiness ≥70 & Sharpness < 55 | "Endurance good, clarity moderate — routine tasks preferred" |
-| 8 | Default stable | "Stable baseline — proceed with normal workload" |
-
-**Trend Insights (secondary):**
-- Cognitive Age delta < -0.5 → "Your cognitive age is improving"
-- RQ in steady growth → "Reasoning depth expanding"
-- Recovery consistently ≥60 → "Cognitive reserve well-managed"
-
-### 2. Nuovo Componente: `src/components/home/CognitiveInsightCard.tsx`
-Card premium con:
-- Headline principale (testo grassetto, 12px)
-- Body descrittivo (testo muted, 11px)
-- Optional: secondary insight per trend a lungo termine
-- Design unificato neutral (come le altre card)
-
-### 3. Modifica: `src/pages/app/Home.tsx`
-- Sostituire il blocco DailyBriefing + topSuggestion con il nuovo CognitiveInsightCard
-- Mantenere le SmartSuggestionCard per le azioni (training, detox)
-- Separare chiaramente: **insight decisionale** (top) vs **azioni consigliate** (sotto)
-
-## Dettagli Tecnici
-
-### Hook Interface
-```typescript
-interface CognitiveInsight {
-  headline: string;           // "Peak state — optimal for strategic decisions"
-  body: string;               // "Your processing and reasoning are aligned..."
-  type: "peak" | "good" | "caution" | "avoid";
-  category: "state" | "trend";
-}
-
-interface UseCognitiveInsightsResult {
-  primaryInsight: CognitiveInsight;
-  secondaryInsight: CognitiveInsight | null;
-  decisionReadiness: "peak" | "good" | "caution" | "avoid";
-  isLoading: boolean;
-}
-```
-
-### Visual Design
-- Card con `bg-muted/30 border-border/30` (premium neutral)
-- Headline in `text-foreground text-xs font-medium`
-- Body in `text-muted-foreground text-[11px]`
-- Nessun colore urgency (no rosso/verde/giallo) — tutto monocromatico
-- Optional: sottile indicatore di "decision readiness" (4 dots o barra)
-
-## Flusso Utente Finale
-
-1. Utente apre Home
-2. Vede insight decisionale primario: *"Peak cognitive state — optimal for strategic decisions"*
-3. Sotto, vede body: *"Your processing speed and reasoning depth are aligned. This is your best window for negotiations, complex analysis, and high-stakes decisions."*
-4. Optional: trend insight secondario: *"Cognitive Age improving: 0.8 years younger than last month."*
-5. Sotto ancora, le SmartSuggestionCard per le azioni consigliate
