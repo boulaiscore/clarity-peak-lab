@@ -147,7 +147,7 @@ export default function NeuroLab() {
         iconColor: "text-amber-400",
         headline: `Recovery ${Math.round(rec)}% — Moderate.`,
         message: "You can train, but don't overdo it.",
-        action: "S1 games + Reflect are ideal. Consider Recover to boost recovery."
+        action: "S1 games + Quality Time are ideal. Consider Recover to boost recovery."
       };
     }
 
@@ -158,7 +158,7 @@ export default function NeuroLab() {
         iconColor: "text-amber-500",
         headline: `Recovery ${Math.round(rec)}% — Low.`,
         message: "Your brain needs rest to perform.",
-        action: "Skip intense training. Focus on Recover or light Reflect to rebuild."
+        action: "Skip intense training. Focus on Recover or light Quality Time to rebuild."
       };
     }
 
@@ -168,7 +168,7 @@ export default function NeuroLab() {
       iconColor: "text-red-400",
       headline: `Recovery ${Math.round(rec)}% — Depleted.`,
       message: "Training now may backfire. Your brain needs recovery.",
-      action: "Recover to rebuild. Reflect is fine. Save Train for when you're recharged."
+      action: "Recover to rebuild. Quality Time is fine. Save Train for when you're recharged."
     };
   }, [recoveryEffective, recoveryLoading]);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -344,13 +344,13 @@ export default function NeuroLab() {
                     </div>
                   </div>
 
-                  {/* Reflect & RQ */}
+                   {/* Quality Time & RQ */}
                   <div className="flex items-start gap-3">
                     <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                       <BookMarked className="w-3.5 h-3.5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Reflect → Reasoning Quality</p>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Quality Time → Reasoning Quality</p>
                       <p className="text-[10px] text-muted-foreground leading-relaxed">
                         Reading and listening don't earn XP — they boost your RQ score, which measures cognitive priming depth over time.
                       </p>
@@ -362,7 +362,7 @@ export default function NeuroLab() {
                 <div className="pt-3 border-t border-border/15">
                   <p className="text-[10px] text-muted-foreground">
                     <span className="font-semibold text-foreground/80">Key:</span>{" "}
-                    High recovery → push S2 games. Low recovery → Reflect & Recover.
+                    High recovery → push S2 games. Low recovery → Quality Time & Recover.
                   </p>
                 </div>
               </div>
@@ -435,7 +435,7 @@ export default function NeuroLab() {
               </TabsTrigger>
               <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
                 <BookMarked className="w-3.5 h-3.5" />
-                Reflect
+                Quality Time
               </TabsTrigger>
               <TabsTrigger value="detox" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
                 <div className="relative w-3.5 h-3.5">
