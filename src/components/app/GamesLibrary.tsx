@@ -114,57 +114,49 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         </p>
       </div>
 
-      {/* System Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
-          const systemLabel = system === "fast" ? "S1" : "S2";
-          const systemDesc = system === "fast" ? "Fast · Intuitive" : "Slow · Deliberate";
-          const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
+      {/* S1 & S2 System Sections */}
+      {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
+        const systemLabel = system === "fast" ? "S1" : "S2";
+        const systemDesc = system === "fast" ? "Fast · Intuitive" : "Slow · Deliberate";
+        const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
 
-          return (
-            <div
-              key={system}
-              className="rounded-xl border border-border/20 bg-muted/10 overflow-hidden"
-            >
-              {/* System Header - Typography only */}
-              <div className="px-3 py-2.5 border-b border-border/15">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-[13px] font-bold tracking-wide text-foreground/90">{systemLabel}</span>
-                  <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground/50">{systemDesc}</span>
-                </div>
-              </div>
-
-              {/* Area Cards - Clean typography-driven */}
-              <div className="p-2 space-y-1.5">
-                {areas.map((area) => (
-                  <button
-                    key={`${area.areaId}-${system}`}
-                    onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
-                    className={cn(
-                      "group relative w-full px-3 py-3 rounded-lg transition-all text-left",
-                      "bg-transparent hover:bg-muted/20",
-                      "active:scale-[0.98]"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        {/* Monogram badge instead of icon */}
-                        <div className="w-7 h-7 rounded-md bg-foreground/[0.06] flex items-center justify-center shrink-0">
-                          <span className="text-[10px] font-bold tracking-wider text-foreground/60">{area.code}</span>
-                        </div>
-                        <span className="text-[11px] font-medium text-foreground/85 leading-tight">
-                          {area.name}
-                        </span>
-                      </div>
-                      <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-foreground/50 transition-colors" />
-                    </div>
-                  </button>
-                ))}
-              </div>
+        return (
+          <div key={system} className="space-y-2">
+            {/* System Label */}
+            <div className="flex items-baseline gap-2 px-1">
+              <span className="text-[13px] font-bold tracking-wide text-foreground/90">{systemLabel}</span>
+              <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground/50">{systemDesc}</span>
             </div>
-          );
-        })}
-      </div>
+
+            {/* 2 separate cards per system */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {areas.map((area) => (
+                <button
+                  key={`${area.areaId}-${system}`}
+                  onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
+                  className={cn(
+                    "group relative w-full p-3.5 rounded-xl border border-border/20 bg-muted/10 transition-all text-left",
+                    "hover:bg-muted/20 hover:border-border/30",
+                    "active:scale-[0.98]"
+                  )}
+                >
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-7 h-7 rounded-md bg-foreground/[0.06] flex items-center justify-center">
+                        <span className="text-[10px] font-bold tracking-wider text-foreground/60">{area.code}</span>
+                      </div>
+                      <ChevronRight className="w-3 h-3 text-muted-foreground/25 group-hover:text-foreground/50 transition-colors" />
+                    </div>
+                    <span className="text-[11px] font-medium text-foreground/85 leading-snug">
+                      {area.name}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
 
       {/* Exercise Picker Sheet (for non-S1-AE games) */}
       <ExercisePickerSheet
