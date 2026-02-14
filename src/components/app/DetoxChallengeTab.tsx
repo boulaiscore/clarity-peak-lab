@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import recoveryDetoxImg from "@/assets/recovery-detox.jpg";
+import recoveryWalkImg from "@/assets/recovery-walk.jpg";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -378,28 +380,27 @@ export function DetoxChallengeTab() {
                   key={mode.id}
                   onClick={() => setSelectedMode(mode.id)}
                   className={cn(
-                    "relative p-4 rounded-xl text-left transition-all duration-200",
+                    "relative rounded-xl text-left transition-all duration-200 overflow-hidden",
                     isSelected
-                      ? "bg-card border-2 border-foreground/20"
-                      : "bg-card/60 border border-border/40 hover:border-border"
+                      ? "border-2 border-foreground/20"
+                      : "border border-border/40 hover:border-border"
                   )}
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={cn(
-                      "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                      isSelected ? "bg-foreground/10" : "bg-muted/40"
-                    )}>
-                      <Icon className={cn(
-                        "w-4.5 h-4.5",
-                        isSelected ? "text-foreground" : "text-muted-foreground"
-                      )} />
-                    </div>
+                  {/* Image header */}
+                  <div className="relative h-20 w-full">
+                    <img
+                      src={mode.id === "detox" ? recoveryDetoxImg : recoveryWalkImg}
+                      alt={mode.id === "detox" ? "Digital Detox" : "Active Walk"}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
                     {isSelected && (
-                      <div className="ml-auto w-4 h-4 rounded-full bg-foreground/80 flex items-center justify-center">
-                        <Check className="w-2.5 h-2.5 text-background" />
+                      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-background" />
                       </div>
                     )}
                   </div>
+                  <div className="p-3 pt-0 -mt-2 relative z-10 bg-card">
                   
                   <h4 className={cn(
                     "text-sm font-semibold mb-1",
@@ -420,6 +421,7 @@ export function DetoxChallengeTab() {
                     isSelected ? "text-foreground/70" : "text-muted-foreground/80"
                   )}>
                     {mode.id === "detox" ? "100% impact" : "50% impact"}
+                  </div>
                   </div>
                 </button>
               );
