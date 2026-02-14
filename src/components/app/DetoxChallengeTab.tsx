@@ -555,47 +555,16 @@ function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: num
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="p-5 rounded-2xl bg-gradient-to-br from-primary/6 via-primary/3 to-transparent border border-primary/15"
+      className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/20 border border-border/20"
     >
-      <h4 className="text-xs font-semibold text-foreground mb-4 flex items-center gap-2">
-        <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Zap className="w-3.5 h-3.5 text-primary/70" />
-        </div>
-        Estimated Impact
-      </h4>
-      
-      <div className="space-y-3">
-        {/* Recovery - Primary metric */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
-          <span className="text-xs text-foreground flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-primary/60" />
-            Recovery
-          </span>
-          <span className="text-lg font-bold text-primary">+{recoveryImpact}%</span>
-        </div>
-        
-        {/* Secondary effects */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="p-2.5 rounded-xl bg-background/30 text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400/70" />
-              <span className="text-[10px] font-medium text-muted-foreground">Sharpness</span>
-            </div>
-            <span className="text-[11px] text-foreground/70">Indirect boost</span>
-          </div>
-          
-          <div className="p-2.5 rounded-xl bg-background/30 text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-400/70" />
-              <span className="text-[10px] font-medium text-muted-foreground">Readiness</span>
-            </div>
-            <span className="text-[11px] text-foreground/70">
-              {mode === "detox" ? "Next-day focus" : "Light boost"}
-            </span>
-          </div>
-        </div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-muted-foreground">Recovery</span>
+        <span className="text-sm font-bold text-primary">+{recoveryImpact}%</span>
       </div>
-      
+      <div className="flex items-center gap-4">
+        <span className="text-[10px] text-muted-foreground/70">Sharpness ↑</span>
+        <span className="text-[10px] text-muted-foreground/70">Readiness ↑</span>
+      </div>
     </motion.div>
   );
 }
