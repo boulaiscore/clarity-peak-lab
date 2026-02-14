@@ -4,6 +4,8 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
+import s1Bg from "@/assets/s1-bg.jpg";
+import s2Bg from "@/assets/s2-bg.jpg";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
 import { S1RAGameSelector } from "./S1RAGameSelector";
@@ -114,45 +116,59 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         </p>
       </div>
 
-      {/* S1 & S2 System Sections */}
+      {/* S1 & S2 System Blocks with background images */}
       {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
         const systemLabel = system === "fast" ? "S1" : "S2";
         const systemDesc = system === "fast" ? "Fast · Intuitive" : "Slow · Deliberate";
         const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
+        const bgImage = system === "fast" ? s1Bg : s2Bg;
 
         return (
-          <div key={system} className="space-y-2">
-            {/* System Label */}
-            <div className="flex items-baseline gap-2 px-1">
-              <span className="text-[13px] font-bold tracking-wide text-foreground/90">{systemLabel}</span>
-              <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground/50">{systemDesc}</span>
-            </div>
+          <div
+            key={system}
+            className="relative overflow-hidden rounded-xl"
+          >
+            {/* Background image with overlay */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${bgImage})` }}
+            />
+            <div className="absolute inset-0 bg-black/60" />
 
-            {/* 2 separate cards per system */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {areas.map((area) => (
-                <button
-                  key={`${area.areaId}-${system}`}
-                  onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
-                  className={cn(
-                    "group relative w-full p-3.5 rounded-none border border-white/[0.06] bg-[hsl(218,20%,16%)] transition-all text-left",
-                    "hover:brightness-110 hover:border-white/10",
-                    "active:scale-[0.98]"
-                  )}
-                >
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <div className="w-7 h-7 rounded-md bg-foreground/[0.06] flex items-center justify-center">
-                        <span className="text-[10px] font-bold tracking-wider text-foreground/60">{area.code}</span>
+            {/* Content */}
+            <div className="relative z-10 p-4 space-y-3">
+              {/* System Label */}
+              <div className="flex items-baseline gap-2">
+                <span className="text-[14px] font-bold tracking-wide text-white/90">{systemLabel}</span>
+                <span className="text-[9px] uppercase tracking-[0.15em] text-white/40">{systemDesc}</span>
+              </div>
+
+              {/* 2 category buttons */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {areas.map((area) => (
+                  <button
+                    key={`${area.areaId}-${system}`}
+                    onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
+                    className={cn(
+                      "group relative w-full p-3.5 rounded-lg border border-white/[0.08] bg-white/[0.06] backdrop-blur-sm transition-all text-left",
+                      "hover:bg-white/[0.12] hover:border-white/[0.15]",
+                      "active:scale-[0.98]"
+                    )}
+                  >
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <div className="w-7 h-7 rounded-md bg-white/[0.08] flex items-center justify-center">
+                          <span className="text-[10px] font-bold tracking-wider text-white/60">{area.code}</span>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-white/20 group-hover:text-white/50 transition-colors" />
                       </div>
-                      <ChevronRight className="w-3 h-3 text-muted-foreground/25 group-hover:text-foreground/50 transition-colors" />
+                      <span className="text-[11px] font-medium text-white/85 leading-snug">
+                        {area.name}
+                      </span>
                     </div>
-                    <span className="text-[11px] font-medium text-foreground/85 leading-snug">
-                      {area.name}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         );
