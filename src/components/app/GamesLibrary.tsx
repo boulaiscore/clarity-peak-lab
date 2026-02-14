@@ -16,14 +16,14 @@ import { useGamesGating } from "@/hooks/useGamesGating";
 import { GameType } from "@/lib/gamesGating";
 
 // Areas available per thinking system (2x2 matrix)
-const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType; shade: string }[] = [
-  { areaId: "focus", name: "Attentional Efficiency", code: "AE", gameType: "S1-AE", shade: "bg-[hsl(215,20%,15%)]" },
-  { areaId: "creativity", name: "Rapid Association", code: "RA", gameType: "S1-RA", shade: "bg-[hsl(220,18%,17%)]" },
+const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType }[] = [
+  { areaId: "focus", name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" },
+  { areaId: "creativity", name: "Rapid Association", code: "RA", gameType: "S1-RA" },
 ];
 
-const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType; shade: string }[] = [
-  { areaId: "reasoning", name: "Critical Thinking", code: "CT", gameType: "S2-CT", shade: "bg-[hsl(225,22%,13%)]" },
-  { areaId: "creativity", name: "Insight", code: "IN", gameType: "S2-IN", shade: "bg-[hsl(210,16%,19%)]" },
+const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType }[] = [
+  { areaId: "reasoning", name: "Critical Thinking", code: "CT", gameType: "S2-CT" },
+  { areaId: "creativity", name: "Insight", code: "IN", gameType: "S2-IN" },
 ];
 
 type ThinkingSystem = "fast" | "slow";
@@ -135,8 +135,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   key={`${area.areaId}-${system}`}
                   onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
                   className={cn(
-                    "group relative w-full p-3.5 rounded-xl border border-white/[0.06] transition-all text-left",
-                    area.shade,
+                    "group relative w-full p-3.5 rounded-xl border border-white/[0.06] bg-[hsl(218,20%,16%)] transition-all text-left",
                     "hover:brightness-110 hover:border-white/10",
                     "active:scale-[0.98]"
                   )}
