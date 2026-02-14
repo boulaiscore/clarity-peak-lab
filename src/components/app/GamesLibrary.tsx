@@ -1,14 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronRight, Zap, Timer } from "lucide-react";
-import {
-  AttentionalEfficiencyIcon,
-  RapidAssociationIcon,
-  CriticalThinkingIcon,
-  InsightIcon,
-  System1Icon,
-  System2Icon,
-} from "@/components/icons/GameIcons";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
@@ -22,18 +14,16 @@ import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
 import { useGamesGating } from "@/hooks/useGamesGating";
 import { GameType } from "@/lib/gamesGating";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
 
 // Areas available per thinking system (2x2 matrix)
-const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; tagline: string; gameType: GameType }[] = [
-  { areaId: "focus", name: "Attentional Efficiency", tagline: "Speed & Precision", gameType: "S1-AE" },
-  { areaId: "creativity", name: "Rapid Association", tagline: "Intuitive Links", gameType: "S1-RA" },
+const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType }[] = [
+  { areaId: "focus", name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" },
+  { areaId: "creativity", name: "Rapid Association", code: "RA", gameType: "S1-RA" },
 ];
 
-const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; tagline: string; gameType: GameType }[] = [
-  { areaId: "reasoning", name: "Critical Thinking", tagline: "Deep Analysis", gameType: "S2-CT" },
-  { areaId: "creativity", name: "Insight", tagline: "Mindful Connections", gameType: "S2-IN" },
+const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType }[] = [
+  { areaId: "reasoning", name: "Critical Thinking", code: "CT", gameType: "S2-CT" },
+  { areaId: "creativity", name: "Insight", code: "IN", gameType: "S2-IN" },
 ];
 
 type ThinkingSystem = "fast" | "slow";
@@ -117,98 +107,59 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-3">
-      {/* XP Explanation - Premium Typography */}
-      <div className="px-4 py-3 rounded-xl bg-muted/20 border border-border/20">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 leading-relaxed">
-          <span className="font-semibold text-foreground/90">Training games award XP</span>
-          <span className="mx-1.5 opacity-40">•</span>
-          15–42 per session
-          <span className="mx-1.5 opacity-40">•</span>
-          S1 fast & intuitive
-          <span className="mx-1.5 opacity-40">•</span>
-          S2 slow & deliberate
+      {/* XP Info - Minimal */}
+      <div className="px-4 py-2.5 rounded-xl bg-muted/15 border border-border/15">
+        <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 leading-relaxed">
+          Training awards <span className="text-foreground/80 font-medium">15–42 XP</span> per session
         </p>
       </div>
 
-      {/* System Cards - Side by Side Layout */}
+      {/* System Cards */}
       <div className="grid grid-cols-2 gap-3">
         {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
           const systemLabel = system === "fast" ? "S1" : "S2";
-          const systemDesc = system === "fast" ? "Intuitive" : "Deliberate";
+          const systemDesc = system === "fast" ? "Fast · Intuitive" : "Slow · Deliberate";
           const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
-          // Muted colored styling per system - premium tones
-          const accentClass = system === "fast" 
-            ? "border-area-fast/30 bg-area-fast/5" 
-            : "border-area-slow/30 bg-area-slow/5";
-          const iconColor = system === "fast" ? "text-area-fast" : "text-area-slow";
-          const SystemIcon = system === "fast" ? Zap : Timer;
-          
+
           return (
             <div
               key={system}
-              className={cn(
-                "rounded-xl border transition-all overflow-hidden",
-                accentClass
-              )}
+              className="rounded-xl border border-border/20 bg-muted/10 overflow-hidden"
             >
-              {/* System Header with custom icon */}
-              <div className="p-2.5 flex items-center gap-2 border-b border-border/30">
-                <div className={cn(
-                  "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
-                  system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
-                )}>
-                  <SystemIcon className={cn("w-3.5 h-3.5", iconColor)} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={cn("text-[10px] font-bold uppercase tracking-wider", iconColor)}>{systemLabel}</span>
-                    <span className={cn("text-[9px] uppercase tracking-wide opacity-70", system === "fast" ? "text-area-fast/80" : "text-area-slow/80")}>{systemDesc}</span>
-                  </div>
+              {/* System Header - Typography only */}
+              <div className="px-3 py-2.5 border-b border-border/15">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[13px] font-bold tracking-wide text-foreground/90">{systemLabel}</span>
+                  <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground/50">{systemDesc}</span>
                 </div>
               </div>
 
-              {/* Area Cards with custom icons */}
-              <div className="p-2.5 space-y-2">
-                {areas.map((area) => {
-                  // Select appropriate custom icon based on game type
-                  const getAreaIcon = () => {
-                    switch (area.gameType) {
-                      case "S1-AE": return AttentionalEfficiencyIcon;
-                      case "S1-RA": return RapidAssociationIcon;
-                      case "S2-CT": return CriticalThinkingIcon;
-                      case "S2-IN": return InsightIcon;
-                      default: return AttentionalEfficiencyIcon;
-                    }
-                  };
-                  const AreaIcon = getAreaIcon();
-                  
-                  return (
-                    <button
-                      key={`${area.areaId}-${system}`}
-                      onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
-                      className={cn(
-                        "group relative w-full p-3 rounded-xl border transition-all text-left",
-                        system === "fast"
-                          ? "bg-blue-500/[0.05] border-blue-400/[0.08] hover:bg-blue-500/[0.08] hover:border-blue-400/[0.15]"
-                          : "bg-indigo-500/[0.05] border-indigo-400/[0.08] hover:bg-indigo-500/[0.08] hover:border-indigo-400/[0.15]",
-                        "active:scale-[0.98]"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                          system === "fast" ? "bg-area-fast/15" : "bg-area-slow/15"
-                        )}>
-                          <AreaIcon className={cn("w-4 h-4", iconColor)} />
+              {/* Area Cards - Clean typography-driven */}
+              <div className="p-2 space-y-1.5">
+                {areas.map((area) => (
+                  <button
+                    key={`${area.areaId}-${system}`}
+                    onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
+                    className={cn(
+                      "group relative w-full px-3 py-3 rounded-lg transition-all text-left",
+                      "bg-transparent hover:bg-muted/20",
+                      "active:scale-[0.98]"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        {/* Monogram badge instead of icon */}
+                        <div className="w-7 h-7 rounded-md bg-foreground/[0.06] flex items-center justify-center shrink-0">
+                          <span className="text-[10px] font-bold tracking-wider text-foreground/60">{area.code}</span>
                         </div>
-                        <h4 className="flex-1 text-[11px] font-semibold uppercase tracking-wide text-foreground/90">
+                        <span className="text-[11px] font-medium text-foreground/85 leading-tight">
                           {area.name}
-                        </h4>
-                        <ChevronRight className={cn("w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity", iconColor)} />
+                        </span>
                       </div>
-                    </button>
-                  );
-                })}
+                      <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-foreground/50 transition-colors" />
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           );
