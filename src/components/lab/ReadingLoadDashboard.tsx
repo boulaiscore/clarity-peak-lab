@@ -43,8 +43,8 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
   }, [recentSessions]);
 
   // Weekly session counts (from stats hook — real data)
-  const weekReadingSessions = stats?.byType.reading.sessions ?? 0;
-  const weekListeningSessions = stats?.byType.listening.sessions ?? 0;
+  const weekReadingSessions = weekByType.readingSessions;
+  const weekListeningSessions = weekByType.listeningSessions;
 
   if (isLoading || !stats) {
     return (
