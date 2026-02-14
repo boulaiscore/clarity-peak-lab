@@ -393,7 +393,7 @@ export function DetoxChallengeTab() {
                       alt={mode.id === "detox" ? "Digital Detox" : "Active Walk"}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-card to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
                     {isSelected && (
                       <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
                         <Check className="w-3 h-3 text-background" />
