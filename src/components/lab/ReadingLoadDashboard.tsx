@@ -1,23 +1,15 @@
 /**
- * Reading Load Dashboard — Compact premium version
- * Single card with essential metrics only
+ * Reading Load Dashboard — Activity-row style (WHOOP-inspired)
+ * Compact colored pill rows for today's reading/listening activity
  */
 
 import { motion } from "framer-motion";
-import { BookOpen, Headphones } from "lucide-react";
+import { BookOpen, Headphones, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReasonSessionStats, useReasonSessions } from "@/hooks/useReasonSessions";
 
 interface ReadingLoadDashboardProps {
   className?: string;
-}
-
-function getLoadClassification(weightedMinutes: number) {
-  if (weightedMinutes === 0) return { label: "No activity", color: "text-muted-foreground" };
-  if (weightedMinutes < 20) return { label: "Light", color: "text-muted-foreground" };
-  if (weightedMinutes < 40) return { label: "Moderate", color: "text-emerald-500" };
-  if (weightedMinutes < 60) return { label: "Deep", color: "text-primary" };
-  return { label: "Intensive", color: "text-violet-500" };
 }
 
 export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
@@ -26,75 +18,98 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
 
   if (isLoading || !stats) {
     return (
-      <div className={cn("animate-pulse", className)}>
-        <div className="h-20 bg-muted/30 rounded-xl" />
+      <div className={cn("animate-pulse space-y-2", className)}>
+        <div className="h-12 bg-muted/20 rounded-xl" />
+        <div className="h-12 bg-muted/20 rounded-xl" />
       </div>
     );
   }
 
-  const today = getLoadClassification(stats.today.weightedMinutes);
-  const todayMin = Math.round(stats.today.weightedMinutes);
-  const weekMin = Math.round(stats.week.weightedMinutes);
-  const weekSessions = stats.week.sessions;
+  const readingMin = Math.round(stats.byType.reading.minutes);
+  const listeningMin = Math.round(stats.byType.listening.minutes);
+  const weekTotal = Math.round(stats.week.weightedMinutes);
+
+  // Find most recent reading & listening sessions for time display
+  const lastReading = recentSessions?.find(s => s.session_type === "reading");
+  const lastListening = recentSessions?.find(s => s.session_type === "listening");
+
+  const formatSessionTime = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn("space-y-3", className)}
-    >
-      {/* Primary stats row */}
-      <div className="flex items-center gap-3">
-        {/* Today */}
-        <div className="flex-1 p-3 rounded-xl bg-card border border-border/40">
-          <p className="text-[9px] text-muted-foreground/60 uppercase tracking-widest mb-1">Today</p>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold tabular-nums">{todayMin}</span>
-            <span className="text-[10px] text-muted-foreground/40">wt min</span>
-          </div>
-          <p className={cn("text-[10px] font-semibold mt-0.5", today.color)}>{today.label}</p>
+    <div className={cn("space-y-2", className)}>
+      {/* Reading row */}
+      <motion.div
+        initial={{ opacity: 0, x: -8 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="flex items-center gap-3 p-2 rounded-xl bg-muted/10 border border-border/20"
+      >
+        {/* Colored pill with icon + value */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20 min-w-[72px]">
+          <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+          <span className="text-sm font-bold text-amber-300 tabular-nums">{readingMin}</span>
         </div>
 
-        {/* This week */}
-        <div className="flex-1 p-3 rounded-xl bg-card border border-border/40">
-          <p className="text-[9px] text-muted-foreground/60 uppercase tracking-widest mb-1">This Week</p>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold tabular-nums">{weekMin}</span>
-            <span className="text-[10px] text-muted-foreground/40">wt min</span>
-          </div>
-          <p className="text-[10px] text-muted-foreground/50 mt-0.5">
-            {weekSessions} session{weekSessions !== 1 ? "s" : ""} · {stats.validForRQ} valid
-          </p>
-        </div>
-      </div>
+        {/* Label */}
+        <span className="text-xs font-semibold text-foreground/80 flex-1">READING</span>
 
-      {/* Recent sessions — minimal list */}
-      {recentSessions && recentSessions.length > 0 && (
-        <div className="space-y-1.5">
-          {recentSessions.slice(0, 3).map((session) => (
-            <div
-              key={session.id}
-              className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/10"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                {session.session_type === "reading" ? (
-                  <BookOpen className="w-3 h-3 text-muted-foreground/50 shrink-0" />
-                ) : (
-                  <Headphones className="w-3 h-3 text-muted-foreground/50 shrink-0" />
-                )}
-                <span className="text-[11px] text-muted-foreground truncate">
-                  {session.source === "looma_list"
-                    ? session.item_id
-                    : session.custom_title || "Custom"}
-                </span>
-              </div>
-              <span className="text-[11px] text-muted-foreground/60 tabular-nums shrink-0 ml-2">
-                {Math.round(session.duration_seconds / 60)}m · {session.weight.toFixed(1)}×
-              </span>
-            </div>
-          ))}
+        {/* Time details */}
+        <div className="text-right text-[10px] text-muted-foreground/50 tabular-nums leading-tight">
+          {lastReading ? (
+            <>
+              <div>{formatSessionTime(lastReading.started_at)}</div>
+              <div>{lastReading.ended_at ? formatSessionTime(lastReading.ended_at) : "—"}</div>
+            </>
+          ) : (
+            <div>—</div>
+          )}
         </div>
+      </motion.div>
+
+      {/* Listening row */}
+      <motion.div
+        initial={{ opacity: 0, x: -8 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.05 }}
+        className="flex items-center gap-3 p-2 rounded-xl bg-muted/10 border border-border/20"
+      >
+        {/* Colored pill with icon + value */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-500/20 min-w-[72px]">
+          <Headphones className="w-3.5 h-3.5 text-violet-400" />
+          <span className="text-sm font-bold text-violet-300 tabular-nums">{listeningMin}</span>
+        </div>
+
+        {/* Label */}
+        <span className="text-xs font-semibold text-foreground/80 flex-1">LISTENING</span>
+
+        {/* Time details */}
+        <div className="text-right text-[10px] text-muted-foreground/50 tabular-nums leading-tight">
+          {lastListening ? (
+            <>
+              <div>{formatSessionTime(lastListening.started_at)}</div>
+              <div>{lastListening.ended_at ? formatSessionTime(lastListening.ended_at) : "—"}</div>
+            </>
+          ) : (
+            <div>—</div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Week summary — subtle footer */}
+      {(stats.week.sessions > 0) && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="flex items-center justify-between px-1 pt-1"
+        >
+          <span className="text-[10px] text-muted-foreground/40">
+            This week: {weekTotal} wt min · {stats.week.sessions} sessions
+          </span>
+        </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 }
