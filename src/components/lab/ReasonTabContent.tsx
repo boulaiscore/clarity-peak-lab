@@ -17,7 +17,7 @@ import {
 } from "@/hooks/useReasonSessions";
 import { ReasonSessionTimer } from "./ReasonSessionTimer";
 import { ReasonContentSelector } from "./ReasonContentSelector";
-import { ReadingLoadDashboard } from "./ReadingLoadDashboard";
+
 
 export function ReasonTabContent() {
   const [showSelector, setShowSelector] = useState(false);
@@ -98,15 +98,6 @@ export function ReasonTabContent() {
         </div>
       </motion.div>
       
-      {/* Reading Load Dashboard */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h3 className="text-sm font-semibold mb-3">Reading Load</h3>
-        <ReadingLoadDashboard />
-      </motion.div>
       
       {/* Content Selector Dialog */}
       <ReasonContentSelector
