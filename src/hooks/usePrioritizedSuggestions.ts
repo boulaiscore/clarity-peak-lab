@@ -185,7 +185,7 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
       result.push({
         id: "rq_declining",
         priority: 7,
-        headline: "Today: read or reflect",
+        headline: "Today: quality time",
         body: "Reasoning Quality needs maintenance — complete a task.",
         action: "View Tasks",
         route: "/neuro-lab?tab=tasks",

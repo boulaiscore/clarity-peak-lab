@@ -41,7 +41,7 @@ export function ReasonTabContent() {
       {/* XP Explanation */}
       <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/30">
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Reason sessions don't award XP</span> — they improve your{" "}
+          <span className="font-medium text-foreground">Quality Time sessions don't award XP</span> — they improve your{" "}
           <span className="font-medium text-foreground">Reasoning Quality (RQ)</span> through cognitive priming. 
           Track reading and listening time for weighted RQ contribution.
         </p>

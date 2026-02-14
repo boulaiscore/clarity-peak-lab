@@ -251,7 +251,7 @@ export function LoomaTrainingLoop() {
             <motion.span className="absolute right-full top-1/3 mr-1.5 -translate-y-1/2 text-[7px] font-bold uppercase tracking-wider w-[70px] text-right" style={{
             color: useTransform(activeIcon, icon => icon === "reflect" ? "hsl(210, 100%, 60%)" : "hsl(210, 40%, 50%)")
           }}>
-              REFLECT
+              QUALITY TIME
               <motion.span className="block mt-0.5 text-[8px] font-normal normal-case tracking-normal leading-tight" style={{
               color: useTransform(activeIcon, icon => icon === "reflect" ? "hsl(210, 100%, 50%)" : "hsl(210, 40%, 40%)")
             }}>

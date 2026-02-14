@@ -348,7 +348,7 @@ const Home = () => {
     }
     return {
       title: "Today: recover",
-      body: "Readiness is low — do Recover or light Reflect instead.",
+      body: "Readiness is low — do Recover or light Quality Time instead.",
       action: "Start Recover"
     };
   };
