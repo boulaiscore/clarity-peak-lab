@@ -130,8 +130,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
             key={`${area.gameType}`}
             onClick={() => handleGameTypeClick(area.areaId, area.system, area.gameType)}
             className={cn(
-              "group relative w-full rounded-none border border-border/20 bg-muted/25 backdrop-blur-sm transition-all text-left overflow-hidden",
-              "hover:border-border/40 hover:bg-muted/40",
+              "group relative w-full rounded-none border border-white/[0.08] bg-white/[0.08] backdrop-blur-sm transition-all text-left overflow-hidden",
+              "hover:border-white/[0.15] hover:bg-white/[0.14]",
               "active:scale-[0.97]"
             )}
           >
