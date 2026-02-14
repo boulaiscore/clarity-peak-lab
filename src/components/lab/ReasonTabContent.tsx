@@ -1,24 +1,16 @@
 /**
  * Reason Tab Content - Strava-style session tracking
  * 
- * Replaces the old SpotifyTasksView with:
  * - Start Session CTA (reading/listening)
  * - Active session timer
  * - Reading Load dashboard
- * - Legacy LOOMA Library access
  */
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Play,
-  Library,
-  ChevronRight
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { Play } from "lucide-react";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
 import reasonListeningImg from "@/assets/reason-listening.jpg";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { 
   useActiveReasonSession,
   SessionType,
@@ -26,12 +18,10 @@ import {
 import { ReasonSessionTimer } from "./ReasonSessionTimer";
 import { ReasonContentSelector } from "./ReasonContentSelector";
 import { ReadingLoadDashboard } from "./ReadingLoadDashboard";
-import { SpotifyTasksView } from "@/components/app/SpotifyTasksView";
 
 export function ReasonTabContent() {
   const [showSelector, setShowSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<SessionType>("reading");
-  const [showLegacyLibrary, setShowLegacyLibrary] = useState(false);
   
   const { data: activeSession, isLoading } = useActiveReasonSession();
   
@@ -40,26 +30,9 @@ export function ReasonTabContent() {
     return (
       <ReasonSessionTimer
         session={activeSession}
-        onComplete={() => {}} // Will refetch and show no active session
+        onComplete={() => {}}
         onAbort={() => {}}
       />
-    );
-  }
-  
-  // Show legacy library if user wants browse mode
-  if (showLegacyLibrary) {
-    return (
-      <div className="space-y-4">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setShowLegacyLibrary(false)}
-          className="-ml-2"
-        >
-          ← Back to Reason
-        </Button>
-        <SpotifyTasksView />
-      </div>
     );
   }
   
@@ -134,26 +107,6 @@ export function ReasonTabContent() {
         <h3 className="text-sm font-semibold mb-3">Reading Load</h3>
         <ReadingLoadDashboard />
       </motion.div>
-      
-      {/* Browse LOOMA Library link */}
-      <motion.button
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        onClick={() => setShowLegacyLibrary(true)}
-        className="w-full flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-muted/20 transition-all group"
-      >
-        <div className="flex items-center gap-3">
-          <Library className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-          <div className="text-left">
-            <p className="text-sm font-medium">Browse LOOMA Library</p>
-            <p className="text-[10px] text-muted-foreground">
-              Curated podcasts, books & articles with instant completion
-            </p>
-          </div>
-        </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-      </motion.button>
       
       {/* Content Selector Dialog */}
       <ReasonContentSelector
