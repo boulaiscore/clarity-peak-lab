@@ -17,7 +17,7 @@ interface ReadingLoadDashboardProps {
 export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
   const { data: stats, isLoading } = useReasonSessionStats();
   const { data: recentSessions } = useReasonSessions(7);
-  
+
 
   // Compute today's and weekly per-type minutes from recent sessions (real data)
   const { todayByType, weekByType } = useMemo(() => {
@@ -31,12 +31,12 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
       const weighted = min * s.weight;
       const isReading = s.session_type === "reading";
       // Week (all recentSessions are within 7 days)
-      if (isReading) { week.reading += min; week.readingSessions++; week.readingWeighted += weighted; }
-      else { week.listening += min; week.listeningSessions++; week.listeningWeighted += weighted; }
+      if (isReading) {week.reading += min;week.readingSessions++;week.readingWeighted += weighted;} else
+      {week.listening += min;week.listeningSessions++;week.listeningWeighted += weighted;}
       // Today
       if (new Date(s.started_at) >= todayStart) {
-        if (isReading) { today.reading += min; today.readingSessions++; today.readingWeighted += weighted; }
-        else { today.listening += min; today.listeningSessions++; today.listeningWeighted += weighted; }
+        if (isReading) {today.reading += min;today.readingSessions++;today.readingWeighted += weighted;} else
+        {today.listening += min;today.listeningSessions++;today.listeningWeighted += weighted;}
       }
     }
     return { todayByType: today, weekByType: week };
@@ -53,8 +53,8 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
         <div className="h-[56px] bg-muted/20 rounded-xl" />
         <div className="h-[56px] bg-muted/20 rounded-xl" />
         <div className="h-[56px] bg-muted/20 rounded-xl" />
-      </div>
-    );
+      </div>);
+
   }
 
   const fmtTime = (totalMin: number) => {
@@ -66,8 +66,8 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
   const readingDisplay = fmtTime(todayByType.reading);
   const listeningDisplay = fmtTime(todayByType.listening);
 
-  const lastReading = recentSessions?.find(s => s.session_type === "reading");
-  const lastListening = recentSessions?.find(s => s.session_type === "listening");
+  const lastReading = recentSessions?.find((s) => s.session_type === "reading");
+  const lastListening = recentSessions?.find((s) => s.session_type === "listening");
 
   const fmt = (iso: string) => {
     const d = new Date(iso);
@@ -80,14 +80,14 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
     return days[d.getDay()];
   };
 
-  
+
 
   return (
     <div className={cn("space-y-2", className)}>
       {/* Header — WHOOP style */}
       <div className="flex items-center justify-between px-1 mb-1">
-        <h4 className="text-[11px] font-bold uppercase tracking-[0.12em] text-foreground/70">
-          Today's Activities
+        <h4 className="text-[11px] font-bold uppercase tracking-[0.12em] text-foreground/70">THIS WEEK ACTIVITIES
+
         </h4>
         <Maximize2 className="w-3 h-3 text-muted-foreground/40" />
       </div>
@@ -98,12 +98,12 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
         className="flex items-center gap-3 rounded-xl px-2 py-2"
-        style={{ background: "hsl(220 20% 13%)" }}
-      >
+        style={{ background: "hsl(220 20% 13%)" }}>
+
         <div
           className="flex items-center gap-2 rounded-lg px-3 py-2.5 min-w-[76px]"
-          style={{ background: "hsl(210 55% 30%)" }}
-        >
+          style={{ background: "hsl(210 55% 30%)" }}>
+
           <BookOpen className="w-4 h-4 shrink-0" style={{ color: "hsl(210 80% 72%)" }} />
           <span className="text-[16px] font-bold tabular-nums text-white leading-none">
             {readingDisplay}
@@ -120,8 +120,8 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
         </div>
 
         <div className="text-right text-[11px] tabular-nums leading-[1.5] text-muted-foreground/50 font-medium shrink-0">
-          {lastReading ? (
-            <>
+          {lastReading ?
+          <>
               <div>
                 <span className="text-muted-foreground/30">[{fmtDay(lastReading.started_at)}]</span>{" "}
                 {fmt(lastReading.started_at)}
@@ -129,10 +129,10 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
               <div className="text-foreground/40">
                 {lastReading.ended_at ? fmt(lastReading.ended_at) : "—"}
               </div>
-            </>
-          ) : (
-            <div className="text-muted-foreground/25">—</div>
-          )}
+            </> :
+
+          <div className="text-muted-foreground/25">—</div>
+          }
         </div>
       </motion.div>
 
@@ -142,12 +142,12 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3, delay: 0.06 }}
         className="flex items-center gap-3 rounded-xl px-2 py-2"
-        style={{ background: "hsl(220 20% 13%)" }}
-      >
+        style={{ background: "hsl(220 20% 13%)" }}>
+
         <div
           className="flex items-center gap-2 rounded-lg px-3 py-2.5 min-w-[76px]"
-          style={{ background: "hsl(180 40% 26%)" }}
-        >
+          style={{ background: "hsl(180 40% 26%)" }}>
+
           <Headphones className="w-4 h-4 shrink-0" style={{ color: "hsl(180 65% 62%)" }} />
           <span className="text-[16px] font-bold tabular-nums text-white leading-none">
             {listeningDisplay}
@@ -164,8 +164,8 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
         </div>
 
         <div className="text-right text-[11px] tabular-nums leading-[1.5] text-muted-foreground/50 font-medium shrink-0">
-          {lastListening ? (
-            <>
+          {lastListening ?
+          <>
               <div>
                 <span className="text-muted-foreground/30">[{fmtDay(lastListening.started_at)}]</span>{" "}
                 {fmt(lastListening.started_at)}
@@ -173,13 +173,13 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
               <div className="text-foreground/40">
                 {lastListening.ended_at ? fmt(lastListening.ended_at) : "—"}
               </div>
-            </>
-          ) : (
-            <div className="text-muted-foreground/25">—</div>
-          )}
+            </> :
+
+          <div className="text-muted-foreground/25">—</div>
+          }
         </div>
       </motion.div>
 
-    </div>
-  );
+    </div>);
+
 }
