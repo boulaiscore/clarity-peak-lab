@@ -4,8 +4,8 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
-import s1Bg from "@/assets/s1-bg.jpg";
-import s2Bg from "@/assets/s2-bg.jpg";
+
+
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
 import { S1RAGameSelector } from "./S1RAGameSelector";
@@ -107,6 +107,13 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
+  const allAreas = [
+    { ...SYSTEM_1_AREAS[0], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))" },
+    { ...SYSTEM_1_AREAS[1], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))" },
+    { ...SYSTEM_2_AREAS[0], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))" },
+    { ...SYSTEM_2_AREAS[1], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))" },
+  ];
+
   return (
     <div className="space-y-3">
       {/* XP Info - Minimal */}
@@ -116,63 +123,63 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         </p>
       </div>
 
-      {/* S1 & S2 System Blocks with background images */}
-      {(["fast", "slow"] as ThinkingSystem[]).map((system) => {
-        const systemLabel = system === "fast" ? "S1" : "S2";
-        const systemDesc = system === "fast" ? "Fast · Intuitive" : "Slow · Deliberate";
-        const areas = system === "fast" ? SYSTEM_1_AREAS : SYSTEM_2_AREAS;
-        const bgImage = system === "fast" ? s1Bg : s2Bg;
-
-        return (
-          <div
-            key={system}
-            className="relative overflow-hidden rounded-xl"
+      {/* 2x2 Grid of distinct game tiles */}
+      <div className="grid grid-cols-2 gap-2.5">
+        {allAreas.map((area) => (
+          <button
+            key={`${area.gameType}`}
+            onClick={() => handleGameTypeClick(area.areaId, area.system, area.gameType)}
+            className={cn(
+              "group relative w-full rounded-2xl border border-border/30 bg-card/80 backdrop-blur-sm transition-all text-left overflow-hidden",
+              "hover:border-border/50 hover:bg-card",
+              "active:scale-[0.97]"
+            )}
           >
-            {/* Background image with overlay */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${bgImage})` }}
-            />
-            <div className="absolute inset-0 bg-black/60" />
-
-            {/* Content */}
-            <div className="relative z-10 p-4 space-y-3">
-              {/* System Label */}
-              <div className="flex items-baseline gap-2">
-                <span className="text-[14px] font-bold tracking-wide text-white/90">{systemLabel}</span>
-                <span className="text-[9px] uppercase tracking-[0.15em] text-white/40">{systemDesc}</span>
+            {/* Card content */}
+            <div className="p-4 flex flex-col gap-3 min-h-[120px]">
+              {/* System badge + chevron */}
+              <div className="flex items-center justify-between">
+                <span
+                  className="text-[9px] font-bold uppercase tracking-[0.18em] px-2 py-0.5 rounded-md"
+                  style={{
+                    backgroundColor: `color-mix(in srgb, ${area.accentColor} 15%, transparent)`,
+                    color: area.accentColor,
+                  }}
+                >
+                  {area.systemLabel}
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
               </div>
 
-              {/* 2 category buttons */}
-              <div className="grid grid-cols-2 gap-2.5">
-                {areas.map((area) => (
-                  <button
-                    key={`${area.areaId}-${system}`}
-                    onClick={() => handleGameTypeClick(area.areaId, system, area.gameType)}
-                    className={cn(
-                      "group relative w-full p-3.5 rounded-lg border border-white/[0.08] bg-white/[0.06] backdrop-blur-sm transition-all text-left",
-                      "hover:bg-white/[0.12] hover:border-white/[0.15]",
-                      "active:scale-[0.98]"
-                    )}
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <div className="w-7 h-7 rounded-md bg-white/[0.08] flex items-center justify-center">
-                          <span className="text-[10px] font-bold tracking-wider text-white/60">{area.code}</span>
-                        </div>
-                        <ChevronRight className="w-3 h-3 text-white/20 group-hover:text-white/50 transition-colors" />
-                      </div>
-                      <span className="text-[11px] font-medium text-white/85 leading-snug">
-                        {area.name}
-                      </span>
-                    </div>
-                  </button>
-                ))}
+              {/* Code monogram */}
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${area.accentColor} 12%, transparent)`,
+                }}
+              >
+                <span
+                  className="text-[13px] font-bold tracking-wider"
+                  style={{ color: area.accentColor }}
+                >
+                  {area.code}
+                </span>
               </div>
+
+              {/* Name */}
+              <span className="text-[12px] font-medium text-foreground/85 leading-snug mt-auto">
+                {area.name}
+              </span>
             </div>
-          </div>
-        );
-      })}
+
+            {/* Subtle bottom accent line */}
+            <div
+              className="h-[2px] w-full opacity-40"
+              style={{ backgroundColor: area.accentColor }}
+            />
+          </button>
+        ))}
+      </div>
 
       {/* Exercise Picker Sheet (for non-S1-AE games) */}
       <ExercisePickerSheet
