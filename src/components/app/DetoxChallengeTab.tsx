@@ -488,11 +488,6 @@ export function DetoxChallengeTab() {
           {/* Impact on Your System Block */}
           <ImpactBlock mode={selectedMode} duration={selectedDuration} />
 
-          {/* Expandable Sections */}
-          <div className="space-y-3 pt-2">
-            <WhatThisUnlocksSection />
-            <HowRecoveryWorksSection />
-          </div>
 
           {/* Reminder Info - Subtle footer */}
           <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/80 pt-2">
