@@ -470,34 +470,6 @@ export function WeeklyGoalCard({
             </div>
           </CollapsibleTrigger>
 
-          {/* COLLAPSED SUMMARY — 3 metric pills */}
-          {!isExpanded && (
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl bg-blue-500/[0.06] border border-blue-400/[0.08] px-3 py-2.5 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Zap className="w-3 h-3 text-blue-400/60" />
-                  <span className="text-[9px] text-blue-300/50 font-semibold uppercase tracking-wider">S1</span>
-                </div>
-                <span className="text-[15px] font-bold text-blue-300/90 tabular-nums">{s1Earned}</span>
-                <span className="text-[10px] text-blue-400/30 font-medium">/{s1Target}</span>
-              </div>
-              <div className="rounded-xl bg-indigo-500/[0.06] border border-indigo-400/[0.08] px-3 py-2.5 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Timer className="w-3 h-3 text-indigo-400/60" />
-                  <span className="text-[9px] text-indigo-300/50 font-semibold uppercase tracking-wider">S2</span>
-                </div>
-                <span className="text-[15px] font-bold text-indigo-300/90 tabular-nums">{s2Earned}</span>
-                <span className="text-[10px] text-indigo-400/30 font-medium">/{s2Target}</span>
-              </div>
-              <div className="rounded-xl bg-teal-500/[0.06] border border-teal-400/[0.08] px-3 py-2.5 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Leaf className="w-3 h-3 text-teal-400/60" />
-                  <span className="text-[9px] text-teal-300/50 font-semibold uppercase tracking-wider">Rec</span>
-                </div>
-                <span className="text-[15px] font-bold text-teal-300/90 tabular-nums">{formatRecoveryTime(recoveryMinutesEarned)}</span>
-              </div>
-            </div>
-          )}
 
           <CollapsibleContent>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
