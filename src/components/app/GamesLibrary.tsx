@@ -146,7 +146,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                     color: area.accentColor,
                   }}
                 >
-                  {area.systemLabel}
+                  {area.systemLabel} · {area.system === "fast" ? "Fast" : "Slow"}
                 </span>
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
               </div>
