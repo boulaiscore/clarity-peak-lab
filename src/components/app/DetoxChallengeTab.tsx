@@ -474,15 +474,13 @@ export function DetoxChallengeTab() {
                 : "Best when recovery is low but movement feels manageable."
               }
             </p>
-            <Button 
+            <button 
               onClick={handleStart}
-              variant="hero"
-              className="w-full min-h-[56px] gap-3 text-base font-semibold"
-              size="lg"
+              className="w-full min-h-[56px] rounded-2xl bg-foreground text-background text-base font-semibold tracking-wide flex items-center justify-center gap-3 transition-all duration-300 hover:opacity-90 active:scale-[0.98] shadow-[0_4px_20px_-4px_hsl(var(--foreground)/0.3)]"
             >
-              <Play className="w-5 h-5 fill-current" />
-              Start {selectedMode === "detox" ? "Detox" : "Walk"} • {selectedDuration} min
-            </Button>
+              <Play className="w-4 h-4 fill-current" />
+              Start {selectedMode === "detox" ? "Detox" : "Walk"} · {selectedDuration} min
+            </button>
           </motion.div>
 
           {/* Impact on Your System Block */}
