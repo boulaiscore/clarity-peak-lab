@@ -26,17 +26,19 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
     );
   }
 
-  const readingHrs = Math.floor(stats.byType.reading.minutes / 60);
-  const readingMins = Math.round(stats.byType.reading.minutes % 60);
+  const readingTotalMin = Math.round(stats.byType.reading.minutes);
+  const readingHrs = Math.floor(readingTotalMin / 60);
+  const readingMins = readingTotalMin % 60;
   const readingDisplay = readingHrs > 0
     ? `${readingHrs}:${readingMins.toString().padStart(2, "0")}`
-    : `${readingMins}`;
+    : `0:${readingMins.toString().padStart(2, "0")}`;
 
-  const listeningHrs = Math.floor(stats.byType.listening.minutes / 60);
-  const listeningMins = Math.round(stats.byType.listening.minutes % 60);
+  const listeningTotalMin = Math.round(stats.byType.listening.minutes);
+  const listeningHrs = Math.floor(listeningTotalMin / 60);
+  const listeningMins = listeningTotalMin % 60;
   const listeningDisplay = listeningHrs > 0
     ? `${listeningHrs}:${listeningMins.toString().padStart(2, "0")}`
-    : `${listeningMins}`;
+    : `0:${listeningMins.toString().padStart(2, "0")}`;
 
   const readingSessions = recentSessions?.filter(s => s.session_type === "reading") || [];
   const listeningSessions = recentSessions?.filter(s => s.session_type === "listening") || [];
