@@ -347,53 +347,61 @@ export function WeeklyGoalCard({
               {/* Centered Gauge */}
               <div className="flex flex-col items-center">
                 {/* Arc Gauge SVG */}
-                <div className="relative w-[200px] h-[110px] mb-1">
-                  <svg viewBox="0 0 200 110" className="w-full h-full">
+                <div className="relative w-[220px] h-[125px] mb-1">
+                  <svg viewBox="0 0 220 125" className="w-full h-full">
+                    <defs>
+                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#f97316" />
+                        <stop offset="40%" stopColor="#facc15" />
+                        <stop offset="70%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#22c55e" />
+                      </linearGradient>
+                      <linearGradient id="gaugeProgressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#f97316" />
+                        <stop offset="50%" stopColor="#facc15" />
+                        <stop offset="85%" stopColor="#34d399" />
+                        <stop offset="100%" stopColor="#22c55e" />
+                      </linearGradient>
+                    </defs>
                     {/* Background arc track */}
                     <path
-                      d="M 20 100 A 80 80 0 0 1 180 100"
+                      d="M 20 110 A 90 90 0 0 1 200 110"
                       fill="none"
-                      strokeWidth="10"
+                      strokeWidth="12"
                       strokeLinecap="round"
-                      className="stroke-white/[0.06]"
+                      className="stroke-white/[0.08]"
                     />
-                    {/* Optimal zone arc segment */}
+                    {/* Optimal zone arc segment — bright green */}
                     {!goalReached && (() => {
-                      const arcLength = Math.PI * 80; // half circumference
                       const optStartAngle = Math.PI + (optimalRangePercent.min / 100) * Math.PI;
                       const optEndAngle = Math.PI + (optimalRangePercent.max / 100) * Math.PI;
-                      const optStartX = 100 + 80 * Math.cos(optStartAngle);
-                      const optStartY = 100 + 80 * Math.sin(optStartAngle);
-                      const optEndX = 100 + 80 * Math.cos(optEndAngle);
-                      const optEndY = 100 + 80 * Math.sin(optEndAngle);
+                      const cx = 110, cy = 110, r = 90;
+                      const optStartX = cx + r * Math.cos(optStartAngle);
+                      const optStartY = cy + r * Math.sin(optStartAngle);
+                      const optEndX = cx + r * Math.cos(optEndAngle);
+                      const optEndY = cy + r * Math.sin(optEndAngle);
                       return (
                         <path
-                          d={`M ${optStartX} ${optStartY} A 80 80 0 0 1 ${optEndX} ${optEndY}`}
+                          d={`M ${optStartX} ${optStartY} A ${r} ${r} 0 0 1 ${optEndX} ${optEndY}`}
                           fill="none"
-                          strokeWidth="10"
+                          strokeWidth="12"
                           strokeLinecap="round"
-                          className="stroke-emerald-500/25"
+                          stroke="#22c55e"
+                          opacity={0.3}
                         />
                       );
                     })()}
-                    {/* Progress arc — colored by status */}
+                    {/* Progress arc — gradient like reference */}
                     {(() => {
-                      const totalArcLength = Math.PI * 80;
+                      const totalArcLength = Math.PI * 90;
                       const progressArc = (ringPercent / 100) * totalArcLength;
-                      const strokeColor = goalReached 
-                        ? "#34d399" 
-                        : adaptiveStatus.status === "above" 
-                          ? "#fbbf24" 
-                          : adaptiveStatus.status === "within" 
-                            ? "#2dd4bf" 
-                            : "#e2e8f0";
                       return (
                         <motion.path
-                          d="M 20 100 A 80 80 0 0 1 180 100"
+                          d="M 20 110 A 90 90 0 0 1 200 110"
                           fill="none"
-                          strokeWidth="10"
+                          strokeWidth="12"
                           strokeLinecap="round"
-                          stroke={strokeColor}
+                          stroke="url(#gaugeProgressGrad)"
                           strokeDasharray={totalArcLength}
                           initial={false}
                           animate={{ strokeDashoffset: totalArcLength - progressArc }}
@@ -401,21 +409,41 @@ export function WeeklyGoalCard({
                         />
                       );
                     })()}
+                    {/* Current value marker — white dot on arc */}
+                    {(() => {
+                      const cx = 110, cy = 110, r = 90;
+                      const angle = Math.PI + (ringPercent / 100) * Math.PI;
+                      const mx = cx + r * Math.cos(angle);
+                      const my = cy + r * Math.sin(angle);
+                      return (
+                        <motion.circle
+                          cx={mx}
+                          cy={my}
+                          r="7"
+                          fill="white"
+                          className="drop-shadow-lg"
+                          initial={false}
+                          animate={{ cx: mx, cy: my }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                        />
+                      );
+                    })()}
                     {/* Tick marks at optimal boundaries */}
                     {!goalReached && [optimalRangePercent.min, optimalRangePercent.max].map((pct, i) => {
+                      const cx = 110, cy = 110;
                       const angle = Math.PI + (pct / 100) * Math.PI;
-                      const innerR = 72;
-                      const outerR = 90;
+                      const innerR = 80;
+                      const outerR = 101;
                       return (
                         <line
                           key={i}
-                          x1={100 + innerR * Math.cos(angle)}
-                          y1={100 + innerR * Math.sin(angle)}
-                          x2={100 + outerR * Math.cos(angle)}
-                          y2={100 + outerR * Math.sin(angle)}
-                          strokeWidth="2"
+                          x1={cx + innerR * Math.cos(angle)}
+                          y1={cy + innerR * Math.sin(angle)}
+                          x2={cx + outerR * Math.cos(angle)}
+                          y2={cy + outerR * Math.sin(angle)}
+                          strokeWidth="2.5"
                           strokeLinecap="round"
-                          className="stroke-white/30"
+                          className="stroke-white/50"
                         />
                       );
                     })}
