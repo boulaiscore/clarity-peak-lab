@@ -341,40 +341,117 @@ export function WeeklyGoalCard({
         duration: 0.3
       }} aria-busy={isSyncing} className="space-y-3">
           
-          {/* MAIN CARD — Ring + Status */}
+          {/* MAIN CARD — Gauge Arc + Status */}
           <CollapsibleTrigger className="w-full">
-            <div className="rounded-2xl bg-gradient-to-br from-[hsl(var(--muted)/0.12)] to-[hsl(var(--muted)/0.04)] border border-border/20 p-5">
-              <div className="flex items-center gap-5">
-                {/* Progress Ring */}
-                <div className="relative w-[96px] h-[96px] shrink-0">
-                  <svg viewBox="0 0 96 96" className="w-full h-full -rotate-90">
-                    <circle cx="48" cy="48" r={ringRadius} fill="none" strokeWidth="4.5" className="stroke-white/[0.06]" />
-                    {!goalReached && <circle cx="48" cy="48" r={ringRadius} fill="none" strokeWidth="4.5" className="stroke-emerald-500/15" strokeDasharray={ringCircumference} strokeDashoffset={ringCircumference - ((optimalRangePercent.max - optimalRangePercent.min) / 100) * ringCircumference} style={{ transform: `rotate(${(optimalRangePercent.min / 100) * 360}deg)`, transformOrigin: '48px 48px' }} strokeLinecap="round" />}
-                    <motion.circle cx="48" cy="48" r={ringRadius} fill="none" strokeWidth="5" className={getRingColor()} strokeDasharray={ringCircumference} initial={false} animate={{ strokeDashoffset: ringOffset }} transition={{ duration: 0.8, ease: "easeOut" }} strokeLinecap="round" />
+            <div className="rounded-2xl bg-gradient-to-br from-[hsl(var(--muted)/0.12)] to-[hsl(var(--muted)/0.04)] border border-border/20 px-5 pt-5 pb-4">
+              {/* Centered Gauge */}
+              <div className="flex flex-col items-center">
+                {/* Arc Gauge SVG */}
+                <div className="relative w-[200px] h-[110px] mb-1">
+                  <svg viewBox="0 0 200 110" className="w-full h-full">
+                    {/* Background arc track */}
+                    <path
+                      d="M 20 100 A 80 80 0 0 1 180 100"
+                      fill="none"
+                      strokeWidth="10"
+                      strokeLinecap="round"
+                      className="stroke-white/[0.06]"
+                    />
+                    {/* Optimal zone arc segment */}
+                    {!goalReached && (() => {
+                      const arcLength = Math.PI * 80; // half circumference
+                      const optStartAngle = Math.PI + (optimalRangePercent.min / 100) * Math.PI;
+                      const optEndAngle = Math.PI + (optimalRangePercent.max / 100) * Math.PI;
+                      const optStartX = 100 + 80 * Math.cos(optStartAngle);
+                      const optStartY = 100 + 80 * Math.sin(optStartAngle);
+                      const optEndX = 100 + 80 * Math.cos(optEndAngle);
+                      const optEndY = 100 + 80 * Math.sin(optEndAngle);
+                      return (
+                        <path
+                          d={`M ${optStartX} ${optStartY} A 80 80 0 0 1 ${optEndX} ${optEndY}`}
+                          fill="none"
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          className="stroke-emerald-500/25"
+                        />
+                      );
+                    })()}
+                    {/* Progress arc — colored by status */}
+                    {(() => {
+                      const totalArcLength = Math.PI * 80;
+                      const progressArc = (ringPercent / 100) * totalArcLength;
+                      const strokeColor = goalReached 
+                        ? "#34d399" 
+                        : adaptiveStatus.status === "above" 
+                          ? "#fbbf24" 
+                          : adaptiveStatus.status === "within" 
+                            ? "#2dd4bf" 
+                            : "#e2e8f0";
+                      return (
+                        <motion.path
+                          d="M 20 100 A 80 80 0 0 1 180 100"
+                          fill="none"
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          stroke={strokeColor}
+                          strokeDasharray={totalArcLength}
+                          initial={false}
+                          animate={{ strokeDashoffset: totalArcLength - progressArc }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                        />
+                      );
+                    })()}
+                    {/* Tick marks at optimal boundaries */}
+                    {!goalReached && [optimalRangePercent.min, optimalRangePercent.max].map((pct, i) => {
+                      const angle = Math.PI + (pct / 100) * Math.PI;
+                      const innerR = 72;
+                      const outerR = 90;
+                      return (
+                        <line
+                          key={i}
+                          x1={100 + innerR * Math.cos(angle)}
+                          y1={100 + innerR * Math.sin(angle)}
+                          x2={100 + outerR * Math.cos(angle)}
+                          y2={100 + outerR * Math.sin(angle)}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          className="stroke-white/30"
+                        />
+                      );
+                    })}
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[24px] font-bold text-foreground tabular-nums leading-none">
-                      {Math.round(rawGamesXP)}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground/60 font-medium mt-1">
-                      of {weeklyXPTarget}
-                    </span>
-                  </div>
                 </div>
 
-                {/* Right side */}
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] text-muted-foreground/50 font-semibold uppercase tracking-[0.12em] block mb-1">Weekly Load</span>
-                  <p className={`text-[16px] font-bold leading-tight mb-3 ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
-                    {goalReached ? "Target Reached" : adaptiveStatus.copy.label}
-                  </p>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] w-fit">
-                    <span className="text-[10px] text-muted-foreground/50">Optimal</span>
-                    <span className="text-[11px] font-semibold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max}</span>
-                  </div>
+                {/* Status label */}
+                <span className="text-[10px] text-muted-foreground/50 font-semibold uppercase tracking-[0.14em] mb-1">
+                  Weekly Load
+                </span>
+
+                {/* Big XP number */}
+                <div className="flex items-baseline gap-1 mb-1.5">
+                  <span className="text-[36px] font-bold text-foreground tabular-nums leading-none tracking-tight">
+                    {Math.round(rawGamesXP)}
+                  </span>
+                  <span className="text-[14px] text-muted-foreground/40 font-semibold">
+                    /{weeklyXPTarget}
+                  </span>
                 </div>
 
-                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="shrink-0 self-start mt-1">
+                {/* Adaptive status */}
+                <p className={`text-[13px] font-bold mb-3 ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
+                  {goalReached ? "Target Reached" : adaptiveStatus.copy.label}
+                </p>
+
+                {/* Optimal range pill */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                  <span className="text-[10px] text-muted-foreground/50">Optimal Zone</span>
+                  <span className="text-[12px] font-bold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
+                </div>
+              </div>
+
+              {/* Expand chevron */}
+              <div className="flex justify-center mt-3">
+                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
                   <ChevronDown className="w-4 h-4 text-muted-foreground/30" />
                 </motion.div>
               </div>
