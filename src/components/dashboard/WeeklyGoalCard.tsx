@@ -346,16 +346,10 @@ export function WeeklyGoalCard({
             <div className="rounded-2xl bg-gradient-to-br from-[hsl(var(--muted)/0.12)] to-[hsl(var(--muted)/0.04)] border border-border/20 px-5 pt-5 pb-4">
               {/* Centered Gauge */}
               <div className="flex flex-col items-center">
-                {/* Arc Gauge SVG */}
-                <div className="relative w-[220px] h-[125px] mb-1">
-                  <svg viewBox="0 0 220 125" className="w-full h-full">
+                {/* Arc Gauge SVG with info inside */}
+                <div className="relative w-[240px] h-[140px]">
+                  <svg viewBox="0 0 240 140" className="w-full h-full">
                     <defs>
-                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#f97316" />
-                        <stop offset="40%" stopColor="#facc15" />
-                        <stop offset="70%" stopColor="#34d399" />
-                        <stop offset="100%" stopColor="#22c55e" />
-                      </linearGradient>
                       <linearGradient id="gaugeProgressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#f97316" />
                         <stop offset="50%" stopColor="#facc15" />
@@ -363,43 +357,39 @@ export function WeeklyGoalCard({
                         <stop offset="100%" stopColor="#22c55e" />
                       </linearGradient>
                     </defs>
-                    {/* Background arc track */}
+                    {/* Background arc track — thin */}
                     <path
-                      d="M 20 110 A 90 90 0 0 1 200 110"
+                      d="M 25 125 A 95 95 0 0 1 215 125"
                       fill="none"
-                      strokeWidth="12"
+                      strokeWidth="7"
                       strokeLinecap="round"
                       className="stroke-white/[0.08]"
                     />
-                    {/* Optimal zone arc segment — bright green */}
+                    {/* Optimal zone arc segment */}
                     {!goalReached && (() => {
+                      const cx = 120, cy = 125, r = 95;
                       const optStartAngle = Math.PI + (optimalRangePercent.min / 100) * Math.PI;
                       const optEndAngle = Math.PI + (optimalRangePercent.max / 100) * Math.PI;
-                      const cx = 110, cy = 110, r = 90;
-                      const optStartX = cx + r * Math.cos(optStartAngle);
-                      const optStartY = cy + r * Math.sin(optStartAngle);
-                      const optEndX = cx + r * Math.cos(optEndAngle);
-                      const optEndY = cy + r * Math.sin(optEndAngle);
                       return (
                         <path
-                          d={`M ${optStartX} ${optStartY} A ${r} ${r} 0 0 1 ${optEndX} ${optEndY}`}
+                          d={`M ${cx + r * Math.cos(optStartAngle)} ${cy + r * Math.sin(optStartAngle)} A ${r} ${r} 0 0 1 ${cx + r * Math.cos(optEndAngle)} ${cy + r * Math.sin(optEndAngle)}`}
                           fill="none"
-                          strokeWidth="12"
+                          strokeWidth="7"
                           strokeLinecap="round"
                           stroke="#22c55e"
                           opacity={0.3}
                         />
                       );
                     })()}
-                    {/* Progress arc — gradient like reference */}
+                    {/* Progress arc — gradient */}
                     {(() => {
-                      const totalArcLength = Math.PI * 90;
+                      const totalArcLength = Math.PI * 95;
                       const progressArc = (ringPercent / 100) * totalArcLength;
                       return (
                         <motion.path
-                          d="M 20 110 A 90 90 0 0 1 200 110"
+                          d="M 25 125 A 95 95 0 0 1 215 125"
                           fill="none"
-                          strokeWidth="12"
+                          strokeWidth="7"
                           strokeLinecap="round"
                           stroke="url(#gaugeProgressGrad)"
                           strokeDasharray={totalArcLength}
@@ -409,19 +399,16 @@ export function WeeklyGoalCard({
                         />
                       );
                     })()}
-                    {/* Current value marker — white dot on arc */}
+                    {/* Current value marker — white dot */}
                     {(() => {
-                      const cx = 110, cy = 110, r = 90;
+                      const cx = 120, cy = 125, r = 95;
                       const angle = Math.PI + (ringPercent / 100) * Math.PI;
                       const mx = cx + r * Math.cos(angle);
                       const my = cy + r * Math.sin(angle);
                       return (
                         <motion.circle
-                          cx={mx}
-                          cy={my}
-                          r="7"
+                          r="5"
                           fill="white"
-                          className="drop-shadow-lg"
                           initial={false}
                           animate={{ cx: mx, cy: my }}
                           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -430,10 +417,10 @@ export function WeeklyGoalCard({
                     })()}
                     {/* Tick marks at optimal boundaries */}
                     {!goalReached && [optimalRangePercent.min, optimalRangePercent.max].map((pct, i) => {
-                      const cx = 110, cy = 110;
+                      const cx = 120, cy = 125;
                       const angle = Math.PI + (pct / 100) * Math.PI;
-                      const innerR = 80;
-                      const outerR = 101;
+                      const innerR = 87;
+                      const outerR = 103;
                       return (
                         <line
                           key={i}
@@ -441,37 +428,34 @@ export function WeeklyGoalCard({
                           y1={cy + innerR * Math.sin(angle)}
                           x2={cx + outerR * Math.cos(angle)}
                           y2={cy + outerR * Math.sin(angle)}
-                          strokeWidth="2.5"
+                          strokeWidth="2"
                           strokeLinecap="round"
-                          className="stroke-white/50"
+                          className="stroke-white/40"
                         />
                       );
                     })}
                   </svg>
+                  {/* Info overlay inside the arc */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-end pb-2">
+                    <span className="text-[9px] text-muted-foreground/50 font-semibold uppercase tracking-[0.14em] mb-0.5">
+                      Weekly Load
+                    </span>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-[32px] font-bold text-foreground tabular-nums leading-none tracking-tight">
+                        {Math.round(rawGamesXP)}
+                      </span>
+                      <span className="text-[13px] text-muted-foreground/40 font-semibold">
+                        /{weeklyXPTarget}
+                      </span>
+                    </div>
+                    <p className={`text-[11px] font-bold mt-0.5 ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
+                      {goalReached ? "Target Reached" : adaptiveStatus.copy.label}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Status label */}
-                <span className="text-[10px] text-muted-foreground/50 font-semibold uppercase tracking-[0.14em] mb-1">
-                  Weekly Load
-                </span>
-
-                {/* Big XP number */}
-                <div className="flex items-baseline gap-1 mb-1.5">
-                  <span className="text-[36px] font-bold text-foreground tabular-nums leading-none tracking-tight">
-                    {Math.round(rawGamesXP)}
-                  </span>
-                  <span className="text-[14px] text-muted-foreground/40 font-semibold">
-                    /{weeklyXPTarget}
-                  </span>
-                </div>
-
-                {/* Adaptive status */}
-                <p className={`text-[13px] font-bold mb-3 ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
-                  {goalReached ? "Target Reached" : adaptiveStatus.copy.label}
-                </p>
-
-                {/* Optimal range pill */}
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                {/* Optimal range pill below gauge */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] mt-2">
                   <span className="text-[10px] text-muted-foreground/50">Optimal Zone</span>
                   <span className="text-[12px] font-bold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
                 </div>
