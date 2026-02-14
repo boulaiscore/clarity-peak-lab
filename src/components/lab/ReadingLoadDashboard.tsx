@@ -5,10 +5,9 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Headphones, Maximize2, Brain } from "lucide-react";
+import { BookOpen, Headphones, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReasonSessionStats, useReasonSessions } from "@/hooks/useReasonSessions";
-import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { startOfDay } from "date-fns";
 
 interface ReadingLoadDashboardProps {
@@ -18,21 +17,29 @@ interface ReadingLoadDashboardProps {
 export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
   const { data: stats, isLoading } = useReasonSessionStats();
   const { data: recentSessions } = useReasonSessions(7);
-  const { rq, isLoading: rqLoading } = useReasoningQuality();
+  
 
-  // Compute today's per-type minutes from recent sessions (real data)
-  const todayByType = useMemo(() => {
-    if (!recentSessions) return { reading: 0, listening: 0, readingSessions: 0, listeningSessions: 0 };
+  // Compute today's and weekly per-type minutes from recent sessions (real data)
+  const { todayByType, weekByType } = useMemo(() => {
+    const empty = { reading: 0, listening: 0, readingSessions: 0, listeningSessions: 0, readingWeighted: 0, listeningWeighted: 0 };
+    if (!recentSessions) return { todayByType: empty, weekByType: { ...empty } };
     const todayStart = startOfDay(new Date());
-    let reading = 0, listening = 0, readingSessions = 0, listeningSessions = 0;
+    const today = { ...empty };
+    const week = { ...empty };
     for (const s of recentSessions) {
+      const min = s.duration_seconds / 60;
+      const weighted = min * s.weight;
+      const isReading = s.session_type === "reading";
+      // Week (all recentSessions are within 7 days)
+      if (isReading) { week.reading += min; week.readingSessions++; week.readingWeighted += weighted; }
+      else { week.listening += min; week.listeningSessions++; week.listeningWeighted += weighted; }
+      // Today
       if (new Date(s.started_at) >= todayStart) {
-        const min = s.duration_seconds / 60;
-        if (s.session_type === "reading") { reading += min; readingSessions++; }
-        else { listening += min; listeningSessions++; }
+        if (isReading) { today.reading += min; today.readingSessions++; today.readingWeighted += weighted; }
+        else { today.listening += min; today.listeningSessions++; today.listeningWeighted += weighted; }
       }
     }
-    return { reading, listening, readingSessions, listeningSessions };
+    return { todayByType: today, weekByType: week };
   }, [recentSessions]);
 
   // Weekly session counts (from stats hook — real data)
@@ -73,7 +80,7 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
     return days[d.getDay()];
   };
 
-  const rqDisplay = Math.round(rq);
+  
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -108,7 +115,7 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
             READING
           </span>
           <span className="text-[10px] text-muted-foreground/50">
-            {weekReadingSessions} session{weekReadingSessions !== 1 ? "s" : ""} this week
+            {weekReadingSessions} session{weekReadingSessions !== 1 ? "s" : ""} · {Math.round(weekByType.readingWeighted)} pts this week
           </span>
         </div>
 
@@ -152,7 +159,7 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
             LISTENING
           </span>
           <span className="text-[10px] text-muted-foreground/50">
-            {weekListeningSessions} session{weekListeningSessions !== 1 ? "s" : ""} this week
+            {weekListeningSessions} session{weekListeningSessions !== 1 ? "s" : ""} · {Math.round(weekByType.listeningWeighted)} pts this week
           </span>
         </div>
 
@@ -173,45 +180,6 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
         </div>
       </motion.div>
 
-      {/* Reasoning Quality row */}
-      <motion.div
-        initial={{ opacity: 0, x: -8 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: 0.12 }}
-        className="flex items-center gap-3 rounded-xl px-2 py-2"
-        style={{ background: "hsl(220 20% 13%)" }}
-      >
-        <div
-          className="flex items-center gap-2 rounded-lg px-3 py-2.5 min-w-[76px]"
-          style={{ background: "hsl(215 35% 28%)" }}
-        >
-          <Brain className="w-4 h-4 shrink-0" style={{ color: "hsl(215 60% 65%)" }} />
-          <span className="text-[16px] font-bold tabular-nums text-white leading-none">
-            {rqLoading ? "—" : rqDisplay}
-          </span>
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <span className="text-[13px] font-semibold tracking-wide text-foreground/80 block">
-            RQ SCORE
-          </span>
-          <span className="text-[10px] text-muted-foreground/50">
-            Reasoning Quality
-          </span>
-        </div>
-
-        <div className="text-right text-[11px] tabular-nums leading-[1.5] text-muted-foreground/50 font-medium shrink-0">
-          <div className={cn(
-            "text-[10px] font-semibold px-2 py-0.5 rounded-full",
-            rq >= 80 ? "text-emerald-400 bg-emerald-500/10" :
-            rq >= 65 ? "text-blue-400 bg-blue-500/10" :
-            rq >= 50 ? "text-foreground/60 bg-muted/20" :
-            "text-amber-400 bg-amber-500/10"
-          )}>
-            {rq >= 80 ? "Elite" : rq >= 65 ? "Strong" : rq >= 50 ? "Developing" : rq >= 35 ? "Building" : "Emerging"}
-          </div>
-        </div>
-      </motion.div>
     </div>
   );
 }
