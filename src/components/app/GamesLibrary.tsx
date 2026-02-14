@@ -17,13 +17,13 @@ import { GameType } from "@/lib/gamesGating";
 
 // Areas available per thinking system (2x2 matrix)
 const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType; shade: string }[] = [
-  { areaId: "focus", name: "Attentional Efficiency", code: "AE", gameType: "S1-AE", shade: "bg-[hsl(0,0%,14%)]" },
-  { areaId: "creativity", name: "Rapid Association", code: "RA", gameType: "S1-RA", shade: "bg-[hsl(0,0%,16%)]" },
+  { areaId: "focus", name: "Attentional Efficiency", code: "AE", gameType: "S1-AE", shade: "bg-[hsl(215,20%,15%)]" },
+  { areaId: "creativity", name: "Rapid Association", code: "RA", gameType: "S1-RA", shade: "bg-[hsl(220,18%,17%)]" },
 ];
 
 const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType; shade: string }[] = [
-  { areaId: "reasoning", name: "Critical Thinking", code: "CT", gameType: "S2-CT", shade: "bg-[hsl(0,0%,12%)]" },
-  { areaId: "creativity", name: "Insight", code: "IN", gameType: "S2-IN", shade: "bg-[hsl(0,0%,18%)]" },
+  { areaId: "reasoning", name: "Critical Thinking", code: "CT", gameType: "S2-CT", shade: "bg-[hsl(225,22%,13%)]" },
+  { areaId: "creativity", name: "Insight", code: "IN", gameType: "S2-IN", shade: "bg-[hsl(210,16%,19%)]" },
 ];
 
 type ThinkingSystem = "fast" | "slow";
