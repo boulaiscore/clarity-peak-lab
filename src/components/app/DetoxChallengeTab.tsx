@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import recoveryDetoxImg from "@/assets/recovery-detox.jpg";
 import recoveryWalkImg from "@/assets/recovery-walk.jpg";
+import recoveryDetoxMaleImg from "@/assets/recovery-detox-male.jpg";
+import recoveryWalkMaleImg from "@/assets/recovery-walk-male.jpg";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -262,6 +264,10 @@ export function DetoxChallengeTab() {
 
   const currentModeConfig = RECOVERY_MODES[selectedMode];
 
+  const isMale = user?.gender === "male";
+  const detoxImg = isMale ? recoveryDetoxMaleImg : recoveryDetoxImg;
+  const walkImg = isMale ? recoveryWalkMaleImg : recoveryWalkImg;
+
   return (
     <div className="space-y-5 -mx-4 px-4 py-4 bg-teal-500/5 rounded-xl">
       {/* XP Explanation */}
@@ -389,7 +395,7 @@ export function DetoxChallengeTab() {
                   {/* Image header */}
                   <div className="relative h-20 w-full">
                     <img
-                      src={mode.id === "detox" ? recoveryDetoxImg : recoveryWalkImg}
+                      src={mode.id === "detox" ? detoxImg : walkImg}
                       alt={mode.id === "detox" ? "Digital Detox" : "Active Walk"}
                       className="w-full h-full object-cover"
                     />
