@@ -122,7 +122,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       {/* XP Info - Minimal */}
       <div className="px-4 py-2.5 rounded-xl bg-muted/15 border border-border/15">
         <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 leading-relaxed">
-          Training awards <span className="text-foreground/80 font-medium">15–42 XP</span> per session
+          Training awards <span className="text-foreground/80 font-medium">9–45 XP</span> per session
         </p>
       </div>
 
