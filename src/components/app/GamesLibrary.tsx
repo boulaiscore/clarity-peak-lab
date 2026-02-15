@@ -4,7 +4,10 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
-
+import gameAeBg from "@/assets/game-ae-bg.jpg";
+import gameRaBg from "@/assets/game-ra-bg.jpg";
+import gameCtBg from "@/assets/game-ct-bg.jpg";
+import gameInBg from "@/assets/game-in-bg.jpg";
 
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
@@ -108,10 +111,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   };
 
   const allAreas = [
-    { ...SYSTEM_1_AREAS[0], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))" },
-    { ...SYSTEM_1_AREAS[1], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))" },
-    { ...SYSTEM_2_AREAS[0], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))" },
-    { ...SYSTEM_2_AREAS[1], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))" },
+    { ...SYSTEM_1_AREAS[0], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))", bgImage: gameAeBg },
+    { ...SYSTEM_1_AREAS[1], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))", bgImage: gameRaBg },
+    { ...SYSTEM_2_AREAS[0], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))", bgImage: gameCtBg },
+    { ...SYSTEM_2_AREAS[1], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))", bgImage: gameInBg },
   ];
 
   return (
@@ -130,51 +133,52 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
             key={`${area.gameType}`}
             onClick={() => handleGameTypeClick(area.areaId, area.system, area.gameType)}
             className={cn(
-              "group relative w-full rounded-none border border-white/[0.08] bg-white/[0.08] backdrop-blur-sm transition-all text-left overflow-hidden",
-              "hover:border-white/[0.15] hover:bg-white/[0.14]",
+              "group relative w-full rounded-none border border-white/[0.08] transition-all text-left overflow-hidden",
+              "hover:border-white/[0.15]",
               "active:scale-[0.97]"
             )}
           >
+            {/* Background image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${area.bgImage})` }}
+            />
+            {/* Dark overlay for legibility */}
+            <div className="absolute inset-0 bg-black/55" />
+
             {/* Card content */}
-            <div className="p-4 flex flex-col gap-3 min-h-[120px]">
+            <div className="relative z-10 p-4 flex flex-col gap-3 min-h-[120px]">
               {/* System badge + chevron */}
               <div className="flex items-center justify-between">
                 <span
-                  className="text-[9px] font-bold uppercase tracking-[0.18em] px-2 py-0.5 rounded-md"
-                  style={{
-                    backgroundColor: `color-mix(in srgb, ${area.accentColor} 15%, transparent)`,
-                    color: area.accentColor,
-                  }}
+                  className="text-[9px] font-bold uppercase tracking-[0.18em] px-2 py-0.5 rounded-md bg-white/[0.1] backdrop-blur-sm"
+                  style={{ color: area.accentColor }}
                 >
                   {area.systemLabel} · {area.system === "fast" ? "Fast" : "Slow"}
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors" />
               </div>
 
               {/* Code monogram */}
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{
-                  backgroundColor: `color-mix(in srgb, ${area.accentColor} 12%, transparent)`,
-                }}
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.08] backdrop-blur-sm"
               >
                 <span
-                  className="text-[13px] font-bold tracking-wider"
-                  style={{ color: area.accentColor }}
+                  className="text-[13px] font-bold tracking-wider text-white/80"
                 >
                   {area.code}
                 </span>
               </div>
 
               {/* Name */}
-              <span className="text-[12px] font-medium text-foreground/85 leading-snug mt-auto">
+              <span className="text-[12px] font-medium text-white/85 leading-snug mt-auto">
                 {area.name}
               </span>
             </div>
 
             {/* Subtle bottom accent line */}
             <div
-              className="h-[2px] w-full opacity-40"
+              className="relative z-10 h-[2px] w-full opacity-40"
               style={{ backgroundColor: area.accentColor }}
             />
           </button>
