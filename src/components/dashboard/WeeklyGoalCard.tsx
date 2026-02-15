@@ -351,10 +351,10 @@ export function WeeklyGoalCard({
                   <svg viewBox="0 0 240 140" className="w-full h-full">
                     <defs>
                       <linearGradient id="gaugeProgressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#f97316" />
-                        <stop offset="50%" stopColor="#facc15" />
-                        <stop offset="85%" stopColor="#34d399" />
-                        <stop offset="100%" stopColor="#22c55e" />
+                        <stop offset="0%" stopColor="#fb923c" />
+                        <stop offset="40%" stopColor="#fbbf24" />
+                        <stop offset="70%" stopColor="#4ade80" />
+                        <stop offset="100%" stopColor="#22ff66" />
                       </linearGradient>
                     </defs>
                     {/* Background arc track — thin */}
@@ -376,8 +376,8 @@ export function WeeklyGoalCard({
                           fill="none"
                           strokeWidth="7"
                           strokeLinecap="round"
-                          stroke="#22c55e"
-                          opacity={0.3}
+                          stroke="#22ff66"
+                          opacity={0.35}
                         />
                       );
                     })()}
