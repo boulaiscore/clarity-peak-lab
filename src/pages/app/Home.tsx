@@ -503,16 +503,6 @@ const Home = () => {
         {/* Additional suggestions (skip first since it's in the combined box) */}
         {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <div key={suggestion.id} className="mb-4"><SmartSuggestionCard suggestion={suggestion} index={index} /></div>)}
 
-        {/* Reading Load Dashboard */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-          className="mb-5"
-        >
-          <h3 className="text-sm font-semibold mb-3">Reading Load</h3>
-          <ReadingLoadDashboard />
-        </motion.section>
 
         {/* In-Progress Tasks Reminder - shown after priority suggestions */}
         {(() => {
