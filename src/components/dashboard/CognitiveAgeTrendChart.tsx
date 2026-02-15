@@ -164,49 +164,49 @@ export function CognitiveAgeTrendChart() {
       ? Number(baseline.baseline_score_90d)
       : null;
 
-    // CASE 1: Weekly data exists → use it (post-calibration)
-    if (weekly.length > 0) {
-      const data: ChartDataPoint[] = weekly.map((w) => ({
-        label: format(parseISO(w.week_start), "d MMM"),
-        cognitiveAge: w.cognitive_age
-          ? Math.round(Number(w.cognitive_age) * 10) / 10
-          : null,
-        realAge,
-        date: w.week_start,
-      }));
-      return { displayData: data, currentRealAge: realAge };
+    // Build a full 30-day skeleton
+    const today = new Date();
+    const allDays: ChartDataPoint[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = subDays(today, i);
+      const dateStr = format(d, "yyyy-MM-dd");
+      const dateRealAge = profile?.birth_date
+        ? calcAgeAtDate(profile.birth_date, dateStr)
+        : realAge;
+      allDays.push({
+        label: format(d, "d MMM"),
+        cognitiveAge: null,
+        realAge: dateRealAge,
+        date: dateStr,
+      });
     }
 
-    // CASE 2: No weekly data → use daily snapshots (calibration period)
-    if (daily.length > 0) {
-      const data: ChartDataPoint[] = daily.map((d) => {
-        // Calculate real age at this specific date for precision
-        const dateRealAge = profile?.birth_date
-          ? calcAgeAtDate(profile.birth_date, d.snapshot_date)
-          : realAge;
+    // Index weekly data by week_start
+    const weeklyMap = new Map(weekly.map((w) => [w.week_start, w]));
+    // Index daily data by snapshot_date
+    const dailyMap = new Map(daily.map((d) => [d.snapshot_date, d]));
 
-        const cogAge = calcCognitiveAgeFromSnapshot(
+    // Fill cognitive age from weekly or daily sources
+    for (const point of allDays) {
+      const w = weeklyMap.get(point.date);
+      if (w?.cognitive_age) {
+        point.cognitiveAge = Math.round(Number(w.cognitive_age) * 10) / 10;
+        continue;
+      }
+      const d = dailyMap.get(point.date);
+      if (d) {
+        point.cognitiveAge = calcCognitiveAgeFromSnapshot(
           d.ae ? Number(d.ae) : null,
           d.ra ? Number(d.ra) : null,
           d.ct ? Number(d.ct) : null,
           d.in_score ? Number(d.in_score) : null,
-          dateRealAge,
+          point.realAge,
           baselineScore
         );
-
-        return {
-          label: format(parseISO(d.snapshot_date), "d MMM"),
-          cognitiveAge: cogAge,
-          realAge: dateRealAge,
-          date: d.snapshot_date,
-        };
-      });
-
-      return { displayData: data, currentRealAge: realAge };
+      }
     }
 
-    // CASE 3: No data at all → empty
-    return { displayData: [], currentRealAge: realAge };
+    return { displayData: allDays, currentRealAge: realAge };
   }, [chartSources]);
 
   const hasData = displayData.some((d) => d.cognitiveAge !== null);
@@ -296,8 +296,8 @@ export function CognitiveAgeTrendChart() {
               axisLine={false}
               tickLine={false}
               tick={<CustomXAxisTick />}
-              interval={0}
-              padding={{ left: 10, right: 10 }}
+              interval={4}
+              padding={{ left: 5, right: 5 }}
             />
             <YAxis
               domain={[yMin, yMax]}
