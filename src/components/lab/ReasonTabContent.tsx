@@ -11,10 +11,10 @@ import { motion } from "framer-motion";
 import { Play } from "lucide-react";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
 import reasonListeningImg from "@/assets/reason-listening.jpg";
-import { 
+import {
   useActiveReasonSession,
-  SessionType,
-} from "@/hooks/useReasonSessions";
+  SessionType } from
+"@/hooks/useReasonSessions";
 import { ReasonSessionTimer } from "./ReasonSessionTimer";
 import { ReasonContentSelector } from "./ReasonContentSelector";
 
@@ -22,20 +22,20 @@ import { ReasonContentSelector } from "./ReasonContentSelector";
 export function ReasonTabContent() {
   const [showSelector, setShowSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<SessionType>("reading");
-  
+
   const { data: activeSession, isLoading } = useActiveReasonSession();
-  
+
   // If there's an active session, show the timer
   if (activeSession) {
     return (
       <ReasonSessionTimer
         session={activeSession}
         onComplete={() => {}}
-        onAbort={() => {}}
-      />
-    );
+        onAbort={() => {}} />);
+
+
   }
-  
+
   return (
     <div className="space-y-6">
       {/* XP Explanation */}
@@ -51,23 +51,23 @@ export function ReasonTabContent() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-3"
-      >
+        className="space-y-3">
+
         <h3 className="text-sm font-semibold">Start a Session</h3>
         
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => { setSelectorMode("reading"); setShowSelector(true); }}
-            className="group relative flex flex-col items-center justify-end gap-2 p-4 pt-24 rounded-2xl border border-amber-500/20 hover:border-amber-500/40 transition-all overflow-hidden"
-          >
-            <img 
-              src={reasonReadingImg} 
-              alt="Reading" 
-              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
-            />
+            onClick={() => {setSelectorMode("reading");setShowSelector(true);}}
+            className="group relative flex flex-col items-center justify-end gap-2 p-4 pt-24 rounded-2xl border border-amber-500/20 hover:border-amber-500/40 transition-all overflow-hidden">
+
+            <img
+              src={reasonReadingImg}
+              alt="Reading"
+              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300" />
+
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
             <div className="relative z-10 text-center">
-              <p className="font-semibold text-sm text-white">Start Reading</p>
+              <p className="font-semibold text-sm text-white">Read</p>
               <p className="text-[10px] text-white/70">Books, articles, papers</p>
             </div>
             <div className="relative z-10 flex items-center gap-1 text-xs text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -77,14 +77,14 @@ export function ReasonTabContent() {
           </button>
           
           <button
-            onClick={() => { setSelectorMode("listening"); setShowSelector(true); }}
-            className="group relative flex flex-col items-center justify-end gap-2 p-4 pt-24 rounded-2xl border border-violet-500/20 hover:border-violet-500/40 transition-all overflow-hidden"
-          >
-            <img 
-              src={reasonListeningImg} 
-              alt="Listening" 
-              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
-            />
+            onClick={() => {setSelectorMode("listening");setShowSelector(true);}}
+            className="group relative flex flex-col items-center justify-end gap-2 p-4 pt-24 rounded-2xl border border-violet-500/20 hover:border-violet-500/40 transition-all overflow-hidden">
+
+            <img
+              src={reasonListeningImg}
+              alt="Listening"
+              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300" />
+
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
             <div className="relative z-10 text-center">
               <p className="font-semibold text-sm text-white">Start Listening</p>
@@ -104,8 +104,8 @@ export function ReasonTabContent() {
         open={showSelector}
         onClose={() => setShowSelector(false)}
         onSessionStarted={() => setShowSelector(false)}
-        initialSessionType={selectorMode}
-      />
-    </div>
-  );
+        initialSessionType={selectorMode} />
+
+    </div>);
+
 }
