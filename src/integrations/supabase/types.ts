@@ -24,6 +24,7 @@ export type Database = {
           id: string
           item_id: string | null
           last_read_at: string | null
+          pages: number | null
           source: string
           started_at: string
           status: string
@@ -41,6 +42,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           last_read_at?: string | null
+          pages?: number | null
           source?: string
           started_at?: string
           status?: string
@@ -58,6 +60,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           last_read_at?: string | null
+          pages?: number | null
           source?: string
           started_at?: string
           status?: string
