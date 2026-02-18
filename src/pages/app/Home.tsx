@@ -575,36 +575,17 @@ const Home = () => {
           >
             <button
               onClick={() => navigate("/neuro-lab?tab=tasks")}
-              className="w-full p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left"
+              className="w-full px-3 py-2.5 rounded-xl bg-muted/30 border border-border/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left flex items-center gap-3"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <BookOpen className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                  Currently Reading
-                </span>
-              </div>
-              <div className="space-y-2">
-                {activeBooks.slice(0, 2).map((book) => (
-                  <div key={book.id} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                      <BookOpen className="w-4 h-4 text-amber-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{book.title}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {book.total_minutes_read} min read
-                        {book.author ? ` · ${book.author}` : ""}
-                      </p>
-                    </div>
-                  </div>
+              <BookOpen className="w-4 h-4 text-amber-500 shrink-0" />
+              <div className="flex-1 min-w-0 flex items-center gap-2">
+                {activeBooks.slice(0, 2).map((book, i) => (
+                  <span key={book.id} className="text-xs font-medium truncate max-w-[140px]">
+                    {book.title}{i < activeBooks.length - 1 && activeBooks.length > 1 ? "," : ""}
+                  </span>
                 ))}
               </div>
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/30">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Open Quality Time
-                </span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             </button>
           </motion.section>
         )}
