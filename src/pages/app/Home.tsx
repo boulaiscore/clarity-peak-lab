@@ -578,9 +578,10 @@ const Home = () => {
               className="w-full px-3 py-2.5 rounded-xl bg-muted/30 border border-border/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left flex items-center gap-3"
             >
               <BookOpen className="w-4 h-4 text-amber-500 shrink-0" />
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium uppercase tracking-wide shrink-0">Reading</span>
               <div className="flex-1 min-w-0 flex items-center gap-2">
                 {activeBooks.slice(0, 2).map((book, i) => (
-                  <span key={book.id} className="text-xs font-medium truncate max-w-[140px]">
+                  <span key={book.id} className="text-xs font-medium truncate max-w-[120px]">
                     {book.title}{i < activeBooks.length - 1 && activeBooks.length > 1 ? "," : ""}
                   </span>
                 ))}
