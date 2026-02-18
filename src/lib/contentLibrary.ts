@@ -18,6 +18,18 @@ export interface ContentItem {
   source?: string;
   url?: string;
   spotifyShowId?: string; // For podcast embeds
+  pages?: number; // For books: total pages
+}
+
+/** Estimate total reading hours based on pages and difficulty */
+export function estimateReadingHours(pages: number, difficulty: ContentDifficulty): number {
+  // Average reading speed: ~30 pages/hour for light, ~20 for medium, ~12 for dense
+  const pagesPerHour: Record<ContentDifficulty, number> = {
+    light: 30,
+    medium: 20,
+    dense: 12,
+  };
+  return Math.round((pages / pagesPerHour[difficulty]) * 10) / 10;
 }
 
 // Curated content library
@@ -146,12 +158,13 @@ export const CONTENT_LIBRARY: ContentItem[] = [
   // BOOKS (Extracts)
   {
     id: "book-kahneman-tfas",
-    title: "Thinking, Fast and Slow - Chapter 1",
+    title: "Thinking, Fast and Slow",
     author: "Daniel Kahneman",
     format: "book",
     difficulty: "medium",
     thinkingSystems: ["S1+S2"],
     durationMinutes: 25,
+    pages: 499,
     description: "The Two Systems - Introduction to automatic and deliberate thinking",
     topics: ["dual-process", "cognition", "psychology"],
     url: "https://www.amazon.com/Thinking-Fast-Slow-Daniel-Kahneman/dp/0374533555",
@@ -164,6 +177,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     difficulty: "medium",
     thinkingSystems: ["S1"],
     durationMinutes: 20,
+    pages: 288,
     description: "Why intuition is smarter than we think",
     topics: ["intuition", "heuristics", "decision-making"],
     url: "https://www.amazon.com/Gut-Feelings-Intelligence-Unconscious-Gigerenzer/dp/0143113763",
@@ -176,6 +190,7 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     difficulty: "dense",
     thinkingSystems: ["S2"],
     durationMinutes: 30,
+    pages: 320,
     description: "Deep dive into reflective thinking and cognitive decoupling",
     topics: ["rationality", "reflection", "metacognition"],
     url: "https://www.amazon.com/Rationality-Reflective-Mind-Keith-Stanovich/dp/0195341147",
@@ -188,18 +203,20 @@ export const CONTENT_LIBRARY: ContentItem[] = [
     difficulty: "dense",
     thinkingSystems: ["S1"],
     durationMinutes: 25,
+    pages: 352,
     description: "Recognition-primed decision making in high-stakes environments",
     topics: ["expertise", "intuition", "decision-making"],
     url: "https://www.amazon.com/Sources-Power-People-Make-Decisions/dp/0262611465",
   },
   {
     id: "book-tetlock-superforecasting",
-    title: "Superforecasting - Chapter 3: Keeping Score",
+    title: "Superforecasting - The Art and Science of Prediction",
     author: "Philip Tetlock",
     format: "book",
     difficulty: "dense",
     thinkingSystems: ["S2"],
     durationMinutes: 30,
+    pages: 340,
     description: "How to calibrate predictions and improve judgment",
     topics: ["forecasting", "calibration", "judgment"],
     url: "https://www.amazon.com/Superforecasting-Science-Prediction-Philip-Tetlock/dp/0804136718",

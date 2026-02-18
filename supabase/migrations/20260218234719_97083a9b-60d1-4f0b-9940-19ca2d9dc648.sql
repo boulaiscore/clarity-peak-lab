@@ -1,0 +1,1 @@
+ALTER TABLE public.active_books ADD COLUMN pages INTEGER NULL;

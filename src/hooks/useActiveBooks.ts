@@ -18,6 +18,7 @@ export interface ActiveBook {
   item_id: string | null;
   cover_url: string | null;
   demand: string;
+  pages: number | null;
   total_minutes_read: number;
   status: string; // 'reading' | 'completed' | 'abandoned'
   started_at: string;
@@ -33,6 +34,7 @@ export interface NewActiveBook {
   source: "looma_list" | "custom";
   item_id?: string;
   demand?: string;
+  pages?: number;
 }
 
 const MAX_ACTIVE_BOOKS = 2;
@@ -85,6 +87,7 @@ export function useAddActiveBook() {
           source: book.source,
           item_id: book.item_id || null,
           demand: book.demand || "MEDIUM",
+          pages: book.pages || null,
         })
         .select()
         .single();
