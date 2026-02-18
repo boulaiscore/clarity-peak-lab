@@ -21,6 +21,7 @@ import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
 import { useCognitiveInsights } from "@/hooks/useCognitiveInsights";
 import { useTutorialState } from "@/hooks/useTutorialState";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
+import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
@@ -158,6 +159,8 @@ const Home = () => {
     optimalRange
   } = useTrainingCapacity();
 
+  // Active books for "Currently Reading" card
+  const { data: activeBooks = [] } = useActiveBooks();
   // Prioritized suggestions based on metrics and lab state
   const {
     suggestions: prioritizedSuggestions,
@@ -561,6 +564,50 @@ const Home = () => {
               </button>
             </motion.section>;
         })()}
+
+        {/* Currently Reading indicator */}
+        {isViewingToday && activeBooks.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.13 }}
+            className="mb-4"
+          >
+            <button
+              onClick={() => navigate("/neuro-lab?tab=tasks")}
+              className="w-full p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen className="w-4 h-4 text-amber-500" />
+                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                  Currently Reading
+                </span>
+              </div>
+              <div className="space-y-2">
+                {activeBooks.slice(0, 2).map((book) => (
+                  <div key={book.id} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{book.title}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {book.total_minutes_read} min read
+                        {book.author ? ` · ${book.author}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/30">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Open Quality Time
+                </span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </button>
+          </motion.section>
+        )}
 
         {/* Wearable Connection Prompt - shows when not connected */}
         {isViewingToday && (
