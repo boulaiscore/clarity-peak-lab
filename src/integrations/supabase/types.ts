@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_books: {
+        Row: {
+          author: string | null
+          completed_at: string | null
+          cover_url: string | null
+          created_at: string
+          demand: string | null
+          id: string
+          item_id: string | null
+          last_read_at: string | null
+          source: string
+          started_at: string
+          status: string
+          title: string
+          total_minutes_read: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author?: string | null
+          completed_at?: string | null
+          cover_url?: string | null
+          created_at?: string
+          demand?: string | null
+          id?: string
+          item_id?: string | null
+          last_read_at?: string | null
+          source?: string
+          started_at?: string
+          status?: string
+          title: string
+          total_minutes_read?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author?: string | null
+          completed_at?: string | null
+          cover_url?: string | null
+          created_at?: string
+          demand?: string | null
+          id?: string
+          item_id?: string | null
+          last_read_at?: string | null
+          source?: string
+          started_at?: string
+          status?: string
+          title?: string
+          total_minutes_read?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]
