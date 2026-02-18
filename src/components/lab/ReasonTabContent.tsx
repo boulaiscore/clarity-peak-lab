@@ -8,24 +8,33 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Play } from "lucide-react";
+import { Play, BookOpen } from "lucide-react";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
 import reasonListeningImg from "@/assets/reason-listening.jpg";
 import {
   useActiveReasonSession,
   SessionType,
 } from "@/hooks/useReasonSessions";
+import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { ReasonSessionTimer } from "./ReasonSessionTimer";
 import { ReasonContentSelector } from "./ReasonContentSelector";
 import { ActiveBooksView } from "./ActiveBooksView";
 import { EveningReadingReminder } from "./EveningReadingReminder";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export function ReasonTabContent() {
   const [showSelector, setShowSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<SessionType>("reading");
   const [showBooks, setShowBooks] = useState(false);
 
-  const { data: activeSession, isLoading } = useActiveReasonSession();
+  const { data: activeSession } = useActiveReasonSession();
+  const { data: activeBooks = [] } = useActiveBooks();
 
   // If there's an active session, show the timer
   if (activeSession) {
@@ -66,6 +75,17 @@ export function ReasonTabContent() {
             className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+          {/* Active books indicator on card */}
+          {activeBooks.length > 0 && (
+            <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm border border-amber-500/30">
+              <BookOpen className="w-3 h-3 text-amber-400" />
+              <span className="text-[10px] font-medium text-amber-300">
+                {activeBooks.length} in progress
+              </span>
+            </div>
+          )}
+
           <div className="relative z-10 text-center">
             <p className="font-semibold text-sm text-white">Read</p>
             <p className="text-[10px] text-white/70">Books, articles, deep reading</p>
@@ -98,16 +118,20 @@ export function ReasonTabContent() {
         </button>
       </motion.div>
 
-      {/* Active Books Sheet (shown when Read card is tapped) */}
-      {showBooks && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-2"
-        >
-          <ActiveBooksView />
-        </motion.div>
-      )}
+      {/* Active Books Dialog (opens when Read card is tapped) */}
+      <Dialog open={showBooks} onOpenChange={setShowBooks}>
+        <DialogContent className="max-w-sm max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Reading</DialogTitle>
+            <DialogDescription>
+              Manage your active books, start a timer, or log reading time.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <ActiveBooksView />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Content Selector Dialog (for listening) */}
       <ReasonContentSelector
