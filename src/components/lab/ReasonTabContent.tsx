@@ -87,7 +87,7 @@ export function ReasonTabContent() {
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
             <div className="relative z-10 text-center">
-              <p className="font-semibold text-sm text-white">Start Listening</p>
+              <p className="font-semibold text-sm text-white">Listen</p>
               <p className="text-[10px] text-white/70">Podcasts, audiobooks</p>
             </div>
             <div className="relative z-10 flex items-center gap-1 text-xs text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
