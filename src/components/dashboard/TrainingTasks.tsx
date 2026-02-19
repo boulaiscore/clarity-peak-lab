@@ -221,12 +221,10 @@ function useTasksHistory(days: number = 14) {
         const date = format(parseISO(row.completed_at), "yyyy-MM-dd");
         if (!byDate[date]) byDate[date] = { podcast: 0, book: 0, article: 0 };
         
-        // Count completions, not XP (matches "completions/day" label)
-        // exercise_id format: "content-{type}-{id}" e.g. "content-podcast-in-our-time"
         const match = (row.exercise_id || "").match(/^content-(podcast|book|article)-/);
         const contentType = (match?.[1] as "podcast" | "book" | "article" | undefined) ?? "article";
 
-        byDate[date][contentType] += 1; // Count, not XP
+        byDate[date][contentType] += 1;
       });
 
       // Build 14-day array with dd/MM format and count breakdown
@@ -239,10 +237,67 @@ function useTasksHistory(days: number = 14) {
         result.push({
           date: dateStr,
           dateLabel: format(date, "d/M"),
-          count: totalCount, // Total count for the day
+          count: totalCount,
           podcast: dayData.podcast,
           book: dayData.book,
           article: dayData.article,
+        });
+      }
+      return result;
+    },
+    enabled: !!stableUserId,
+    staleTime: 60_000,
+  });
+}
+
+// Hook to get 14-day reading sessions history (minutes from reason_sessions)
+function useReadingSessionsHistory(days: number = 14) {
+  const { user } = useAuth();
+
+  const stableUserId = user?.id ?? (() => {
+    try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
+  })();
+
+  return useQuery({
+    queryKey: ["reading-sessions-history-14d", stableUserId, days],
+    queryFn: async () => {
+      if (!stableUserId) return [];
+
+      const startDate = subDays(new Date(), days);
+
+      const { data, error } = await supabase
+        .from("reason_sessions")
+        .select("started_at, duration_seconds, session_type")
+        .eq("user_id", stableUserId)
+        .gte("started_at", startDate.toISOString())
+        .not("ended_at", "is", null);
+
+      if (error) throw error;
+
+      // Group by date, split by session_type (reading vs listening)
+      const byDate: Record<string, { reading: number; listening: number }> = {};
+      (data || []).forEach((row) => {
+        const date = format(parseISO(row.started_at), "yyyy-MM-dd");
+        if (!byDate[date]) byDate[date] = { reading: 0, listening: 0 };
+        const minutes = Math.round((row.duration_seconds || 0) / 60);
+        if (row.session_type === "reading") {
+          byDate[date].reading += minutes;
+        } else {
+          byDate[date].listening += minutes;
+        }
+      });
+
+      const result = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const dateStr = format(date, "yyyy-MM-dd");
+        const dayData = byDate[dateStr] || { reading: 0, listening: 0 };
+        result.push({
+          date: dateStr,
+          dateLabel: format(date, "d/M"),
+          reading: dayData.reading,
+          listening: dayData.listening,
+          total: dayData.reading + dayData.listening,
         });
       }
       return result;
@@ -420,6 +475,7 @@ export function TrainingTasks() {
   const { weeklyContentXP } = useWeeklyProgress();
   const { data: weeklyCompletions = [], isLoading } = useWeeklyCompletedContent(stableUserId);
   const { data: tasksHistoryData } = useTasksHistory(14);
+  const { data: readingHistoryData } = useReadingSessionsHistory(14);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const tasksTrendMax = useMemo(() => {
@@ -443,6 +499,24 @@ export function TrainingTasks() {
     if (ticks[ticks.length - 1] !== tasksTrendMax) ticks.push(tasksTrendMax);
     return ticks;
   }, [tasksTrendMax]);
+
+  const readingTrendMax = useMemo(() => {
+    const max = Math.max(0, ...(readingHistoryData ?? []).map((d) => d.total));
+    return Number.isFinite(max) ? max : 0;
+  }, [readingHistoryData]);
+
+  const readingTrendTicks = useMemo(() => {
+    if (readingTrendMax <= 0) return [0];
+    const step =
+      readingTrendMax <= 30 ? 5 :
+      readingTrendMax <= 60 ? 10 :
+      readingTrendMax <= 120 ? 15 :
+      readingTrendMax <= 240 ? 30 : 60;
+    const ticks: number[] = [];
+    for (let t = 0; t <= readingTrendMax; t += step) ticks.push(t);
+    if (ticks[ticks.length - 1] !== readingTrendMax) ticks.push(readingTrendMax);
+    return ticks;
+  }, [readingTrendMax]);
 
   // Get user's training plan for XP target
   const { data: profile } = useQuery({
@@ -672,6 +746,84 @@ export function TrainingTasks() {
           </div>
         )}
       </div>
+
+      {/* Reading Sessions Chart - minutes from timer/manual entries */}
+      <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen className="w-3.5 h-3.5 text-amber-500" />
+          <span className="text-[11px] font-medium text-foreground">Reading & Listening</span>
+          <span className="text-[9px] text-muted-foreground ml-auto">minutes / day</span>
+        </div>
+        {readingHistoryData && readingHistoryData.some(d => d.total > 0) ? (
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={readingHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
+                <XAxis 
+                  dataKey="dateLabel" 
+                  tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={40}
+                />
+                <YAxis 
+                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={35}
+                  allowDecimals={false}
+                  domain={[0, readingTrendMax]}
+                  ticks={readingTrendTicks}
+                  tickFormatter={(value) => `${Math.round(value)}`}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                  }}
+                  labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  formatter={(value: number, name: string) => {
+                    const labels: Record<string, string> = {
+                      reading: '📖 Reading',
+                      listening: '🎧 Listening'
+                    };
+                    return [`${value} min`, labels[name] || name];
+                  }}
+                  cursor={false}
+                />
+                <Bar 
+                  dataKey="reading" 
+                  stackId="sessions"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={20}
+                  fill="#f59e0b"
+                  name="reading"
+                />
+                <Bar 
+                  dataKey="listening" 
+                  stackId="sessions"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={20}
+                  fill="#8b5cf6"
+                  name="listening"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-24 flex flex-col items-center justify-center text-center">
+            <Timer className="h-6 w-6 text-muted-foreground/30 mb-2" />
+            <p className="text-[11px] text-muted-foreground">No sessions in the last 14 days</p>
+            <p className="text-[9px] text-muted-foreground/60 mt-0.5">Start a reading or listening timer to track your time</p>
+          </div>
+        )}
+      </div>
+
       {false && activeTasks.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1">
