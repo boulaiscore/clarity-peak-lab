@@ -218,6 +218,17 @@ const Dashboard = () => {
                     <div className="flex items-center justify-center">
                       <div className="inline-flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/30">
                         <button
+                      onClick={() => setActivitySubTab("training")}
+                      className={cn(
+                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
+                        activitySubTab === "training" ?
+                        "bg-background text-foreground shadow-sm" :
+                        "text-muted-foreground hover:text-foreground"
+                      )}>
+
+                          Train
+                        </button>
+                        <button
                       onClick={() => setActivitySubTab("tasks")}
                       className={cn(
                         "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
@@ -238,17 +249,6 @@ const Dashboard = () => {
                       )}>
 
                           Recover
-                        </button>
-                        <button
-                      onClick={() => setActivitySubTab("training")}
-                      className={cn(
-                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
-                        activitySubTab === "training" ?
-                        "bg-background text-foreground shadow-sm" :
-                        "text-muted-foreground hover:text-foreground"
-                      )}>
-
-                          Train
                         </button>
                       </div>
                     </div>
