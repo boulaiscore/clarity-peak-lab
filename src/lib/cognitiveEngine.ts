@@ -161,7 +161,7 @@ export function calculateSharpness(states: CognitiveStates, recovery: number): n
   const { S1, S2 } = calculateSystemScores(states);
   
   const base = 0.6 * S1 + 0.4 * S2;
-  const modulated = base * (0.75 + 0.25 * recovery / 100);
+  const modulated = base * (0.65 + 0.35 * recovery / 100);
   
   return clamp(Math.round(modulated * 10) / 10, 0, 100);
 }
