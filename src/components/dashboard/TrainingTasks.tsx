@@ -661,15 +661,15 @@ export function TrainingTasks() {
       {/* Protocol Adherence removed in v1.3 - tasks are cognitive inputs, not tracked metrics */}
 
 
-      {/* Reading Sessions Chart - minutes from timer/manual entries */}
+      {/* Reading Time Chart */}
       <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
         <div className="flex items-center gap-2 mb-3">
           <BookOpen className="w-3.5 h-3.5 text-amber-500" />
-          <span className="text-[11px] font-medium text-foreground">Reading & Listening</span>
+          <span className="text-[11px] font-medium text-foreground">Reading Time</span>
           <span className="text-[9px] text-muted-foreground ml-auto">minutes / day</span>
         </div>
-        {readingHistoryData && readingHistoryData.some(d => d.total > 0) ? (
-          <div className="h-40">
+        {readingHistoryData && readingHistoryData.some(d => d.reading > 0) ? (
+          <div className="h-36">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={readingHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
                 <XAxis 
@@ -688,8 +688,6 @@ export function TrainingTasks() {
                   tickLine={false}
                   width={35}
                   allowDecimals={false}
-                  domain={[0, readingTrendMax]}
-                  ticks={readingTrendTicks}
                   tickFormatter={(value) => `${Math.round(value)}`}
                 />
                 <Tooltip 
@@ -699,28 +697,68 @@ export function TrainingTasks() {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: number, name: string) => {
-                    const labels: Record<string, string> = {
-                      reading: '📖 Reading',
-                      listening: '🎧 Listening'
-                    };
-                    return [`${value} min`, labels[name] || name];
-                  }}
+                  formatter={(value: number) => [`${value} min`, '📖 Reading']}
                   cursor={false}
                 />
                 <Bar 
                   dataKey="reading" 
-                  stackId="sessions"
-                  radius={[0, 0, 0, 0]}
+                  radius={[4, 4, 0, 0]}
                   maxBarSize={20}
                   fill="#f59e0b"
                   name="reading"
                 />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-20 flex flex-col items-center justify-center text-center">
+            <BookOpen className="h-5 w-5 text-muted-foreground/30 mb-1.5" />
+            <p className="text-[10px] text-muted-foreground">No reading sessions yet</p>
+          </div>
+        )}
+      </div>
+
+      {/* Listening Time Chart */}
+      <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+        <div className="flex items-center gap-2 mb-3">
+          <Headphones className="w-3.5 h-3.5 text-violet-500" />
+          <span className="text-[11px] font-medium text-foreground">Listening Time</span>
+          <span className="text-[9px] text-muted-foreground ml-auto">minutes / day</span>
+        </div>
+        {readingHistoryData && readingHistoryData.some(d => d.listening > 0) ? (
+          <div className="h-36">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={readingHistoryData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
+                <XAxis 
+                  dataKey="dateLabel" 
+                  tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={40}
+                />
+                <YAxis 
+                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={35}
+                  allowDecimals={false}
+                  tickFormatter={(value) => `${Math.round(value)}`}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                  }}
+                  formatter={(value: number) => [`${value} min`, '🎧 Listening']}
+                  cursor={false}
+                />
                 <Bar 
                   dataKey="listening" 
-                  stackId="sessions"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={20}
                   fill="#8b5cf6"
@@ -730,10 +768,9 @@ export function TrainingTasks() {
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-24 flex flex-col items-center justify-center text-center">
-            <Timer className="h-6 w-6 text-muted-foreground/30 mb-2" />
-            <p className="text-[11px] text-muted-foreground">No sessions in the last 14 days</p>
-            <p className="text-[9px] text-muted-foreground/60 mt-0.5">Start a reading or listening timer to track your time</p>
+          <div className="h-20 flex flex-col items-center justify-center text-center">
+            <Headphones className="h-5 w-5 text-muted-foreground/30 mb-1.5" />
+            <p className="text-[10px] text-muted-foreground">No listening sessions yet</p>
           </div>
         )}
       </div>
