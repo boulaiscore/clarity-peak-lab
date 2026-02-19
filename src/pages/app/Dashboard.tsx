@@ -237,7 +237,7 @@ const Dashboard = () => {
                         "text-muted-foreground hover:text-foreground"
                       )}>
 
-                          Reason
+                          Quality Time
                         </button>
                         <button
                       onClick={() => setActivitySubTab("detox")}
