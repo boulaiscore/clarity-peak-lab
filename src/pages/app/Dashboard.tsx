@@ -21,16 +21,16 @@ import { cn } from "@/lib/utils";
 const Dashboard = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  
+
   // Initialize tabs from URL params
   const initialTab = searchParams.get("tab") as "overview" | "training" | "report" | null;
   const initialSubTab = searchParams.get("subtab") as "trends" | "games" | "tasks" | "detox" | null;
-  
+
   const [activeTab, setActiveTab] = useState<"overview" | "training" | "report">(
     initialTab && ["overview", "training", "report"].includes(initialTab) ? initialTab : "overview"
   );
   const [analyticsTab, setAnalyticsTab] = useState<"trends" | "activity">(
-    initialSubTab === "trends" ? "trends" : 
+    initialSubTab === "trends" ? "trends" :
     initialSubTab && ["games", "tasks", "detox"].includes(initialSubTab) ? "activity" : "trends"
   );
   const [activitySubTab, setActivitySubTab] = useState<"tasks" | "detox" | "training">(
@@ -38,18 +38,18 @@ const Dashboard = () => {
     initialSubTab === "tasks" ? "tasks" :
     initialSubTab === "detox" ? "detox" : "tasks"
   );
-  
+
   const isPremium = user?.subscriptionStatus === "premium";
-  
+
   // Initialize cognitive baseline on app load
   useInitializeCognitiveBaseline();
-  
+
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
-  
+
   // NOTE: Cognitive Age is now a slow-moving weekly metric managed by useCognitiveAge hook
   // The CognitiveAgeCard component handles its own data fetching
-  
+
   // Get fast/slow thinking scores with deltas from baseline
   // S1 (Fast) = (AE + RA) / 2 = (focus_stability + fast_thinking) / 2
   // S2 (Slow) = (CT + IN) / 2 = (reasoning_accuracy + slow_thinking) / 2
@@ -59,28 +59,28 @@ const Dashboard = () => {
     const RA = metrics?.fast_thinking || 50;
     const CT = metrics?.reasoning_accuracy || 50;
     const IN = metrics?.slow_thinking || 50;
-    
+
     // Calculate S1 and S2 using correct aggregation formula
-    const currentFast = Math.round((AE + RA) / 2);  // S1
-    const currentSlow = Math.round((CT + IN) / 2);  // S2
-    
+    const currentFast = Math.round((AE + RA) / 2); // S1
+    const currentSlow = Math.round((CT + IN) / 2); // S2
+
     // Baseline skill values
     const baselineAE = metrics?.baseline_focus || 50;
     const baselineRA = metrics?.baseline_fast_thinking || 50;
     const baselineCT = metrics?.baseline_reasoning || 50;
     const baselineIN = metrics?.baseline_slow_thinking || 50;
-    
+
     // Calculate baseline S1 and S2 with same formula
     const baselineFast = (baselineAE + baselineRA) / 2;
     const baselineSlow = (baselineCT + baselineIN) / 2;
-    
+
     // Only show delta if user has completed at least 1 training session
     const hasTrainedAfterBaseline = (metrics?.total_sessions || 0) > 0;
-    
+
     // Calculate improvement from baseline only if training has occurred
     const fastDelta = hasTrainedAfterBaseline ? Math.round(currentFast - baselineFast) : 0;
     const slowDelta = hasTrainedAfterBaseline ? Math.round(currentSlow - baselineSlow) : 0;
-    
+
     return {
       fastScore: currentFast,
       slowScore: currentSlow,
@@ -90,7 +90,7 @@ const Dashboard = () => {
       baselineSlow: Math.round(baselineSlow)
     };
   }, [metrics]);
-  
+
   // Synthesized Cognitive Index (SCI) for neural animation
   const { sci, statusText: sciStatusText, bottleneck, isLoading: sciLoading } = useCognitiveNetworkScore();
 
@@ -100,8 +100,8 @@ const Dashboard = () => {
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
-      </AppShell>
-    );
+      </AppShell>);
+
   }
 
   return (
@@ -114,11 +114,11 @@ const Dashboard = () => {
             onClick={() => setActiveTab("overview")}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "overview"
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
+              activeTab === "overview" ?
+              "bg-primary/10 text-primary shadow-sm" :
+              "text-muted-foreground hover:text-foreground"
+            )}>
+
             <BarChart3 className="w-3.5 h-3.5" />
             Overview
           </button>
@@ -126,11 +126,11 @@ const Dashboard = () => {
             onClick={() => setActiveTab("training")}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "training"
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
+              activeTab === "training" ?
+              "bg-primary/10 text-primary shadow-sm" :
+              "text-muted-foreground hover:text-foreground"
+            )}>
+
             <TrendingUp className="w-3.5 h-3.5" />
             Analytics
           </button>
@@ -138,11 +138,11 @@ const Dashboard = () => {
             onClick={() => setActiveTab("report")}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "report"
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
+              activeTab === "report" ?
+              "bg-primary/10 text-primary shadow-sm" :
+              "text-muted-foreground hover:text-foreground"
+            )}>
+
             <FileText className="w-3.5 h-3.5" />
             Report
           </button>
@@ -155,46 +155,46 @@ const Dashboard = () => {
         <WearableConnectionPrompt />
 
         {/* Tab Content */}
-        {activeTab === "overview" ? (
-          <OverviewCarousel 
-            sci={sci}
-            sciStatusText={sciStatusText}
-            thinkingScores={thinkingScores}
-            bottleneck={bottleneck}
-          />
+        {activeTab === "overview" ?
+        <OverviewCarousel
+          sci={sci}
+          sciStatusText={sciStatusText}
+          thinkingScores={thinkingScores}
+          bottleneck={bottleneck} /> :
 
-        ) : activeTab === "training" ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-4"
-          >
+
+        activeTab === "training" ?
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4">
+
 
             {/* Two main tabs: Trends | Activity */}
             <div className="bg-muted/40 p-1 rounded-xl">
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setAnalyticsTab("trends")}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                    analyticsTab === "trends"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
+                onClick={() => setAnalyticsTab("trends")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
+                  analyticsTab === "trends" ?
+                  "bg-background text-foreground shadow-sm" :
+                  "text-muted-foreground hover:text-foreground"
+                )}>
+
                   <LineChart className="w-3.5 h-3.5" />
                   <span>Trends</span>
                 </button>
                 <button
-                  onClick={() => setAnalyticsTab("activity")}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                    analyticsTab === "activity"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
+                onClick={() => setAnalyticsTab("activity")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
+                  analyticsTab === "activity" ?
+                  "bg-background text-foreground shadow-sm" :
+                  "text-muted-foreground hover:text-foreground"
+                )}>
+
                   <Activity className="w-3.5 h-3.5" />
                   <span>Activity</span>
                 </button>
@@ -204,50 +204,50 @@ const Dashboard = () => {
             {/* Tab Content with animation */}
             <AnimatePresence mode="wait">
               <motion.div
-                key={analyticsTab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
-              >
-                {analyticsTab === "trends" ? (
-                  <MetricTrendCharts />
-                ) : (
-                  <div className="space-y-4">
+              key={analyticsTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}>
+
+                {analyticsTab === "trends" ?
+              <MetricTrendCharts /> :
+
+              <div className="space-y-4">
                     {/* WHOOP-style segmented control for Activity breakdown */}
                     <div className="flex items-center justify-center">
                       <div className="inline-flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/30">
                         <button
-                          onClick={() => setActivitySubTab("tasks")}
-                          className={cn(
-                            "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
-                            activitySubTab === "tasks"
-                              ? "bg-background text-foreground shadow-sm"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          Reason
+                      onClick={() => setActivitySubTab("tasks")}
+                      className={cn(
+                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
+                        activitySubTab === "tasks" ?
+                        "bg-background text-foreground shadow-sm" :
+                        "text-muted-foreground hover:text-foreground"
+                      )}>
+
+                          Quality Time
                         </button>
                         <button
-                          onClick={() => setActivitySubTab("detox")}
-                          className={cn(
-                            "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
-                            activitySubTab === "detox"
-                              ? "bg-background text-foreground shadow-sm"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
+                      onClick={() => setActivitySubTab("detox")}
+                      className={cn(
+                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
+                        activitySubTab === "detox" ?
+                        "bg-background text-foreground shadow-sm" :
+                        "text-muted-foreground hover:text-foreground"
+                      )}>
+
                           Recharge
                         </button>
                         <button
-                          onClick={() => setActivitySubTab("training")}
-                          className={cn(
-                            "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
-                            activitySubTab === "training"
-                              ? "bg-background text-foreground shadow-sm"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
+                      onClick={() => setActivitySubTab("training")}
+                      className={cn(
+                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
+                        activitySubTab === "training" ?
+                        "bg-background text-foreground shadow-sm" :
+                        "text-muted-foreground hover:text-foreground"
+                      )}>
+
                           Train
                         </button>
                       </div>
@@ -256,34 +256,34 @@ const Dashboard = () => {
                     {/* Activity sub-content */}
                     <AnimatePresence mode="wait">
                       <motion.div
-                        key={activitySubTab}
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        {activitySubTab === "tasks" ? (
-                          <TrainingTasks />
-                        ) : activitySubTab === "detox" ? (
-                          <DetoxStats />
-                        ) : (
-                          <GamesStats />
-                        )}
+                    key={activitySubTab}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}>
+
+                        {activitySubTab === "tasks" ?
+                    <TrainingTasks /> :
+                    activitySubTab === "detox" ?
+                    <DetoxStats /> :
+
+                    <GamesStats />
+                    }
                       </motion.div>
                     </AnimatePresence>
                   </div>
-                )}
+              }
               </motion.div>
             </AnimatePresence>
 
-          </motion.div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-3"
-          >
+          </motion.div> :
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-3">
+
             {/* Report CTA */}
             <Link to="/app/report" className="block group">
               <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
@@ -306,11 +306,11 @@ const Dashboard = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Cognitive Intelligence Report</h3>
-                        {!isPremium && (
-                          <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-area-fast/20 to-area-fast/10 text-area-fast border border-area-fast/30">
+                        {!isPremium &&
+                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-area-fast/20 to-area-fast/10 text-area-fast border border-area-fast/30">
                             Premium
                           </span>
-                        )}
+                      }
                       </div>
                       <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 leading-relaxed">
                         Deep analysis of your cognitive architecture
@@ -331,15 +331,15 @@ const Dashboard = () => {
                   </div>
                   
                   {/* CTA Button */}
-                  <Button 
-                    variant={isPremium ? "premium" : "default"} 
-                    className={cn(
-                      "w-full h-11 text-[12px] font-medium gap-2 transition-all duration-300",
-                      isPremium 
-                        ? "shadow-lg shadow-primary/20" 
-                        : "bg-primary/90 hover:bg-primary text-primary-foreground shadow-md shadow-primary/15"
-                    )}
-                  >
+                  <Button
+                  variant={isPremium ? "premium" : "default"}
+                  className={cn(
+                    "w-full h-11 text-[12px] font-medium gap-2 transition-all duration-300",
+                    isPremium ?
+                    "shadow-lg shadow-primary/20" :
+                    "bg-primary/90 hover:bg-primary text-primary-foreground shadow-md shadow-primary/15"
+                  )}>
+
                     <Sparkles className="w-4 h-4" />
                     {isPremium ? "View Full Report" : "Explore Report"}
                   </Button>
@@ -347,10 +347,10 @@ const Dashboard = () => {
               </div>
             </Link>
           </motion.div>
-        )}
+        }
       </div>
-    </AppShell>
-  );
+    </AppShell>);
+
 };
 
 export default Dashboard;
