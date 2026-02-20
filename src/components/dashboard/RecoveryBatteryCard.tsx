@@ -59,6 +59,19 @@ export function RecoveryBatteryCard({
       onClick={onClick}
       className="w-full flex flex-col items-center cursor-pointer group"
     >
+      {/* Pill label — top, same style as Sharpness/Readiness/Reasoning */}
+      <div className="flex items-center mb-2">
+        <span className="px-3 py-1 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80 group-hover:bg-muted/60 transition-colors flex items-center gap-1">
+          Recovery
+          <span
+            className="text-[9px] font-medium normal-case tracking-normal"
+            style={{ color: recoveryColor, opacity: 0.75 }}
+          >
+            · {displayInfo.text}
+          </span>
+        </span>
+      </div>
+
       {/* Big number + status */}
       <div className="flex items-baseline gap-1.5 mb-2">
         <span className="text-2xl font-bold tabular-nums tracking-tight text-foreground leading-none">
@@ -78,7 +91,7 @@ export function RecoveryBatteryCard({
       </div>
 
       {/* Minimal bar */}
-      <div className="relative w-full max-w-[200px] h-[6px] rounded-full overflow-hidden bg-border/20 mb-2">
+      <div className="relative w-full max-w-[200px] h-[6px] rounded-full overflow-hidden bg-border/20">
         <motion.div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
@@ -97,19 +110,6 @@ export function RecoveryBatteryCard({
           animate={{ width: `${fillPercent}%` }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
         />
-      </div>
-
-      {/* Pill label — same style as Sharpness/Readiness/Reasoning */}
-      <div className="flex items-center">
-        <span className="px-3 py-1 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80 group-hover:bg-muted/60 transition-colors flex items-center gap-1">
-          Recovery
-          <span
-            className="text-[9px] font-medium normal-case tracking-normal"
-            style={{ color: recoveryColor, opacity: 0.75 }}
-          >
-            · {displayInfo.text}
-          </span>
-        </span>
       </div>
     </motion.button>
   );
