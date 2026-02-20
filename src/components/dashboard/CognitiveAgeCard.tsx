@@ -16,7 +16,7 @@ import { AlertTriangle, Clock, Activity, TrendingDown, Info, Loader2 } from "luc
 import { useCognitiveAge, getRegressionRiskLabel, getRegressionRiskColor } from "@/hooks/useCognitiveAge";
 import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
 import { CognitiveAgeTrendChart } from "./CognitiveAgeTrendChart";
-import { CognitiveAgeImpact } from "./CognitiveAgeImpact";
+
 import { CognitiveAgeInsights } from "./CognitiveAgeInsights";
 import { PaceOfAgingDial } from "./PaceOfAgingDial";
 import { cn } from "@/lib/utils";
@@ -204,8 +204,6 @@ export function CognitiveAgeCard() {
       {/* WHOOP-style insights */}
       <CognitiveAgeInsights />
 
-      {/* Impact breakdown */}
-      <CognitiveAgeImpact />
 
     </div>
   );
