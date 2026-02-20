@@ -1,7 +1,7 @@
 /**
- * RecoveryBatteryCard - Circular ring indicator for Recovery metric
+ * RecoveryBatteryCard - Horizontal battery/loading bar for Recovery metric
  * 
- * Displays Recovery as a progress ring matching Sharpness/Readiness/Reasoning style.
+ * Displays Recovery as a horizontal progress bar, centered below the 3 rings.
  */
 
 import { motion } from "framer-motion";
@@ -21,15 +21,8 @@ export function RecoveryBatteryCard({
   deltaVsYesterday,
   onClick
 }: RecoveryBatteryCardProps) {
-  const size = 90;
-  const strokeWidth = 4;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
   const fillPercent = Math.min(Math.max(recovery, 0), 100);
-  const progress = fillPercent / 100;
-  const strokeDashoffset = circumference - progress * circumference;
 
-  // Dynamic color based on recovery value
   const getRecoveryColor = (value: number): string => {
     if (value <= 35) {
       const hue = 0 + (value / 35) * 30;
@@ -51,61 +44,50 @@ export function RecoveryBatteryCard({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center">
-        <div className="rounded-full bg-muted/20 animate-pulse" style={{ width: size, height: size }} />
-        <div className="mt-2 h-5 w-16 bg-muted/30 rounded-full animate-pulse" />
+      <div className="flex flex-col items-center gap-1.5 px-2">
+        <div className="h-3 bg-muted/20 rounded-full w-full animate-pulse" />
       </div>
     );
   }
 
   return (
     <motion.button
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       onClick={onClick}
-      className="flex flex-col items-center cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.97]"
+      className="w-full px-2 cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.99]"
     >
-      <div className="relative" style={{ width: size, height: size }}>
-        {/* Background ring */}
-        <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <circle
-            cx={size / 2} cy={size / 2} r={radius}
-            fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth}
-            className="opacity-20"
-          />
-        </svg>
-        {/* Progress ring */}
-        <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <motion.circle
-            cx={size / 2} cy={size / 2} r={radius}
-            fill="none" stroke={recoveryColor} strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-          />
-        </svg>
-        {/* Center content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[9px] font-medium mb-0.5" style={{ color: recoveryColor, opacity: 0.8 }}>
+      {/* Label row */}
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80">
+          Recovery
+        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[9px] font-medium" style={{ color: recoveryColor, opacity: 0.8 }}>
             {displayInfo.text}
           </span>
-          <span className="text-2xl font-bold tracking-tight text-foreground">
-            {Math.round(recovery)}
+          <span className="text-xs font-bold tabular-nums text-foreground">
+            {Math.round(recovery)}%
           </span>
           {deltaVsYesterday && (
-            <span className="text-[8px] font-medium mt-0.5 tabular-nums" style={{ color: recoveryColor, opacity: 0.85 }}>
+            <span className="text-[8px] font-medium tabular-nums" style={{ color: recoveryColor, opacity: 0.85 }}>
               {deltaVsYesterday}
             </span>
           )}
         </div>
       </div>
-      {/* Label below the ring */}
-      <span className="mt-2 px-3 py-1 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80 hover:bg-muted/60 transition-colors">
-        Recovery
-      </span>
+
+      {/* Progress bar */}
+      <div className="h-2 bg-muted/20 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ backgroundColor: recoveryColor }}
+          initial={{ width: 0 }}
+          animate={{ width: `${fillPercent}%` }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+        />
+      </div>
     </motion.button>
   );
 }
