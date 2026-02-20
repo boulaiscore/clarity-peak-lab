@@ -4,46 +4,20 @@
  * ============================================
  * 
  * Premium insight cards showing:
- * - Trajectory (30d vs 180d trend)
  * - Regression risk status
  * - Biggest improvement lever / Top performer
  */
 
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Target, Sparkles, ChevronRight, Clock } from "lucide-react";
+import { AlertTriangle, Target, Sparkles, ChevronRight } from "lucide-react";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
-import { useCognitiveAgeImpact, VARIABLE_CONFIG } from "@/hooks/useCognitiveAgeImpact";
+import { useCognitiveAgeImpact } from "@/hooks/useCognitiveAgeImpact";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 export function CognitiveAgeInsights() {
-  const { data, hasWeeklyData } = useCognitiveAge();
-  const { contributions, hasEnoughData, totalImprovementPoints, daysWithData, daysRequired } = useCognitiveAgeImpact();
-
-  // Calculate trajectory from contributions data if weekly data not available
-  const getTrajectory = () => {
-    // First try weekly data
-    if (data.perf30d !== null && data.perf180d !== null) {
-      const diff = data.perf30d - data.perf180d;
-      if (diff > 2) return { status: "improving" as const, diff };
-      if (diff < -2) return { status: "declining" as const, diff };
-      return { status: "stable" as const, diff };
-    }
-    
-    // Fallback: use totalImprovementPoints from contributions
-    if (hasEnoughData && contributions.length > 0) {
-      if (totalImprovementPoints > 0.5) return { status: "improving" as const, diff: totalImprovementPoints };
-      if (totalImprovementPoints < -0.5) return { status: "declining" as const, diff: totalImprovementPoints };
-      return { status: "stable" as const, diff: totalImprovementPoints };
-    }
-    
-    // Default to stable if we have any data
-    if (hasEnoughData) {
-      return { status: "stable" as const, diff: 0 };
-    }
-    
-    return null;
-  };
+  const { data } = useCognitiveAge();
+  const { contributions } = useCognitiveAgeImpact();
 
   // Find biggest negative contributor (biggest lever for improvement)
   // OR find best performer if all are positive/neutral
@@ -86,14 +60,10 @@ export function CognitiveAgeInsights() {
     return null;
   };
 
-  const trajectory = getTrajectory();
   const driverInfo = getDriverInfo();
   const regressionRisk = data.regressionRisk;
   const streakDays = data.regressionStreakDays;
   const daysToRegression = Math.max(0, 21 - streakDays);
-
-  // Check if we're still collecting data
-  const isCollectingData = !hasEnoughData || !trajectory;
 
   return (
     <motion.div
@@ -101,68 +71,6 @@ export function CognitiveAgeInsights() {
       animate={{ opacity: 1, y: 0 }}
       className="mx-2 space-y-2"
     >
-      {/* Trajectory Card - Always show */}
-      <div className="p-3 rounded-xl bg-muted/20 border border-border/20">
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-            isCollectingData && "bg-muted/30",
-            !isCollectingData && trajectory?.status === "improving" && "bg-emerald-500/10",
-            !isCollectingData && trajectory?.status === "declining" && "bg-red-500/10",
-            !isCollectingData && trajectory?.status === "stable" && "bg-blue-500/10"
-          )}>
-            {isCollectingData && <Clock className="w-4 h-4 text-muted-foreground" />}
-            {!isCollectingData && trajectory?.status === "improving" && <TrendingUp className="w-4 h-4 text-emerald-500" />}
-            {!isCollectingData && trajectory?.status === "declining" && <TrendingDown className="w-4 h-4 text-red-400" />}
-            {!isCollectingData && trajectory?.status === "stable" && <Minus className="w-4 h-4 text-blue-400" />}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-0.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Trajectory
-              </p>
-              {isCollectingData && (
-                <span className="text-[10px] font-medium text-muted-foreground">
-                  {daysWithData}/{daysRequired} days
-                </span>
-              )}
-            </div>
-            <p className={cn(
-              "leading-relaxed",
-              isCollectingData ? "text-[10px]" : "text-xs"
-            )}>
-              {isCollectingData ? (
-                <>
-                  <span className="font-medium text-muted-foreground">Collecting data</span>
-                  <span className="text-muted-foreground/70"> — need {daysRequired - daysWithData} more day{daysRequired - daysWithData !== 1 ? 's' : ''} to analyze.</span>
-                </>
-              ) : (
-                <>
-                  {trajectory?.status === "improving" && (
-                    <>
-                      <span className="font-semibold text-emerald-500">Improving</span>
-                      <span className="text-muted-foreground"> — your recent performance is above baseline.</span>
-                    </>
-                  )}
-                  {trajectory?.status === "declining" && (
-                    <>
-                      <span className="font-semibold text-red-400">Declining</span>
-                      <span className="text-muted-foreground"> — your recent performance is below baseline.</span>
-                    </>
-                  )}
-                  {trajectory?.status === "stable" && (
-                    <>
-                      <span className="font-semibold text-blue-400">Steady</span>
-                      <span className="text-muted-foreground"> — your performance is stable and aligned with baseline.</span>
-                    </>
-                  )}
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Regression Risk Card - Only show if risk is medium or high */}
       {regressionRisk !== "low" && streakDays > 0 && (
         <div className={cn(
