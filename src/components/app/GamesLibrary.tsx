@@ -105,9 +105,9 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   return (
     <div className="space-y-2">
       {/* XP Info */}
-      <div className="px-3 py-2 border-b border-border/10 mb-3">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50">
-          Training awards <span className="text-foreground/60 font-medium">9–45 XP</span> per session
+      <div className="px-3 py-2 border-b border-border/30 mb-3">
+        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          Training awards <span className="text-foreground/90 font-medium">9–45 XP</span> per session
         </p>
       </div>
 
@@ -124,8 +124,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               className={cn(
                 "group w-full flex items-center justify-between px-4 py-3.5 border transition-all duration-200 text-left",
                 isOpen
-                  ? "border-white/[0.12] bg-white/[0.04]"
-                  : "border-white/[0.06] bg-transparent hover:bg-white/[0.03] hover:border-white/[0.09]"
+                  ? "border-border/60 bg-white/[0.06]"
+                  : "border-border/40 bg-white/[0.02] hover:bg-white/[0.04] hover:border-border/60"
               )}
             >
               <div className="flex items-center gap-3">
@@ -133,8 +133,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 <div
                   className="w-8 h-8 flex items-center justify-center rounded-none border"
                   style={{
-                    borderColor: `${system.accentColor}40`,
-                    backgroundColor: `${system.accentColor}12`,
+                    borderColor: `${system.accentColor}60`,
+                    backgroundColor: `${system.accentColor}18`,
                   }}
                 >
                   <Icon
@@ -145,7 +145,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-foreground/90 tracking-tight">
+                    <span className="text-[13px] font-semibold text-foreground tracking-tight">
                       {system.label}
                     </span>
                     <span
@@ -155,21 +155,21 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                       {system.id === "fast" ? "Fast" : "Slow"}
                     </span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground/50 mt-0.5 tracking-wide">
+                  <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">
                     {system.description}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">
+                <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
                   2 modules
                 </span>
                 <motion.div
                   animate={{ rotate: isOpen ? 180 : 0 }}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
                 >
-                  <ChevronDown className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground/80 transition-colors" />
                 </motion.div>
               </div>
             </button>
