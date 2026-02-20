@@ -466,7 +466,18 @@ const Home = () => {
                 <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={90} strokeWidth={4} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
               
-              {/* Recovery Bar */}
+              {/* Goal Complete indicator - only shows when target reached AND viewing today */}
+              {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-xs font-medium text-emerald-400">Weekly Target Reached</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/70 mt-1.5">
+                    Same plan, same rhythm. Keep training or rest freely.
+                  </p>
+                </div>}
+              
+              {/* Recovery Battery Card */}
               <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} />
             </motion.section>
 
