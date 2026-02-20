@@ -71,7 +71,7 @@ export function RecoveryBatteryCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       onClick={onClick}
-      className="w-full px-3 py-2.5 rounded-xl bg-muted/30 border border-border/30 text-left hover:border-border/50 transition-colors"
+      className="w-full px-3 py-2.5 text-left transition-colors"
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-1">
