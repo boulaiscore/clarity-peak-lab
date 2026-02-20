@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, Zap, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
@@ -20,31 +20,43 @@ import { TargetExceededDialog } from "./TargetExceededDialog";
 import { useGamesGating } from "@/hooks/useGamesGating";
 import { GameType } from "@/lib/gamesGating";
 
-// Areas available per thinking system (2x2 matrix)
-const SYSTEM_1_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType }[] = [
-  { areaId: "focus", name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" },
-  { areaId: "creativity", name: "Rapid Association", code: "RA", gameType: "S1-RA" },
-];
-
-const SYSTEM_2_AREAS: { areaId: NeuroLabArea; name: string; code: string; gameType: GameType }[] = [
-  { areaId: "reasoning", name: "Critical Thinking", code: "CT", gameType: "S2-CT" },
-  { areaId: "creativity", name: "Insight", code: "IN", gameType: "S2-IN" },
-];
-
 type ThinkingSystem = "fast" | "slow";
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
 }
 
+const SYSTEMS = [
+  {
+    id: "fast" as ThinkingSystem,
+    label: "System 1",
+    sublabel: "Fast · Intuitive",
+    description: "Speed, pattern recognition, automaticity",
+    accentColor: "hsl(var(--area-fast))",
+    areas: [
+      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, subLabel: "Focus & Precision" },
+      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, subLabel: "Intuitive Links" },
+    ],
+  },
+  {
+    id: "slow" as ThinkingSystem,
+    label: "System 2",
+    sublabel: "Slow · Deliberate",
+    description: "Logic, analysis, structured reasoning",
+    accentColor: "hsl(var(--area-slow))",
+    areas: [
+      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, subLabel: "Logic & Analysis" },
+      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, subLabel: "Clarity & Synthesis" },
+    ],
+  },
+];
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
+  const [openSystem, setOpenSystem] = useState<ThinkingSystem | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
   const [pickerMode, setPickerMode] = useState<ThinkingSystem>("fast");
-  
-  
   const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: ThinkingSystem } | null>(null);
   const [showTargetExceededDialog, setShowTargetExceededDialog] = useState(false);
   const [showS1AESelector, setShowS1AESelector] = useState(false);
@@ -52,44 +64,24 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const [showS2CTSelector, setShowS2CTSelector] = useState(false);
   const [showS2INSelector, setShowS2INSelector] = useState(false);
   const { gamesComplete } = useCappedWeeklyProgress();
-  const { games, caps, safetyRuleActive, isLoading: gatingLoading } = useGamesGating();
+  const { games } = useGamesGating();
+
+  const handleSystemToggle = (systemId: ThinkingSystem) => {
+    setOpenSystem(prev => prev === systemId ? null : systemId);
+  };
 
   const handleGameTypeClick = (areaId: NeuroLabArea, mode: ThinkingSystem, gameType: GameType) => {
-    // Always allow opening game selectors to see the games list
-    // Individual games will be locked within the selector if needed
-    const gatingResult = games[gameType];
-    const isLocked = gatingResult && gatingResult.status !== "ENABLED";
-    
-    // S1-AE has its own game selector with Triage Sprint, Orbit Lock, Focus Switch
-    if (gameType === "S1-AE") {
-      setShowS1AESelector(true);
-      return;
-    }
-    
-    // S1-RA has its own game selector with Flash Connect, Constellation Snap
-    if (gameType === "S1-RA") {
-      setShowS1RASelector(true);
-      return;
-    }
-    
-    // S2-CT has its own game selector with Causal Ledger, Counterfactual Audit, Socratic Cross-Exam
-    if (gameType === "S2-CT") {
-      setShowS2CTSelector(true);
-      return;
-    }
-    
-    // S2-IN has its own game selector with Signal vs Noise
-    if (gameType === "S2-IN") {
-      setShowS2INSelector(true);
-      return;
-    }
-    
+    if (gameType === "S1-AE") { setShowS1AESelector(true); return; }
+    if (gameType === "S1-RA") { setShowS1RASelector(true); return; }
+    if (gameType === "S2-CT") { setShowS2CTSelector(true); return; }
+    if (gameType === "S2-IN") { setShowS2INSelector(true); return; }
+
     if (gamesComplete) {
       setPendingGame({ areaId, mode });
       setShowTargetExceededDialog(true);
       return;
     }
-    
+
     setPickerArea(areaId);
     setPickerMode(mode);
     setPickerOpen(true);
@@ -110,82 +102,154 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     navigate(`/neuro-lab/${pickerArea}/session?exerciseId=${exercise.id}&mode=${pickerMode}`);
   };
 
-  const allAreas = [
-    { ...SYSTEM_1_AREAS[0], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))", bgImage: gameAeBg },
-    { ...SYSTEM_1_AREAS[1], system: "fast" as ThinkingSystem, systemLabel: "S1", accentColor: "hsl(var(--area-fast))", bgImage: gameRaBg },
-    { ...SYSTEM_2_AREAS[0], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))", bgImage: gameCtBg },
-    { ...SYSTEM_2_AREAS[1], system: "slow" as ThinkingSystem, systemLabel: "S2", accentColor: "hsl(var(--area-slow))", bgImage: gameInBg },
-  ];
-
   return (
-    <div className="space-y-3">
-      {/* XP Info - Minimal */}
-      <div className="px-4 py-2.5 rounded-xl bg-muted/15 border border-border/15">
-        <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 leading-relaxed">
-          Training awards <span className="text-foreground/80 font-medium">9–45 XP</span> per session
+    <div className="space-y-2">
+      {/* XP Info */}
+      <div className="px-3 py-2 border-b border-border/10 mb-3">
+        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50">
+          Training awards <span className="text-foreground/60 font-medium">9–45 XP</span> per session
         </p>
       </div>
 
-      {/* 2x2 Grid of distinct game tiles */}
-      <div className="grid grid-cols-2 gap-2.5">
-        {allAreas.map((area) => (
-          <button
-            key={`${area.gameType}`}
-            onClick={() => handleGameTypeClick(area.areaId, area.system, area.gameType)}
-            className={cn(
-              "group relative w-full rounded-none border border-white/[0.08] transition-all text-left overflow-hidden",
-              "hover:border-white/[0.15]",
-              "active:scale-[0.97]"
-            )}
-          >
-            {/* Background image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${area.bgImage})` }}
-            />
-            {/* Dark overlay for legibility */}
-            <div className="absolute inset-0 bg-black/55" />
+      {/* Two system blocks */}
+      {SYSTEMS.map((system) => {
+        const isOpen = openSystem === system.id;
+        const Icon = system.id === "fast" ? Zap : Timer;
 
-            {/* Card content */}
-            <div className="relative z-10 p-4 flex flex-col gap-3 min-h-[120px]">
-              {/* System badge + chevron */}
-              <div className="flex items-center justify-between">
-                <span
-                  className="text-[9px] font-bold uppercase tracking-[0.18em] px-2 py-0.5 rounded-md bg-white/[0.1] backdrop-blur-sm"
-                  style={{ color: area.accentColor }}
+        return (
+          <div key={system.id} className="overflow-hidden">
+            {/* System header block */}
+            <button
+              onClick={() => handleSystemToggle(system.id)}
+              className={cn(
+                "group w-full flex items-center justify-between px-4 py-3.5 border transition-all duration-200 text-left",
+                isOpen
+                  ? "border-white/[0.12] bg-white/[0.04]"
+                  : "border-white/[0.06] bg-transparent hover:bg-white/[0.03] hover:border-white/[0.09]"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                {/* Icon container */}
+                <div
+                  className="w-8 h-8 flex items-center justify-center rounded-none border"
+                  style={{
+                    borderColor: `${system.accentColor}40`,
+                    backgroundColor: `${system.accentColor}12`,
+                  }}
                 >
-                  {area.systemLabel} · {area.system === "fast" ? "Fast" : "Slow"}
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors" />
+                  <Icon
+                    className="w-3.5 h-3.5"
+                    style={{ color: system.accentColor }}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] font-semibold text-foreground/90 tracking-tight">
+                      {system.label}
+                    </span>
+                    <span
+                      className="text-[9px] font-bold uppercase tracking-[0.16em] px-1.5 py-0.5"
+                      style={{ color: system.accentColor }}
+                    >
+                      {system.id === "fast" ? "Fast" : "Slow"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/50 mt-0.5 tracking-wide">
+                    {system.description}
+                  </p>
+                </div>
               </div>
 
-              {/* Code monogram */}
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">
+                  2 modules
+                </span>
+                <motion.div
+                  animate={{ rotate: isOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors" />
+                </motion.div>
+              </div>
+            </button>
+
+            {/* Accent line under header when open */}
+            {isOpen && (
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.08] backdrop-blur-sm"
-              >
-                <span
-                  className="text-[13px] font-bold tracking-wider text-white/80"
+                className="h-[1px] w-full opacity-30"
+                style={{ backgroundColor: system.accentColor }}
+              />
+            )}
+
+            {/* Subcategories - animated */}
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  key="content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                  className="overflow-hidden"
                 >
-                  {area.code}
-                </span>
-              </div>
+                  <div className="grid grid-cols-2 gap-px bg-white/[0.04]">
+                    {system.areas.map((area) => (
+                      <button
+                        key={area.gameType}
+                        onClick={() => handleGameTypeClick(area.areaId, system.id, area.gameType)}
+                        className="group relative text-left overflow-hidden active:scale-[0.98] transition-transform"
+                      >
+                        {/* Background image */}
+                        <div
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                          style={{ backgroundImage: `url(${area.bgImage})` }}
+                        />
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-black/60 group-hover:bg-black/50 transition-colors" />
 
-              {/* Name */}
-              <span className="text-[12px] font-medium text-white/85 leading-snug mt-auto">
-                {area.name}
-              </span>
-            </div>
+                        {/* Content */}
+                        <div className="relative z-10 p-4 flex flex-col gap-2.5 min-h-[108px]">
+                          {/* Monogram badge */}
+                          <div
+                            className="w-8 h-8 flex items-center justify-center border bg-white/[0.06] backdrop-blur-sm"
+                            style={{ borderColor: `${system.accentColor}35` }}
+                          >
+                            <span
+                              className="text-[12px] font-bold tracking-widest"
+                              style={{ color: system.accentColor }}
+                            >
+                              {area.code}
+                            </span>
+                          </div>
 
-            {/* Subtle bottom accent line */}
-            <div
-              className="relative z-10 h-[2px] w-full opacity-40"
-              style={{ backgroundColor: area.accentColor }}
-            />
-          </button>
-        ))}
-      </div>
+                          {/* Name & sublabel */}
+                          <div className="mt-auto">
+                            <p className="text-[11px] font-semibold text-white/90 leading-tight">
+                              {area.name}
+                            </p>
+                            <p className="text-[9px] text-white/40 uppercase tracking-[0.12em] mt-0.5">
+                              {area.subLabel}
+                            </p>
+                          </div>
+                        </div>
 
-      {/* Exercise Picker Sheet (for non-S1-AE games) */}
+                        {/* Bottom accent */}
+                        <div
+                          className="relative z-10 h-[2px] w-full opacity-50"
+                          style={{ backgroundColor: system.accentColor }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+
+      {/* Sheets & Dialogs */}
       <ExercisePickerSheet
         open={pickerOpen}
         onOpenChange={setPickerOpen}
@@ -193,32 +257,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
         thinkingMode={pickerMode}
         onStartExercise={handleStartExercise}
       />
-
-      {/* S1-AE Game Selector (Triage Sprint / Orbit Lock / Focus Switch) */}
-      <S1AEGameSelector
-        open={showS1AESelector}
-        onOpenChange={setShowS1AESelector}
-      />
-
-      {/* S1-RA Game Selector (Flash Connect) */}
-      <S1RAGameSelector
-        open={showS1RASelector}
-        onOpenChange={setShowS1RASelector}
-      />
-
-      {/* S2-CT Game Selector (Causal Ledger, Counterfactual Audit, Socratic Cross-Exam) */}
-      <S2CTGameSelector
-        open={showS2CTSelector}
-        onOpenChange={setShowS2CTSelector}
-      />
-
-      {/* S2-IN Game Selector (Signal vs Noise) */}
-      <S2INGameSelector
-        open={showS2INSelector}
-        onOpenChange={setShowS2INSelector}
-      />
-
-      {/* Target Exceeded Warning Dialog */}
+      <S1AEGameSelector open={showS1AESelector} onOpenChange={setShowS1AESelector} />
+      <S1RAGameSelector open={showS1RASelector} onOpenChange={setShowS1RASelector} />
+      <S2CTGameSelector open={showS2CTSelector} onOpenChange={setShowS2CTSelector} />
+      <S2INGameSelector open={showS2INSelector} onOpenChange={setShowS2INSelector} />
       <TargetExceededDialog
         open={showTargetExceededDialog}
         onOpenChange={setShowTargetExceededDialog}
