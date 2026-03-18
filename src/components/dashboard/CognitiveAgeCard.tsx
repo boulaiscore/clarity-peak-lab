@@ -18,7 +18,7 @@ import { CognitiveAgeSphere } from "./CognitiveAgeSphere";
 import { CognitiveAgeTrendChart } from "./CognitiveAgeTrendChart";
 
 import { CognitiveAgeInsights } from "./CognitiveAgeInsights";
-import { PaceOfAgingDial } from "./PaceOfAgingDial";
+
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
