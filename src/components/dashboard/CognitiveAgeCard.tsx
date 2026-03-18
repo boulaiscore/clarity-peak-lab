@@ -49,15 +49,6 @@ export function CognitiveAgeCard() {
     <div className="py-2 space-y-4">
       {/* Header with update info */}
       <div className="flex items-center justify-between px-2">
-        {/* Left: Pace dial */}
-        <div className="flex-shrink-0">
-          <PaceOfAgingDial 
-            pace={data.paceOfAgingX} 
-            size="sm"
-            showLabel={true}
-          />
-        </div>
-        
         {/* Right: Status badges */}
         <div className="flex items-center gap-2">
           {/* Baseline type indicator */}
