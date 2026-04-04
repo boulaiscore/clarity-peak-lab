@@ -24,9 +24,7 @@ const plans = [
     name: "Pro",
     price: "$199",
     period: "/year",
-    monthlyEquivalent: "~$16.60/mo • 2 months free",
-    monthlyOption: "$19.90/mo",
-    summary: "Full cognitive training suite",
+    summary: "Full cognitive training suite (annual)",
     features: [
       "Unlimited daily sessions",
       "All training areas (S1 + S2)",
@@ -41,9 +39,7 @@ const plans = [
     name: "Elite",
     price: "$299",
     period: "/year",
-    monthlyEquivalent: "~$24.90/mo • 2 months free",
-    monthlyOption: "$29.90/mo",
-    summary: "Peak performance optimization",
+    summary: "Peak performance optimization (annual)",
     features: [
       "Everything in Pro",
       "Priority support",
@@ -58,7 +54,6 @@ const plans = [
 
 export default function PaywallPage() {
   const navigate = useNavigate();
-  const [billingCycle, setBillingCycle] = useState<"yearly" | "monthly">("yearly");
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const handleSubscribe = async (planName: string) => {
@@ -108,32 +103,16 @@ export default function PaywallPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold">Upgrade Your Mind</h1>
-            <p className="text-sm text-muted-foreground">Choose your training plan</p>
+            <h1 className="text-xl font-semibold">Subscriptions</h1>
+            <p className="text-sm text-muted-foreground">Beta model: Free, Pro annual, Elite annual</p>
           </div>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <Button
-            variant={billingCycle === "yearly" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setBillingCycle("yearly")}
-            className="rounded-full"
-          >
-            Yearly
-            <span className="ml-1.5 text-xs bg-emerald-500/20 text-emerald-600 px-1.5 py-0.5 rounded-full">
-              Save 2 mo
-            </span>
-          </Button>
-          <Button
-            variant={billingCycle === "monthly" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setBillingCycle("monthly")}
-            className="rounded-full"
-          >
-            Monthly
-          </Button>
+        <div className="mb-8 p-4 rounded-xl border border-primary/20 bg-primary/5">
+          <p className="text-sm font-medium">Beta access is currently free.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Paid plans are shown as annual options only. No monthly plans or trial messaging in beta.
+          </p>
         </div>
 
         {/* Plans Grid */}
@@ -166,22 +145,15 @@ export default function PaywallPage() {
 
               <div className="mb-4">
                 {plan.name === "Free" ? (
-                  <div className="text-3xl font-bold">{plan.price}</div>
-                ) : billingCycle === "yearly" ? (
-                  <>
-                    <div className="text-3xl font-bold">
-                      {plan.price}
-                      <span className="text-base font-normal text-muted-foreground">
-                        {plan.period}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {plan.monthlyEquivalent}
-                    </p>
-                  </>
+                  <div className="text-3xl font-bold">
+                    {plan.price}
+                  </div>
                 ) : (
                   <div className="text-3xl font-bold">
-                    {plan.monthlyOption}
+                    {plan.price}
+                    <span className="text-base font-normal text-muted-foreground">
+                      {plan.period}
+                    </span>
                   </div>
                 )}
               </div>
@@ -206,7 +178,7 @@ export default function PaywallPage() {
                 ) : plan.name === "Free" ? (
                   "Continue Free"
                 ) : (
-                  "Subscribe"
+                  `Choose ${plan.name} Annual`
                 )}
               </Button>
             </div>
@@ -230,13 +202,13 @@ export default function PaywallPage() {
             Restore Purchases
           </Button>
           <p className="text-xs text-muted-foreground mt-2">
-            Already subscribed? Restore your purchase to unlock premium features.
+            Already subscribed? Restore your purchase to unlock your plan.
           </p>
         </div>
 
         {/* Legal Note */}
         <p className="text-[10px] text-muted-foreground/60 text-center mt-8">
-          Subscriptions auto-renew unless cancelled. Manage in App Store settings.
+          Annual subscriptions auto-renew unless cancelled. Manage in store settings.
         </p>
       </div>
     </AppShell>

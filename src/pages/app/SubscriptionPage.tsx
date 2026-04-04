@@ -211,8 +211,8 @@ const SubscriptionPage = () => {
                         <Crown className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold">Premium</p>
-                        <p className="text-[10px] text-muted-foreground">BETA ACCESS</p>
+                        <p className="font-semibold">Beta Access</p>
+                        <p className="text-[10px] text-muted-foreground">FULL ACCESS ENABLED</p>
                       </div>
                     </>
                   ) : (
@@ -222,7 +222,7 @@ const SubscriptionPage = () => {
                       </div>
                       <div>
                         <p className="font-semibold">Free</p>
-                        <p className="text-[10px] text-muted-foreground">LIMITED ACCESS</p>
+                        <p className="text-[10px] text-muted-foreground">CORE ACCESS</p>
                       </div>
                     </>
                   )}
@@ -231,7 +231,7 @@ const SubscriptionPage = () => {
                   "px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase",
                   isPremium ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"
                 )}>
-                  {isPremium ? "Active" : "Limited"}
+                  {isPremium ? "Active" : "Free"}
                 </span>
               </div>
             </div>
@@ -269,7 +269,7 @@ const SubscriptionPage = () => {
                   <span className="font-semibold">Free Beta Access</span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  {spotsRemaining} spots remaining for free beta testers. Get full Premium access at no cost.
+                  {spotsRemaining} spots remaining for beta access. Unlock full app access at no cost during beta.
                 </p>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-4">
                   <div 
@@ -302,7 +302,7 @@ const SubscriptionPage = () => {
                   <div>
                     <p className="font-semibold text-sm mb-1">Beta Tester</p>
                     <p className="text-xs text-muted-foreground">
-                      Premium features free until official launch.
+                      Full beta access is enabled at no cost until official launch.
                     </p>
                     <p className="text-[10px] text-muted-foreground/60 mt-1 font-mono">v0.9.2-beta</p>
                   </div>
@@ -334,9 +334,6 @@ const SubscriptionPage = () => {
                 </div>
                 <span className="text-lg font-bold">$199<span className="text-xs text-muted-foreground font-normal"> / year</span></span>
               </div>
-              <p className="text-[10px] text-muted-foreground mb-1">
-                ≈ $16.60 / month • 2 months free
-              </p>
               <p className="text-xs text-muted-foreground mb-3">
                 Complete cognitive training for high performers.
               </p>
@@ -379,9 +376,6 @@ const SubscriptionPage = () => {
                 </div>
                 <span className="text-lg font-bold">$299<span className="text-xs text-muted-foreground font-normal"> / year</span></span>
               </div>
-              <p className="text-[10px] text-muted-foreground mb-1">
-                ≈ $24.90 / month • 2 months free
-              </p>
               <p className="text-xs text-muted-foreground mb-3">
                 Deeper cognitive supervision & reasoning insights.
               </p>
@@ -450,15 +444,15 @@ const SubscriptionPage = () => {
                     </span>
                   )}
                 </div>
-                <span className="text-sm font-bold text-muted-foreground">$0<span className="text-xs font-normal">/mo</span></span>
+                <span className="text-sm font-bold text-muted-foreground">$0</span>
               </div>
               <p className="text-[11px] text-muted-foreground/70">
-                Basic training, limited sessions, core metrics.
+                Core training and essential metrics.
               </p>
             </div>
 
             <p className="text-center text-[10px] text-muted-foreground/60 pt-2">
-              Annual billing only for beta
+              Beta model: Free + Pro annual + Elite annual
             </p>
           </div>
         </div>

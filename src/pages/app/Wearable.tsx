@@ -200,7 +200,7 @@ const Health = () => {
                   <div>
                     <h3 className="text-sm font-semibold">Unlock wearable insights</h3>
                     <p className="text-xs text-muted-foreground">
-                      Start a 7-day free trial to connect your wearable
+                      Upgrade to a beta-enabled plan to connect your wearable
                       and unlock Cognitive Readiness.
                     </p>
                   </div>
@@ -209,7 +209,7 @@ const Health = () => {
                   onClick={handleUpgrade}
                   className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
                 >
-                  Start free trial
+                  View subscription options
                 </button>
               </div>
             </div>
