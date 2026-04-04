@@ -354,9 +354,6 @@ const SubscriptionPage = () => {
                   Monthly performance report
                 </li>
               </ul>
-              <p className="text-xs text-muted-foreground/70 mb-3">
-                Monthly option: $19.90/month
-              </p>
               {!isPremium && (
                 <Button 
                   onClick={() => handleSubscribe('premium')} 
@@ -368,7 +365,7 @@ const SubscriptionPage = () => {
                   {isUpgrading && selectedTier === 'premium' ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : null}
-                  Start 7-Day Free Trial
+                  Subscribe Annual
                 </Button>
               )}
             </div>
@@ -406,9 +403,6 @@ const SubscriptionPage = () => {
                   Weekly cognitive brief
                 </li>
               </ul>
-              <p className="text-xs text-muted-foreground/70 mb-3">
-                Monthly option: $29.90/month
-              </p>
               <Button 
                 onClick={() => handleSubscribe('pro')}
                 variant="hero" 
@@ -419,7 +413,7 @@ const SubscriptionPage = () => {
                 {isUpgrading && selectedTier === 'pro' ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : null}
-                Start 7-Day Free Trial
+                Subscribe Annual
               </Button>
 
               {/* Restore Purchases - iOS only */}
@@ -464,7 +458,7 @@ const SubscriptionPage = () => {
             </div>
 
             <p className="text-center text-[10px] text-muted-foreground/60 pt-2">
-              7-day free trial • Cancel anytime
+              Annual billing only for beta
             </p>
           </div>
         </div>
