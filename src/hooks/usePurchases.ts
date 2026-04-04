@@ -51,11 +51,14 @@ export function usePurchases(): UsePurchasesReturn {
   const ensurePurchasesReady = useCallback(async (): Promise<PurchaseResult | null> => {
     if (!useNativeIAP || !user?.id) return null;
 
-    const initialized = await initializePurchases(user.id);
-    if (!initialized) {
+    const initResult = await initializePurchases(user.id);
+    if (!initResult.initialized) {
       return {
         success: false,
-        error: 'Native billing is not configured. Missing RevenueCat API key for this platform.',
+        error:
+          initResult.code === 'missing_api_key'
+            ? 'Native billing is not configured. Missing RevenueCat API key for this platform.'
+            : initResult.error || 'Native billing initialization failed.',
       };
     }
 
