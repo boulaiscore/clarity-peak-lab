@@ -1,184 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
-import { usePurchases } from "@/hooks/usePurchases";
 import { toast } from "@/hooks/use-toast";
-import { User, Crown, Zap, Shield, CreditCard, Rocket, Check, Loader2, RotateCw, ExternalLink, Receipt } from "lucide-react";
+import { User, Crown, Shield, CreditCard, Rocket, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sendPremiumUpgradeEmail } from "@/lib/emailService";
-import { supabase } from "@/integrations/supabase/client";
-import { Browser } from '@capacitor/browser';
-import { isNative } from '@/lib/platformUtils';
-
-const BETA_LIMIT = 100;
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const SubscriptionPage = () => {
-  const { user, upgradeToPremium } = useAuth();
+  const { user } = useAuth();
   const { isPremium } = usePremiumGating();
-  const { 
-    purchasePremium, 
-    purchasePro, 
-    restoreAllPurchases, 
-    isRestoring, 
-    isPurchasing,
-    useNativeIAP 
-  } = usePurchases();
+  const [selectedTier, setSelectedTier] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const [isUpgrading, setIsUpgrading] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<'premium' | 'pro' | null>(null);
-  const [betaCount, setBetaCount] = useState<number | null>(null);
-  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
-
-  // Fetch beta user count
-  useEffect(() => {
-    const fetchBetaCount = async () => {
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .or('subscription_status.eq.premium,subscription_status.eq.pro');
-      
-      if (!error && count !== null) {
-        setBetaCount(count);
-      }
-    };
-    fetchBetaCount();
-  }, []);
-
-  const spotsRemaining = betaCount !== null ? Math.max(0, BETA_LIMIT - betaCount) : null;
-  const isBetaOpen = spotsRemaining !== null && spotsRemaining > 0;
-
-  const handleBetaUpgrade = async () => {
-    if (!user?.id) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to claim your beta access.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUpgrading(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('claim-beta-access');
-
-      if (error) {
-        throw new Error(error.message || 'Failed to claim beta access');
-      }
-
-      if (data?.error) {
-        if (data.error === 'Beta full') {
-          toast({
-            title: "Beta spots filled",
-            description: data.message || "All beta spots have been claimed.",
-            variant: "destructive",
-          });
-          if (data.betaCount !== undefined) {
-            setBetaCount(data.betaCount);
-          }
-          return;
-        }
-        throw new Error(data.message || 'Failed to claim beta access');
-      }
-
-      await upgradeToPremium();
-      
-      if (user.email) {
-        sendPremiumUpgradeEmail(user.email, user.name || undefined).catch(console.error);
-      }
-      
-      toast({
-        title: "Welcome to the Beta! 🎉",
-        description: "You now have full access to all premium features.",
-      });
-
-      setBetaCount(prev => (prev !== null ? prev + 1 : 1));
-      
-    } catch (error) {
-      console.error('Beta upgrade error:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to claim beta access.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpgrading(false);
-    }
-  };
-
-  const handleSubscribe = async (tier: 'premium' | 'pro') => {
-    setIsUpgrading(true);
+  const handleSelectPlan = (tier: string) => {
     setSelectedTier(tier);
-
-    try {
-      const result = tier === 'premium' 
-        ? await purchasePremium() 
-        : await purchasePro();
-
-      if (result.success) {
-        if (user?.email) {
-          sendPremiumUpgradeEmail(user.email, user.name || undefined).catch(console.error);
-        }
-      }
-    } finally {
-      setIsUpgrading(false);
-      setSelectedTier(null);
-    }
-  };
-
-  const handleRestorePurchases = async () => {
-    await restoreAllPurchases();
-  };
-
-  const handleManagePayments = async () => {
-    if (!user?.email) {
-      toast({
-        title: "Error",
-        description: "Please log in to manage payments.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsOpeningPortal(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-billing-portal-session', {
-        body: {
-          userEmail: user.email,
-          returnUrl: `${window.location.origin}/app/subscription`,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.error === 'No billing account found' || data?.code === 'NO_CUSTOMER') {
-        toast({
-          title: "No billing account",
-          description: "You don't have any payment history yet.",
-        });
-        return;
-      }
-
-      if (data?.url) {
-        if (isNative()) {
-          await Browser.open({ url: data.url });
-        } else {
-          window.location.href = data.url;
-        }
-      }
-    } catch (error) {
-      console.error('Error opening billing portal:', error);
-      toast({
-        title: "Error",
-        description: "Could not open payment management. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsOpeningPortal(false);
-    }
+    setShowConfirmation(true);
   };
 
   return (
@@ -211,7 +56,7 @@ const SubscriptionPage = () => {
                         <Crown className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold">Beta Access</p>
+                        <p className="font-semibold">Premium</p>
                         <p className="text-[10px] text-muted-foreground">FULL ACCESS ENABLED</p>
                       </div>
                     </>
@@ -235,80 +80,6 @@ const SubscriptionPage = () => {
                 </span>
               </div>
             </div>
-
-            {/* Payment Management */}
-            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
-              <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
-                <Receipt className="w-4 h-4 text-primary" />
-                Payment Management
-              </h3>
-              <p className="text-xs text-muted-foreground mb-4">
-                Update payment methods, view invoices, and manage billing details.
-              </p>
-              <Button 
-                onClick={handleManagePayments}
-                variant="outline"
-                size="sm"
-                className="w-full"
-                disabled={isOpeningPortal}
-              >
-                {isOpeningPortal ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                )}
-                Manage Payments
-              </Button>
-            </div>
-
-            {/* Beta Access Banner */}
-            {!isPremium && isBetaOpen && (
-              <div className="p-5 rounded-xl bg-primary/5 border border-primary/20">
-                <div className="flex items-center gap-2 mb-3">
-                  <Rocket className="w-5 h-5 text-primary" />
-                  <span className="font-semibold">Free Beta Access</span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  {spotsRemaining} spots remaining for beta access. Unlock full app access at no cost during beta.
-                </p>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-4">
-                  <div 
-                    className="h-full bg-primary rounded-full transition-all duration-500"
-                    style={{ width: `${((BETA_LIMIT - (spotsRemaining || 0)) / BETA_LIMIT) * 100}%` }}
-                  />
-                </div>
-                <Button 
-                  onClick={handleBetaUpgrade} 
-                  variant="hero"
-                  size="sm"
-                  className="w-full"
-                  disabled={isUpgrading}
-                >
-                  {isUpgrading && !selectedTier ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Zap className="w-4 h-4" />
-                  )}
-                  Claim Free Beta Access
-                </Button>
-              </div>
-            )}
-
-            {/* Beta Info - For premium users */}
-            {isPremium && (
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                <div className="flex items-start gap-3">
-                  <Rocket className="w-5 h-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-sm mb-1">Beta Tester</p>
-                    <p className="text-xs text-muted-foreground">
-                      Full beta access is enabled at no cost until official launch.
-                    </p>
-                    <p className="text-[10px] text-muted-foreground/60 mt-1 font-mono">v0.9.2-beta</p>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Pro Plan */}
             <div className={cn(
@@ -353,16 +124,12 @@ const SubscriptionPage = () => {
               </ul>
               {!isPremium && (
                 <Button 
-                  onClick={() => handleSubscribe('premium')} 
+                  onClick={() => handleSelectPlan('Pro')} 
                   variant="outline" 
                   size="sm"
                   className="w-full"
-                  disabled={isUpgrading || isPurchasing}
                 >
-                  {isUpgrading && selectedTier === 'premium' ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : null}
-                  Subscribe Annual
+                  Select Pro Annual
                 </Button>
               )}
             </div>
@@ -398,35 +165,13 @@ const SubscriptionPage = () => {
                 </li>
               </ul>
               <Button 
-                onClick={() => handleSubscribe('pro')}
+                onClick={() => handleSelectPlan('Elite')}
                 variant="hero" 
                 size="sm"
                 className="w-full"
-                disabled={isUpgrading || isPurchasing}
               >
-                {isUpgrading && selectedTier === 'pro' ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : null}
-                Subscribe Annual
+                Select Elite Annual
               </Button>
-
-              {/* Restore Purchases - iOS only */}
-              {useNativeIAP && (
-                <Button 
-                  onClick={handleRestorePurchases} 
-                  variant="ghost" 
-                  size="sm"
-                  className="w-full mt-2 text-xs"
-                  disabled={isRestoring}
-                >
-                  {isRestoring ? (
-                    <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                  ) : (
-                    <RotateCw className="w-3 h-3 mr-1.5" />
-                  )}
-                  Restore Purchases
-                </Button>
-              )}
             </div>
 
             {/* Free Plan */}
@@ -452,11 +197,33 @@ const SubscriptionPage = () => {
             </div>
 
             <p className="text-center text-[10px] text-muted-foreground/60 pt-2">
-              Beta model: Free + Pro annual + Elite annual
+              Annual subscriptions auto-renew unless cancelled.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Plan Selection Confirmation Modal */}
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent className="max-w-sm mx-auto">
+          <AlertDialogHeader className="text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
+              <Crown className="w-8 h-8 text-primary" />
+            </div>
+            <AlertDialogTitle className="text-xl">
+              {selectedTier} Plan Selected
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              Plan selection saved. Billing activation will be connected in the next release.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button onClick={() => setShowConfirmation(false)} variant="hero" className="w-full min-h-[48px]">
+              Got It
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 };

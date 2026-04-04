@@ -2,9 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, ArrowLeft, RotateCcw } from "lucide-react";
+import { Check, Crown, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const plans = [
   {
@@ -24,7 +31,7 @@ const plans = [
     name: "Pro",
     price: "$199",
     period: "/year",
-    summary: "Full cognitive training suite (annual)",
+    summary: "Full cognitive training suite",
     features: [
       "Unlimited daily sessions",
       "All training areas (S1 + S2)",
@@ -39,7 +46,7 @@ const plans = [
     name: "Elite",
     price: "$299",
     period: "/year",
-    summary: "Peak performance optimization (annual)",
+    summary: "Peak performance optimization",
     features: [
       "Everything in Pro",
       "Priority support",
@@ -54,39 +61,16 @@ const plans = [
 
 export default function PaywallPage() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const handleSubscribe = async (planName: string) => {
+  const handleSelectPlan = (planName: string) => {
     if (planName === "Free") {
       navigate("/app");
       return;
     }
-    
-    setIsLoading(planName);
-    
-    // Simulate API call delay (UI-only prototype)
-    await new Promise((r) => setTimeout(r, 1500));
-    
-    toast({
-      title: "Subscription Flow",
-      description: `In the production app, this would open ${planName} checkout.`,
-    });
-    
-    setIsLoading(null);
-  };
-
-  const handleRestorePurchases = async () => {
-    setIsLoading("restore");
-    
-    // Simulate restore delay
-    await new Promise((r) => setTimeout(r, 2000));
-    
-    toast({
-      title: "Restore Complete",
-      description: "No previous purchases found. In production, this would check App Store receipts.",
-    });
-    
-    setIsLoading(null);
+    setSelectedPlan(planName);
+    setShowConfirmation(true);
   };
 
   return (
@@ -103,16 +87,9 @@ export default function PaywallPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold">Subscriptions</h1>
-            <p className="text-sm text-muted-foreground">Beta model: Free, Pro annual, Elite annual</p>
+            <h1 className="text-xl font-semibold">Choose Your Plan</h1>
+            <p className="text-sm text-muted-foreground">Unlock your full cognitive potential</p>
           </div>
-        </div>
-
-        <div className="mb-8 p-4 rounded-xl border border-primary/20 bg-primary/5">
-          <p className="text-sm font-medium">Beta access is currently free.</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Paid plans are shown as annual options only. No monthly plans or trial messaging in beta.
-          </p>
         </div>
 
         {/* Plans Grid */}
@@ -144,18 +121,14 @@ export default function PaywallPage() {
               </div>
 
               <div className="mb-4">
-                {plan.name === "Free" ? (
-                  <div className="text-3xl font-bold">
-                    {plan.price}
-                  </div>
-                ) : (
-                  <div className="text-3xl font-bold">
-                    {plan.price}
+                <div className="text-3xl font-bold">
+                  {plan.price}
+                  {plan.name !== "Free" && (
                     <span className="text-base font-normal text-muted-foreground">
                       {plan.period}
                     </span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <ul className="space-y-2 mb-6">
@@ -170,40 +143,12 @@ export default function PaywallPage() {
               <Button
                 variant={plan.highlighted ? "hero" : "outline"}
                 className="w-full"
-                onClick={() => handleSubscribe(plan.name)}
-                disabled={isLoading !== null}
+                onClick={() => handleSelectPlan(plan.name)}
               >
-                {isLoading === plan.name ? (
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : plan.name === "Free" ? (
-                  "Continue Free"
-                ) : (
-                  `Choose ${plan.name} Annual`
-                )}
+                {plan.name === "Free" ? "Continue Free" : `Choose ${plan.name} Annual`}
               </Button>
             </div>
           ))}
-        </div>
-
-        {/* Restore Purchases */}
-        <div className="mt-8 text-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRestorePurchases}
-            disabled={isLoading !== null}
-            className="text-muted-foreground"
-          >
-            {isLoading === "restore" ? (
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-            ) : (
-              <RotateCcw className="w-4 h-4 mr-2" />
-            )}
-            Restore Purchases
-          </Button>
-          <p className="text-xs text-muted-foreground mt-2">
-            Already subscribed? Restore your purchase to unlock your plan.
-          </p>
         </div>
 
         {/* Legal Note */}
@@ -211,6 +156,28 @@ export default function PaywallPage() {
           Annual subscriptions auto-renew unless cancelled. Manage in store settings.
         </p>
       </div>
+
+      {/* Plan Selection Confirmation Modal */}
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent className="max-w-sm mx-auto">
+          <AlertDialogHeader className="text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
+              <Crown className="w-8 h-8 text-primary" />
+            </div>
+            <AlertDialogTitle className="text-xl">
+              {selectedPlan} Plan Selected
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              Plan selection saved. Billing activation will be connected in the next release.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button onClick={() => setShowConfirmation(false)} variant="hero" className="w-full min-h-[48px]">
+              Got It
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
