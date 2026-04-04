@@ -16,6 +16,7 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useDailyMetricSnapshot } from "@/hooks/useDailyMetricSnapshot";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 
 // Threshold for considering values "changed enough" to warrant an update
 const VALUE_CHANGE_THRESHOLD = 0.5;
@@ -38,6 +39,7 @@ function valuesChanged(
 
 export function useAutoMetricSnapshot() {
   const { user } = useAuth();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   const { 
     sharpness, 
     readiness, 
@@ -95,6 +97,9 @@ export function useAutoMetricSnapshot() {
       ra: RA,
       ct: CT,
       inScore: IN,
+    }).then(() => {
+      // Record an intraday event so 1d trend charts reflect decay/metric changes on app open
+      recordMetricsSnapshot('app_open', { trigger: 'auto_snapshot' }, 500);
     }).catch((err) => {
       console.error("[useAutoMetricSnapshot] Failed to save snapshot:", err);
       // Allow retry
