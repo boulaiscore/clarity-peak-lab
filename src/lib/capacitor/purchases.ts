@@ -34,6 +34,12 @@ export interface CustomerInfo {
   expirationDate?: string;
 }
 
+export interface PurchasesInitResult {
+  initialized: boolean;
+  error?: string;
+  code?: 'not_native' | 'missing_api_key' | 'configure_failed';
+}
+
 let purchasesInstance: typeof import('@revenuecat/purchases-capacitor').Purchases | null = null;
 let isInitialized = false;
 
@@ -47,10 +53,10 @@ function getMissingApiKeyError(): string {
  * Initialize RevenueCat SDK
  * Must be called on app startup for native platforms
  */
-export async function initializePurchases(userId?: string): Promise<boolean> {
+export async function initializePurchases(userId?: string): Promise<PurchasesInitResult> {
   if (!isNative()) {
     console.log('[Purchases] Web platform - skipping RevenueCat initialization');
-    return false;
+    return { initialized: false, code: 'not_native', error: 'Not running on native platform' };
   }
 
   try {
@@ -62,22 +68,36 @@ export async function initializePurchases(userId?: string): Promise<boolean> {
       ? import.meta.env.VITE_REVENUECAT_IOS_KEY 
       : import.meta.env.VITE_REVENUECAT_ANDROID_KEY;
 
-    if (!apiKey) {
+    const normalizedApiKey = (apiKey || '').trim();
+    const hasApiKey = Boolean(normalizedApiKey) && normalizedApiKey !== 'undefined' && normalizedApiKey !== 'null';
+
+    console.log('[Purchases] Initialization context', {
+      platform: Capacitor.getPlatform(),
+      isNative: Capacitor.isNativePlatform(),
+      hasApiKey,
+      apiKeyLength: normalizedApiKey.length,
+    });
+
+    if (!hasApiKey) {
       console.warn('[Purchases] RevenueCat API key not configured:', getMissingApiKeyError());
-      return false;
+      return { initialized: false, code: 'missing_api_key', error: getMissingApiKeyError() };
     }
 
     await Purchases.configure({
-      apiKey,
+      apiKey: normalizedApiKey,
       appUserID: userId || undefined,
     });
 
     isInitialized = true;
     console.log('[Purchases] RevenueCat initialized successfully');
-    return true;
+    return { initialized: true };
   } catch (error) {
     console.error('[Purchases] Failed to initialize RevenueCat:', error);
-    return false;
+    return {
+      initialized: false,
+      code: 'configure_failed',
+      error: error instanceof Error ? error.message : 'RevenueCat initialization failed',
+    };
   }
 }
 
