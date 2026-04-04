@@ -8,8 +8,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Lock, Zap, Clock, Brain, FileText } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Crown, Check, Lock, Zap, Clock, Brain, FileText, Dumbbell } from "lucide-react";
 
 interface PremiumPaywallProps {
   open: boolean;
@@ -17,8 +16,6 @@ interface PremiumPaywallProps {
   feature?: "area" | "duration" | "neuro-activation" | "session-limit" | "report" | "training";
   featureName?: string;
 }
-
-import { Dumbbell } from "lucide-react";
 
 const FEATURES = [
   { icon: Brain, text: "All 3 training areas" },
@@ -46,11 +43,11 @@ const FEATURE_MESSAGES: Record<string, { title: string; description: string }> =
     title: "Daily Limit Reached",
     description: "You've completed your 3 free sessions today. Upgrade for unlimited training.",
   },
-  "report": {
+  report: {
     title: "Cognitive Intelligence Report",
     description: "Get a comprehensive analysis of your cognitive performance with personalized insights.",
   },
-  "training": {
+  training: {
     title: "Advanced Training",
     description: "Advanced cognitive training modules. Designed for deep performance optimization.",
   },
@@ -62,7 +59,7 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
 
   const handleUpgrade = () => {
     onOpenChange(false);
-    navigate("/app/account?tab=subscription");
+    navigate("/app/subscription");
   };
 
   return (
@@ -103,11 +100,11 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
         <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button onClick={handleUpgrade} variant="hero" className="w-full min-h-[48px]">
             <Crown className="w-4 h-4 mr-2" />
-            {feature === "training" ? "Unlock Advanced Training" : "Upgrade to Premium"}
+            View Plans
           </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => onOpenChange(false)} 
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
             className="w-full text-muted-foreground"
           >
             Maybe Later
