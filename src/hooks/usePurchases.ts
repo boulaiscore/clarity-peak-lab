@@ -63,6 +63,22 @@ export function usePurchases(): UsePurchasesReturn {
     return null;
   }, [useNativeIAP, user?.id]);
 
+  const refreshCustomerInfo = useCallback(async () => {
+    if (!useNativeIAP) return;
+    
+    const info = await getCustomerInfo();
+    setCustomerInfo(info);
+    
+    // Sync entitlements with backend
+    if (info.isPro || info.isPremium) {
+      const status = info.isPro ? 'pro' : 'premium';
+      await supabase
+        .from('profiles')
+        .update({ subscription_status: status })
+        .eq('user_id', user?.id);
+    }
+  }, [useNativeIAP, user?.id]);
+
   // Initialize RevenueCat on mount
   useEffect(() => {
     const init = async () => {
@@ -83,22 +99,6 @@ export function usePurchases(): UsePurchasesReturn {
       setCustomerInfo(null);
     }
   }, [user, useNativeIAP]);
-
-  const refreshCustomerInfo = useCallback(async () => {
-    if (!useNativeIAP) return;
-    
-    const info = await getCustomerInfo();
-    setCustomerInfo(info);
-    
-    // Sync entitlements with backend
-    if (info.isPro || info.isPremium) {
-      const status = info.isPro ? 'pro' : 'premium';
-      await supabase
-        .from('profiles')
-        .update({ subscription_status: status })
-        .eq('user_id', user?.id);
-    }
-  }, [useNativeIAP, user?.id]);
 
   // Stripe checkout for web
   const handleStripeCheckout = async (tier: 'premium' | 'pro'): Promise<PurchaseResult> => {
