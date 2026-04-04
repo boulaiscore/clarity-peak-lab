@@ -70,7 +70,7 @@ export function TrainHeader({
         </button>
 
         <button
-          onClick={() => navigate("/app/account")}
+          onClick={() => navigate("/app/settings")}
           className="w-7 h-7 rounded-full bg-card/50 border border-border/50 flex items-center justify-center hover:bg-card/80 transition-colors"
           aria-label="Open settings"
         >
