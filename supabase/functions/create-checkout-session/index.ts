@@ -1,27 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Tier configuration
 const TIERS = {
   premium: {
     name: "LOOMA Pro",
     description: "Complete cognitive training annual plan.",
-    amount: 19900, // $199/year
+    amount: 19900,
   },
   pro: {
     name: "LOOMA Elite",
     description: "Master-level cognitive training annual plan.",
-    amount: 29900, // $299/year
+    amount: 29900,
   },
 };
 
+const CheckoutSchema = z.object({
+  userId: z.string().uuid(),
+  userEmail: z.string().email().max(255),
+  tier: z.enum(["premium", "pro"]).default("premium"),
+  successUrl: z.string().url().max(2000).optional(),
+  cancelUrl: z.string().url().max(2000).optional(),
+});
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -37,44 +44,46 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    const { userId, userEmail, successUrl, cancelUrl, tier = "premium" } = await req.json();
-
-    // Validate tier
-    if (!["premium", "pro"].includes(tier)) {
-      throw new Error('Invalid tier. Must be "premium" or "pro".');
+    const body = await req.json();
+    const parsed = CheckoutSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const tierConfig = TIERS[tier as keyof typeof TIERS];
+    const { userId, userEmail, tier, successUrl, cancelUrl } = parsed.data;
+    const tierConfig = TIERS[tier];
 
-    console.log("Creating checkout session for user:", userId, "email:", userEmail, "tier:", tier);
+    // Validate redirect URLs belong to app origin
+    const origin = req.headers.get("origin") || "";
+    const safeSuccessUrl = successUrl || `${origin}/app/premium?success=true`;
+    const safeCancelUrl = cancelUrl || `${origin}/app/premium?canceled=true`;
 
-    // Check if customer already exists
+    console.log("Creating checkout session for user:", userId, "tier:", tier);
+
     let customerId: string | undefined;
     if (userEmail) {
       const existingCustomers = await stripe.customers.list({
         email: userEmail,
         limit: 1,
       });
-
       if (existingCustomers.data.length > 0) {
         customerId = existingCustomers.data[0].id;
-        console.log("Found existing customer:", customerId);
       }
     }
 
-    // Find or create the product for this tier
     const products = await stripe.products.list({ limit: 100 });
     let product = products.data.find((p: Stripe.Product) => p.name === tierConfig.name);
 
     if (!product) {
-      console.log("Creating new product:", tierConfig.name);
       product = await stripe.products.create({
         name: tierConfig.name,
         description: tierConfig.description,
       });
     }
 
-    // Find or create the price
     const prices = await stripe.prices.list({
       product: product.id,
       active: true,
@@ -87,43 +96,26 @@ serve(async (req) => {
     );
 
     if (!price) {
-      console.log("Creating new price for", tierConfig.name);
       price = await stripe.prices.create({
         product: product.id,
         unit_amount: tierConfig.amount,
         currency: "usd",
-        recurring: {
-          interval: "year",
-        },
+        recurring: { interval: "year" },
       });
     }
 
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
-      line_items: [
-        {
-          price: price.id,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: price.id, quantity: 1 }],
       mode: "subscription",
-      success_url: successUrl || `${req.headers.get("origin")}/app/premium?success=true`,
-      cancel_url: cancelUrl || `${req.headers.get("origin")}/app/premium?canceled=true`,
+      success_url: safeSuccessUrl,
+      cancel_url: safeCancelUrl,
       subscription_data: {
-        metadata: {
-          user_id: userId,
-          tier: tier,
-        },
+        metadata: { user_id: userId, tier },
       },
-      metadata: {
-        user_id: userId,
-        tier: tier,
-      },
+      metadata: { user_id: userId, tier },
     });
-
-    console.log("Checkout session created:", session.id, "for tier:", tier);
 
     return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
