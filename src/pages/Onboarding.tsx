@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, differenceInYears } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -23,12 +23,6 @@ const Onboarding = () => {
   // Check if coming from reset assessment - redirect to calibration directly
   const isResetAssessment = searchParams.get("step") === "assessment";
   
-  // Redirect to calibration if reset assessment
-  if (isResetAssessment) {
-    navigate("/app/calibration");
-    return null;
-  }
-  
   const [step, setStep] = useState<Step>(1);
   
   // Personal data
@@ -48,6 +42,12 @@ const Onboarding = () => {
   const [trainingPlan, setTrainingPlan] = useState<TrainingPlanId>("light");
   const [reminderTime, setReminderTime] = useState<string>("08:00");
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  useEffect(() => {
+    if (isResetAssessment) {
+      navigate("/app/calibration", { replace: true });
+    }
+  }, [isResetAssessment, navigate]);
 
   // Calculate age from birth date or use existing user age for reset
   const calculatedAge = birthDate 
