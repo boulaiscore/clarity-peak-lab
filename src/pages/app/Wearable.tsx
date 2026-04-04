@@ -98,9 +98,8 @@ const Health = () => {
     openHealthSettings();
   };
 
-  // Handle upgrade/trial CTA
   const handleUpgrade = () => {
-    navigate("/app/account");
+    navigate("/app/subscription");
   };
 
   // Format last sync time
