@@ -57,13 +57,13 @@ export function TrainHeader({
         className="flex items-center justify-between mb-2"
       >
         <button
-          onClick={() => navigate("/app/account")}
+          onClick={() => navigate("/app/subscription")}
           className={cn(
             "flex items-center gap-2 px-2.5 py-1 rounded-full",
             "border border-border/50 bg-card/50 backdrop-blur-sm",
             "hover:bg-card/80 transition-colors"
           )}
-          aria-label={`Selected plan: ${plan.name}. Open account settings.`}
+          aria-label={`Selected plan: ${plan.name}. View subscription.`}
         >
           <PlanIcon className="w-3.5 h-3.5 text-primary" />
           <span className="text-[11px] font-medium">{plan.name}</span>
