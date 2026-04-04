@@ -49,6 +49,10 @@ const Onboarding = () => {
     }
   }, [isResetAssessment, navigate]);
 
+  if (isResetAssessment) {
+    return null;
+  }
+
   // Calculate age from birth date or use existing user age for reset
   const calculatedAge = birthDate 
     ? differenceInYears(new Date(), birthDate) 
