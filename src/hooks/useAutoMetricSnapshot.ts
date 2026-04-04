@@ -16,6 +16,7 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useDailyMetricSnapshot } from "@/hooks/useDailyMetricSnapshot";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 
 // Threshold for considering values "changed enough" to warrant an update
 const VALUE_CHANGE_THRESHOLD = 0.5;
