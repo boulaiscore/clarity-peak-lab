@@ -77,14 +77,13 @@ export function useDeepLinks() {
         if (path.includes('report')) {
           navigate('/app/report?success=true', { replace: true });
         } else {
-          navigate('/app/account?success=true', { replace: true });
+          navigate('/app/subscription?success=true', { replace: true });
         }
       } else {
-        // Payment cancelled
         if (path.includes('report')) {
           navigate('/app/report?canceled=true', { replace: true });
         } else {
-          navigate('/app/account?canceled=true', { replace: true });
+          navigate('/app/subscription?canceled=true', { replace: true });
         }
       }
       return;

@@ -313,14 +313,14 @@ export default function CognitiveReport() {
           <div className="flex items-center gap-2">
             <Crown className="w-5 h-5 text-amber-400" />
             <div>
-              <h4 className="text-sm font-semibold">Upgrade to Premium</h4>
+              <h4 className="text-sm font-semibold">Upgrade to Pro</h4>
               <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
             </div>
           </div>
-          <Link to="/app/account?tab=subscription">
+          <Link to="/app/subscription">
             <Button variant="outline" className="w-full gap-2 border-primary/30 hover:bg-primary/10">
               <Crown className="w-4 h-4 text-amber-400" />
-              View Premium Plans
+              View Plans
             </Button>
           </Link>
         </div>

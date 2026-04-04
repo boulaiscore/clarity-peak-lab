@@ -9,8 +9,7 @@ const Premium = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect to Account page with subscription tab selected
-    navigate("/app/account", { replace: true });
+    navigate("/app/subscription", { replace: true });
   }, [navigate]);
 
   return null;

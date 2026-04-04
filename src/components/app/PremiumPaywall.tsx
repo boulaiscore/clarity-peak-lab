@@ -8,7 +8,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Lock, Zap, Clock, Brain, FileText, Dumbbell } from "lucide-react";
+import { Crown, Check, Lock, Zap, Clock, Brain, FileText, Dumbbell, ArrowRight } from "lucide-react";
 
 interface PremiumPaywallProps {
   open: boolean;
@@ -18,8 +18,8 @@ interface PremiumPaywallProps {
 }
 
 const FEATURES = [
-  { icon: Brain, text: "All 3 training areas" },
-  { icon: Clock, text: "Extended sessions (5min, 7min)" },
+  { icon: Brain, text: "All training areas (S1 + S2)" },
+  { icon: Clock, text: "Extended sessions (5 min, 7 min)" },
   { icon: Zap, text: "Neuro Activation warm-up" },
   { icon: Check, text: "Unlimited daily sessions" },
   { icon: FileText, text: "Cognitive Intelligence Report" },
@@ -28,7 +28,7 @@ const FEATURES = [
 
 const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {
   area: {
-    title: "Premium Training Area",
+    title: "Pro Training Area",
     description: "Unlock all cognitive training domains to develop complete mental fitness.",
   },
   duration: {
@@ -37,7 +37,7 @@ const FEATURE_MESSAGES: Record<string, { title: string; description: string }> =
   },
   "neuro-activation": {
     title: "Neuro Activation™",
-    description: "Prime your brain for peak performance with our 5-minute cognitive warm-up.",
+    description: "Prime your brain for peak performance with our cognitive warm-up protocol.",
   },
   "session-limit": {
     title: "Daily Limit Reached",
@@ -49,7 +49,7 @@ const FEATURE_MESSAGES: Record<string, { title: string; description: string }> =
   },
   training: {
     title: "Advanced Training",
-    description: "Advanced cognitive training modules. Designed for deep performance optimization.",
+    description: "Advanced cognitive training modules designed for deep performance optimization.",
   },
 };
 
@@ -66,14 +66,14 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-sm mx-auto">
         <AlertDialogHeader className="text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
             {feature === "session-limit" ? (
-              <Lock className="w-8 h-8 text-primary" />
+              <Lock className="w-7 h-7 text-primary" />
             ) : (
-              <Crown className="w-8 h-8 text-primary" />
+              <Crown className="w-7 h-7 text-primary" />
             )}
           </div>
-          <AlertDialogTitle className="text-xl">
+          <AlertDialogTitle className="text-lg">
             {message.title}
             {featureName && (
               <span className="block text-sm font-normal text-muted-foreground mt-1">
@@ -81,26 +81,27 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
               </span>
             )}
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-center">
+          <AlertDialogDescription className="text-center text-sm">
             {message.description}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="py-4 space-y-3">
+        <div className="py-3 space-y-2.5">
           {FEATURES.map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon className="w-4 h-4 text-primary" />
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Icon className="w-3.5 h-3.5 text-primary" />
               </div>
-              <span className="text-sm">{text}</span>
+              <span className="text-sm text-muted-foreground">{text}</span>
             </div>
           ))}
         </div>
 
-        <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-          <Button onClick={handleUpgrade} variant="hero" className="w-full min-h-[48px]">
+        <AlertDialogFooter className="flex-col gap-2 sm:flex-col pt-1">
+          <Button onClick={handleUpgrade} variant="hero" className="w-full">
             <Crown className="w-4 h-4 mr-2" />
             View Plans
+            <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
           </Button>
           <Button
             variant="ghost"
