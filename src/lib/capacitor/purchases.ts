@@ -242,5 +242,5 @@ export function supportsIAP(): boolean {
  * On Web: Use Stripe
  */
 export function shouldUseNativeIAP(): boolean {
-  return isIOS(); // iOS requires IAP for digital content
+  return isNative() && (isIOS() || isAndroid());
 }
