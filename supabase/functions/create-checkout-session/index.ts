@@ -10,13 +10,13 @@ const corsHeaders = {
 const TIERS = {
   premium: {
     name: "LOOMA Pro",
-    description: "Complete cognitive training with monthly report.",
-    amount: 1990, // $19.90
+    description: "Complete cognitive training annual plan.",
+    amount: 19900, // $199/year
   },
   pro: {
     name: "LOOMA Elite",
-    description: "Master-level cognitive training with advanced insights.",
-    amount: 2990, // $29.90
+    description: "Master-level cognitive training annual plan.",
+    amount: 29900, // $299/year
   },
 };
 
@@ -83,7 +83,7 @@ serve(async (req) => {
 
     let price = prices.data.find(
       (p: Stripe.Price) =>
-        p.unit_amount === tierConfig.amount && p.currency === "usd" && p.recurring?.interval === "month",
+        p.unit_amount === tierConfig.amount && p.currency === "usd" && p.recurring?.interval === "year",
     );
 
     if (!price) {
@@ -93,7 +93,7 @@ serve(async (req) => {
         unit_amount: tierConfig.amount,
         currency: "usd",
         recurring: {
-          interval: "month",
+          interval: "year",
         },
       });
     }
@@ -112,7 +112,6 @@ serve(async (req) => {
       success_url: successUrl || `${req.headers.get("origin")}/app/premium?success=true`,
       cancel_url: cancelUrl || `${req.headers.get("origin")}/app/premium?canceled=true`,
       subscription_data: {
-        trial_period_days: 7,
         metadata: {
           user_id: userId,
           tier: tier,

@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Browser } from '@capacitor/browser';
-import { getStripeRedirectUrls, isNative, isIOS } from '@/lib/platformUtils';
+import { getStripeRedirectUrls, isNative } from '@/lib/platformUtils';
 import {
   initializePurchases,
   loginPurchases,
@@ -48,19 +48,33 @@ export function usePurchases(): UsePurchasesReturn {
   
   const useNativeIAP = shouldUseNativeIAP();
 
+  const ensurePurchasesReady = useCallback(async (): Promise<PurchaseResult | null> => {
+    if (!useNativeIAP || !user?.id) return null;
+
+    const initialized = await initializePurchases(user.id);
+    if (!initialized) {
+      return {
+        success: false,
+        error: 'Native billing is not configured. Missing RevenueCat API key for this platform.',
+      };
+    }
+
+    await loginPurchases(user.id);
+    return null;
+  }, [useNativeIAP, user?.id]);
+
   // Initialize RevenueCat on mount
   useEffect(() => {
     const init = async () => {
       if (useNativeIAP && user?.id) {
-        await initializePurchases(user.id);
-        await loginPurchases(user.id);
+        await ensurePurchasesReady();
         await refreshCustomerInfo();
       }
       setIsLoading(false);
     };
     
     init();
-  }, [user?.id, useNativeIAP]);
+  }, [user?.id, useNativeIAP, ensurePurchasesReady, refreshCustomerInfo]);
 
   // Logout from RevenueCat when user logs out
   useEffect(() => {
@@ -131,8 +145,13 @@ export function usePurchases(): UsePurchasesReturn {
     
     try {
       if (useNativeIAP) {
-        // Use RevenueCat for iOS
-        const result = await purchaseSubscription(PRODUCT_IDS.PREMIUM_MONTHLY);
+        const initError = await ensurePurchasesReady();
+        if (initError) {
+          toast({ title: 'Billing configuration error', description: initError.error, variant: 'destructive' });
+          return initError;
+        }
+
+        const result = await purchaseSubscription(PRODUCT_IDS.PREMIUM_ANNUAL);
         
         if (result.success) {
           await refreshCustomerInfo();
@@ -157,7 +176,7 @@ export function usePurchases(): UsePurchasesReturn {
     } finally {
       setIsPurchasing(false);
     }
-  }, [useNativeIAP, refreshCustomerInfo, upgradeToPremium, user, session]);
+  }, [useNativeIAP, ensurePurchasesReady, refreshCustomerInfo, upgradeToPremium]);
 
   // Purchase Pro subscription
   const purchasePro = useCallback(async (): Promise<PurchaseResult> => {
@@ -165,7 +184,13 @@ export function usePurchases(): UsePurchasesReturn {
     
     try {
       if (useNativeIAP) {
-        const result = await purchaseSubscription(PRODUCT_IDS.PRO_MONTHLY);
+        const initError = await ensurePurchasesReady();
+        if (initError) {
+          toast({ title: 'Billing configuration error', description: initError.error, variant: 'destructive' });
+          return initError;
+        }
+
+        const result = await purchaseSubscription(PRODUCT_IDS.PRO_ANNUAL);
         
         if (result.success) {
           await refreshCustomerInfo();
@@ -188,7 +213,7 @@ export function usePurchases(): UsePurchasesReturn {
     } finally {
       setIsPurchasing(false);
     }
-  }, [useNativeIAP, refreshCustomerInfo, user, session]);
+  }, [useNativeIAP, ensurePurchasesReady, refreshCustomerInfo]);
 
   // Restore purchases (required by App Store)
   const restoreAllPurchases = useCallback(async (): Promise<PurchaseResult> => {

@@ -1,15 +1,14 @@
 /**
- * RevenueCat Purchases integration for iOS In-App Purchases
- * This module handles all IAP functionality required for App Store compliance
+ * RevenueCat Purchases integration for native (iOS/Android) In-App Purchases.
  */
 
 import { Capacitor } from '@capacitor/core';
 import { isIOS, isAndroid, isNative } from '@/lib/platformUtils';
 
-// RevenueCat Product IDs - must match App Store Connect
+// RevenueCat Product IDs - must match RevenueCat products/store products
 export const PRODUCT_IDS = {
-  PREMIUM_MONTHLY: 'looma_premium_monthly',
-  PRO_MONTHLY: 'looma_pro_monthly',
+  PREMIUM_ANNUAL: 'looma_premium_annual',
+  PRO_ANNUAL: 'looma_pro_annual',
   REPORT_SINGLE: 'looma_report_single',
   REPORT_PACK_5: 'looma_report_pack_5',
   REPORT_PACK_10: 'looma_report_pack_10',
@@ -38,6 +37,12 @@ export interface CustomerInfo {
 let purchasesInstance: typeof import('@revenuecat/purchases-capacitor').Purchases | null = null;
 let isInitialized = false;
 
+function getMissingApiKeyError(): string {
+  return isIOS()
+    ? 'RevenueCat iOS key is missing (VITE_REVENUECAT_IOS_KEY).'
+    : 'RevenueCat Android key is missing (VITE_REVENUECAT_ANDROID_KEY).';
+}
+
 /**
  * Initialize RevenueCat SDK
  * Must be called on app startup for native platforms
@@ -58,7 +63,7 @@ export async function initializePurchases(userId?: string): Promise<boolean> {
       : import.meta.env.VITE_REVENUECAT_ANDROID_KEY;
 
     if (!apiKey) {
-      console.warn('[Purchases] RevenueCat API key not configured');
+      console.warn('[Purchases] RevenueCat API key not configured:', getMissingApiKeyError());
       return false;
     }
 
@@ -128,7 +133,10 @@ export async function purchaseSubscription(
   productId: typeof PRODUCT_IDS[keyof typeof PRODUCT_IDS]
 ): Promise<PurchaseResult> {
   if (!isInitialized || !purchasesInstance) {
-    return { success: false, error: 'Purchases not initialized' };
+    return {
+      success: false,
+      error: isNative() ? `Purchases not initialized. ${getMissingApiKeyError()}` : 'Purchases not initialized',
+    };
   }
 
   try {
