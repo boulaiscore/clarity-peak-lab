@@ -39,6 +39,7 @@ function valuesChanged(
 
 export function useAutoMetricSnapshot() {
   const { user } = useAuth();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   const { 
     sharpness, 
     readiness, 
