@@ -97,6 +97,9 @@ export function useAutoMetricSnapshot() {
       ra: RA,
       ct: CT,
       inScore: IN,
+    }).then(() => {
+      // Record an intraday event so 1d trend charts reflect decay/metric changes on app open
+      recordMetricsSnapshot('app_open', { trigger: 'auto_snapshot' }, 500);
     }).catch((err) => {
       console.error("[useAutoMetricSnapshot] Failed to save snapshot:", err);
       // Allow retry
