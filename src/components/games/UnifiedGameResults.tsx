@@ -126,6 +126,7 @@ export function UnifiedGameResults({
   isPerfect = false,
   mistakes = [],
   qualityLine,
+  insight,
   onPlayAgain,
   onExit,
 }: UnifiedGameResultsProps) {
