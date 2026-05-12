@@ -14,6 +14,7 @@ import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { SplashScreen } from "@/components/app/SplashScreen";
+import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/app/Home";
