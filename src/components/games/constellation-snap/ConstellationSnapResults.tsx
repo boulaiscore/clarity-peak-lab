@@ -7,6 +7,7 @@
  */
 
 import { UnifiedGameResults, KPIData, ReviewMistake } from "@/components/games";
+import { useGameInsight } from "@/hooks/useGameInsight";
 
 export interface ConstellationSnapResultsProps {
   sessionScore: number; // 0-100
@@ -83,6 +84,13 @@ export function ConstellationSnapResults({
     },
   ];
 
+  const insight = useGameInsight({
+    gameType: "S1-RA",
+    skill: "RA",
+    currentScore: sessionScore,
+    xpAwarded,
+  });
+
   return (
     <UnifiedGameResults
       gameName="Constellation Snap"
@@ -96,6 +104,7 @@ export function ConstellationSnapResults({
       kpis={kpis}
       isPerfect={isPerfect}
       mistakes={mistakes}
+      insight={insight}
       onPlayAgain={onPlayAgain}
       onExit={onExit}
     />
