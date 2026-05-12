@@ -17,11 +17,11 @@ const navItems = [
   { to: "/app", icon: Home, label: "Home" },
   { to: "/neuro-lab", icon: Activity, label: "Lab" },
   { to: "/app/dashboard", icon: LayoutDashboard, label: "Monitor" },
-  { to: "/app/wearable", icon: ({ className }: { className?: string }) => <GarminIcon className={className} size={20} />, label: "Wearable" },
 ];
 
 const menuItems = [
   { to: "/app/profile", icon: User, label: "Profile" },
+  { to: "/app/wearable", icon: ({ className }: { className?: string }) => <GarminIcon className={className} size={20} />, label: "Wearable" },
   { to: "/app/settings", icon: Settings, label: "Settings" },
   { to: "/app/subscription", icon: CreditCard, label: "Subscription" },
 ];
