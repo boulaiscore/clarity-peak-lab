@@ -1,27 +1,21 @@
 /**
  * ============================================
- * CONSTELLATION SNAP – CONTENT DATA
+ * CONSTELLATION SNAP – CONTENT DATA (v2)
  * ============================================
- * 
- * Visual association puzzles for the Constellation Snap game.
- * Each puzzle has a 3-tile constellation and 4 candidate options.
- * The player must find the tile that "closes" the constellation.
- * 
- * Association distances:
- * - near: obvious, category-level associations
- * - mid: functional or contextual associations  
- * - remote: metaphorical, abstract associations
+ *
+ * All tiles are ICONS (lucide-react). No mixed icon/word puzzles.
+ * Curated for visual clarity at 15 rounds per session (3 acts × 5).
  */
 
-export type TileType = "icon" | "word";
+export type TileType = "icon";
 export type AssociationTag = "near" | "mid" | "remote";
 export type ThemeTag = "tools" | "nature" | "society" | "time" | "music" | "motion" | "food" | "space" | "emotion" | "work";
 
 export interface ConstellationTile {
   id: string;
   type: TileType;
-  value: string; // icon name (lucide) or word
-  label?: string; // display label for words
+  value: string; // lucide icon name
+  label?: string; // optional short label (a11y); not displayed
 }
 
 export interface ConstellationPuzzle {
@@ -33,598 +27,317 @@ export interface ConstellationPuzzle {
   theme?: ThemeTag;
 }
 
+const ic = (id: string, value: string, label?: string): ConstellationTile => ({
+  id,
+  type: "icon",
+  value,
+  label,
+});
+
 // ============================================
-// NEAR ASSOCIATION PUZZLES (Category/Direct)
+// NEAR ASSOCIATION PUZZLES (icon-only)
 // ============================================
 
 const NEAR_PUZZLES: ConstellationPuzzle[] = [
   {
     id: "n1",
-    constellation: [
-      { id: "n1c1", type: "icon", value: "Sun" },
-      { id: "n1c2", type: "icon", value: "Cloud" },
-      { id: "n1c3", type: "icon", value: "CloudRain" },
-    ],
-    correctOption: { id: "n1o1", type: "word", value: "Weather" },
-    distractors: [
-      { id: "n1d1", type: "word", value: "Music" },
-      { id: "n1d2", type: "word", value: "Sport" },
-      { id: "n1d3", type: "word", value: "Food" },
-    ],
+    constellation: [ic("n1c1", "Sun"), ic("n1c2", "Cloud"), ic("n1c3", "CloudRain")],
+    correctOption: ic("n1o1", "CloudSun", "Weather"),
+    distractors: [ic("n1d1", "Music", "Music"), ic("n1d2", "Trophy", "Sport"), ic("n1d3", "UtensilsCrossed", "Food")],
     tag: "near",
     theme: "nature",
   },
   {
     id: "n2",
-    constellation: [
-      { id: "n2c1", type: "icon", value: "Hammer" },
-      { id: "n2c2", type: "icon", value: "Wrench" },
-      { id: "n2c3", type: "icon", value: "Drill" },
-    ],
-    correctOption: { id: "n2o1", type: "word", value: "Tools" },
-    distractors: [
-      { id: "n2d1", type: "word", value: "Toys" },
-      { id: "n2d2", type: "word", value: "Books" },
-      { id: "n2d3", type: "word", value: "Clothes" },
-    ],
+    constellation: [ic("n2c1", "Hammer"), ic("n2c2", "Wrench"), ic("n2c3", "Drill")],
+    correctOption: ic("n2o1", "Cog", "Tools"),
+    distractors: [ic("n2d1", "ToyBrick", "Toys"), ic("n2d2", "BookOpen", "Books"), ic("n2d3", "Shirt", "Clothes")],
     tag: "near",
     theme: "tools",
   },
   {
     id: "n3",
-    constellation: [
-      { id: "n3c1", type: "icon", value: "Apple" },
-      { id: "n3c2", type: "icon", value: "Banana" },
-      { id: "n3c3", type: "icon", value: "Cherry" },
-    ],
-    correctOption: { id: "n3o1", type: "word", value: "Fruit" },
-    distractors: [
-      { id: "n3d1", type: "word", value: "Metal" },
-      { id: "n3d2", type: "word", value: "Water" },
-      { id: "n3d3", type: "word", value: "Stone" },
-    ],
+    constellation: [ic("n3c1", "Apple"), ic("n3c2", "Banana"), ic("n3c3", "Cherry")],
+    correctOption: ic("n3o1", "Grape", "Fruit"),
+    distractors: [ic("n3d1", "Hammer", "Metal"), ic("n3d2", "Droplet", "Water"), ic("n3d3", "Mountain", "Stone")],
     tag: "near",
     theme: "food",
   },
   {
     id: "n4",
-    constellation: [
-      { id: "n4c1", type: "icon", value: "Car" },
-      { id: "n4c2", type: "icon", value: "Bus" },
-      { id: "n4c3", type: "icon", value: "Train" },
-    ],
-    correctOption: { id: "n4o1", type: "word", value: "Transport" },
-    distractors: [
-      { id: "n4d1", type: "word", value: "Furniture" },
-      { id: "n4d2", type: "word", value: "Animals" },
-      { id: "n4d3", type: "word", value: "Plants" },
-    ],
+    constellation: [ic("n4c1", "Car"), ic("n4c2", "Bus"), ic("n4c3", "TrainFront")],
+    correctOption: ic("n4o1", "Plane", "Transport"),
+    distractors: [ic("n4d1", "Armchair", "Furniture"), ic("n4d2", "PawPrint", "Animals"), ic("n4d3", "Sprout", "Plants")],
     tag: "near",
     theme: "motion",
   },
   {
     id: "n5",
-    constellation: [
-      { id: "n5c1", type: "icon", value: "Guitar" },
-      { id: "n5c2", type: "icon", value: "Piano" },
-      { id: "n5c3", type: "icon", value: "Drum" },
-    ],
-    correctOption: { id: "n5o1", type: "word", value: "Music" },
-    distractors: [
-      { id: "n5d1", type: "word", value: "Science" },
-      { id: "n5d2", type: "word", value: "Sports" },
-      { id: "n5d3", type: "word", value: "Food" },
-    ],
+    constellation: [ic("n5c1", "Guitar"), ic("n5c2", "Piano"), ic("n5c3", "Drum")],
+    correctOption: ic("n5o1", "Music", "Music"),
+    distractors: [ic("n5d1", "FlaskConical", "Science"), ic("n5d2", "Trophy", "Sports"), ic("n5d3", "UtensilsCrossed", "Food")],
     tag: "near",
     theme: "music",
   },
   {
     id: "n6",
-    constellation: [
-      { id: "n6c1", type: "icon", value: "Dog" },
-      { id: "n6c2", type: "icon", value: "Cat" },
-      { id: "n6c3", type: "icon", value: "Bird" },
-    ],
-    correctOption: { id: "n6o1", type: "word", value: "Pets" },
-    distractors: [
-      { id: "n6d1", type: "word", value: "Rocks" },
-      { id: "n6d2", type: "word", value: "Clouds" },
-      { id: "n6d3", type: "word", value: "Stars" },
-    ],
+    constellation: [ic("n6c1", "Dog"), ic("n6c2", "Cat"), ic("n6c3", "Bird")],
+    correctOption: ic("n6o1", "PawPrint", "Pets"),
+    distractors: [ic("n6d1", "Mountain", "Rocks"), ic("n6d2", "Cloud", "Clouds"), ic("n6d3", "Star", "Stars")],
     tag: "near",
     theme: "nature",
   },
   {
     id: "n7",
-    constellation: [
-      { id: "n7c1", type: "icon", value: "Shirt" },
-      { id: "n7c2", type: "icon", value: "Footprints" },
-      { id: "n7c3", type: "icon", value: "Watch" },
-    ],
-    correctOption: { id: "n7o1", type: "word", value: "Fashion" },
-    distractors: [
-      { id: "n7d1", type: "word", value: "Cooking" },
-      { id: "n7d2", type: "word", value: "Reading" },
-      { id: "n7d3", type: "word", value: "Sleeping" },
-    ],
-    tag: "near",
-    theme: "society",
-  },
-  {
-    id: "n8",
-    constellation: [
-      { id: "n8c1", type: "icon", value: "Moon" },
-      { id: "n8c2", type: "icon", value: "Star" },
-      { id: "n8c3", type: "icon", value: "Rocket" },
-    ],
-    correctOption: { id: "n8o1", type: "word", value: "Space" },
-    distractors: [
-      { id: "n8d1", type: "word", value: "Ocean" },
-      { id: "n8d2", type: "word", value: "Forest" },
-      { id: "n8d3", type: "word", value: "Desert" },
-    ],
+    constellation: [ic("n7c1", "Moon"), ic("n7c2", "Star"), ic("n7c3", "Rocket")],
+    correctOption: ic("n7o1", "Orbit", "Space"),
+    distractors: [ic("n7d1", "Waves", "Ocean"), ic("n7d2", "Trees", "Forest"), ic("n7d3", "Sun", "Desert")],
     tag: "near",
     theme: "space",
   },
   {
-    id: "n9",
-    constellation: [
-      { id: "n9c1", type: "icon", value: "Book" },
-      { id: "n9c2", type: "icon", value: "Pencil" },
-      { id: "n9c3", type: "icon", value: "GraduationCap" },
-    ],
-    correctOption: { id: "n9o1", type: "word", value: "Education" },
-    distractors: [
-      { id: "n9d1", type: "word", value: "Cooking" },
-      { id: "n9d2", type: "word", value: "Dancing" },
-      { id: "n9d3", type: "word", value: "Swimming" },
-    ],
+    id: "n8",
+    constellation: [ic("n8c1", "Book"), ic("n8c2", "Pencil"), ic("n8c3", "GraduationCap")],
+    correctOption: ic("n8o1", "School", "Education"),
+    distractors: [ic("n8d1", "ChefHat", "Cooking"), ic("n8d2", "Music", "Dancing"), ic("n8d3", "Waves", "Swimming")],
     tag: "near",
     theme: "work",
   },
   {
-    id: "n10",
-    constellation: [
-      { id: "n10c1", type: "icon", value: "Heart" },
-      { id: "n10c2", type: "icon", value: "Gift" },
-      { id: "n10c3", type: "icon", value: "Cake" },
-    ],
-    correctOption: { id: "n10o1", type: "word", value: "Birthday" },
-    distractors: [
-      { id: "n10d1", type: "word", value: "Workout" },
-      { id: "n10d2", type: "word", value: "Cleaning" },
-      { id: "n10d3", type: "word", value: "Sleeping" },
-    ],
+    id: "n9",
+    constellation: [ic("n9c1", "Heart"), ic("n9c2", "Gift"), ic("n9c3", "Cake")],
+    correctOption: ic("n9o1", "PartyPopper", "Birthday"),
+    distractors: [ic("n9d1", "Dumbbell", "Workout"), ic("n9d2", "Sparkles", "Cleaning"), ic("n9d3", "Moon", "Sleeping")],
     tag: "near",
     theme: "emotion",
   },
   {
-    id: "n11",
-    constellation: [
-      { id: "n11c1", type: "icon", value: "Coffee" },
-      { id: "n11c2", type: "icon", value: "Croissant" },
-      { id: "n11c3", type: "icon", value: "Sunrise" },
-    ],
-    correctOption: { id: "n11o1", type: "word", value: "Morning" },
-    distractors: [
-      { id: "n11d1", type: "word", value: "Night" },
-      { id: "n11d2", type: "word", value: "Winter" },
-      { id: "n11d3", type: "word", value: "Storm" },
-    ],
+    id: "n10",
+    constellation: [ic("n10c1", "Coffee"), ic("n10c2", "Croissant"), ic("n10c3", "Sunrise")],
+    correctOption: ic("n10o1", "Sun", "Morning"),
+    distractors: [ic("n10d1", "Moon", "Night"), ic("n10d2", "Snowflake", "Winter"), ic("n10d3", "CloudLightning", "Storm")],
     tag: "near",
     theme: "time",
   },
   {
-    id: "n12",
-    constellation: [
-      { id: "n12c1", type: "icon", value: "Briefcase" },
-      { id: "n12c2", type: "icon", value: "Mail" },
-      { id: "n12c3", type: "icon", value: "Clock" },
-    ],
-    correctOption: { id: "n12o1", type: "word", value: "Office" },
-    distractors: [
-      { id: "n12d1", type: "word", value: "Beach" },
-      { id: "n12d2", type: "word", value: "Forest" },
-      { id: "n12d3", type: "word", value: "Mountain" },
-    ],
+    id: "n11",
+    constellation: [ic("n11c1", "Briefcase"), ic("n11c2", "Mail"), ic("n11c3", "Clock")],
+    correctOption: ic("n11o1", "Building2", "Office"),
+    distractors: [ic("n11d1", "Umbrella", "Beach"), ic("n11d2", "Trees", "Forest"), ic("n11d3", "Mountain", "Mountain")],
     tag: "near",
     theme: "work",
+  },
+  {
+    id: "n12",
+    constellation: [ic("n12c1", "Snowflake"), ic("n12c2", "Wind"), ic("n12c3", "ThermometerSnowflake")],
+    correctOption: ic("n12o1", "Mountain", "Winter"),
+    distractors: [ic("n12d1", "Sun", "Summer"), ic("n12d2", "Flame", "Fire"), ic("n12d3", "Sprout", "Spring")],
+    tag: "near",
+    theme: "nature",
   },
 ];
 
 // ============================================
-// MID ASSOCIATION PUZZLES (Functional/Contextual)
+// MID ASSOCIATION PUZZLES (icon-only)
 // ============================================
 
 const MID_PUZZLES: ConstellationPuzzle[] = [
   {
     id: "m1",
-    constellation: [
-      { id: "m1c1", type: "icon", value: "Lock" },
-      { id: "m1c2", type: "icon", value: "Eye" },
-      { id: "m1c3", type: "word", value: "Trust" },
-    ],
-    correctOption: { id: "m1o1", type: "word", value: "Security" },
-    distractors: [
-      { id: "m1d1", type: "word", value: "Speed" },
-      { id: "m1d2", type: "word", value: "Color" },
-      { id: "m1d3", type: "word", value: "Taste" },
-    ],
+    constellation: [ic("m1c1", "Lock"), ic("m1c2", "Eye"), ic("m1c3", "Shield")],
+    correctOption: ic("m1o1", "ShieldCheck", "Security"),
+    distractors: [ic("m1d1", "Gauge", "Speed"), ic("m1d2", "Palette", "Color"), ic("m1d3", "UtensilsCrossed", "Taste")],
     tag: "mid",
     theme: "society",
   },
   {
     id: "m2",
-    constellation: [
-      { id: "m2c1", type: "icon", value: "Flame" },
-      { id: "m2c2", type: "icon", value: "Lightbulb" },
-      { id: "m2c3", type: "word", value: "Passion" },
-    ],
-    correctOption: { id: "m2o1", type: "word", value: "Energy" },
-    distractors: [
-      { id: "m2d1", type: "word", value: "Silence" },
-      { id: "m2d2", type: "word", value: "Darkness" },
-      { id: "m2d3", type: "word", value: "Weight" },
-    ],
+    constellation: [ic("m2c1", "Flame"), ic("m2c2", "Lightbulb"), ic("m2c3", "Zap")],
+    correctOption: ic("m2o1", "Battery", "Energy"),
+    distractors: [ic("m2d1", "VolumeX", "Silence"), ic("m2d2", "MoonStar", "Darkness"), ic("m2d3", "Anchor", "Weight")],
     tag: "mid",
     theme: "emotion",
   },
   {
     id: "m3",
-    constellation: [
-      { id: "m3c1", type: "icon", value: "Compass" },
-      { id: "m3c2", type: "icon", value: "Map" },
-      { id: "m3c3", type: "word", value: "Goal" },
-    ],
-    correctOption: { id: "m3o1", type: "word", value: "Direction" },
-    distractors: [
-      { id: "m3d1", type: "word", value: "Texture" },
-      { id: "m3d2", type: "word", value: "Volume" },
-      { id: "m3d3", type: "word", value: "Flavor" },
-    ],
+    constellation: [ic("m3c1", "Compass"), ic("m3c2", "Map"), ic("m3c3", "MapPin")],
+    correctOption: ic("m3o1", "Navigation", "Direction"),
+    distractors: [ic("m3d1", "Brush", "Texture"), ic("m3d2", "Volume2", "Volume"), ic("m3d3", "Cherry", "Flavor")],
     tag: "mid",
     theme: "motion",
   },
   {
     id: "m4",
-    constellation: [
-      { id: "m4c1", type: "icon", value: "Timer" },
-      { id: "m4c2", type: "icon", value: "Target" },
-      { id: "m4c3", type: "word", value: "Rush" },
-    ],
-    correctOption: { id: "m4o1", type: "word", value: "Deadline" },
-    distractors: [
-      { id: "m4d1", type: "word", value: "Melody" },
-      { id: "m4d2", type: "word", value: "Fragrance" },
-      { id: "m4d3", type: "word", value: "Texture" },
-    ],
+    constellation: [ic("m4c1", "Timer"), ic("m4c2", "Target"), ic("m4c3", "AlarmClock")],
+    correctOption: ic("m4o1", "Hourglass", "Deadline"),
+    distractors: [ic("m4d1", "Music", "Melody"), ic("m4d2", "Flower", "Fragrance"), ic("m4d3", "Brush", "Texture")],
     tag: "mid",
     theme: "time",
   },
   {
     id: "m5",
-    constellation: [
-      { id: "m5c1", type: "icon", value: "Leaf" },
-      { id: "m5c2", type: "icon", value: "Recycle" },
-      { id: "m5c3", type: "word", value: "Future" },
-    ],
-    correctOption: { id: "m5o1", type: "word", value: "Sustainability" },
-    distractors: [
-      { id: "m5d1", type: "word", value: "Destruction" },
-      { id: "m5d2", type: "word", value: "Explosion" },
-      { id: "m5d3", type: "word", value: "Pollution" },
-    ],
+    constellation: [ic("m5c1", "Leaf"), ic("m5c2", "Recycle"), ic("m5c3", "Sprout")],
+    correctOption: ic("m5o1", "TreeDeciduous", "Sustainability"),
+    distractors: [ic("m5d1", "Bomb", "Destruction"), ic("m5d2", "Flame", "Explosion"), ic("m5d3", "Factory", "Pollution")],
     tag: "mid",
     theme: "nature",
   },
   {
     id: "m6",
-    constellation: [
-      { id: "m6c1", type: "icon", value: "Users" },
-      { id: "m6c2", type: "icon", value: "MessageCircle" },
-      { id: "m6c3", type: "word", value: "Bond" },
-    ],
-    correctOption: { id: "m6o1", type: "word", value: "Community" },
-    distractors: [
-      { id: "m6d1", type: "word", value: "Solitude" },
-      { id: "m6d2", type: "word", value: "Silence" },
-      { id: "m6d3", type: "word", value: "Distance" },
-    ],
+    constellation: [ic("m6c1", "Users"), ic("m6c2", "MessageCircle"), ic("m6c3", "Handshake")],
+    correctOption: ic("m6o1", "Network", "Community"),
+    distractors: [ic("m6d1", "User", "Solitude"), ic("m6d2", "VolumeX", "Silence"), ic("m6d3", "Milestone", "Distance")],
     tag: "mid",
     theme: "society",
   },
   {
     id: "m7",
-    constellation: [
-      { id: "m7c1", type: "icon", value: "Puzzle" },
-      { id: "m7c2", type: "icon", value: "Brain" },
-      { id: "m7c3", type: "word", value: "Click" },
-    ],
-    correctOption: { id: "m7o1", type: "word", value: "Insight" },
-    distractors: [
-      { id: "m7d1", type: "word", value: "Confusion" },
-      { id: "m7d2", type: "word", value: "Boredom" },
-      { id: "m7d3", type: "word", value: "Fatigue" },
-    ],
+    constellation: [ic("m7c1", "Puzzle"), ic("m7c2", "Brain"), ic("m7c3", "Lightbulb")],
+    correctOption: ic("m7o1", "Sparkles", "Insight"),
+    distractors: [ic("m7d1", "HelpCircle", "Confusion"), ic("m7d2", "Meh", "Boredom"), ic("m7d3", "BatteryLow", "Fatigue")],
     tag: "mid",
     theme: "work",
   },
   {
     id: "m8",
-    constellation: [
-      { id: "m8c1", type: "icon", value: "Mic" },
-      { id: "m8c2", type: "icon", value: "Headphones" },
-      { id: "m8c3", type: "word", value: "Story" },
-    ],
-    correctOption: { id: "m8o1", type: "word", value: "Podcast" },
-    distractors: [
-      { id: "m8d1", type: "word", value: "Painting" },
-      { id: "m8d2", type: "word", value: "Sculpture" },
-      { id: "m8d3", type: "word", value: "Dance" },
-    ],
+    constellation: [ic("m8c1", "Mic"), ic("m8c2", "Headphones"), ic("m8c3", "Radio")],
+    correctOption: ic("m8o1", "Podcast", "Podcast"),
+    distractors: [ic("m8d1", "Palette", "Painting"), ic("m8d2", "Hammer", "Sculpture"), ic("m8d3", "Music", "Dance")],
     tag: "mid",
     theme: "music",
   },
   {
     id: "m9",
-    constellation: [
-      { id: "m9c1", type: "icon", value: "Sparkles" },
-      { id: "m9c2", type: "icon", value: "Wand2" },
-      { id: "m9c3", type: "word", value: "Wonder" },
-    ],
-    correctOption: { id: "m9o1", type: "word", value: "Magic" },
-    distractors: [
-      { id: "m9d1", type: "word", value: "Routine" },
-      { id: "m9d2", type: "word", value: "Boredom" },
-      { id: "m9d3", type: "word", value: "Ordinary" },
-    ],
+    constellation: [ic("m9c1", "Sparkles"), ic("m9c2", "Wand2"), ic("m9c3", "Star")],
+    correctOption: ic("m9o1", "Stars", "Magic"),
+    distractors: [ic("m9d1", "RotateCw", "Routine"), ic("m9d2", "Meh", "Boredom"), ic("m9d3", "Square", "Ordinary")],
     tag: "mid",
     theme: "emotion",
   },
   {
     id: "m10",
-    constellation: [
-      { id: "m10c1", type: "icon", value: "Scale" },
-      { id: "m10c2", type: "icon", value: "Gavel" },
-      { id: "m10c3", type: "word", value: "Fair" },
-    ],
-    correctOption: { id: "m10o1", type: "word", value: "Justice" },
-    distractors: [
-      { id: "m10d1", type: "word", value: "Chaos" },
-      { id: "m10d2", type: "word", value: "Noise" },
-      { id: "m10d3", type: "word", value: "Speed" },
-    ],
+    constellation: [ic("m10c1", "Scale"), ic("m10c2", "Gavel"), ic("m10c3", "Landmark")],
+    correctOption: ic("m10o1", "BookOpenCheck", "Justice"),
+    distractors: [ic("m10d1", "Tornado", "Chaos"), ic("m10d2", "Volume2", "Noise"), ic("m10d3", "Gauge", "Speed")],
     tag: "mid",
     theme: "society",
   },
   {
     id: "m11",
-    constellation: [
-      { id: "m11c1", type: "icon", value: "Zap" },
-      { id: "m11c2", type: "icon", value: "Battery" },
-      { id: "m11c3", type: "word", value: "Boost" },
-    ],
-    correctOption: { id: "m11o1", type: "word", value: "Power" },
-    distractors: [
-      { id: "m11d1", type: "word", value: "Silence" },
-      { id: "m11d2", type: "word", value: "Stillness" },
-      { id: "m11d3", type: "word", value: "Void" },
-    ],
+    constellation: [ic("m11c1", "Zap"), ic("m11c2", "Battery"), ic("m11c3", "Plug")],
+    correctOption: ic("m11o1", "BatteryFull", "Power"),
+    distractors: [ic("m11d1", "VolumeX", "Silence"), ic("m11d2", "Pause", "Stillness"), ic("m11d3", "CircleOff", "Void")],
     tag: "mid",
     theme: "tools",
   },
   {
     id: "m12",
-    constellation: [
-      { id: "m12c1", type: "icon", value: "Telescope" },
-      { id: "m12c2", type: "icon", value: "Globe" },
-      { id: "m12c3", type: "word", value: "Wonder" },
-    ],
-    correctOption: { id: "m12o1", type: "word", value: "Discovery" },
-    distractors: [
-      { id: "m12d1", type: "word", value: "Routine" },
-      { id: "m12d2", type: "word", value: "Boredom" },
-      { id: "m12d3", type: "word", value: "Stillness" },
-    ],
+    constellation: [ic("m12c1", "Telescope"), ic("m12c2", "Globe"), ic("m12c3", "Search")],
+    correctOption: ic("m12o1", "Compass", "Discovery"),
+    distractors: [ic("m12d1", "RotateCw", "Routine"), ic("m12d2", "Meh", "Boredom"), ic("m12d3", "Pause", "Stillness")],
     tag: "mid",
     theme: "space",
   },
 ];
 
 // ============================================
-// REMOTE ASSOCIATION PUZZLES (Metaphorical/Abstract)
+// REMOTE ASSOCIATION PUZZLES (icon-only)
 // ============================================
 
 const REMOTE_PUZZLES: ConstellationPuzzle[] = [
   {
     id: "r1",
-    constellation: [
-      { id: "r1c1", type: "icon", value: "Anchor" },
-      { id: "r1c2", type: "word", value: "Roots" },
-      { id: "r1c3", type: "word", value: "Home" },
-    ],
-    correctOption: { id: "r1o1", type: "word", value: "Belonging" },
-    distractors: [
-      { id: "r1d1", type: "word", value: "Flight" },
-      { id: "r1d2", type: "word", value: "Speed" },
-      { id: "r1d3", type: "word", value: "Chaos" },
-    ],
+    constellation: [ic("r1c1", "Anchor"), ic("r1c2", "TreeDeciduous"), ic("r1c3", "Home")],
+    correctOption: ic("r1o1", "Heart", "Belonging"),
+    distractors: [ic("r1d1", "Plane", "Flight"), ic("r1d2", "Gauge", "Speed"), ic("r1d3", "Tornado", "Chaos")],
     tag: "remote",
     theme: "emotion",
   },
   {
     id: "r2",
-    constellation: [
-      { id: "r2c1", type: "icon", value: "Feather" },
-      { id: "r2c2", type: "word", value: "Whisper" },
-      { id: "r2c3", type: "word", value: "Cloud" },
-    ],
-    correctOption: { id: "r2o1", type: "word", value: "Lightness" },
-    distractors: [
-      { id: "r2d1", type: "word", value: "Thunder" },
-      { id: "r2d2", type: "word", value: "Weight" },
-      { id: "r2d3", type: "word", value: "Stone" },
-    ],
+    constellation: [ic("r2c1", "Feather"), ic("r2c2", "Wind"), ic("r2c3", "Cloud")],
+    correctOption: ic("r2o1", "CloudFog", "Lightness"),
+    distractors: [ic("r2d1", "CloudLightning", "Thunder"), ic("r2d2", "Anchor", "Weight"), ic("r2d3", "Mountain", "Stone")],
     tag: "remote",
     theme: "nature",
   },
   {
     id: "r3",
-    constellation: [
-      { id: "r3c1", type: "icon", value: "Hourglass" },
-      { id: "r3c2", type: "word", value: "Tide" },
-      { id: "r3c3", type: "word", value: "Memory" },
-    ],
-    correctOption: { id: "r3o1", type: "word", value: "Passage" },
-    distractors: [
-      { id: "r3d1", type: "word", value: "Stillness" },
-      { id: "r3d2", type: "word", value: "Noise" },
-      { id: "r3d3", type: "word", value: "Color" },
-    ],
+    constellation: [ic("r3c1", "Hourglass"), ic("r3c2", "Waves"), ic("r3c3", "Clock")],
+    correctOption: ic("r3o1", "Timer", "Passage"),
+    distractors: [ic("r3d1", "Pause", "Stillness"), ic("r3d2", "Volume2", "Noise"), ic("r3d3", "Palette", "Color")],
     tag: "remote",
     theme: "time",
   },
   {
     id: "r4",
-    constellation: [
-      { id: "r4c1", type: "icon", value: "Key" },
-      { id: "r4c2", type: "word", value: "Dawn" },
-      { id: "r4c3", type: "word", value: "Door" },
-    ],
-    correctOption: { id: "r4o1", type: "word", value: "Opportunity" },
-    distractors: [
-      { id: "r4d1", type: "word", value: "Wall" },
-      { id: "r4d2", type: "word", value: "Barrier" },
-      { id: "r4d3", type: "word", value: "Ending" },
-    ],
+    constellation: [ic("r4c1", "Key"), ic("r4c2", "Sunrise"), ic("r4c3", "DoorOpen")],
+    correctOption: ic("r4o1", "Sparkles", "Opportunity"),
+    distractors: [ic("r4d1", "Square", "Wall"), ic("r4d2", "Ban", "Barrier"), ic("r4d3", "CircleStop", "Ending")],
     tag: "remote",
     theme: "emotion",
   },
   {
     id: "r5",
-    constellation: [
-      { id: "r5c1", type: "icon", value: "Waves" },
-      { id: "r5c2", type: "word", value: "Breath" },
-      { id: "r5c3", type: "word", value: "Pulse" },
-    ],
-    correctOption: { id: "r5o1", type: "word", value: "Rhythm" },
-    distractors: [
-      { id: "r5d1", type: "word", value: "Silence" },
-      { id: "r5d2", type: "word", value: "Stillness" },
-      { id: "r5d3", type: "word", value: "Void" },
-    ],
+    constellation: [ic("r5c1", "Waves"), ic("r5c2", "Activity"), ic("r5c3", "HeartPulse")],
+    correctOption: ic("r5o1", "Music", "Rhythm"),
+    distractors: [ic("r5d1", "VolumeX", "Silence"), ic("r5d2", "Pause", "Stillness"), ic("r5d3", "CircleOff", "Void")],
     tag: "remote",
     theme: "music",
   },
   {
     id: "r6",
-    constellation: [
-      { id: "r6c1", type: "icon", value: "Snowflake" },
-      { id: "r6c2", type: "word", value: "Fingerprint" },
-      { id: "r6c3", type: "word", value: "Voice" },
-    ],
-    correctOption: { id: "r6o1", type: "word", value: "Uniqueness" },
-    distractors: [
-      { id: "r6d1", type: "word", value: "Sameness" },
-      { id: "r6d2", type: "word", value: "Copy" },
-      { id: "r6d3", type: "word", value: "Clone" },
-    ],
+    constellation: [ic("r6c1", "Snowflake"), ic("r6c2", "Fingerprint"), ic("r6c3", "Mic")],
+    correctOption: ic("r6o1", "Star", "Uniqueness"),
+    distractors: [ic("r6d1", "Equal", "Sameness"), ic("r6d2", "Copy", "Copy"), ic("r6d3", "Users", "Clone")],
     tag: "remote",
     theme: "society",
   },
   {
     id: "r7",
-    constellation: [
-      { id: "r7c1", type: "icon", value: "Mountain" },
-      { id: "r7c2", type: "word", value: "Obstacle" },
-      { id: "r7c3", type: "word", value: "Summit" },
-    ],
-    correctOption: { id: "r7o1", type: "word", value: "Challenge" },
-    distractors: [
-      { id: "r7d1", type: "word", value: "Valley" },
-      { id: "r7d2", type: "word", value: "Comfort" },
-      { id: "r7d3", type: "word", value: "Ease" },
-    ],
+    constellation: [ic("r7c1", "Mountain"), ic("r7c2", "Flag"), ic("r7c3", "Footprints")],
+    correctOption: ic("r7o1", "Trophy", "Challenge"),
+    distractors: [ic("r7d1", "TreePine", "Valley"), ic("r7d2", "Armchair", "Comfort"), ic("r7d3", "Feather", "Ease")],
     tag: "remote",
     theme: "motion",
   },
   {
     id: "r8",
-    constellation: [
-      { id: "r8c1", type: "icon", value: "Sunrise" },
-      { id: "r8c2", type: "word", value: "Phoenix" },
-      { id: "r8c3", type: "word", value: "Spring" },
-    ],
-    correctOption: { id: "r8o1", type: "word", value: "Renewal" },
-    distractors: [
-      { id: "r8d1", type: "word", value: "Decay" },
-      { id: "r8d2", type: "word", value: "Ending" },
-      { id: "r8d3", type: "word", value: "Winter" },
-    ],
+    constellation: [ic("r8c1", "Sunrise"), ic("r8c2", "Flame"), ic("r8c3", "Sprout")],
+    correctOption: ic("r8o1", "Recycle", "Renewal"),
+    distractors: [ic("r8d1", "Skull", "Decay"), ic("r8d2", "CircleStop", "Ending"), ic("r8d3", "Snowflake", "Winter")],
     tag: "remote",
     theme: "time",
   },
   {
     id: "r9",
-    constellation: [
-      { id: "r9c1", type: "icon", value: "Link" },
-      { id: "r9c2", type: "word", value: "Bridge" },
-      { id: "r9c3", type: "word", value: "Handshake" },
-    ],
-    correctOption: { id: "r9o1", type: "word", value: "Connection" },
-    distractors: [
-      { id: "r9d1", type: "word", value: "Wall" },
-      { id: "r9d2", type: "word", value: "Gap" },
-      { id: "r9d3", type: "word", value: "Divide" },
-    ],
+    constellation: [ic("r9c1", "Link"), ic("r9c2", "Cable"), ic("r9c3", "Handshake")],
+    correctOption: ic("r9o1", "Network", "Connection"),
+    distractors: [ic("r9d1", "Square", "Wall"), ic("r9d2", "SeparatorHorizontal", "Gap"), ic("r9d3", "Scissors", "Divide")],
     tag: "remote",
     theme: "society",
   },
   {
     id: "r10",
-    constellation: [
-      { id: "r10c1", type: "icon", value: "Flame" },
-      { id: "r10c2", type: "word", value: "Moth" },
-      { id: "r10c3", type: "word", value: "Magnet" },
-    ],
-    correctOption: { id: "r10o1", type: "word", value: "Attraction" },
-    distractors: [
-      { id: "r10d1", type: "word", value: "Repulsion" },
-      { id: "r10d2", type: "word", value: "Distance" },
-      { id: "r10d3", type: "word", value: "Avoidance" },
-    ],
+    constellation: [ic("r10c1", "Flame"), ic("r10c2", "Bug"), ic("r10c3", "Magnet")],
+    correctOption: ic("r10o1", "Heart", "Attraction"),
+    distractors: [ic("r10d1", "Ban", "Repulsion"), ic("r10d2", "Milestone", "Distance"), ic("r10d3", "X", "Avoidance")],
     tag: "remote",
     theme: "emotion",
   },
   {
     id: "r11",
-    constellation: [
-      { id: "r11c1", type: "icon", value: "Shield" },
-      { id: "r11c2", type: "word", value: "Shell" },
-      { id: "r11c3", type: "word", value: "Mask" },
-    ],
-    correctOption: { id: "r11o1", type: "word", value: "Protection" },
-    distractors: [
-      { id: "r11d1", type: "word", value: "Exposure" },
-      { id: "r11d2", type: "word", value: "Vulnerability" },
-      { id: "r11d3", type: "word", value: "Openness" },
-    ],
+    constellation: [ic("r11c1", "Shield"), ic("r11c2", "Umbrella"), ic("r11c3", "VenetianMask")],
+    correctOption: ic("r11o1", "ShieldCheck", "Protection"),
+    distractors: [ic("r11d1", "EyeOff", "Exposure"), ic("r11d2", "AlertTriangle", "Vulnerability"), ic("r11d3", "DoorOpen", "Openness")],
     tag: "remote",
     theme: "emotion",
   },
   {
     id: "r12",
-    constellation: [
-      { id: "r12c1", type: "icon", value: "Infinity" },
-      { id: "r12c2", type: "word", value: "Horizon" },
-      { id: "r12c3", type: "word", value: "Dream" },
-    ],
-    correctOption: { id: "r12o1", type: "word", value: "Possibility" },
-    distractors: [
-      { id: "r12d1", type: "word", value: "Limit" },
-      { id: "r12d2", type: "word", value: "Boundary" },
-      { id: "r12d3", type: "word", value: "End" },
-    ],
+    constellation: [ic("r12c1", "Infinity"), ic("r12c2", "Mountain"), ic("r12c3", "Cloud")],
+    correctOption: ic("r12o1", "Sparkles", "Possibility"),
+    distractors: [ic("r12d1", "Minus", "Limit"), ic("r12d2", "Square", "Boundary"), ic("r12d3", "CircleStop", "End")],
     tag: "remote",
     theme: "space",
   },
@@ -645,44 +358,38 @@ function shuffleArray<T>(array: T[]): T[] {
 
 /**
  * Get puzzles for a session based on difficulty.
- * - Easy: mostly near, few mid
- * - Medium: balanced mix
- * - Hard: mostly remote, few mid
+ * Default: 15 rounds (3 acts × 5).
  */
 export function getPuzzlesForSession(
   difficulty: "easy" | "medium" | "hard",
-  count: number = 30
+  count: number = 15
 ): ConstellationPuzzle[] {
-  const roundsPerAct = count / 3; // 10 per act
-  
   let nearCount: number, midCount: number, remoteCount: number;
-  
+
   switch (difficulty) {
     case "easy":
-      nearCount = 20;
-      midCount = 8;
-      remoteCount = 2;
+      nearCount = Math.ceil(count * 0.6);
+      midCount = Math.ceil(count * 0.3);
+      remoteCount = Math.max(0, count - nearCount - midCount);
       break;
     case "medium":
-      nearCount = 10;
-      midCount = 10;
-      remoteCount = 10;
+      nearCount = Math.ceil(count / 3);
+      midCount = Math.ceil(count / 3);
+      remoteCount = count - nearCount - midCount;
       break;
     case "hard":
-      nearCount = 2;
-      midCount = 8;
-      remoteCount = 20;
+      remoteCount = Math.ceil(count * 0.6);
+      midCount = Math.ceil(count * 0.3);
+      nearCount = Math.max(0, count - remoteCount - midCount);
       break;
   }
-  
-  // Sample puzzles
+
   const nearSample = shuffleArray(NEAR_PUZZLES).slice(0, nearCount);
   const midSample = shuffleArray(MID_PUZZLES).slice(0, midCount);
   const remoteSample = shuffleArray(REMOTE_PUZZLES).slice(0, remoteCount);
-  
-  // Combine and shuffle
+
   const allPuzzles = shuffleArray([...nearSample, ...midSample, ...remoteSample]);
-  
+
   return allPuzzles.slice(0, count);
 }
 
@@ -697,10 +404,6 @@ export function shuffleOptions(puzzle: ConstellationPuzzle): ConstellationTile[]
 // ANTI-REPETITION HASH GENERATION
 // ============================================
 
-/**
- * Generate combo hash parameters for Constellation Snap session.
- * Used by anti-repetition engine to detect duplicate sessions.
- */
 export function getSessionHashParams(
   puzzles: ConstellationPuzzle[],
   difficulty: "easy" | "medium" | "hard"
