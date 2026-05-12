@@ -114,10 +114,15 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
   return (
     <div className="space-y-2">
       {/* XP Info */}
-      <div className="px-3 py-2 border-b border-border/30 mb-3">
+      <div className="px-3 py-2 mb-3 flex items-center justify-between">
         <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-          Training awards <span className="text-foreground/90 font-medium">9–45 XP</span> per session
+          XP · <span className="text-foreground/80 font-medium">9–45 per session</span>
         </p>
+        {pickedGameType && (
+          <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.14em] text-foreground/60">
+            <Star className="w-2.5 h-2.5" /> Pick for today
+          </span>
+        )}
       </div>
 
       {/* Two system blocks */}
