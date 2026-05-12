@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Zap, Timer } from "lucide-react";
+import { ChevronDown, Zap, Timer, Lock, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
@@ -24,6 +24,7 @@ type ThinkingSystem = "fast" | "slow";
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
+  recoveryEffective?: number;
 }
 
 const SYSTEMS = [
@@ -34,8 +35,8 @@ const SYSTEMS = [
     description: "Speed, pattern recognition, automaticity",
     accentColor: "hsl(var(--area-fast))",
     areas: [
-      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, subLabel: "Focus & Precision" },
-      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, subLabel: "Intuitive Links" },
+      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, subLabel: "Sharper focus under pressure" },
+      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, subLabel: "Faster intuitive connections" },
     ],
   },
   {
@@ -45,13 +46,21 @@ const SYSTEMS = [
     description: "Logic, analysis, structured reasoning",
     accentColor: "hsl(var(--area-slow))",
     areas: [
-      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, subLabel: "Logic & Analysis" },
-      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, subLabel: "Clarity & Synthesis" },
+      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, subLabel: "Cleaner thinking when stakes are high" },
+      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, subLabel: "Cut through complexity" },
     ],
   },
 ];
 
-export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
+const REC_LOCK_THRESHOLD = 40;
+const S2_REC_THRESHOLD = 60;
+
+export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibraryProps) {
+  // Pick-for-today logic: pick the system best matched to current recovery
+  const pickedGameType: GameType | null =
+    recoveryEffective >= S2_REC_THRESHOLD ? "S2-CT"
+    : recoveryEffective >= REC_LOCK_THRESHOLD ? "S1-AE"
+    : null;
   const navigate = useNavigate();
   const [openSystem, setOpenSystem] = useState<ThinkingSystem | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -105,10 +114,15 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   return (
     <div className="space-y-2">
       {/* XP Info */}
-      <div className="px-3 py-2 border-b border-border/30 mb-3">
+      <div className="px-3 py-2 mb-3 flex items-center justify-between">
         <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-          Training awards <span className="text-foreground/90 font-medium">9–45 XP</span> per session
+          XP · <span className="text-foreground/80 font-medium">9–45 per session</span>
         </p>
+        {pickedGameType && (
+          <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.14em] text-foreground/60">
+            <Star className="w-2.5 h-2.5" /> Pick for today
+          </span>
+        )}
       </div>
 
       {/* Two system blocks */}
@@ -148,10 +162,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                     <span className="text-[13px] font-semibold text-foreground tracking-tight">
                       {system.label}
                     </span>
-                    <span
-                      className="text-[9px] font-bold uppercase tracking-[0.16em] px-1.5 py-0.5"
-                      style={{ color: system.accentColor }}
-                    >
+                    <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground/70">
                       {system.id === "fast" ? "Fast" : "Slow"}
                     </span>
                   </div>
@@ -194,53 +205,91 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   className="overflow-hidden"
                 >
                   <div className="grid grid-cols-2 gap-px bg-white/[0.04]">
-                    {system.areas.map((area) => (
+                    {system.areas.map((area) => {
+                      const requiredRec = system.id === "slow" ? S2_REC_THRESHOLD : REC_LOCK_THRESHOLD;
+                      const isLocked = recoveryEffective < requiredRec;
+                      const isPicked = pickedGameType === area.gameType;
+                      return (
                       <button
                         key={area.gameType}
-                        onClick={() => handleGameTypeClick(area.areaId, system.id, area.gameType)}
-                        className="group relative text-left overflow-hidden active:scale-[0.98] transition-transform"
+                        onClick={() => {
+                          if (isLocked) return;
+                          handleGameTypeClick(area.areaId, system.id, area.gameType);
+                        }}
+                        disabled={isLocked}
+                        className={cn(
+                          "group relative text-left overflow-hidden transition-transform",
+                          isLocked ? "cursor-not-allowed" : "active:scale-[0.98]"
+                        )}
                       >
                         {/* Background image */}
                         <div
-                          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                          className={cn(
+                            "absolute inset-0 bg-cover bg-center transition-transform duration-500",
+                            !isLocked && "group-hover:scale-105"
+                          )}
                           style={{ backgroundImage: `url(${area.bgImage})` }}
                         />
                         {/* Overlay */}
-                        <div className="absolute inset-0 bg-black/60 group-hover:bg-black/50 transition-colors" />
+                        <div className={cn(
+                          "absolute inset-0 transition-colors",
+                          isLocked ? "bg-black/80" : "bg-black/60 group-hover:bg-black/50"
+                        )} />
+
+                        {/* Pick-for-today highlight */}
+                        {isPicked && !isLocked && (
+                          <div
+                            className="absolute inset-0 ring-1 ring-inset z-10 pointer-events-none"
+                            style={{ boxShadow: `inset 0 0 0 1px ${system.accentColor}` }}
+                          />
+                        )}
 
                         {/* Content */}
-                        <div className="relative z-10 p-4 flex flex-col gap-2.5 min-h-[108px]">
-                          {/* Monogram badge */}
-                          <div
-                            className="w-8 h-8 flex items-center justify-center border bg-white/[0.06] backdrop-blur-sm"
-                            style={{ borderColor: `${system.accentColor}35` }}
-                          >
-                            <span
-                              className="text-[12px] font-bold tracking-widest"
-                              style={{ color: system.accentColor }}
+                        <div className={cn(
+                          "relative z-10 p-4 flex flex-col gap-2.5 min-h-[108px]",
+                          isLocked && "opacity-60"
+                        )}>
+                          <div className="flex items-center justify-between">
+                            <div
+                              className="w-8 h-8 flex items-center justify-center border bg-white/[0.06] backdrop-blur-sm"
+                              style={{ borderColor: `${system.accentColor}35` }}
                             >
-                              {area.code}
-                            </span>
+                              <span
+                                className="text-[12px] font-bold tracking-widest"
+                                style={{ color: system.accentColor }}
+                              >
+                                {area.code}
+                              </span>
+                            </div>
+                            {isLocked ? (
+                              <Lock className="w-3 h-3 text-white/50" />
+                            ) : isPicked ? (
+                              <Star className="w-3 h-3" style={{ color: system.accentColor }} fill="currentColor" />
+                            ) : null}
                           </div>
 
-                          {/* Name & sublabel */}
                           <div className="mt-auto">
                             <p className="text-[11px] font-semibold text-white/90 leading-tight">
                               {area.name}
                             </p>
-                            <p className="text-[9px] text-white/40 uppercase tracking-[0.12em] mt-0.5">
+                            <p className="text-[9px] text-white/60 leading-snug mt-0.5">
                               {area.subLabel}
                             </p>
+                            {isLocked && (
+                              <p className="text-[8px] uppercase tracking-[0.14em] text-white/45 mt-1.5">
+                                Unlock with recovery {requiredRec}%
+                              </p>
+                            )}
                           </div>
                         </div>
 
-                        {/* Bottom accent */}
                         <div
                           className="relative z-10 h-[2px] w-full opacity-50"
                           style={{ backgroundColor: system.accentColor }}
                         />
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}
