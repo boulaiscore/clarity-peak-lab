@@ -51,7 +51,7 @@ const GAMES: GameOption[] = [
     icon: Scale,
     route: "/neuro-lab/causal-ledger",
     estimatedXP: 20,
-    estimatedDuration: "8-10 min",
+    estimatedDuration: "4-6 min",
     accentColor: "violet",
   },
   {

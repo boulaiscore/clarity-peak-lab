@@ -29,8 +29,6 @@ import {
 import { 
   SocraticFocusGamifiedSession,
 } from "./focus-slow/SocraticFocusGamifiedSession";
-// NEW: Triage Sprint (S1-AE)
-import { TriageSprintDrill } from "./focus-fast";
 
 interface DrillRendererProps {
   exercise: CognitiveExercise;
@@ -100,21 +98,6 @@ export function DrillRenderer({ exercise, onComplete }: DrillRendererProps) {
   };
 
   switch (drillType) {
-    // NEW: Triage Sprint (S1-AE game)
-    case "triage_sprint":
-      return (
-        <TriageSprintDrill
-          difficulty={config.difficulty}
-          onComplete={(r) => handleComplete({ 
-            score: r.score, 
-            hits: r.hits, 
-            hitRate: r.hitRate,
-            falseAlarmRate: r.falseAlarmRate,
-            rtMean: r.rtMean,
-            xpAwarded: r.xpAwarded,
-          })}
-        />
-      );
 
     case "dot_target":
       return (

@@ -33,10 +33,8 @@ import NeuroLab from "./pages/app/NeuroLab";
 import Wearable from "./pages/app/Wearable";
 import NeuroLabArea from "./pages/app/NeuroLabArea";
 import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
-import TriageSprintRunner from "./pages/app/TriageSprintRunner";
 import OrbitLockRunner from "./pages/app/OrbitLockRunner";
 import FocusSwitchRunner from "./pages/app/FocusSwitchRunner";
-import FlashConnectRunner from "./pages/app/FlashConnectRunner";
 import ConstellationSnapRunner from "./pages/app/ConstellationSnapRunner";
 import SemanticDriftRunner from "./pages/app/SemanticDriftRunner";
 import CausalLedgerRunner from "./pages/app/CausalLedgerRunner";
@@ -44,7 +42,6 @@ import CounterfactualAuditRunner from "./pages/app/CounterfactualAuditRunner";
 import SocraticCrossExamRunner from "./pages/app/SocraticCrossExamRunner";
 import SignalVsNoiseRunner from "./pages/app/SignalVsNoiseRunner";
 import HiddenRuleLabRunner from "./pages/app/HiddenRuleLabRunner";
-import CounterexampleForgeRunner from "./pages/app/CounterexampleForgeRunner";
 import NeuralResetRunner from "./pages/app/NeuralResetRunner";
 import RechargingRunner from "./pages/app/RechargingRunner";
 import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
@@ -283,14 +280,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/neuro-lab/triage-sprint"
-        element={
-          <ProtectedRoute>
-            <TriageSprintRunner />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/neuro-lab/orbit-lock"
         element={
           <ProtectedRoute>
@@ -303,14 +292,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <FocusSwitchRunner />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/neuro-lab/flash-connect"
-        element={
-          <ProtectedRoute>
-            <FlashConnectRunner />
           </ProtectedRoute>
         }
       />
@@ -367,14 +348,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <HiddenRuleLabRunner />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/neuro-lab/counterexample-forge"
-        element={
-          <ProtectedRoute>
-            <CounterexampleForgeRunner />
           </ProtectedRoute>
         }
       />

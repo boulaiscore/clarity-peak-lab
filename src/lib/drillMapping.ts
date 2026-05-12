@@ -25,9 +25,7 @@ export type DrillType =
   | "rapid_association"  // Quick emotional/visual associations
   | "open_reflection"    // Open-ended reflection exercises
   | "critical_reasoning_slow" // Socratic/philosophical reasoning drills
-  | "focus_slow" // Socratic attention/focus drills
-  // S1-AE: Triage Sprint
-  | "triage_sprint";
+  | "focus_slow"; // Socratic attention/focus drills
 
 // Default configurations for each drill type
 export const DRILL_CONFIGS: Record<DrillType, {
@@ -58,29 +56,17 @@ export const DRILL_CONFIGS: Record<DrillType, {
   open_reflection: { timeLimit: 180, difficulty: 'medium' },
   critical_reasoning_slow: { timeLimit: 60, difficulty: 'hard' },
   focus_slow: { timeLimit: 60, difficulty: 'hard' },
-  // Triage Sprint - session-based, not time-limited
-  triage_sprint: { timeLimit: 110, difficulty: 'medium' },
 };
 
 // Map exercise IDs to drill types
 export function getDrillTypeForExercise(exerciseId: string): DrillType {
   const id = exerciseId.toUpperCase();
   
-  // S1-AE: Triage Sprint - all Focus + Fast routes here
-  if (id.startsWith("TS_") || id.startsWith("TRIAGE_")) {
-    return "triage_sprint";
+  // Legacy game-style IDs (Triage Sprint removed) — fallback to go_no_go
+  if (id.startsWith("TS_") || id.startsWith("TRIAGE_") || id.startsWith("FF_") || id.startsWith("FA_FAST_")) {
+    return "go_no_go";
   }
-  
-  // Any FF_ (Fast Focus) exercises now map to triage_sprint
-  if (id.startsWith("FF_")) {
-    return "triage_sprint";
-  }
-  
-  // Focus Arena Fast Thinking exercises - now route to triage_sprint
-  if (id.startsWith("FA_FAST_")) {
-    return "triage_sprint";
-  }
-  
+
   // Focus Arena Slow Thinking exercises
   if (id.startsWith("FA_S2_") || id.startsWith("FA_SLOW_")) {
     return "focus_slow";

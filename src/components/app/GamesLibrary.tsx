@@ -198,8 +198,9 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                   <div className="space-y-2 pt-1">
                     {system.areas.map((area) => {
                       const gating = games[area.gameType];
-                      const isLocked = !gating || gating.status !== "ENABLED";
-                      const lockLabel = gating ? unlockLabelFor(gating) : "Temporarily unavailable";
+                      // Gating removed — all S1/S2 sub-skills always accessible
+                      const isLocked = false;
+                      const lockLabel = "";
                       const isPicked = pickedGameType === area.gameType;
                       return (
                         <button

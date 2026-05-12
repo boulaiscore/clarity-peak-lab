@@ -103,7 +103,7 @@ export default function SignalVsNoiseRunner() {
   };
 
   const handleBackToLab = () => {
-    navigate("/neuro-lab");
+    navigate("/neuro-lab?tab=games");
   };
 
   return (

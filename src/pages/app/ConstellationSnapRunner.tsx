@@ -95,12 +95,12 @@ export default function ConstellationSnapRunner() {
     }
     
     setTimeout(() => {
-      navigate("/neuro-lab");
+      navigate("/neuro-lab?tab=games");
     }, 500);
   }, [user?.id, session?.user?.id, recordGameSession, navigate, isOverride, difficulty]);
 
   const handleBack = () => {
-    navigate("/neuro-lab");
+    navigate("/neuro-lab?tab=games");
   };
 
   return (

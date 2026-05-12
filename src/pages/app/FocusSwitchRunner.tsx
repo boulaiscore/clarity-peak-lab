@@ -112,12 +112,12 @@ export default function FocusSwitchRunner() {
     }
     
     setTimeout(() => {
-      navigate("/neuro-lab");
+      navigate("/neuro-lab?tab=games");
     }, 500);
   }, [user?.id, session?.user?.id, recordGameSession, navigate, difficulty, isCapReached]);
 
   const handleBack = () => {
-    navigate("/neuro-lab");
+    navigate("/neuro-lab?tab=games");
   };
 
   return (
