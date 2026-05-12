@@ -132,16 +132,22 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
     refetchOnWindowFocus: false,
   });
 
+  const { checkAndPlay, AdvisoryDialog } = useReplayAdvisory();
+
   const handleSelectGame = (game: GameOption) => {
     if (isLocked) return;
-    
-    onOpenChange(false);
-    setTimeout(() => {
-      navigate(game.route);
-    }, 150);
+    checkAndPlay({
+      gameType: "S2-CT",
+      gameName: game.id,
+      onProceed: () => {
+        onOpenChange(false);
+        setTimeout(() => navigate(game.route), 150);
+      },
+    });
   };
 
   return (
+    <>
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh]">
         <motion.div
