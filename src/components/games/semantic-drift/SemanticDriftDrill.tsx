@@ -215,6 +215,8 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       const t = setTimeout(() => {
         setPhase("playing");
         sessionStartRef.current = Date.now();
+        roundLockedRef.current = false;
+        proceedScheduledRef.current = false;
         startRound(0);
       }, 400);
       return () => clearTimeout(t);
