@@ -1,6 +1,16 @@
 import { TRAINING_PLANS, TrainingPlanId, TrainingPlan } from "@/lib/trainingPlans";
 import { cn } from "@/lib/utils";
 
+const PRACTICAL_DESCRIPTIONS: Record<TrainingPlanId, string> = {
+  light:
+    "1 short game per day, mostly fast intuitive (System 1). Deep reasoning unlocks only when recovered. Best to keep cognition stable without pressure.",
+  expert:
+    "1–2 games per day balancing fast reactions and deliberate reasoning. Adds 2 weekly tasks to build Reasoning Quality. The standard performance regimen.",
+  superhuman:
+    "2–3 intensive games per day with frequent System 2 reasoning. Requires 28h/week of recovery and 3 mandatory tasks. Built for peak cognitive output.",
+};
+
+
 interface TrainingPlanSelectorProps {
   selectedPlan: TrainingPlanId;
   onSelectPlan: (plan: TrainingPlanId) => void;
