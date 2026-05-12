@@ -213,6 +213,7 @@ export default function SemanticDriftRunner() {
             <SemanticDriftDrill
               difficulty={difficulty}
               onComplete={handleGameComplete}
+              onExit={handleBackToGym}
             />
           </motion.div>
         )}
