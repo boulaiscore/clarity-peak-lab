@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useExitConfirmation } from "@/components/games/useExitConfirmation";
 
 import {
   HiddenRuleLabDrill,
@@ -131,6 +132,8 @@ export default function HiddenRuleLabRunner() {
   const handleBackToLab = useCallback(() => {
     navigate("/neuro-lab?tab=games");
   }, [navigate]);
+
+  const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
   
   return (
     <div className="min-h-screen bg-background">
@@ -335,6 +338,7 @@ export default function HiddenRuleLabRunner() {
           </motion.div>
         )}
       </AnimatePresence>
+      {ConfirmDialog}
     </div>
   );
 }

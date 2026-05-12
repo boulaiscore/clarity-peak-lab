@@ -23,6 +23,7 @@ import {
 import { ArrowLeft, Brain, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useExitConfirmation } from "@/components/games/useExitConfirmation";
 
 type GamePhase = "intro" | "playing" | "results";
 
@@ -136,6 +137,8 @@ export default function CounterfactualAuditRunner() {
   const handleBackToLab = useCallback(() => {
     navigate("/neuro-lab?tab=games");
   }, [navigate]);
+
+  const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
   
   const config = DIFFICULTY_CONFIG[difficulty];
   
@@ -259,6 +262,7 @@ export default function CounterfactualAuditRunner() {
           </motion.div>
         )}
       </AnimatePresence>
+      {ConfirmDialog}
     </div>
   );
 }
