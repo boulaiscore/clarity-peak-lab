@@ -260,36 +260,39 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   
   const handleActComplete = useCallback(() => {
     setPhase("act_complete");
-    
-    // Brief freeze, then transition
+
     setTimeout(() => {
       if (currentAct < 2) {
         setPhase("transition");
         setTimeout(() => {
           setCurrentAct(prev => prev + 1);
           setActTimeRemaining(ACT_CONFIGS[currentAct + 1]?.duration || 0);
+          signalPosRef.current = 0.5;
           setSignalOffset(0.5);
           setDialValue(0.5);
           driftVelocity.current = 0;
+          directionChangeTimer.current = 0;
           setPhase("playing");
           lastUpdateTime.current = Date.now();
         }, 1500);
       } else {
-        // Session complete
         setPhase("results");
       }
     }, 300);
-  }, [currentAct]);
-  
+  }, [currentAct, setDialValue]);
+
   const handleStart = useCallback(() => {
     setPhase("playing");
     setCurrentAct(0);
     setActTimeRemaining(ACT_CONFIGS[0].duration);
+    signalPosRef.current = 0.5;
     setSignalOffset(0.5);
     setDialValue(0.5);
+    driftVelocity.current = 0;
+    directionChangeTimer.current = 0;
     lastUpdateTime.current = Date.now();
     driftDirection.current = Math.random() > 0.5 ? 1 : -1;
-  }, []);
+  }, [setDialValue]);
   
   // ============================================
   // CALCULATE FINAL RESULTS
