@@ -427,7 +427,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-400">3</div>
               <p className="text-sm text-muted-foreground">
-                The active lane switches unpredictably — <span className="text-foreground font-medium">react fast!</span>
+                <span className="text-foreground font-medium">3 blocks, 3 rules</span> — Lock, Inhibit, Invert. The rule changes each block.
               </p>
             </div>
           </div>
