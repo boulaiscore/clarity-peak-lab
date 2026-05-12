@@ -72,9 +72,9 @@ interface DifficultyConfig {
 import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
 
 const BLOCK_CONFIGS: BlockConfig[] = [
-  { duration: 15, label: "Lock", description: "Find the active lane", switchIntervalMin: 3, switchIntervalMax: 4 },
-  { duration: 20, label: "Switch", description: "Track the focus", switchIntervalMin: 2, switchIntervalMax: 3.5 },
-  { duration: 25, label: "Snap", description: "React instantly", switchIntervalMin: 1.5, switchIntervalMax: 3 },
+  { duration: 20, label: "Lock", description: "Find the active lane", rule: "Tap the highlighted lane when a target appears", mode: "lock", switchIntervalMin: 3, switchIntervalMax: 4 },
+  { duration: 25, label: "Inhibit", description: "Resist the lures", rule: "Tap solid targets in the highlighted lane. Ignore hollow lures elsewhere.", mode: "inhibit", switchIntervalMin: 2.5, switchIntervalMax: 3.5 },
+  { duration: 25, label: "Invert", description: "Flip the rule", rule: "Rule reversed: tap the target in the NON-highlighted lane", mode: "invert", switchIntervalMin: 2, switchIntervalMax: 3 },
 ];
 
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
