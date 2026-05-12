@@ -141,20 +141,19 @@ const Dashboard = () => {
         <WearableConnectionPrompt />
 
         {/* Tab Content */}
-        {activeTab === "overview" ?
-        <OverviewCarousel
-          sci={sci}
-          sciStatusText={sciStatusText}
-          thinkingScores={thinkingScores}
-          bottleneck={bottleneck} /> :
-
-
-        activeTab === "training" ?
+        {activeTab === "insights" ?
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
           className="space-y-4">
+
+            {/* Hero Overview */}
+            <OverviewCarousel
+              sci={sci}
+              sciStatusText={sciStatusText}
+              thinkingScores={thinkingScores}
+              bottleneck={bottleneck} />
 
 
             {/* Two main tabs: Trends | Activity */}
