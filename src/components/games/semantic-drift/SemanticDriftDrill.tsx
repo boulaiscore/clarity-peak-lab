@@ -291,11 +291,11 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
               const stateClass = !reveal
                 ? "border-border/40 bg-card/40 hover:bg-card/70 hover:border-border/70"
                 : isSelected && isCorrect
-                ? "border-primary/70 bg-primary/10"
+                ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-400"
                 : isSelected && !isCorrect
-                ? "border-destructive/40 bg-destructive/5"
+                ? "border-destructive/50 bg-destructive/10 text-destructive"
                 : isCorrect
-                ? "border-primary/40 bg-primary/[0.04]"
+                ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-400/90"
                 : "border-border/20 bg-card/20 opacity-60";
 
               return (
