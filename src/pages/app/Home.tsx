@@ -95,27 +95,23 @@ const ProgressRing = ({
         }}>
               {icon}
             </div>}
-          {dynamicIndicator && <span className="text-[9px] font-medium mb-0.5" style={{
-          color,
-          opacity: 0.8
-        }}>
-              {dynamicIndicator}
-            </span>}
-          <span className="text-2xl font-bold tracking-tight text-foreground">
+          <span className="text-[28px] font-light tracking-tight text-foreground tabular-nums leading-none">
             {displayValue}
           </span>
-          {deltaIndicator && <span className="text-[8px] font-medium mt-0.5 tabular-nums" style={{
-          color,
-          opacity: 0.85
+          {deltaIndicator && <span className="text-[9px] font-medium mt-1 tabular-nums opacity-70" style={{
+          color
         }}>
               {deltaIndicator}
             </span>}
         </div>
       </div>
-      {/* Label below the ring - button-like */}
-      <span className="mt-2 px-3 py-1 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80 hover:bg-muted/60 transition-colors">
+      {/* Label + status below the ring */}
+      <span className="mt-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground/60">
         {label}
       </span>
+      {dynamicIndicator && <span className="mt-0.5 text-[9px] font-medium tracking-wide" style={{ color, opacity: 0.85 }}>
+        {dynamicIndicator}
+      </span>}
     </button>;
 };
 const Home = () => {
@@ -460,25 +456,27 @@ const Home = () => {
         }} transition={{
           delay: 0.05
         }} className="mb-3">
-              <div className="flex justify-center gap-6 mb-4">
-                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={90} strokeWidth={4} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
-                <ProgressRing value={displayReadiness} max={100} size={90} strokeWidth={4} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
-                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={90} strokeWidth={4} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
+              <div className="flex justify-center gap-5 mb-5">
+                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={104} strokeWidth={3} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
+                <ProgressRing value={displayReadiness} max={100} size={104} strokeWidth={3} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
+                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={104} strokeWidth={3} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
 
-              {/* Outcome copy — human translation of the dominant metric */}
+              {/* Outcome headline — Whoop-style human translation */}
               {isViewingToday && !isDisplayLoading && (() => {
                 const r = Math.round(displayReadiness);
                 const rec = Math.round(displayRecovery);
+                let label = "";
                 let line = "";
-                if (rec < 40) line = "Your brain is in recovery debt — protect today.";
-                else if (r >= 75) line = "You think faster and clearer than yesterday.";
-                else if (r >= 55) line = "Stable day — small, consistent gains compound.";
-                else line = "Reactive mode — one focused action will reset the day.";
+                if (rec < 40) { label = "Recovery debt"; line = "Protect today. Train light or recover."; }
+                else if (r >= 75) { label = "Primed"; line = "You think faster and clearer than yesterday."; }
+                else if (r >= 55) { label = "Stable"; line = "Small, consistent gains compound today."; }
+                else { label = "Reactive"; line = "One focused action will reset the day."; }
                 return (
-                  <p className="text-center text-[11px] text-muted-foreground/80 mb-4 px-4 leading-relaxed">
-                    {line}
-                  </p>
+                  <div className="text-center mb-5 px-4">
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-foreground/50 mb-1.5">{label}</p>
+                    <p className="text-[15px] font-light text-foreground/90 leading-snug">{line}</p>
+                  </div>
                 );
               })()}
               
@@ -519,8 +517,7 @@ const Home = () => {
           <SmartSuggestionCard suggestion={topSuggestion} index={0} />
         )}
 
-        {/* Additional suggestions (skip first since it's in the combined box) */}
-        {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <div key={suggestion.id} className="mb-4"><SmartSuggestionCard suggestion={suggestion} index={index} /></div>)}
+        {/* Single priority — Whoop-style focus, secondary suggestions removed for calm */}
 
 
 
