@@ -392,8 +392,8 @@ const Auth = () => {
 
           {/* Tagline */}
           <div className="mt-12 text-center">
-            <p className="text-xs text-muted-foreground">
-              Built for clearer thinking in a noisy world.
+            <p className="text-xs text-muted-foreground tracking-wide">
+              Recover focus. Rebuild thinking.
             </p>
           </div>
         </div>

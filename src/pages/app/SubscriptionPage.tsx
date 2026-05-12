@@ -86,6 +86,9 @@ const SubscriptionPage = () => {
       <div className="container px-5 py-8 sm:py-12 max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">
+            Recover focus. Rebuild thinking.
+          </p>
           <h1 className="text-2xl font-semibold tracking-tight">Subscription</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Choose the plan that fits your performance goals.
