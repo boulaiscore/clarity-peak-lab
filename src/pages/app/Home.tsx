@@ -80,25 +80,20 @@ const ProgressRing = ({
       width: size,
       height: size
     }}>
-        {/* Background ring */}
+        {/* Background ring — full track for premium WHOOP feel */}
         <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth} className="opacity-20" />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--foreground))" strokeWidth={strokeWidth} className="opacity-[0.08]" />
         </svg>
         {/* Progress ring */}
         <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000 ease-out" />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000 ease-out" style={{ filter: `drop-shadow(0 0 6px ${color}55)` }} />
         </svg>
-        {/* Center content: icon, value, and status */}
+        {/* Center content: big number, WHOOP-style */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {icon && <div className="opacity-40 mb-0.5" style={{
-          color
-        }}>
-              {icon}
-            </div>}
-          <span className="text-[28px] font-light tracking-tight text-foreground tabular-nums leading-none">
+          <span className="text-[40px] font-semibold tracking-tight text-foreground tabular-nums leading-none">
             {displayValue}
           </span>
-          {deltaIndicator && <span className="text-[9px] font-medium mt-1 tabular-nums opacity-70" style={{
+          {deltaIndicator && <span className="text-[10px] font-medium mt-1.5 tabular-nums opacity-70" style={{
           color
         }}>
               {deltaIndicator}
@@ -106,10 +101,10 @@ const ProgressRing = ({
         </div>
       </div>
       {/* Label + status below the ring */}
-      <span className="mt-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground/60">
+      <span className="mt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/55">
         {label}
       </span>
-      {dynamicIndicator && <span className="mt-0.5 text-[9px] font-medium tracking-wide" style={{ color, opacity: 0.85 }}>
+      {dynamicIndicator && <span className="mt-1 text-[11px] font-semibold tracking-wide" style={{ color }}>
         {dynamicIndicator}
       </span>}
     </button>;
