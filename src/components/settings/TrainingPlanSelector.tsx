@@ -1,13 +1,38 @@
 import { TRAINING_PLANS, TrainingPlanId, TrainingPlan } from "@/lib/trainingPlans";
 import { cn } from "@/lib/utils";
 
-const PRACTICAL_DESCRIPTIONS: Record<TrainingPlanId, string> = {
-  light:
-    "~4–5 short games / week, prevalently System 1 (fast, intuitive). System 2 reasoning capped at 4 / week and unlocks only at Recovery ≥ 50%. 8h / week of recovery, tasks optional.",
-  expert:
-    "~6–7 games / week balancing System 1 reactivity and System 2 reasoning (up to 7 S2 / week). 14h / week of recovery and 2 weekly tasks to compound Reasoning Quality.",
-  superhuman:
-    "~8–10 intensive games / week with heavy System 2 load (up to 10 S2 / week, easier S2 access). Requires 28h / week of recovery (Recovery ≥ 55%) and 3 mandatory weekly tasks.",
+const PLAN_ESSENCE: Record<TrainingPlanId, string> = {
+  light: "Light maintenance. Mostly fast, intuitive drills.",
+  expert: "Balanced regimen. Intuition and deliberate reasoning.",
+  superhuman: "Peak load. Heavy deliberate reasoning, strict recovery.",
+};
+
+type PlanSpec = { label: string; value: string };
+
+const PLAN_SPECS: Record<TrainingPlanId, PlanSpec[]> = {
+  light: [
+    { label: "Volume", value: "4–5 games / week" },
+    { label: "Focus", value: "System 1 (intuitive)" },
+    { label: "Reasoning", value: "Up to 4 S2 / week" },
+    { label: "Unlock", value: "Recovery ≥ 50%" },
+    { label: "Recovery", value: "8h / week" },
+    { label: "Tasks", value: "Optional" },
+  ],
+  expert: [
+    { label: "Volume", value: "6–7 games / week" },
+    { label: "Focus", value: "S1 + S2 balanced" },
+    { label: "Reasoning", value: "Up to 7 S2 / week" },
+    { label: "Recovery", value: "14h / week" },
+    { label: "Tasks", value: "2 / week" },
+  ],
+  superhuman: [
+    { label: "Volume", value: "8–10 games / week" },
+    { label: "Focus", value: "Heavy System 2" },
+    { label: "Reasoning", value: "Up to 10 S2 / week" },
+    { label: "Unlock", value: "Recovery ≥ 55%" },
+    { label: "Recovery", value: "28h / week" },
+    { label: "Tasks", value: "3 mandatory / week" },
+  ],
 };
 
 
@@ -37,11 +62,8 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan }: TrainingPla
                 <div className="text-[15px] font-normal tracking-tight text-foreground">
                   {plan.name.replace(" Training", "")}
                 </div>
-                <div className="text-[12px] text-muted-foreground/80 mt-1.5 leading-snug tracking-tight">
-                  {PRACTICAL_DESCRIPTIONS[plan.id]}
-                </div>
-                <div className="text-[11px] text-muted-foreground/50 mt-2 tracking-tight">
-                  {plan.dailyEstimate.total} · {plan.sessionsPerWeek}× / week · {plan.xpTargetWeek} XP
+                <div className="text-[12px] text-muted-foreground/70 mt-1.5 leading-snug tracking-tight">
+                  {PLAN_ESSENCE[plan.id]}
                 </div>
               </div>
               <div
@@ -57,17 +79,29 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan }: TrainingPla
         })}
       </div>
 
-      {/* Single contextual detail for the selected plan */}
-      <div className="space-y-3">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50">
-          About {current.name.replace(" Training", "")}
-        </p>
-        <p className="text-[13px] text-foreground/85 leading-relaxed">
-          {current.tagline}
-        </p>
-        <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
-          {current.gatingExplainer.s2Requirement}.
-        </p>
+      {/* Selected plan: clean spec sheet */}
+      <div className="space-y-5">
+        <div className="flex items-baseline justify-between">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50">
+            {current.name.replace(" Training", "")} · Specs
+          </p>
+          <p className="text-[10px] tracking-tight text-muted-foreground/50">
+            {current.dailyEstimate.total} · {current.xpTargetWeek} XP / wk
+          </p>
+        </div>
+
+        <dl className="divide-y divide-border/20">
+          {PLAN_SPECS[selectedPlan].map((spec) => (
+            <div key={spec.label} className="flex items-center justify-between py-2.5">
+              <dt className="text-[12px] text-muted-foreground/70 tracking-tight">
+                {spec.label}
+              </dt>
+              <dd className="text-[12.5px] text-foreground/90 tracking-tight font-normal">
+                {spec.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       <p className="text-[10px] text-muted-foreground/40 leading-relaxed pt-2">
