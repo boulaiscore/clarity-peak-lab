@@ -468,6 +468,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
           )}
         </AnimatePresence>
       </DrawerContent>
+      {AdvisoryDialog}
     </Drawer>
   );
 }
