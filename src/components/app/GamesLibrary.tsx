@@ -50,7 +50,7 @@ const SYSTEMS = [
   {
     id: "fast" as ThinkingSystem,
     label: "System 1",
-    sublabel: "Fast · Intuitive",
+    sublabel: "Automatic processing · pre-attentive speed",
     description: "Speed, pattern recognition, automaticity",
     accentColor: "hsl(var(--area-fast))",
     areas: [
@@ -61,7 +61,7 @@ const SYSTEMS = [
   {
     id: "slow" as ThinkingSystem,
     label: "System 2",
-    sublabel: "Slow · Deliberate",
+    sublabel: "Controlled processing · executive load",
     description: "Logic, analysis, structured reasoning",
     accentColor: "hsl(var(--area-slow))",
     areas: [
