@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
 import { useDelayedBoolean } from "@/hooks/useDelayedBoolean";
+import { useReplayAdvisory } from "@/components/games/ReplayAdvisoryDialog";
 
 interface S2INGameSelectorProps {
   open: boolean;
