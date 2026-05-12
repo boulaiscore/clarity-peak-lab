@@ -162,10 +162,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                     <span className="text-[13px] font-semibold text-foreground tracking-tight">
                       {system.label}
                     </span>
-                    <span
-                      className="text-[9px] font-bold uppercase tracking-[0.16em] px-1.5 py-0.5"
-                      style={{ color: system.accentColor }}
-                    >
+                    <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground/70">
                       {system.id === "fast" ? "Fast" : "Slow"}
                     </span>
                   </div>
