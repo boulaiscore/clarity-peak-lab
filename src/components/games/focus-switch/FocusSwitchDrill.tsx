@@ -49,10 +49,14 @@ interface FocusSwitchDrillProps {
   onExit?: () => void;
 }
 
+type BlockMode = "lock" | "inhibit" | "invert";
+
 interface BlockConfig {
   duration: number;
   label: string;
   description: string;
+  rule: string;
+  mode: BlockMode;
   switchIntervalMin: number;
   switchIntervalMax: number;
 }
