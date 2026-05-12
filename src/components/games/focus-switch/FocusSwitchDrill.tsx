@@ -126,9 +126,12 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   const nextSwitchTime = useRef(0);
   const gameStartTime = useRef(0);
   
-  // Generate target in active lane
-  const [targetVisible, setTargetVisible] = useState(false);
+  // Target system: target appears periodically with a lane + type that depends on block mode
+  const [currentTarget, setCurrentTarget] = useState<{ lane: number; type: "solid" | "hollow" } | null>(null);
   const targetIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const targetHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activeLaneRef = useRef(0);
+  useEffect(() => { activeLaneRef.current = activeLane; }, [activeLane]);
   
   // ============================================
   // HELPERS
