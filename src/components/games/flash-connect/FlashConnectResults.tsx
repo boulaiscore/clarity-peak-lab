@@ -7,6 +7,7 @@
  */
 
 import { UnifiedGameResults, KPIData, ReviewMistake } from "@/components/games";
+import { useGameInsight } from "@/hooks/useGameInsight";
 
 export interface FlashConnectResultsProps {
   connectionRate: number; // % correct
@@ -78,6 +79,8 @@ export function FlashConnectResults({
     });
   }
 
+  const insight = useGameInsight({ gameType: "S1-RA", skill: "RA", currentScore: Math.round(connectionRate), xpAwarded });
+
   return (
     <UnifiedGameResults
       gameName="Flash Connect"
@@ -91,6 +94,7 @@ export function FlashConnectResults({
       kpis={kpis}
       isPerfect={isPerfect}
       mistakes={mistakes}
+      insight={insight}
       onPlayAgain={onPlayAgain || onContinue}
       onExit={onContinue}
     />

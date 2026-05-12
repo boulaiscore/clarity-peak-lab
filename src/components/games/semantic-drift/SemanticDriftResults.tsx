@@ -6,6 +6,7 @@
 
 import { useMemo } from "react";
 import { UnifiedGameResults, KPIData } from "../UnifiedGameResults";
+import { useGameInsight } from "@/hooks/useGameInsight";
 import { ReviewMistake } from "../ReviewMistakesSheet";
 import { RoundResult } from "./SemanticDriftDrill";
 import { DIFFICULTY_CONFIG } from "./semanticDriftContent";
@@ -118,7 +119,10 @@ export function SemanticDriftResults({
   }, [results]);
   
   const config = DIFFICULTY_CONFIG[difficulty];
-  
+  const directionalCount = results.filter(r => r.chosenTag === "directional").length;
+  const driftAccuracy = results.length > 0 ? Math.round((directionalCount / results.length) * 100) : 0;
+  const insight = useGameInsight({ gameType: "S1-RA", skill: "RA", currentScore: driftAccuracy, xpAwarded });
+
   return (
     <UnifiedGameResults
       gameName="Semantic Drift"
@@ -131,6 +135,7 @@ export function SemanticDriftResults({
       xpAwarded={xpAwarded}
       kpis={kpis}
       mistakes={mistakes}
+      insight={insight}
       onPlayAgain={onPlayAgain}
       onExit={onBackToGym}
     />

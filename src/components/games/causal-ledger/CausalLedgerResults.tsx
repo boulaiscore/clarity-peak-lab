@@ -6,6 +6,7 @@
 
 import { useMemo } from "react";
 import { UnifiedGameResults, KPIData } from "../UnifiedGameResults";
+import { useGameInsight } from "@/hooks/useGameInsight";
 import { ReviewMistake } from "../ReviewMistakesSheet";
 import { RoundResult } from "./CausalLedgerDrill";
 import { CAUSAL_LEDGER_CONFIG, DECISION_LABELS } from "./causalLedgerContent";
@@ -124,7 +125,9 @@ export function CausalLedgerResults({
   
   // Check for perfect session
   const isPerfect = results.every(r => r.isCorrect);
-  
+  const sessionScore = results.length > 0 ? Math.round((results.filter(r => r.isCorrect).length / results.length) * 100) : 0;
+  const insight = useGameInsight({ gameType: "S2-CT", skill: "CT", currentScore: sessionScore, xpAwarded });
+
   return (
     <UnifiedGameResults
       gameName="Causal Ledger"
@@ -138,6 +141,7 @@ export function CausalLedgerResults({
       kpis={kpis}
       isPerfect={isPerfect}
       mistakes={mistakes}
+      insight={insight}
       onPlayAgain={onPlayAgain}
       onExit={onBackToLab}
     />
