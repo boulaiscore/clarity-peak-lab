@@ -82,10 +82,10 @@ export interface UnifiedGameResultsProps {
 // ============================================
 
 const SKILL_IMPACT_STATEMENTS: Record<GameSkill, string> = {
-  AE: "This session trained attentional control under time pressure.",
-  RA: "This session strengthened fast, intuitive associations.",
-  CT: "This session trained structured and deliberate reasoning.",
-  IN: "This session trained deep insight under constraints.",
+  AE: "Trains sustained attention and inhibitory control — the substrate of focused work under load.",
+  RA: "Strengthens semantic retrieval and associative fluency — the engine of fast intuition and creative recombination.",
+  CT: "Trains causal inference and evidence calibration — the discipline of reasoning when stakes are high.",
+  IN: "Trains hypothesis testing and pattern abstraction — the ability to cut through noise and reach insight.",
 };
 
 const SKILL_NAMES: Record<GameSkill, string> = {
