@@ -7,6 +7,7 @@
  */
 
 import { UnifiedGameResults, KPIData, ReviewMistake } from "@/components/games";
+import { useGameInsight } from "@/hooks/useGameInsight";
 
 export interface ConstellationSnapResultsProps {
   sessionScore: number; // 0-100
