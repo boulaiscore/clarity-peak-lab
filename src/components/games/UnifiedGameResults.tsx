@@ -194,12 +194,15 @@ export function UnifiedGameResults({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mb-6 text-center"
+          className="mb-7 text-center"
         >
-          <div className={cn("text-4xl font-bold", skillColor)}>+{xpAwarded}</div>
-          <div className="text-sm text-muted-foreground flex items-center justify-center gap-1.5 mt-1">
-            <Zap className="w-3.5 h-3.5" />
-            <span>XP → {skillName}</span>
+          <div className={cn("text-5xl font-light tracking-tight", skillColor)}>+{xpAwarded}</div>
+          <div className="text-[11px] text-muted-foreground/80 flex items-center justify-center gap-1.5 mt-2 uppercase tracking-[0.18em]">
+            <Zap className="w-3 h-3" />
+            <span>XP · {skillName}</span>
+          </div>
+          <div className="text-[10px] text-muted-foreground/60 mt-1.5">
+            Contributes to <span className="text-foreground/80">{SKILL_TO_GLOBAL[skill]}</span>
           </div>
           {/* Quality Line (subtle, only if bonus applied) */}
           {qualityLine && (
@@ -217,12 +220,20 @@ export function UnifiedGameResults({
         {/* ─────────────────────────────────────────────
             B2) PRIMARY KPIs (max 3)
         ───────────────────────────────────────────── */}
+        <div className="w-full max-w-sm mb-2 px-1 flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+            Session signals
+          </span>
+          <span className="text-[10px] text-muted-foreground/50">
+            shape {SKILL_TO_GLOBAL[skill]}
+          </span>
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className={cn(
-            "grid gap-3 w-full max-w-sm mb-6",
+            "grid gap-2.5 w-full max-w-sm mb-6",
             displayKpis.length === 3 ? "grid-cols-3" : "grid-cols-2"
           )}
         >
