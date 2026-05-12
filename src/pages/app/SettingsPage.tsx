@@ -335,8 +335,14 @@ const SettingsPage = () => {
         <SectionLabel>Billing</SectionLabel>
         <ListGroup>
           <Link to="/app/subscription" className="block">
-            <Row icon={CreditCard} label="Subscription & billing" onClick={() => {}} />
+            <Row icon={CreditCard} label="Subscription & plan" onClick={() => {}} />
           </Link>
+          <Row
+            icon={FileText}
+            label={billingLoading ? "Opening…" : "Invoices & payment methods"}
+            external
+            onClick={handleOpenBillingPortal}
+          />
         </ListGroup>
 
         {/* HELP */}
