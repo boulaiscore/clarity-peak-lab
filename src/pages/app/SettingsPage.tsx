@@ -302,14 +302,6 @@ const SettingsPage = () => {
           </div>
         </ListGroup>
 
-        {/* DEVICE */}
-        <SectionLabel>Device</SectionLabel>
-        <ListGroup>
-          <Link to="/app/health" className="block">
-            <Row icon={Watch} label="Health device" value={deviceLabel} onClick={() => {}} />
-          </Link>
-        </ListGroup>
-
         {/* HELP */}
         <SectionLabel>Help</SectionLabel>
         <ListGroup>
