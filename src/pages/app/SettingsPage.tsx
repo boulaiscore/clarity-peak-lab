@@ -36,6 +36,7 @@ import {
   Shield,
   Trash2,
   ChevronRight,
+  CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
@@ -300,6 +301,14 @@ const SettingsPage = () => {
               </SelectContent>
             </Select>
           </div>
+        </ListGroup>
+
+        {/* BILLING */}
+        <SectionLabel>Billing</SectionLabel>
+        <ListGroup>
+          <Link to="/app/subscription" className="block">
+            <Row icon={CreditCard} label="Subscription & billing" onClick={() => {}} />
+          </Link>
         </ListGroup>
 
         {/* HELP */}
