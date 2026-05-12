@@ -26,8 +26,8 @@ const Dashboard = () => {
   const initialTab = searchParams.get("tab") as "overview" | "training" | "report" | null;
   const initialSubTab = searchParams.get("subtab") as "trends" | "games" | "tasks" | "detox" | null;
 
-  const [activeTab, setActiveTab] = useState<"overview" | "training" | "report">(
-    initialTab && ["overview", "training", "report"].includes(initialTab) ? initialTab : "overview"
+  const [activeTab, setActiveTab] = useState<"insights" | "report">(
+    initialTab === "report" ? "report" : "insights"
   );
   const [analyticsTab, setAnalyticsTab] = useState<"trends" | "activity">(
     initialSubTab === "trends" ? "trends" :
@@ -108,41 +108,27 @@ const Dashboard = () => {
     <AppShell>
       <div className="px-5 py-5 max-w-md mx-auto space-y-4">
 
-        {/* Tab Switcher */}
+        {/* Tab Switcher — Insights / Report */}
         <div className="flex p-1 bg-card/40 rounded-xl border border-border/20">
           <button
-            onClick={() => setActiveTab("overview")}
+            onClick={() => setActiveTab("insights")}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "overview" ?
-              "bg-primary/10 text-primary shadow-sm" :
-              "text-muted-foreground hover:text-foreground"
+              activeTab === "insights"
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             )}>
-
-            <BarChart3 className="w-3.5 h-3.5" />
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("training")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "training" ?
-              "bg-primary/10 text-primary shadow-sm" :
-              "text-muted-foreground hover:text-foreground"
-            )}>
-
             <TrendingUp className="w-3.5 h-3.5" />
-            Analytics
+            Insights
           </button>
           <button
             onClick={() => setActiveTab("report")}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "report" ?
-              "bg-primary/10 text-primary shadow-sm" :
-              "text-muted-foreground hover:text-foreground"
+              activeTab === "report"
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             )}>
-
             <FileText className="w-3.5 h-3.5" />
             Report
           </button>
@@ -155,20 +141,19 @@ const Dashboard = () => {
         <WearableConnectionPrompt />
 
         {/* Tab Content */}
-        {activeTab === "overview" ?
-        <OverviewCarousel
-          sci={sci}
-          sciStatusText={sciStatusText}
-          thinkingScores={thinkingScores}
-          bottleneck={bottleneck} /> :
-
-
-        activeTab === "training" ?
+        {activeTab === "insights" ?
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
           className="space-y-4">
+
+            {/* Hero Overview */}
+            <OverviewCarousel
+              sci={sci}
+              sciStatusText={sciStatusText}
+              thinkingScores={thinkingScores}
+              bottleneck={bottleneck} />
 
 
             {/* Two main tabs: Trends | Activity */}

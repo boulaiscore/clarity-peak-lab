@@ -370,22 +370,52 @@ export default function NeuroLab() {
           </div>
         </Collapsible>
 
-        {/* Cognitive Load Guidance - Dynamic based on Recovery */}
-        <div className="p-3.5 rounded-xl bg-muted/15 border border-border/20 mb-1">
-          <div className="flex items-start gap-3">
-            <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
-              <recoveryGuidance.icon className="w-4.5 h-4.5" />
+        {/* Today's recommended action — single dominant CTA */}
+        {(() => {
+          const rec = recoveryEffective;
+          let ctaLabel = "Start session";
+          let ctaTab: "games" | "tasks" | "detox" = "games";
+          if (recoveryLoading) {
+            ctaLabel = "Loading…";
+          } else if (rec < 45) {
+            ctaLabel = "Recover now";
+            ctaTab = "detox";
+          } else if (rec < 65) {
+            ctaLabel = "Quality Time";
+            ctaTab = "tasks";
+          } else {
+            ctaLabel = "Train";
+            ctaTab = "games";
+          }
+          return (
+            <div className="p-4 rounded-2xl bg-muted/15 border border-border/20 mb-1">
+              <div className="flex items-start gap-3 mb-3">
+                <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
+                  <recoveryGuidance.icon className="w-4 h-4" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
+                    Today's recommended action
+                  </p>
+                  <p className="text-[13px] font-semibold text-foreground/90 leading-tight">
+                    {recoveryGuidance.headline}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {recoveryGuidance.message} {recoveryGuidance.action}
+                  </p>
+                </div>
+              </div>
+              {!recoveryLoading && (
+                <button
+                  onClick={() => setActiveTab(ctaTab)}
+                  className="w-full h-10 rounded-xl bg-primary text-primary-foreground text-[12px] font-semibold tracking-wide active:scale-[0.98] transition-transform"
+                >
+                  {ctaLabel}
+                </button>
+              )}
             </div>
-            <div className="flex-1 space-y-1.5">
-              <p className="text-[13px] font-semibold text-foreground/90 leading-tight">
-                {recoveryGuidance.headline}
-              </p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {recoveryGuidance.message} {recoveryGuidance.action}
-              </p>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && <motion.div initial={{
