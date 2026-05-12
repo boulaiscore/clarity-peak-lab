@@ -275,59 +275,62 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   
   const handleLaneTap = (lane: number) => {
     if (phase !== "playing") return;
-    
+
     const now = Date.now();
     const timeSinceSwitch = now - lastSwitchTime;
-    
+    const mode = BLOCK_CONFIGS[currentBlock].mode;
+
     setTotalTaps(prev => prev + 1);
-    
-    // Track actions after switch for post-switch error rate
-    if (actionsAfterSwitch < 2) {
-      setActionsAfterSwitch(prev => prev + 1);
+    if (actionsAfterSwitch < 2) setActionsAfterSwitch(prev => prev + 1);
+
+    // Determine the "expected" lane to tap given current target + mode.
+    // null target => any tap is a (mild) error in inhibit/invert; in lock we ignore.
+    let isCorrect = false;
+    if (currentTarget) {
+      if (mode === "lock") {
+        isCorrect = lane === activeLane && currentTarget.lane === activeLane;
+      } else if (mode === "inhibit") {
+        // Tap only solid GO target in active lane. Hollow lure = no tap.
+        isCorrect = currentTarget.type === "solid" && lane === currentTarget.lane;
+      } else {
+        // invert: target solid in non-active lane, tap that lane
+        isCorrect = lane === currentTarget.lane;
+      }
     }
-    
-    if (lane === activeLane) {
-      // Correct tap
+
+    if (isCorrect) {
       setCorrectTaps(prev => prev + 1);
       setBlockScores(prev => {
         const updated = [...prev];
         updated[currentBlock] += 10;
         return updated;
       });
-      
-      // Track switch latency (first correct response after switch)
       if (!hasRespondedAfterSwitch) {
         setSwitchLatencies(prev => [...prev, timeSinceSwitch]);
         setHasRespondedAfterSwitch(true);
       }
-      
       setShowFeedback({ lane, type: "correct" });
+      // Consume the target so repeated taps don't farm points
+      setCurrentTarget(null);
     } else {
-      // Error
       setBlockScores(prev => {
         const updated = [...prev];
         updated[currentBlock] = Math.max(0, updated[currentBlock] - 5);
         return updated;
       });
-      
-      // Check for perseveration (tapped previous lane)
       if (lane === previousLane) {
         setPerseverations(prev => [...prev, timeSinceSwitch]);
       }
-      
-      // Track post-switch errors
       if (actionsAfterSwitch < 2) {
         setErrorsAfterSwitch(prev => prev + 1);
         setPostSwitchErrors(prev => [...prev, 1]);
       }
-      
       setShowFeedback({ lane, type: "error" });
     }
-    
-    // Clear feedback
+
     setTimeout(() => setShowFeedback(null), 200);
   };
-  
+
   const handleNextBlock = () => {
     setCurrentBlock(prev => prev + 1);
     setBlockTimeRemaining(BLOCK_CONFIGS[currentBlock + 1].duration);
