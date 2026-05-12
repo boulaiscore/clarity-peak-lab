@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
+import { useTestMode } from "@/hooks/useTestMode";
 import {
   computeS1Difficulty,
   S1DifficultyResult,
@@ -82,6 +83,8 @@ export function useS1Difficulty(): UseS1DifficultyResult {
   
   const isLoading = metricsLoading || tcLoading || progressLoading || profileLoading;
   
+  const { isTestMode } = useTestMode();
+
   // Compute difficulty result
   const result = useMemo((): S1DifficultyResult => {
     const input: S1DifficultyInput = {
@@ -90,11 +93,26 @@ export function useS1Difficulty(): UseS1DifficultyResult {
       readiness: readiness ?? 50,
       weeklyXP: weeklyXP ?? 0,
       trainingCapacity: trainingCapacity ?? 100,
-      trainingPlan, // v1.5: Pass training plan to engine
+      trainingPlan,
     };
     
-    return computeS1Difficulty(input);
-  }, [recovery, sharpness, readiness, weeklyXP, trainingCapacity, trainingPlan]);
+    const computed = computeS1Difficulty(input);
+
+    // TEST MODE: unlock everything
+    if (isTestMode) {
+      return {
+        ...computed,
+        safetyModeActive: false,
+        safetyLabel: undefined,
+        options: computed.options.map((o) => ({
+          difficulty: o.difficulty,
+          status: o.difficulty === computed.recommended ? "recommended" : "enabled",
+        })),
+      };
+    }
+
+    return computed;
+  }, [recovery, sharpness, readiness, weeklyXP, trainingCapacity, trainingPlan, isTestMode]);
   
   return {
     ...result,
