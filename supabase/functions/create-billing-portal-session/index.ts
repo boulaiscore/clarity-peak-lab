@@ -6,6 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function validateStripeSecretKey(key: string) {
+  const trimmed = key.trim();
+  if (!trimmed) return 'Stripe secret key is empty';
+  if (trimmed.startsWith('pk_')) return 'Stripe is configured with a publishable key. Use a secret key starting with sk_.';
+  if (trimmed.startsWith('rk_')) return 'Stripe is configured with a restricted key. Use the full secret key starting with sk_.';
+  if (!trimmed.startsWith('sk_test_') && !trimmed.startsWith('sk_live_')) return 'Stripe secret key must start with sk_test_ or sk_live_.';
+  return null;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -17,6 +26,12 @@ serve(async (req) => {
     if (!stripeSecretKey) {
       console.error('STRIPE_SECRET_KEY is not configured');
       throw new Error('Stripe is not configured');
+    }
+
+    const keyError = validateStripeSecretKey(stripeSecretKey);
+    if (keyError) {
+      console.error(keyError);
+      throw new Error(keyError);
     }
 
     const stripe = new Stripe(stripeSecretKey, {
