@@ -365,3 +365,70 @@ function KPICard({ kpi, index }: { kpi: KPIData; index: number }) {
     </motion.div>
   );
 }
+
+// ============================================
+// COGNITIVE INSIGHT SUB-COMPONENTS
+// ============================================
+
+function VsAverageRow({ data }: { data: { delta: number; unit?: string; label?: string } }) {
+  const isUp = data.delta > 0;
+  const isFlat = data.delta === 0;
+  const Icon = isFlat ? Minus : isUp ? TrendingUp : TrendingDown;
+  const tone = isFlat ? "text-muted-foreground" : isUp ? "text-emerald-400" : "text-amber-400";
+  const sign = data.delta > 0 ? "+" : "";
+  return (
+    <div className="flex items-center justify-between text-[12px]">
+      <span className="text-muted-foreground">{data.label || "vs your 7-day avg"}</span>
+      <span className={cn("font-medium flex items-center gap-1", tone)}>
+        <Icon className="w-3 h-3" />
+        {sign}{data.delta}{data.unit || "%"}
+      </span>
+    </div>
+  );
+}
+
+function TrendRow({ values }: { values: number[] }) {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const w = 70;
+  const h = 18;
+  const step = w / (values.length - 1);
+  const points = values
+    .map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`)
+    .join(" ");
+  return (
+    <div className="flex items-center justify-between text-[12px]">
+      <span className="text-muted-foreground">Recent trend</span>
+      <svg width={w} height={h} className="overflow-visible">
+        <polyline
+          points={points}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-foreground/70"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function MetricImpactRow({
+  data,
+  skillColor,
+}: {
+  data: { metric: "Sharpness" | "Readiness" | "RQ" | "Thinking"; delta: number };
+  skillColor: string;
+}) {
+  const sign = data.delta >= 0 ? "+" : "";
+  return (
+    <div className="flex items-center justify-between text-[12px]">
+      <span className="text-muted-foreground">Estimated {data.metric} lift</span>
+      <span className={cn("font-medium", skillColor)}>
+        {sign}{data.delta.toFixed(1)}
+      </span>
+    </div>
+  );
+}
