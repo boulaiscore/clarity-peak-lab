@@ -22,7 +22,7 @@ import { TrainingPlanId } from "@/lib/trainingPlans";
 // TYPES
 // =============================================================================
 
-export type AEGameName = "orbit_lock" | "triage_sprint" | "focus_switch";
+export type AEGameName = "orbit_lock" | "focus_switch";
 export type Difficulty = "easy" | "medium" | "hard";
 export type SuggestionReason = "Stability" | "Precision" | "Flexibility";
 export type DifficultyReason = "Plan" | "Capacity" | "Recovery" | "Performance";
@@ -158,9 +158,6 @@ function suggestGame(
   // If fewer than 3 sessions, use simple rotation
   if (aggregates.sessionCount < 3) {
     if (aggregates.lastGamePlayed === "orbit_lock") {
-      return { game: "triage_sprint", reason: "Precision" };
-    }
-    if (aggregates.lastGamePlayed === "triage_sprint") {
       return { game: "focus_switch", reason: "Flexibility" };
     }
     if (aggregates.lastGamePlayed === "focus_switch") {
@@ -181,13 +178,13 @@ function suggestGame(
     return { game: "focus_switch", reason: "Flexibility" };
   }
   
-  // SDI > PDI + epsilon → Orbit Lock
+  // SDI > PDI + epsilon → Orbit Lock (sustained stability)
   if (sdi > pdi + EPSILON) {
     return { game: "orbit_lock", reason: "Stability" };
   }
   
-  // Default → Triage Sprint
-  return { game: "triage_sprint", reason: "Precision" };
+  // Default → Orbit Lock (precision via stability)
+  return { game: "orbit_lock", reason: "Precision" };
 }
 
 // =============================================================================
