@@ -23,11 +23,14 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan }: TrainingPla
               onClick={() => onSelectPlan(plan.id)}
               className="w-full flex items-center justify-between py-5 text-left group"
             >
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pr-4">
                 <div className="text-[15px] font-normal tracking-tight text-foreground">
                   {plan.name.replace(" Training", "")}
                 </div>
-                <div className="text-[12px] text-muted-foreground/70 mt-1 tracking-tight">
+                <div className="text-[12px] text-muted-foreground/80 mt-1.5 leading-snug tracking-tight">
+                  {plan.tagline}
+                </div>
+                <div className="text-[11px] text-muted-foreground/50 mt-2 tracking-tight">
                   {plan.dailyEstimate.total} · {plan.sessionsPerWeek}× / week · {plan.xpTargetWeek} XP
                 </div>
               </div>
