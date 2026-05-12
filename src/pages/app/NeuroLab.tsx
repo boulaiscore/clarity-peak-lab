@@ -478,7 +478,7 @@ export default function NeuroLab() {
 
             {/* Training Tab (Games) */}
             <TabsContent value="games" className="mt-0">
-              <GamesLibrary onStartGame={handleEnterArea} />
+              <GamesLibrary onStartGame={handleEnterArea} recoveryEffective={recoveryEffective} />
             </TabsContent>
 
             {/* Tasks Tab */}
