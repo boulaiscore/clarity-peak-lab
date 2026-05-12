@@ -17,8 +17,27 @@ import { S2INGameSelector } from "./S2INGameSelector";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
-import { useGamesGating } from "@/hooks/useGamesGating";
+import { useGamesGating, type GameGatingResult, type WithholdReasonCode } from "@/hooks/useGamesGating";
 import { GameType } from "@/lib/gamesGating";
+
+// Map engine reason codes to short, premium unlock labels
+function unlockLabelFor(g: GameGatingResult): string {
+  const code = g.reasonCode as WithholdReasonCode | null;
+  const req = g.details?.requiredValue;
+  switch (code) {
+    case "RECOVERY_TOO_LOW":   return req != null ? `Unlock with recovery ${req}%` : "Unlock with recovery";
+    case "SHARPNESS_TOO_LOW":  return req != null ? `Needs sharpness ${req}%`      : "Needs higher sharpness";
+    case "SHARPNESS_TOO_HIGH": return "Reserved for lower sharpness";
+    case "READINESS_TOO_LOW":  return req != null ? `Needs readiness ${req}%`      : "Needs higher readiness";
+    case "READINESS_OUT_OF_RANGE": return "Outside readiness range";
+    case "CAP_REACHED_DAILY_S1":   return "Daily Fast cap reached";
+    case "CAP_REACHED_DAILY_S2":   return "Daily Slow cap reached";
+    case "CAP_REACHED_WEEKLY_S2":  return "Weekly Slow cap reached";
+    case "CAP_REACHED_WEEKLY_IN":  return "Weekly Insight cap reached";
+    case "SUPERHUMAN_REC_REQUIRED": return "Recovery required (Superhuman)";
+    default: return "Temporarily unavailable";
+  }
+}
 
 type ThinkingSystem = "fast" | "slow";
 
@@ -52,15 +71,7 @@ const SYSTEMS = [
   },
 ];
 
-const REC_LOCK_THRESHOLD = 40;
-const S2_REC_THRESHOLD = 60;
-
 export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibraryProps) {
-  // Pick-for-today logic: pick the system best matched to current recovery
-  const pickedGameType: GameType | null =
-    recoveryEffective >= S2_REC_THRESHOLD ? "S2-CT"
-    : recoveryEffective >= REC_LOCK_THRESHOLD ? "S1-AE"
-    : null;
   const navigate = useNavigate();
   const [openSystem, setOpenSystem] = useState<ThinkingSystem | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -74,6 +85,12 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
   const [showS2INSelector, setShowS2INSelector] = useState(false);
   const { gamesComplete } = useCappedWeeklyProgress();
   const { games } = useGamesGating();
+
+  // Pick-for-today: prefer S2-CT if engine-enabled, then S1-AE, otherwise none
+  const pickedGameType: GameType | null =
+    games["S2-CT"]?.status === "ENABLED" ? "S2-CT"
+    : games["S1-AE"]?.status === "ENABLED" ? "S1-AE"
+    : null;
 
   const handleSystemToggle = (systemId: ThinkingSystem) => {
     setOpenSystem(prev => prev === systemId ? null : systemId);
@@ -206,8 +223,9 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                 >
                   <div className="grid grid-cols-2 gap-px bg-white/[0.04]">
                     {system.areas.map((area) => {
-                      const requiredRec = system.id === "slow" ? S2_REC_THRESHOLD : REC_LOCK_THRESHOLD;
-                      const isLocked = recoveryEffective < requiredRec;
+                      const gating = games[area.gameType];
+                      const isLocked = !gating || gating.status !== "ENABLED";
+                      const lockLabel = gating ? unlockLabelFor(gating) : "Temporarily unavailable";
                       const isPicked = pickedGameType === area.gameType;
                       return (
                       <button
@@ -277,7 +295,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                             </p>
                             {isLocked && (
                               <p className="text-[8px] uppercase tracking-[0.14em] text-white/45 mt-1.5">
-                                Unlock with recovery {requiredRec}%
+                                {lockLabel}
                               </p>
                             )}
                           </div>
