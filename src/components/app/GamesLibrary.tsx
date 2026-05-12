@@ -130,17 +130,6 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
 
   return (
     <div className="space-y-6">
-      {/* Section header — Oura-style */}
-      <div className="flex items-end justify-between px-1">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">Train</p>
-          <h2 className="text-[22px] font-semibold tracking-tight text-foreground mt-1">Cognitive Modules</h2>
-        </div>
-        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 pb-1">
-          9–45 XP
-        </p>
-      </div>
-
       {/* Two system blocks — premium card stack */}
       <div className="space-y-5">
       {SYSTEMS.map((system) => {
