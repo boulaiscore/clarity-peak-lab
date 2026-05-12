@@ -362,22 +362,32 @@ function KPICard({ kpi, index }: { kpi: KPIData; index: number }) {
       default: return "text-foreground";
     }
   };
+  const getTierAccent = (tier?: "low" | "medium" | "high") => {
+    switch (tier) {
+      case "high": return "bg-emerald-400/70";
+      case "medium": return "bg-amber-400/70";
+      case "low": return "bg-muted-foreground/40";
+      default: return "bg-foreground/40";
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 + index * 0.05 }}
-      className="p-3 rounded-xl bg-card border border-border/30 text-center"
+      className="relative px-2 pt-3.5 pb-3 rounded-xl bg-card/60 border border-border/30 text-center overflow-hidden"
     >
-      <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
+      {/* Accent rule on top */}
+      <div className={cn("absolute top-0 left-3 right-3 h-px", getTierAccent(kpi.tier))} />
+      <div className="text-[9px] text-muted-foreground/80 mb-1.5 uppercase tracking-[0.18em] font-medium">
         {kpi.label}
       </div>
-      <div className={cn("text-lg font-semibold", getTierColor(kpi.tier))}>
+      <div className={cn("text-2xl font-light tracking-tight leading-none", getTierColor(kpi.tier))}>
         {kpi.value}
       </div>
       {kpi.sublabel && (
-        <div className="text-[9px] text-muted-foreground mt-0.5">
+        <div className="text-[9px] text-muted-foreground/70 mt-1.5 lowercase tracking-wide">
           {kpi.sublabel}
         </div>
       )}
