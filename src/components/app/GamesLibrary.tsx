@@ -295,7 +295,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                             </p>
                             {isLocked && (
                               <p className="text-[8px] uppercase tracking-[0.14em] text-white/45 mt-1.5">
-                                Unlock with recovery {requiredRec}%
+                                {lockLabel}
                               </p>
                             )}
                           </div>
