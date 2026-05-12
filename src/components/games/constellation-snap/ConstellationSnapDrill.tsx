@@ -71,8 +71,8 @@ const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> =
   hard: { timerMs: 1300 },
 };
 
-const TOTAL_ROUNDS = 30;
-const ROUNDS_PER_ACT = 10;
+const TOTAL_ROUNDS = 15;
+const ROUNDS_PER_ACT = 5;
 const CONSTELLATION_FADE_IN_MS = 350;
 const FEEDBACK_DURATION_MS = 280;
 const INTER_ROUND_DELAY_MS = 450;
@@ -91,17 +91,6 @@ function TileRenderer({ tile, size = "md" }: { tile: ConstellationTile; size?: "
     lg: "w-16 h-16 text-sm",
   };
   
-  if (tile.type === "word") {
-    return (
-      <div className={cn(
-        "flex items-center justify-center rounded-lg bg-card/80 border border-border/50",
-        "font-medium text-foreground uppercase tracking-wide",
-        sizeClasses[size]
-      )}>
-        {tile.value}
-      </div>
-    );
-  }
   
   // Icon type - render from lucide
   const IconComponent = (LucideIcons as any)[tile.value];
