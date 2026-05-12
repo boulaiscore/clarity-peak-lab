@@ -184,6 +184,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
   };
   
   return (
+    <>
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[85vh]">
         <AnimatePresence mode="wait">
