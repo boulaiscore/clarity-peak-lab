@@ -80,25 +80,20 @@ const ProgressRing = ({
       width: size,
       height: size
     }}>
-        {/* Background ring */}
+        {/* Background ring — full track for premium WHOOP feel */}
         <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth} className="opacity-20" />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--foreground))" strokeWidth={strokeWidth} className="opacity-[0.08]" />
         </svg>
         {/* Progress ring */}
         <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000 ease-out" />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000 ease-out" style={{ filter: `drop-shadow(0 0 6px ${color}55)` }} />
         </svg>
-        {/* Center content: icon, value, and status */}
+        {/* Center content: big number, WHOOP-style */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {icon && <div className="opacity-40 mb-0.5" style={{
-          color
-        }}>
-              {icon}
-            </div>}
-          <span className="text-[28px] font-light tracking-tight text-foreground tabular-nums leading-none">
+          <span className="text-[40px] font-semibold tracking-tight text-foreground tabular-nums leading-none">
             {displayValue}
           </span>
-          {deltaIndicator && <span className="text-[9px] font-medium mt-1 tabular-nums opacity-70" style={{
+          {deltaIndicator && <span className="text-[10px] font-medium mt-1.5 tabular-nums opacity-70" style={{
           color
         }}>
               {deltaIndicator}
@@ -106,10 +101,10 @@ const ProgressRing = ({
         </div>
       </div>
       {/* Label + status below the ring */}
-      <span className="mt-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground/60">
+      <span className="mt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/55">
         {label}
       </span>
-      {dynamicIndicator && <span className="mt-0.5 text-[9px] font-medium tracking-wide" style={{ color, opacity: 0.85 }}>
+      {dynamicIndicator && <span className="mt-1 text-[11px] font-semibold tracking-wide" style={{ color }}>
         {dynamicIndicator}
       </span>}
     </button>;
@@ -456,10 +451,10 @@ const Home = () => {
         }} transition={{
           delay: 0.05
         }} className="mb-3">
-              <div className="flex justify-center gap-5 mb-5">
-                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={104} strokeWidth={3} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
-                <ProgressRing value={displayReadiness} max={100} size={104} strokeWidth={3} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
-                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={104} strokeWidth={3} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
+              <div className="flex justify-center gap-3 mb-5">
+                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={112} strokeWidth={6} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
+                <ProgressRing value={displayReadiness} max={100} size={112} strokeWidth={6} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
+                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={112} strokeWidth={6} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
 
               {/* Outcome headline — Whoop-style human translation */}
