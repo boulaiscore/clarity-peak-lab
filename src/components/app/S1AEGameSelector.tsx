@@ -211,6 +211,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
   const getXPForGame = (game: GameOption) => game.xpByDifficulty[selectedDifficulty];
 
   return (
+    <>
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[85vh]">
         <AnimatePresence mode="wait">
