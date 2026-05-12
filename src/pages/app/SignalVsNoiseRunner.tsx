@@ -106,6 +106,8 @@ export default function SignalVsNoiseRunner() {
     navigate("/neuro-lab?tab=games");
   };
 
+  const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
+
   return (
     <div className="min-h-screen bg-background">
       <AnimatePresence mode="wait">
@@ -122,7 +124,7 @@ export default function SignalVsNoiseRunner() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleBackToLab}
+                onClick={requestExit}
                 className="h-8 w-8"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -238,6 +240,7 @@ export default function SignalVsNoiseRunner() {
           </motion.div>
         )}
       </AnimatePresence>
+      {ConfirmDialog}
     </div>
   );
 }
