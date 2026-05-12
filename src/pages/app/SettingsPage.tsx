@@ -305,7 +305,7 @@ const SettingsPage = () => {
         {/* HELP */}
         <SectionLabel>Help</SectionLabel>
         <ListGroup>
-          <Row icon={Play} label="Replay tutorial" onClick={() => setShowTutorial(true)} />
+          
           <Row
             icon={Mail}
             label="Contact support"
