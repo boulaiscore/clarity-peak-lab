@@ -502,14 +502,17 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   // Playing screen
   const blockProgress = 1 - (blockTimeRemaining / BLOCK_CONFIGS[currentBlock].duration);
   
+  const blockMode = BLOCK_CONFIGS[currentBlock].mode;
+  const ruleText = BLOCK_CONFIGS[currentBlock].rule;
+
   return (
     <div className="min-h-[70vh] flex flex-col px-4 py-6">
       {/* Header */}
-      <div className="text-center mb-6 space-y-2">
+      <div className="text-center mb-4 space-y-2">
         <div className="text-xs text-muted-foreground uppercase tracking-wider">
           Block {currentBlock + 1} / 3 • {BLOCK_CONFIGS[currentBlock].label}
         </div>
-        
+
         {/* Progress bar */}
         <div className="h-1.5 bg-white/10 rounded-full overflow-hidden max-w-xs mx-auto">
           <motion.div
@@ -518,25 +521,40 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
             animate={{ width: `${blockProgress * 100}%` }}
           />
         </div>
-        
+
         <div className="text-2xl font-bold text-foreground tabular-nums">
           {Math.ceil(blockTimeRemaining)}s
         </div>
       </div>
-      
+
+      {/* Rule banner — distinct per block */}
+      <div className="max-w-md mx-auto w-full mb-4">
+        <div className={cn(
+          "px-3 py-2 rounded-lg text-xs text-center border",
+          blockMode === "lock" && "bg-cyan-500/10 border-cyan-400/30 text-cyan-100",
+          blockMode === "inhibit" && "bg-amber-500/10 border-amber-400/30 text-amber-100",
+          blockMode === "invert" && "bg-rose-500/10 border-rose-400/30 text-rose-100",
+        )}>
+          {ruleText}
+        </div>
+      </div>
+
       {/* Lanes */}
       <div className="flex-1 flex gap-3 justify-center items-stretch max-w-md mx-auto w-full">
         {Array.from({ length: laneCount }).map((_, i) => {
           const isActive = i === activeLane;
           const colors = LANE_COLORS[i];
           const hasFeedback = showFeedback?.lane === i;
-          
+          const showTargetHere = currentTarget?.lane === i;
+          const targetType = currentTarget?.type;
+
           return (
             <motion.button
               key={i}
               onClick={() => handleLaneTap(i)}
+              style={{ touchAction: "manipulation" }}
               className={cn(
-                "flex-1 rounded-2xl relative overflow-hidden transition-all duration-200",
+                "flex-1 rounded-2xl relative overflow-hidden transition-all duration-200 select-none",
                 "flex items-center justify-center",
                 "min-h-[300px]",
                 isActive
@@ -547,33 +565,36 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
               )}
               whileTap={{ scale: 0.98 }}
             >
-              {/* Active indicator */}
+              {/* Highlight halo (active lane) */}
               {isActive && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute inset-0 flex items-center justify-center"
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <AnimatePresence>
-                      {targetVisible && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.8, opacity: 0 }}
-                          className="w-10 h-10 rounded-full bg-white shadow-lg"
-                        />
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-16 h-16 rounded-full bg-white/15 backdrop-blur-sm" />
+                </div>
               )}
-              
-              {/* Inactive lane subtle indicator */}
-              {!isActive && (
+
+              {/* Inactive subtle indicator */}
+              {!isActive && !showTargetHere && (
                 <div className="w-8 h-8 rounded-full border border-white/10" />
               )}
-              
+
+              {/* Target — appears in target.lane (could be active or non-active depending on mode) */}
+              <AnimatePresence>
+                {showTargetHere && (
+                  <motion.div
+                    key={`target-${i}-${targetType}`}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    className={cn(
+                      "absolute w-12 h-12 rounded-full pointer-events-none",
+                      targetType === "solid"
+                        ? "bg-white shadow-lg shadow-white/40"
+                        : "border-[3px] border-white/80 bg-transparent"
+                    )}
+                  />
+                )}
+              </AnimatePresence>
+
               {/* Feedback flash */}
               <AnimatePresence>
                 {hasFeedback && (
@@ -592,7 +613,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
           );
         })}
       </div>
-      
+
       {/* Score */}
       <div className="text-center mt-6">
         <div className="text-sm text-muted-foreground">Score</div>
