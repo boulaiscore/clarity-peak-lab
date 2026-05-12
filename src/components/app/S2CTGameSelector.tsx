@@ -246,8 +246,8 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
                         </p>
                         
                         <div className="flex items-center gap-3 text-[10px]">
-                          <div className="flex items-center gap-1 text-amber-400/80">
-                            <Star className="w-3 h-3 fill-amber-400/50" />
+                          <div className="flex items-center gap-1 text-area-fast/80">
+                            <Star className="w-3 h-3 fill-area-fast/50" />
                             <span>~{game.estimatedXP} XP</span>
                           </div>
                           <div className="flex items-center gap-1 text-muted-foreground">

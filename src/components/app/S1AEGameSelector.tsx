@@ -349,8 +349,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                             </p>
                             
                             <div className="flex items-center gap-3 text-[10px]">
-                              <div className="flex items-center gap-1 text-amber-400/80">
-                                <Star className="w-3 h-3 fill-amber-400/50" />
+                              <div className="flex items-center gap-1 text-area-fast/80">
+                                <Star className="w-3 h-3 fill-area-fast/50" />
                                 <span>{xp} XP</span>
                               </div>
                               <span className="text-muted-foreground">~90 seconds</span>
@@ -420,8 +420,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                 
                 {/* XP and duration */}
                 <div className="flex items-center justify-center gap-4 py-2">
-                  <div className="flex items-center gap-1.5 text-amber-400">
-                    <Star className="w-4 h-4 fill-amber-400/50" />
+                  <div className="flex items-center gap-1.5 text-area-fast">
+                    <Star className="w-4 h-4 fill-area-fast/50" />
                     <span className="text-sm font-semibold">
                       {selectedGame.xpByDifficulty[selectedDifficulty]} XP
                     </span>
