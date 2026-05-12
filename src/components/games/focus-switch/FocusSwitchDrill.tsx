@@ -201,23 +201,51 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
     return () => clearInterval(interval);
   }, [phase, currentBlock, switchFocus]);
   
-  // Target visibility pulse
+  // Target spawn loop — depends on block mode
   useEffect(() => {
     if (phase !== "playing") {
       if (targetIntervalRef.current) clearInterval(targetIntervalRef.current);
+      if (targetHideTimeoutRef.current) clearTimeout(targetHideTimeoutRef.current);
+      setCurrentTarget(null);
       return;
     }
-    
-    // Show target periodically in active lane
-    targetIntervalRef.current = setInterval(() => {
-      setTargetVisible(true);
-      setTimeout(() => setTargetVisible(false), 800);
-    }, 1200);
-    
-    return () => {
-      if (targetIntervalRef.current) clearInterval(targetIntervalRef.current);
+
+    const mode = BLOCK_CONFIGS[currentBlock].mode;
+
+    const spawn = () => {
+      const active = activeLaneRef.current;
+      const others: number[] = [];
+      for (let i = 0; i < laneCount; i++) if (i !== active) others.push(i);
+      const randOther = () => others[Math.floor(Math.random() * others.length)];
+
+      let target: { lane: number; type: "solid" | "hollow" };
+      if (mode === "lock") {
+        target = { lane: active, type: "solid" };
+      } else if (mode === "inhibit") {
+        // 60% GO (solid in active), 40% LURE (hollow in non-active)
+        target = Math.random() < 0.6
+          ? { lane: active, type: "solid" }
+          : { lane: randOther(), type: "hollow" };
+      } else {
+        // invert: target solid in a NON-highlighted lane
+        target = { lane: randOther(), type: "solid" };
+      }
+
+      setCurrentTarget(target);
+      if (targetHideTimeoutRef.current) clearTimeout(targetHideTimeoutRef.current);
+      targetHideTimeoutRef.current = setTimeout(() => setCurrentTarget(null), 850);
     };
-  }, [phase]);
+
+    // Initial spawn after small delay
+    const initialDelay = setTimeout(spawn, 400);
+    targetIntervalRef.current = setInterval(spawn, 1300);
+
+    return () => {
+      clearTimeout(initialDelay);
+      if (targetIntervalRef.current) clearInterval(targetIntervalRef.current);
+      if (targetHideTimeoutRef.current) clearTimeout(targetHideTimeoutRef.current);
+    };
+  }, [phase, currentBlock, laneCount]);
   
   // Countdown timer
   useEffect(() => {
