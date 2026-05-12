@@ -13,6 +13,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
 import { toast } from "sonner";
+import { useExitConfirmation } from "@/components/games/useExitConfirmation";
 import { ConstellationSnapDrill, ConstellationSnapFinalResults } from "@/components/games/constellation-snap";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -103,6 +104,8 @@ export default function ConstellationSnapRunner() {
     navigate("/neuro-lab?tab=games");
   };
 
+  const { requestExit, ConfirmDialog } = useExitConfirmation(handleBack);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/30">
@@ -110,7 +113,7 @@ export default function ConstellationSnapRunner() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleBack}
+            onClick={requestExit}
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -132,6 +135,7 @@ export default function ConstellationSnapRunner() {
           onComplete={handleComplete}
         />
       </div>
+      {ConfirmDialog}
     </div>
   );
 }

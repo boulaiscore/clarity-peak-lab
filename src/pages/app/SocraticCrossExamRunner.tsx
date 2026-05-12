@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Brain, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useExitConfirmation } from "@/components/games/useExitConfirmation";
 
 type GamePhase = "intro" | "playing" | "results";
 
@@ -106,6 +107,8 @@ export default function SocraticCrossExamRunner() {
   const handleBackToLab = useCallback(() => {
     navigate("/neuro-lab?tab=games");
   }, [navigate]);
+
+  const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
   
   return (
     <div className="fixed inset-0 bg-background">
@@ -196,6 +199,7 @@ export default function SocraticCrossExamRunner() {
           </motion.div>
         )}
       </AnimatePresence>
+      {ConfirmDialog}
     </div>
   );
 }

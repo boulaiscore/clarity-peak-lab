@@ -12,6 +12,7 @@ import { useRecordGameSession } from "@/hooks/useGamesGating";
 import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { toast } from "sonner";
+import { useExitConfirmation } from "@/components/games/useExitConfirmation";
 import { FocusSwitchDrill, FocusSwitchFinalResults } from "@/components/games/focus-switch";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -120,6 +121,8 @@ export default function FocusSwitchRunner() {
     navigate("/neuro-lab?tab=games");
   };
 
+  const { requestExit, ConfirmDialog } = useExitConfirmation(handleBack);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/30">
@@ -127,7 +130,7 @@ export default function FocusSwitchRunner() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleBack}
+            onClick={requestExit}
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -150,6 +153,7 @@ export default function FocusSwitchRunner() {
           onExit={handleBack}
         />
       </div>
+      {ConfirmDialog}
     </div>
   );
 }
