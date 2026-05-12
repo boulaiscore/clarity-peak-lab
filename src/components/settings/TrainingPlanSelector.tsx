@@ -1,6 +1,16 @@
 import { TRAINING_PLANS, TrainingPlanId, TrainingPlan } from "@/lib/trainingPlans";
 import { cn } from "@/lib/utils";
 
+const PRACTICAL_DESCRIPTIONS: Record<TrainingPlanId, string> = {
+  light:
+    "1 short game per day, mostly fast intuitive (System 1). Deep reasoning unlocks only when recovered. Best to keep cognition stable without pressure.",
+  expert:
+    "1–2 games per day balancing fast reactions and deliberate reasoning. Adds 2 weekly tasks to build Reasoning Quality. The standard performance regimen.",
+  superhuman:
+    "2–3 intensive games per day with frequent System 2 reasoning. Requires 28h/week of recovery and 3 mandatory tasks. Built for peak cognitive output.",
+};
+
+
 interface TrainingPlanSelectorProps {
   selectedPlan: TrainingPlanId;
   onSelectPlan: (plan: TrainingPlanId) => void;
@@ -28,7 +38,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan }: TrainingPla
                   {plan.name.replace(" Training", "")}
                 </div>
                 <div className="text-[12px] text-muted-foreground/80 mt-1.5 leading-snug tracking-tight">
-                  {plan.tagline}
+                  {PRACTICAL_DESCRIPTIONS[plan.id]}
                 </div>
                 <div className="text-[11px] text-muted-foreground/50 mt-2 tracking-tight">
                   {plan.dailyEstimate.total} · {plan.sessionsPerWeek}× / week · {plan.xpTargetWeek} XP
