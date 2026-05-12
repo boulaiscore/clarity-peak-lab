@@ -64,6 +64,14 @@ export interface UnifiedGameResultsProps {
   // Optional: Quality bonus line (from gameQualityBonus)
   qualityLine?: string;
   
+  // Optional: Cognitive Insight block (post-session depth)
+  insight?: {
+    vsAverage?: { delta: number; unit?: string; label?: string }; // delta vs personal 7d avg on primary KPI
+    trend?: number[]; // last N session values for sparkline (primary KPI)
+    metricImpact?: { metric: "Sharpness" | "Readiness" | "RQ" | "Thinking"; delta: number }; // estimated lift
+    calibrationNote?: string; // e.g. "Difficulty adapted to your level"
+  };
+  
   // Actions
   onPlayAgain: () => void;
   onExit: () => void;
