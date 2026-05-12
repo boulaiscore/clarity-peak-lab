@@ -406,6 +406,78 @@ export default function NeuroLab() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* How LOOMA Lab Works — moved to bottom */}
+        <Collapsible className="mt-5">
+          <div className="border border-border/20 bg-muted/10 rounded-xl overflow-hidden">
+            <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors">
+              <div className="flex items-center gap-3">
+                <LoomaLogo size={18} className="text-foreground/70" />
+                <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+                  How LOOMA Lab Works
+                </span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-4 space-y-5 border-t border-border/20 pt-4">
+                <LoomaTrainingLoop />
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Train → Recover → Repeat</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Cognitive games build sharpness. Detox and walking restore energy. Consistency drives adaptation.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Zap className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Cognitive Load & Optimal Zone</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Weekly XP measures your training volume. Stay in the Optimal Zone — too little means no growth, too much leads to diminishing returns.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Dumbbell className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">S1 & S2 Game Systems</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        S1 trains fast thinking (attention, reaction). S2 trains slow thinking (reasoning, analysis). S2 games require higher Recovery to unlock.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <BookMarked className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-foreground mb-0.5">Quality Time → Reasoning Quality</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Reading and listening don't earn XP — they boost your RQ score, which measures cognitive priming depth over time.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-border/15">
+                  <p className="text-[10px] text-muted-foreground">
+                    <span className="font-semibold text-foreground/80">Key:</span>{" "}
+                    High recovery → push S2 games. Low recovery → Quality Time & Recover.
+                  </p>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
       </div>
 
       <PremiumPaywall open={showPaywall} onOpenChange={setShowPaywall} feature={paywallFeature} featureName={paywallFeatureName} />
