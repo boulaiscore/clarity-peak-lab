@@ -50,23 +50,23 @@ const SYSTEMS = [
   {
     id: "fast" as ThinkingSystem,
     label: "System 1",
-    sublabel: "Fast · Intuitive",
+    sublabel: "Automatic processing · pre-attentive speed",
     description: "Speed, pattern recognition, automaticity",
     accentColor: "hsl(var(--area-fast))",
     areas: [
-      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, subLabel: "Sharper focus under pressure" },
-      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, subLabel: "Faster intuitive connections" },
+      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, subLabel: "Sustained attention · inhibitory control" },
+      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, subLabel: "Semantic retrieval · associative fluency" },
     ],
   },
   {
     id: "slow" as ThinkingSystem,
     label: "System 2",
-    sublabel: "Slow · Deliberate",
+    sublabel: "Controlled processing · executive load",
     description: "Logic, analysis, structured reasoning",
     accentColor: "hsl(var(--area-slow))",
     areas: [
-      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, subLabel: "Cleaner thinking when stakes are high" },
-      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, subLabel: "Cut through complexity" },
+      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, subLabel: "Causal inference · evidence calibration" },
+      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, subLabel: "Hypothesis testing · pattern abstraction" },
     ],
   },
 ];
