@@ -38,7 +38,7 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan }: TrainingPla
                   {plan.name.replace(" Training", "")}
                 </div>
                 <div className="text-[12px] text-muted-foreground/80 mt-1.5 leading-snug tracking-tight">
-                  {plan.tagline}
+                  {PRACTICAL_DESCRIPTIONS[plan.id]}
                 </div>
                 <div className="text-[11px] text-muted-foreground/50 mt-2 tracking-tight">
                   {plan.dailyEstimate.total} · {plan.sessionsPerWeek}× / week · {plan.xpTargetWeek} XP
