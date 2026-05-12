@@ -465,6 +465,22 @@ const Home = () => {
                 <ProgressRing value={displayReadiness} max={100} size={90} strokeWidth={4} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
                 <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={90} strokeWidth={4} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
+
+              {/* Outcome copy — human translation of the dominant metric */}
+              {isViewingToday && !isDisplayLoading && (() => {
+                const r = Math.round(displayReadiness);
+                const rec = Math.round(displayRecovery);
+                let line = "";
+                if (rec < 40) line = "Your brain is in recovery debt — protect today.";
+                else if (r >= 75) line = "You think faster and clearer than yesterday.";
+                else if (r >= 55) line = "Stable day — small, consistent gains compound.";
+                else line = "Reactive mode — one focused action will reset the day.";
+                return (
+                  <p className="text-center text-[11px] text-muted-foreground/80 mb-4 px-4 leading-relaxed">
+                    {line}
+                  </p>
+                );
+              })()}
               
               {/* Goal Complete indicator - only shows when target reached AND viewing today */}
               {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
