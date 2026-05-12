@@ -138,6 +138,34 @@ const SettingsPage = () => {
   const [timezone, setTimezone] = useState("UTC");
   const [showTutorial, setShowTutorial] = useState(false);
   const [showPlanSheet, setShowPlanSheet] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+
+  const handleOpenBillingPortal = async () => {
+    if (!user?.email) {
+      toast({ title: "Sign in required", variant: "destructive" });
+      return;
+    }
+    setBillingLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-billing-portal-session", {
+        body: { userEmail: user.email, returnUrl: window.location.href },
+      });
+      if (error) throw error;
+      if ((data as any)?.code === "NO_CUSTOMER" || !(data as any)?.url) {
+        toast({
+          title: "No billing account yet",
+          description: "Subscribe to a plan to access invoices and payment methods.",
+        });
+        return;
+      }
+      window.open((data as any).url, "_blank");
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Could not open billing portal", variant: "destructive" });
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadSettings = async () => {
