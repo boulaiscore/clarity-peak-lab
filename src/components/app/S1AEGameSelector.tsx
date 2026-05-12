@@ -177,15 +177,23 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
     setIsOverride(override);
   };
 
+  const { checkAndPlay, AdvisoryDialog } = useReplayAdvisory();
+
   const handleConfirmPlay = () => {
     if (!selectedGame) return;
-    onOpenChange(false);
-    // Small delay to let sheet close animation complete
-    setTimeout(() => {
-      const overrideParam = isOverride ? "&override=true" : "";
-      navigate(`${selectedGame.route}?difficulty=${selectedDifficulty}${overrideParam}`);
-      setSelectedGame(null);
-    }, 150);
+    const game = selectedGame;
+    checkAndPlay({
+      gameType: "S1-AE",
+      gameName: game.id,
+      onProceed: () => {
+        onOpenChange(false);
+        setTimeout(() => {
+          const overrideParam = isOverride ? "&override=true" : "";
+          navigate(`${game.route}?difficulty=${selectedDifficulty}${overrideParam}`);
+          setSelectedGame(null);
+        }, 150);
+      },
+    });
   };
 
   const handleBack = () => {
