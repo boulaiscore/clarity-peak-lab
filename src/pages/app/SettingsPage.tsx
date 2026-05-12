@@ -36,6 +36,7 @@ import {
   Shield,
   Trash2,
   ChevronRight,
+  CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
