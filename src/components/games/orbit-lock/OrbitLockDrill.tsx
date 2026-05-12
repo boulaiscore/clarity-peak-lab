@@ -54,15 +54,21 @@ import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
 
 const ACT_CONFIGS: ActConfig[] = [
   { duration: 25, label: "Stabilize", description: "Find your rhythm", driftStrength: 1.0, pulseFrequency: 0, glintFrequency: 0, orbitSpeedMult: 1.0 },
-  { duration: 30, label: "Resist", description: "Ignore distractions", driftStrength: 1.2, pulseFrequency: 3, glintFrequency: 2, orbitSpeedMult: 1.0 },
-  { duration: 35, label: "Hold", description: "Maintain stability", driftStrength: 1.4, pulseFrequency: 4, glintFrequency: 3, orbitSpeedMult: 1.1 },
+  { duration: 30, label: "Resist", description: "Ignore distractions", driftStrength: 1.3, pulseFrequency: 3, glintFrequency: 2, orbitSpeedMult: 1.0 },
+  { duration: 35, label: "Hold", description: "Maintain stability", driftStrength: 1.6, pulseFrequency: 4, glintFrequency: 3, orbitSpeedMult: 1.1 },
 ];
 
+// Physics units: positions are normalized 0-1 along the orbit (angular).
+// baseDrift = drift force magnitude in pos/sec². dialStrength = max dial force in pos/sec² (5–7x drift so the user can always recover).
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
-  easy: { bandWidth: 0.18, baseDrift: 0.008, distractionIntensity: 0.5 },
-  medium: { bandWidth: 0.12, baseDrift: 0.012, distractionIntensity: 1.0 },
-  hard: { bandWidth: 0.08, baseDrift: 0.016, distractionIntensity: 1.5 },
+  easy: { bandWidth: 0.18, baseDrift: 0.18, distractionIntensity: 0.5 },
+  medium: { bandWidth: 0.12, baseDrift: 0.26, distractionIntensity: 1.0 },
+  hard: { bandWidth: 0.08, baseDrift: 0.34, distractionIntensity: 1.5 },
 };
+
+// Damping rate (per second) and dial authority (max force at full deflection).
+const VELOCITY_DAMPING_PER_SEC = 1.4;
+const DIAL_FORCE_MAX = 1.6; // pos/sec² at dialValue = 0 or 1
 
 const PERFECT_TIME_IN_BAND_THRESHOLD = 0.85;
 const PERFECT_OVERCORRECTION_THRESHOLD = 0.3;
