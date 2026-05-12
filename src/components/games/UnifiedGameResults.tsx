@@ -232,6 +232,37 @@ export function UnifiedGameResults({
         </motion.div>
 
         {/* ─────────────────────────────────────────────
+            B2.5) COGNITIVE INSIGHT (optional, premium depth)
+        ───────────────────────────────────────────── */}
+        {insight && (insight.vsAverage || insight.trend || insight.metricImpact || insight.calibrationNote) && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="w-full max-w-sm mb-6 p-3.5 rounded-xl bg-card/40 border border-border/30"
+          >
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <Activity className="w-3 h-3 text-muted-foreground" />
+              <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 font-medium">
+                Cognitive Insight
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {insight.vsAverage && <VsAverageRow data={insight.vsAverage} />}
+              {insight.trend && insight.trend.length > 1 && <TrendRow values={insight.trend} />}
+              {insight.metricImpact && <MetricImpactRow data={insight.metricImpact} skillColor={skillColor} />}
+            </div>
+
+            {insight.calibrationNote && (
+              <p className="text-[10px] text-muted-foreground/70 mt-3 pt-2.5 border-t border-border/20 leading-relaxed">
+                {insight.calibrationNote}
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        {/* ─────────────────────────────────────────────
             B3) SKILL IMPACT STATEMENT
         ───────────────────────────────────────────── */}
         <motion.div
