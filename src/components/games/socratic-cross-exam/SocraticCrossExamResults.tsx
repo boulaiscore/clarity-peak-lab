@@ -4,6 +4,7 @@
 
 import { useMemo } from "react";
 import { UnifiedGameResults, KPIData, ReviewMistake } from "@/components/games";
+import { useGameInsight } from "@/hooks/useGameInsight";
 import { SocraticRoundResult } from "./index";
 import { SOCRATIC_CONFIG } from "./socraticCrossExamContent";
 
@@ -81,7 +82,8 @@ export function SocraticCrossExamResults({
   }, [results]);
   
   const isPerfect = sessionScore >= 90;
-  
+  const insight = useGameInsight({ gameType: "S2-CT", skill: "CT", currentScore: sessionScore, xpAwarded });
+
   return (
     <UnifiedGameResults
       gameName="Socratic Cross-Exam"
@@ -95,6 +97,7 @@ export function SocraticCrossExamResults({
       kpis={kpis}
       isPerfect={isPerfect}
       mistakes={mistakes}
+      insight={insight}
       onPlayAgain={onPlayAgain}
       onExit={onBackToLab}
     />
