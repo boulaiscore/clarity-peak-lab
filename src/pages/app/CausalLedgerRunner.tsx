@@ -223,7 +223,7 @@ export default function CausalLedgerRunner() {
             exit={{ opacity: 0 }}
             className="h-full"
           >
-            <CausalLedgerDrill onComplete={handleGameComplete} />
+            <CausalLedgerDrill onComplete={handleGameComplete} onExit={handleBackToLab} />
           </motion.div>
         )}
         
