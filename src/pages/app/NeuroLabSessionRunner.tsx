@@ -65,16 +65,8 @@ export default function NeuroLabSessionRunner() {
   const sessionTypeParam = searchParams.get("sessionType") as SessionType | null;
   const difficultyParam = (searchParams.get("difficulty") as "easy" | "medium" | "hard" | null) || "medium";
 
-  // TS_*/FF_*/FA_FAST_* are game-style drills (e.g., Triage Sprint) and are NOT DB exercises.
-  // If someone navigates here with those IDs, hard-redirect to the dedicated runner.
-  useEffect(() => {
-    if (!exerciseId) return;
-    const drillType = getDrillTypeForExercise(exerciseId);
-    if (drillType === "triage_sprint") {
-      navigate(`/neuro-lab/triage-sprint?difficulty=${difficultyParam}`, { replace: true });
-    }
-  }, [exerciseId, difficultyParam, navigate]);
-  
+  // (Triage Sprint legacy redirect removed — game retired)
+
   const { data: allExercises, isLoading: exercisesLoading } = useExercises();
   const { data: completedExerciseIds, isLoading: completedLoading } = useCompletedExerciseIds(user?.id);
   const { data: userMetrics } = useUserMetrics(user?.id);

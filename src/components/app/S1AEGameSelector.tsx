@@ -52,16 +52,6 @@ interface GameOption {
 
 const GAMES: GameOption[] = [
   {
-    id: "triage_sprint",
-    name: "Triage Sprint",
-    tagline: "Rapid Decisions",
-    description: "Approve or reject cards under time pressure. Tests quick pattern recognition and inhibitory control.",
-    icon: Zap,
-    route: "/neuro-lab/triage-sprint",
-    xpByDifficulty: { easy: 9, medium: 15, hard: 24 },
-    accentColor: "cyan",
-  },
-  {
     id: "orbit_lock",
     name: "Orbit Lock",
     tagline: "Sustained Stability",
@@ -439,8 +429,11 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                   <span className="text-xs text-muted-foreground">~90 seconds</span>
                 </div>
                 
+                {/* Debug info — dev only (Vite) */}
+                {_debug && import.meta.env.DEV && (
+                
                 {/* Debug info (hidden in production) */}
-                {_debug && process.env.NODE_ENV === "development" && (
+                {false && _debug && (
                   <div className="p-2 rounded-lg bg-muted/10 text-[9px] text-muted-foreground/60 font-mono">
                     REC={Math.round(_debug.recovery)} | SHP={Math.round(_debug.sharpness)} | RDY={Math.round(_debug.readiness)}
                     <br />

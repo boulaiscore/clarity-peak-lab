@@ -49,14 +49,6 @@ interface RAGameOption {
 
 const RA_GAMES: RAGameOption[] = [
   {
-    id: "flash_connect",
-    name: "Flash Connect",
-    tagline: "Intuitive Links",
-    description: "Find the associative link between concepts. Trains rapid, non-deliberate creative connections.",
-    route: "/neuro-lab/flash-connect",
-    xpByDifficulty: { easy: 25, medium: 25, hard: 35 },
-  },
-  {
     id: "constellation_snap",
     name: "Constellation Snap",
     tagline: "Pattern Closure",
@@ -380,7 +372,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                 </div>
                 
                 {/* Debug info (hidden in production) */}
-                {_debug && process.env.NODE_ENV === "development" && (
+                {false && _debug && (
                   <div className="p-2 rounded-lg bg-muted/10 text-[9px] text-muted-foreground/60 font-mono">
                     REC={Math.round(_debug.recovery)} | SHP={Math.round(_debug.sharpness)} | RDY={Math.round(_debug.readiness)}
                     <br />
