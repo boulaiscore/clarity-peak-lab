@@ -244,9 +244,9 @@ const ACT_III_SCENARIOS: CausalScenario[] = [
 // ============================================
 
 export const CAUSAL_LEDGER_CONFIG = {
-  rounds: 12,
+  rounds: 6,
   actsPerSession: 3,
-  roundsPerAct: 4,
+  roundsPerAct: 2,
   recommendedTimePerRound: 35000, // 35 seconds soft guidance
   softTimeGuidanceMs: 35000,
 };
@@ -265,15 +265,15 @@ function shuffle<T>(array: T[]): T[] {
 }
 
 /**
- * Generate a balanced 12-round session:
- * - 4 from Act I
- * - 4 from Act II
- * - 4 from Act III
+ * Generate a balanced 6-round session:
+ * - 2 from Act I
+ * - 2 from Act II
+ * - 2 from Act III
  */
 export function generateSessionScenarios(): CausalScenario[] {
-  const act1 = shuffle(ACT_I_SCENARIOS).slice(0, 4);
-  const act2 = shuffle(ACT_II_SCENARIOS).slice(0, 4);
-  const act3 = shuffle(ACT_III_SCENARIOS).slice(0, 4);
+  const act1 = shuffle(ACT_I_SCENARIOS).slice(0, 2);
+  const act2 = shuffle(ACT_II_SCENARIOS).slice(0, 2);
+  const act3 = shuffle(ACT_III_SCENARIOS).slice(0, 2);
   
   return [...act1, ...act2, ...act3];
 }
