@@ -283,5 +283,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
         </motion.div>
       </DrawerContent>
     </Drawer>
+    {AdvisoryDialog}
+    </>
   );
 }
