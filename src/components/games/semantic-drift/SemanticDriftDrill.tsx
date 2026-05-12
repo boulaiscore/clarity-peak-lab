@@ -178,6 +178,8 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   const handleSelect = useCallback(
     (optionIndex: number) => {
       if (phaseRef.current !== "playing" || selectedRef.current !== null) return;
+      if (roundLockedRef.current) return;
+      roundLockedRef.current = true;
       clearRoundTimeout();
 
       const reactionTime = Date.now() - roundStartTimeRef.current;
@@ -185,6 +187,7 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       const isCorrect = selected.option.tag === "directional";
 
       setSelectedIndex(optionIndex);
+      selectedRef.current = optionIndex;
       setFeedbackState(isCorrect ? "correct" : "wrong");
       safeHaptic(isCorrect ? 15 : 25);
 
@@ -201,9 +204,9 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
         chosenTag: selected.option.tag,
       });
 
-      setTimeout(() => proceedRef.current(), isCorrect ? 320 : 260);
+      scheduleProceed(isCorrect ? 320 : 260);
     },
-    [clearRoundTimeout, shuffledOptions, nodes]
+    [clearRoundTimeout, shuffledOptions, nodes, scheduleProceed]
   );
 
   // Kick off the session
