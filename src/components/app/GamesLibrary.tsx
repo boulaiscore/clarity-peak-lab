@@ -86,6 +86,12 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
   const { gamesComplete } = useCappedWeeklyProgress();
   const { games } = useGamesGating();
 
+  // Pick-for-today: prefer S2-CT if engine-enabled, then S1-AE, otherwise none
+  const pickedGameType: GameType | null =
+    games["S2-CT"]?.status === "ENABLED" ? "S2-CT"
+    : games["S1-AE"]?.status === "ENABLED" ? "S1-AE"
+    : null;
+
   const handleSystemToggle = (systemId: ThinkingSystem) => {
     setOpenSystem(prev => prev === systemId ? null : systemId);
   };
