@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Zap, Timer } from "lucide-react";
+import { ChevronDown, Zap, Timer, Lock, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
@@ -24,6 +24,7 @@ type ThinkingSystem = "fast" | "slow";
 
 interface GamesLibraryProps {
   onStartGame: (areaId: NeuroLabArea) => void;
+  recoveryEffective?: number;
 }
 
 const SYSTEMS = [
@@ -34,8 +35,8 @@ const SYSTEMS = [
     description: "Speed, pattern recognition, automaticity",
     accentColor: "hsl(var(--area-fast))",
     areas: [
-      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, subLabel: "Focus & Precision" },
-      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, subLabel: "Intuitive Links" },
+      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, subLabel: "Sharper focus under pressure" },
+      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, subLabel: "Faster intuitive connections" },
     ],
   },
   {
@@ -45,11 +46,14 @@ const SYSTEMS = [
     description: "Logic, analysis, structured reasoning",
     accentColor: "hsl(var(--area-slow))",
     areas: [
-      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, subLabel: "Logic & Analysis" },
-      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, subLabel: "Clarity & Synthesis" },
+      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, subLabel: "Cleaner thinking when stakes are high" },
+      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, subLabel: "Cut through complexity" },
     ],
   },
 ];
+
+const REC_LOCK_THRESHOLD = 40;
+const S2_REC_THRESHOLD = 60;
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
