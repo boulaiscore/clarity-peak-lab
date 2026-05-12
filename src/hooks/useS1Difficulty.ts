@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
-import { useTestMode } from "@/hooks/useTestMode";
+import { isTestModeEnabled } from "@/hooks/useTestMode";
 import {
   computeS1Difficulty,
   S1DifficultyResult,
@@ -83,7 +83,7 @@ export function useS1Difficulty(): UseS1DifficultyResult {
   
   const isLoading = metricsLoading || tcLoading || progressLoading || profileLoading;
   
-  const { isTestMode } = useTestMode();
+  const isTestMode = isTestModeEnabled();
 
   // Compute difficulty result
   const result = useMemo((): S1DifficultyResult => {
