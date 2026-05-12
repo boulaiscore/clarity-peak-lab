@@ -591,17 +591,6 @@ const Home = () => {
           </motion.section>
         )}
 
-        {/* Wearable Connection Prompt - shows when not connected */}
-        {isViewingToday && (
-          <motion.section
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.14 }}
-            className="mb-5"
-          >
-            <WearableConnectionPrompt />
-          </motion.section>
-        )}
 
 
         {/* Fast Charge - WHOOP-style swipe card */}
