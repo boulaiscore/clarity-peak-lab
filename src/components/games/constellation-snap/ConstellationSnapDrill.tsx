@@ -66,16 +66,16 @@ interface DifficultyConfig {
 import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
 
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
-  easy: { timerMs: 900 },
-  medium: { timerMs: 750 },
-  hard: { timerMs: 600 },
+  easy: { timerMs: 2500 },
+  medium: { timerMs: 1800 },
+  hard: { timerMs: 1300 },
 };
 
 const TOTAL_ROUNDS = 30;
 const ROUNDS_PER_ACT = 10;
-const CONSTELLATION_FADE_IN_MS = 150;
-const FEEDBACK_DURATION_MS = 180;
-const INTER_ROUND_DELAY_MS = 300;
+const CONSTELLATION_FADE_IN_MS = 350;
+const FEEDBACK_DURATION_MS = 280;
+const INTER_ROUND_DELAY_MS = 450;
 const ACT_TRANSITION_MS = 800;
 
 const ACT_NAMES = ["Focus", "Drift", "Leap"];
