@@ -18,7 +18,7 @@ import { motion } from "framer-motion";
 import { 
   Target, Clock, Zap, Brain, Lightbulb, 
   RotateCcw, ArrowRight, ChevronRight, 
-  Eye, Sparkles
+  Eye, Sparkles, TrendingUp, TrendingDown, Minus, Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -64,6 +64,14 @@ export interface UnifiedGameResultsProps {
   // Optional: Quality bonus line (from gameQualityBonus)
   qualityLine?: string;
   
+  // Optional: Cognitive Insight block (post-session depth)
+  insight?: {
+    vsAverage?: { delta: number; unit?: string; label?: string }; // delta vs personal 7d avg on primary KPI
+    trend?: number[]; // last N session values for sparkline (primary KPI)
+    metricImpact?: { metric: "Sharpness" | "Readiness" | "RQ" | "Thinking"; delta: number }; // estimated lift
+    calibrationNote?: string; // e.g. "Difficulty adapted to your level"
+  };
+  
   // Actions
   onPlayAgain: () => void;
   onExit: () => void;
@@ -74,10 +82,10 @@ export interface UnifiedGameResultsProps {
 // ============================================
 
 const SKILL_IMPACT_STATEMENTS: Record<GameSkill, string> = {
-  AE: "This session trained attentional control under time pressure.",
-  RA: "This session strengthened fast, intuitive associations.",
-  CT: "This session trained structured and deliberate reasoning.",
-  IN: "This session trained deep insight under constraints.",
+  AE: "Trains sustained attention and inhibitory control — the substrate of focused work under load.",
+  RA: "Strengthens semantic retrieval and associative fluency — the engine of fast intuition and creative recombination.",
+  CT: "Trains causal inference and evidence calibration — the discipline of reasoning when stakes are high.",
+  IN: "Trains hypothesis testing and pattern abstraction — the ability to cut through noise and reach insight.",
 };
 
 const SKILL_NAMES: Record<GameSkill, string> = {
@@ -118,6 +126,7 @@ export function UnifiedGameResults({
   isPerfect = false,
   mistakes = [],
   qualityLine,
+  insight,
   onPlayAgain,
   onExit,
 }: UnifiedGameResultsProps) {
@@ -223,6 +232,37 @@ export function UnifiedGameResults({
         </motion.div>
 
         {/* ─────────────────────────────────────────────
+            B2.5) COGNITIVE INSIGHT (optional, premium depth)
+        ───────────────────────────────────────────── */}
+        {insight && (insight.vsAverage || insight.trend || insight.metricImpact || insight.calibrationNote) && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="w-full max-w-sm mb-6 p-3.5 rounded-xl bg-card/40 border border-border/30"
+          >
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <Activity className="w-3 h-3 text-muted-foreground" />
+              <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80 font-medium">
+                Cognitive Insight
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {insight.vsAverage && <VsAverageRow data={insight.vsAverage} />}
+              {insight.trend && insight.trend.length > 1 && <TrendRow values={insight.trend} />}
+              {insight.metricImpact && <MetricImpactRow data={insight.metricImpact} skillColor={skillColor} />}
+            </div>
+
+            {insight.calibrationNote && (
+              <p className="text-[10px] text-muted-foreground/70 mt-3 pt-2.5 border-t border-border/20 leading-relaxed">
+                {insight.calibrationNote}
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        {/* ─────────────────────────────────────────────
             B3) SKILL IMPACT STATEMENT
         ───────────────────────────────────────────── */}
         <motion.div
@@ -323,5 +363,72 @@ function KPICard({ kpi, index }: { kpi: KPIData; index: number }) {
         </div>
       )}
     </motion.div>
+  );
+}
+
+// ============================================
+// COGNITIVE INSIGHT SUB-COMPONENTS
+// ============================================
+
+function VsAverageRow({ data }: { data: { delta: number; unit?: string; label?: string } }) {
+  const isUp = data.delta > 0;
+  const isFlat = data.delta === 0;
+  const Icon = isFlat ? Minus : isUp ? TrendingUp : TrendingDown;
+  const tone = isFlat ? "text-muted-foreground" : isUp ? "text-emerald-400" : "text-amber-400";
+  const sign = data.delta > 0 ? "+" : "";
+  return (
+    <div className="flex items-center justify-between text-[12px]">
+      <span className="text-muted-foreground">{data.label || "vs your 7-day avg"}</span>
+      <span className={cn("font-medium flex items-center gap-1", tone)}>
+        <Icon className="w-3 h-3" />
+        {sign}{data.delta}{data.unit || "%"}
+      </span>
+    </div>
+  );
+}
+
+function TrendRow({ values }: { values: number[] }) {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const w = 70;
+  const h = 18;
+  const step = w / (values.length - 1);
+  const points = values
+    .map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`)
+    .join(" ");
+  return (
+    <div className="flex items-center justify-between text-[12px]">
+      <span className="text-muted-foreground">Recent trend</span>
+      <svg width={w} height={h} className="overflow-visible">
+        <polyline
+          points={points}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-foreground/70"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function MetricImpactRow({
+  data,
+  skillColor,
+}: {
+  data: { metric: "Sharpness" | "Readiness" | "RQ" | "Thinking"; delta: number };
+  skillColor: string;
+}) {
+  const sign = data.delta >= 0 ? "+" : "";
+  return (
+    <div className="flex items-center justify-between text-[12px]">
+      <span className="text-muted-foreground">Estimated {data.metric} lift</span>
+      <span className={cn("font-medium", skillColor)}>
+        {sign}{data.delta.toFixed(1)}
+      </span>
+    </div>
   );
 }
