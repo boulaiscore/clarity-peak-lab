@@ -200,7 +200,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
                         ? "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
                         : cn(
                             "bg-background/50 hover:bg-background",
-                            "hover:border-violet-500/30 active:scale-[0.98]",
+                            "hover:border-recovery/30 active:scale-[0.98]",
                             "border-border/50"
                           )
                     )}
@@ -218,7 +218,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
                     <div className="flex items-start gap-3">
                       <div className={cn(
                         "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                        isLocked ? "bg-muted/30" : "bg-violet-500/15"
+                        isLocked ? "bg-muted/30" : "bg-recovery/15"
                       )}>
                         {isLocked ? (
                           isProtection ? (
@@ -227,7 +227,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
                             <Lock className="w-5 h-5 text-muted-foreground" />
                           )
                         ) : (
-                          <Icon className="w-5 h-5 text-violet-400" />
+                          <Icon className="w-5 h-5 text-recovery" />
                         )}
                       </div>
                       
@@ -236,7 +236,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
                           <h4 className="text-sm font-semibold text-foreground">
                             {game.name}
                           </h4>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-recovery/10 text-recovery">
                             {game.tagline}
                           </span>
                         </div>
