@@ -429,10 +429,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                   <span className="text-xs text-muted-foreground">~90 seconds</span>
                 </div>
                 
-                {/* Debug info — dev only (Vite) */}
-                {_debug && import.meta.env.DEV && (
-                
-                {/* Debug info (hidden in production) */}
+                {/* Debug info — disabled in production builds */}
                 {false && _debug && (
                   <div className="p-2 rounded-lg bg-muted/10 text-[9px] text-muted-foreground/60 font-mono">
                     REC={Math.round(_debug.recovery)} | SHP={Math.round(_debug.sharpness)} | RDY={Math.round(_debug.readiness)}
