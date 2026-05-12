@@ -95,27 +95,23 @@ const ProgressRing = ({
         }}>
               {icon}
             </div>}
-          {dynamicIndicator && <span className="text-[9px] font-medium mb-0.5" style={{
-          color,
-          opacity: 0.8
-        }}>
-              {dynamicIndicator}
-            </span>}
-          <span className="text-2xl font-bold tracking-tight text-foreground">
+          <span className="text-[28px] font-light tracking-tight text-foreground tabular-nums leading-none">
             {displayValue}
           </span>
-          {deltaIndicator && <span className="text-[8px] font-medium mt-0.5 tabular-nums" style={{
-          color,
-          opacity: 0.85
+          {deltaIndicator && <span className="text-[9px] font-medium mt-1 tabular-nums opacity-70" style={{
+          color
         }}>
               {deltaIndicator}
             </span>}
         </div>
       </div>
-      {/* Label below the ring - button-like */}
-      <span className="mt-2 px-3 py-1 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.1em] text-foreground/80 hover:bg-muted/60 transition-colors">
+      {/* Label + status below the ring */}
+      <span className="mt-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground/60">
         {label}
       </span>
+      {dynamicIndicator && <span className="mt-0.5 text-[9px] font-medium tracking-wide" style={{ color, opacity: 0.85 }}>
+        {dynamicIndicator}
+      </span>}
     </button>;
 };
 const Home = () => {
