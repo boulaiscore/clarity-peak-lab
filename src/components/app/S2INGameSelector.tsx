@@ -274,5 +274,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
         </motion.div>
       </DrawerContent>
     </Drawer>
+    {AdvisoryDialog}
+    </>
   );
 }
