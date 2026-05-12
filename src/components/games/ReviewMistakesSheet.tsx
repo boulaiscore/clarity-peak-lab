@@ -101,11 +101,14 @@ export function ReviewMistakesSheet({
       <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] p-0">
         <SheetHeader className="p-4 pb-2 border-b border-border/30">
           <SheetTitle className="flex items-center justify-between">
-            <span className="text-base">Review Mistakes</span>
+            <span className="text-base">Wrong rounds</span>
             <span className="text-xs text-muted-foreground font-normal">
               {displayMistakes.length} of {mistakes.length} shown
             </span>
           </SheetTitle>
+          <p className="text-[11px] text-muted-foreground/70 text-left">
+            Only rounds you missed or timed out. The four options are shown so you can see what was correct.
+          </p>
         </SheetHeader>
         
         <ScrollArea className="h-[calc(85vh-80px)]">
