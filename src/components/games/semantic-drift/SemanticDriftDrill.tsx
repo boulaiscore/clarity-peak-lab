@@ -71,6 +71,9 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   const roundStartTimeRef = useRef<number>(0);
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const sessionStartRef = useRef<number>(Date.now());
+  // Per-round locks to prevent double-recording / double-proceed
+  const roundLockedRef = useRef<boolean>(false);
+  const proceedScheduledRef = useRef<boolean>(false);
 
   useEffect(() => { currentRoundRef.current = currentRound; }, [currentRound]);
   useEffect(() => { phaseRef.current = phase; }, [phase]);
