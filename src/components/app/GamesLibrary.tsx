@@ -17,8 +17,27 @@ import { S2INGameSelector } from "./S2INGameSelector";
 import { CognitiveExercise } from "@/lib/exercises";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
-import { useGamesGating } from "@/hooks/useGamesGating";
+import { useGamesGating, type GameGatingResult, type WithholdReasonCode } from "@/hooks/useGamesGating";
 import { GameType } from "@/lib/gamesGating";
+
+// Map engine reason codes to short, premium unlock labels
+function unlockLabelFor(g: GameGatingResult): string {
+  const code = g.reasonCode as WithholdReasonCode | null;
+  const req = g.details?.requiredValue;
+  switch (code) {
+    case "RECOVERY_TOO_LOW":   return req != null ? `Unlock with recovery ${req}%` : "Unlock with recovery";
+    case "SHARPNESS_TOO_LOW":  return req != null ? `Needs sharpness ${req}%`      : "Needs higher sharpness";
+    case "SHARPNESS_TOO_HIGH": return "Reserved for lower sharpness";
+    case "READINESS_TOO_LOW":  return req != null ? `Needs readiness ${req}%`      : "Needs higher readiness";
+    case "READINESS_OUT_OF_RANGE": return "Outside readiness range";
+    case "CAP_REACHED_DAILY_S1":   return "Daily Fast cap reached";
+    case "CAP_REACHED_DAILY_S2":   return "Daily Slow cap reached";
+    case "CAP_REACHED_WEEKLY_S2":  return "Weekly Slow cap reached";
+    case "CAP_REACHED_WEEKLY_IN":  return "Weekly Insight cap reached";
+    case "SUPERHUMAN_REC_REQUIRED": return "Recovery required (Superhuman)";
+    default: return "Temporarily unavailable";
+  }
+}
 
 type ThinkingSystem = "fast" | "slow";
 
