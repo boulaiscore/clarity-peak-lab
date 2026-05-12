@@ -385,25 +385,25 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">Orbit Lock</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Un pallino luminoso orbita attorno al nucleo. Il tuo obiettivo è mantenerlo nella banda target (zona evidenziata).
+              Mantieni il segnale ancorato nella banda target lungo l'orbita. Il sistema deriva continuamente: tu devi contrastarlo.
             </p>
           </div>
-          
+
           {/* How to play */}
           <div className="bg-muted/30 rounded-xl p-4 text-left space-y-3">
             <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Come giocare</h3>
             <ul className="text-xs text-muted-foreground space-y-2">
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">1.</span>
-                <span>Il segnale <span className="text-cyan-400">deriva naturalmente</span> dall'orbita</span>
+                <span>Una <span className="text-cyan-400">deriva costante</span> spinge il segnale fuori banda</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">2.</span>
-                <span>Usa la <span className="text-foreground font-medium">rotella a destra</span> per contrastare la deriva</span>
+                <span>Usa la <span className="text-foreground font-medium">slider</span>: <span className="text-cyan-400">◀ ANTI</span> ruota in senso antiorario, <span className="text-cyan-400">PRO ▶</span> in senso orario</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">3.</span>
-                <span>Movimenti <span className="text-foreground font-medium">piccoli e fluidi</span> funzionano meglio!</span>
+                <span>Più sposti la slider, più <span className="text-foreground font-medium">forza</span> applichi. Cerca l'equilibrio.</span>
               </li>
             </ul>
           </div>
