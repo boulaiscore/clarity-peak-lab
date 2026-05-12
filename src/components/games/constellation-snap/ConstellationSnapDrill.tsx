@@ -91,17 +91,6 @@ function TileRenderer({ tile, size = "md" }: { tile: ConstellationTile; size?: "
     lg: "w-16 h-16 text-sm",
   };
   
-  if (tile.type === "word") {
-    return (
-      <div className={cn(
-        "flex items-center justify-center rounded-lg bg-card/80 border border-border/50",
-        "font-medium text-foreground uppercase tracking-wide",
-        sizeClasses[size]
-      )}>
-        {tile.value}
-      </div>
-    );
-  }
   
   // Icon type - render from lucide
   const IconComponent = (LucideIcons as any)[tile.value];
