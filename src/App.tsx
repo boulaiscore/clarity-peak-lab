@@ -435,6 +435,7 @@ const App = () => {
                     <AppRoutes />
                   </DeepLinkHandler>
                 </HashRouter>
+                {import.meta.env.DEV && <TestModeFloatingToggle />}
               </TooltipProvider>
             </AppInitProvider>
           </IntradayEventsProvider>
