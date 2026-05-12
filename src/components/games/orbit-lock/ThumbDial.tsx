@@ -215,9 +215,9 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
           </div>
         </motion.div>
         
-        {/* Labels */}
-        <div className="absolute left-1 -bottom-5 text-[8px] text-cyan-400/60 font-mono">−</div>
-        <div className="absolute right-1 -bottom-5 text-[8px] text-cyan-400/60 font-mono">+</div>
+        {/* Direction labels — slider drives orbital direction of the ball */}
+        <div className="absolute left-1 -bottom-5 text-[9px] text-cyan-400/70 font-mono tracking-wider">◀ ANTI</div>
+        <div className="absolute right-1 -bottom-5 text-[9px] text-cyan-400/70 font-mono tracking-wider">PRO ▶</div>
       </div>
     );
   }
@@ -301,9 +301,9 @@ export function ThumbDial({ value, onChange, disabled, className }: ThumbDialPro
         </div>
       </motion.div>
       
-      {/* Labels */}
-      <div className="absolute -right-6 top-1 text-[8px] text-cyan-400/60 font-mono">+</div>
-      <div className="absolute -right-6 bottom-1 text-[8px] text-cyan-400/60 font-mono">−</div>
+      {/* Direction labels */}
+      <div className="absolute -right-10 top-1 text-[9px] text-cyan-400/70 font-mono tracking-wider">▲ PRO</div>
+      <div className="absolute -right-10 bottom-1 text-[9px] text-cyan-400/70 font-mono tracking-wider">▼ ANTI</div>
     </div>
   );
 }

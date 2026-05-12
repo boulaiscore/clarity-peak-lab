@@ -54,15 +54,21 @@ import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
 
 const ACT_CONFIGS: ActConfig[] = [
   { duration: 25, label: "Stabilize", description: "Find your rhythm", driftStrength: 1.0, pulseFrequency: 0, glintFrequency: 0, orbitSpeedMult: 1.0 },
-  { duration: 30, label: "Resist", description: "Ignore distractions", driftStrength: 1.2, pulseFrequency: 3, glintFrequency: 2, orbitSpeedMult: 1.0 },
-  { duration: 35, label: "Hold", description: "Maintain stability", driftStrength: 1.4, pulseFrequency: 4, glintFrequency: 3, orbitSpeedMult: 1.1 },
+  { duration: 30, label: "Resist", description: "Ignore distractions", driftStrength: 1.3, pulseFrequency: 3, glintFrequency: 2, orbitSpeedMult: 1.0 },
+  { duration: 35, label: "Hold", description: "Maintain stability", driftStrength: 1.6, pulseFrequency: 4, glintFrequency: 3, orbitSpeedMult: 1.1 },
 ];
 
+// Physics units: positions are normalized 0-1 along the orbit (angular).
+// baseDrift = drift force magnitude in pos/sec². dialStrength = max dial force in pos/sec² (5–7x drift so the user can always recover).
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
-  easy: { bandWidth: 0.18, baseDrift: 0.008, distractionIntensity: 0.5 },
-  medium: { bandWidth: 0.12, baseDrift: 0.012, distractionIntensity: 1.0 },
-  hard: { bandWidth: 0.08, baseDrift: 0.016, distractionIntensity: 1.5 },
+  easy: { bandWidth: 0.18, baseDrift: 0.18, distractionIntensity: 0.5 },
+  medium: { bandWidth: 0.12, baseDrift: 0.26, distractionIntensity: 1.0 },
+  hard: { bandWidth: 0.08, baseDrift: 0.34, distractionIntensity: 1.5 },
 };
+
+// Damping rate (per second) and dial authority (max force at full deflection).
+const VELOCITY_DAMPING_PER_SEC = 1.4;
+const DIAL_FORCE_MAX = 1.6; // pos/sec² at dialValue = 0 or 1
 
 const PERFECT_TIME_IN_BAND_THRESHOLD = 0.85;
 const PERFECT_OVERCORRECTION_THRESHOLD = 0.3;
@@ -79,101 +85,114 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   const [currentAct, setCurrentAct] = useState(0); // 0-indexed
   const [actTimeRemaining, setActTimeRemaining] = useState(ACT_CONFIGS[0].duration);
   
-  // Core gameplay state
-  const [dialValue, setDialValue] = useState(0.5); // 0-1, center at 0.5
-  const [signalOffset, setSignalOffset] = useState(0.5); // Position relative to band (0.5 = center)
+  // Core gameplay state — signalOffset is now ANGULAR position 0-1 around the orbit.
+  // Band is centered at 0.5 with width = config.bandWidth.
+  const [dialValue, setDialValueState] = useState(0.5); // 0-1
+  const [signalOffset, setSignalOffset] = useState(0.5);
   const [inBand, setInBand] = useState(true);
-  
+
   // Distraction state
   const [showPulse, setShowPulse] = useState(false);
   const [showGlint, setShowGlint] = useState(false);
-  
+
+  // Live refs (avoid recreating the game loop on every render)
+  const dialValueRef = useRef(0.5);
+  const signalPosRef = useRef(0.5);
+  const setDialValue = useCallback((v: number) => {
+    dialValueRef.current = v;
+    setDialValueState(v);
+  }, []);
+
   // Tracking for scoring - use refs to avoid re-renders during gameplay
   const timeInBandPerActRef = useRef<number[]>([0, 0, 0]);
   const totalTimePerActRef = useRef<number[]>([0, 0, 0]);
-  const dialChangesRef = useRef<number[]>([]); // For overcorrection calc
+  const dialChangesRef = useRef<number[]>([]);
   const distractionTimeInBandRef = useRef(0);
   const distractionTotalTimeRef = useRef(0);
-  
+
   // Only expose state for final results
   const [timeInBandPerAct, setTimeInBandPerAct] = useState<number[]>([0, 0, 0]);
   const [totalTimePerAct, setTotalTimePerAct] = useState<number[]>([0, 0, 0]);
   const [dialChanges, setDialChanges] = useState<number[]>([]);
   const [distractionTimeInBand, setDistractionTimeInBand] = useState(0);
   const [distractionTotalTime, setDistractionTotalTime] = useState(0);
-  
-  const prevDialValue = useRef(dialValue);
+
+  const prevDialValue = useRef(0.5);
   const lastUpdateTime = useRef(Date.now());
   const driftDirection = useRef(1);
   const driftVelocity = useRef(0);
-  
+  const directionChangeTimer = useRef(0);
+
   // ============================================
-  // GAME LOOP
+  // GAME LOOP — driven by requestAnimationFrame, refs only
   // ============================================
-  
+
   useEffect(() => {
     if (phase !== "playing") return;
-    
+
     const actConfig = ACT_CONFIGS[currentAct];
-    const interval = setInterval(() => {
+    const distractionForceRef = { current: 0 };
+    let raf = 0;
+
+    const tick = () => {
       const now = Date.now();
-      const dt = (now - lastUpdateTime.current) / 1000;
+      const dt = Math.min(0.05, (now - lastUpdateTime.current) / 1000); // cap dt to avoid jumps
       lastUpdateTime.current = now;
-      
-      // Apply drift
-      const driftForce = config.baseDrift * actConfig.driftStrength;
-      
-      // Random drift direction changes
-      if (Math.random() < 0.02) {
-        driftDirection.current *= -1;
+
+      const dialV = dialValueRef.current;
+
+      // 1) Drift direction shifts every ~2s (smoother than per-frame randomness)
+      directionChangeTimer.current -= dt;
+      if (directionChangeTimer.current <= 0) {
+        driftDirection.current = Math.random() > 0.5 ? 1 : -1;
+        directionChangeTimer.current = 1.5 + Math.random() * 1.5;
       }
-      
-      // Natural drift with some inertia
-      driftVelocity.current += driftDirection.current * driftForce * dt;
-      driftVelocity.current *= 0.98; // Damping
-      
-      // Apply dial correction force (opposite direction)
-      const dialCorrection = (dialValue - 0.5) * 0.05;
-      driftVelocity.current -= dialCorrection;
-      
-      // Update signal position (this one needs to be state for rendering)
-      setSignalOffset(prev => {
-        const newPos = prev + driftVelocity.current;
-        return Math.max(0, Math.min(1, newPos));
-      });
-      
-      // Check if in band
-      const bandHalf = config.bandWidth / 2;
-      const distanceFromCenter = Math.abs(signalOffset - 0.5);
-      const isInBand = distanceFromCenter <= bandHalf;
+
+      // 2) Forces in pos/sec²
+      const driftForce = driftDirection.current * config.baseDrift * actConfig.driftStrength;
+      const dialForce = (dialV - 0.5) * 2 * DIAL_FORCE_MAX; // -DIAL_FORCE_MAX..+DIAL_FORCE_MAX
+
+      // Distractions add a brief impulsive nudge
+      let distractionForce = 0;
+      if (showPulse) distractionForce += driftDirection.current * config.distractionIntensity * 0.3;
+      if (showGlint) distractionForce += -driftDirection.current * config.distractionIntensity * 0.2;
+
+      // 3) Integrate velocity (semi-implicit Euler)
+      driftVelocity.current += (driftForce + dialForce + distractionForce) * dt;
+      // Apply continuous-time damping
+      driftVelocity.current *= Math.exp(-VELOCITY_DAMPING_PER_SEC * dt);
+
+      // 4) Update angular position (wrap into [0,1))
+      let nextPos = signalPosRef.current + driftVelocity.current * dt;
+      nextPos = ((nextPos % 1) + 1) % 1;
+      signalPosRef.current = nextPos;
+      setSignalOffset(nextPos);
+
+      // 5) In-band check (angular distance from 0.5, with wrap)
+      const rawDist = Math.abs(nextPos - 0.5);
+      const distance = Math.min(rawDist, 1 - rawDist);
+      const isInBand = distance <= config.bandWidth / 2;
       setInBand(isInBand);
-      
-      // Track dial changes for overcorrection (use ref, no re-render)
-      const dialChange = Math.abs(dialValue - prevDialValue.current);
+
+      // 6) Track dial changes for overcorrection
+      const dialChange = Math.abs(dialV - prevDialValue.current);
       if (dialChange > 0.01) {
         dialChangesRef.current = [...dialChangesRef.current.slice(-50), dialChange];
       }
-      prevDialValue.current = dialValue;
-      
-      // Update time tracking (use refs, no re-render during gameplay)
+      prevDialValue.current = dialV;
+
+      // 7) Time tracking
       totalTimePerActRef.current[currentAct] += dt;
-      
-      if (isInBand) {
-        timeInBandPerActRef.current[currentAct] += dt;
-      }
-      
-      // Track distraction performance (use refs)
+      if (isInBand) timeInBandPerActRef.current[currentAct] += dt;
       if (showPulse || showGlint) {
         distractionTotalTimeRef.current += dt;
-        if (isInBand) {
-          distractionTimeInBandRef.current += dt;
-        }
+        if (isInBand) distractionTimeInBandRef.current += dt;
       }
-      
-      // Timer countdown - still need state for UI display
+
+      // 8) Countdown
       setActTimeRemaining(prev => {
-        if (prev <= dt) {
-          // Act complete - sync refs to state for results calculation
+        const next = prev - dt;
+        if (next <= 0) {
           setTimeInBandPerAct([...timeInBandPerActRef.current]);
           setTotalTimePerAct([...totalTimePerActRef.current]);
           setDialChanges([...dialChangesRef.current]);
@@ -182,12 +201,18 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
           handleActComplete();
           return 0;
         }
-        return prev - dt;
+        return next;
       });
-    }, 16); // ~60fps
-    
-    return () => clearInterval(interval);
-  }, [phase, currentAct, dialValue, signalOffset, config, showPulse, showGlint]);
+
+      raf = requestAnimationFrame(tick);
+    };
+
+    lastUpdateTime.current = Date.now();
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // Intentionally narrow deps — loop reads dial/signal via refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, currentAct, showPulse, showGlint]);
   
   // ============================================
   // DISTRACTION TRIGGERS
@@ -235,36 +260,39 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   
   const handleActComplete = useCallback(() => {
     setPhase("act_complete");
-    
-    // Brief freeze, then transition
+
     setTimeout(() => {
       if (currentAct < 2) {
         setPhase("transition");
         setTimeout(() => {
           setCurrentAct(prev => prev + 1);
           setActTimeRemaining(ACT_CONFIGS[currentAct + 1]?.duration || 0);
+          signalPosRef.current = 0.5;
           setSignalOffset(0.5);
           setDialValue(0.5);
           driftVelocity.current = 0;
+          directionChangeTimer.current = 0;
           setPhase("playing");
           lastUpdateTime.current = Date.now();
         }, 1500);
       } else {
-        // Session complete
         setPhase("results");
       }
     }, 300);
-  }, [currentAct]);
-  
+  }, [currentAct, setDialValue]);
+
   const handleStart = useCallback(() => {
     setPhase("playing");
     setCurrentAct(0);
     setActTimeRemaining(ACT_CONFIGS[0].duration);
+    signalPosRef.current = 0.5;
     setSignalOffset(0.5);
     setDialValue(0.5);
+    driftVelocity.current = 0;
+    directionChangeTimer.current = 0;
     lastUpdateTime.current = Date.now();
     driftDirection.current = Math.random() > 0.5 ? 1 : -1;
-  }, []);
+  }, [setDialValue]);
   
   // ============================================
   // CALCULATE FINAL RESULTS
@@ -357,25 +385,25 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">Orbit Lock</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Un pallino luminoso orbita attorno al nucleo. Il tuo obiettivo è mantenerlo nella banda target (zona evidenziata).
+              Mantieni il segnale ancorato nella banda target lungo l'orbita. Il sistema deriva continuamente: tu devi contrastarlo.
             </p>
           </div>
-          
+
           {/* How to play */}
           <div className="bg-muted/30 rounded-xl p-4 text-left space-y-3">
             <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Come giocare</h3>
             <ul className="text-xs text-muted-foreground space-y-2">
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">1.</span>
-                <span>Il segnale <span className="text-cyan-400">deriva naturalmente</span> dall'orbita</span>
+                <span>Una <span className="text-cyan-400">deriva costante</span> spinge il segnale fuori banda</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">2.</span>
-                <span>Usa la <span className="text-foreground font-medium">rotella a destra</span> per contrastare la deriva</span>
+                <span>Usa la <span className="text-foreground font-medium">slider</span>: <span className="text-cyan-400">◀ ANTI</span> ruota in senso antiorario, <span className="text-cyan-400">PRO ▶</span> in senso orario</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">3.</span>
-                <span>Movimenti <span className="text-foreground font-medium">piccoli e fluidi</span> funzionano meglio!</span>
+                <span>Più sposti la slider, più <span className="text-foreground font-medium">forza</span> applichi. Cerca l'equilibrio.</span>
               </li>
             </ul>
           </div>
