@@ -129,88 +129,73 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
   };
 
   return (
-    <div className="space-y-2">
-      {/* XP Info */}
-      <div className="px-3 py-2 mb-3 flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-          XP · <span className="text-foreground/80 font-medium">9–45 per session</span>
+    <div className="space-y-6">
+      {/* Section header — Oura-style */}
+      <div className="flex items-end justify-between px-1">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">Train</p>
+          <h2 className="text-[22px] font-semibold tracking-tight text-foreground mt-1">Cognitive Modules</h2>
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 pb-1">
+          9–45 XP
         </p>
-        {pickedGameType && (
-          <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.14em] text-foreground/60">
-            <Star className="w-2.5 h-2.5" /> Pick for today
-          </span>
-        )}
       </div>
 
-      {/* Two system blocks */}
+      {/* Two system blocks — premium card stack */}
+      <div className="space-y-5">
       {SYSTEMS.map((system) => {
         const isOpen = openSystem === system.id;
         const Icon = system.id === "fast" ? Zap : Timer;
 
         return (
-          <div key={system.id} className="overflow-hidden">
-            {/* System header block */}
+          <div key={system.id} className="space-y-2.5">
+            {/* System header — Whoop summary row */}
             <button
               onClick={() => handleSystemToggle(system.id)}
               className={cn(
-                "group w-full flex items-center justify-between px-4 py-3.5 border transition-all duration-200 text-left",
+                "group w-full flex items-center justify-between px-4 py-4 rounded-2xl border transition-all duration-200 text-left",
+                "bg-card/40 backdrop-blur-sm",
                 isOpen
-                  ? "border-border/60 bg-white/[0.06]"
-                  : "border-border/40 bg-white/[0.02] hover:bg-white/[0.04] hover:border-border/60"
+                  ? "border-border/70"
+                  : "border-border/30 hover:border-border/60"
               )}
             >
-              <div className="flex items-center gap-3">
-                {/* Icon container */}
+              <div className="flex items-center gap-3.5">
                 <div
-                  className="w-8 h-8 flex items-center justify-center rounded-none border"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
                   style={{
-                    borderColor: `${system.accentColor}60`,
-                    backgroundColor: `${system.accentColor}18`,
+                    background: `linear-gradient(135deg, ${system.accentColor}28, ${system.accentColor}10)`,
+                    boxShadow: `inset 0 0 0 1px ${system.accentColor}30`,
                   }}
                 >
-                  <Icon
-                    className="w-3.5 h-3.5"
-                    style={{ color: system.accentColor }}
-                  />
+                  <Icon className="w-4 h-4" style={{ color: system.accentColor }} />
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-foreground tracking-tight">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[15px] font-semibold text-foreground tracking-tight">
                       {system.label}
                     </span>
-                    <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground/70">
+                    <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70">
                       {system.id === "fast" ? "Fast" : "Slow"}
                     </span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">
-                    {system.description}
+                  <p className="text-[11px] text-muted-foreground/85 mt-0.5 leading-snug">
+                    {system.sublabel}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
-                  2 modules
-                </span>
-                <motion.div
-                  animate={{ rotate: isOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                >
-                  <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground/80 transition-colors" />
-                </motion.div>
-              </div>
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="w-7 h-7 rounded-full border border-border/40 flex items-center justify-center"
+              >
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+              </motion.div>
             </button>
 
-            {/* Accent line under header when open */}
-            {isOpen && (
-              <div
-                className="h-[1px] w-full opacity-30"
-                style={{ backgroundColor: system.accentColor }}
-              />
-            )}
-
-            {/* Subcategories - animated */}
+            {/* Module rows — animated */}
             <AnimatePresence initial={false}>
               {isOpen && (
                 <motion.div
@@ -221,91 +206,74 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                   transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-2 gap-px bg-white/[0.04]">
+                  <div className="space-y-2 pt-1">
                     {system.areas.map((area) => {
                       const gating = games[area.gameType];
                       const isLocked = !gating || gating.status !== "ENABLED";
                       const lockLabel = gating ? unlockLabelFor(gating) : "Temporarily unavailable";
                       const isPicked = pickedGameType === area.gameType;
                       return (
-                      <button
-                        key={area.gameType}
-                        onClick={() => {
-                          if (isLocked) return;
-                          handleGameTypeClick(area.areaId, system.id, area.gameType);
-                        }}
-                        disabled={isLocked}
-                        className={cn(
-                          "group relative text-left overflow-hidden transition-transform",
-                          isLocked ? "cursor-not-allowed" : "active:scale-[0.98]"
-                        )}
-                      >
-                        {/* Background image */}
-                        <div
+                        <button
+                          key={area.gameType}
+                          onClick={() => {
+                            if (isLocked) return;
+                            handleGameTypeClick(area.areaId, system.id, area.gameType);
+                          }}
+                          disabled={isLocked}
                           className={cn(
-                            "absolute inset-0 bg-cover bg-center transition-transform duration-500",
-                            !isLocked && "group-hover:scale-105"
+                            "group relative w-full flex items-center gap-3.5 p-2.5 pr-4 rounded-2xl border text-left transition-all overflow-hidden",
+                            "bg-card/40 backdrop-blur-sm",
+                            isLocked
+                              ? "border-border/20 cursor-not-allowed"
+                              : "border-border/40 hover:border-border/70 active:scale-[0.99]",
+                            isPicked && !isLocked && "border-transparent"
                           )}
-                          style={{ backgroundImage: `url(${area.bgImage})` }}
-                        />
-                        {/* Overlay */}
-                        <div className={cn(
-                          "absolute inset-0 transition-colors",
-                          isLocked ? "bg-black/80" : "bg-black/60 group-hover:bg-black/50"
-                        )} />
-
-                        {/* Pick-for-today highlight */}
-                        {isPicked && !isLocked && (
-                          <div
-                            className="absolute inset-0 ring-1 ring-inset z-10 pointer-events-none"
-                            style={{ boxShadow: `inset 0 0 0 1px ${system.accentColor}` }}
-                          />
-                        )}
-
-                        {/* Content */}
-                        <div className={cn(
-                          "relative z-10 p-4 flex flex-col gap-2.5 min-h-[108px]",
-                          isLocked && "opacity-60"
-                        )}>
-                          <div className="flex items-center justify-between">
+                          style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px ${system.accentColor}` } : undefined}
+                        >
+                          {/* Thumbnail — Oura-style hero tile */}
+                          <div className="relative w-[68px] h-[68px] flex-shrink-0 rounded-xl overflow-hidden">
                             <div
-                              className="w-8 h-8 flex items-center justify-center border bg-white/[0.06] backdrop-blur-sm"
-                              style={{ borderColor: `${system.accentColor}35` }}
-                            >
+                              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                              style={{ backgroundImage: `url(${area.bgImage})` }}
+                            />
+                            <div className={cn(
+                              "absolute inset-0",
+                              isLocked ? "bg-black/65" : "bg-gradient-to-br from-black/30 via-black/15 to-black/45"
+                            )} />
+                            <div className="absolute inset-0 flex items-center justify-center">
                               <span
-                                className="text-[12px] font-bold tracking-widest"
-                                style={{ color: system.accentColor }}
+                                className="text-[15px] font-bold tracking-[0.12em] text-white drop-shadow"
+                                style={{ textShadow: `0 0 12px ${system.accentColor}90` }}
                               >
                                 {area.code}
                               </span>
                             </div>
-                            {isLocked ? (
-                              <Lock className="w-3 h-3 text-white/50" />
-                            ) : isPicked ? (
-                              <Star className="w-3 h-3" style={{ color: system.accentColor }} fill="currentColor" />
-                            ) : null}
                           </div>
 
-                          <div className="mt-auto">
-                            <p className="text-[11px] font-semibold text-white/90 leading-tight">
-                              {area.name}
-                            </p>
-                            <p className="text-[9px] text-white/60 leading-snug mt-0.5">
-                              {area.subLabel}
-                            </p>
-                            {isLocked && (
-                              <p className="text-[8px] uppercase tracking-[0.14em] text-white/45 mt-1.5">
-                                {lockLabel}
+                          {/* Title + sublabel */}
+                          <div className={cn("flex-1 min-w-0", isLocked && "opacity-55")}>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-[14px] font-semibold text-foreground tracking-tight truncate">
+                                {area.name}
                               </p>
+                              {isPicked && !isLocked && (
+                                <Star className="w-3 h-3 flex-shrink-0" style={{ color: system.accentColor }} fill="currentColor" />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug truncate">
+                              {isLocked ? lockLabel : area.subLabel}
+                            </p>
+                          </div>
+
+                          {/* Right-side affordance */}
+                          <div className="flex-shrink-0">
+                            {isLocked ? (
+                              <Lock className="w-3.5 h-3.5 text-muted-foreground/60" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 -rotate-90 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
                             )}
                           </div>
-                        </div>
-
-                        <div
-                          className="relative z-10 h-[2px] w-full opacity-50"
-                          style={{ backgroundColor: system.accentColor }}
-                        />
-                      </button>
+                        </button>
                       );
                     })}
                   </div>
@@ -315,6 +283,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
           </div>
         );
       })}
+      </div>
 
       {/* Sheets & Dialogs */}
       <ExercisePickerSheet
