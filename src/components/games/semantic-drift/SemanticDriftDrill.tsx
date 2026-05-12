@@ -101,26 +101,42 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   const proceedRef = useRef<() => void>(() => {});
   const handleTimeoutRef = useRef<() => void>(() => {});
 
-  // Proceed to next round (or finish)
+  // Proceed to next round (or finish) — idempotent per round
   const proceedToNextRound = useCallback(() => {
     clearRoundTimeout();
     const next = currentRoundRef.current + 1;
     if (next >= config.rounds) {
+      if (phaseRef.current === "complete") return;
       setPhase("complete");
+      phaseRef.current = "complete";
       const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
       setTimeout(() => onComplete(resultsRef.current, durationSeconds), 60);
       return;
     }
     setCurrentRound(next);
+    currentRoundRef.current = next;
     setSelectedIndex(null);
+    selectedRef.current = null;
     setFeedbackState(null);
+    roundLockedRef.current = false;
+    proceedScheduledRef.current = false;
     setPhase("playing");
+    phaseRef.current = "playing";
     startRound(next);
   }, [clearRoundTimeout, config.rounds, onComplete]);
+
+  // Schedule proceed exactly once per round
+  const scheduleProceed = useCallback((delay: number) => {
+    if (proceedScheduledRef.current) return;
+    proceedScheduledRef.current = true;
+    setTimeout(() => proceedRef.current(), delay);
+  }, []);
 
   // Handle a timed-out round
   const handleTimeout = useCallback(() => {
     if (phaseRef.current !== "playing" || selectedRef.current !== null) return;
+    if (roundLockedRef.current) return;
+    roundLockedRef.current = true;
     setFeedbackState("timeout");
     safeHaptic(30);
 
@@ -137,8 +153,8 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       chosenTag: null,
     });
 
-    setTimeout(() => proceedRef.current(), 220);
-  }, [nodes]);
+    scheduleProceed(220);
+  }, [nodes, scheduleProceed]);
 
   // Keep refs in sync with latest functions
   useEffect(() => { proceedRef.current = proceedToNextRound; }, [proceedToNextRound]);
