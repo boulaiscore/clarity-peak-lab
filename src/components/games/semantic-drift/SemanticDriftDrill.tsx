@@ -264,7 +264,7 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
 
           {/* Tiny header label */}
           <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70 mb-6">
-            Trova il legame
+            Pick the closest link
           </div>
 
           {/* Seed word — central concept */}
