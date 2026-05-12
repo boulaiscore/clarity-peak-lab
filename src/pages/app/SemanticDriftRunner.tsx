@@ -167,6 +167,20 @@ export default function SemanticDriftRunner() {
                   Navigate fast semantic drifts under time pressure
                 </p>
               </div>
+
+              <div className="rounded-xl border border-border/40 bg-card/40 p-4 space-y-3">
+                <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/80">
+                  How to play
+                </div>
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  A <span className="font-medium">seed word</span> appears at the center. Four options surround it.
+                  Tap the one that <span className="font-medium">best continues the chain</span> — the closest
+                  forward association, not the most literal synonym or an unrelated word.
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  You have only a few seconds per round. Trust your first instinct: this trains fast intuitive linking (System 1).
+                </p>
+              </div>
               
               <S1DifficultySelector
                 options={[

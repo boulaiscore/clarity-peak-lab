@@ -704,9 +704,9 @@ export function generateSessionNodes(
 }
 
 export const DIFFICULTY_CONFIG = {
-  easy: { rounds: 25, timePerRound: 3000 },
-  medium: { rounds: 28, timePerRound: 2500 },
-  hard: { rounds: 30, timePerRound: 2000 },
+  easy: { rounds: 12, timePerRound: 3000 },
+  medium: { rounds: 15, timePerRound: 2500 },
+  hard: { rounds: 18, timePerRound: 2000 },
 } as const;
 
 // ============================================
