@@ -71,8 +71,8 @@ const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> =
   hard: { timerMs: 1300 },
 };
 
-const TOTAL_ROUNDS = 30;
-const ROUNDS_PER_ACT = 10;
+const TOTAL_ROUNDS = 15;
+const ROUNDS_PER_ACT = 5;
 const CONSTELLATION_FADE_IN_MS = 350;
 const FEEDBACK_DURATION_MS = 280;
 const INTER_ROUND_DELAY_MS = 450;
