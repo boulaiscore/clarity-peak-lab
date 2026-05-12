@@ -71,6 +71,9 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   const roundStartTimeRef = useRef<number>(0);
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const sessionStartRef = useRef<number>(Date.now());
+  // Per-round locks to prevent double-recording / double-proceed
+  const roundLockedRef = useRef<boolean>(false);
+  const proceedScheduledRef = useRef<boolean>(false);
 
   useEffect(() => { currentRoundRef.current = currentRound; }, [currentRound]);
   useEffect(() => { phaseRef.current = phase; }, [phase]);
@@ -98,26 +101,42 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   const proceedRef = useRef<() => void>(() => {});
   const handleTimeoutRef = useRef<() => void>(() => {});
 
-  // Proceed to next round (or finish)
+  // Proceed to next round (or finish) — idempotent per round
   const proceedToNextRound = useCallback(() => {
     clearRoundTimeout();
     const next = currentRoundRef.current + 1;
     if (next >= config.rounds) {
+      if (phaseRef.current === "complete") return;
       setPhase("complete");
+      phaseRef.current = "complete";
       const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
       setTimeout(() => onComplete(resultsRef.current, durationSeconds), 60);
       return;
     }
     setCurrentRound(next);
+    currentRoundRef.current = next;
     setSelectedIndex(null);
+    selectedRef.current = null;
     setFeedbackState(null);
+    roundLockedRef.current = false;
+    proceedScheduledRef.current = false;
     setPhase("playing");
+    phaseRef.current = "playing";
     startRound(next);
   }, [clearRoundTimeout, config.rounds, onComplete]);
+
+  // Schedule proceed exactly once per round
+  const scheduleProceed = useCallback((delay: number) => {
+    if (proceedScheduledRef.current) return;
+    proceedScheduledRef.current = true;
+    setTimeout(() => proceedRef.current(), delay);
+  }, []);
 
   // Handle a timed-out round
   const handleTimeout = useCallback(() => {
     if (phaseRef.current !== "playing" || selectedRef.current !== null) return;
+    if (roundLockedRef.current) return;
+    roundLockedRef.current = true;
     setFeedbackState("timeout");
     safeHaptic(30);
 
@@ -134,8 +153,8 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       chosenTag: null,
     });
 
-    setTimeout(() => proceedRef.current(), 220);
-  }, [nodes]);
+    scheduleProceed(220);
+  }, [nodes, scheduleProceed]);
 
   // Keep refs in sync with latest functions
   useEffect(() => { proceedRef.current = proceedToNextRound; }, [proceedToNextRound]);
@@ -159,6 +178,8 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   const handleSelect = useCallback(
     (optionIndex: number) => {
       if (phaseRef.current !== "playing" || selectedRef.current !== null) return;
+      if (roundLockedRef.current) return;
+      roundLockedRef.current = true;
       clearRoundTimeout();
 
       const reactionTime = Date.now() - roundStartTimeRef.current;
@@ -166,6 +187,7 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       const isCorrect = selected.option.tag === "directional";
 
       setSelectedIndex(optionIndex);
+      selectedRef.current = optionIndex;
       setFeedbackState(isCorrect ? "correct" : "wrong");
       safeHaptic(isCorrect ? 15 : 25);
 
@@ -182,9 +204,9 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
         chosenTag: selected.option.tag,
       });
 
-      setTimeout(() => proceedRef.current(), isCorrect ? 320 : 260);
+      scheduleProceed(isCorrect ? 320 : 260);
     },
-    [clearRoundTimeout, shuffledOptions, nodes]
+    [clearRoundTimeout, shuffledOptions, nodes, scheduleProceed]
   );
 
   // Kick off the session
@@ -193,6 +215,8 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       const t = setTimeout(() => {
         setPhase("playing");
         sessionStartRef.current = Date.now();
+        roundLockedRef.current = false;
+        proceedScheduledRef.current = false;
         startRound(0);
       }, 400);
       return () => clearTimeout(t);

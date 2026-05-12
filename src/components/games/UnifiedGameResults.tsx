@@ -109,6 +109,14 @@ const SKILL_COLORS: Record<GameSkill, string> = {
   IN: "text-emerald-400",
 };
 
+// Routing of each skill to a top-level cognitive metric (shown in recap)
+const SKILL_TO_GLOBAL: Record<GameSkill, string> = {
+  AE: "Sharpness",
+  RA: "Sharpness",
+  CT: "Reasoning Quality",
+  IN: "Thinking",
+};
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -194,12 +202,15 @@ export function UnifiedGameResults({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mb-6 text-center"
+          className="mb-7 text-center"
         >
-          <div className={cn("text-4xl font-bold", skillColor)}>+{xpAwarded}</div>
-          <div className="text-sm text-muted-foreground flex items-center justify-center gap-1.5 mt-1">
-            <Zap className="w-3.5 h-3.5" />
-            <span>XP → {skillName}</span>
+          <div className={cn("text-5xl font-light tracking-tight", skillColor)}>+{xpAwarded}</div>
+          <div className="text-[11px] text-muted-foreground/80 flex items-center justify-center gap-1.5 mt-2 uppercase tracking-[0.18em]">
+            <Zap className="w-3 h-3" />
+            <span>XP · {skillName}</span>
+          </div>
+          <div className="text-[10px] text-muted-foreground/60 mt-1.5">
+            Contributes to <span className="text-foreground/80">{SKILL_TO_GLOBAL[skill]}</span>
           </div>
           {/* Quality Line (subtle, only if bonus applied) */}
           {qualityLine && (
@@ -217,12 +228,20 @@ export function UnifiedGameResults({
         {/* ─────────────────────────────────────────────
             B2) PRIMARY KPIs (max 3)
         ───────────────────────────────────────────── */}
+        <div className="w-full max-w-sm mb-2 px-1 flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+            Session signals
+          </span>
+          <span className="text-[10px] text-muted-foreground/50">
+            shape {SKILL_TO_GLOBAL[skill]}
+          </span>
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className={cn(
-            "grid gap-3 w-full max-w-sm mb-6",
+            "grid gap-2.5 w-full max-w-sm mb-6",
             displayKpis.length === 3 ? "grid-cols-3" : "grid-cols-2"
           )}
         >
@@ -343,22 +362,32 @@ function KPICard({ kpi, index }: { kpi: KPIData; index: number }) {
       default: return "text-foreground";
     }
   };
+  const getTierAccent = (tier?: "low" | "medium" | "high") => {
+    switch (tier) {
+      case "high": return "bg-emerald-400/70";
+      case "medium": return "bg-amber-400/70";
+      case "low": return "bg-muted-foreground/40";
+      default: return "bg-foreground/40";
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 + index * 0.05 }}
-      className="p-3 rounded-xl bg-card border border-border/30 text-center"
+      className="relative px-2 pt-3.5 pb-3 rounded-xl bg-card/60 border border-border/30 text-center overflow-hidden"
     >
-      <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
+      {/* Accent rule on top */}
+      <div className={cn("absolute top-0 left-3 right-3 h-px", getTierAccent(kpi.tier))} />
+      <div className="text-[9px] text-muted-foreground/80 mb-1.5 uppercase tracking-[0.18em] font-medium">
         {kpi.label}
       </div>
-      <div className={cn("text-lg font-semibold", getTierColor(kpi.tier))}>
+      <div className={cn("text-2xl font-light tracking-tight leading-none", getTierColor(kpi.tier))}>
         {kpi.value}
       </div>
       {kpi.sublabel && (
-        <div className="text-[9px] text-muted-foreground mt-0.5">
+        <div className="text-[9px] text-muted-foreground/70 mt-1.5 lowercase tracking-wide">
           {kpi.sublabel}
         </div>
       )}
