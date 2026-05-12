@@ -62,11 +62,8 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan }: TrainingPla
                 <div className="text-[15px] font-normal tracking-tight text-foreground">
                   {plan.name.replace(" Training", "")}
                 </div>
-                <div className="text-[12px] text-muted-foreground/80 mt-1.5 leading-snug tracking-tight">
-                  {PRACTICAL_DESCRIPTIONS[plan.id]}
-                </div>
-                <div className="text-[11px] text-muted-foreground/50 mt-2 tracking-tight">
-                  {plan.dailyEstimate.total} · {plan.sessionsPerWeek}× / week · {plan.xpTargetWeek} XP
+                <div className="text-[12px] text-muted-foreground/70 mt-1.5 leading-snug tracking-tight">
+                  {PLAN_ESSENCE[plan.id]}
                 </div>
               </div>
               <div
@@ -82,17 +79,29 @@ export function TrainingPlanSelector({ selectedPlan, onSelectPlan }: TrainingPla
         })}
       </div>
 
-      {/* Single contextual detail for the selected plan */}
-      <div className="space-y-3">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50">
-          About {current.name.replace(" Training", "")}
-        </p>
-        <p className="text-[13px] text-foreground/85 leading-relaxed">
-          {current.tagline}
-        </p>
-        <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
-          {current.gatingExplainer.s2Requirement}.
-        </p>
+      {/* Selected plan: clean spec sheet */}
+      <div className="space-y-5">
+        <div className="flex items-baseline justify-between">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50">
+            {current.name.replace(" Training", "")} · Specs
+          </p>
+          <p className="text-[10px] tracking-tight text-muted-foreground/50">
+            {current.dailyEstimate.total} · {current.xpTargetWeek} XP / wk
+          </p>
+        </div>
+
+        <dl className="divide-y divide-border/20">
+          {PLAN_SPECS[selectedPlan].map((spec) => (
+            <div key={spec.label} className="flex items-center justify-between py-2.5">
+              <dt className="text-[12px] text-muted-foreground/70 tracking-tight">
+                {spec.label}
+              </dt>
+              <dd className="text-[12.5px] text-foreground/90 tracking-tight font-normal">
+                {spec.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       <p className="text-[10px] text-muted-foreground/40 leading-relaxed pt-2">
