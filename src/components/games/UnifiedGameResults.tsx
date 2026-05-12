@@ -109,6 +109,14 @@ const SKILL_COLORS: Record<GameSkill, string> = {
   IN: "text-emerald-400",
 };
 
+// Routing of each skill to a top-level cognitive metric (shown in recap)
+const SKILL_TO_GLOBAL: Record<GameSkill, string> = {
+  AE: "Sharpness",
+  RA: "Sharpness",
+  CT: "Reasoning Quality",
+  IN: "Thinking",
+};
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
