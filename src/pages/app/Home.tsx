@@ -517,8 +517,7 @@ const Home = () => {
           <SmartSuggestionCard suggestion={topSuggestion} index={0} />
         )}
 
-        {/* Additional suggestions (skip first since it's in the combined box) */}
-        {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <div key={suggestion.id} className="mb-4"><SmartSuggestionCard suggestion={suggestion} index={index} /></div>)}
+        {/* Single priority — Whoop-style focus, secondary suggestions removed for calm */}
 
 
 
