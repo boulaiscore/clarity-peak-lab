@@ -191,7 +191,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
                         ? "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
                         : cn(
                             "bg-background/50 hover:bg-background",
-                            "hover:border-violet-500/30 active:scale-[0.98]",
+                            "hover:border-area-slow/30 active:scale-[0.98]",
                             "border-border/50"
                           )
                     )}
@@ -209,7 +209,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
                     <div className="flex items-start gap-3">
                       <div className={cn(
                         "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                        isLocked ? "bg-muted/30" : "bg-violet-500/15"
+                        isLocked ? "bg-muted/30" : "bg-area-slow/15"
                       )}>
                         {isLocked ? (
                           isProtection ? (
@@ -218,7 +218,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
                             <Lock className="w-5 h-5 text-muted-foreground" />
                           )
                         ) : (
-                          <Icon className="w-5 h-5 text-violet-400" />
+                          <Icon className="w-5 h-5 text-area-slow" />
                         )}
                       </div>
                       
@@ -227,7 +227,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
                           <h4 className="text-sm font-semibold text-foreground">
                             {game.name}
                           </h4>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-area-slow/10 text-area-slow">
                             {game.tagline}
                           </span>
                         </div>
@@ -237,8 +237,8 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
                         </p>
                         
                         <div className="flex items-center gap-3 text-[10px]">
-                          <div className="flex items-center gap-1 text-amber-400/80">
-                            <Star className="w-3 h-3 fill-amber-400/50" />
+                          <div className="flex items-center gap-1 text-area-fast/80">
+                            <Star className="w-3 h-3 fill-area-fast/50" />
                             <span>~{game.estimatedXP} XP</span>
                           </div>
                           <div className="flex items-center gap-1 text-muted-foreground">

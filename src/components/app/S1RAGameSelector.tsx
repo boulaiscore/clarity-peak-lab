@@ -190,8 +190,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-                    <Lightbulb className="w-4 h-4 text-amber-400" />
+                  <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
+                    <Lightbulb className="w-4 h-4 text-area-fast" />
                   </div>
                   <div>
                     <span className="text-foreground">Rapid Association</span>
@@ -265,7 +265,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                         <div className="flex items-start gap-3">
                           <div className={cn(
                             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                            isLocked ? "bg-muted/30" : "bg-amber-500/15"
+                            isLocked ? "bg-muted/30" : "bg-area-fast/15"
                           )}>
                             {isLocked ? (
                               isProtection ? (
@@ -274,7 +274,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                                 <Lock className="w-5 h-5 text-muted-foreground" />
                               )
                             ) : (
-                              <Lightbulb className="w-5 h-5 text-amber-400" />
+                              <Lightbulb className="w-5 h-5 text-area-fast" />
                             )}
                           </div>
                           
@@ -288,7 +288,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                               </h4>
                               <span className={cn(
                                 "text-[10px] px-1.5 py-0.5 rounded-full",
-                                isLocked ? "bg-muted/30 text-muted-foreground" : "bg-amber-500/10 text-amber-400"
+                                isLocked ? "bg-muted/30 text-muted-foreground" : "bg-area-fast/10 text-area-fast"
                               )}>
                                 {game.tagline}
                               </span>
@@ -301,9 +301,9 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                             <div className="flex items-center gap-3 text-[10px]">
                               <div className={cn(
                                 "flex items-center gap-1",
-                                isLocked ? "text-muted-foreground/50" : "text-amber-400/80"
+                                isLocked ? "text-muted-foreground/50" : "text-area-fast/80"
                               )}>
-                                <Star className={cn("w-3 h-3", isLocked ? "" : "fill-amber-400/50")} />
+                                <Star className={cn("w-3 h-3", isLocked ? "" : "fill-area-fast/50")} />
                                 <span>{xp} XP</span>
                               </div>
                               <span className="text-muted-foreground">~60 seconds</span>
@@ -340,8 +340,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                   >
                     <ChevronRight className="w-4 h-4 text-muted-foreground rotate-180" />
                   </button>
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-                    <Lightbulb className="w-4 h-4 text-amber-400" />
+                  <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
+                    <Lightbulb className="w-4 h-4 text-area-fast" />
                   </div>
                   <span className="text-foreground">{selectedGame.name}</span>
                 </DrawerTitle>
@@ -362,8 +362,8 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                 
                 {/* XP and duration */}
                 <div className="flex items-center justify-center gap-4 py-2">
-                  <div className="flex items-center gap-1.5 text-amber-400">
-                    <Star className="w-4 h-4 fill-amber-400/50" />
+                  <div className="flex items-center gap-1.5 text-area-fast">
+                    <Star className="w-4 h-4 fill-area-fast/50" />
                     <span className="text-sm font-semibold">
                       {selectedGame.xpByDifficulty[selectedDifficulty]} XP
                     </span>
@@ -384,7 +384,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   onClick={handleConfirmPlay}
-                  className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-amber-500 to-amber-400 text-black"
+                  className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-area-fast to-area-fast text-black"
                 >
                   Start Session
                 </motion.button>

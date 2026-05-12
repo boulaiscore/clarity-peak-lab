@@ -260,20 +260,20 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                       
                       // Get accent color classes
                       const accentBg = game.accentColor === "violet" 
-                        ? "bg-violet-500/15" 
+                        ? "bg-primary/15" 
                         : game.accentColor === "emerald" 
-                          ? "bg-emerald-500/15" 
-                          : "bg-cyan-500/15";
+                          ? "bg-primary/15" 
+                          : "bg-primary/15";
                       const accentText = game.accentColor === "violet" 
-                        ? "text-violet-400" 
+                        ? "text-primary" 
                         : game.accentColor === "emerald" 
-                          ? "text-emerald-400" 
-                          : "text-cyan-400";
+                          ? "text-primary" 
+                          : "text-primary";
                       const accentBadgeBg = game.accentColor === "violet" 
-                        ? "bg-violet-500/10 text-violet-400" 
+                        ? "bg-primary/10 text-primary" 
                         : game.accentColor === "emerald" 
-                          ? "bg-emerald-500/10 text-emerald-400" 
-                          : "bg-cyan-500/10 text-cyan-400";
+                          ? "bg-primary/10 text-primary" 
+                          : "bg-primary/10 text-primary";
                       
                       return (
                       <motion.button
@@ -349,8 +349,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                             </p>
                             
                             <div className="flex items-center gap-3 text-[10px]">
-                              <div className="flex items-center gap-1 text-amber-400/80">
-                                <Star className="w-3 h-3 fill-amber-400/50" />
+                              <div className="flex items-center gap-1 text-area-fast/80">
+                                <Star className="w-3 h-3 fill-area-fast/50" />
                                 <span>{xp} XP</span>
                               </div>
                               <span className="text-muted-foreground">~90 seconds</span>
@@ -387,18 +387,18 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                   <div className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center",
                     selectedGame.accentColor === "violet" 
-                      ? "bg-violet-500/15" 
+                      ? "bg-primary/15" 
                       : selectedGame.accentColor === "emerald" 
-                        ? "bg-emerald-500/15" 
-                        : "bg-cyan-500/15"
+                        ? "bg-primary/15" 
+                        : "bg-primary/15"
                   )}>
                     <selectedGame.icon className={cn(
                       "w-4 h-4",
                       selectedGame.accentColor === "violet" 
-                        ? "text-violet-400" 
+                        ? "text-primary" 
                         : selectedGame.accentColor === "emerald" 
-                          ? "text-emerald-400" 
-                          : "text-cyan-400"
+                          ? "text-primary" 
+                          : "text-primary"
                     )} />
                   </div>
                   <span className="text-foreground">{selectedGame.name}</span>
@@ -420,8 +420,8 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                 
                 {/* XP and duration */}
                 <div className="flex items-center justify-center gap-4 py-2">
-                  <div className="flex items-center gap-1.5 text-amber-400">
-                    <Star className="w-4 h-4 fill-amber-400/50" />
+                  <div className="flex items-center gap-1.5 text-area-fast">
+                    <Star className="w-4 h-4 fill-area-fast/50" />
                     <span className="text-sm font-semibold">
                       {selectedGame.xpByDifficulty[selectedDifficulty]} XP
                     </span>
@@ -446,10 +446,10 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                     "w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all",
                     "bg-gradient-to-r text-black",
                     selectedGame.accentColor === "violet"
-                      ? "from-violet-500 to-violet-400"
+                      ? "from-primary to-primary/80"
                       : selectedGame.accentColor === "emerald"
-                        ? "from-emerald-500 to-emerald-400"
-                        : "from-cyan-500 to-cyan-400"
+                        ? "from-primary to-primary/80"
+                        : "from-primary to-primary/80"
                   )}
                 >
                   Start Session
