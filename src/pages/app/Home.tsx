@@ -465,6 +465,22 @@ const Home = () => {
                 <ProgressRing value={displayReadiness} max={100} size={90} strokeWidth={4} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
                 <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={90} strokeWidth={4} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
+
+              {/* Outcome copy — human translation of the dominant metric */}
+              {isViewingToday && !isDisplayLoading && (() => {
+                const r = Math.round(displayReadiness);
+                const rec = Math.round(displayRecovery);
+                let line = "";
+                if (rec < 40) line = "Your brain is in recovery debt — protect today.";
+                else if (r >= 75) line = "You think faster and clearer than yesterday.";
+                else if (r >= 55) line = "Stable day — small, consistent gains compound.";
+                else line = "Reactive mode — one focused action will reset the day.";
+                return (
+                  <p className="text-center text-[11px] text-muted-foreground/80 mb-4 px-4 leading-relaxed">
+                    {line}
+                  </p>
+                );
+              })()}
               
               {/* Goal Complete indicator - only shows when target reached AND viewing today */}
               {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
@@ -506,90 +522,6 @@ const Home = () => {
         {/* Additional suggestions (skip first since it's in the combined box) */}
         {prioritizedSuggestions.slice(1, 2).map((suggestion, index) => <div key={suggestion.id} className="mb-4"><SmartSuggestionCard suggestion={suggestion} index={index} /></div>)}
 
-
-        {/* In-Progress Tasks Reminder - shown after priority suggestions */}
-        {(() => {
-          const inProgressTasks = getInProgressTasks();
-          if (inProgressTasks.length === 0) return null;
-          const getTaskIcon = (type: "podcast" | "book" | "article") => {
-            switch (type) {
-              case "podcast":
-                return <Headphones className="w-4 h-4" />;
-              case "book":
-                return <BookOpen className="w-4 h-4" />;
-              case "article":
-                return <FileText className="w-4 h-4" />;
-            }
-          };
-          return <motion.section initial={{
-            opacity: 0,
-            y: 12
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.14
-          }} className="mb-4">
-              <button onClick={() => navigate("/neuro-lab?tab=tasks")} className="w-full p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-border transition-all active:scale-[0.98] text-left">
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="w-4 h-4 text-amber-500" />
-                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                    {inProgressTasks.length} task{inProgressTasks.length > 1 ? 's' : ''} in progress
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {inProgressTasks.slice(0, 2).map(task => <div key={task.id} className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
-                        {getTaskIcon(task.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{task.title}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Started {formatDistanceToNow(new Date(task.startedAt), {
-                        addSuffix: true
-                      })}
-                        </p>
-                      </div>
-                    </div>)}
-                  {inProgressTasks.length > 2 && <p className="text-[10px] text-muted-foreground">
-                      +{inProgressTasks.length - 2} more
-                    </p>}
-                </div>
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/30">
-                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                    Complete to add to Library
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </button>
-            </motion.section>;
-        })()}
-
-        {/* Currently Reading indicator */}
-        {isViewingToday && activeBooks.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.13 }}
-            className="mb-4"
-          >
-            <button
-              onClick={() => navigate("/neuro-lab?tab=tasks")}
-              className="w-full px-3 py-2.5 rounded-xl bg-muted/30 border border-border/50 hover:border-amber-500/30 transition-all active:scale-[0.98] text-left flex items-center gap-3"
-            >
-              <BookOpen className="w-4 h-4 text-amber-500 shrink-0" />
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium uppercase tracking-wide shrink-0">Reading in progress</span>
-              <div className="flex-1 min-w-0 flex items-center gap-2">
-                {activeBooks.slice(0, 2).map((book, i) => (
-                  <span key={book.id} className="text-xs font-medium truncate max-w-[120px]">
-                    {book.title}{i < activeBooks.length - 1 && activeBooks.length > 1 ? "," : ""}
-                  </span>
-                ))}
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            </button>
-          </motion.section>
-        )}
 
 
 
