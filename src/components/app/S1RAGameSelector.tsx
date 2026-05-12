@@ -403,5 +403,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
         </AnimatePresence>
       </DrawerContent>
     </Drawer>
+    {AdvisoryDialog}
+    </>
   );
 }
