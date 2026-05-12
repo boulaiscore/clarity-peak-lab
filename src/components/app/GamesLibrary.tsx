@@ -223,8 +223,9 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                 >
                   <div className="grid grid-cols-2 gap-px bg-white/[0.04]">
                     {system.areas.map((area) => {
-                      const requiredRec = system.id === "slow" ? S2_REC_THRESHOLD : REC_LOCK_THRESHOLD;
-                      const isLocked = recoveryEffective < requiredRec;
+                      const gating = games[area.gameType];
+                      const isLocked = !gating || gating.status !== "ENABLED";
+                      const lockLabel = gating ? unlockLabelFor(gating) : "Temporarily unavailable";
                       const isPicked = pickedGameType === area.gameType;
                       return (
                       <button
