@@ -477,12 +477,22 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
           <div className="text-lg text-primary font-semibold">
             +{blockScores[currentBlock]} points
           </div>
-          
+
+          <div className="p-3 rounded-lg bg-muted/30 border border-border/50 text-left space-y-1">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">New rule</div>
+            <div className="text-sm text-foreground font-medium">
+              {BLOCK_CONFIGS[currentBlock + 1].label}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {BLOCK_CONFIGS[currentBlock + 1].rule}
+            </div>
+          </div>
+
           <button
             onClick={handleNextBlock}
             className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold text-sm"
           >
-            Next Block: {BLOCK_CONFIGS[currentBlock + 1].label}
+            Start Block {currentBlock + 2}
           </button>
         </motion.div>
       </div>
