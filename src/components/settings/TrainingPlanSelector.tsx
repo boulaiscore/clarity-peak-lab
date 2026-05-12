@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 
 const PRACTICAL_DESCRIPTIONS: Record<TrainingPlanId, string> = {
   light:
-    "1 short game per day, mostly fast intuitive (System 1). Deep reasoning unlocks only when recovered. Best to keep cognition stable without pressure.",
+    "~4–5 short games / week, prevalently System 1 (fast, intuitive). System 2 reasoning capped at 4 / week and unlocks only at Recovery ≥ 50%. 8h / week of recovery, tasks optional.",
   expert:
-    "1–2 games per day balancing fast reactions and deliberate reasoning. Adds 2 weekly tasks to build Reasoning Quality. The standard performance regimen.",
+    "~6–7 games / week balancing System 1 reactivity and System 2 reasoning (up to 7 S2 / week). 14h / week of recovery and 2 weekly tasks to compound Reasoning Quality.",
   superhuman:
-    "2–3 intensive games per day with frequent System 2 reasoning. Requires 28h/week of recovery and 3 mandatory tasks. Built for peak cognitive output.",
+    "~8–10 intensive games / week with heavy System 2 load (up to 10 S2 / week, easier S2 access). Requires 28h / week of recovery (Recovery ≥ 55%) and 3 mandatory weekly tasks.",
 };
 
 
