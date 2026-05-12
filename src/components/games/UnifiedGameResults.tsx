@@ -18,7 +18,7 @@ import { motion } from "framer-motion";
 import { 
   Target, Clock, Zap, Brain, Lightbulb, 
   RotateCcw, ArrowRight, ChevronRight, 
-  Eye, Sparkles
+  Eye, Sparkles, TrendingUp, TrendingDown, Minus, Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
