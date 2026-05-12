@@ -303,6 +303,14 @@ const SettingsPage = () => {
           </div>
         </ListGroup>
 
+        {/* BILLING */}
+        <SectionLabel>Billing</SectionLabel>
+        <ListGroup>
+          <Link to="/app/subscription" className="block">
+            <Row icon={CreditCard} label="Subscription & billing" onClick={() => {}} />
+          </Link>
+        </ListGroup>
+
         {/* HELP */}
         <SectionLabel>Help</SectionLabel>
         <ListGroup>
