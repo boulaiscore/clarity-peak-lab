@@ -450,7 +450,7 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
                   {currentRoundData.evidenceBullets.map((bullet, idx) => (
                     <li key={idx} className="text-sm text-foreground/90 flex items-start gap-2">
                       <span className="text-violet-400 mt-1.5">•</span>
-                      <span className="line-clamp-1">{bullet}</span>
+                      <span className="leading-snug">{bullet}</span>
                     </li>
                   ))}
                 </ul>
