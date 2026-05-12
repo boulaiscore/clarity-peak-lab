@@ -83,7 +83,7 @@ export function useS1Difficulty(): UseS1DifficultyResult {
   
   const isLoading = metricsLoading || tcLoading || progressLoading || profileLoading;
   
-  const { isTestMode } = useTestMode();
+  const isTestMode = isTestModeEnabled();
 
   // Compute difficulty result
   const result = useMemo((): S1DifficultyResult => {
