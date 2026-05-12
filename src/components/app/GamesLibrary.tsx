@@ -55,7 +55,12 @@ const SYSTEMS = [
 const REC_LOCK_THRESHOLD = 40;
 const S2_REC_THRESHOLD = 60;
 
-export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
+export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibraryProps) {
+  // Pick-for-today logic: pick the system best matched to current recovery
+  const pickedGameType: GameType | null =
+    recoveryEffective >= S2_REC_THRESHOLD ? "S2-CT"
+    : recoveryEffective >= REC_LOCK_THRESHOLD ? "S1-AE"
+    : null;
   const navigate = useNavigate();
   const [openSystem, setOpenSystem] = useState<ThinkingSystem | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
