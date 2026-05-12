@@ -32,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
 import { useDelayedBoolean } from "@/hooks/useDelayedBoolean";
+import { useReplayAdvisory } from "@/components/games/ReplayAdvisoryDialog";
 
 interface S1RAGameSelectorProps {
   open: boolean;
@@ -152,16 +153,23 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
     setIsOverride(override);
   };
   
+  const { checkAndPlay, AdvisoryDialog } = useReplayAdvisory();
+
   const handleConfirmPlay = () => {
     if (!selectedGame) return;
-    onOpenChange(false);
-    
-    // Small delay to let sheet close animation complete
-    setTimeout(() => {
-      const overrideParam = isOverride ? "&override=true" : "";
-      navigate(`${selectedGame.route}?difficulty=${selectedDifficulty}${overrideParam}`);
-      setSelectedGame(null);
-    }, 150);
+    const game = selectedGame;
+    checkAndPlay({
+      gameType: "S1-RA",
+      gameName: game.id,
+      onProceed: () => {
+        onOpenChange(false);
+        setTimeout(() => {
+          const overrideParam = isOverride ? "&override=true" : "";
+          navigate(`${game.route}?difficulty=${selectedDifficulty}${overrideParam}`);
+          setSelectedGame(null);
+        }, 150);
+      },
+    });
   };
   
   const handleBack = () => {
@@ -176,6 +184,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
   };
   
   return (
+    <>
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[85vh]">
         <AnimatePresence mode="wait">
@@ -394,5 +403,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
         </AnimatePresence>
       </DrawerContent>
     </Drawer>
+    {AdvisoryDialog}
+    </>
   );
 }

@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
 import { useDelayedBoolean } from "@/hooks/useDelayedBoolean";
+import { useReplayAdvisory } from "@/components/games/ReplayAdvisoryDialog";
 
 interface S2CTGameSelectorProps {
   open: boolean;
@@ -131,16 +132,22 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
     refetchOnWindowFocus: false,
   });
 
+  const { checkAndPlay, AdvisoryDialog } = useReplayAdvisory();
+
   const handleSelectGame = (game: GameOption) => {
     if (isLocked) return;
-    
-    onOpenChange(false);
-    setTimeout(() => {
-      navigate(game.route);
-    }, 150);
+    checkAndPlay({
+      gameType: "S2-CT",
+      gameName: game.id,
+      onProceed: () => {
+        onOpenChange(false);
+        setTimeout(() => navigate(game.route), 150);
+      },
+    });
   };
 
   return (
+    <>
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh]">
         <motion.div
@@ -276,5 +283,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
         </motion.div>
       </DrawerContent>
     </Drawer>
+    {AdvisoryDialog}
+    </>
   );
 }
