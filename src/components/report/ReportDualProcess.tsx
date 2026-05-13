@@ -111,7 +111,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
         {/* System 1 */}
         <div className="system-card system1" style={{ borderColor: fastClass.color }}>
           <div className="system-header" style={{ background: "#f5f0e6" }}>
-            <Sparkles size={22} color="#C6A86D" strokeWidth={1.5} />
+            <SystemOneMark size={26} color="#C6A86D" strokeWidth={1.3} />
             <div>
               <h3>SYSTEM 1 — Fast Thinking</h3>
               <span className="system-subtitle">Intuitive, Automatic Processing</span>
