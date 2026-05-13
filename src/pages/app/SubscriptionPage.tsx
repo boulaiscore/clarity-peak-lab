@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Crown, Check, User, Rocket, ArrowRight, ExternalLink } from "lucide-react";
@@ -10,13 +10,23 @@ import { getPaddleEnvironment } from "@/lib/paddle";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-const plans = [
+type BillingCycle = "monthly" | "yearly";
+
+const PLAN_PRICING = {
+  pro: {
+    monthly: { priceId: "looma_pro_monthly", price: "$19.90", period: "/mo" },
+    yearly: { priceId: "looma_pro_yearly", price: "$199", period: "/yr" },
+  },
+  elite: {
+    monthly: { priceId: "looma_elite_monthly", price: "$29.90", period: "/mo" },
+    yearly: { priceId: "looma_elite_yearly", price: "$299", period: "/yr" },
+  },
+} as const;
+
+const basePlans = [
   {
     id: "free",
     name: "Free",
-    priceId: null as string | null,
-    price: "$0",
-    period: "",
     tagline: "See your state",
     icon: User,
     iconColor: "text-muted-foreground",
@@ -30,9 +40,6 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    priceId: "looma_pro_yearly",
-    price: "$199",
-    period: "/year",
     tagline: "Train and recover, every day",
     icon: Crown,
     iconColor: "text-amber-400",
@@ -49,9 +56,6 @@ const plans = [
   {
     id: "elite",
     name: "Elite",
-    priceId: "looma_elite_yearly",
-    price: "$299",
-    period: "/year",
     tagline: "Coached recovery for high-stakes work",
     icon: Rocket,
     iconColor: "text-purple-400",
