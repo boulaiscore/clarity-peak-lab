@@ -467,22 +467,6 @@ const Home = () => {
               </div>
 
               {/* Outcome headline — Whoop-style human translation */}
-              {isViewingToday && !isDisplayLoading && (() => {
-                const r = Math.round(displayReadiness);
-                const rec = Math.round(displayRecovery);
-                let label = "";
-                let line = "";
-                if (rec < 40) { label = "Recovery debt"; line = "Protect today. Train light or recover."; }
-                else if (r >= 75) { label = "Primed"; line = "You think faster and clearer than yesterday."; }
-                else if (r >= 55) { label = "Stable"; line = "Small, consistent gains compound today."; }
-                else { label = "Reactive"; line = "One focused action will reset the day."; }
-                return (
-                  <div className="text-center mb-5 px-4">
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-foreground/50 mb-1.5">{label}</p>
-                    <p className="text-[15px] font-light text-foreground/90 leading-snug">{line}</p>
-                  </div>
-                );
-              })()}
               
               {/* Goal Complete indicator - only shows when target reached AND viewing today */}
               {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
