@@ -42,7 +42,7 @@ import { ReadingLoadDashboard } from "@/components/lab/ReadingLoadDashboard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
 import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
-import { MonitorCardsRow } from "@/components/home/MonitorCardsRow";
+
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 
 // Circular progress ring component with icon and status inside
