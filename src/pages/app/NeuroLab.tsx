@@ -123,9 +123,9 @@ export default function NeuroLab() {
       return {
         icon: Zap,
         iconColor: "text-emerald-400",
-        headline: `Recovery ${Math.round(rec)}% — You're primed.`,
-        message: "Your brain is ready for peak performance.",
-        action: "Push hard with S2 games. This is your window for deep reasoning work."
+        headline: `Recovery ${Math.round(rec)}% — Primed.`,
+        message: "Peak window for deep reasoning.",
+        action: "Push S2 games."
       };
     }
 
@@ -135,8 +135,8 @@ export default function NeuroLab() {
         icon: Battery,
         iconColor: "text-emerald-400",
         headline: `Recovery ${Math.round(rec)}% — Strong.`,
-        message: "Good energy for cognitive training.",
-        action: "S2 games are unlocked. Balance intensity with a task or walk if needed."
+        message: "Good energy to train.",
+        action: "S2 unlocked."
       };
     }
 
@@ -146,8 +146,8 @@ export default function NeuroLab() {
         icon: Battery,
         iconColor: "text-amber-400",
         headline: `Recovery ${Math.round(rec)}% — Moderate.`,
-        message: "You can train, but don't overdo it.",
-        action: "S1 games + Quality Time are ideal. Consider Recover to boost recovery."
+        message: "Train light, don't overdo it.",
+        action: "S1 + Quality Time."
       };
     }
 
@@ -157,8 +157,8 @@ export default function NeuroLab() {
         icon: BatteryLow,
         iconColor: "text-amber-500",
         headline: `Recovery ${Math.round(rec)}% — Low.`,
-        message: "Your brain needs rest to perform.",
-        action: "Skip intense training. Focus on Recover or light Quality Time to rebuild."
+        message: "Skip intense training.",
+        action: "Recover or light Quality Time."
       };
     }
 
@@ -167,8 +167,8 @@ export default function NeuroLab() {
       icon: BatteryLow,
       iconColor: "text-red-400",
       headline: `Recovery ${Math.round(rec)}% — Depleted.`,
-      message: "Training now may backfire. Your brain needs recovery.",
-      action: "Recover to rebuild. Quality Time is fine. Save Train for when you're recharged."
+      message: "Training now will backfire.",
+      action: "Recover. Quality Time is fine."
     };
   }, [recoveryEffective, recoveryLoading]);
   const [showPaywall, setShowPaywall] = useState(false);
