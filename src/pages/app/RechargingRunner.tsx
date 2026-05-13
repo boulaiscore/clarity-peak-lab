@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 
 type Phase = 
   | "intro" 
@@ -48,6 +49,8 @@ export default function RechargingRunner() {
   const navigate = useNavigate();
   const [currentPhase, setCurrentPhase] = useState<Phase>("intro");
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const { applyBoost } = useAcuteRecoveryBoost();
+  const [appliedBoost, setAppliedBoost] = useState<number | null>(null);
   
   // Session data
   const [selectedMode, setSelectedMode] = useState<RechargingMode | null>(null);
@@ -98,7 +101,7 @@ export default function RechargingRunner() {
     setCurrentPhase("post-check");
   }, []);
 
-  const handlePostCheckComplete = useCallback((postCheckValues: RechargingCheckValues) => {
+  const handlePostCheckComplete = useCallback(async (postCheckValues: RechargingCheckValues) => {
     if (!preCheckValues || !selectedMode) return;
 
     const { score, level, deltas } = calculateRechargingScore(preCheckValues, postCheckValues);
@@ -114,7 +117,23 @@ export default function RechargingRunner() {
     });
     
     setCurrentPhase("results");
-  }, [preCheckValues, selectedMode, sessionDuration]);
+
+    // Apply Acute Recovery Boost (display-layer only, transient)
+    try {
+      const res = await applyBoost({
+        durationSeconds: sessionDuration,
+        preMentalNoise: preCheckValues.mentalNoise,
+        postMentalNoise: postCheckValues.mentalNoise,
+        preCognitiveFatigue: preCheckValues.cognitiveFatigue,
+        postCognitiveFatigue: postCheckValues.cognitiveFatigue,
+        preReadinessToClear: preCheckValues.readinessToClear,
+        postReadinessToClear: postCheckValues.readinessToClear,
+      });
+      if (res) setAppliedBoost(res.initialBoost);
+    } catch (e) {
+      console.warn("[RechargingRunner] applyBoost failed", e);
+    }
+  }, [preCheckValues, selectedMode, sessionDuration, applyBoost]);
 
   const handleFinish = useCallback(() => {
     navigate("/neuro-lab");
@@ -157,7 +176,7 @@ export default function RechargingRunner() {
         );
       case "results":
         return result ? (
-          <RechargingResults result={result} onFinish={handleFinish} />
+          <RechargingResults result={result} onFinish={handleFinish} appliedBoost={appliedBoost} />
         ) : null;
       default:
         return null;

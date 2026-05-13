@@ -10,12 +10,17 @@ import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
+import { formatRemainingMinutes } from "@/lib/recovery/acuteBoost";
 
 interface RecoveryBatteryCardProps {
   recovery: number;
   isLoading?: boolean;
   deltaVsYesterday?: string | null;
   onClick?: () => void;
+  /** Active acute boost in REC points (display-layer only). 0 = none. */
+  acuteBoost?: number;
+  /** Minutes remaining until acute boost decays to 0 */
+  acuteBoostRemainingMinutes?: number;
 }
 
 const SEGMENTS = 20;
@@ -39,6 +44,8 @@ export function RecoveryBatteryCard({
   isLoading,
   deltaVsYesterday,
   onClick,
+  acuteBoost = 0,
+  acuteBoostRemainingMinutes = 0,
 }: RecoveryBatteryCardProps) {
   if (isLoading) {
     return (
@@ -97,6 +104,14 @@ export function RecoveryBatteryCard({
                 }}
               >
                 {deltaVsYesterday} vs yesterday
+              </span>
+            )}
+            {acuteBoost > 0 && (
+              <span
+                className="text-[10px] font-medium px-2 py-0.5 rounded-full border tabular-nums text-emerald-300/90 bg-emerald-400/[0.08] border-emerald-400/20"
+                title="Acute reset — temporary state, not structural"
+              >
+                +{Math.round(acuteBoost)} · {formatRemainingMinutes(acuteBoostRemainingMinutes)}
               </span>
             )}
           </div>

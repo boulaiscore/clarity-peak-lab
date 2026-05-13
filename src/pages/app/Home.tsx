@@ -42,6 +42,8 @@ import { ReadingLoadDashboard } from "@/components/lab/ReadingLoadDashboard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
 import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
+import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
+import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 
@@ -176,6 +178,9 @@ const Home = () => {
     isLoading: recoveryEffectiveLoading
   } = useRecoveryEffective();
 
+  // Acute Recovery Boost — display-layer only, transient state shift
+  const acuteBoost = useAcuteRecoveryBoost();
+
   // Reasoning Quality metric
   const {
     rq,
@@ -295,7 +300,10 @@ const Home = () => {
   // Determine which metrics to display (today's live metrics or historical snapshot)
   const displaySharpness = isViewingToday ? sharpness : historicalMetrics?.sharpness ?? 0;
   const displayReadiness = isViewingToday ? readiness : historicalMetrics?.readiness ?? 0;
-  const displayRecovery = isViewingToday ? recoveryEffective : historicalMetrics?.recovery ?? 0;
+  const recoveryWithBoost = isViewingToday
+    ? applyBoostToRec(recoveryEffective, acuteBoost.activeBoost)
+    : recoveryEffective;
+  const displayRecovery = isViewingToday ? recoveryWithBoost : historicalMetrics?.recovery ?? 0;
   const displayRQ = isViewingToday ? rq : historicalMetrics?.reasoningQuality ?? 0;
   const displayS2Core = isViewingToday ? s2Core : historicalMetrics?.s2 ?? 0;
   const displayTaskPriming = isViewingToday ? taskPriming : 0; // Historical doesn't store this separately
@@ -488,7 +496,7 @@ const Home = () => {
                 </div>}
               
               {/* Recovery Battery Card */}
-              <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} />
+              <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
             </motion.section>
 
 
