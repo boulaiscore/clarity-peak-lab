@@ -12,6 +12,34 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format, parseISO } from "date-fns";
+import {
+  REC_HALF_LIFE_HOURS,
+  SKILL_DECAY_THRESHOLD_DAYS,
+  SKILL_DECAY_INTERVAL_DAYS,
+  SKILL_DECAY_BASE_POINTS,
+  SKILL_DECAY_INTERVAL_POINTS,
+  SKILL_DECAY_MAX_POINTS,
+} from "@/lib/decayConstants";
+
+// Per-day Recovery decay multiplier from continuous half-life model.
+const REC_DAILY_DECAY_MULTIPLIER = Math.pow(0.5, 24 / REC_HALF_LIFE_HOURS);
+
+/**
+ * Skill-style inactivity decay (Sharpness / Readiness / RQ).
+ * No decay for the first SKILL_DECAY_THRESHOLD_DAYS of inactivity, then
+ * SKILL_DECAY_BASE_POINTS at the threshold and SKILL_DECAY_INTERVAL_POINTS
+ * every SKILL_DECAY_INTERVAL_DAYS thereafter, capped at SKILL_DECAY_MAX_POINTS.
+ */
+function skillInactivityDecayPoints(daysInactive: number): number {
+  if (daysInactive < SKILL_DECAY_THRESHOLD_DAYS) return 0;
+  const intervals = Math.floor(
+    (daysInactive - SKILL_DECAY_THRESHOLD_DAYS) / SKILL_DECAY_INTERVAL_DAYS
+  );
+  return Math.min(
+    SKILL_DECAY_MAX_POINTS,
+    SKILL_DECAY_BASE_POINTS + intervals * SKILL_DECAY_INTERVAL_POINTS
+  );
+}
 
 export interface MetricDataPoint {
   date: string;
