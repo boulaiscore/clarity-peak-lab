@@ -106,6 +106,14 @@ export function RecoveryBatteryCard({
                 {deltaVsYesterday} vs yesterday
               </span>
             )}
+            {acuteBoost > 0 && (
+              <span
+                className="text-[10px] font-medium px-2 py-0.5 rounded-full border tabular-nums text-emerald-300/90 bg-emerald-400/[0.08] border-emerald-400/20"
+                title="Acute reset — temporary state, not structural"
+              >
+                +{Math.round(acuteBoost)} · {formatRemainingMinutes(acuteBoostRemainingMinutes)}
+              </span>
+            )}
           </div>
         </div>
         <div className="p-1.5 rounded-full bg-muted/30 mt-1">
