@@ -1,17 +1,9 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Check, Crown, ArrowLeft, User, Rocket, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 const plans = [
   {
@@ -66,18 +58,22 @@ const plans = [
   },
 ];
 
+const PRICE_BY_ID: Record<string, string> = {
+  pro: "looma_pro_yearly",
+  elite: "looma_elite_yearly",
+};
+
 export default function PaywallPage() {
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const { openCheckout, loading } = usePaddleCheckout();
 
   const handleSelectPlan = (planId: string) => {
     if (planId === "free") {
       navigate("/app");
       return;
     }
-    setSelectedPlan(plans.find((p) => p.id === planId)?.name || planId);
-    setShowConfirmation(true);
+    const priceId = PRICE_BY_ID[planId];
+    if (priceId) openCheckout(priceId);
   };
 
   return (
@@ -172,31 +168,6 @@ export default function PaywallPage() {
         </p>
       </div>
 
-      {/* Confirmation Modal */}
-      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-        <AlertDialogContent className="max-w-sm mx-auto">
-          <AlertDialogHeader className="text-center">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <Crown className="w-7 h-7 text-primary" />
-            </div>
-            <AlertDialogTitle className="text-lg">
-              {selectedPlan} Selected
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm">
-              Plan selection saved. Billing activation will be connected in the next release.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col gap-2 sm:flex-col pt-2">
-            <Button
-              onClick={() => setShowConfirmation(false)}
-              variant="hero"
-              className="w-full"
-            >
-              Got It
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppShell>
   );
 }

@@ -1,23 +1,20 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { usePremiumGating } from "@/hooks/usePremiumGating";
-import { Crown, Check, User, Rocket, ArrowRight } from "lucide-react";
+import { Crown, Check, User, Rocket, ArrowRight, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import { getPaddleEnvironment } from "@/lib/paddle";
+import { toast } from "sonner";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const plans = [
   {
     id: "free",
     name: "Free",
+    priceId: null as string | null,
     price: "$0",
     period: "",
     tagline: "See your state",
@@ -33,6 +30,7 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
+    priceId: "looma_pro_yearly",
     price: "$199",
     period: "/year",
     tagline: "Train and recover, every day",
@@ -51,6 +49,7 @@ const plans = [
   {
     id: "elite",
     name: "Elite",
+    priceId: "looma_elite_yearly",
     price: "$299",
     period: "/year",
     tagline: "Coached recovery for high-stakes work",
@@ -68,17 +67,40 @@ const plans = [
 ];
 
 const SubscriptionPage = () => {
-  const { user } = useAuth();
-  const { isPremium } = usePremiumGating();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
+  const { openCheckout, loading } = usePaddleCheckout();
 
-  const currentPlanId = isPremium ? "pro" : "free";
+  const currentPlanId = isActive ? tier : "free";
+
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      toast.success("Welcome to LOOMA premium — onboarding starting…");
+      searchParams.delete("checkout");
+      setSearchParams(searchParams, { replace: true });
+      // Refetch shortly after to pick up webhook write
+      setTimeout(() => refetch(), 1500);
+      setTimeout(() => navigate("/app/onboarding-premium"), 2500);
+    }
+  }, [searchParams, setSearchParams, refetch, navigate]);
 
   const handleSelectPlan = (planId: string) => {
-    if (planId === "free" || planId === currentPlanId) return;
-    setSelectedPlan(plans.find((p) => p.id === planId)?.name || planId);
-    setShowConfirmation(true);
+    const plan = plans.find((p) => p.id === planId);
+    if (!plan?.priceId || planId === currentPlanId) return;
+    openCheckout(plan.priceId);
+  };
+
+  const openPortal = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("paddle-customer-portal", {
+        body: { environment: getPaddleEnvironment() },
+      });
+      if (error || !data?.url) throw new Error(data?.error || error?.message);
+      window.open(data.url, "_blank");
+    } catch (e: any) {
+      toast.error(e.message || "Could not open billing portal");
+    }
   };
 
   return (
@@ -99,29 +121,36 @@ const SubscriptionPage = () => {
         <div className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border mb-6">
           <div className={cn(
             "w-10 h-10 rounded-lg flex items-center justify-center",
-            isPremium ? "bg-primary/15" : "bg-muted/50"
+            isActive ? "bg-primary/15" : "bg-muted/50"
           )}>
-            {isPremium ? (
+            {isActive ? (
               <Crown className="w-5 h-5 text-primary" />
             ) : (
               <User className="w-5 h-5 text-muted-foreground" />
             )}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold">{isPremium ? "Pro" : "Free"}</p>
+            <p className="text-sm font-semibold capitalize">{isActive ? tier : "Free"}</p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              Current plan
+              {cancelAtPeriodEnd && currentPeriodEnd
+                ? `Ends ${new Date(currentPeriodEnd).toLocaleDateString()}`
+                : "Current plan"}
             </p>
           </div>
           <span className={cn(
             "px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide",
-            isPremium
-              ? "bg-emerald-500/15 text-emerald-400"
-              : "bg-muted text-muted-foreground"
+            isActive ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"
           )}>
-            {isPremium ? "Active" : "Free"}
+            {isActive ? (cancelAtPeriodEnd ? "Canceling" : "Active") : "Free"}
           </span>
         </div>
+
+        {paddleSubscriptionId && (
+          <Button variant="outline" size="sm" className="w-full mb-6" onClick={openPortal}>
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+            Manage billing
+          </Button>
+        )}
 
         {/* Plans */}
         <div className="space-y-3">
@@ -191,11 +220,12 @@ const SubscriptionPage = () => {
                 {!isCurrent && plan.id !== "free" && (
                   <Button
                     onClick={() => handleSelectPlan(plan.id)}
+                    disabled={loading}
                     variant={isHighlighted ? "hero" : "outline"}
                     size="sm"
                     className="w-full"
                   >
-                    Choose {plan.name}
+                    {currentPlanId !== "free" && plan.id === "elite" ? "Upgrade to Elite" : `Choose ${plan.name}`}
                     <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                   </Button>
                 )}
@@ -209,31 +239,6 @@ const SubscriptionPage = () => {
         </p>
       </div>
 
-      {/* Confirmation Modal */}
-      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-        <AlertDialogContent className="max-w-sm mx-auto">
-          <AlertDialogHeader className="text-center">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <Crown className="w-7 h-7 text-primary" />
-            </div>
-            <AlertDialogTitle className="text-lg">
-              {selectedPlan} Selected
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm">
-              Plan selection saved. Billing activation will be connected in the next release.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col gap-2 sm:flex-col pt-2">
-            <Button
-              onClick={() => setShowConfirmation(false)}
-              variant="hero"
-              className="w-full"
-            >
-              Got It
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppShell>
   );
 };

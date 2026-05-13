@@ -26,6 +26,7 @@ import ProfilePage from "./pages/app/ProfilePage";
 import SettingsPage from "./pages/app/SettingsPage";
 import SubscriptionPage from "./pages/app/SubscriptionPage";
 import PaywallPage from "./pages/app/PaywallPage";
+import PremiumOnboarding from "./pages/app/PremiumOnboarding";
 import TrainingsList from "./pages/app/TrainingsList";
 import TrainingRunner from "./pages/app/TrainingRunner";
 import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
@@ -237,6 +238,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <PaywallPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/onboarding-premium"
+        element={
+          <ProtectedRoute>
+            <PremiumOnboarding />
           </ProtectedRoute>
         }
       />

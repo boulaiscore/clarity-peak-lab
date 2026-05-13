@@ -8,6 +8,7 @@ import { useDecayNotificationInit } from "@/hooks/useDecayNotificationInit";
 import { useAutoMetricSnapshot } from "@/hooks/useAutoMetricSnapshot";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 interface AppShellProps {
   children: ReactNode;
@@ -79,6 +80,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <PaymentTestModeBanner />
       {/* Main content with swipe */}
       <main 
         className="flex-1 pb-20"
