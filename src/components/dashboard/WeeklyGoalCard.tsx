@@ -462,12 +462,10 @@ export function WeeklyGoalCard({
 
                 {/* Overtraining disclaimer — shift focus to recovery activities */}
                 {adaptiveStatus.status === "above" && (
-                  <div className="mt-2 px-3 py-2 rounded-lg bg-amber-500/[0.06] border border-amber-400/[0.18]">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-300/90 mb-0.5">
-                      Shift Focus
-                    </p>
-                    <p className="text-[11px] text-foreground/70 leading-snug">
-                      Training XP is above your optimal load. Prioritize <span className="text-foreground/90 font-medium">Quality Time</span> and <span className="text-foreground/90 font-medium">Recover</span> to consolidate gains.
+                  <div className="mt-3 flex items-center gap-2.5">
+                    <span className="w-1 h-1 rounded-full bg-amber-300/70 shrink-0" />
+                    <p className="text-[10px] tracking-[0.02em] text-muted-foreground/80 leading-snug">
+                      Above optimal load — shift focus to <span className="text-foreground/85">Quality Time</span> &amp; <span className="text-foreground/85">Recover</span>.
                     </p>
                   </div>
                 )}
