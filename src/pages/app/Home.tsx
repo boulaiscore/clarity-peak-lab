@@ -524,10 +524,6 @@ const Home = () => {
           </motion.section>
         )}
 
-        {/* Top action suggestion */}
-        {isViewingToday && topSuggestion && (
-          <SmartSuggestionCard suggestion={topSuggestion} index={0} />
-        )}
 
         {/* Single priority — Whoop-style focus, secondary suggestions removed for calm */}
 
