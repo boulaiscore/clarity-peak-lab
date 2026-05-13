@@ -459,6 +459,18 @@ export function WeeklyGoalCard({
                   <span className="text-[10px] text-muted-foreground/50">Optimal Zone</span>
                   <span className="text-[12px] font-bold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
                 </div>
+
+                {/* Overtraining disclaimer — shift focus to recovery activities */}
+                {adaptiveStatus.status === "above" && (
+                  <div className="mt-2 px-3 py-2 rounded-lg bg-amber-500/[0.06] border border-amber-400/[0.18]">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-300/90 mb-0.5">
+                      Shift Focus
+                    </p>
+                    <p className="text-[11px] text-foreground/70 leading-snug">
+                      Training XP is above your optimal load. Prioritize <span className="text-foreground/90 font-medium">Quality Time</span> and <span className="text-foreground/90 font-medium">Recover</span> to consolidate gains.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Expand chevron */}
