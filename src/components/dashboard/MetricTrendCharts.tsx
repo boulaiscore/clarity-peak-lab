@@ -539,7 +539,9 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
 }
 
 export function MetricTrendCharts() {
-  const { history: weeklyHistory, isLoading: weeklyLoading } = useMetricHistory({ days: 7 });
+  // forwardFill keeps the trend continuous on days the user didn't open the app
+  // (the last known snapshot is carried forward until a fresher one exists).
+  const { history: weeklyHistory, isLoading: weeklyLoading } = useMetricHistory({ days: 7, forwardFill: true, lookbackDays: 60 });
   const { history: intradayHistory, isLoading: intradayLoading } = useIntradayMetricHistory();
   
   const isLoading = weeklyLoading || intradayLoading;
