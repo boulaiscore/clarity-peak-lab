@@ -163,6 +163,31 @@ const SubscriptionPage = () => {
           </Button>
         )}
 
+        {/* Billing cycle toggle */}
+        <div className="flex items-center justify-center mb-5">
+          <div className="inline-flex p-1 rounded-full bg-muted/50 border border-border">
+            {(["monthly", "yearly"] as BillingCycle[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => setCycle(c)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-xs font-medium transition-all capitalize",
+                  cycle === c
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {c === "yearly" ? (
+                  <span className="flex items-center gap-1.5">
+                    Yearly
+                    <span className="text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">2 mo free</span>
+                  </span>
+                ) : "Monthly"}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Plans */}
         <div className="space-y-3">
           {plans.map((plan) => {
