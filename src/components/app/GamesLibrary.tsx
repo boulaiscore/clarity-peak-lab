@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Sparkles, Compass, Lock, Star } from "lucide-react";
+import { ChevronDown, Lock, Star } from "lucide-react";
+import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
@@ -134,7 +135,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
       <div className="space-y-5">
       {SYSTEMS.map((system) => {
         const isOpen = openSystem === system.id;
-        const Icon = system.id === "fast" ? Sparkles : Compass;
+        const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
 
         return (
           <div key={system.id} className="space-y-2.5">
@@ -157,7 +158,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                     boxShadow: `inset 0 0 0 1px ${system.accentColor}30`,
                   }}
                 >
-                  <Icon className="w-4 h-4" style={{ color: system.accentColor }} />
+                  <Icon className="w-5 h-5" color={system.accentColor} strokeWidth={1.4} />
                 </div>
 
                 <div>

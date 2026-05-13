@@ -1,5 +1,6 @@
 import React from "react";
-import { Sparkles, Compass, BarChart3, ArrowRight, Info } from "lucide-react";
+import { BarChart3, ArrowRight, Info } from "lucide-react";
+import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 
 function classify(score: number) {
   if (score >= 85) return { label: "ELITE", color: "#1b5e20", bg: "#e8f5e9" };
@@ -110,7 +111,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
         {/* System 1 */}
         <div className="system-card system1" style={{ borderColor: fastClass.color }}>
           <div className="system-header" style={{ background: "#f5f0e6" }}>
-            <Sparkles size={22} color="#C6A86D" strokeWidth={1.5} />
+            <SystemOneMark size={26} color="#C6A86D" strokeWidth={1.3} />
             <div>
               <h3>SYSTEM 1 — Fast Thinking</h3>
               <span className="system-subtitle">Intuitive, Automatic Processing</span>
@@ -165,7 +166,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
         {/* System 2 */}
         <div className="system-card system2" style={{ borderColor: slowClass.color }}>
           <div className="system-header" style={{ background: "#f0eef6" }}>
-            <Compass size={22} color="#7B6FA8" strokeWidth={1.5} />
+            <SystemTwoMark size={26} color="#7B6FA8" strokeWidth={1.3} />
             <div>
               <h3>SYSTEM 2 — Slow Thinking</h3>
               <span className="system-subtitle">Deliberate, Analytical Processing</span>
