@@ -16,6 +16,10 @@ interface RecoveryBatteryCardProps {
   isLoading?: boolean;
   deltaVsYesterday?: string | null;
   onClick?: () => void;
+  /** Active acute boost in REC points (display-layer only). 0 = none. */
+  acuteBoost?: number;
+  /** Minutes remaining until acute boost decays to 0 */
+  acuteBoostRemainingMinutes?: number;
 }
 
 const SEGMENTS = 20;
