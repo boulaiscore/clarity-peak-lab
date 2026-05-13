@@ -322,7 +322,7 @@ export default function NeuroLab() {
               {!recoveryLoading && (
                 <button
                   onClick={() => setActiveTab(ctaTab)}
-                  className="w-full h-10 rounded-xl bg-primary text-primary-foreground text-[12px] font-semibold tracking-wide active:scale-[0.98] transition-transform"
+                  className="w-full h-10 rounded-xl border border-border/50 bg-foreground/[0.04] hover:bg-foreground/[0.08] hover:border-border/70 text-foreground/90 text-[11px] font-medium uppercase tracking-[0.18em] active:scale-[0.99] transition-all"
                 >
                   {ctaLabel}
                 </button>
