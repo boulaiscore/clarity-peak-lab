@@ -236,6 +236,37 @@ export function CognitiveAgeTrendChart() {
       }
     }
 
+    // Compute dot anchors:
+    // - One dot at the end of each 7-day window (and last point)
+    // - Plus dots at trend inflections (slope sign changes between consecutive non-null values)
+    const lastIdx = allDays.length - 1;
+    const EPSILON = 0.05;
+    let prevValid: { idx: number; value: number } | null = null;
+    let prevDelta: number | null = null;
+    for (let i = 0; i < allDays.length; i++) {
+      const p = allDays[i];
+      if (p.cognitiveAge === null) continue;
+
+      // Weekly anchor: every 7 days from the end (so today is always anchored)
+      const fromEnd = lastIdx - i;
+      if (fromEnd % 7 === 0) p.showDot = true;
+
+      // Trend inflection
+      if (prevValid !== null) {
+        const delta = p.cognitiveAge - prevValid.value;
+        if (Math.abs(delta) > EPSILON) {
+          if (prevDelta !== null && Math.sign(delta) !== Math.sign(prevDelta) && Math.abs(prevDelta) > EPSILON) {
+            // Inflection happened at prevValid (the pivot)
+            allDays[prevValid.idx].showDot = true;
+          }
+          prevDelta = delta;
+        }
+      }
+      prevValid = { idx: i, value: p.cognitiveAge };
+    }
+    // Always anchor the last valid point
+    if (prevValid) allDays[prevValid.idx].showDot = true;
+
     return { displayData: allDays, currentRealAge: realAge };
   }, [chartSources, liveCognitiveAge?.cognitiveAge]);
 
