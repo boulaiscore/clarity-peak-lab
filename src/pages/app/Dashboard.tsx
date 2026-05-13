@@ -9,7 +9,7 @@ import { GamesStats } from "@/components/dashboard/GamesStats";
 import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
-import { WearableConnectionPrompt } from "@/components/dashboard/WearableConnectionPrompt";
+
 import { Button } from "@/components/ui/button";
 import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Sparkles, LineChart, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -136,9 +136,6 @@ const Dashboard = () => {
 
         {/* Baseline Status - shows only when calibration is needed */}
         <BaselineStatusCard />
-
-        {/* Wearable Connection Prompt - shows when not connected */}
-        <WearableConnectionPrompt />
 
         {/* Tab Content */}
         {activeTab === "insights" ?
