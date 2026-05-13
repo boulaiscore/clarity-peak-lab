@@ -110,32 +110,6 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
     }
 
     // Walk full fetched range, carrying forward last seen value per metric.
-    let last: MetricDataPoint = {
-      date: "",
-      readiness: null,
-      sharpness: null,
-      recovery: null,
-      reasoningQuality: null,
-      s1: null,
-      s2: null,
-    };
-
-    const filled: MetricDataPoint[] = [];
-    for (let i = fetchDays - 1; i >= 0; i--) {
-      const dateStr = format(subDays(new Date(), i), "yyyy-MM-dd");
-      const row = byDate.get(dateStr);
-      if (row) {
-        last = {
-          date: dateStr,
-          readiness: row.readiness != null ? Number(row.readiness) : last.readiness,
-          sharpness: row.sharpness != null ? Number(row.sharpness) : last.sharpness,
-          recovery: row.recovery != null ? Number(row.recovery) : last.recovery,
-          reasoningQuality: row.reasoning_quality != null ? Number(row.reasoning_quality) : last.reasoningQuality,
-          s1: row.s1 != null ? Number(row.s1) : last.s1,
-          s2: row.s2 != null ? Number(row.s2) : last.s2,
-        };
-      }
-    // Walk full fetched range, carrying forward last seen value per metric.
     // While carrying forward, apply LOOMA decay rules so flat plateaus don't
     // misrepresent inactivity:
     //   - Recovery: continuous exponential decay (half-life REC_HALF_LIFE_HOURS).
