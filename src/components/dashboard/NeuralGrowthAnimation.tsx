@@ -391,7 +391,7 @@ export function NeuralGrowthAnimation({
             <div className="space-y-1 text-left px-3 pb-3">
               <div className="flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-1.5">
-                  <Zap className="w-3 h-3 text-primary/60" />
+                  <SystemOneMark className="w-3.5 h-3.5 text-primary/70" strokeWidth={1.4} />
                   <span className="text-muted-foreground">Fast + Slow Thinking</span>
                 </div>
                 <span className={thinkingStatus.color}>{thinkingStatus.label}</span>
