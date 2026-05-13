@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Sparkles, Compass, Lock, Star } from "lucide-react";
+import { ChevronDown, Lock, Star } from "lucide-react";
+import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
