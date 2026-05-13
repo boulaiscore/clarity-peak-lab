@@ -101,7 +101,7 @@ export default function RechargingRunner() {
     setCurrentPhase("post-check");
   }, []);
 
-  const handlePostCheckComplete = useCallback((postCheckValues: RechargingCheckValues) => {
+  const handlePostCheckComplete = useCallback(async (postCheckValues: RechargingCheckValues) => {
     if (!preCheckValues || !selectedMode) return;
 
     const { score, level, deltas } = calculateRechargingScore(preCheckValues, postCheckValues);
@@ -117,7 +117,23 @@ export default function RechargingRunner() {
     });
     
     setCurrentPhase("results");
-  }, [preCheckValues, selectedMode, sessionDuration]);
+
+    // Apply Acute Recovery Boost (display-layer only, transient)
+    try {
+      const res = await applyBoost({
+        durationSeconds: sessionDuration,
+        preMentalNoise: preCheckValues.mentalNoise,
+        postMentalNoise: postCheckValues.mentalNoise,
+        preCognitiveFatigue: preCheckValues.cognitiveFatigue,
+        postCognitiveFatigue: postCheckValues.cognitiveFatigue,
+        preReadinessToClear: preCheckValues.readinessToClear,
+        postReadinessToClear: postCheckValues.readinessToClear,
+      });
+      if (res) setAppliedBoost(res.initialBoost);
+    } catch (e) {
+      console.warn("[RechargingRunner] applyBoost failed", e);
+    }
+  }, [preCheckValues, selectedMode, sessionDuration, applyBoost]);
 
   const handleFinish = useCallback(() => {
     navigate("/neuro-lab");
