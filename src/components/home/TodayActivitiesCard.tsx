@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useTodayActivities } from "@/hooks/useTodayActivities";
 import { cn } from "@/lib/utils";
 
-const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  train: Brain,
-  quality: BookOpen,
-  recover: Wind,
+const ICONS: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  train: Brain as any,
+  quality: BookOpen as any,
+  recover: Wind as any,
 };
 
 const ROUTES: Record<string, string> = {
