@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Zap, Timer, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { motion } from "framer-motion";
 import { DualProcessTrendChart } from "./DualProcessTrendChart";
 
