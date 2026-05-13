@@ -244,5 +244,3 @@ const SubscriptionPage = () => {
 };
 
 export default SubscriptionPage;
-
-export default SubscriptionPage;
