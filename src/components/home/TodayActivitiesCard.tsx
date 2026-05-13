@@ -59,26 +59,6 @@ export function TodayActivitiesCard({ outlook }: TodayActivitiesCardProps) {
         Today
       </h2>
 
-      {/* Daily Outlook */}
-      <button
-        onClick={() => navigate("/app/dashboard")}
-        className={cn(
-          "w-full flex items-center gap-3 p-3 rounded-2xl mb-2.5",
-          "bg-card/40 border border-border/40 hover:bg-card/60 hover:border-border/60",
-          "transition-colors active:scale-[0.99] text-left",
-        )}
-      >
-        <div className="w-7 h-7 rounded-lg bg-foreground/[0.06] flex items-center justify-center flex-shrink-0">
-          <span className="text-[10px] font-semibold tracking-wider text-foreground/80">L</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/55 mb-0.5">
-            Daily Outlook
-          </p>
-          <p className="text-[12px] font-medium text-foreground/90 truncate">{outlook.line}</p>
-        </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
-      </button>
 
       {/* End-of-day session list */}
       {isLoading ? (
