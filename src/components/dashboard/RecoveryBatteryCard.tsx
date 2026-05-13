@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
+import { formatRemainingMinutes } from "@/lib/recovery/acuteBoost";
 
 interface RecoveryBatteryCardProps {
   recovery: number;
