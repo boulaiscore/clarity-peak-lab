@@ -43,6 +43,8 @@ export function RecoveryBatteryCard({
   isLoading,
   deltaVsYesterday,
   onClick,
+  acuteBoost = 0,
+  acuteBoostRemainingMinutes = 0,
 }: RecoveryBatteryCardProps) {
   if (isLoading) {
     return (
