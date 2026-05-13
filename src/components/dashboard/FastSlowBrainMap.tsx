@@ -593,7 +593,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
             >
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <Timer className="w-3 h-3 text-area-slow/70" />
+                  <SystemTwoMark className="w-3.5 h-3.5 text-area-slow/80" strokeWidth={1.4} />
                   <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 2</span>
                 </div>
                 <span className={cn("text-[10px] font-semibold", slowBand.color)}>{slowBand.band}</span>
