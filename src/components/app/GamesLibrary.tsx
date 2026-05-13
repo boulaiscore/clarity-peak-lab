@@ -133,6 +133,15 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
 
   return (
     <div className="space-y-5">
+      {/* XP Explanation */}
+      <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/30">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <span className="font-medium text-foreground">System 1</span> trains fast intuitive thinking — pattern recognition and reaction speed.{" "}
+          <span className="font-medium text-foreground">System 2</span> trains slow analytical thinking — reasoning and structured analysis.
+          Both award <span className="font-medium text-foreground">Cognitive XP</span> that fuels Sharpness, Readiness and Reasoning Quality.
+        </p>
+      </div>
+
       {/* System selector — two horizontal AI-art cards (matches Quality Time / Recover) */}
       <div className="grid grid-cols-2 gap-3">
         {SYSTEMS.map((system) => {
