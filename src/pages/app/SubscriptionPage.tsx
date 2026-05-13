@@ -1,18 +1,14 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { usePremiumGating } from "@/hooks/usePremiumGating";
-import { Crown, Check, User, Rocket, ArrowRight } from "lucide-react";
+import { Crown, Check, User, Rocket, ArrowRight, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import { getPaddleEnvironment } from "@/lib/paddle";
+import { toast } from "sonner";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const plans = [
   {
