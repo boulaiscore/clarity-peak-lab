@@ -19,6 +19,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format, parseISO, differenceInDays } from "date-fns";
+import {
+  calculateChronologicalAgeAtDate,
+  calculateCognitiveAgeFromPerformance,
+  getInactiveDays,
+  maxIsoDate,
+} from "@/lib/cognitiveAge";
 
 // ==========================================
 // TYPES
@@ -143,7 +149,7 @@ export function useCognitiveAge() {
     staleTime: 5 * 60_000,
   });
 
-  // 3b) Fetch user profile for birth_date
+  // 3b) Fetch user profile for chronological-age anchor
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile-birthdate", user?.id],
     queryFn: async () => {
@@ -151,7 +157,7 @@ export function useCognitiveAge() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("birth_date")
+        .select("birth_date, created_at")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -160,6 +166,33 @@ export function useCognitiveAge() {
     },
     enabled: !!user?.id,
     staleTime: 5 * 60_000,
+  });
+
+  // 3c) Fetch latest meaningful activity to penalize long inactivity.
+  const { data: lastActivityAt, isLoading: activityLoading } = useQuery({
+    queryKey: ["cognitive-age-last-activity", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const [game, reason, detox, walk] = await Promise.all([
+        supabase.from("game_sessions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("reason_sessions").select("ended_at").eq("user_id", user.id).not("ended_at", "is", null).order("ended_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("detox_completions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("walking_sessions").select("completed_at").eq("user_id", user.id).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+      ]);
+
+      const firstError = game.error || reason.error || detox.error || walk.error;
+      if (firstError) throw firstError;
+
+      return maxIsoDate([
+        game.data?.completed_at,
+        reason.data?.ended_at,
+        detox.data?.completed_at,
+        walk.data?.completed_at,
+      ]);
+    },
+    enabled: !!user?.id,
+    staleTime: 60_000,
   });
 
   // 4) Fetch recent daily snapshots for live performance calculation
