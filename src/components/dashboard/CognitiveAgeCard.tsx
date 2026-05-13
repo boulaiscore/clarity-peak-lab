@@ -164,7 +164,7 @@ interface PrimaryInsightProps {
 }
 
 function PrimaryInsight({ cognitiveAge, chronoAge, paceX, isCalibrating }: PrimaryInsightProps) {
-  const { title, body } = useMemo_insight(cognitiveAge, chronoAge, paceX, isCalibrating);
+  const { title, body } = computeInsight(cognitiveAge, chronoAge, paceX, isCalibrating);
 
   return (
     <motion.div
