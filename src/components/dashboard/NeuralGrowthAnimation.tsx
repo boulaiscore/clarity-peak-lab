@@ -450,7 +450,7 @@ export function NeuralGrowthAnimation({
                       ? "bg-blue-500/20"
                       : "bg-primary/20"
                 }`}>
-                  {bottleneck.variable === "thinking" && <Zap className="w-4 h-4 text-primary" />}
+                  {bottleneck.variable === "thinking" && <SystemOneMark className="w-4 h-4 text-primary" strokeWidth={1.4} />}
                   {bottleneck.variable === "training" && <Target className="w-4 h-4 text-blue-400" />}
                   {bottleneck.variable === "recovery" && <Moon className="w-4 h-4 text-purple-400" />}
                 </div>
