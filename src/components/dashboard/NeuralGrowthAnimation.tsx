@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Info, Zap, Target, Moon, ArrowRight, HelpCircle } from "lucide-react";
+import { SystemOneMark } from "@/components/icons/ThinkingSystemIcons";
 import {
   Tooltip,
   TooltipContent,
