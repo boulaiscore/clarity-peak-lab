@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { Check, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -13,62 +13,60 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 type BillingCycle = "monthly" | "yearly";
 type PaidPlanId = "pro" | "elite";
 
-const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; amount: string; suffix: string; perMonth?: string }>> = {
+const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; amount: string; period: string; perMonth?: string }>> = {
   pro: {
-    monthly: { priceId: "looma_pro_monthly", amount: "19.90", suffix: "USD / month" },
-    yearly: { priceId: "looma_pro_yearly", amount: "199", suffix: "USD / year", perMonth: "$16.58/mo" },
+    monthly: { priceId: "looma_pro_monthly", amount: "19.90", period: "month" },
+    yearly: { priceId: "looma_pro_yearly", amount: "199", period: "year", perMonth: "$16.58 / month" },
   },
   elite: {
-    monthly: { priceId: "looma_elite_monthly", amount: "29.90", suffix: "USD / month" },
-    yearly: { priceId: "looma_elite_yearly", amount: "299", suffix: "USD / year", perMonth: "$24.92/mo" },
+    monthly: { priceId: "looma_elite_monthly", amount: "29.90", period: "month" },
+    yearly: { priceId: "looma_elite_yearly", amount: "299", period: "year", perMonth: "$24.92 / month" },
   },
 };
 
 type BasePlan = {
   id: "free" | PaidPlanId;
   name: string;
-  monogram: string;
   tagline: string;
   features: string[];
+  highlighted?: boolean;
 };
 
 const basePlans: BasePlan[] = [
   {
     id: "free",
     name: "Free",
-    monogram: "00",
-    tagline: "Observe your cognitive state",
+    tagline: "Explore cognitive training at your own pace.",
     features: [
-      "Daily readiness, sharpness, recovery",
-      "3 training sessions / day",
-      "Core System 1 drills",
-      "Weekly summary",
+      "2 sessions/day",
+      "Limited S1 & S2 games",
+      "Core dashboard",
+      "Baseline calibration",
     ],
   },
   {
     id: "pro",
     name: "Pro",
-    monogram: "01",
-    tagline: "Train and recover, every day",
+    tagline: "The complete cognitive training experience for high performers.",
+    highlighted: true,
     features: [
-      "Unlimited training sessions",
-      "System 2 — critical thinking drills",
-      "Wearable sync (HRV, sleep, RHR)",
-      "Quality Time library",
-      "Full trends dashboard",
+      "Unlimited sessions",
+      "Full training library",
+      "Load & Capacity tracking",
+      "Monthly performance report",
+      "Personalized recommendations",
     ],
   },
   {
     id: "elite",
     name: "Elite",
-    monogram: "02",
-    tagline: "Coached recovery for high-stakes work",
+    tagline: "Deeper cognitive supervision and advanced reasoning insights.",
     features: [
       "Everything in Pro",
-      "Monthly Cognitive Intelligence Report",
-      "Personalized recovery protocol",
-      "Decision Quality scenarios (early access)",
-      "Priority support",
+      "Expanded S2 access",
+      "Reasoning Quality insights",
+      "On-demand reports",
+      "Weekly cognitive brief",
     ],
   },
 ];
@@ -112,80 +110,68 @@ const SubscriptionPage = () => {
 
   return (
     <AppShell>
-      <div className="container px-5 py-10 sm:py-14 max-w-xl mx-auto">
-        {/* Header — editorial spacing */}
-        <div className="mb-10">
-          <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground/60 mb-3">
-            Membership
-          </p>
-          <h1 className="text-[28px] leading-tight font-light tracking-tight">
-            Choose your tier.
+      <div className="container px-5 py-12 sm:py-16 max-w-6xl mx-auto">
+        {/* Header — LOOMA marketing style */}
+        <div className="text-center mb-10 sm:mb-14">
+          <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-foreground">
+            Choose Your Level
           </h1>
-          <p className="text-[13px] text-muted-foreground/80 mt-2 max-w-sm">
-            Built for professionals who treat cognition as performance.
+          <p className="text-sm sm:text-base text-muted-foreground/80 mt-4 font-light">
+            Start free. Upgrade when you're ready to go deeper.
           </p>
         </div>
 
-        {/* Current plan — minimal hairline status */}
-        <div className="flex items-center justify-between py-4 border-y border-border/60 mb-10">
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground/60 mb-1">
-              Current plan
-            </p>
-            <p className="text-sm font-medium capitalize tracking-tight">
-              {isActive ? tier : "Free"}
-              {cancelAtPeriodEnd && currentPeriodEnd && (
-                <span className="ml-2 text-[10px] text-muted-foreground/70 font-normal uppercase tracking-wider">
-                  · ends {new Date(currentPeriodEnd).toLocaleDateString()}
-                </span>
-              )}
-            </p>
+        {/* Status row — current plan + manage billing */}
+        {(isActive || paddleSubscriptionId) && (
+          <div className="flex items-center justify-center gap-6 mb-10 text-[11px] uppercase tracking-[0.2em]">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  cancelAtPeriodEnd ? "bg-amber-400" : "bg-emerald-400"
+                )}
+              />
+              <span className="text-muted-foreground">
+                {cancelAtPeriodEnd ? "Canceling" : "Active"} · {tier}
+                {cancelAtPeriodEnd && currentPeriodEnd && (
+                  <span className="ml-1 normal-case tracking-normal opacity-70">
+                    until {new Date(currentPeriodEnd).toLocaleDateString()}
+                  </span>
+                )}
+              </span>
+            </div>
+            {paddleSubscriptionId && (
+              <button
+                onClick={openPortal}
+                className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Manage billing
+                <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                isActive
-                  ? cancelAtPeriodEnd
-                    ? "bg-amber-400"
-                    : "bg-emerald-400"
-                  : "bg-muted-foreground/40"
-              )}
-            />
-            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
-              {isActive ? (cancelAtPeriodEnd ? "Canceling" : "Active") : "Free"}
-            </span>
-          </div>
-        </div>
-
-        {paddleSubscriptionId && (
-          <button
-            onClick={openPortal}
-            className="group flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground transition-colors mb-10"
-          >
-            Manage billing
-            <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity" />
-          </button>
         )}
 
-        {/* Billing cycle toggle — minimal segmented */}
-        <div className="flex items-center justify-center mb-10">
-          <div className="inline-flex border border-border/60 rounded-full p-0.5">
+        {/* Billing cycle toggle */}
+        <div className="flex items-center justify-center mb-10 sm:mb-12">
+          <div className="inline-flex border border-border/60 rounded-full p-1 bg-card/40">
             {(["monthly", "yearly"] as BillingCycle[]).map((c) => (
               <button
                 key={c}
                 onClick={() => setCycle(c)}
                 className={cn(
-                  "px-5 py-2 rounded-full text-[11px] uppercase tracking-[0.16em] transition-all",
+                  "px-6 py-2 rounded-full text-[11px] uppercase tracking-[0.18em] transition-all",
                   cycle === c
-                    ? "bg-foreground text-background"
+                    ? "bg-foreground text-background shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {c === "yearly" ? (
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-2">
                     Yearly
-                    <span className="text-[8px] tracking-[0.2em] opacity-70">−17%</span>
+                    <span className="text-[9px] tracking-[0.2em] opacity-80 normal-case">
+                      2 months free
+                    </span>
                   </span>
                 ) : (
                   "Monthly"
@@ -195,111 +181,167 @@ const SubscriptionPage = () => {
           </div>
         </div>
 
-        {/* Plans — editorial tier cards */}
-        <div className="space-y-px bg-border/40 rounded-2xl overflow-hidden border border-border/60">
+        {/* Plans — three cards side-by-side */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-stretch">
           {basePlans.map((plan) => {
             const isCurrent = plan.id === currentPlanId;
-            const isElite = plan.id === "elite";
             const isPaid = plan.id !== "free";
             const pricing = isPaid ? PLAN_PRICING[plan.id as PaidPlanId][cycle] : null;
+            const highlighted = plan.highlighted;
 
             return (
               <div
                 key={plan.id}
                 className={cn(
-                  "relative p-6 sm:p-7 bg-background transition-colors",
-                  isCurrent && "bg-card"
+                  "relative rounded-3xl p-7 sm:p-8 flex flex-col transition-all",
+                  highlighted
+                    ? "bg-gradient-to-br from-[hsl(220_45%_45%)] via-[hsl(225_50%_38%)] to-[hsl(230_55%_28%)] text-white shadow-2xl shadow-primary/20 md:-my-3 md:scale-[1.03]"
+                    : "bg-gradient-to-b from-card to-card/40 border border-border/50 text-foreground"
                 )}
               >
-                {/* Top row: monogram + name + price */}
-                <div className="flex items-start justify-between mb-5">
-                  <div className="flex items-center gap-4">
-                    <span
-                      className={cn(
-                        "text-[10px] tracking-[0.22em] tabular-nums",
-                        isElite ? "text-foreground" : "text-muted-foreground/60"
-                      )}
-                    >
-                      {plan.monogram}
+                {/* MOST POPULAR badge */}
+                {highlighted && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="inline-block bg-background text-foreground text-[10px] uppercase tracking-[0.22em] px-4 py-1.5 rounded-full font-medium shadow-md border border-border/50">
+                      Most Popular
                     </span>
-                    <div className="h-px w-6 bg-border/80" />
-                    <div>
-                      <h3 className="text-base font-medium tracking-tight">
-                        {plan.name}
-                      </h3>
-                      {isCurrent && (
-                        <span className="text-[9px] uppercase tracking-[0.22em] text-emerald-400/90">
-                          Current
-                        </span>
-                      )}
-                    </div>
                   </div>
+                )}
 
-                  <div className="text-right">
-                    {pricing ? (
-                      <>
-                        <div className="flex items-baseline justify-end gap-1">
-                          <span className="text-[11px] text-muted-foreground/70 font-light">$</span>
-                          <span className="text-2xl font-light tabular-nums tracking-tight">
-                            {pricing.amount}
-                          </span>
-                        </div>
-                        <p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5">
-                          {pricing.suffix}
-                        </p>
-                        {pricing.perMonth && (
-                          <p className="text-[9px] tracking-wider text-muted-foreground/50 mt-0.5 tabular-nums">
-                            ≈ {pricing.perMonth}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-2xl font-light tabular-nums tracking-tight">
-                          $0
-                        </span>
-                        <p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5">
-                          Forever
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
+                {/* Plan name */}
+                <h3
+                  className={cn(
+                    "text-xl font-medium tracking-tight mb-3",
+                    highlighted ? "text-white" : "text-foreground"
+                  )}
+                >
+                  {plan.name}
+                </h3>
 
                 {/* Tagline */}
-                <p className="text-[12px] text-muted-foreground/80 mb-5 font-light leading-relaxed">
+                <p
+                  className={cn(
+                    "text-[13px] font-light leading-relaxed mb-7 min-h-[3em]",
+                    highlighted ? "text-white/85" : "text-muted-foreground"
+                  )}
+                >
                   {plan.tagline}
                 </p>
 
-                {/* Features — minimalist list, no colored checks */}
-                <ul className="space-y-2 mb-6">
+                {/* Price */}
+                <div className="mb-7">
+                  {pricing ? (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                        <span
+                          className={cn(
+                            "text-5xl font-light tabular-nums tracking-tight",
+                            highlighted ? "text-white" : "text-foreground"
+                          )}
+                        >
+                          ${pricing.amount}
+                        </span>
+                        <span
+                          className={cn(
+                            "text-sm font-light",
+                            highlighted ? "text-white/70" : "text-muted-foreground"
+                          )}
+                        >
+                          / {pricing.period}
+                        </span>
+                      </div>
+                      {cycle === "yearly" && pricing.perMonth && (
+                        <p
+                          className={cn(
+                            "text-[11px] mt-2 tabular-nums font-light",
+                            highlighted ? "text-white/70" : "text-muted-foreground/70"
+                          )}
+                        >
+                          ≈ {pricing.perMonth} · 2 months free
+                        </p>
+                      )}
+                      {cycle === "monthly" && (
+                        <p
+                          className={cn(
+                            "text-[11px] mt-2 font-light",
+                            highlighted ? "text-white/60" : "text-muted-foreground/60"
+                          )}
+                        >
+                          Billed monthly
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-5xl font-light tabular-nums tracking-tight text-foreground">
+                          $0
+                        </span>
+                        <span className="text-sm font-light text-muted-foreground">
+                          forever
+                        </span>
+                      </div>
+                      <p className="text-[11px] mt-2 font-light text-muted-foreground/60">
+                        No card required
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Features */}
+                <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((f) => (
                     <li
                       key={f}
-                      className="flex items-start gap-3 text-[12px] text-foreground/75 font-light leading-snug"
+                      className={cn(
+                        "flex items-start gap-3 text-[13px] font-light leading-snug",
+                        highlighted ? "text-white/95" : "text-foreground/85"
+                      )}
                     >
-                      <span className="mt-[7px] w-1 h-px bg-foreground/40 shrink-0" />
+                      <Check
+                        className={cn(
+                          "w-4 h-4 mt-[2px] shrink-0",
+                          highlighted ? "text-white/90" : "text-foreground/70"
+                        )}
+                        strokeWidth={2}
+                      />
                       {f}
                     </li>
                   ))}
                 </ul>
 
                 {/* CTA */}
-                {isPaid && !isCurrent && (
+                {isCurrent ? (
+                  <div
+                    className={cn(
+                      "w-full h-12 rounded-full flex items-center justify-center text-[11px] uppercase tracking-[0.22em] font-medium",
+                      highlighted
+                        ? "bg-white/15 text-white border border-white/20"
+                        : "bg-muted/40 text-muted-foreground border border-border/40"
+                    )}
+                  >
+                    Current Plan
+                  </div>
+                ) : isPaid ? (
                   <Button
                     onClick={() => handleSelectPlan(plan.id as PaidPlanId)}
                     disabled={loading}
-                    variant={isElite ? "default" : "outline"}
                     className={cn(
-                      "w-full h-11 rounded-full text-[11px] uppercase tracking-[0.2em] font-medium",
-                      isElite
-                        ? "bg-foreground text-background hover:bg-foreground/90"
-                        : "border-border/80 hover:bg-card"
+                      "w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
+                      highlighted
+                        ? "bg-white text-foreground hover:bg-white/90"
+                        : "bg-foreground text-background hover:bg-foreground/90"
                     )}
                   >
-                    {currentPlanId !== "free" && plan.id === "elite"
-                      ? "Upgrade to Elite"
-                      : `Choose ${plan.name}`}
+                    Start with {plan.name}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => navigate("/app")}
+                    variant="outline"
+                    className="w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium border-border/60 bg-foreground text-background hover:bg-foreground/90 border-0"
+                  >
+                    Try It For Free
                   </Button>
                 )}
               </div>
@@ -307,11 +349,12 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        {/* Footer — disclaimer */}
-        <p className="text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground/40 mt-8">
-          {cycle === "yearly"
-            ? "Annual · auto-renews · cancel anytime"
-            : "Monthly · auto-renews · cancel anytime"}
+        {/* Footer disclaimer */}
+        <p className="text-center text-[12px] text-muted-foreground/60 mt-12 max-w-xl mx-auto font-light leading-relaxed">
+          XP measures training volume, not intelligence. LOOMA adapts difficulty, load, and insight depth to your cognitive profile.
+        </p>
+        <p className="text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 mt-4">
+          {cycle === "yearly" ? "Annual" : "Monthly"} · auto-renews · cancel anytime
         </p>
       </div>
     </AppShell>
