@@ -9,6 +9,8 @@ import gameAeBg from "@/assets/game-ae-bg.jpg";
 import gameRaBg from "@/assets/game-ra-bg.jpg";
 import gameCtBg from "@/assets/game-ct-bg.jpg";
 import gameInBg from "@/assets/game-in-bg.jpg";
+import s1Bg from "@/assets/s1-bg.jpg";
+import s2Bg from "@/assets/s2-bg.jpg";
 
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
@@ -130,151 +132,134 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
   };
 
   return (
-    <div className="space-y-6">
-      {/* Two system blocks — premium card stack */}
-      <div className="space-y-5">
-      {SYSTEMS.map((system) => {
-        const isOpen = openSystem === system.id;
-        const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
-
-        return (
-          <div key={system.id} className="space-y-2.5">
-            {/* System header — Whoop summary row */}
+    <div className="space-y-5">
+      {/* System selector — two horizontal AI-art cards (matches Quality Time / Recover) */}
+      <div className="grid grid-cols-2 gap-3">
+        {SYSTEMS.map((system) => {
+          const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
+          const isOpen = openSystem === system.id;
+          const bg = system.id === "fast" ? s1Bg : s2Bg;
+          return (
             <button
+              key={system.id}
               onClick={() => handleSystemToggle(system.id)}
               className={cn(
-                "group w-full flex items-center justify-between px-4 py-4 rounded-2xl border transition-all duration-200 text-left",
-                "bg-card/40 backdrop-blur-sm",
+                "group relative w-full flex flex-col items-center justify-end gap-2 p-4 pt-20 rounded-2xl border transition-all overflow-hidden text-center",
                 isOpen
-                  ? "border-border/70"
+                  ? "border-foreground/30"
                   : "border-border/30 hover:border-border/60"
               )}
             >
-              <div className="flex items-center gap-3.5">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: `linear-gradient(135deg, ${system.accentColor}28, ${system.accentColor}10)`,
-                    boxShadow: `inset 0 0 0 1px ${system.accentColor}30`,
-                  }}
-                >
-                  <Icon className="w-5 h-5" color={system.accentColor} strokeWidth={1.4} />
-                </div>
+              <img
+                src={bg}
+                alt={system.label}
+                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
 
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-[15px] font-semibold text-foreground tracking-tight">
-                      {system.label}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70">
-                      {system.id === "fast" ? "Fast" : "Slow"}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground/85 mt-0.5 leading-snug">
-                    {system.sublabel}
-                  </p>
-                </div>
+              <div className="absolute top-3 left-3 z-10">
+                <Icon className="w-4 h-4" color="rgba(255,255,255,0.9)" strokeWidth={1.4} />
               </div>
 
-              <motion.div
-                animate={{ rotate: isOpen ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="w-7 h-7 rounded-full border border-border/40 flex items-center justify-center"
-              >
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-              </motion.div>
+              <div className="relative z-10">
+                <p className="font-semibold text-sm text-white tracking-tight">{system.label}</p>
+                <p className="text-[10px] text-white/70 mt-0.5">
+                  {system.id === "fast" ? "Fast · automatic" : "Slow · controlled"}
+                </p>
+              </div>
             </button>
-
-            {/* Module rows — animated */}
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  key="content"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-2 pt-1">
-                    {system.areas.map((area) => {
-                      const gating = games[area.gameType];
-                      // Gating removed — all S1/S2 sub-skills always accessible
-                      const isLocked = false;
-                      const lockLabel = "";
-                      const isPicked = pickedGameType === area.gameType;
-                      return (
-                        <button
-                          key={area.gameType}
-                          onClick={() => {
-                            if (isLocked) return;
-                            handleGameTypeClick(area.areaId, system.id, area.gameType);
-                          }}
-                          disabled={isLocked}
-                          className={cn(
-                            "group relative w-full flex items-center gap-3.5 p-2.5 pr-4 rounded-2xl border text-left transition-all overflow-hidden",
-                            "bg-card/40 backdrop-blur-sm",
-                            isLocked
-                              ? "border-border/20 cursor-not-allowed"
-                              : "border-border/40 hover:border-border/70 active:scale-[0.99]",
-                            isPicked && !isLocked && "border-transparent"
-                          )}
-                          style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px ${system.accentColor}` } : undefined}
-                        >
-                          {/* Thumbnail — Oura-style hero tile */}
-                          <div className="relative w-[68px] h-[68px] flex-shrink-0 rounded-xl overflow-hidden">
-                            <div
-                              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                              style={{ backgroundImage: `url(${area.bgImage})` }}
-                            />
-                            <div className={cn(
-                              "absolute inset-0",
-                              isLocked ? "bg-black/65" : "bg-gradient-to-br from-black/30 via-black/15 to-black/45"
-                            )} />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <span
-                                className="text-[15px] font-bold tracking-[0.12em] text-white drop-shadow"
-                                style={{ textShadow: `0 0 12px ${system.accentColor}90` }}
-                              >
-                                {area.code}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Title + sublabel */}
-                          <div className={cn("flex-1 min-w-0", isLocked && "opacity-55")}>
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-[14px] font-semibold text-foreground tracking-tight truncate">
-                                {area.name}
-                              </p>
-                              {isPicked && !isLocked && (
-                                <Star className="w-3 h-3 flex-shrink-0" style={{ color: system.accentColor }} fill="currentColor" />
-                              )}
-                            </div>
-                            <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug truncate">
-                              {isLocked ? lockLabel : area.subLabel}
-                            </p>
-                          </div>
-
-                          {/* Right-side affordance */}
-                          <div className="flex-shrink-0">
-                            {isLocked ? (
-                              <Lock className="w-3.5 h-3.5 text-muted-foreground/60" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 -rotate-90 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
+
+      {/* Module rows — animated, expands below the selected system */}
+      <AnimatePresence initial={false} mode="wait">
+        {openSystem && (() => {
+          const system = SYSTEMS.find(s => s.id === openSystem)!;
+          return (
+            <motion.div
+              key={openSystem}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-2 pt-1">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 px-1 mb-1">
+                  {system.label} · {system.sublabel}
+                </p>
+                {system.areas.map((area) => {
+                  const gating = games[area.gameType];
+                  const isLocked = false;
+                  const lockLabel = "";
+                  const isPicked = pickedGameType === area.gameType;
+                  return (
+                    <button
+                      key={area.gameType}
+                      onClick={() => {
+                        if (isLocked) return;
+                        handleGameTypeClick(area.areaId, system.id, area.gameType);
+                      }}
+                      disabled={isLocked}
+                      className={cn(
+                        "group relative w-full flex items-center gap-3.5 p-2.5 pr-4 rounded-2xl border text-left transition-all overflow-hidden",
+                        "bg-card/40 backdrop-blur-sm",
+                        isLocked
+                          ? "border-border/20 cursor-not-allowed"
+                          : "border-border/40 hover:border-border/70 active:scale-[0.99]",
+                        isPicked && !isLocked && "border-transparent"
+                      )}
+                      style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px ${system.accentColor}` } : undefined}
+                    >
+                      <div className="relative w-[68px] h-[68px] flex-shrink-0 rounded-xl overflow-hidden">
+                        <div
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                          style={{ backgroundImage: `url(${area.bgImage})` }}
+                        />
+                        <div className={cn(
+                          "absolute inset-0",
+                          isLocked ? "bg-black/65" : "bg-gradient-to-br from-black/30 via-black/15 to-black/45"
+                        )} />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span
+                            className="text-[15px] font-bold tracking-[0.12em] text-white drop-shadow"
+                            style={{ textShadow: `0 0 12px ${system.accentColor}90` }}
+                          >
+                            {area.code}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={cn("flex-1 min-w-0", isLocked && "opacity-55")}>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-[14px] font-semibold text-foreground tracking-tight truncate">
+                            {area.name}
+                          </p>
+                          {isPicked && !isLocked && (
+                            <Star className="w-3 h-3 flex-shrink-0" style={{ color: system.accentColor }} fill="currentColor" />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug truncate">
+                          {isLocked ? lockLabel : area.subLabel}
+                        </p>
+                      </div>
+
+                      <div className="flex-shrink-0">
+                        {isLocked ? (
+                          <Lock className="w-3.5 h-3.5 text-muted-foreground/60" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 -rotate-90 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* Sheets & Dialogs */}
       <ExercisePickerSheet
