@@ -329,7 +329,7 @@ const SubscriptionPage = () => {
                     className={cn(
                       "w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
                       highlighted
-                        ? "bg-white text-foreground hover:bg-white/90"
+                        ? "bg-white text-[hsl(225_32%_22%)] hover:bg-white/90"
                         : "bg-foreground text-background hover:bg-foreground/90"
                     )}
                   >
