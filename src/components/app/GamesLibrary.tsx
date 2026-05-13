@@ -181,19 +181,12 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
         })}
       </div>
 
-      {/* Module rows — animated, expands below the selected system */}
-      <AnimatePresence initial={false} mode="wait">
-        {openSystem && (() => {
-          const system = SYSTEMS.find(s => s.id === openSystem)!;
-          return (
-            <motion.div
-              key={openSystem}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="overflow-hidden"
-            >
+      {/* Module rows — expands below the selected system (no height animation to avoid flicker) */}
+      {openSystem && (() => {
+        const system = SYSTEMS.find(s => s.id === openSystem)!;
+        return (
+          <div key={openSystem} className="animate-fade-in">
+
               <div className="space-y-2 pt-1">
                 <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 px-1 mb-1">
                   {system.label} · {system.sublabel}
@@ -265,10 +258,10 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                   );
                 })}
               </div>
-            </motion.div>
-          );
-        })()}
-      </AnimatePresence>
+          </div>
+        );
+      })()}
+
 
       {/* Sheets & Dialogs */}
       <ExercisePickerSheet
