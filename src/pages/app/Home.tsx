@@ -91,7 +91,7 @@ const ProgressRing = ({
         </svg>
         {/* Center content: big number, WHOOP-style */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[40px] font-semibold tracking-tight text-foreground tabular-nums leading-none">
+          <span className="text-[34px] font-normal tracking-tight text-foreground tabular-nums leading-none">
             {displayValue}
           </span>
           {deltaIndicator && <span className="text-[10px] font-medium mt-1.5 tabular-nums opacity-70" style={{
