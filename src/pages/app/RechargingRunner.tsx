@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 
 type Phase = 
   | "intro" 
