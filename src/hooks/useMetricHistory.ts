@@ -24,19 +24,23 @@ export interface MetricDataPoint {
 }
 
 interface UseMetricHistoryOptions {
-  days?: number; // Default 30
+  days?: number; // Default 30 — size of returned (rendered) window
+  forwardFill?: boolean; // If true, missing days are filled with last known value
+  lookbackDays?: number; // Extra days fetched before window to seed forward-fill (default 60)
 }
 
 export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
   const { user } = useAuth();
-  const { days = 30 } = options;
+  const { days = 30, forwardFill = false, lookbackDays = 60 } = options;
+
+  const fetchDays = forwardFill ? days + lookbackDays : days;
 
   const { data: rawData, isLoading, error } = useQuery({
-    queryKey: ["metric-history", user?.id, days],
+    queryKey: ["metric-history", user?.id, days, forwardFill, lookbackDays],
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const startDate = format(subDays(new Date(), days), "yyyy-MM-dd");
+      const startDate = format(subDays(new Date(), fetchDays), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from("daily_metric_snapshots")
@@ -52,20 +56,64 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
     staleTime: 5 * 60_000,
   });
 
-  // Transform to chart-friendly format
+  // Transform + (optionally) forward-fill so charts render a continuous trend
+  // even on days the user didn't open the app. The carried value reflects
+  // the user's last recorded cognitive state until a fresher snapshot exists.
   const history: MetricDataPoint[] = useMemo(() => {
     if (!rawData) return [];
 
-    return rawData.map((row) => ({
-      date: row.snapshot_date,
-      readiness: row.readiness != null ? Number(row.readiness) : null,
-      sharpness: row.sharpness != null ? Number(row.sharpness) : null,
-      recovery: row.recovery != null ? Number(row.recovery) : null,
-      reasoningQuality: row.reasoning_quality != null ? Number(row.reasoning_quality) : null,
-      s1: row.s1 != null ? Number(row.s1) : null,
-      s2: row.s2 != null ? Number(row.s2) : null,
-    }));
-  }, [rawData]);
+    const byDate = new Map<string, typeof rawData[number]>();
+    rawData.forEach((row) => byDate.set(row.snapshot_date, row));
+
+    const windowStart = format(subDays(new Date(), days - 1), "yyyy-MM-dd");
+
+    if (!forwardFill) {
+      return rawData
+        .filter((r) => r.snapshot_date >= windowStart)
+        .map((row) => ({
+          date: row.snapshot_date,
+          readiness: row.readiness != null ? Number(row.readiness) : null,
+          sharpness: row.sharpness != null ? Number(row.sharpness) : null,
+          recovery: row.recovery != null ? Number(row.recovery) : null,
+          reasoningQuality: row.reasoning_quality != null ? Number(row.reasoning_quality) : null,
+          s1: row.s1 != null ? Number(row.s1) : null,
+          s2: row.s2 != null ? Number(row.s2) : null,
+        }));
+    }
+
+    // Walk full fetched range, carrying forward last seen value per metric.
+    let last: MetricDataPoint = {
+      date: "",
+      readiness: null,
+      sharpness: null,
+      recovery: null,
+      reasoningQuality: null,
+      s1: null,
+      s2: null,
+    };
+
+    const filled: MetricDataPoint[] = [];
+    for (let i = fetchDays - 1; i >= 0; i--) {
+      const dateStr = format(subDays(new Date(), i), "yyyy-MM-dd");
+      const row = byDate.get(dateStr);
+      if (row) {
+        last = {
+          date: dateStr,
+          readiness: row.readiness != null ? Number(row.readiness) : last.readiness,
+          sharpness: row.sharpness != null ? Number(row.sharpness) : last.sharpness,
+          recovery: row.recovery != null ? Number(row.recovery) : last.recovery,
+          reasoningQuality: row.reasoning_quality != null ? Number(row.reasoning_quality) : last.reasoningQuality,
+          s1: row.s1 != null ? Number(row.s1) : last.s1,
+          s2: row.s2 != null ? Number(row.s2) : last.s2,
+        };
+      }
+      if (dateStr >= windowStart) {
+        filled.push({ ...last, date: dateStr });
+      }
+    }
+
+    return filled;
+  }, [rawData, days, forwardFill, fetchDays]);
 
   // Calculate averages
   const averages = useMemo(() => {
