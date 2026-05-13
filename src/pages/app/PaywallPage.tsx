@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
@@ -5,12 +6,23 @@ import { Check, Crown, ArrowLeft, User, Rocket, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
-const plans = [
+type BillingCycle = "monthly" | "yearly";
+
+const PLAN_PRICING = {
+  pro: {
+    monthly: { priceId: "looma_pro_monthly", price: "$19.90", period: "/mo" },
+    yearly: { priceId: "looma_pro_yearly", price: "$199", period: "/yr" },
+  },
+  elite: {
+    monthly: { priceId: "looma_elite_monthly", price: "$29.90", period: "/mo" },
+    yearly: { priceId: "looma_elite_yearly", price: "$299", period: "/yr" },
+  },
+} as const;
+
+const basePlans = [
   {
     id: "free",
     name: "Free",
-    price: "$0",
-    period: "",
     tagline: "Get started with core training",
     icon: User,
     iconColor: "text-muted-foreground",
@@ -24,8 +36,6 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    price: "$199",
-    period: "/year",
     tagline: "Full cognitive training suite",
     icon: Crown,
     iconColor: "text-amber-400",
@@ -42,8 +52,6 @@ const plans = [
   {
     id: "elite",
     name: "Elite",
-    price: "$299",
-    period: "/year",
     tagline: "Peak performance optimization",
     icon: Rocket,
     iconColor: "text-purple-400",
@@ -58,22 +66,24 @@ const plans = [
   },
 ];
 
-const PRICE_BY_ID: Record<string, string> = {
-  pro: "looma_pro_yearly",
-  elite: "looma_elite_yearly",
-};
-
 export default function PaywallPage() {
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
+  const [cycle, setCycle] = useState<BillingCycle>("yearly");
+
+  const plans = basePlans.map((p) => {
+    if (p.id === "free") return { ...p, priceId: null as string | null, price: "$0", period: "" };
+    const pricing = PLAN_PRICING[p.id as "pro" | "elite"][cycle];
+    return { ...p, priceId: pricing.priceId, price: pricing.price, period: pricing.period };
+  });
 
   const handleSelectPlan = (planId: string) => {
     if (planId === "free") {
       navigate("/app");
       return;
     }
-    const priceId = PRICE_BY_ID[planId];
-    if (priceId) openCheckout(priceId);
+    const plan = plans.find((p) => p.id === planId);
+    if (plan?.priceId) openCheckout(plan.priceId);
   };
 
   return (
