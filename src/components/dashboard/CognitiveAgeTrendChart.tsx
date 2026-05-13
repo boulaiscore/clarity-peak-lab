@@ -32,6 +32,7 @@ interface ChartDataPoint {
   cognitiveAge: number | null;
   realAge: number;
   date: string;
+  showDot?: boolean;
 }
 
 // Custom X-axis tick
