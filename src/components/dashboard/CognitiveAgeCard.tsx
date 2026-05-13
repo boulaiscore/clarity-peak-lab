@@ -195,7 +195,7 @@ function PrimaryInsight({ cognitiveAge, chronoAge, paceX, isCalibrating }: Prima
   );
 }
 
-function useMemo_insight(
+function computeInsight(
   cognitiveAge: number | null,
   chronoAge: number,
   paceX: number | null,
