@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Zap, Target, Moon, TrendingUp, TrendingDown } from "lucide-react";
+import { ChevronDown, ChevronUp, Target, Moon, TrendingUp, TrendingDown } from "lucide-react";
+import { SystemOneMark } from "@/components/icons/ThinkingSystemIcons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
@@ -45,7 +46,7 @@ export function SCIExplanation({ sciBreakdown }: SCIExplanationProps) {
           <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-primary/70" />
+                <SystemOneMark className="w-4 h-4 text-primary/80" strokeWidth={1.4} />
                 <span className="text-[11px] font-medium text-foreground">Fast + Slow Thinking</span>
                 <span className="text-[9px] text-muted-foreground/60">(50%)</span>
               </div>

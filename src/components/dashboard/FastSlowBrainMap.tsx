@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Zap, Timer, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { motion } from "framer-motion";
 import { DualProcessTrendChart } from "./DualProcessTrendChart";
 
@@ -575,7 +576,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
             >
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <Zap className="w-3 h-3 text-area-fast/70" />
+                  <SystemOneMark className="w-3.5 h-3.5 text-area-fast/80" strokeWidth={1.4} />
                   <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 1</span>
                 </div>
                 <span className={cn("text-[10px] font-semibold", fastBand.color)}>{fastBand.band}</span>
@@ -592,7 +593,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
             >
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <Timer className="w-3 h-3 text-area-slow/70" />
+                  <SystemTwoMark className="w-3.5 h-3.5 text-area-slow/80" strokeWidth={1.4} />
                   <span className="text-[9px] uppercase tracking-wider text-muted-foreground">System 2</span>
                 </div>
                 <span className={cn("text-[10px] font-semibold", slowBand.color)}>{slowBand.band}</span>
