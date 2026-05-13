@@ -18,6 +18,7 @@ import {
   calculateChronologicalAgeAtDate,
   calculateCognitiveAgeFromPerformance,
 } from "@/lib/cognitiveAge";
+import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 
 // Colors
 const COGNITIVE_AGE_GOOD_COLOR = "hsl(142, 76%, 45%)";
