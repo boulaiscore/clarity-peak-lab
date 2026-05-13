@@ -370,10 +370,7 @@ export function DetoxChallengeTab() {
         </motion.div>
       ) : (
         <>
-          {/* Header - Minimal */}
-          <div className="text-center mb-5">
-            <p className="text-sm text-muted-foreground">Choose the recovery mode that fits your situation.</p>
-          </div>
+
 
           {/* Recovery Mode Selector - Minimal Side-by-Side */}
           <div className="grid grid-cols-2 gap-3">
