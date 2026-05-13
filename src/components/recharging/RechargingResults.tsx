@@ -20,7 +20,7 @@ const METRIC_LABELS = {
   readinessToClear: "Readiness to think clearly",
 };
 
-export function RechargingResults({ result, onFinish }: RechargingResultsProps) {
+export function RechargingResults({ result, onFinish, appliedBoost }: RechargingResultsProps) {
   const { preCheck, postCheck, score, level, deltas } = result;
 
   const getDeltaIcon = (delta: number, inverse: boolean = false) => {
