@@ -14,6 +14,7 @@ const plans = [
   {
     id: "free",
     name: "Free",
+    priceId: null as string | null,
     price: "$0",
     period: "",
     tagline: "See your state",
@@ -29,6 +30,7 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
+    priceId: "looma_pro_yearly",
     price: "$199",
     period: "/year",
     tagline: "Train and recover, every day",
@@ -47,6 +49,7 @@ const plans = [
   {
     id: "elite",
     name: "Elite",
+    priceId: "looma_elite_yearly",
     price: "$299",
     period: "/year",
     tagline: "Coached recovery for high-stakes work",
@@ -64,15 +67,41 @@ const plans = [
 ];
 
 const SubscriptionPage = () => {
-  const { user } = useAuth();
-  const { isPremium } = usePremiumGating();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
+  const { openCheckout, loading } = usePaddleCheckout();
 
-  const currentPlanId = isPremium ? "pro" : "free";
+  const currentPlanId = isActive ? tier : "free";
+
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      toast.success("Welcome to LOOMA premium — onboarding starting…");
+      searchParams.delete("checkout");
+      setSearchParams(searchParams, { replace: true });
+      // Refetch shortly after to pick up webhook write
+      setTimeout(() => refetch(), 1500);
+      setTimeout(() => navigate("/app/onboarding-premium"), 2500);
+    }
+  }, [searchParams, setSearchParams, refetch, navigate]);
 
   const handleSelectPlan = (planId: string) => {
-    if (planId === "free" || planId === currentPlanId) return;
+    const plan = plans.find((p) => p.id === planId);
+    if (!plan?.priceId || planId === currentPlanId) return;
+    openCheckout(plan.priceId);
+  };
+
+  const openPortal = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("paddle-customer-portal", {
+        body: { environment: getPaddleEnvironment() },
+      });
+      if (error || !data?.url) throw new Error(data?.error || error?.message);
+      window.open(data.url, "_blank");
+    } catch (e: any) {
+      toast.error(e.message || "Could not open billing portal");
+    }
+  };
     setSelectedPlan(plans.find((p) => p.id === planId)?.name || planId);
     setShowConfirmation(true);
   };
