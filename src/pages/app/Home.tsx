@@ -176,11 +176,8 @@ const Home = () => {
     isLoading: recoveryEffectiveLoading
   } = useRecoveryEffective();
 
-  // Acute Recovery Boost — display-layer only, transient
-  const acuteBoostState = useAcuteRecoveryBoost();
-  const recoveryEffectiveBoosted = isViewingTodayBoostable(true)
-    ? Math.min(85, recoveryEffective + acuteBoostState.activeBoost)
-    : recoveryEffective;
+  // Acute Recovery Boost — display-layer only, transient state shift
+  const acuteBoost = useAcuteRecoveryBoost();
 
   // Reasoning Quality metric
   const {
