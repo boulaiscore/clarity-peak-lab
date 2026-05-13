@@ -17,8 +17,6 @@ import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart, 
 import {
   calculateChronologicalAgeAtDate,
   calculateCognitiveAgeFromPerformance,
-  getInactiveDays,
-  maxIsoDate,
 } from "@/lib/cognitiveAge";
 
 // Colors
@@ -152,15 +150,11 @@ export function CognitiveAgeTrendChart() {
 
     const { weekly, baseline, profile, daily } = chartSources;
 
-    // Calculate current real age from birth_date
-    let realAge: number;
-    if (profile?.birth_date) {
-      realAge = calcAgeAtDate(profile.birth_date, format(new Date(), "yyyy-MM-dd"));
-    } else {
-      realAge = baseline?.chrono_age_at_onboarding
-        ? Number(baseline.chrono_age_at_onboarding)
-        : 30;
-    }
+    const realAge = calculateChronologicalAgeAtDate({
+      birthDate: profile?.birth_date,
+      targetDate: new Date(),
+      fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : 30,
+    });
 
     const baselineScore = baseline?.baseline_score_90d
       ? Number(baseline.baseline_score_90d)
@@ -175,9 +169,11 @@ export function CognitiveAgeTrendChart() {
     for (let i = TOTAL - 1; i >= 0; i--) {
       const d = subDays(today, i);
       const dateStr = format(d, "yyyy-MM-dd");
-      const dateRealAge = profile?.birth_date
-        ? calcAgeAtDate(profile.birth_date, dateStr)
-        : realAge;
+      const dateRealAge = calculateChronologicalAgeAtDate({
+        birthDate: profile?.birth_date,
+        targetDate: dateStr,
+        fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : realAge,
+      });
       skeletonDays.push({
         label: format(d, "d MMM"),
         cognitiveAge: null,
@@ -206,7 +202,8 @@ export function CognitiveAgeTrendChart() {
           d.ct ? Number(d.ct) : null,
           d.in_score ? Number(d.in_score) : null,
           point.realAge,
-          baselineScore
+          baselineScore,
+          null
         );
       }
     }
