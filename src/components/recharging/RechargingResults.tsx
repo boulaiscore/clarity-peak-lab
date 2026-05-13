@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 interface RechargingResultsProps {
   result: RechargingResult;
   onFinish: () => void;
+  /** Initial REC points granted as transient acute boost (3..8). null if none/unavailable. */
+  appliedBoost?: number | null;
 }
 
 const METRIC_LABELS = {
