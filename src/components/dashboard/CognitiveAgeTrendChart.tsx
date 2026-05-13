@@ -219,8 +219,22 @@ export function CognitiveAgeTrendChart() {
 
     const allDays = skeletonDays.slice(-RENDER);
 
+    // Align today's point with the live Cognitive Age shown in the sphere
+    // (single source of truth) so the chart label matches the headline number.
+    if (allDays.length > 0 && liveCognitiveAge?.cognitiveAge != null) {
+      const todayStr = format(today, "yyyy-MM-dd");
+      const lastIdx = allDays.length - 1;
+      if (allDays[lastIdx].date === todayStr) {
+        allDays[lastIdx] = {
+          ...allDays[lastIdx],
+          cognitiveAge: Math.round(liveCognitiveAge.cognitiveAge * 10) / 10,
+          realAge: Math.round(realAge * 10) / 10,
+        };
+      }
+    }
+
     return { displayData: allDays, currentRealAge: realAge };
-  }, [chartSources]);
+  }, [chartSources, liveCognitiveAge?.cognitiveAge]);
 
   const hasData = displayData.some((d) => d.cognitiveAge !== null);
 
