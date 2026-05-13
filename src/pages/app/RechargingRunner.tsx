@@ -49,6 +49,8 @@ export default function RechargingRunner() {
   const navigate = useNavigate();
   const [currentPhase, setCurrentPhase] = useState<Phase>("intro");
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const { applyBoost } = useAcuteRecoveryBoost();
+  const [appliedBoost, setAppliedBoost] = useState<number | null>(null);
   
   // Session data
   const [selectedMode, setSelectedMode] = useState<RechargingMode | null>(null);
