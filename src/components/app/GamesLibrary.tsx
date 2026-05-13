@@ -188,9 +188,6 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
           <div key={openSystem} className="animate-fade-in">
 
               <div className="space-y-2 pt-1">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70 px-1 mb-1">
-                  {system.label} · {system.sublabel}
-                </p>
                 {system.areas.map((area) => {
                   const gating = games[area.gameType];
                   const isLocked = false;
