@@ -300,7 +300,10 @@ const Home = () => {
   // Determine which metrics to display (today's live metrics or historical snapshot)
   const displaySharpness = isViewingToday ? sharpness : historicalMetrics?.sharpness ?? 0;
   const displayReadiness = isViewingToday ? readiness : historicalMetrics?.readiness ?? 0;
-  const displayRecovery = isViewingToday ? recoveryEffective : historicalMetrics?.recovery ?? 0;
+  const recoveryWithBoost = isViewingToday
+    ? applyBoostToRec(recoveryEffective, acuteBoost.activeBoost)
+    : recoveryEffective;
+  const displayRecovery = isViewingToday ? recoveryWithBoost : historicalMetrics?.recovery ?? 0;
   const displayRQ = isViewingToday ? rq : historicalMetrics?.reasoningQuality ?? 0;
   const displayS2Core = isViewingToday ? s2Core : historicalMetrics?.s2 ?? 0;
   const displayTaskPriming = isViewingToday ? taskPriming : 0; // Historical doesn't store this separately
