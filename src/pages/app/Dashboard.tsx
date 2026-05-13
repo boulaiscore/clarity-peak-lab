@@ -137,9 +137,6 @@ const Dashboard = () => {
         {/* Baseline Status - shows only when calibration is needed */}
         <BaselineStatusCard />
 
-        {/* Wearable Connection Prompt - shows when not connected */}
-        <WearableConnectionPrompt />
-
         {/* Tab Content */}
         {activeTab === "insights" ?
         <motion.div
