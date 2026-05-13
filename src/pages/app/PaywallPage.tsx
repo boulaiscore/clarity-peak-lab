@@ -69,7 +69,7 @@ const basePlans = [
 export default function PaywallPage() {
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
-  const [cycle, setCycle] = useState<BillingCycle>("yearly");
+  const [cycle, setCycle] = useState<BillingCycle>("monthly");
 
   const plans = basePlans.map((p) => {
     if (p.id === "free") return { ...p, priceId: null as string | null, price: "$0", period: "" };
@@ -188,7 +188,7 @@ export default function PaywallPage() {
                 >
                   {plan.id === "free" ? "Continue Free" : (
                     <>
-                      Choose {plan.name}
+                      Start 14-day free trial
                       <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                     </>
                   )}

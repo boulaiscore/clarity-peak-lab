@@ -74,7 +74,7 @@ const basePlans: BasePlan[] = [
 const SubscriptionPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [cycle, setCycle] = useState<BillingCycle>("yearly");
+  const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
 
@@ -333,7 +333,7 @@ const SubscriptionPage = () => {
                         : "bg-foreground text-background hover:bg-foreground/90"
                     )}
                   >
-                    Start with {plan.name}
+                    Start 14-day free trial
                   </Button>
                 ) : (
                   <Button
@@ -354,7 +354,7 @@ const SubscriptionPage = () => {
           XP measures training volume, not intelligence. LOOMA adapts difficulty, load, and insight depth to your cognitive profile.
         </p>
         <p className="text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 mt-4">
-          {cycle === "yearly" ? "Annual" : "Monthly"} · auto-renews · cancel anytime
+          14-day free trial · then {cycle === "yearly" ? "billed annually" : "billed monthly"} · cancel anytime
         </p>
       </div>
     </AppShell>
