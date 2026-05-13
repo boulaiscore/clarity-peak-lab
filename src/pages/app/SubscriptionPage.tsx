@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, User, Rocket, ArrowRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -11,28 +11,36 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 type BillingCycle = "monthly" | "yearly";
+type PaidPlanId = "pro" | "elite";
 
-const PLAN_PRICING = {
+const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; amount: string; suffix: string; perMonth?: string }>> = {
   pro: {
-    monthly: { priceId: "looma_pro_monthly", price: "$19.90", period: "/mo" },
-    yearly: { priceId: "looma_pro_yearly", price: "$199", period: "/yr" },
+    monthly: { priceId: "looma_pro_monthly", amount: "19.90", suffix: "USD / month" },
+    yearly: { priceId: "looma_pro_yearly", amount: "199", suffix: "USD / year", perMonth: "$16.58/mo" },
   },
   elite: {
-    monthly: { priceId: "looma_elite_monthly", price: "$29.90", period: "/mo" },
-    yearly: { priceId: "looma_elite_yearly", price: "$299", period: "/yr" },
+    monthly: { priceId: "looma_elite_monthly", amount: "29.90", suffix: "USD / month" },
+    yearly: { priceId: "looma_elite_yearly", amount: "299", suffix: "USD / year", perMonth: "$24.92/mo" },
   },
-} as const;
+};
 
-const basePlans = [
+type BasePlan = {
+  id: "free" | PaidPlanId;
+  name: string;
+  monogram: string;
+  tagline: string;
+  features: string[];
+};
+
+const basePlans: BasePlan[] = [
   {
     id: "free",
     name: "Free",
-    tagline: "See your state",
-    icon: User,
-    iconColor: "text-muted-foreground",
+    monogram: "00",
+    tagline: "Observe your cognitive state",
     features: [
-      "Daily readiness, sharpness & recovery",
-      "3 training sessions per day",
+      "Daily readiness, sharpness, recovery",
+      "3 training sessions / day",
       "Core System 1 drills",
       "Weekly summary",
     ],
@@ -40,32 +48,27 @@ const basePlans = [
   {
     id: "pro",
     name: "Pro",
+    monogram: "01",
     tagline: "Train and recover, every day",
-    icon: Crown,
-    iconColor: "text-amber-400",
-    badge: "MOST POPULAR",
     features: [
       "Unlimited training sessions",
       "System 2 — critical thinking drills",
-      "Detox + social blocker (Android)",
       "Wearable sync (HRV, sleep, RHR)",
-      "Quality Time library (reading & podcasts)",
+      "Quality Time library",
       "Full trends dashboard",
     ],
   },
   {
     id: "elite",
     name: "Elite",
+    monogram: "02",
     tagline: "Coached recovery for high-stakes work",
-    icon: Rocket,
-    iconColor: "text-purple-400",
     features: [
       "Everything in Pro",
       "Monthly Cognitive Intelligence Report",
       "Personalized recovery protocol",
       "Decision Quality scenarios (early access)",
       "Priority support",
-      "Early access to new modules",
     ],
   },
 ];
@@ -79,27 +82,20 @@ const SubscriptionPage = () => {
 
   const currentPlanId = isActive ? tier : "free";
 
-  const plans = basePlans.map((p) => {
-    if (p.id === "free") return { ...p, priceId: null as string | null, price: "$0", period: "" };
-    const pricing = PLAN_PRICING[p.id as "pro" | "elite"][cycle];
-    return { ...p, priceId: pricing.priceId, price: pricing.price, period: pricing.period };
-  });
-
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
       toast.success("Welcome to LOOMA premium — onboarding starting…");
       searchParams.delete("checkout");
       setSearchParams(searchParams, { replace: true });
-      // Refetch shortly after to pick up webhook write
       setTimeout(() => refetch(), 1500);
       setTimeout(() => navigate("/app/onboarding-premium"), 2500);
     }
   }, [searchParams, setSearchParams, refetch, navigate]);
 
-  const handleSelectPlan = (planId: string) => {
-    const plan = plans.find((p) => p.id === planId);
-    if (!plan?.priceId || planId === currentPlanId) return;
-    openCheckout(plan.priceId);
+  const handleSelectPlan = (planId: PaidPlanId) => {
+    if (planId === currentPlanId) return;
+    const pricing = PLAN_PRICING[planId][cycle];
+    openCheckout(pricing.priceId);
   };
 
   const openPortal = async () => {
@@ -116,153 +112,194 @@ const SubscriptionPage = () => {
 
   return (
     <AppShell>
-      <div className="container px-5 py-8 sm:py-12 max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70 mb-2">
-            Recover focus. Rebuild thinking.
+      <div className="container px-5 py-10 sm:py-14 max-w-xl mx-auto">
+        {/* Header — editorial spacing */}
+        <div className="mb-10">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground/60 mb-3">
+            Membership
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight">Subscription</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Choose the plan that fits your performance goals.
+          <h1 className="text-[28px] leading-tight font-light tracking-tight">
+            Choose your tier.
+          </h1>
+          <p className="text-[13px] text-muted-foreground/80 mt-2 max-w-sm">
+            Built for professionals who treat cognition as performance.
           </p>
         </div>
 
-        {/* Current Plan Indicator */}
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border mb-6">
-          <div className={cn(
-            "w-10 h-10 rounded-lg flex items-center justify-center",
-            isActive ? "bg-primary/15" : "bg-muted/50"
-          )}>
-            {isActive ? (
-              <Crown className="w-5 h-5 text-primary" />
-            ) : (
-              <User className="w-5 h-5 text-muted-foreground" />
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold capitalize">{isActive ? tier : "Free"}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              {cancelAtPeriodEnd && currentPeriodEnd
-                ? `Ends ${new Date(currentPeriodEnd).toLocaleDateString()}`
-                : "Current plan"}
+        {/* Current plan — minimal hairline status */}
+        <div className="flex items-center justify-between py-4 border-y border-border/60 mb-10">
+          <div>
+            <p className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground/60 mb-1">
+              Current plan
+            </p>
+            <p className="text-sm font-medium capitalize tracking-tight">
+              {isActive ? tier : "Free"}
+              {cancelAtPeriodEnd && currentPeriodEnd && (
+                <span className="ml-2 text-[10px] text-muted-foreground/70 font-normal uppercase tracking-wider">
+                  · ends {new Date(currentPeriodEnd).toLocaleDateString()}
+                </span>
+              )}
             </p>
           </div>
-          <span className={cn(
-            "px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide",
-            isActive ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"
-          )}>
-            {isActive ? (cancelAtPeriodEnd ? "Canceling" : "Active") : "Free"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                isActive
+                  ? cancelAtPeriodEnd
+                    ? "bg-amber-400"
+                    : "bg-emerald-400"
+                  : "bg-muted-foreground/40"
+              )}
+            />
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+              {isActive ? (cancelAtPeriodEnd ? "Canceling" : "Active") : "Free"}
+            </span>
+          </div>
         </div>
 
         {paddleSubscriptionId && (
-          <Button variant="outline" size="sm" className="w-full mb-6" onClick={openPortal}>
-            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+          <button
+            onClick={openPortal}
+            className="group flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground transition-colors mb-10"
+          >
             Manage billing
-          </Button>
+            <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity" />
+          </button>
         )}
 
-        {/* Billing cycle toggle */}
-        <div className="flex items-center justify-center mb-5">
-          <div className="inline-flex p-1 rounded-full bg-muted/50 border border-border">
+        {/* Billing cycle toggle — minimal segmented */}
+        <div className="flex items-center justify-center mb-10">
+          <div className="inline-flex border border-border/60 rounded-full p-0.5">
             {(["monthly", "yearly"] as BillingCycle[]).map((c) => (
               <button
                 key={c}
                 onClick={() => setCycle(c)}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-xs font-medium transition-all capitalize",
+                  "px-5 py-2 rounded-full text-[11px] uppercase tracking-[0.16em] transition-all",
                   cycle === c
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-foreground text-background"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {c === "yearly" ? (
                   <span className="flex items-center gap-1.5">
                     Yearly
-                    <span className="text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">2 mo free</span>
+                    <span className="text-[8px] tracking-[0.2em] opacity-70">−17%</span>
                   </span>
-                ) : "Monthly"}
+                ) : (
+                  "Monthly"
+                )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Plans */}
-        <div className="space-y-3">
-          {plans.map((plan) => {
+        {/* Plans — editorial tier cards */}
+        <div className="space-y-px bg-border/40 rounded-2xl overflow-hidden border border-border/60">
+          {basePlans.map((plan) => {
             const isCurrent = plan.id === currentPlanId;
-            const isHighlighted = plan.id === "pro";
-            const Icon = plan.icon;
+            const isElite = plan.id === "elite";
+            const isPaid = plan.id !== "free";
+            const pricing = isPaid ? PLAN_PRICING[plan.id as PaidPlanId][cycle] : null;
 
             return (
               <div
                 key={plan.id}
                 className={cn(
-                  "relative p-5 rounded-xl border transition-all",
-                  isHighlighted && !isCurrent
-                    ? "bg-card border-primary/40 shadow-sm"
-                    : isCurrent
-                    ? "bg-primary/5 border-primary/30"
-                    : "bg-card border-border"
+                  "relative p-6 sm:p-7 bg-background transition-colors",
+                  isCurrent && "bg-card"
                 )}
               >
-                {/* Badge */}
-                {plan.badge && !isCurrent && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold tracking-wider">
-                      {plan.badge}
+                {/* Top row: monogram + name + price */}
+                <div className="flex items-start justify-between mb-5">
+                  <div className="flex items-center gap-4">
+                    <span
+                      className={cn(
+                        "text-[10px] tracking-[0.22em] tabular-nums",
+                        isElite ? "text-foreground" : "text-muted-foreground/60"
+                      )}
+                    >
+                      {plan.monogram}
                     </span>
+                    <div className="h-px w-6 bg-border/80" />
+                    <div>
+                      <h3 className="text-base font-medium tracking-tight">
+                        {plan.name}
+                      </h3>
+                      {isCurrent && (
+                        <span className="text-[9px] uppercase tracking-[0.22em] text-emerald-400/90">
+                          Current
+                        </span>
+                      )}
+                    </div>
                   </div>
-                )}
 
-                {/* Plan Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={cn("w-5 h-5", plan.iconColor)} />
-                    <span className="font-semibold">{plan.name}</span>
-                    {isCurrent && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/15 text-emerald-400">
-                        CURRENT
-                      </span>
-                    )}
-                  </div>
                   <div className="text-right">
-                    <span className="text-lg font-bold">{plan.price}</span>
-                    {plan.period && (
-                      <span className="text-xs text-muted-foreground font-normal">
-                        {plan.period}
-                      </span>
+                    {pricing ? (
+                      <>
+                        <div className="flex items-baseline justify-end gap-1">
+                          <span className="text-[11px] text-muted-foreground/70 font-light">$</span>
+                          <span className="text-2xl font-light tabular-nums tracking-tight">
+                            {pricing.amount}
+                          </span>
+                        </div>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5">
+                          {pricing.suffix}
+                        </p>
+                        {pricing.perMonth && (
+                          <p className="text-[9px] tracking-wider text-muted-foreground/50 mt-0.5 tabular-nums">
+                            ≈ {pricing.perMonth}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-2xl font-light tabular-nums tracking-tight">
+                          $0
+                        </span>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5">
+                          Forever
+                        </p>
+                      </>
                     )}
                   </div>
                 </div>
 
                 {/* Tagline */}
-                <p className="text-xs text-muted-foreground mb-3">{plan.tagline}</p>
+                <p className="text-[12px] text-muted-foreground/80 mb-5 font-light leading-relaxed">
+                  {plan.tagline}
+                </p>
 
-                {/* Features */}
-                <ul className="space-y-1.5 mb-4">
+                {/* Features — minimalist list, no colored checks */}
+                <ul className="space-y-2 mb-6">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Check className={cn("w-3.5 h-3.5 shrink-0", 
-                        plan.id === "elite" ? "text-purple-400" : "text-primary"
-                      )} />
+                    <li
+                      key={f}
+                      className="flex items-start gap-3 text-[12px] text-foreground/75 font-light leading-snug"
+                    >
+                      <span className="mt-[7px] w-1 h-px bg-foreground/40 shrink-0" />
                       {f}
                     </li>
                   ))}
                 </ul>
 
                 {/* CTA */}
-                {!isCurrent && plan.id !== "free" && (
+                {isPaid && !isCurrent && (
                   <Button
-                    onClick={() => handleSelectPlan(plan.id)}
+                    onClick={() => handleSelectPlan(plan.id as PaidPlanId)}
                     disabled={loading}
-                    variant={isHighlighted ? "hero" : "outline"}
-                    size="sm"
-                    className="w-full"
+                    variant={isElite ? "default" : "outline"}
+                    className={cn(
+                      "w-full h-11 rounded-full text-[11px] uppercase tracking-[0.2em] font-medium",
+                      isElite
+                        ? "bg-foreground text-background hover:bg-foreground/90"
+                        : "border-border/80 hover:bg-card"
+                    )}
                   >
-                    {currentPlanId !== "free" && plan.id === "elite" ? "Upgrade to Elite" : `Choose ${plan.name}`}
-                    <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                    {currentPlanId !== "free" && plan.id === "elite"
+                      ? "Upgrade to Elite"
+                      : `Choose ${plan.name}`}
                   </Button>
                 )}
               </div>
@@ -270,13 +307,13 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        <p className="text-center text-[10px] text-muted-foreground/50 mt-6">
+        {/* Footer — disclaimer */}
+        <p className="text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground/40 mt-8">
           {cycle === "yearly"
-            ? "Annual subscriptions auto-renew unless cancelled. 2 months free vs monthly."
-            : "Monthly subscriptions auto-renew unless cancelled."}
+            ? "Annual · auto-renews · cancel anytime"
+            : "Monthly · auto-renews · cancel anytime"}
         </p>
       </div>
-
     </AppShell>
   );
 };
