@@ -106,14 +106,16 @@ export function CognitiveAgeTrendChart() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const thirtyDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd");
+      // Fetch a wider lookback so days without a snapshot can be forward-filled
+      // from the user's most recent prior cognitive state.
+      const lookbackStart = format(subDays(new Date(), 30 + 60), "yyyy-MM-dd");
 
       const [weeklyResult, baselineResult, profileResult, dailyResult] = await Promise.all([
         supabase
           .from("user_cognitive_age_weekly")
           .select("week_start, cognitive_age")
           .eq("user_id", user.id)
-          .gte("week_start", thirtyDaysAgo)
+          .gte("week_start", lookbackStart)
           .order("week_start", { ascending: true }),
         supabase
           .from("user_cognitive_baselines")
@@ -129,7 +131,7 @@ export function CognitiveAgeTrendChart() {
           .from("daily_metric_snapshots")
           .select("snapshot_date, ae, ra, ct, in_score")
           .eq("user_id", user.id)
-          .gte("snapshot_date", thirtyDaysAgo)
+          .gte("snapshot_date", lookbackStart)
           .order("snapshot_date", { ascending: true }),
       ]);
 
