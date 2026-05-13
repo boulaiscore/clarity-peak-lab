@@ -98,6 +98,7 @@ function calcCognitiveAgeFromSnapshot(
 
 export function CognitiveAgeTrendChart() {
   const { user } = useAuth();
+  const { data: liveCognitiveAge } = useCognitiveAge();
 
   // Fetch all necessary data in parallel
   const { data: chartSources, isLoading } = useQuery({
