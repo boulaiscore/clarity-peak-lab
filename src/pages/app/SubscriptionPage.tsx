@@ -102,9 +102,6 @@ const SubscriptionPage = () => {
       toast.error(e.message || "Could not open billing portal");
     }
   };
-    setSelectedPlan(plans.find((p) => p.id === planId)?.name || planId);
-    setShowConfirmation(true);
-  };
 
   return (
     <AppShell>
@@ -124,29 +121,36 @@ const SubscriptionPage = () => {
         <div className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border mb-6">
           <div className={cn(
             "w-10 h-10 rounded-lg flex items-center justify-center",
-            isPremium ? "bg-primary/15" : "bg-muted/50"
+            isActive ? "bg-primary/15" : "bg-muted/50"
           )}>
-            {isPremium ? (
+            {isActive ? (
               <Crown className="w-5 h-5 text-primary" />
             ) : (
               <User className="w-5 h-5 text-muted-foreground" />
             )}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold">{isPremium ? "Pro" : "Free"}</p>
+            <p className="text-sm font-semibold capitalize">{isActive ? tier : "Free"}</p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              Current plan
+              {cancelAtPeriodEnd && currentPeriodEnd
+                ? `Ends ${new Date(currentPeriodEnd).toLocaleDateString()}`
+                : "Current plan"}
             </p>
           </div>
           <span className={cn(
             "px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide",
-            isPremium
-              ? "bg-emerald-500/15 text-emerald-400"
-              : "bg-muted text-muted-foreground"
+            isActive ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"
           )}>
-            {isPremium ? "Active" : "Free"}
+            {isActive ? (cancelAtPeriodEnd ? "Canceling" : "Active") : "Free"}
           </span>
         </div>
+
+        {paddleSubscriptionId && (
+          <Button variant="outline" size="sm" className="w-full mb-6" onClick={openPortal}>
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+            Manage billing
+          </Button>
+        )}
 
         {/* Plans */}
         <div className="space-y-3">
@@ -216,11 +220,12 @@ const SubscriptionPage = () => {
                 {!isCurrent && plan.id !== "free" && (
                   <Button
                     onClick={() => handleSelectPlan(plan.id)}
+                    disabled={loading}
                     variant={isHighlighted ? "hero" : "outline"}
                     size="sm"
                     className="w-full"
                   >
-                    Choose {plan.name}
+                    {currentPlanId !== "free" && plan.id === "elite" ? "Upgrade to Elite" : `Choose ${plan.name}`}
                     <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                   </Button>
                 )}
@@ -234,33 +239,10 @@ const SubscriptionPage = () => {
         </p>
       </div>
 
-      {/* Confirmation Modal */}
-      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-        <AlertDialogContent className="max-w-sm mx-auto">
-          <AlertDialogHeader className="text-center">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <Crown className="w-7 h-7 text-primary" />
-            </div>
-            <AlertDialogTitle className="text-lg">
-              {selectedPlan} Selected
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm">
-              Plan selection saved. Billing activation will be connected in the next release.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col gap-2 sm:flex-col pt-2">
-            <Button
-              onClick={() => setShowConfirmation(false)}
-              variant="hero"
-              className="w-full"
-            >
-              Got It
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppShell>
   );
 };
+
+export default SubscriptionPage;
 
 export default SubscriptionPage;
