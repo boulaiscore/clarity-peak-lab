@@ -491,6 +491,22 @@ const Home = () => {
               <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} />
             </motion.section>
 
+        {/* WHOOP-inspired Monitor cards row */}
+        {isViewingToday && (
+          <MonitorCardsRow
+            sharpness={displaySharpness}
+            readiness={displayReadiness}
+            recovery={displayRecovery}
+            rq={displayRQ}
+            isLoading={isDisplayLoading}
+          />
+        )}
+
+        {/* My Day — Daily Outlook + Today's Activities */}
+        {isViewingToday && (
+          <TodayActivitiesCard outlook={{ label: insight.title, line: insight.body }} />
+        )}
+
         {/* Cognitive Decision Insight Card */}
         {isViewingToday && (
           <motion.section
