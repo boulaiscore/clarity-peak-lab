@@ -195,7 +195,7 @@ const SubscriptionPage = () => {
                 className={cn(
                   "relative rounded-3xl p-7 sm:p-8 flex flex-col transition-all",
                   highlighted
-                    ? "bg-gradient-to-br from-[hsl(220_45%_45%)] via-[hsl(225_50%_38%)] to-[hsl(230_55%_28%)] text-white shadow-2xl shadow-primary/20 md:-my-3 md:scale-[1.03]"
+                    ? "bg-gradient-to-br from-[hsl(220_28%_42%)] via-[hsl(222_30%_36%)] to-[hsl(225_32%_28%)] text-white shadow-xl shadow-black/20 md:-my-3 md:scale-[1.03]"
                     : "bg-gradient-to-b from-card to-card/40 border border-border/50 text-foreground"
                 )}
               >
@@ -329,7 +329,7 @@ const SubscriptionPage = () => {
                     className={cn(
                       "w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
                       highlighted
-                        ? "bg-white text-foreground hover:bg-white/90"
+                        ? "bg-white text-[hsl(225_32%_22%)] hover:bg-white/90"
                         : "bg-foreground text-background hover:bg-foreground/90"
                     )}
                   >
