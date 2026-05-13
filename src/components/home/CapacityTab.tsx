@@ -22,10 +22,9 @@ export function CapacityTab({
   } = useRecoveryEffective();
 
   // Determine if we should show "No data" fallback
-  // Show fallback when:
-  // 1. v2 not initialized AND no RRI
-  // 2. OR recovery is 0 with no weekly activity
-  const showNoDataFallback = !isLoading && (!isV2Initialized && !hasRecoveryData || recovery === 0 && weeklyDetoxMinutes === 0 && weeklyWalkMinutes === 0);
+  // Only when Recovery V2 is not initialized AND there is no RRI snapshot.
+  // A legitimate recovery === 0 (system initialized) must render as "0", not "Nessun dato".
+  const showNoDataFallback = !isLoading && !isV2Initialized && !hasRecoveryData;
 
   // Ring calculations - LARGE
   const size = 240;
