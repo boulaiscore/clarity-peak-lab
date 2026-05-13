@@ -42,6 +42,8 @@ import { ReadingLoadDashboard } from "@/components/lab/ReadingLoadDashboard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
 import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
+import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
+import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 
