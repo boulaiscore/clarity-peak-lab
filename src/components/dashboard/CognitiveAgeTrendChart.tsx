@@ -166,16 +166,19 @@ export function CognitiveAgeTrendChart() {
       ? Number(baseline.baseline_score_90d)
       : null;
 
-    // Build a full 30-day skeleton
+    // Build a full 90-day skeleton (extra lookback for forward-fill seed,
+    // last 30 days will be rendered).
     const today = new Date();
-    const allDays: ChartDataPoint[] = [];
-    for (let i = 29; i >= 0; i--) {
+    const skeletonDays: ChartDataPoint[] = [];
+    const TOTAL = 90;
+    const RENDER = 30;
+    for (let i = TOTAL - 1; i >= 0; i--) {
       const d = subDays(today, i);
       const dateStr = format(d, "yyyy-MM-dd");
       const dateRealAge = profile?.birth_date
         ? calcAgeAtDate(profile.birth_date, dateStr)
         : realAge;
-      allDays.push({
+      skeletonDays.push({
         label: format(d, "d MMM"),
         cognitiveAge: null,
         realAge: dateRealAge,
@@ -188,8 +191,8 @@ export function CognitiveAgeTrendChart() {
     // Index daily data by snapshot_date
     const dailyMap = new Map(daily.map((d) => [d.snapshot_date, d]));
 
-    // Fill cognitive age from weekly or daily sources
-    for (const point of allDays) {
+    // First pass: compute true cognitiveAge from sources where available
+    for (const point of skeletonDays) {
       const w = weeklyMap.get(point.date);
       if (w?.cognitive_age) {
         point.cognitiveAge = Math.round(Number(w.cognitive_age) * 10) / 10;
@@ -207,6 +210,15 @@ export function CognitiveAgeTrendChart() {
         );
       }
     }
+
+    // Second pass: forward-fill missing days with last known cognitive age
+    let lastCogAge: number | null = null;
+    for (const point of skeletonDays) {
+      if (point.cognitiveAge !== null) lastCogAge = point.cognitiveAge;
+      else if (lastCogAge !== null) point.cognitiveAge = lastCogAge;
+    }
+
+    const allDays = skeletonDays.slice(-RENDER);
 
     return { displayData: allDays, currentRealAge: realAge };
   }, [chartSources]);
