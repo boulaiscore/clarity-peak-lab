@@ -1,9 +1,7 @@
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Brain, BookOpen, Headphones, Wind, Footprints } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTodayActivities, ActivityKey } from "@/hooks/useTodayActivities";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { useTodayActivities, ActivityKey, TodayActivity } from "@/hooks/useTodayActivities";
 import { cn } from "@/lib/utils";
 
 const ROUTES: Record<ActivityKey, string> = {
@@ -13,27 +11,41 @@ const ROUTES: Record<ActivityKey, string> = {
   walk: "/app/recover",
 };
 
-// Brand-aligned accents (HSL semantic — matches metric palette memory)
+// WHOOP-style flat blue tiles. One accent per category — calm, monochrome family.
 const ACCENT: Record<ActivityKey, string> = {
-  games: "hsl(210, 100%, 60%)", // Sharpness blue
-  quality: "hsl(207, 44%, 62%)", // Reasoning steel blue
-  detox: "hsl(170, 60%, 50%)", // Recovery teal
-  walk: "hsl(160, 55%, 55%)", // Recovery green
+  games: "hsl(210, 90%, 58%)",
+  quality: "hsl(207, 55%, 60%)",
+  detox: "hsl(195, 60%, 55%)",
+  walk: "hsl(180, 45%, 55%)",
+};
+
+const ICON: Record<ActivityKey, React.ComponentType<{ className?: string }>> = {
+  games: Brain,
+  quality: BookOpen,
+  detox: Wind,
+  walk: Footprints,
 };
 
 interface TodayActivitiesCardProps {
   outlook: { label: string; line: string };
 }
 
+function formatTime(iso: string) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? "pm" : "am";
+  h = h % 12 || 12;
+  return `${h}:${m.toString().padStart(2, "0")}${ampm}`;
+}
+
 /**
- * WHOOP-inspired "My Day" — planned activities driven by the user's training plan.
- * Each row: colored square tile (value + unit) · UPPERCASE label · progress vs target · chevron.
+ * WHOOP-style end-of-day summary: each row is a completed session today,
+ * with a flat colored value tile, UPPERCASE label, and start/end timestamps.
  */
 export function TodayActivitiesCard({ outlook }: TodayActivitiesCardProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const planId: TrainingPlanId = (user?.trainingPlan || "expert") as TrainingPlanId;
-  const plan = TRAINING_PLANS[planId];
   const { data: activities = [], isLoading } = useTodayActivities();
 
   return (
@@ -43,16 +55,15 @@ export function TodayActivitiesCard({ outlook }: TodayActivitiesCardProps) {
       transition={{ delay: 0.12 }}
       className="mb-5"
     >
-      {/* Section title */}
       <h2 className="text-[15px] font-semibold tracking-tight text-foreground mb-2.5 px-0.5">
-        My Day
+        Today
       </h2>
 
-      {/* Daily Outlook compact card */}
+      {/* Daily Outlook */}
       <button
         onClick={() => navigate("/app/dashboard")}
         className={cn(
-          "w-full flex items-center gap-3 p-3 rounded-2xl mb-2",
+          "w-full flex items-center gap-3 p-3 rounded-2xl mb-2.5",
           "bg-card/40 border border-border/40 hover:bg-card/60 hover:border-border/60",
           "transition-colors active:scale-[0.99] text-left",
         )}
@@ -69,79 +80,65 @@ export function TodayActivitiesCard({ outlook }: TodayActivitiesCardProps) {
         <ChevronRight className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
       </button>
 
-      {/* Today's Activities — WHOOP-style rows */}
-      <div className="rounded-2xl bg-card/40 border border-border/40 overflow-hidden">
-        <div className="px-3 py-2.5 border-b border-border/40 flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/55">
-            Today's Activities
-          </span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/40">
-            {plan?.name ?? "Plan"}
-          </span>
+      {/* End-of-day session list */}
+      {isLoading ? (
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-[68px] rounded-2xl bg-card/30 border border-border/30 animate-pulse" />
+          ))}
         </div>
-        <div className="divide-y divide-border/40">
-          {activities.map((a) => {
-            const accent = ACCENT[a.key];
-            return (
-              <button
-                key={a.key}
-                onClick={() => navigate(ROUTES[a.key])}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 text-left",
-                  "hover:bg-foreground/[0.03] transition-colors active:scale-[0.995]",
-                )}
-              >
-                {/* Left tile — value + unit, WHOOP square */}
-                <div
-                  className="w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
-                  style={{
-                    backgroundColor: a.hasActivity ? `${accent}26` : `${accent}12`,
-                    border: `1px solid ${accent}${a.hasActivity ? "55" : "22"}`,
-                  }}
-                >
-                  <span
-                    className="text-[15px] font-bold leading-none tabular-nums"
-                    style={{ color: a.hasActivity ? accent : `${accent}AA` }}
-                  >
-                    {isLoading ? "—" : a.tileValue}
-                  </span>
-                  <span
-                    className="text-[8px] font-semibold uppercase tracking-[0.1em] mt-0.5"
-                    style={{ color: a.hasActivity ? accent : `${accent}88` }}
-                  >
-                    {a.tileUnit}
-                  </span>
-                </div>
-
-                {/* Label + progress */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-foreground/90 leading-tight">
-                    {a.label}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1 truncate">
-                    {a.progress}
-                  </p>
-                </div>
-
-                {/* Status pill */}
-                <span
-                  className={cn(
-                    "text-[9px] font-semibold uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-md",
-                    a.complete
-                      ? "bg-foreground/[0.08] text-foreground/85"
-                      : a.hasActivity
-                      ? "bg-foreground/[0.04] text-foreground/55"
-                      : "text-muted-foreground/40",
-                  )}
-                >
-                  {a.complete ? "Done" : a.hasActivity ? "In progress" : "Pending"}
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
-              </button>
-            );
-          })}
+      ) : activities.length === 0 ? (
+        <div className="rounded-2xl bg-card/40 border border-border/40 px-4 py-6 text-center">
+          <p className="text-[12px] text-muted-foreground/80">
+            No activities recorded yet today.
+          </p>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-2">
+          {activities.map((a) => (
+            <ActivityRow key={a.id} activity={a} onClick={() => navigate(ROUTES[a.key])} />
+          ))}
+        </div>
+      )}
     </motion.section>
+  );
+}
+
+function ActivityRow({ activity, onClick }: { activity: TodayActivity; onClick: () => void }) {
+  const accent = ACCENT[activity.key];
+  const Icon = ICON[activity.key];
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center gap-3 p-2 pr-3 rounded-2xl text-left",
+        "bg-card/40 border border-border/40 hover:bg-card/60 hover:border-border/60",
+        "transition-colors active:scale-[0.995]",
+      )}
+    >
+      {/* Left: solid value tile */}
+      <div
+        className="relative w-[68px] h-[52px] rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: accent }}
+      >
+        <Icon className="absolute left-2 top-2 w-3.5 h-3.5 text-white/85" />
+        <span className="text-[20px] font-bold leading-none tabular-nums text-white">
+          {activity.tileValue}
+        </span>
+      </div>
+
+      {/* Label */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-foreground/95 leading-tight truncate">
+          {activity.label}
+        </p>
+      </div>
+
+      {/* Right: timestamps */}
+      <div className="flex flex-col items-end leading-tight tabular-nums flex-shrink-0">
+        <span className="text-[11px] text-foreground/75">{formatTime(activity.endedAt)}</span>
+        <span className="text-[11px] text-muted-foreground/70 mt-0.5">{formatTime(activity.startedAt)}</span>
+      </div>
+    </button>
   );
 }
