@@ -186,9 +186,9 @@ export default function PaywallPage() {
                   className="w-full"
                   onClick={() => handleSelectPlan(plan.id)}
                 >
-                  {plan.id === "free" ? "Continue Free" : "Start 14-day free trial" && (
+                  {plan.id === "free" ? "Continue Free" : (
                     <>
-                      Choose {plan.name}
+                      Start 14-day free trial
                       <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                     </>
                   )}
