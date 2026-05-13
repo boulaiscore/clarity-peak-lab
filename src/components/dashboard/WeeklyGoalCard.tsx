@@ -461,7 +461,7 @@ export function WeeklyGoalCard({
                 </div>
 
                 {/* Overtraining disclaimer — shift focus to recovery activities */}
-                {adaptiveStatus.status === "overtraining" && (
+                {adaptiveStatus.status === "above" && (
                   <div className="mt-2 px-3 py-2 rounded-lg bg-amber-500/[0.06] border border-amber-400/[0.18]">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-300/90 mb-0.5">
                       Shift Focus
