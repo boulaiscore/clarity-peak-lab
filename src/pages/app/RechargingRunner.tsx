@@ -176,7 +176,7 @@ export default function RechargingRunner() {
         );
       case "results":
         return result ? (
-          <RechargingResults result={result} onFinish={handleFinish} />
+          <RechargingResults result={result} onFinish={handleFinish} appliedBoost={appliedBoost} />
         ) : null;
       default:
         return null;
