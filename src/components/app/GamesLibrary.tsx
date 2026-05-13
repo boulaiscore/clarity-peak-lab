@@ -258,10 +258,10 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                   );
                 })}
               </div>
-            </motion.div>
-          );
-        })()}
-      </AnimatePresence>
+          </div>
+        );
+      })()}
+
 
       {/* Sheets & Dialogs */}
       <ExercisePickerSheet
