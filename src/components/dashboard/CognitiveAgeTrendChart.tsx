@@ -48,22 +48,24 @@ const CustomXAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: 
 };
 
 // Custom dot - color based on comparison with real age
-const CustomDot = ({ cx, cy, payload, dataKey }: { cx?: number; cy?: number; payload?: Record<string, number | null>; dataKey?: string }) => {
+const CustomDot = ({ cx, cy, payload, dataKey }: { cx?: number; cy?: number; payload?: Record<string, number | null | boolean>; dataKey?: string }) => {
   if (!payload || cx === undefined || cy === undefined || !dataKey) return null;
   const value = payload[dataKey];
   if (value === null || value === undefined) return null;
-  
+  // Only render if this point is flagged as a dot anchor (weekly or trend change)
+  if (dataKey === 'cognitiveAge' && !payload.showDot) return null;
+
   let color: string;
   if (dataKey === 'cognitiveAge') {
-    const cogAge = payload.cognitiveAge;
-    const realAge = payload.realAge;
+    const cogAge = payload.cognitiveAge as number | null;
+    const realAge = payload.realAge as number | null;
     color = (cogAge !== null && realAge !== null && cogAge <= realAge)
       ? COGNITIVE_AGE_GOOD_COLOR
       : COGNITIVE_AGE_BAD_COLOR;
   } else {
     color = REAL_AGE_COLOR;
   }
-  
+
   return (
     <circle cx={cx} cy={cy} r={3} fill="#0f172a" stroke={color} strokeWidth={1.5} />
   );
