@@ -1,17 +1,9 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Check, Crown, ArrowLeft, User, Rocket, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 const plans = [
   {
