@@ -18,7 +18,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { subDays, format, parseISO, differenceInDays } from "date-fns";
+import { subDays, format } from "date-fns";
 import {
   calculateChronologicalAgeAtDate,
   calculateCognitiveAgeFromPerformance,
