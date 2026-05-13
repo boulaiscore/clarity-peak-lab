@@ -166,7 +166,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
         {/* System 2 */}
         <div className="system-card system2" style={{ borderColor: slowClass.color }}>
           <div className="system-header" style={{ background: "#f0eef6" }}>
-            <Compass size={22} color="#7B6FA8" strokeWidth={1.5} />
+            <SystemTwoMark size={26} color="#7B6FA8" strokeWidth={1.3} />
             <div>
               <h3>SYSTEM 2 — Slow Thinking</h3>
               <span className="system-subtitle">Deliberate, Analytical Processing</span>
