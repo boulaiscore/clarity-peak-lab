@@ -144,15 +144,36 @@ export function RechargingResults({ result, onFinish, appliedBoost }: Recharging
           </div>
         </motion.div>
 
-        {/* Explanation */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="text-xs text-white/30 text-center mb-8"
-        >
-          Recovery reflects short-term restoration of reasoning clarity.
-        </motion.p>
+        {/* Acute Recovery Boost block — transient, display-layer only */}
+        {appliedBoost && appliedBoost > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="mb-6 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5"
+          >
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-[10px] tracking-[0.2em] uppercase text-white/45">
+                Acute Recovery Boost
+              </span>
+              <span className="text-sm font-semibold tabular-nums text-emerald-300/90">
+                +{appliedBoost}
+              </span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-white/45">
+              Temporary state shift — decays over ~90 min. Foundation remains sleep, HRV, structural recovery.
+            </p>
+          </motion.div>
+        ) : (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="text-xs text-white/30 text-center mb-8"
+          >
+            Acute reset complete — temporary state change, not structural recovery.
+          </motion.p>
+        )}
 
         {/* Finish button */}
         <motion.button
