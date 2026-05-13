@@ -168,31 +168,6 @@ export default function PaywallPage() {
         </p>
       </div>
 
-      {/* Confirmation Modal */}
-      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-        <AlertDialogContent className="max-w-sm mx-auto">
-          <AlertDialogHeader className="text-center">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <Crown className="w-7 h-7 text-primary" />
-            </div>
-            <AlertDialogTitle className="text-lg">
-              {selectedPlan} Selected
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm">
-              Plan selection saved. Billing activation will be connected in the next release.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col gap-2 sm:flex-col pt-2">
-            <Button
-              onClick={() => setShowConfirmation(false)}
-              variant="hero"
-              className="w-full"
-            >
-              Got It
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppShell>
   );
 }
