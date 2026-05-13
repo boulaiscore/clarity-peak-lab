@@ -158,7 +158,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                     boxShadow: `inset 0 0 0 1px ${system.accentColor}30`,
                   }}
                 >
-                  <Icon className="w-4 h-4" style={{ color: system.accentColor }} />
+                  <Icon className="w-5 h-5" color={system.accentColor} strokeWidth={1.4} />
                 </div>
 
                 <div>
