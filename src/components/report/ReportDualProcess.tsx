@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, Brain, BarChart3, ArrowRight, Info } from "lucide-react";
+import { Sparkles, Compass, BarChart3, ArrowRight, Info } from "lucide-react";
 
 function classify(score: number) {
   if (score >= 85) return { label: "ELITE", color: "#1b5e20", bg: "#e8f5e9" };
