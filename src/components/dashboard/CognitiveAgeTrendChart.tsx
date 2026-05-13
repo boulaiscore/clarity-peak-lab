@@ -12,8 +12,14 @@ import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, subDays, parseISO, differenceInDays } from "date-fns";
+import { format, subDays } from "date-fns";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart, LabelList } from "recharts";
+import {
+  calculateChronologicalAgeAtDate,
+  calculateCognitiveAgeFromPerformance,
+  getInactiveDays,
+  maxIsoDate,
+} from "@/lib/cognitiveAge";
 
 // Colors
 const COGNITIVE_AGE_GOOD_COLOR = "hsl(142, 76%, 45%)";
@@ -75,26 +81,20 @@ function calcCognitiveAgeFromSnapshot(
   ct: number | null,
   inScore: number | null,
   realAge: number,
-  baselineScore: number | null
+  baselineScore: number | null,
+  inactiveDays: number | null
 ): number | null {
   const skills = [ae, ra, ct, inScore].filter((v): v is number => v !== null).map(Number);
   if (skills.length < 2) return null;
   
   const perf = skills.reduce((a, b) => a + b, 0) / skills.length;
   const baseline = baselineScore !== null ? baselineScore : 50;
-  const improvement = (perf - baseline) / 10; // 10 points = 1 year
-  
-  return Math.round((realAge - improvement) * 10) / 10;
-}
-
-/**
- * Calculate precise age at a given date from birth_date.
- */
-function calcAgeAtDate(birthDate: string, targetDate: string): number {
-  const birth = parseISO(birthDate);
-  const target = parseISO(targetDate);
-  const ageInDays = differenceInDays(target, birth);
-  return Math.round((ageInDays / 365.25) * 10) / 10;
+  return calculateCognitiveAgeFromPerformance({
+    performance: perf,
+    baselinePerformance: baseline,
+    chronologicalAge: realAge,
+    inactiveDays,
+  });
 }
 
 export function CognitiveAgeTrendChart() {
