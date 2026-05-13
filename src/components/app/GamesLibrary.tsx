@@ -135,7 +135,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
       <div className="space-y-5">
       {SYSTEMS.map((system) => {
         const isOpen = openSystem === system.id;
-        const Icon = system.id === "fast" ? Sparkles : Compass;
+        const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
 
         return (
           <div key={system.id} className="space-y-2.5">
