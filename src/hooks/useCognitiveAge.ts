@@ -18,7 +18,13 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { subDays, format, parseISO, differenceInDays } from "date-fns";
+import { subDays, format } from "date-fns";
+import {
+  calculateChronologicalAgeAtDate,
+  calculateCognitiveAgeFromPerformance,
+  getInactiveDays,
+  maxIsoDate,
+} from "@/lib/cognitiveAge";
 
 // ==========================================
 // TYPES
@@ -143,7 +149,7 @@ export function useCognitiveAge() {
     staleTime: 5 * 60_000,
   });
 
-  // 3b) Fetch user profile for birth_date
+  // 3b) Fetch user profile for chronological-age anchor
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile-birthdate", user?.id],
     queryFn: async () => {
@@ -151,7 +157,7 @@ export function useCognitiveAge() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("birth_date")
+        .select("birth_date, created_at")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -160,6 +166,33 @@ export function useCognitiveAge() {
     },
     enabled: !!user?.id,
     staleTime: 5 * 60_000,
+  });
+
+  // 3c) Fetch latest meaningful activity to penalize long inactivity.
+  const { data: lastActivityAt, isLoading: activityLoading } = useQuery({
+    queryKey: ["cognitive-age-last-activity", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const [game, reason, detox, walk] = await Promise.all([
+        supabase.from("game_sessions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("reason_sessions").select("ended_at").eq("user_id", user.id).not("ended_at", "is", null).order("ended_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("detox_completions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("walking_sessions").select("completed_at").eq("user_id", user.id).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+      ]);
+
+      const firstError = game.error || reason.error || detox.error || walk.error;
+      if (firstError) throw firstError;
+
+      return maxIsoDate([
+        game.data?.completed_at,
+        reason.data?.ended_at,
+        detox.data?.completed_at,
+        walk.data?.completed_at,
+      ]);
+    },
+    enabled: !!user?.id,
+    staleTime: 60_000,
   });
 
   // 4) Fetch recent daily snapshots for live performance calculation
@@ -287,18 +320,18 @@ export function useCognitiveAge() {
       return null;
     }
 
-    // Calculate current real age
-    let currentRealAge: number;
-    if (profile?.birth_date) {
-      const birthDate = parseISO(profile.birth_date);
-      const today = new Date();
-      const ageInDays = differenceInDays(today, birthDate);
-      currentRealAge = Math.round((ageInDays / 365.25) * 10) / 10;
-    } else {
-      currentRealAge = baseline?.chrono_age_at_onboarding 
-        ? Number(baseline.chrono_age_at_onboarding)
-        : 30;
-    }
+    const today = new Date();
+    const currentRealAge = calculateChronologicalAgeAtDate({
+      birthDate: profile?.birth_date,
+      targetDate: today,
+      fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : 30,
+      fallbackAnchorDate: profile?.created_at ?? baseline?.baseline_start_date ?? null,
+    });
+    const inactiveDays = getInactiveDays({
+      lastMeaningfulActivityAt: lastActivityAt,
+      fallbackStartDate: profile?.created_at ?? baseline?.baseline_start_date ?? null,
+      targetDate: today,
+    });
 
     // Need at least one snapshot to calculate
     if (!recentSnapshots || recentSnapshots.length === 0) {
@@ -315,13 +348,12 @@ export function useCognitiveAge() {
       return { cognitiveAge: currentRealAge, perf30d: null, perf180d: null };
     }
 
-    // perf = 0.25 × (AE + RA + CT + IN)
-    const currentPerf = skills.reduce((a, b) => a + b, 0) * 0.25;
+    const currentPerf = skills.reduce((a, b) => a + b, 0) / skills.length;
 
     // Calculate 30-day average
     const perf30dValues = recentSnapshots.map(s => {
       const vals = [s.ae, s.ra, s.ct, s.in_score].filter((v): v is number => v !== null).map(Number);
-      return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) * 0.25 : null;
+      return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
     }).filter((v): v is number => v !== null);
     
     const perf30d = perf30dValues.length > 0 
@@ -333,7 +365,7 @@ export function useCognitiveAge() {
     if (snapshots180d && snapshots180d.length > 0) {
       const perf180dValues = snapshots180d.map(s => {
         const vals = [s.ae, s.ra, s.ct, s.in_score].filter((v): v is number => v !== null).map(Number);
-        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) * 0.25 : null;
+        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
       }).filter((v): v is number => v !== null);
       
       perf180d = perf180dValues.length > 0 
@@ -348,14 +380,13 @@ export function useCognitiveAge() {
       ? Number(baseline.baseline_score_90d)
       : 50; // Always use 50 as neutral baseline during calibration
 
-    // Calculate improvement points
-    // Each 10 points above baseline = -1 year cognitive age
-    // Each 10 points below baseline = +1 year cognitive age
-    const perfDiff = currentPerf - calibrationBaseline;
-    const improvementPoints = perfDiff / 10; // 10 points = 1 year
-
-    // Calculate cognitive age
-    const cognitiveAge = Math.round((currentRealAge - improvementPoints) * 10) / 10;
+    const improvementPoints = (currentPerf - calibrationBaseline) / 10;
+    const cognitiveAge = calculateCognitiveAgeFromPerformance({
+      performance: currentPerf,
+      baselinePerformance: calibrationBaseline,
+      chronologicalAge: currentRealAge,
+      inactiveDays,
+    }) ?? currentRealAge;
 
     return { 
       cognitiveAge, 
@@ -365,23 +396,22 @@ export function useCognitiveAge() {
       calibrationBaseline: Math.round(calibrationBaseline * 10) / 10,
       improvementPoints: Math.round(improvementPoints * 10) / 10
     };
-  }, [recentSnapshots, snapshots180d, baseline, profile, weeklySnapshot]);
+  }, [recentSnapshots, snapshots180d, baseline, profile, weeklySnapshot, lastActivityAt]);
 
   // 7) Compose final data
   const cognitiveAgeData: CognitiveAgeData = useMemo(() => {
-    // Calculate current real age from birth_date (with 1 decimal precision)
-    let currentRealAge: number;
-    if (profile?.birth_date) {
-      const birthDate = parseISO(profile.birth_date);
-      const today = new Date();
-      const ageInDays = differenceInDays(today, birthDate);
-      currentRealAge = Math.round((ageInDays / 365.25) * 10) / 10; // 1 decimal precision
-    } else {
-      // Fallback to chrono_age_at_onboarding if no birth_date
-      currentRealAge = baseline?.chrono_age_at_onboarding 
-        ? Number(baseline.chrono_age_at_onboarding)
-        : 30;
-    }
+    const today = new Date();
+    const currentRealAge = calculateChronologicalAgeAtDate({
+      birthDate: profile?.birth_date,
+      targetDate: today,
+      fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : 30,
+      fallbackAnchorDate: profile?.created_at ?? baseline?.baseline_start_date ?? null,
+    });
+    const inactiveDays = getInactiveDays({
+      lastMeaningfulActivityAt: lastActivityAt,
+      fallbackStartDate: profile?.created_at ?? baseline?.baseline_start_date ?? null,
+      targetDate: today,
+    });
     
     const isCalibrated = baseline?.is_baseline_calibrated ?? false;
     
@@ -392,9 +422,16 @@ export function useCognitiveAge() {
     
     if (isCalibrated && weeklySnapshot?.cognitive_age) {
       // Use stable weekly data
-      cogAge = Math.round(Number(weeklySnapshot.cognitive_age) * 10) / 10;
       perf30d = weeklySnapshot?.perf_short_30d ? Number(weeklySnapshot.perf_short_30d) : null;
       perf180d = weeklySnapshot?.perf_long_180d ? Number(weeklySnapshot.perf_long_180d) : null;
+      cogAge = calculateCognitiveAgeFromPerformance({
+        performance: perf180d,
+        baselinePerformance: baseline?.baseline_score_90d ? Number(baseline.baseline_score_90d) : null,
+        chronologicalAge: currentRealAge,
+        rq: weeklySnapshot?.rq_30d ? Number(weeklySnapshot.rq_30d) : null,
+        regressionPenaltyYears: weeklySnapshot?.regression_penalty_years ?? 0,
+        inactiveDays,
+      }) ?? Math.round(Number(weeklySnapshot.cognitive_age) * 10) / 10;
     } else if (liveCalibrationAge) {
       // Use live calculation during calibration
       cogAge = liveCalibrationAge.cognitiveAge;
@@ -454,11 +491,11 @@ export function useCognitiveAge() {
       delta: cogAge !== null ? Math.round((cogAge - currentRealAge) * 10) / 10 : 0,
       daysUntilNextUpdate: daysUntilSunday,
     };
-  }, [weeklySnapshot, baseline, profile, liveRegressionData, preRegressionWarning, liveCalibrationAge]);
+  }, [weeklySnapshot, baseline, profile, lastActivityAt, liveRegressionData, preRegressionWarning, liveCalibrationAge]);
 
   return {
     data: cognitiveAgeData,
-    isLoading: weeklyLoading || baselineLoading || profileLoading || dailyLoading || snapshotsLoading,
+    isLoading: weeklyLoading || baselineLoading || profileLoading || dailyLoading || snapshotsLoading || activityLoading,
     hasWeeklyData: !!weeklySnapshot,
     hasBaseline: !!baseline,
     hasDailyData: !!dailyRecord,

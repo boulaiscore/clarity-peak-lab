@@ -12,8 +12,12 @@ import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, subDays, parseISO, differenceInDays } from "date-fns";
+import { format, subDays } from "date-fns";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart, LabelList } from "recharts";
+import {
+  calculateChronologicalAgeAtDate,
+  calculateCognitiveAgeFromPerformance,
+} from "@/lib/cognitiveAge";
 
 // Colors
 const COGNITIVE_AGE_GOOD_COLOR = "hsl(142, 76%, 45%)";
@@ -75,26 +79,20 @@ function calcCognitiveAgeFromSnapshot(
   ct: number | null,
   inScore: number | null,
   realAge: number,
-  baselineScore: number | null
+  baselineScore: number | null,
+  inactiveDays: number | null
 ): number | null {
   const skills = [ae, ra, ct, inScore].filter((v): v is number => v !== null).map(Number);
   if (skills.length < 2) return null;
   
   const perf = skills.reduce((a, b) => a + b, 0) / skills.length;
   const baseline = baselineScore !== null ? baselineScore : 50;
-  const improvement = (perf - baseline) / 10; // 10 points = 1 year
-  
-  return Math.round((realAge - improvement) * 10) / 10;
-}
-
-/**
- * Calculate precise age at a given date from birth_date.
- */
-function calcAgeAtDate(birthDate: string, targetDate: string): number {
-  const birth = parseISO(birthDate);
-  const target = parseISO(targetDate);
-  const ageInDays = differenceInDays(target, birth);
-  return Math.round((ageInDays / 365.25) * 10) / 10;
+  return calculateCognitiveAgeFromPerformance({
+    performance: perf,
+    baselinePerformance: baseline,
+    chronologicalAge: realAge,
+    inactiveDays,
+  });
 }
 
 export function CognitiveAgeTrendChart() {
@@ -152,15 +150,11 @@ export function CognitiveAgeTrendChart() {
 
     const { weekly, baseline, profile, daily } = chartSources;
 
-    // Calculate current real age from birth_date
-    let realAge: number;
-    if (profile?.birth_date) {
-      realAge = calcAgeAtDate(profile.birth_date, format(new Date(), "yyyy-MM-dd"));
-    } else {
-      realAge = baseline?.chrono_age_at_onboarding
-        ? Number(baseline.chrono_age_at_onboarding)
-        : 30;
-    }
+    const realAge = calculateChronologicalAgeAtDate({
+      birthDate: profile?.birth_date,
+      targetDate: new Date(),
+      fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : 30,
+    });
 
     const baselineScore = baseline?.baseline_score_90d
       ? Number(baseline.baseline_score_90d)
@@ -175,9 +169,11 @@ export function CognitiveAgeTrendChart() {
     for (let i = TOTAL - 1; i >= 0; i--) {
       const d = subDays(today, i);
       const dateStr = format(d, "yyyy-MM-dd");
-      const dateRealAge = profile?.birth_date
-        ? calcAgeAtDate(profile.birth_date, dateStr)
-        : realAge;
+      const dateRealAge = calculateChronologicalAgeAtDate({
+        birthDate: profile?.birth_date,
+        targetDate: dateStr,
+        fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : realAge,
+      });
       skeletonDays.push({
         label: format(d, "d MMM"),
         cognitiveAge: null,
@@ -206,7 +202,8 @@ export function CognitiveAgeTrendChart() {
           d.ct ? Number(d.ct) : null,
           d.in_score ? Number(d.in_score) : null,
           point.realAge,
-          baselineScore
+          baselineScore,
+          null
         );
       }
     }
