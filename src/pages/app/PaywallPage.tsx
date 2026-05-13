@@ -58,18 +58,22 @@ const plans = [
   },
 ];
 
+const PRICE_BY_ID: Record<string, string> = {
+  pro: "looma_pro_yearly",
+  elite: "looma_elite_yearly",
+};
+
 export default function PaywallPage() {
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const { openCheckout, loading } = usePaddleCheckout();
 
   const handleSelectPlan = (planId: string) => {
     if (planId === "free") {
       navigate("/app");
       return;
     }
-    setSelectedPlan(plans.find((p) => p.id === planId)?.name || planId);
-    setShowConfirmation(true);
+    const priceId = PRICE_BY_ID[planId];
+    if (priceId) openCheckout(priceId);
   };
 
   return (
