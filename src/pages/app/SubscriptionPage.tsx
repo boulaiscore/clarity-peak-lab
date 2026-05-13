@@ -246,7 +246,9 @@ const SubscriptionPage = () => {
         </div>
 
         <p className="text-center text-[10px] text-muted-foreground/50 mt-6">
-          Annual subscriptions auto-renew unless cancelled.
+          {cycle === "yearly"
+            ? "Annual subscriptions auto-renew unless cancelled. 2 months free vs monthly."
+            : "Monthly subscriptions auto-renew unless cancelled."}
         </p>
       </div>
 
