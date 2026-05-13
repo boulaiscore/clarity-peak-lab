@@ -9,6 +9,8 @@ import gameAeBg from "@/assets/game-ae-bg.jpg";
 import gameRaBg from "@/assets/game-ra-bg.jpg";
 import gameCtBg from "@/assets/game-ct-bg.jpg";
 import gameInBg from "@/assets/game-in-bg.jpg";
+import s1Bg from "@/assets/s1-bg.jpg";
+import s2Bg from "@/assets/s2-bg.jpg";
 
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
