@@ -1,5 +1,6 @@
 import React from "react";
-import { Sparkles, Compass, BarChart3, ArrowRight, Info } from "lucide-react";
+import { BarChart3, ArrowRight, Info } from "lucide-react";
+import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 
 function classify(score: number) {
   if (score >= 85) return { label: "ELITE", color: "#1b5e20", bg: "#e8f5e9" };
