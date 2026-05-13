@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Zap, Target, Moon, TrendingUp, TrendingDown } from "lucide-react";
+import { ChevronDown, ChevronUp, Target, Moon, TrendingUp, TrendingDown } from "lucide-react";
+import { SystemOneMark } from "@/components/icons/ThinkingSystemIcons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
