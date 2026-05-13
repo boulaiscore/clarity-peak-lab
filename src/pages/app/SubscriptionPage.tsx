@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Crown, Check, User, Rocket, ArrowRight, ExternalLink } from "lucide-react";
@@ -10,13 +10,23 @@ import { getPaddleEnvironment } from "@/lib/paddle";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-const plans = [
+type BillingCycle = "monthly" | "yearly";
+
+const PLAN_PRICING = {
+  pro: {
+    monthly: { priceId: "looma_pro_monthly", price: "$19.90", period: "/mo" },
+    yearly: { priceId: "looma_pro_yearly", price: "$199", period: "/yr" },
+  },
+  elite: {
+    monthly: { priceId: "looma_elite_monthly", price: "$29.90", period: "/mo" },
+    yearly: { priceId: "looma_elite_yearly", price: "$299", period: "/yr" },
+  },
+} as const;
+
+const basePlans = [
   {
     id: "free",
     name: "Free",
-    priceId: null as string | null,
-    price: "$0",
-    period: "",
     tagline: "See your state",
     icon: User,
     iconColor: "text-muted-foreground",
@@ -30,9 +40,6 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    priceId: "looma_pro_yearly",
-    price: "$199",
-    period: "/year",
     tagline: "Train and recover, every day",
     icon: Crown,
     iconColor: "text-amber-400",
@@ -49,9 +56,6 @@ const plans = [
   {
     id: "elite",
     name: "Elite",
-    priceId: "looma_elite_yearly",
-    price: "$299",
-    period: "/year",
     tagline: "Coached recovery for high-stakes work",
     icon: Rocket,
     iconColor: "text-purple-400",
@@ -69,10 +73,17 @@ const plans = [
 const SubscriptionPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [cycle, setCycle] = useState<BillingCycle>("yearly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
 
   const currentPlanId = isActive ? tier : "free";
+
+  const plans = basePlans.map((p) => {
+    if (p.id === "free") return { ...p, priceId: null as string | null, price: "$0", period: "" };
+    const pricing = PLAN_PRICING[p.id as "pro" | "elite"][cycle];
+    return { ...p, priceId: pricing.priceId, price: pricing.price, period: pricing.period };
+  });
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
@@ -151,6 +162,31 @@ const SubscriptionPage = () => {
             Manage billing
           </Button>
         )}
+
+        {/* Billing cycle toggle */}
+        <div className="flex items-center justify-center mb-5">
+          <div className="inline-flex p-1 rounded-full bg-muted/50 border border-border">
+            {(["monthly", "yearly"] as BillingCycle[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => setCycle(c)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-xs font-medium transition-all capitalize",
+                  cycle === c
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {c === "yearly" ? (
+                  <span className="flex items-center gap-1.5">
+                    Yearly
+                    <span className="text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">2 mo free</span>
+                  </span>
+                ) : "Monthly"}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Plans */}
         <div className="space-y-3">
@@ -235,7 +271,9 @@ const SubscriptionPage = () => {
         </div>
 
         <p className="text-center text-[10px] text-muted-foreground/50 mt-6">
-          Annual subscriptions auto-renew unless cancelled.
+          {cycle === "yearly"
+            ? "Annual subscriptions auto-renew unless cancelled. 2 months free vs monthly."
+            : "Monthly subscriptions auto-renew unless cancelled."}
         </p>
       </div>
 
