@@ -73,10 +73,17 @@ const basePlans = [
 const SubscriptionPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [cycle, setCycle] = useState<BillingCycle>("yearly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
 
   const currentPlanId = isActive ? tier : "free";
+
+  const plans = basePlans.map((p) => {
+    if (p.id === "free") return { ...p, priceId: null as string | null, price: "$0", period: "" };
+    const pricing = PLAN_PRICING[p.id as "pro" | "elite"][cycle];
+    return { ...p, priceId: pricing.priceId, price: pricing.price, period: pricing.period };
+  });
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
