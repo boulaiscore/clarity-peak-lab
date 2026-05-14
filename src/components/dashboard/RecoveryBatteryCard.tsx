@@ -78,7 +78,7 @@ export function RecoveryBatteryCard({
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground/70 uppercase">
+          <span className="text-[10px] font-semibold tracking-[0.2em] text-foreground uppercase">
             Cognitive Recovery
           </span>
           <div className="flex items-baseline gap-2.5">
