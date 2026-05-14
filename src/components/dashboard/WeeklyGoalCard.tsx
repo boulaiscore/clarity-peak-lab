@@ -316,10 +316,11 @@ export function WeeklyGoalCard({
     const ringCircumference = 2 * Math.PI * ringRadius;
     const ringOffset = ringCircumference - (ringPercent / 100) * ringCircumference;
     
-    // S1/S2 totals — use CAPPED so header equals sum of per-area bars
-    const s1Earned = Math.round(gamesSubTargets[0]?.capped ?? 0);
+    // S1/S2 totals use RAW earned XP so they reconcile with Weekly Load.
+    // Area bars remain capped, with +N shown when a sub-skill exceeds its cap.
+    const s1Earned = Math.round(gamesSubTargets[0]?.earned ?? 0);
     const s1Target = Math.round(gamesSubTargets[0]?.target ?? 0);
-    const s2Earned = Math.round(gamesSubTargets[1]?.capped ?? 0);
+    const s2Earned = Math.round(gamesSubTargets[1]?.earned ?? 0);
     const s2Target = Math.round(gamesSubTargets[1]?.target ?? 0);
 
     // Sub-skill display names — match the actual games shown in the library
@@ -510,6 +511,7 @@ export function WeeklyGoalCard({
                 <div className="space-y-2.5">
                   {s1Areas.map(area => {
                     const pct = Math.min(100, area.progress);
+                    const overflow = Math.max(0, Math.round(area.earned - area.target));
                     return <div key={area.area} className="flex items-center gap-3">
                       <div className="w-[110px] shrink-0">
                         <span className="text-[11px] text-foreground/60 font-medium truncate block">{labelFor(area.area, "s1")}</span>
@@ -517,9 +519,12 @@ export function WeeklyGoalCard({
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                         <motion.div className="h-full rounded-full bg-[hsl(var(--area-fast)/0.55)]" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
-                      <span className="text-[10px] text-foreground/50 tabular-nums w-12 text-right font-medium">
-                        {Math.round(area.cappedXP)}/{Math.round(area.target)}
-                      </span>
+                      <div className="w-[58px] text-right shrink-0">
+                        <span className="text-[10px] text-foreground/50 tabular-nums font-medium">
+                          {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                        </span>
+                        {overflow > 0 && <span className="ml-1 text-[9px] text-[hsl(var(--area-fast))] font-bold tabular-nums">+{overflow}</span>}
+                      </div>
                     </div>;
                   })}
                 </div>
@@ -543,6 +548,7 @@ export function WeeklyGoalCard({
                 <div className="space-y-2.5">
                   {s2Areas.map(area => {
                     const pct = Math.min(100, area.progress);
+                    const overflow = Math.max(0, Math.round(area.earned - area.target));
                     return <div key={area.area} className="flex items-center gap-3">
                       <div className="w-[110px] shrink-0">
                         <span className="text-[11px] text-foreground/60 font-medium truncate block">{labelFor(area.area, "s2")}</span>
@@ -550,9 +556,12 @@ export function WeeklyGoalCard({
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                         <motion.div className="h-full rounded-full bg-indigo-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
-                      <span className="text-[10px] text-foreground/50 tabular-nums w-12 text-right font-medium">
-                        {Math.round(area.cappedXP)}/{Math.round(area.target)}
-                      </span>
+                      <div className="w-[58px] text-right shrink-0">
+                        <span className="text-[10px] text-foreground/50 tabular-nums font-medium">
+                          {Math.round(area.cappedXP)}/{Math.round(area.target)}
+                        </span>
+                        {overflow > 0 && <span className="ml-1 text-[9px] text-indigo-300/90 font-bold tabular-nums">+{overflow}</span>}
+                      </div>
                     </div>;
                   })}
                 </div>
