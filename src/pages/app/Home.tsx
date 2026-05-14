@@ -156,6 +156,9 @@ const Home = () => {
 
   // Active books for "Currently Reading" card
   const { data: activeBooks = [] } = useActiveBooks();
+
+  // Active Quality Time session (Reading / Listening) indicator
+  const { data: activeReasonSession } = useActiveReasonSession();
   // Prioritized suggestions based on metrics and lab state
   const {
     suggestions: prioritizedSuggestions,
