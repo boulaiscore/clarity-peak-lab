@@ -74,7 +74,13 @@ export default function RecoveryBreakdown() {
   const navigate = useNavigate();
   const { recovery } = useRecoveryV2();
   const { data: snapshot } = useTodayPhoneHealthSnapshot();
-  const { detoxMinutes, walkingMinutes } = useTodayActivities();
+  const { data: activities } = useTodayActivities();
+  const detoxMinutes = (activities ?? [])
+    .filter((a) => a.key === "detox")
+    .reduce((sum, a) => sum + (parseFloat(a.tileValue) || 0), 0);
+  const walkingMinutes = (activities ?? [])
+    .filter((a) => a.key === "walk")
+    .reduce((sum, a) => sum + (parseFloat(a.tileValue) || 0), 0);
 
   const inputs: PhoneHealthInputs = {
     sleepMin: snapshot?.sleep_min ?? null,
