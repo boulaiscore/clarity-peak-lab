@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Check, ExternalLink } from "lucide-react";
@@ -74,7 +74,6 @@ const basePlans: BasePlan[] = [
 const SubscriptionPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
 
@@ -90,7 +89,7 @@ const SubscriptionPage = () => {
     }
   }, [searchParams, setSearchParams, refetch, navigate]);
 
-  const handleSelectPlan = (planId: PaidPlanId) => {
+  const handleSelectPlan = (planId: PaidPlanId, cycle: BillingCycle) => {
     if (planId === currentPlanId) return;
     const pricing = PLAN_PRICING[planId][cycle];
     openCheckout(pricing.priceId);
@@ -152,41 +151,15 @@ const SubscriptionPage = () => {
           </div>
         )}
 
-        {/* Billing cycle toggle */}
-        <div className="flex items-center justify-center mb-10 sm:mb-12">
-          <div className="inline-flex border border-border/60 rounded-full p-1 bg-card/40">
-            {(["monthly", "yearly"] as BillingCycle[]).map((c) => (
-              <button
-                key={c}
-                onClick={() => setCycle(c)}
-                className={cn(
-                  "px-6 py-2 rounded-full text-[11px] uppercase tracking-[0.18em] transition-all",
-                  cycle === c
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {c === "yearly" ? (
-                  <span className="flex items-center gap-2">
-                    Yearly
-                    <span className="text-[9px] tracking-[0.2em] opacity-80 normal-case">
-                      2 months free
-                    </span>
-                  </span>
-                ) : (
-                  "Monthly"
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Both monthly + yearly are shown directly on each card below */}
 
         {/* Plans — three cards side-by-side */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-stretch">
           {basePlans.map((plan) => {
             const isCurrent = plan.id === currentPlanId;
             const isPaid = plan.id !== "free";
-            const pricing = isPaid ? PLAN_PRICING[plan.id as PaidPlanId][cycle] : null;
+            const monthly = isPaid ? PLAN_PRICING[plan.id as PaidPlanId].monthly : null;
+            const yearly = isPaid ? PLAN_PRICING[plan.id as PaidPlanId].yearly : null;
             const highlighted = plan.highlighted;
 
             return (
@@ -230,7 +203,7 @@ const SubscriptionPage = () => {
 
                 {/* Price */}
                 <div className="mb-7">
-                  {pricing ? (
+                  {monthly && yearly ? (
                     <>
                       <div className="flex items-baseline gap-2">
                         <span
@@ -239,7 +212,7 @@ const SubscriptionPage = () => {
                             highlighted ? "text-white" : "text-foreground"
                           )}
                         >
-                          ${pricing.amount}
+                          ${monthly.amount}
                         </span>
                         <span
                           className={cn(
@@ -247,29 +220,17 @@ const SubscriptionPage = () => {
                             highlighted ? "text-white/70" : "text-muted-foreground"
                           )}
                         >
-                          / {pricing.period}
+                          / month
                         </span>
                       </div>
-                      {cycle === "yearly" && pricing.perMonth && (
-                        <p
-                          className={cn(
-                            "text-[11px] mt-2 tabular-nums font-light",
-                            highlighted ? "text-white/70" : "text-muted-foreground/70"
-                          )}
-                        >
-                          ≈ {pricing.perMonth} · 2 months free
-                        </p>
-                      )}
-                      {cycle === "monthly" && (
-                        <p
-                          className={cn(
-                            "text-[11px] mt-2 font-light",
-                            highlighted ? "text-white/60" : "text-muted-foreground/60"
-                          )}
-                        >
-                          Billed monthly
-                        </p>
-                      )}
+                      <p
+                        className={cn(
+                          "text-[11px] mt-2 tabular-nums font-light",
+                          highlighted ? "text-white/70" : "text-muted-foreground/70"
+                        )}
+                      >
+                        or ${yearly.amount} / year{yearly.perMonth ? ` (≈ ${yearly.perMonth})` : ""} · 2 months free
+                      </p>
                     </>
                   ) : (
                     <>
@@ -323,18 +284,33 @@ const SubscriptionPage = () => {
                     Current Plan
                   </div>
                 ) : isPaid ? (
-                  <Button
-                    onClick={() => handleSelectPlan(plan.id as PaidPlanId)}
-                    disabled={loading}
-                    className={cn(
-                      "w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
-                      highlighted
-                        ? "bg-white text-[hsl(225_32%_22%)] hover:bg-white/90"
-                        : "bg-foreground text-background hover:bg-foreground/90"
-                    )}
-                  >
-                    Start 14-day free trial
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => handleSelectPlan(plan.id as PaidPlanId, "monthly")}
+                      disabled={loading}
+                      className={cn(
+                        "w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
+                        highlighted
+                          ? "bg-white text-[hsl(225_32%_22%)] hover:bg-white/90"
+                          : "bg-foreground text-background hover:bg-foreground/90"
+                      )}
+                    >
+                      Start trial · ${monthly!.amount}/mo
+                    </Button>
+                    <Button
+                      onClick={() => handleSelectPlan(plan.id as PaidPlanId, "yearly")}
+                      disabled={loading}
+                      variant="outline"
+                      className={cn(
+                        "w-full h-11 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
+                        highlighted
+                          ? "bg-transparent text-white border-white/40 hover:bg-white/10 hover:text-white"
+                          : "bg-transparent border-border/60 text-foreground hover:bg-muted/40"
+                      )}
+                    >
+                      Start trial · ${yearly!.amount}/yr
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     onClick={() => navigate("/app")}
@@ -354,7 +330,7 @@ const SubscriptionPage = () => {
           XP measures training volume, not intelligence. LOOMA adapts difficulty, load, and insight depth to your cognitive profile.
         </p>
         <p className="text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 mt-4">
-          14-day free trial · then {cycle === "yearly" ? "billed annually" : "billed monthly"} · cancel anytime
+          14-day free trial · choose monthly or yearly · cancel anytime
         </p>
       </div>
     </AppShell>
