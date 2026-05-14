@@ -10,11 +10,11 @@ type BillingCycle = "monthly" | "yearly";
 
 const PLAN_PRICING = {
   pro: {
-    monthly: { priceId: "looma_pro_monthly", price: "$19.90", period: "/mo" },
+    monthly: { priceId: "looma_pro_monthly", price: "$19.99", period: "/mo" },
     yearly: { priceId: "looma_pro_yearly", price: "$199", period: "/yr" },
   },
   elite: {
-    monthly: { priceId: "looma_elite_monthly", price: "$29.90", period: "/mo" },
+    monthly: { priceId: "looma_elite_monthly", price: "$29.99", period: "/mo" },
     yearly: { priceId: "looma_elite_yearly", price: "$299", period: "/yr" },
   },
 } as const;
