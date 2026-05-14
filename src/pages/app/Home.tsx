@@ -19,8 +19,7 @@ import { useTutorialState } from "@/hooks/useTutorialState";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { useActiveReasonSession } from "@/hooks/useReasonSessions";
 import { cn } from "@/lib/utils";
-import { TrainingPlanId } from "@/lib/trainingPlans";
-import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
+import { getSharpnessStatus, getReadinessStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { CognitiveInsightCard } from "@/components/home/CognitiveInsightCard";
 import { HomeTabId } from "@/components/home/HomeTabs";
@@ -104,8 +103,7 @@ const ProgressRing = ({
 const Home = () => {
   const navigate = useNavigate();
   const {
-    user,
-    updateUser
+    user
   } = useAuth();
 
   // Baseline calibration status - gates Games and Tasks
@@ -262,7 +260,6 @@ const Home = () => {
     showTutorial,
     markTutorialComplete
   } = useTutorialState();
-  const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
 
   // Premium functional color system - fixed colors per metric
@@ -270,10 +267,6 @@ const Home = () => {
   const sharpnessColor = "hsl(210, 100%, 60%)"; // Electric blue
   const readinessColor = "hsl(245, 58%, 65%)"; // Soft indigo
   const rqColor = "hsl(207, 44%, 55%)"; // Steel Blue for RQ
-
-  const handleStartSession = () => {
-    navigate("/neuro-lab");
-  };
 
   // Get insight based on readiness - direct actionable tone
   const getInsight = () => {
