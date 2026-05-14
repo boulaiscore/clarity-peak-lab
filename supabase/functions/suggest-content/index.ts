@@ -23,8 +23,15 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, planId, monthStart } = await req.json();
-    
+    // Require authenticated caller — derive userId from JWT, not body
+    const authedUser = await getAuthedUser(req);
+    if (!authedUser) {
+      return unauthorizedResponse(corsHeaders);
+    }
+
+    const { planId, monthStart } = await req.json();
+    const userId = authedUser.id;
+
     console.log(`[suggest-content] Starting for user ${userId}, plan ${planId}, month ${monthStart}`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
