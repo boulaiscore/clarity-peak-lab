@@ -52,6 +52,7 @@ import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
 import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 import ReasoningQualityImpact from "./pages/app/ReasoningQualityImpact";
+import RecoveryBreakdown from "./pages/app/RecoveryBreakdown";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";

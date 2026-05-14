@@ -178,35 +178,39 @@ function calendarDaysBetween(lastTs: string, nowTs: string): number {
 /**
  * Apply daily snapshot recalibration.
  * - Within the same calendar day: REC is FROZEN (no change). WHOOP-style fixed score.
- * - Each new day: REC mean-reverts toward baseline (50) by REC_DAILY_MEAN_REVERSION.
- *   This means REC never collapses to 0 from inactivity — it tends to neutral.
+ * - Each new day: REC mean-reverts toward `targetOverride` (or REC_DAILY_BASELINE 50
+ *   if not provided) by REC_DAILY_MEAN_REVERSION.
  *
  * Active gains via applyRecoveryAction continue to bump REC immediately within the day.
  *
  * @param currentRec Current recovery value (0-100)
  * @param lastTs ISO timestamp of last update
  * @param nowTs ISO timestamp of current time (default: now)
+ * @param targetOverride Optional dynamic target (e.g. from Phone Health Index, range ~35..65).
+ *                      When omitted falls back to REC_DAILY_BASELINE (50) → unchanged behavior.
  * @returns Recalibrated recovery value
  */
 export function applyRecoveryDecay(
   currentRec: number,
   lastTs: string,
-  nowTs: string = new Date().toISOString()
+  nowTs: string = new Date().toISOString(),
+  targetOverride?: number | null
 ): number {
-  if (currentRec <= 0 && currentRec >= 0) {
-    // proceed normally
-  }
-
   const days = calendarDaysBetween(lastTs, nowTs);
 
   // Same calendar day → frozen snapshot
   if (days <= 0) return currentRec;
 
-  // Apply mean reversion toward baseline once per missed calendar day
+  const target =
+    targetOverride != null && Number.isFinite(targetOverride)
+      ? Math.max(0, Math.min(100, targetOverride))
+      : REC_DAILY_BASELINE;
+
+  // Apply mean reversion toward target once per missed calendar day
   let rec = currentRec;
   const k = 1 - REC_DAILY_MEAN_REVERSION;
   for (let i = 0; i < days; i++) {
-    rec = REC_DAILY_BASELINE + (rec - REC_DAILY_BASELINE) * k;
+    rec = target + (rec - target) * k;
   }
 
   return Math.max(0, Math.min(100, Math.round(rec * 10) / 10));
