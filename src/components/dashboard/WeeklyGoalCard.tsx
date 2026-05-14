@@ -316,11 +316,20 @@ export function WeeklyGoalCard({
     const ringCircumference = 2 * Math.PI * ringRadius;
     const ringOffset = ringCircumference - (ringPercent / 100) * ringCircumference;
     
-    // S1/S2 total progress
-    const s1Earned = Math.round(gamesSubTargets[0]?.earned ?? 0);
+    // S1/S2 totals — use CAPPED so header equals sum of per-area bars
+    const s1Earned = Math.round(gamesSubTargets[0]?.capped ?? 0);
     const s1Target = Math.round(gamesSubTargets[0]?.target ?? 0);
-    const s2Earned = Math.round(gamesSubTargets[1]?.earned ?? 0);
+    const s2Earned = Math.round(gamesSubTargets[1]?.capped ?? 0);
     const s2Target = Math.round(gamesSubTargets[1]?.target ?? 0);
+
+    // Sub-skill display names — match the actual games shown in the library
+    const AREA_LABELS: Record<string, { s1: string; s2: string }> = {
+      focus: { s1: "Attentional Efficiency", s2: "Attentional Efficiency" },
+      creativity: { s1: "Rapid Association", s2: "Insight" },
+      reasoning: { s1: "Critical Thinking", s2: "Critical Thinking" },
+    };
+    const labelFor = (area: string, system: "s1" | "s2") =>
+      AREA_LABELS[area]?.[system] ?? area;
 
     // Ring color based on status
     const getRingColor = () => {
