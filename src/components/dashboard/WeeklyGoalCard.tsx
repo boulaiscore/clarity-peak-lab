@@ -685,6 +685,7 @@ export function WeeklyGoalCard({
           </div>
           {s1Areas.map(area => {
           const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+          const overflow = Math.max(0, Math.round(area.earned - area.target));
           return <button key={area.area} onClick={() => setExpandedCell(expandedCell === `s1-${area.area}` ? null : `s1-${area.area}`)} className="h-auto bg-amber-500/10 rounded flex flex-col items-stretch px-1 py-0.5 transition-all">
                 <div className="flex items-center gap-1">
                   <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
@@ -696,6 +697,9 @@ export function WeeklyGoalCard({
                   ease: "easeOut"
                 }} />
                   </div>
+                  {overflow > 0 && (
+                    <span className="text-[7px] text-amber-300 font-semibold tabular-nums leading-none">+{overflow}</span>
+                  )}
                 </div>
                 <AnimatePresence>
                   {expandedCell === `s1-${area.area}` && <motion.div initial={{
@@ -710,7 +714,7 @@ export function WeeklyGoalCard({
               }} transition={{
                 duration: 0.15
               }} className="text-[7px] text-amber-300/70 tabular-nums text-center mt-0.5">
-                      {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                      {Math.round(area.earned)}/{Math.round(area.target)} XP{overflow > 0 ? ` · +${overflow} extra` : ""}
                     </motion.div>}
                 </AnimatePresence>
               </button>;
@@ -730,6 +734,7 @@ export function WeeklyGoalCard({
           </div>
           {s2Areas.map(area => {
           const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
+          const overflow = Math.max(0, Math.round(area.earned - area.target));
           return <button key={area.area} onClick={() => setExpandedCell(expandedCell === `s2-${area.area}` ? null : `s2-${area.area}`)} className="h-auto bg-muted/30 rounded flex flex-col items-stretch px-1 py-0.5 transition-all">
                 <div className="flex items-center gap-1">
                   <AreaIcon className="w-2 h-2 text-muted-foreground/50" />
@@ -741,6 +746,9 @@ export function WeeklyGoalCard({
                   ease: "easeOut"
                 }} />
                   </div>
+                  {overflow > 0 && (
+                    <span className="text-[7px] text-violet-300 font-semibold tabular-nums leading-none">+{overflow}</span>
+                  )}
                 </div>
                 <AnimatePresence>
                   {expandedCell === `s2-${area.area}` && <motion.div initial={{
@@ -755,12 +763,15 @@ export function WeeklyGoalCard({
               }} transition={{
                 duration: 0.15
               }} className="text-[7px] text-violet-300/70 tabular-nums text-center mt-0.5">
-                      {Math.round(area.cappedXP)}/{Math.round(area.target)} XP
+                      {Math.round(area.earned)}/{Math.round(area.target)} XP{overflow > 0 ? ` · +${overflow} extra` : ""}
                     </motion.div>}
                 </AnimatePresence>
               </button>;
         })}
         </div>
+        <p className="text-[8px] text-muted-foreground/50 mt-2 leading-tight">
+          Area bars cap at the area target. Extra XP beyond it (+N) still counts toward your weekly total.
+        </p>
       </div>
 
       {/* Recovery Budget Section */}
