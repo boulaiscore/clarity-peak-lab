@@ -157,13 +157,9 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
         >
           <DrawerHeader className="pb-4">
             <DrawerTitle className="flex items-center gap-2 text-base">
-              <div className="w-8 h-8 rounded-lg bg-area-slow/15 flex items-center justify-center">
-                <Brain className="w-4 h-4 text-area-slow" />
-              </div>
-              <div>
-                <span className="text-foreground">Critical Thinking</span>
-                <span className="text-xs text-muted-foreground ml-2">S2-CT</span>
-              </div>
+              <div className="w-[3px] h-5 rounded-full bg-area-slow" />
+              <span className="text-foreground">Critical Thinking</span>
+              <span className="text-xs text-muted-foreground">S2-CT</span>
             </DrawerTitle>
           </DrawerHeader>
 
