@@ -94,8 +94,7 @@ const Auth = () => {
         return;
       }
 
-      // Also send our custom branded email
-      await sendPasswordResetEmail(email, redirectUrl);
+      // Supabase auth handles the reset email — no custom send needed
       
       setResetEmailSent(true);
     } catch (err) {

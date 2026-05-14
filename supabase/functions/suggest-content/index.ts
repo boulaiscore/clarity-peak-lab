@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getAuthedUser, unauthorizedResponse } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,8 +23,15 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, planId, monthStart } = await req.json();
-    
+    // Require authenticated caller — derive userId from JWT, not body
+    const authedUser = await getAuthedUser(req);
+    if (!authedUser) {
+      return unauthorizedResponse(corsHeaders);
+    }
+
+    const { planId, monthStart } = await req.json();
+    const userId = authedUser.id;
+
     console.log(`[suggest-content] Starting for user ${userId}, plan ${planId}, month ${monthStart}`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

@@ -19,16 +19,21 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify webhook signature if present
+    // Always require auth when secret is configured. If not configured, reject all calls.
+    if (!REVENUECAT_WEBHOOK_SECRET) {
+      console.error('REVENUECAT_WEBHOOK_SECRET is not configured — rejecting webhook');
+      return new Response(JSON.stringify({ error: 'Webhook not configured' }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const authHeader = req.headers.get('Authorization');
-    if (REVENUECAT_WEBHOOK_SECRET && authHeader) {
-      if (authHeader !== `Bearer ${REVENUECAT_WEBHOOK_SECRET}`) {
-        console.error('Invalid webhook signature');
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+    if (!authHeader || authHeader !== `Bearer ${REVENUECAT_WEBHOOK_SECRET}`) {
+      console.error('Invalid or missing webhook signature');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const body = await req.json();

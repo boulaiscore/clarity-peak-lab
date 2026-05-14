@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { getAuthedUser, unauthorizedResponse } from "../_shared/auth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,8 +9,6 @@ const corsHeaders = {
 };
 
 const ReportCheckoutSchema = z.object({
-  userId: z.string().uuid(),
-  userEmail: z.string().email().max(255),
   successUrl: z.string().url().max(2000).optional(),
   cancelUrl: z.string().url().max(2000).optional(),
 });
@@ -20,6 +19,11 @@ serve(async (req) => {
   }
 
   try {
+    const authedUser = await getAuthedUser(req);
+    if (!authedUser || !authedUser.email) {
+      return unauthorizedResponse(corsHeaders);
+    }
+
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
       throw new Error('Stripe is not configured');
@@ -27,7 +31,7 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
 
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const parsed = ReportCheckoutSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(
@@ -36,7 +40,9 @@ serve(async (req) => {
       );
     }
 
-    const { userId, userEmail, successUrl, cancelUrl } = parsed.data;
+    const { successUrl, cancelUrl } = parsed.data;
+    const userId = authedUser.id;
+    const userEmail = authedUser.email;
     const origin = req.headers.get('origin') || '';
 
     console.log('Creating report checkout session for user:', userId);

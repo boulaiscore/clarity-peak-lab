@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import { getAuthedUser, unauthorizedResponse } from "../_shared/auth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,6 +23,12 @@ serve(async (req) => {
   }
 
   try {
+    // Require authenticated caller — derive email from the verified JWT
+    const authedUser = await getAuthedUser(req);
+    if (!authedUser || !authedUser.email) {
+      return unauthorizedResponse(corsHeaders);
+    }
+
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeSecretKey) {
       console.error('STRIPE_SECRET_KEY is not configured');
@@ -38,11 +45,8 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const { userEmail, returnUrl } = await req.json();
-
-    if (!userEmail) {
-      throw new Error('User email is required');
-    }
+    const { returnUrl } = await req.json().catch(() => ({}));
+    const userEmail = authedUser.email;
 
     console.log('Creating billing portal session for:', userEmail);
 
