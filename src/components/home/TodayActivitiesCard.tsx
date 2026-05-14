@@ -71,7 +71,7 @@ export function TodayActivitiesCard({ outlook, activeQualityTime }: TodayActivit
         {/* Active Quality Time indicator — discreet inline pill */}
         {activeQualityTime && (
           <button
-            onClick={() => navigate("/neuro-lab")}
+            onClick={() => navigate(`/neuro-lab?tab=tasks&open=${activeQualityTime.type}`)}
             className="flex items-center gap-1.5 group"
           >
             <span className="relative flex h-1.5 w-1.5">
