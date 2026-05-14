@@ -81,11 +81,17 @@ export function RecoveryBatteryCard({
           <span className="text-[9px] font-semibold tracking-[0.2em] text-foreground uppercase">
             Cognitive Recovery
           </span>
-          <div className="flex items-baseline gap-2">
-            <h2 className="text-[20px] font-normal tabular-nums tracking-tight text-foreground leading-none">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <h2 className="text-[26px] font-normal tabular-nums tracking-tight text-foreground leading-none">
               {Math.round(value)}
-              <span className="text-xs opacity-50 ml-0.5">%</span>
+              <span className="text-sm opacity-50 ml-0.5">%</span>
             </h2>
+            <span
+              className="text-[10px] font-medium tracking-[0.18em] uppercase"
+              style={{ color }}
+            >
+              {displayInfo.text}
+            </span>
             {deltaVsYesterday && (
               <span
                 className="text-[9px] font-medium px-1.5 py-0.5 rounded-full border tabular-nums"
@@ -119,24 +125,6 @@ export function RecoveryBatteryCard({
         <div className="p-1 rounded-full bg-muted/30 mt-0.5">
           <ChevronRight className="w-3 h-3 text-muted-foreground/60" />
         </div>
-      </div>
-
-      {/* Status indicator row */}
-      <div className="flex items-center gap-2 mb-2.5">
-        <span
-          className="w-1 h-1 rounded-full shrink-0"
-          style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}99` }}
-        />
-        <span
-          className="text-[10px] font-medium tracking-[0.18em] uppercase"
-          style={{ color: `${color}` }}
-        >
-          {displayInfo.text}
-        </span>
-        <div
-          className="h-px flex-1"
-          style={{ background: `linear-gradient(to right, ${color}33, transparent)` }}
-        />
       </div>
 
       {/* Precision segmented bar */}
