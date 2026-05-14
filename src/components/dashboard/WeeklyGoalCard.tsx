@@ -519,11 +519,18 @@ export function WeeklyGoalCard({
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                         <motion.div className="h-full rounded-full bg-[hsl(var(--area-fast)/0.55)]" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
-                      <div className="w-[58px] text-right shrink-0">
+                      <div className="w-[78px] text-right shrink-0 flex flex-col items-end gap-0.5">
                         <span className="text-[10px] text-foreground/50 tabular-nums font-medium">
                           {Math.round(area.cappedXP)}/{Math.round(area.target)}
                         </span>
-                        {overflow > 0 && <span className="ml-1 text-[9px] text-[hsl(var(--area-fast))] font-bold tabular-nums">+{overflow}</span>}
+                        {overflow > 0 && (
+                          <span
+                            title={`+${overflow} XP earned beyond this area's weekly cap. Counts toward the weekly total but not this bar.`}
+                            className="px-1 py-px rounded-sm bg-[hsl(var(--area-fast)/0.18)] text-[8px] text-[hsl(var(--area-fast))] font-bold tabular-nums uppercase tracking-wider leading-none"
+                          >
+                            +{overflow} over cap
+                          </span>
+                        )}
                       </div>
                     </div>;
                   })}
@@ -556,16 +563,28 @@ export function WeeklyGoalCard({
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                         <motion.div className="h-full rounded-full bg-indigo-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
-                      <div className="w-[58px] text-right shrink-0">
+                      <div className="w-[78px] text-right shrink-0 flex flex-col items-end gap-0.5">
                         <span className="text-[10px] text-foreground/50 tabular-nums font-medium">
                           {Math.round(area.cappedXP)}/{Math.round(area.target)}
                         </span>
-                        {overflow > 0 && <span className="ml-1 text-[9px] text-indigo-300/90 font-bold tabular-nums">+{overflow}</span>}
+                        {overflow > 0 && (
+                          <span
+                            title={`+${overflow} XP earned beyond this area's weekly cap. Counts toward the weekly total but not this bar.`}
+                            className="px-1 py-px rounded-sm bg-indigo-400/15 text-[8px] text-indigo-300 font-bold tabular-nums uppercase tracking-wider leading-none"
+                          >
+                            +{overflow} over cap
+                          </span>
+                        )}
                       </div>
                     </div>;
                   })}
                 </div>
               </div>
+
+              {/* Overflow legend */}
+              <p className="text-[9.5px] text-muted-foreground/60 leading-snug px-1 -mt-1">
+                <span className="font-bold text-foreground/70">"+N over cap"</span> = extra XP earned beyond an area's weekly target. It still counts toward the weekly total at the top, but the area bar stops at 100%.
+              </p>
 
               {/* RECOVERY CARD */}
               <div className="rounded-2xl bg-teal-500/[0.05] border border-teal-400/[0.08] p-4">
