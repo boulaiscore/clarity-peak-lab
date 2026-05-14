@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { IntradayEventsProvider } from "@/contexts/IntradayEventsContext";
@@ -441,6 +442,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <HashRouter>
+                  <ScrollToTop />
                   <DeepLinkHandler>
                     <AppRoutes />
                   </DeepLinkHandler>
