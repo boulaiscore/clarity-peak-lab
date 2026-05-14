@@ -9,8 +9,6 @@ const corsHeaders = {
 };
 
 const ReportCheckoutSchema = z.object({
-  userId: z.string().uuid(),
-  userEmail: z.string().email().max(255),
   successUrl: z.string().url().max(2000).optional(),
   cancelUrl: z.string().url().max(2000).optional(),
 });
