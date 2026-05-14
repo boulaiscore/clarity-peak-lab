@@ -278,12 +278,25 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { type, to, name, resetLink }: EmailRequest = await req.json();
+    // Require authenticated caller. Users may only send transactional emails to their own verified address.
+    // resetLink is never accepted from clients — Supabase auth issues password reset links server-side.
+    const authedUser = await getAuthedUser(req);
+    if (!authedUser || !authedUser.email) {
+      return unauthorizedResponse(corsHeaders);
+    }
+
+    const { type, name }: EmailRequest = await req.json();
+    const to = authedUser.email;
+    const resetLink: string | undefined = undefined;
 
     console.log(`Sending ${type} email to ${to}`);
 
-    if (!to || !type) {
-      throw new Error("Missing required fields: to, type");
+    if (!type || (type !== "welcome" && type !== "premium_upgrade")) {
+      // password_reset disabled here — use Supabase auth's built-in reset flow instead.
+      return new Response(JSON.stringify({ error: "Unsupported email type" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (!RESEND_API_KEY) {
