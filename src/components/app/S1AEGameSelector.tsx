@@ -226,13 +226,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">
-                  <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
-                    <Crosshair className="w-4 h-4 text-area-fast" />
-                  </div>
-                  <div>
-                    <span className="text-foreground">Attentional Efficiency</span>
-                    <span className="text-xs text-muted-foreground ml-2">S1-AE</span>
-                  </div>
+                  <div className="w-[3px] h-5 rounded-full bg-area-fast" />
+                  <span className="text-foreground">Attentional Efficiency</span>
+                  <span className="text-xs text-muted-foreground">S1-AE</span>
                 </DrawerTitle>
               </DrawerHeader>
 
