@@ -74,6 +74,7 @@ const basePlans: BasePlan[] = [
 const SubscriptionPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [cycle, setCycle] = useState<BillingCycle>("yearly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
 
