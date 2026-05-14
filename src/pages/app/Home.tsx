@@ -107,11 +107,6 @@ const Home = () => {
     user,
     updateUser
   } = useAuth();
-  const {
-    sessionsCompleted,
-    weeklyXPTarget,
-    plan
-  } = useWeeklyProgress();
 
   // Baseline calibration status - gates Games and Tasks
   const {
@@ -119,41 +114,16 @@ const Home = () => {
     isLoading: baselineLoading
   } = useBaselineStatus();
 
-  // Stable (no-flicker) weekly load totals
-  const stableCognitiveLoad = useStableCognitiveLoad();
-  const {
-    cappedTotalXP,
-    rawDetoxXP,
-    detoxXPTarget,
-    detoxProgress,
-    detoxComplete
-  } = stableCognitiveLoad;
-  const totalWeeklyXP = cappedTotalXP;
-
   // Capped weekly progress for smart training reminders
   const {
-    cappedGamesXP,
-    gamesXPTarget,
     totalProgress
   } = useCappedWeeklyProgress();
-
-  // Training Capacity for Optimal Zone display
-  const {
-    optimalRange
-  } = useTrainingCapacity();
 
   // Active books for "Currently Reading" card
   const { data: activeBooks = [] } = useActiveBooks();
 
   // Active Quality Time session (Reading / Listening) indicator
   const { data: activeReasonSession } = useActiveReasonSession();
-  // Prioritized suggestions based on metrics and lab state
-  const {
-    suggestions: prioritizedSuggestions,
-    topSuggestion,
-    isLoading: suggestionsLoading
-  } = usePrioritizedSuggestions();
-
   // New cognitive engine metrics
   // recoveryRaw: null until REC baseline exists and can be decayed (used for snapshots)
   const {
@@ -190,32 +160,6 @@ const Home = () => {
     recovery: recoveryEffective,
     rq,
   });
-
-  // Fetch completed content IDs to filter out from in-progress
-  const {
-    data: completedIds = []
-  } = useQuery({
-    queryKey: ["completed-content-ids", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const {
-        data,
-        error
-      } = await supabase.from("exercise_completions").select("exercise_id").eq("user_id", user.id).like("exercise_id", "content-%");
-      if (error) throw error;
-      return (data || []).map(c => {
-        const parts = c.exercise_id.split("-");
-        return parts.slice(2).join("-");
-      });
-    },
-    enabled: !!user?.id,
-    staleTime: 30_000
-  });
-
-  // In-progress tasks for reminder section (auto-filters completed items)
-  const {
-    getInProgressTasks
-  } = useInProgressTasks(completedIds);
 
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const {
