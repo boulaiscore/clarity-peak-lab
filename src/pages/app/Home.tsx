@@ -248,6 +248,11 @@ const Home = () => {
   }, [metricsLoading, recoveryRaw, persistDailySnapshot, isSnapshotCurrentToday]);
   const [activeTab, setActiveTab] = useState<HomeTabId>("overview");
 
+  // Scroll to top whenever the active sub-tab changes (smooth, consistent navigation)
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, [activeTab]);
+
   // Date navigation state - allows viewing past days (max 7 days back)
   const [selectedDate, setSelectedDate] = useState<string>(() => format(new Date(), "yyyy-MM-dd"));
 
