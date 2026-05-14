@@ -493,18 +493,18 @@ export function WeeklyGoalCard({
           <CollapsibleContent>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
               
-              <div className="rounded-2xl bg-blue-500/[0.05] border border-blue-400/[0.08] p-4">
+              <div className="rounded-2xl bg-[hsl(var(--area-fast)/0.06)] border border-[hsl(var(--area-fast)/0.12)] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-[3px] h-7 rounded-full bg-blue-400/80" />
+                    <div className="w-[3px] h-7 rounded-full bg-[hsl(var(--area-fast))]" />
                     <div>
                       <span className="text-[12px] font-bold text-foreground/90 block leading-tight">System 1</span>
                       <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Fast Thinking</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[16px] font-bold text-blue-300/90 tabular-nums">{s1Earned}</span>
-                    <span className="text-[11px] text-blue-400/30 font-medium ml-0.5">/{s1Target}</span>
+                    <span className="text-[16px] font-bold text-[hsl(var(--area-fast))] tabular-nums">{s1Earned}</span>
+                    <span className="text-[11px] text-[hsl(var(--area-fast)/0.4)] font-medium ml-0.5">/{s1Target}</span>
                   </div>
                 </div>
                 <div className="space-y-2.5">
@@ -515,7 +515,7 @@ export function WeeklyGoalCard({
                         <span className="text-[11px] text-foreground/60 font-medium truncate block">{labelFor(area.area, "s1")}</span>
                       </div>
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
-                        <motion.div className="h-full rounded-full bg-blue-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                        <motion.div className="h-full rounded-full bg-[hsl(var(--area-fast)/0.55)]" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
                       <span className="text-[10px] text-foreground/50 tabular-nums w-12 text-right font-medium">
                         {Math.round(area.cappedXP)}/{Math.round(area.target)}
