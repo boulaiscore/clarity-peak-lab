@@ -173,7 +173,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
               <div className="relative z-10">
                 <p className="font-semibold text-sm text-white tracking-tight">{system.label}</p>
                 <p className="text-[10px] text-white/70 mt-0.5">
-                  {system.id === "fast" ? "Fast · automatic" : "Slow · controlled"}
+                  {system.id === "fast" ? "Fast · intuitive" : "Slow · analytical"}
                 </p>
               </div>
             </button>
