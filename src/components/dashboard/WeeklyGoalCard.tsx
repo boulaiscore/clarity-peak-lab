@@ -581,6 +581,11 @@ export function WeeklyGoalCard({
                 </div>
               </div>
 
+              {/* Overflow legend */}
+              <p className="text-[9.5px] text-muted-foreground/60 leading-snug px-1 -mt-1">
+                <span className="font-bold text-foreground/70">"+N over cap"</span> = extra XP earned beyond an area's weekly target. It still counts toward the weekly total at the top, but the area bar stops at 100%.
+              </p>
+
               {/* RECOVERY CARD */}
               <div className="rounded-2xl bg-teal-500/[0.05] border border-teal-400/[0.08] p-4">
                 <div className="flex items-center justify-between mb-3">
