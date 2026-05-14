@@ -140,32 +140,76 @@ export function calculateEffectiveDecayHours(
 }
 
 // ============================================
-// DECAY FUNCTION
+// DAILY SNAPSHOT MODEL (WHOOP-style)
 // ============================================
 
 /**
- * Apply exponential decay to recovery value.
- * Uses effective hours that account for reduced decay during night (23:00-07:00).
- * Formula: REC = REC × 2^(-effectiveHours / 72)
- * 
+ * Baseline value REC mean-reverts toward when no actions are taken.
+ * Represents the "neutral" cognitive reserve a healthy adult has by default.
+ */
+const REC_DAILY_BASELINE = 50;
+
+/**
+ * How much of the gap toward baseline is closed each missed day.
+ * 0.15 = 15% mean reversion per day.
+ * Examples (starting from 80, baseline 50):
+ *   Day 1: 80 → 75.5
+ *   Day 3: ~67
+ *   Day 7: ~57
+ *   Day 14: ~52
+ * Never collapses to 0.
+ */
+const REC_DAILY_MEAN_REVERSION = 0.15;
+
+/**
+ * Number of full calendar days between two ISO timestamps (local time).
+ * Same day = 0; next calendar day = 1; etc.
+ */
+function calendarDaysBetween(lastTs: string, nowTs: string): number {
+  const last = new Date(lastTs);
+  const now = new Date(nowTs);
+  const lastDay = new Date(last.getFullYear(), last.getMonth(), last.getDate()).getTime();
+  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const diffMs = nowDay - lastDay;
+  if (diffMs <= 0) return 0;
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Apply daily snapshot recalibration.
+ * - Within the same calendar day: REC is FROZEN (no change). WHOOP-style fixed score.
+ * - Each new day: REC mean-reverts toward baseline (50) by REC_DAILY_MEAN_REVERSION.
+ *   This means REC never collapses to 0 from inactivity — it tends to neutral.
+ *
+ * Active gains via applyRecoveryAction continue to bump REC immediately within the day.
+ *
  * @param currentRec Current recovery value (0-100)
  * @param lastTs ISO timestamp of last update
  * @param nowTs ISO timestamp of current time (default: now)
- * @returns Decayed recovery value
+ * @returns Recalibrated recovery value
  */
 export function applyRecoveryDecay(
   currentRec: number,
   lastTs: string,
   nowTs: string = new Date().toISOString()
 ): number {
-  if (currentRec <= 0) return 0;
-  
-  const effectiveHours = calculateEffectiveDecayHours(lastTs, nowTs);
-  
-  if (effectiveHours <= 0) return currentRec;
-  
-  const decayedRec = currentRec * Math.pow(2, -effectiveHours / REC_HALF_LIFE_HOURS);
-  return Math.max(0, Math.round(decayedRec * 10) / 10);
+  if (currentRec <= 0 && currentRec >= 0) {
+    // proceed normally
+  }
+
+  const days = calendarDaysBetween(lastTs, nowTs);
+
+  // Same calendar day → frozen snapshot
+  if (days <= 0) return currentRec;
+
+  // Apply mean reversion toward baseline once per missed calendar day
+  let rec = currentRec;
+  const k = 1 - REC_DAILY_MEAN_REVERSION;
+  for (let i = 0; i < days; i++) {
+    rec = REC_DAILY_BASELINE + (rec - REC_DAILY_BASELINE) * k;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(rec * 10) / 10));
 }
 
 // ============================================
