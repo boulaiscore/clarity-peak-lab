@@ -59,6 +59,21 @@ export interface HealthPermissionStatus {
   restingHr: "granted" | "denied" | "not_determined";
 }
 
+export interface StepsRecord {
+  date: string;          // YYYY-MM-DD
+  steps: number;
+}
+
+export interface ActiveMinutesRecord {
+  date: string;
+  minutes: number;
+}
+
+export interface BedtimeDeviationRecord {
+  /** Absolute deviation in minutes between today's bedtime and 7-day median. */
+  deviationMin: number;
+}
+
 export interface HealthPluginInterface {
   isAvailable(): Promise<{ available: boolean }>;
   checkPermissions(): Promise<{ permissions: HealthPermissionStatus }>;
@@ -66,6 +81,9 @@ export interface HealthPluginInterface {
   readSleep(options: { startDate: string; endDate: string }): Promise<{ records: SleepRecord[] }>;
   readHRV(options: { startDate: string; endDate: string }): Promise<{ records: HRVRecord[] }>;
   readRestingHR(options: { startDate: string; endDate: string }): Promise<{ records: RHRRecord[] }>;
+  readSteps?(options: { startDate: string; endDate: string }): Promise<{ records: StepsRecord[] }>;
+  readActiveMinutes?(options: { startDate: string; endDate: string }): Promise<{ records: ActiveMinutesRecord[] }>;
+  readBedtimeHistory?(options: { days: number }): Promise<{ records: BedtimeDeviationRecord[] }>;
   openHealthConnectSettings?(): Promise<void>; // Android only
 }
 
@@ -316,6 +334,66 @@ export async function readRestingHR(
     };
   } catch (error) {
     console.error("[Health] Error reading resting HR data:", error);
+    return handleReadError(error);
+  }
+}
+
+/**
+ * Read aggregated steps within a date range.
+ * Returns one record (sum) on platforms that don't expose a daily breakdown.
+ */
+export async function readSteps(
+  startISO: string,
+  endISO: string
+): Promise<HealthResult<StepsRecord>> {
+  if (!isNativePlatform() || !HealthPlugin.readSteps) {
+    return { success: false, error: "not_available" };
+  }
+  try {
+    const result = await HealthPlugin.readSteps({ startDate: startISO, endDate: endISO });
+    return { success: true, data: result.records ?? [] };
+  } catch (error) {
+    console.error("[Health] Error reading steps:", error);
+    return handleReadError(error);
+  }
+}
+
+/**
+ * Read active / move minutes within a date range.
+ */
+export async function readActiveMinutes(
+  startISO: string,
+  endISO: string
+): Promise<HealthResult<ActiveMinutesRecord>> {
+  if (!isNativePlatform() || !HealthPlugin.readActiveMinutes) {
+    return { success: false, error: "not_available" };
+  }
+  try {
+    const result = await HealthPlugin.readActiveMinutes({
+      startDate: startISO,
+      endDate: endISO,
+    });
+    return { success: true, data: result.records ?? [] };
+  } catch (error) {
+    console.error("[Health] Error reading active minutes:", error);
+    return handleReadError(error);
+  }
+}
+
+/**
+ * Read bedtime history and return today's deviation from the N-day median.
+ */
+export async function readBedtimeHistory(
+  days: number = 7
+): Promise<HealthResult<BedtimeDeviationRecord>> {
+  if (!isNativePlatform() || !HealthPlugin.readBedtimeHistory) {
+    return { success: false, error: "not_available" };
+  }
+  try {
+    const result = await HealthPlugin.readBedtimeHistory({ days });
+    return { success: true, data: result.records ?? [] };
+  } catch (error) {
+    console.error("[Health] Error reading bedtime history:", error);
     return handleReadError(error);
   }
 }
