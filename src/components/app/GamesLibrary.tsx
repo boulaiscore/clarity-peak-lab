@@ -2,6 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Lock, Star } from "lucide-react";
 import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
+import {
+  AttentionalEfficiencyMark,
+  RapidAssociationMark,
+  CriticalThinkingMark,
+  InsightMark,
+} from "@/components/icons/SubSkillIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
