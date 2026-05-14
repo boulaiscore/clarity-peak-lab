@@ -217,35 +217,19 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                       )}
                       style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px ${system.accentColor}` } : undefined}
                     >
+                      {/* WHOOP-style vertical color rail */}
                       <div
                         className={cn(
-                          "relative w-[68px] h-[68px] flex-shrink-0 rounded-xl overflow-hidden",
-                          "flex items-center justify-center",
-                          "border border-border/40 bg-background/40 backdrop-blur-sm",
-                          isLocked && "opacity-55"
+                          "flex-shrink-0 self-stretch w-[3px] rounded-full my-1",
+                          isLocked && "opacity-40"
                         )}
-                        style={
-                          !isLocked
-                            ? {
-                                boxShadow: `inset 0 0 0 1px ${system.accentColor}22, 0 0 24px -12px ${system.accentColor}55`,
-                              }
-                            : undefined
-                        }
-                      >
-                        {/* Subtle accent wash */}
-                        <div
-                          className="absolute inset-0 opacity-[0.08]"
-                          style={{ background: `radial-gradient(circle at 50% 45%, ${system.accentColor}, transparent 70%)` }}
-                        />
-                        <area.Icon
-                          size={30}
-                          color={system.accentColor}
-                          strokeWidth={1.15}
-                          className="relative"
-                        />
-                      </div>
+                        style={{
+                          background: system.accentColor,
+                          boxShadow: !isLocked ? `0 0 12px -2px ${system.accentColor}` : undefined,
+                        }}
+                      />
 
-                      <div className={cn("flex-1 min-w-0", isLocked && "opacity-55")}>
+                      <div className={cn("flex-1 min-w-0 py-1.5 pl-1", isLocked && "opacity-55")}>
                         <div className="flex items-center gap-1.5">
                           <p className="text-[14px] font-semibold text-foreground tracking-tight truncate">
                             {area.name}
