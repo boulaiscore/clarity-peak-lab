@@ -202,14 +202,20 @@ export function useCappedWeeklyProgress(): CappedProgressData {
     const s1Target = systemTarget;
     const s2Target = systemTarget;
 
+    // System-level capped = sum of per-area capped values
+    // This ensures the header total always equals the sum of the per-area bars
+    // (avoiding the case where one area overflows its cap but another is below).
+    const s1CappedSum = s1Areas.reduce((sum, a) => sum + a.capped, 0);
+    const s2CappedSum = s2Areas.reduce((sum, a) => sum + a.capped, 0);
+
     const systemSubTargets: SystemSubTarget[] = [
       {
         system: "S1",
         label: "System 1 (Fast)",
         target: s1Target,
         earned: breakdown.system1Total,
-        capped: Math.min(breakdown.system1Total, s1Target),
-        progress: safeProgress(breakdown.system1Total, s1Target),
+        capped: s1CappedSum,
+        progress: safeProgress(s1CappedSum, s1Target),
         areas: s1Areas,
       },
       {
@@ -217,8 +223,8 @@ export function useCappedWeeklyProgress(): CappedProgressData {
         label: "System 2 (Slow)",
         target: s2Target,
         earned: breakdown.system2Total,
-        capped: Math.min(breakdown.system2Total, s2Target),
-        progress: safeProgress(breakdown.system2Total, s2Target),
+        capped: s2CappedSum,
+        progress: safeProgress(s2CappedSum, s2Target),
         areas: s2Areas,
       },
     ];
