@@ -6,7 +6,8 @@
  * - Reading Load dashboard
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Play, BookOpen } from "lucide-react";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
@@ -29,12 +30,30 @@ import {
 } from "@/components/ui/dialog";
 
 export function ReasonTabContent() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showSelector, setShowSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<SessionType>("reading");
   const [showBooks, setShowBooks] = useState(false);
 
   const { data: activeSession } = useActiveReasonSession();
   const { data: activeBooks = [] } = useActiveBooks();
+
+  // Auto-open Read or Listen flow when navigated with ?open=reading|listening
+  useEffect(() => {
+    const open = searchParams.get("open");
+    if (open === "reading") {
+      setShowBooks(true);
+    } else if (open === "listening") {
+      setSelectorMode("listening");
+      setShowSelector(true);
+    }
+    if (open) {
+      // Clean the param so it doesn't re-trigger
+      const next = new URLSearchParams(searchParams);
+      next.delete("open");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // If there's an active session, show the timer
   if (activeSession) {
