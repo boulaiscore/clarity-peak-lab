@@ -218,21 +218,11 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
                       </div>
                     )}
                     
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-stretch gap-3">
                       <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                        isLocked ? "bg-muted/30" : "bg-recovery/15"
-                      )}>
-                        {isLocked ? (
-                          isProtection ? (
-                            <ShieldAlert className="w-5 h-5 text-protection" />
-                          ) : (
-                            <Lock className="w-5 h-5 text-muted-foreground" />
-                          )
-                        ) : (
-                          <Icon className="w-5 h-5 text-recovery" />
-                        )}
-                      </div>
+                        "w-[3px] rounded-full shrink-0 self-stretch",
+                        isLocked ? "bg-muted-foreground/30" : "bg-area-slow"
+                      )} />
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
