@@ -158,7 +158,8 @@ const SubscriptionPage = () => {
           {basePlans.map((plan) => {
             const isCurrent = plan.id === currentPlanId;
             const isPaid = plan.id !== "free";
-            const pricing = isPaid ? PLAN_PRICING[plan.id as PaidPlanId][cycle] : null;
+            const monthly = isPaid ? PLAN_PRICING[plan.id as PaidPlanId].monthly : null;
+            const yearly = isPaid ? PLAN_PRICING[plan.id as PaidPlanId].yearly : null;
             const highlighted = plan.highlighted;
 
             return (
