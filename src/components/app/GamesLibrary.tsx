@@ -217,23 +217,32 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                       )}
                       style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px ${system.accentColor}` } : undefined}
                     >
-                      <div className="relative w-[68px] h-[68px] flex-shrink-0 rounded-xl overflow-hidden">
+                      <div
+                        className={cn(
+                          "relative w-[68px] h-[68px] flex-shrink-0 rounded-xl overflow-hidden",
+                          "flex items-center justify-center",
+                          "border border-border/40 bg-background/40 backdrop-blur-sm",
+                          isLocked && "opacity-55"
+                        )}
+                        style={
+                          !isLocked
+                            ? {
+                                boxShadow: `inset 0 0 0 1px ${system.accentColor}22, 0 0 24px -12px ${system.accentColor}55`,
+                              }
+                            : undefined
+                        }
+                      >
+                        {/* Subtle accent wash */}
                         <div
-                          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                          style={{ backgroundImage: `url(${area.bgImage})` }}
+                          className="absolute inset-0 opacity-[0.08]"
+                          style={{ background: `radial-gradient(circle at 50% 45%, ${system.accentColor}, transparent 70%)` }}
                         />
-                        <div className={cn(
-                          "absolute inset-0",
-                          isLocked ? "bg-black/65" : "bg-gradient-to-br from-black/30 via-black/15 to-black/45"
-                        )} />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span
-                            className="text-[15px] font-bold tracking-[0.12em] text-white drop-shadow"
-                            style={{ textShadow: `0 0 12px ${system.accentColor}90` }}
-                          >
-                            {area.code}
-                          </span>
-                        </div>
+                        <area.Icon
+                          size={30}
+                          color={system.accentColor}
+                          strokeWidth={1.15}
+                          className="relative"
+                        />
                       </div>
 
                       <div className={cn("flex-1 min-w-0", isLocked && "opacity-55")}>
