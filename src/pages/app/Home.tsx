@@ -442,6 +442,49 @@ const Home = () => {
                 <ChevronRight className="w-4 h-4 text-foreground/70" />
               </button>
             </motion.section>
+
+            {/* Active Quality Time Session Indicator — WHOOP-style live pill */}
+            {isViewingToday && activeReasonSession && (
+              <motion.button
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                onClick={() => navigate("/neuro-lab")}
+                className={cn(
+                  "w-full mb-3 flex items-center justify-center gap-2.5 py-2.5 rounded-xl border transition-all active:scale-[0.98]",
+                  activeReasonSession.session_type === "reading"
+                    ? "bg-amber-500/[0.04] border-amber-500/20 hover:bg-amber-500/[0.08]"
+                    : "bg-violet-500/[0.04] border-violet-500/20 hover:bg-violet-500/[0.08]"
+                )}
+              >
+                {/* Live dot — WHOOP-style pulsing indicator, no icon */}
+                <span className="relative flex h-2 w-2">
+                  <span
+                    className={cn(
+                      "animate-ping absolute inline-flex h-full w-full rounded-full opacity-60",
+                      activeReasonSession.session_type === "reading" ? "bg-amber-400" : "bg-violet-400"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "relative inline-flex rounded-full h-2 w-2",
+                      activeReasonSession.session_type === "reading" ? "bg-amber-400" : "bg-violet-400"
+                    )}
+                  />
+                </span>
+                <span
+                  className={cn(
+                    "text-[11px] font-semibold tracking-wide",
+                    activeReasonSession.session_type === "reading" ? "text-amber-300/90" : "text-violet-300/90"
+                  )}
+                >
+                  {activeReasonSession.session_type === "reading" ? "Reading in progress" : "Listening in progress"}
+                </span>
+                <span className="text-[10px] text-muted-foreground/50">
+                  Tap to resume
+                </span>
+              </motion.button>
+            )}
             
             {/* No data warning for historical dates */}
             {!isViewingToday && !historicalLoading && !hasHistoricalData && <motion.div initial={{
