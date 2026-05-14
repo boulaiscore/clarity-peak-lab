@@ -380,23 +380,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                   >
                     <ChevronLeft className="w-4 h-4 text-muted-foreground" />
                   </button>
-                  <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center",
-                    selectedGame.accentColor === "violet" 
-                      ? "bg-primary/15" 
-                      : selectedGame.accentColor === "emerald" 
-                        ? "bg-primary/15" 
-                        : "bg-primary/15"
-                  )}>
-                    <selectedGame.icon className={cn(
-                      "w-4 h-4",
-                      selectedGame.accentColor === "violet" 
-                        ? "text-primary" 
-                        : selectedGame.accentColor === "emerald" 
-                          ? "text-primary" 
-                          : "text-primary"
-                    )} />
-                  </div>
+                  <div className="w-[3px] h-5 rounded-full bg-area-fast" />
                   <span className="text-foreground">{selectedGame.name}</span>
                 </DrawerTitle>
               </DrawerHeader>
