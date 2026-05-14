@@ -73,22 +73,22 @@ export function RecoveryBatteryCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       onClick={onClick}
-      className="w-full text-left px-4 py-5 rounded-2xl bg-card/40 border border-border/40 transition-colors hover:bg-card/60 active:scale-[0.995]"
+      className="w-full text-left px-3 py-3 rounded-xl bg-card/40 border border-border/40 transition-colors hover:bg-card/60 active:scale-[0.995]"
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-semibold tracking-[0.2em] text-foreground uppercase">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex flex-col gap-1">
+          <span className="text-[9px] font-semibold tracking-[0.2em] text-foreground uppercase">
             Cognitive Recovery
           </span>
-          <div className="flex items-baseline gap-2.5">
-            <h2 className="text-[26px] font-normal tabular-nums tracking-tight text-foreground leading-none">
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-[20px] font-normal tabular-nums tracking-tight text-foreground leading-none">
               {Math.round(value)}
-              <span className="text-base opacity-50 ml-0.5">%</span>
+              <span className="text-xs opacity-50 ml-0.5">%</span>
             </h2>
             {deltaVsYesterday && (
               <span
-                className="text-[10px] font-medium px-2 py-0.5 rounded-full border tabular-nums"
+                className="text-[9px] font-medium px-1.5 py-0.5 rounded-full border tabular-nums"
                 style={{
                   color: isPositive ? color : isNegative ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))",
                   backgroundColor: isPositive
@@ -108,7 +108,7 @@ export function RecoveryBatteryCard({
             )}
             {acuteBoost > 0 && (
               <span
-                className="text-[10px] font-medium px-2 py-0.5 rounded-full border tabular-nums text-emerald-300/90 bg-emerald-400/[0.08] border-emerald-400/20"
+                className="text-[9px] font-medium px-1.5 py-0.5 rounded-full border tabular-nums text-emerald-300/90 bg-emerald-400/[0.08] border-emerald-400/20"
                 title="Acute reset — temporary state, not structural"
               >
                 +{Math.round(acuteBoost)} · {formatRemainingMinutes(acuteBoostRemainingMinutes)}
@@ -116,19 +116,19 @@ export function RecoveryBatteryCard({
             )}
           </div>
         </div>
-        <div className="p-1.5 rounded-full bg-muted/30 mt-1">
-          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+        <div className="p-1 rounded-full bg-muted/30 mt-0.5">
+          <ChevronRight className="w-3 h-3 text-muted-foreground/60" />
         </div>
       </div>
 
       {/* Status indicator row */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-2 mb-2.5">
         <span
-          className="w-1.5 h-1.5 rounded-full shrink-0"
-          style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}99` }}
+          className="w-1 h-1 rounded-full shrink-0"
+          style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}99` }}
         />
         <span
-          className="text-[11px] font-medium tracking-[0.18em] uppercase"
+          className="text-[10px] font-medium tracking-[0.18em] uppercase"
           style={{ color: `${color}` }}
         >
           {displayInfo.text}
@@ -140,8 +140,8 @@ export function RecoveryBatteryCard({
       </div>
 
       {/* Precision segmented bar */}
-      <div className="space-y-2.5">
-        <div className="flex items-end h-7 gap-[3px]">
+      <div className="space-y-1.5">
+        <div className="flex items-end h-4 gap-[2px]">
           {Array.from({ length: SEGMENTS }).map((_, i) => {
             const active = i < filled;
             return (
@@ -161,7 +161,7 @@ export function RecoveryBatteryCard({
           })}
         </div>
 
-        <div className="flex justify-between text-[9px] font-medium tracking-[0.15em] text-muted-foreground/50 uppercase">
+        <div className="flex justify-between text-[8px] font-medium tracking-[0.15em] text-muted-foreground/50 uppercase">
           <span>Depleted</span>
           <span>Partial</span>
           <span>Optimal</span>
