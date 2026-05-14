@@ -33,6 +33,11 @@ serve(async (req) => {
   }
 
   try {
+    const authedUser = await getAuthedUser(req);
+    if (!authedUser || !authedUser.email) {
+      return unauthorizedResponse(corsHeaders);
+    }
+
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeSecretKey) {
       console.error("STRIPE_SECRET_KEY is not configured");
@@ -43,7 +48,7 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const parsed = CheckoutSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(
@@ -52,7 +57,9 @@ serve(async (req) => {
       );
     }
 
-    const { userId, userEmail, tier, successUrl, cancelUrl } = parsed.data;
+    const { tier, successUrl, cancelUrl } = parsed.data;
+    const userId = authedUser.id;
+    const userEmail = authedUser.email;
     const tierConfig = TIERS[tier];
 
     // Validate redirect URLs belong to app origin
