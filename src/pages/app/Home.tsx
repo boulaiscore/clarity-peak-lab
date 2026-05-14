@@ -344,7 +344,7 @@ const Home = () => {
       </AppShell>;
   }
   return <AppShell>
-      <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-3 pb-4 max-w-md mx-auto">
+      <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-8 pb-4 max-w-md mx-auto">
 
         {/* Tab Content */}
         {activeTab === "overview" && <>
