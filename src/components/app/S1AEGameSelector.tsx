@@ -226,13 +226,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">
-                  <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
-                    <Crosshair className="w-4 h-4 text-area-fast" />
-                  </div>
-                  <div>
-                    <span className="text-foreground">Attentional Efficiency</span>
-                    <span className="text-xs text-muted-foreground ml-2">S1-AE</span>
-                  </div>
+                  <div className="w-[3px] h-5 rounded-full bg-area-fast" />
+                  <span className="text-foreground">Attentional Efficiency</span>
+                  <span className="text-xs text-muted-foreground">S1-AE</span>
                 </DrawerTitle>
               </DrawerHeader>
 
@@ -325,21 +321,11 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                             </div>
                           )}
                         
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-stretch gap-3">
                           <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                            isLocked ? "bg-muted/30" : accentBg
-                          )}>
-                            {isLocked ? (
-                              isProtection ? (
-                                <ShieldAlert className="w-5 h-5 text-protection" />
-                              ) : (
-                                <Lock className="w-5 h-5 text-muted-foreground" />
-                              )
-                            ) : (
-                              <Icon className={cn("w-5 h-5", accentText)} />
-                            )}
-                          </div>
+                            "w-[3px] rounded-full shrink-0 self-stretch",
+                            isLocked ? "bg-muted-foreground/30" : "bg-area-fast"
+                          )} />
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -394,23 +380,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                   >
                     <ChevronLeft className="w-4 h-4 text-muted-foreground" />
                   </button>
-                  <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center",
-                    selectedGame.accentColor === "violet" 
-                      ? "bg-primary/15" 
-                      : selectedGame.accentColor === "emerald" 
-                        ? "bg-primary/15" 
-                        : "bg-primary/15"
-                  )}>
-                    <selectedGame.icon className={cn(
-                      "w-4 h-4",
-                      selectedGame.accentColor === "violet" 
-                        ? "text-primary" 
-                        : selectedGame.accentColor === "emerald" 
-                          ? "text-primary" 
-                          : "text-primary"
-                    )} />
-                  </div>
+                  <div className="w-[3px] h-5 rounded-full bg-area-fast" />
                   <span className="text-foreground">{selectedGame.name}</span>
                 </DrawerTitle>
               </DrawerHeader>

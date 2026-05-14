@@ -148,13 +148,9 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
         >
           <DrawerHeader className="pb-4">
             <DrawerTitle className="flex items-center gap-2 text-base">
-              <div className="w-8 h-8 rounded-lg bg-area-slow/15 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-area-slow" />
-              </div>
-              <div>
-                <span className="text-foreground">Insight</span>
-                <span className="text-xs text-muted-foreground ml-2">S2-IN</span>
-              </div>
+              <div className="w-[3px] h-5 rounded-full bg-area-slow" />
+              <span className="text-foreground">Insight</span>
+              <span className="text-xs text-muted-foreground">S2-IN</span>
             </DrawerTitle>
           </DrawerHeader>
 
@@ -213,21 +209,11 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
                       </div>
                     )}
                     
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-stretch gap-3">
                       <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                        isLocked ? "bg-muted/30" : "bg-area-slow/15"
-                      )}>
-                        {isLocked ? (
-                          isProtection ? (
-                            <ShieldAlert className="w-5 h-5 text-protection" />
-                          ) : (
-                            <Lock className="w-5 h-5 text-muted-foreground" />
-                          )
-                        ) : (
-                          <Icon className="w-5 h-5 text-area-slow" />
-                        )}
-                      </div>
+                        "w-[3px] rounded-full shrink-0 self-stretch",
+                        isLocked ? "bg-muted-foreground/30" : "bg-area-slow"
+                      )} />
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">

@@ -199,13 +199,9 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
             >
               <DrawerHeader className="pb-4">
                 <DrawerTitle className="flex items-center gap-2 text-base">
-                  <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
-                    <Lightbulb className="w-4 h-4 text-area-fast" />
-                  </div>
-                  <div>
-                    <span className="text-foreground">Rapid Association</span>
-                    <span className="text-xs text-muted-foreground ml-2">S1-RA</span>
-                  </div>
+                  <div className="w-[3px] h-5 rounded-full bg-area-fast" />
+                  <span className="text-foreground">Rapid Association</span>
+                  <span className="text-xs text-muted-foreground">S1-RA</span>
                 </DrawerTitle>
               </DrawerHeader>
               
@@ -271,21 +267,11 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                           </div>
                         )}
                         
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-stretch gap-3">
                           <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                            isLocked ? "bg-muted/30" : "bg-area-fast/15"
-                          )}>
-                            {isLocked ? (
-                              isProtection ? (
-                                <ShieldAlert className="w-5 h-5 text-protection" />
-                              ) : (
-                                <Lock className="w-5 h-5 text-muted-foreground" />
-                              )
-                            ) : (
-                              <Lightbulb className="w-5 h-5 text-area-fast" />
-                            )}
-                          </div>
+                            "w-[3px] rounded-full shrink-0 self-stretch",
+                            isLocked ? "bg-muted-foreground/30" : "bg-area-fast"
+                          )} />
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -349,9 +335,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                   >
                     <ChevronRight className="w-4 h-4 text-muted-foreground rotate-180" />
                   </button>
-                  <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
-                    <Lightbulb className="w-4 h-4 text-area-fast" />
-                  </div>
+                  <div className="w-[3px] h-5 rounded-full bg-area-fast" />
                   <span className="text-foreground">{selectedGame.name}</span>
                 </DrawerTitle>
               </DrawerHeader>
