@@ -44,6 +44,8 @@ export interface PhoneHealthSnapshot {
   pickups: number | null;
   phi: number | null;
   target_rec: number | null;
+  confidence: number | null;
+  available_sources: string[] | null;
   source: string;
 }
 
@@ -117,9 +119,9 @@ async function runSync(
     const available = await isHealthAvailable();
     if (!available) return;
 
-    const perms = await checkPermissions();
-    const sleepGranted = perms.data?.[0]?.sleep === "granted";
-    if (!sleepGranted) return;
+    // We no longer require sleep to be granted: PHI degrades gracefully
+    // and we still want to capture steps / active minutes when available.
+    await checkPermissions();
 
     const dayStart = new Date();
     dayStart.setHours(0, 0, 0, 0);
@@ -180,6 +182,8 @@ async function runSync(
           pickups: inputs.pickups,
           phi: result.phi,
           target_rec: result.targetRec,
+          confidence: result.confidence,
+          available_sources: result.availableSources,
           source,
         },
         { onConflict: "user_id,date" }

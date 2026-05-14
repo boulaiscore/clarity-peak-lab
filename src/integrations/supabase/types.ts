@@ -539,7 +539,9 @@ export type Database = {
       phone_health_snapshots: {
         Row: {
           active_min: number | null
+          available_sources: string[] | null
           bedtime_dev_min: number | null
+          confidence: number | null
           created_at: string
           date: string
           id: string
@@ -554,7 +556,9 @@ export type Database = {
         }
         Insert: {
           active_min?: number | null
+          available_sources?: string[] | null
           bedtime_dev_min?: number | null
+          confidence?: number | null
           created_at?: string
           date: string
           id?: string
@@ -569,7 +573,9 @@ export type Database = {
         }
         Update: {
           active_min?: number | null
+          available_sources?: string[] | null
           bedtime_dev_min?: number | null
+          confidence?: number | null
           created_at?: string
           date?: string
           id?: string
