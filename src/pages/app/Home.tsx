@@ -22,6 +22,7 @@ import { useCognitiveInsights } from "@/hooks/useCognitiveInsights";
 import { useTutorialState } from "@/hooks/useTutorialState";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
+import { useActiveReasonSession } from "@/hooks/useReasonSessions";
 import { cn } from "@/lib/utils";
 import { TrainingPlanId } from "@/lib/trainingPlans";
 import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
