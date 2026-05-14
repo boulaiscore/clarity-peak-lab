@@ -501,6 +501,12 @@ export function WeeklyGoalCard({
                       <Zap className="w-3.5 h-3.5 text-blue-400/80" />
                     </div>
                     <div>
+              {/* S1 CARD */}
+              <div className="rounded-2xl bg-blue-500/[0.05] border border-blue-400/[0.08] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-[3px] h-7 rounded-full bg-blue-400/80" />
+                    <div>
                       <span className="text-[12px] font-bold text-foreground/90 block leading-tight">System 1</span>
                       <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Fast Thinking</span>
                     </div>
@@ -512,12 +518,10 @@ export function WeeklyGoalCard({
                 </div>
                 <div className="space-y-2.5">
                   {s1Areas.map(area => {
-                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
                     const pct = Math.min(100, area.progress);
                     return <div key={area.area} className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 w-[72px] shrink-0">
-                        <AreaIcon className="w-3 h-3 text-blue-400/40" />
-                        <span className="text-[11px] text-foreground/60 capitalize font-medium">{area.area}</span>
+                      <div className="w-[110px] shrink-0">
+                        <span className="text-[11px] text-foreground/60 font-medium truncate block">{labelFor(area.area, "s1")}</span>
                       </div>
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                         <motion.div className="h-full rounded-full bg-blue-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
@@ -533,10 +537,8 @@ export function WeeklyGoalCard({
               {/* S2 CARD */}
               <div className="rounded-2xl bg-indigo-500/[0.05] border border-indigo-400/[0.08] p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-500/[0.12] flex items-center justify-center">
-                      <Timer className="w-3.5 h-3.5 text-indigo-400/80" />
-                    </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-[3px] h-7 rounded-full bg-indigo-400/80" />
                     <div>
                       <span className="text-[12px] font-bold text-foreground/90 block leading-tight">System 2</span>
                       <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Deep Thinking</span>
@@ -549,12 +551,10 @@ export function WeeklyGoalCard({
                 </div>
                 <div className="space-y-2.5">
                   {s2Areas.map(area => {
-                    const AreaIcon = AREA_ICONS[area.area as keyof typeof AREA_ICONS];
                     const pct = Math.min(100, area.progress);
                     return <div key={area.area} className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 w-[72px] shrink-0">
-                        <AreaIcon className="w-3 h-3 text-indigo-400/40" />
-                        <span className="text-[11px] text-foreground/60 capitalize font-medium">{area.area}</span>
+                      <div className="w-[110px] shrink-0">
+                        <span className="text-[11px] text-foreground/60 font-medium truncate block">{labelFor(area.area, "s2")}</span>
                       </div>
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                         <motion.div className="h-full rounded-full bg-indigo-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
@@ -570,10 +570,8 @@ export function WeeklyGoalCard({
               {/* RECOVERY CARD */}
               <div className="rounded-2xl bg-teal-500/[0.05] border border-teal-400/[0.08] p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-teal-500/[0.12] flex items-center justify-center">
-                      <Leaf className="w-3.5 h-3.5 text-teal-400/80" />
-                    </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-[3px] h-7 rounded-full bg-teal-400/80" />
                     <div>
                       <span className="text-[12px] font-bold text-foreground/90 block leading-tight">Recovery</span>
                       <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Detox & Walking</span>
