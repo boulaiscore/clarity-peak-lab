@@ -26,8 +26,16 @@ const ICON: Record<ActivityKey, React.ComponentType<{ className?: string }>> = {
   walk: Footprints,
 };
 
+interface ActiveQualityTime {
+  type: "reading" | "listening";
+  isLive: boolean;
+  bookTitle: string | null;
+  count: number;
+}
+
 interface TodayActivitiesCardProps {
   outlook: { label: string; line: string };
+  activeQualityTime?: ActiveQualityTime | null;
 }
 
 function formatTime(iso: string) {
@@ -44,7 +52,7 @@ function formatTime(iso: string) {
  * WHOOP-style end-of-day summary: each row is a completed session today,
  * with a flat colored value tile, UPPERCASE label, and start/end timestamps.
  */
-export function TodayActivitiesCard({ outlook }: TodayActivitiesCardProps) {
+export function TodayActivitiesCard({ outlook, activeQualityTime }: TodayActivitiesCardProps) {
   const navigate = useNavigate();
   const { data: activities = [], isLoading } = useTodayActivities();
 
@@ -55,9 +63,48 @@ export function TodayActivitiesCard({ outlook }: TodayActivitiesCardProps) {
       transition={{ delay: 0.12 }}
       className="mb-5"
     >
-      <h2 className="text-[15px] font-semibold tracking-tight text-foreground mb-2.5 px-0.5">
-        Today
-      </h2>
+      <div className="flex items-center justify-between mb-2.5 px-0.5">
+        <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
+          Today
+        </h2>
+
+        {/* Active Quality Time indicator — discreet inline pill */}
+        {activeQualityTime && (
+          <button
+            onClick={() => navigate("/neuro-lab")}
+            className="flex items-center gap-1.5 group"
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              {activeQualityTime.isLive && (
+                <span
+                  className={cn(
+                    "animate-ping absolute inline-flex h-full w-full rounded-full opacity-60",
+                    activeQualityTime.type === "reading" ? "bg-amber-400" : "bg-violet-400"
+                  )}
+                />
+              )}
+              <span
+                className={cn(
+                  "relative inline-flex rounded-full h-1.5 w-1.5",
+                  activeQualityTime.type === "reading" ? "bg-amber-400" : "bg-violet-400"
+                )}
+              />
+            </span>
+            <span
+              className={cn(
+                "text-[10px] font-medium tracking-wide uppercase group-hover:opacity-90 transition-opacity",
+                activeQualityTime.type === "reading" ? "text-amber-300/80" : "text-violet-300/80"
+              )}
+            >
+              {activeQualityTime.isLive
+                ? activeQualityTime.type === "reading" ? "Reading · live" : "Listening · live"
+                : activeQualityTime.bookTitle
+                ? "Reading in hub"
+                : `${activeQualityTime.count} books in hub`}
+            </span>
+          </button>
+        )}
+      </div>
 
 
       {/* End-of-day session list */}

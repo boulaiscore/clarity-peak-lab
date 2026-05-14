@@ -443,64 +443,8 @@ const Home = () => {
               </button>
             </motion.section>
 
-            {/* Active Quality Time Indicator — live timer OR active book in library */}
-            {isViewingToday && (() => {
-              const liveType = activeReasonSession?.session_type;
-              const hasActiveBook = activeBooks.length > 0;
-              if (!liveType && !hasActiveBook) return null;
 
-              // Priority: live listening timer > live reading timer > active book
-              const isReading = liveType === "reading" || (!liveType && hasActiveBook);
-              const isLive = !!liveType;
-              const label = isLive
-                ? (isReading ? "Reading in progress" : "Listening in progress")
-                : `${activeBooks.length === 1 ? activeBooks[0].title : `${activeBooks.length} books`} in progress`;
-              const sub = isLive ? "Tap to resume" : "Tap to continue in Quality Time";
 
-              return (
-                <motion.button
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25 }}
-                  onClick={() => navigate("/neuro-lab")}
-                  className={cn(
-                    "w-full mb-3 flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-xl border transition-all active:scale-[0.98]",
-                    isReading
-                      ? "bg-amber-500/[0.04] border-amber-500/20 hover:bg-amber-500/[0.08]"
-                      : "bg-violet-500/[0.04] border-violet-500/20 hover:bg-violet-500/[0.08]"
-                  )}
-                >
-                  <span className="relative flex h-2 w-2 flex-shrink-0">
-                    {isLive && (
-                      <span
-                        className={cn(
-                          "animate-ping absolute inline-flex h-full w-full rounded-full opacity-60",
-                          isReading ? "bg-amber-400" : "bg-violet-400"
-                        )}
-                      />
-                    )}
-                    <span
-                      className={cn(
-                        "relative inline-flex rounded-full h-2 w-2",
-                        isReading ? "bg-amber-400" : "bg-violet-400"
-                      )}
-                    />
-                  </span>
-                  <span
-                    className={cn(
-                      "text-[11px] font-semibold tracking-wide truncate",
-                      isReading ? "text-amber-300/90" : "text-violet-300/90"
-                    )}
-                  >
-                    {label}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground/50 flex-shrink-0">
-                    {sub}
-                  </span>
-                </motion.button>
-              );
-            })()}
-            
             {/* No data warning for historical dates */}
             {!isViewingToday && !historicalLoading && !hasHistoricalData && <motion.div initial={{
           opacity: 0
@@ -548,7 +492,16 @@ const Home = () => {
 
         {/* My Day — Daily Outlook + Today's Activities */}
         {isViewingToday && (
-          <TodayActivitiesCard outlook={{ label: insight.title, line: insight.body }} />
+          <TodayActivitiesCard
+            outlook={{ label: insight.title, line: insight.body }}
+            activeQualityTime={
+              activeReasonSession
+                ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
+                : activeBooks.length > 0
+                ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
+                : null
+            }
+          />
         )}
 
         {/* Cognitive Decision Insight Card */}
