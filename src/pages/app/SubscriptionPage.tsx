@@ -89,7 +89,7 @@ const SubscriptionPage = () => {
     }
   }, [searchParams, setSearchParams, refetch, navigate]);
 
-  const handleSelectPlan = (planId: PaidPlanId) => {
+  const handleSelectPlan = (planId: PaidPlanId, cycle: BillingCycle) => {
     if (planId === currentPlanId) return;
     const pricing = PLAN_PRICING[planId][cycle];
     openCheckout(pricing.priceId);
