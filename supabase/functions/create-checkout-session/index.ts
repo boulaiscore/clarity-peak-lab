@@ -22,8 +22,6 @@ const TIERS = {
 };
 
 const CheckoutSchema = z.object({
-  userId: z.string().uuid(),
-  userEmail: z.string().email().max(255),
   tier: z.enum(["premium", "pro"]).default("premium"),
   successUrl: z.string().url().max(2000).optional(),
   cancelUrl: z.string().url().max(2000).optional(),
