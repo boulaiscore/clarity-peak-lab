@@ -108,11 +108,36 @@ export function useRecoveryV2(): UseRecoveryV2Result {
     staleTime: 60_000,
   });
   
-  // Compute current recovery with decay applied
+  // Fetch today's phone health snapshot for dynamic REC target
+  const { data: phoneHealthTarget } = useQuery({
+    queryKey: ["phone-health-target", userId, format(new Date(), "yyyy-MM-dd")],
+    queryFn: async (): Promise<number | null> => {
+      if (!userId) return null;
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { data } = await supabase
+        .from("phone_health_snapshots")
+        .select("target_rec")
+        .eq("user_id", userId)
+        .eq("date", today)
+        .maybeSingle();
+      return (data?.target_rec as number | null) ?? null;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+
+  // Compute current recovery with decay applied (using phone-health target if available)
   const currentRecovery = useMemo(() => {
     if (!recoveryState) return null;
-    return getCurrentRecovery(recoveryState);
-  }, [recoveryState]);
+    if (recoveryState.recValue == null || recoveryState.recLastTs == null) return null;
+    if (!recoveryState.hasRecoveryBaseline) return null;
+    return applyRecoveryDecay(
+      recoveryState.recValue,
+      recoveryState.recLastTs,
+      new Date().toISOString(),
+      phoneHealthTarget ?? null
+    );
+  }, [recoveryState, phoneHealthTarget]);
   
   const isInitialized = recoveryState ? hasValidRecoveryData(recoveryState) : false;
   
