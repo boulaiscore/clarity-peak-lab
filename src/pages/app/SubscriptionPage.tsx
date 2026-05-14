@@ -319,33 +319,18 @@ const SubscriptionPage = () => {
                     Current Plan
                   </div>
                 ) : isPaid ? (
-                  <div className="space-y-2">
-                    <Button
-                      onClick={() => handleSelectPlan(plan.id as PaidPlanId, "monthly")}
-                      disabled={loading}
-                      className={cn(
-                        "w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
-                        highlighted
-                          ? "bg-white text-[hsl(225_32%_22%)] hover:bg-white/90"
-                          : "bg-foreground text-background hover:bg-foreground/90"
-                      )}
-                    >
-                      Start trial · ${monthly!.amount}/mo
-                    </Button>
-                    <Button
-                      onClick={() => handleSelectPlan(plan.id as PaidPlanId, "yearly")}
-                      disabled={loading}
-                      variant="outline"
-                      className={cn(
-                        "w-full h-11 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
-                        highlighted
-                          ? "bg-transparent text-white border-white/40 hover:bg-white/10 hover:text-white"
-                          : "bg-transparent border-border/60 text-foreground hover:bg-muted/40"
-                      )}
-                    >
-                      Start trial · ${yearly!.amount}/yr
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => handleSelectPlan(plan.id as PaidPlanId)}
+                    disabled={loading}
+                    className={cn(
+                      "w-full h-12 rounded-full text-[11px] uppercase tracking-[0.22em] font-medium",
+                      highlighted
+                        ? "bg-white text-[hsl(225_32%_22%)] hover:bg-white/90"
+                        : "bg-foreground text-background hover:bg-foreground/90"
+                    )}
+                  >
+                    Start 14-day free trial
+                  </Button>
                 ) : (
                   <Button
                     onClick={() => navigate("/app")}
