@@ -88,7 +88,7 @@ export function MonitorCardsRow({
 
       {/* Recovery Monitor */}
       <button
-        onClick={() => navigate("/app/dashboard")}
+        onClick={() => navigate("/app/recovery-breakdown")}
         className={cn(
           "group flex flex-col items-start text-left p-2 rounded-lg",
           "bg-card/40 border border-border/40 hover:bg-card/60 hover:border-border/60",

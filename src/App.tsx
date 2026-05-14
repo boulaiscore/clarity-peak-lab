@@ -14,6 +14,7 @@ import { IntradayEventsProvider } from "@/contexts/IntradayEventsContext";
 import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
+import { usePhoneHealthSync } from "@/hooks/usePhoneHealthSync";
 import { SplashScreen } from "@/components/app/SplashScreen";
 import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
 import Auth from "./pages/Auth";
@@ -52,6 +53,7 @@ import DailySession from "./pages/app/DailySession";
 import NotFound from "./pages/NotFound";
 import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 import ReasoningQualityImpact from "./pages/app/ReasoningQualityImpact";
+import RecoveryBreakdown from "./pages/app/RecoveryBreakdown";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -66,6 +68,7 @@ import { queryClient } from "@/lib/queryClient";
 function AppInitProvider({ children }: { children: React.ReactNode }) {
   useAutoSeedExercises();
   useNotificationInit();
+  usePhoneHealthSync();
   return <>{children}</>;
 }
 
@@ -407,6 +410,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ReasoningQualityImpact />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/recovery-breakdown"
+        element={
+          <ProtectedRoute>
+            <RecoveryBreakdown />
           </ProtectedRoute>
         }
       />
