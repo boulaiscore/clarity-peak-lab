@@ -441,6 +441,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <HashRouter>
+                  <ScrollToTop />
                   <DeepLinkHandler>
                     <AppRoutes />
                   </DeepLinkHandler>
