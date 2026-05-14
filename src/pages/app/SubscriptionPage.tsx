@@ -203,7 +203,7 @@ const SubscriptionPage = () => {
 
                 {/* Price */}
                 <div className="mb-7">
-                  {pricing ? (
+                  {monthly && yearly ? (
                     <>
                       <div className="flex items-baseline gap-2">
                         <span
@@ -212,7 +212,7 @@ const SubscriptionPage = () => {
                             highlighted ? "text-white" : "text-foreground"
                           )}
                         >
-                          ${pricing.amount}
+                          ${monthly.amount}
                         </span>
                         <span
                           className={cn(
@@ -220,29 +220,17 @@ const SubscriptionPage = () => {
                             highlighted ? "text-white/70" : "text-muted-foreground"
                           )}
                         >
-                          / {pricing.period}
+                          / month
                         </span>
                       </div>
-                      {cycle === "yearly" && pricing.perMonth && (
-                        <p
-                          className={cn(
-                            "text-[11px] mt-2 tabular-nums font-light",
-                            highlighted ? "text-white/70" : "text-muted-foreground/70"
-                          )}
-                        >
-                          ≈ {pricing.perMonth} · 2 months free
-                        </p>
-                      )}
-                      {cycle === "monthly" && (
-                        <p
-                          className={cn(
-                            "text-[11px] mt-2 font-light",
-                            highlighted ? "text-white/60" : "text-muted-foreground/60"
-                          )}
-                        >
-                          Billed monthly
-                        </p>
-                      )}
+                      <p
+                        className={cn(
+                          "text-[11px] mt-2 tabular-nums font-light",
+                          highlighted ? "text-white/70" : "text-muted-foreground/70"
+                        )}
+                      >
+                        or ${yearly.amount} / year{yearly.perMonth ? ` (≈ ${yearly.perMonth})` : ""} · 2 months free
+                      </p>
                     </>
                   ) : (
                     <>
