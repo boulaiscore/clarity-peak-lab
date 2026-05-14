@@ -81,10 +81,10 @@ const ProgressRing = ({
         </svg>
         {/* Center content: big number, WHOOP-style */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[34px] font-normal tracking-tight text-foreground tabular-nums leading-none">
+          <span className="text-[26px] font-normal tracking-tight text-foreground tabular-nums leading-none">
             {displayValue}
           </span>
-          {deltaIndicator && <span className="text-[10px] font-medium mt-1.5 tabular-nums opacity-70" style={{
+          {deltaIndicator && <span className="text-[9px] font-medium mt-1 tabular-nums opacity-70" style={{
           color
         }}>
               {deltaIndicator}
@@ -92,8 +92,9 @@ const ProgressRing = ({
         </div>
       </div>
       {/* Label + status below the ring */}
-      <span className="mt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/55">
+      <span className="mt-3 inline-flex items-center gap-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground">
         {label}
+        {onClick && <ChevronRight className="w-3 h-3 opacity-80" strokeWidth={2.5} />}
       </span>
       {dynamicIndicator && <span className="mt-1 text-[11px] font-semibold tracking-wide" style={{ color }}>
         {dynamicIndicator}
