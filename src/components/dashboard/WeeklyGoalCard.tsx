@@ -519,11 +519,18 @@ export function WeeklyGoalCard({
                       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                         <motion.div className="h-full rounded-full bg-[hsl(var(--area-fast)/0.55)]" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
-                      <div className="w-[58px] text-right shrink-0">
+                      <div className="w-[78px] text-right shrink-0 flex flex-col items-end gap-0.5">
                         <span className="text-[10px] text-foreground/50 tabular-nums font-medium">
                           {Math.round(area.cappedXP)}/{Math.round(area.target)}
                         </span>
-                        {overflow > 0 && <span className="ml-1 text-[9px] text-[hsl(var(--area-fast))] font-bold tabular-nums">+{overflow}</span>}
+                        {overflow > 0 && (
+                          <span
+                            title={`+${overflow} XP earned beyond this area's weekly cap. Counts toward the weekly total but not this bar.`}
+                            className="px-1 py-px rounded-sm bg-[hsl(var(--area-fast)/0.18)] text-[8px] text-[hsl(var(--area-fast))] font-bold tabular-nums uppercase tracking-wider leading-none"
+                          >
+                            +{overflow} over cap
+                          </span>
+                        )}
                       </div>
                     </div>;
                   })}
