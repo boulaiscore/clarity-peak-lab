@@ -335,9 +335,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                   >
                     <ChevronRight className="w-4 h-4 text-muted-foreground rotate-180" />
                   </button>
-                  <div className="w-8 h-8 rounded-lg bg-area-fast/15 flex items-center justify-center">
-                    <Lightbulb className="w-4 h-4 text-area-fast" />
-                  </div>
+                  <div className="w-[3px] h-5 rounded-full bg-area-fast" />
                   <span className="text-foreground">{selectedGame.name}</span>
                 </DrawerTitle>
               </DrawerHeader>
