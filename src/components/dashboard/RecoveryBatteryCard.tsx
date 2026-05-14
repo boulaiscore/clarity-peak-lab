@@ -82,9 +82,9 @@ export function RecoveryBatteryCard({
             Cognitive Recovery
           </span>
           <div className="flex items-baseline gap-2.5">
-            <h2 className="text-4xl font-light tabular-nums tracking-tight text-foreground leading-none">
+            <h2 className="text-[26px] font-normal tabular-nums tracking-tight text-foreground leading-none">
               {Math.round(value)}
-              <span className="text-xl opacity-50 ml-0.5">%</span>
+              <span className="text-base opacity-50 ml-0.5">%</span>
             </h2>
             {deltaVsYesterday && (
               <span
