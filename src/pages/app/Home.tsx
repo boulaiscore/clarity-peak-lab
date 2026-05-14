@@ -423,15 +423,7 @@ const Home = () => {
         {/* Tab Content */}
         {activeTab === "overview" && <>
             {/* Date Navigation Header */}
-            <motion.section initial={{
-          opacity: 0,
-          y: 8
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.02
-        }} className="mb-4 flex justify-center items-center gap-3">
+            <motion.section initial={false} className="mb-4 flex justify-center items-center gap-3">
               {/* Left arrow - always visible but disabled at min date */}
               <button onClick={handlePreviousDay} disabled={!canGoBack} className={cn("w-7 h-7 rounded-full flex items-center justify-center transition-all", canGoBack ? "bg-muted/40 hover:bg-muted/60 active:scale-95" : "opacity-30 cursor-not-allowed")} aria-label="Previous day">
                 <ChevronLeft className="w-4 h-4 text-foreground/70" />
@@ -462,15 +454,7 @@ const Home = () => {
               </motion.div>}
             
             {/* Three Rings with Cognitive Engine Metrics */}
-            <motion.section initial={{
-          opacity: 0,
-          y: 12
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.05
-        }} className="mb-3">
+            <motion.section initial={false} className="mb-3">
               <div className="flex justify-center gap-3 mb-5">
                 <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={100} strokeWidth={6} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
                 <ProgressRing value={displayReadiness} max={100} size={100} strokeWidth={6} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
@@ -511,12 +495,7 @@ const Home = () => {
 
         {/* Cognitive Decision Insight Card */}
         {isViewingToday && (
-          <motion.section
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="mb-5"
-          >
+          <motion.section initial={false} className="mb-5">
             <CognitiveInsightCard
               primaryInsight={cognitiveInsights.primaryInsight}
               secondaryInsight={cognitiveInsights.secondaryInsight}
@@ -533,15 +512,7 @@ const Home = () => {
 
 
         {/* Fast Charge - WHOOP-style swipe card */}
-        <motion.div initial={{
-          opacity: 0,
-          y: 8
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.18
-        }} className="mb-8">
+        <motion.div initial={false} className="mb-8">
           <FastChargeSwipeCard />
         </motion.div>
 
