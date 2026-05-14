@@ -4,14 +4,31 @@
  * Visible when tapping the Recovery monitor card on Home.
  * Surfaces the Phone Health Index (PHI) sources, the dynamic
  * REC target for tonight, and today's cognitive recovery actions.
+ *
+ * v2 — Transparent partial degradation: every source shows whether it's
+ * connected, and a confidence indicator reflects how complete today's
+ * data is. Lower confidence → target blends toward neutral baseline 50.
  */
 
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Moon, Footprints, Flame, Smartphone, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  Moon,
+  Footprints,
+  Flame,
+  Smartphone,
+  Clock,
+  Check,
+  Minus,
+} from "lucide-react";
 import { useRecoveryV2 } from "@/hooks/useRecoveryV2";
 import { useTodayPhoneHealthSnapshot } from "@/hooks/usePhoneHealthSync";
 import { useTodayActivities } from "@/hooks/useTodayActivities";
-import { computeSubScores, computePHI, type PhoneHealthInputs } from "@/lib/phoneHealth";
+import {
+  computeSubScores,
+  computePHI,
+  type PhoneHealthInputs,
+} from "@/lib/phoneHealth";
 
 function fmtMinutes(min: number | null | undefined): string {
   if (min == null) return "—";
@@ -21,12 +38,12 @@ function fmtMinutes(min: number | null | undefined): string {
   return `${h}h ${m}m`;
 }
 
-function Bar({ value }: { value: number }) {
+function Bar({ value, dim }: { value: number; dim?: boolean }) {
   const pct = Math.max(0, Math.min(100, value));
   return (
     <div className="h-1.5 w-full rounded-full bg-foreground/[0.08] overflow-hidden">
       <div
-        className="h-full bg-recovery rounded-full"
+        className={`h-full rounded-full ${dim ? "bg-foreground/20" : "bg-recovery"}`}
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -38,11 +55,20 @@ interface SourceRowProps {
   label: string;
   raw: string;
   score: number;
-  contribution?: string;
+  available: boolean;
   penalty?: boolean;
+  contribution?: string;
 }
 
-function SourceRow({ icon, label, raw, score, contribution, penalty }: SourceRowProps) {
+function SourceRow({
+  icon,
+  label,
+  raw,
+  score,
+  available,
+  penalty,
+  contribution,
+}: SourceRowProps) {
   return (
     <div className="py-3 border-b border-border/30 last:border-0">
       <div className="flex items-center justify-between mb-1.5">
@@ -50,24 +76,69 @@ function SourceRow({ icon, label, raw, score, contribution, penalty }: SourceRow
           <span className="w-5 h-5 flex items-center justify-center text-muted-foreground/80">
             {icon}
           </span>
-          <span className="text-[13px] font-medium text-foreground/90">{label}</span>
+          <span
+            className={`text-[13px] font-medium ${
+              available ? "text-foreground/90" : "text-foreground/45"
+            }`}
+          >
+            {label}
+          </span>
+          {available ? (
+            <Check className="w-3 h-3 text-recovery/80" strokeWidth={2.5} />
+          ) : (
+            <Minus className="w-3 h-3 text-foreground/30" strokeWidth={2} />
+          )}
         </div>
-        <span className="text-[12px] tabular-nums text-foreground/70">{raw}</span>
+        <span
+          className={`text-[12px] tabular-nums ${
+            available ? "text-foreground/70" : "text-foreground/40 italic"
+          }`}
+        >
+          {available ? raw : "Not available"}
+        </span>
       </div>
       <div className="flex items-center gap-2">
         <div className="flex-1">
-          <Bar value={score} />
+          <Bar value={available ? score : 0} dim={!available} />
         </div>
         <span
           className={`text-[10px] tabular-nums w-12 text-right ${
-            penalty ? "text-amber-400/80" : "text-foreground/60"
+            penalty
+              ? "text-amber-400/80"
+              : available
+              ? "text-foreground/60"
+              : "text-foreground/30"
           }`}
         >
-          {contribution ?? `${Math.round(score)}/100`}
+          {available ? contribution ?? `${Math.round(score)}/100` : "—"}
         </span>
       </div>
     </div>
   );
+}
+
+function ConfidenceBar({ value }: { value: number }) {
+  const segments = 4;
+  const filled = Math.round(value * segments);
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: segments }).map((_, i) => (
+        <div
+          key={i}
+          className={`h-1 w-4 rounded-full ${
+            i < filled ? "bg-recovery" : "bg-foreground/15"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function confidenceLabel(c: number): string {
+  if (c >= 0.85) return "High";
+  if (c >= 0.5) return "Medium";
+  if (c > 0) return "Low";
+  return "None";
 }
 
 export default function RecoveryBreakdown() {
@@ -99,10 +170,15 @@ export default function RecoveryBreakdown() {
     if (!result.hasData) {
       return "Connect Apple Health or Health Connect to unlock a personalized recovery target.";
     }
-    if (sub.sleep < 50) return "Short sleep capped your recovery. Aim for 7h+ tonight.";
+    if (result.confidence < 0.5) {
+      return "Partial data today — target blended with baseline. Grant more Health permissions for full precision.";
+    }
+    if (sub.sleep < 50 && inputs.sleepMin != null)
+      return "Short sleep capped your recovery. Aim for 7h+ tonight.";
     if (sub.steps < 30 && sub.active < 30)
       return "Light activity day. A 20-min walk would lift tomorrow's target.";
-    if (result.phi > 70) return "Strong physical baseline. Add a detox session to push REC higher.";
+    if (result.phi > 70)
+      return "Strong physical baseline. Add a detox session to push REC higher.";
     return "Steady baseline. Detox or walk to boost recovery within the day.";
   })();
 
@@ -125,22 +201,29 @@ export default function RecoveryBreakdown() {
           <div className="text-[64px] font-light leading-none tabular-nums text-recovery">
             {recovery != null ? Math.round(recovery) : "—"}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">
-            of 100
-          </div>
+          <div className="text-[11px] text-muted-foreground mt-1">of 100</div>
         </div>
 
         {/* Sources */}
-        <div className="mb-8">
-          <h2 className="text-[10px] uppercase tracking-[0.16em] text-foreground/60 mb-2">
-            Sources
-          </h2>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-[10px] uppercase tracking-[0.16em] text-foreground/60">
+              Data sources
+            </h2>
+            <div className="flex items-center gap-2">
+              <ConfidenceBar value={result.confidence} />
+              <span className="text-[10px] uppercase tracking-[0.14em] text-foreground/50">
+                {confidenceLabel(result.confidence)}
+              </span>
+            </div>
+          </div>
           <div className="rounded-xl bg-card/40 border border-border/40 px-4">
             <SourceRow
               icon={<Moon className="w-4 h-4" />}
               label="Sleep"
               raw={fmtMinutes(snapshot?.sleep_min ?? null)}
               score={sub.sleep}
+              available={inputs.sleepMin != null}
             />
             <SourceRow
               icon={<Clock className="w-4 h-4" />}
@@ -151,16 +234,16 @@ export default function RecoveryBreakdown() {
                   : "—"
               }
               score={sub.consistency}
+              available={inputs.bedtimeDevMin != null}
             />
             <SourceRow
               icon={<Footprints className="w-4 h-4" />}
               label="Steps"
               raw={
-                snapshot?.steps != null
-                  ? snapshot.steps.toLocaleString()
-                  : "—"
+                snapshot?.steps != null ? snapshot.steps.toLocaleString() : "—"
               }
               score={sub.steps}
+              available={inputs.steps != null}
             />
             <SourceRow
               icon={<Flame className="w-4 h-4" />}
@@ -171,6 +254,7 @@ export default function RecoveryBreakdown() {
                   : "—"
               }
               score={sub.active}
+              available={inputs.activeMin != null}
             />
             {snapshot?.pickups != null && (
               <SourceRow
@@ -178,6 +262,7 @@ export default function RecoveryBreakdown() {
                 label="Phone pickups"
                 raw={`${snapshot.pickups}`}
                 score={sub.pickupPenalty}
+                available
                 contribution={`−${Math.round(sub.pickupPenalty * 0.1)}`}
                 penalty
               />
@@ -188,17 +273,28 @@ export default function RecoveryBreakdown() {
         {/* PHI summary */}
         <div className="rounded-xl bg-card/40 border border-border/40 p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[12px] text-muted-foreground">Phone Health Index</span>
+            <span className="text-[12px] text-muted-foreground">
+              Phone Health Index
+            </span>
             <span className="text-[14px] font-semibold tabular-nums text-foreground">
               {result.hasData ? result.phi.toFixed(0) : "—"}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[12px] text-muted-foreground">Target REC tonight</span>
+            <span className="text-[12px] text-muted-foreground">
+              Target REC tonight
+            </span>
             <span className="text-[14px] font-semibold tabular-nums text-recovery">
               {result.targetRec.toFixed(0)}
             </span>
           </div>
+          {result.hasData && result.confidence < 1 && (
+            <div className="mt-2 pt-2 border-t border-border/30 text-[10.5px] text-foreground/50 leading-relaxed">
+              Blended with baseline 50 at{" "}
+              {Math.round((1 - result.confidence) * 100)}% due to missing
+              sources.
+            </div>
+          )}
         </div>
 
         {/* Cognitive actions */}
@@ -211,14 +307,18 @@ export default function RecoveryBreakdown() {
               <span className="text-foreground/85">Detox</span>
               <span className="tabular-nums text-foreground/70">
                 {detoxMinutes ?? 0} min
-                <span className="ml-2 text-recovery">+{detoxBoost.toFixed(1)}</span>
+                <span className="ml-2 text-recovery">
+                  +{detoxBoost.toFixed(1)}
+                </span>
               </span>
             </div>
             <div className="flex items-center justify-between text-[13px]">
               <span className="text-foreground/85">Walk</span>
               <span className="tabular-nums text-foreground/70">
                 {walkingMinutes ?? 0} min
-                <span className="ml-2 text-recovery">+{walkBoost.toFixed(1)}</span>
+                <span className="ml-2 text-recovery">
+                  +{walkBoost.toFixed(1)}
+                </span>
               </span>
             </div>
           </div>
@@ -229,12 +329,14 @@ export default function RecoveryBreakdown() {
           {coachLine}
         </p>
 
-        {!result.hasData && (
+        {result.confidence < 0.5 && (
           <button
             onClick={() => navigate("/app/wearable")}
             className="mt-6 w-full py-3 rounded-xl bg-recovery/15 border border-recovery/30 text-recovery text-[13px] font-medium hover:bg-recovery/20 transition-colors"
           >
-            Enable Health access
+            {result.hasData
+              ? "Unlock full Recovery precision"
+              : "Enable Health access"}
           </button>
         )}
       </div>
