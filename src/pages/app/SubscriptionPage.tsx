@@ -232,36 +232,41 @@ const SubscriptionPage = () => {
                 {/* Price */}
                 <div className="mb-7">
                   {monthly && yearly ? (
-                    <>
-                      <div className="flex items-baseline gap-2">
-                        <span
-                          className={cn(
-                            "text-5xl font-light tabular-nums tracking-tight",
-                            highlighted ? "text-white" : "text-foreground"
-                          )}
-                        >
-                          ${monthly.amount}
-                        </span>
-                        <span
-                          className={cn(
-                            "text-sm font-light",
-                            highlighted ? "text-white/70" : "text-muted-foreground"
-                          )}
-                        >
-                          / month
-                        </span>
-                      </div>
-                      <p
-                        className={cn(
-                          "text-[11px] mt-2 tabular-nums font-light",
-                          highlighted ? "text-white/70" : "text-muted-foreground/70"
-                        )}
-                      >
-                        {cycle === "yearly"
-                          ? `Billed annually at $${yearly.amount} (${yearly.perMonth}) · 2 months free`
-                          : `Billed monthly · or $${yearly.amount}/yr (save 2 months)`}
-                      </p>
-                    </>
+                    (() => {
+                      const active = cycle === "yearly" ? yearly : monthly;
+                      return (
+                        <>
+                          <div className="flex items-baseline gap-2">
+                            <span
+                              className={cn(
+                                "text-5xl font-light tabular-nums tracking-tight",
+                                highlighted ? "text-white" : "text-foreground"
+                              )}
+                            >
+                              ${active.amount}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-sm font-light",
+                                highlighted ? "text-white/70" : "text-muted-foreground"
+                              )}
+                            >
+                              / {active.period}
+                            </span>
+                          </div>
+                          <p
+                            className={cn(
+                              "text-[11px] mt-2 tabular-nums font-light",
+                              highlighted ? "text-white/70" : "text-muted-foreground/70"
+                            )}
+                          >
+                            {cycle === "yearly"
+                              ? `${yearly.perMonth} · 2 months free vs monthly`
+                              : `or $${yearly.amount}/yr (save 2 months)`}
+                          </p>
+                        </>
+                      );
+                    })()
                   ) : (
                     <>
                       <div className="flex items-baseline gap-2">
