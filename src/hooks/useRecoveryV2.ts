@@ -22,7 +22,7 @@ import { format } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
 import {
   RecoveryState,
-  getCurrentRecovery,
+  applyRecoveryDecay,
   hasValidRecoveryData,
   applyRecoveryAction,
   initializeRecoveryBaseline,
