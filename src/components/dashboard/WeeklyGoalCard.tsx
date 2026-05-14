@@ -493,15 +493,6 @@ export function WeeklyGoalCard({
           <CollapsibleContent>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
               
-              {/* S1 CARD */}
-              <div className="rounded-2xl bg-blue-500/[0.05] border border-blue-400/[0.08] p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-blue-500/[0.12] flex items-center justify-center">
-                      <Zap className="w-3.5 h-3.5 text-blue-400/80" />
-                    </div>
-                    <div>
-              {/* S1 CARD */}
               <div className="rounded-2xl bg-blue-500/[0.05] border border-blue-400/[0.08] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
