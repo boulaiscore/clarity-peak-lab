@@ -229,8 +229,12 @@ export function useCappedWeeklyProgress(): CappedProgressData {
       },
     ];
 
-    // Cap individual categories
-    const cappedGamesXP = Math.min(weeklyGamesXP ?? 0, gamesXPTarget);
+    // Cap individual categories.
+    // IMPORTANT: cappedGamesXP must equal the sum of per-area capped values
+    // shown in the breakdown, otherwise the Weekly Load header and the
+    // detailed breakdown disagree (overflow above each area's sub-target
+    // would silently disappear from the breakdown but still inflate the total).
+    const cappedGamesXP = Math.min(s1CappedSum + s2CappedSum, gamesXPTarget);
     const cappedTasksXP = 0; // v1.3: no task XP
     const cappedDetoxXP = 0; // v1.4: Detox is time-based, no XP
 
