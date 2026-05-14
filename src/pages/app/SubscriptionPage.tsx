@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Check, ExternalLink } from "lucide-react";
