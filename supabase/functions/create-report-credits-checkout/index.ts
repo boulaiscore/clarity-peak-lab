@@ -15,8 +15,6 @@ const CREDIT_PACKAGES = {
 };
 
 const CreditsCheckoutSchema = z.object({
-  userId: z.string().uuid(),
-  userEmail: z.string().email().max(255),
   packageType: z.enum(['single', 'pack5', 'pack10']),
   successUrl: z.string().url().max(2000).optional(),
   cancelUrl: z.string().url().max(2000).optional(),
