@@ -3,43 +3,30 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, ChevronLeft, Target, Zap, Clock, Headphones, BookOpen, FileText, Activity, Check } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
-import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
-import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
-import { usePrioritizedSuggestions } from "@/hooks/usePrioritizedSuggestions";
 import { useCognitiveInsights } from "@/hooks/useCognitiveInsights";
 import { useTutorialState } from "@/hooks/useTutorialState";
-import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { useActiveReasonSession } from "@/hooks/useReasonSessions";
 import { cn } from "@/lib/utils";
-import { TrainingPlanId } from "@/lib/trainingPlans";
-import { getSharpnessStatus, getReadinessStatus, getRecoveryStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
+import { getSharpnessStatus, getReadinessStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { CognitiveInsightCard } from "@/components/home/CognitiveInsightCard";
-import { useMetricWeeklyChange } from "@/hooks/useMetricWeeklyChange";
-import { formatDistanceToNow } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { DistractionLoadCard } from "@/components/app/DistractionLoadCard";
 import { HomeTabId } from "@/components/home/HomeTabs";
 import { IntuitionTab } from "@/components/home/IntuitionTab";
 import { ReasoningTab } from "@/components/home/ReasoningTab";
 import { CapacityTab } from "@/components/home/CapacityTab";
 import { RecoveryBatteryCard } from "@/components/dashboard/RecoveryBatteryCard";
-import { SmartSuggestionCard } from "@/components/home/SmartSuggestionCard";
-import { ReadingLoadDashboard } from "@/components/lab/ReadingLoadDashboard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
 import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
@@ -116,14 +103,8 @@ const ProgressRing = ({
 const Home = () => {
   const navigate = useNavigate();
   const {
-    user,
-    updateUser
+    user
   } = useAuth();
-  const {
-    sessionsCompleted,
-    weeklyXPTarget,
-    plan
-  } = useWeeklyProgress();
 
   // Baseline calibration status - gates Games and Tasks
   const {
@@ -131,41 +112,16 @@ const Home = () => {
     isLoading: baselineLoading
   } = useBaselineStatus();
 
-  // Stable (no-flicker) weekly load totals
-  const stableCognitiveLoad = useStableCognitiveLoad();
-  const {
-    cappedTotalXP,
-    rawDetoxXP,
-    detoxXPTarget,
-    detoxProgress,
-    detoxComplete
-  } = stableCognitiveLoad;
-  const totalWeeklyXP = cappedTotalXP;
-
   // Capped weekly progress for smart training reminders
   const {
-    cappedGamesXP,
-    gamesXPTarget,
     totalProgress
   } = useCappedWeeklyProgress();
-
-  // Training Capacity for Optimal Zone display
-  const {
-    optimalRange
-  } = useTrainingCapacity();
 
   // Active books for "Currently Reading" card
   const { data: activeBooks = [] } = useActiveBooks();
 
   // Active Quality Time session (Reading / Listening) indicator
   const { data: activeReasonSession } = useActiveReasonSession();
-  // Prioritized suggestions based on metrics and lab state
-  const {
-    suggestions: prioritizedSuggestions,
-    topSuggestion,
-    isLoading: suggestionsLoading
-  } = usePrioritizedSuggestions();
-
   // New cognitive engine metrics
   // recoveryRaw: null until REC baseline exists and can be decayed (used for snapshots)
   const {
@@ -202,32 +158,6 @@ const Home = () => {
     recovery: recoveryEffective,
     rq,
   });
-
-  // Fetch completed content IDs to filter out from in-progress
-  const {
-    data: completedIds = []
-  } = useQuery({
-    queryKey: ["completed-content-ids", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const {
-        data,
-        error
-      } = await supabase.from("exercise_completions").select("exercise_id").eq("user_id", user.id).like("exercise_id", "content-%");
-      if (error) throw error;
-      return (data || []).map(c => {
-        const parts = c.exercise_id.split("-");
-        return parts.slice(2).join("-");
-      });
-    },
-    enabled: !!user?.id,
-    staleTime: 30_000
-  });
-
-  // In-progress tasks for reminder section (auto-filters completed items)
-  const {
-    getInProgressTasks
-  } = useInProgressTasks(completedIds);
 
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const {
@@ -330,7 +260,6 @@ const Home = () => {
     showTutorial,
     markTutorialComplete
   } = useTutorialState();
-  const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const hasProtocol = !!user?.trainingPlan;
 
   // Premium functional color system - fixed colors per metric
@@ -338,10 +267,6 @@ const Home = () => {
   const sharpnessColor = "hsl(210, 100%, 60%)"; // Electric blue
   const readinessColor = "hsl(245, 58%, 65%)"; // Soft indigo
   const rqColor = "hsl(207, 44%, 55%)"; // Steel Blue for RQ
-
-  const handleStartSession = () => {
-    navigate("/neuro-lab");
-  };
 
   // Get insight based on readiness - direct actionable tone
   const getInsight = () => {
