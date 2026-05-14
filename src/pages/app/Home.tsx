@@ -492,7 +492,16 @@ const Home = () => {
 
         {/* My Day — Daily Outlook + Today's Activities */}
         {isViewingToday && (
-          <TodayActivitiesCard outlook={{ label: insight.title, line: insight.body }} />
+          <TodayActivitiesCard
+            outlook={{ label: insight.title, line: insight.body }}
+            activeQualityTime={
+              activeReasonSession
+                ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
+                : activeBooks.length > 0
+                ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
+                : null
+            }
+          />
         )}
 
         {/* Cognitive Decision Insight Card */}
