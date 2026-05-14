@@ -151,34 +151,7 @@ const SubscriptionPage = () => {
           </div>
         )}
 
-        {/* Billing cycle toggle */}
-        <div className="flex items-center justify-center mb-10 sm:mb-12">
-          <div className="inline-flex border border-border/60 rounded-full p-1 bg-card/40">
-            {(["monthly", "yearly"] as BillingCycle[]).map((c) => (
-              <button
-                key={c}
-                onClick={() => setCycle(c)}
-                className={cn(
-                  "px-6 py-2 rounded-full text-[11px] uppercase tracking-[0.18em] transition-all",
-                  cycle === c
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {c === "yearly" ? (
-                  <span className="flex items-center gap-2">
-                    Yearly
-                    <span className="text-[9px] tracking-[0.2em] opacity-80 normal-case">
-                      2 months free
-                    </span>
-                  </span>
-                ) : (
-                  "Monthly"
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Both monthly + yearly are shown directly on each card below */}
 
         {/* Plans — three cards side-by-side */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-stretch">
