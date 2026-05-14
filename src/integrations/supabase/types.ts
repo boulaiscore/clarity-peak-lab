@@ -536,6 +536,54 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_health_snapshots: {
+        Row: {
+          active_min: number | null
+          bedtime_dev_min: number | null
+          created_at: string
+          date: string
+          id: string
+          phi: number | null
+          pickups: number | null
+          sleep_min: number | null
+          source: string
+          steps: number | null
+          target_rec: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_min?: number | null
+          bedtime_dev_min?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          phi?: number | null
+          pickups?: number | null
+          sleep_min?: number | null
+          source?: string
+          steps?: number | null
+          target_rec?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_min?: number | null
+          bedtime_dev_min?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          phi?: number | null
+          pickups?: number | null
+          sleep_min?: number | null
+          source?: string
+          steps?: number | null
+          target_rec?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
