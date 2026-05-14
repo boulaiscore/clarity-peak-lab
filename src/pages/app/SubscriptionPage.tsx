@@ -330,7 +330,7 @@ const SubscriptionPage = () => {
           XP measures training volume, not intelligence. LOOMA adapts difficulty, load, and insight depth to your cognitive profile.
         </p>
         <p className="text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 mt-4">
-          14-day free trial · then {cycle === "yearly" ? "billed annually" : "billed monthly"} · cancel anytime
+          14-day free trial · choose monthly or yearly · cancel anytime
         </p>
       </div>
     </AppShell>
