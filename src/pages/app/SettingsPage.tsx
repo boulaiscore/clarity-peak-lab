@@ -39,6 +39,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getPaddleEnvironment } from "@/lib/paddle";
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
@@ -147,8 +148,8 @@ const SettingsPage = () => {
     }
     setBillingLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-billing-portal-session", {
-        body: { userEmail: user.email, returnUrl: window.location.href },
+      const { data, error } = await supabase.functions.invoke("paddle-customer-portal", {
+        body: { environment: getPaddleEnvironment() },
       });
       if (error) throw error;
       if ((data as any)?.code === "NO_CUSTOMER" || !(data as any)?.url) {
