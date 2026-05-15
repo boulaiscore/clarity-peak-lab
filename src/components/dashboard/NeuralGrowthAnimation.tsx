@@ -562,10 +562,10 @@ export function NeuralGrowthAnimation({
                 </p>
                 {sciBreakdown && (
                   <ul className="space-y-1.5">
-                    <li className="flex justify-between"><span>Focus Stability</span><span className="text-foreground">{Math.round(sciBreakdown.focusStability)}</span></li>
-                    <li className="flex justify-between"><span>Fast Thinking</span><span className="text-foreground">{Math.round(sciBreakdown.fastThinking)}</span></li>
-                    <li className="flex justify-between"><span>Reasoning Accuracy</span><span className="text-foreground">{Math.round(sciBreakdown.reasoningAccuracy)}</span></li>
-                    <li className="flex justify-between"><span>Slow Thinking</span><span className="text-foreground">{Math.round(sciBreakdown.slowThinking)}</span></li>
+                    <li className="flex justify-between"><span>Focus Stability</span><span className="text-foreground">{Math.round(sciBreakdown.cognitivePerformance.components.AE)}</span></li>
+                    <li className="flex justify-between"><span>Fast Thinking</span><span className="text-foreground">{Math.round(sciBreakdown.cognitivePerformance.components.RA)}</span></li>
+                    <li className="flex justify-between"><span>Reasoning Accuracy</span><span className="text-foreground">{Math.round(sciBreakdown.cognitivePerformance.components.CT)}</span></li>
+                    <li className="flex justify-between"><span>Slow Thinking</span><span className="text-foreground">{Math.round(sciBreakdown.cognitivePerformance.components.IN)}</span></li>
                   </ul>
                 )}
                 <p>
