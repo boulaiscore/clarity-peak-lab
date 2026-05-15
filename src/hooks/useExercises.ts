@@ -254,22 +254,17 @@ export function useUpdateUserMetrics() {
           updates.total_sessions = (existing.total_sessions || 0) + 1;
         }
         
-        // Calculate and update Cognitive Readiness Score
-        const cognitiveInput: CognitiveInput = {
-          reasoningAccuracy: (updates.reasoning_accuracy as number) ?? existing.reasoning_accuracy ?? 50,
-          focusIndex: (updates.focus_stability as number) ?? existing.focus_stability ?? 50,
-          workingMemoryScore: (updates.visual_processing as number) ?? existing.visual_processing ?? 50,
-          fastThinkingScore: (updates.fast_thinking as number) ?? existing.fast_thinking ?? 50,
-          slowThinkingScore: (updates.slow_thinking as number) ?? existing.slow_thinking ?? 50,
+        // Calculate Cognitive Performance Score using canonical engine
+        // (Performance Avg = mean of AE/RA/CT/IN). Readiness is computed live in UI
+        // from rolling-window data, so we no longer persist a divergent value here.
+        const states: CognitiveStates = {
+          AE: (updates.focus_stability as number) ?? existing.focus_stability ?? 50,
+          RA: (updates.fast_thinking as number) ?? existing.fast_thinking ?? 50,
+          CT: (updates.reasoning_accuracy as number) ?? existing.reasoning_accuracy ?? 50,
+          IN: (updates.slow_thinking as number) ?? existing.slow_thinking ?? 50,
         };
-        
-        const cognitivePerformanceScore = computeCognitiveComponent(cognitiveInput);
-        const cognitiveReadinessScore = computeCognitiveReadiness(null, cognitivePerformanceScore);
-        const readinessClassification = classifyReadiness(cognitiveReadinessScore);
-        
-        updates.cognitive_performance_score = Math.round(cognitivePerformanceScore * 10) / 10;
-        updates.cognitive_readiness_score = Math.round(cognitiveReadinessScore * 10) / 10;
-        updates.readiness_classification = readinessClassification;
+        const { performanceAvg } = calculateSystemScores(states);
+        updates.cognitive_performance_score = Math.round(performanceAvg * 10) / 10;
         
         const { data, error } = await supabase
           .from("user_cognitive_metrics")
