@@ -360,17 +360,33 @@ export function WeeklyGoalCard({
                 <div className="relative w-[240px] h-[140px]">
                   <svg viewBox="0 0 240 140" className="w-full h-full">
                     <defs>
-                      <linearGradient id="gaugeProgressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        {/* Building zone: orange → yellow up to optimal min */}
-                        <stop offset="0%" stopColor="#fb923c" />
-                        <stop offset={`${Math.max(0, optimalRangePercent.min - 2)}%`} stopColor="#fbbf24" />
-                        {/* Optimal zone: green */}
-                        <stop offset={`${optimalRangePercent.min}%`} stopColor="#4ade80" />
-                        <stop offset={`${optimalRangePercent.max}%`} stopColor="#22ff66" />
-                        {/* Overtraining zone: amber → red */}
-                        <stop offset={`${Math.min(100, optimalRangePercent.max + 2)}%`} stopColor="#fbbf24" />
-                        <stop offset="100%" stopColor="#ef4444" />
-                      </linearGradient>
+                      {(() => {
+                        // Distance from optimal zone (0 = inside optimal, 1 = far away)
+                        const optMid = (optimalRangePercent.min + optimalRangePercent.max) / 2;
+                        const optHalf = (optimalRangePercent.max - optimalRangePercent.min) / 2;
+                        const distFromOpt = Math.max(0, Math.abs(ringPercent - optMid) - optHalf);
+                        // Normalize: max distance is from optMid to 0 or 100
+                        const maxDist = Math.max(optMid, 100 - optMid) - optHalf;
+                        const t = Math.min(1, distFromOpt / Math.max(1, maxDist));
+                        // Interpolate green → amber → red
+                        const lerp = (a: number, b: number, k: number) => Math.round(a + (b - a) * k);
+                        const toHex = (n: number) => n.toString(16).padStart(2, "0");
+                        let r: number, g: number, b: number;
+                        if (t < 0.5) {
+                          const k = t / 0.5;
+                          r = lerp(0x22, 0xfb, k); g = lerp(0xff, 0xbf, k); b = lerp(0x66, 0x24, k);
+                        } else {
+                          const k = (t - 0.5) / 0.5;
+                          r = lerp(0xfb, 0xef, k); g = lerp(0xbf, 0x44, k); b = lerp(0x24, 0x44, k);
+                        }
+                        const color = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+                        return (
+                          <linearGradient id="gaugeProgressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor={color} />
+                            <stop offset="100%" stopColor={color} />
+                          </linearGradient>
+                        );
+                      })()}
                     </defs>
                     {/* Background arc track — thin */}
                     <path
