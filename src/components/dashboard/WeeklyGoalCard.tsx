@@ -528,43 +528,44 @@ export function WeeklyGoalCard({
 
 
           <CollapsibleContent>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-              
-              <div className="rounded-2xl bg-[hsl(var(--area-fast)/0.06)] border border-[hsl(var(--area-fast)/0.12)] p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-[3px] h-7 rounded-full bg-[hsl(var(--area-fast))]" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-2xl bg-gradient-to-br from-[hsl(var(--muted)/0.10)] to-[hsl(var(--muted)/0.03)] border border-border/15 overflow-hidden">
+
+              {/* SYSTEM 1 */}
+              <div className="px-5 pt-5 pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-px h-8 bg-[hsl(var(--area-fast))]/70" />
                     <div>
-                      <span className="text-[12px] font-bold text-foreground/90 block leading-tight">System 1</span>
-                      <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Fast Thinking</span>
+                      <div className="text-[11px] font-semibold text-foreground/85 tracking-tight leading-tight">System 1</div>
+                      <div className="text-[9px] text-muted-foreground/45 uppercase tracking-[0.14em] mt-0.5">Fast Thinking</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[16px] font-bold text-[hsl(var(--area-fast))] tabular-nums">{s1Earned}</span>
-                    <span className="text-[11px] text-[hsl(var(--area-fast)/0.4)] font-medium ml-0.5">/{s1Target}</span>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-[15px] font-semibold text-foreground/90 tabular-nums tracking-tight">{s1Earned}</span>
+                    <span className="text-[10px] text-muted-foreground/40 font-medium">/{s1Target}</span>
                   </div>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {s1Areas.map(area => {
                     const pct = Math.min(100, area.progress);
                     const overflow = Math.max(0, Math.round(area.earned - area.target));
                     return <div key={area.area} className="flex items-center gap-3">
-                      <div className="w-[110px] shrink-0">
-                        <span className="text-[11px] text-foreground/60 font-medium truncate block">{labelFor(area.area, "s1")}</span>
+                      <div className="w-[120px] shrink-0">
+                        <span className="text-[11px] text-foreground/55 truncate block">{labelFor(area.area, "s1")}</span>
                       </div>
-                      <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
-                        <motion.div className="h-full rounded-full bg-[hsl(var(--area-fast)/0.55)]" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                      <div className="flex-1 h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                        <motion.div className="h-full rounded-full bg-[hsl(var(--area-fast)/0.65)]" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
-                      <div className="w-[78px] text-right shrink-0 flex flex-col items-end gap-0.5">
-                        <span className="text-[10px] text-foreground/50 tabular-nums font-medium">
+                      <div className="w-[70px] text-right shrink-0 flex items-center justify-end gap-1.5">
+                        <span className="text-[10px] text-foreground/45 tabular-nums">
                           {Math.round(area.cappedXP)}/{Math.round(area.target)}
                         </span>
                         {overflow > 0 && (
                           <span
-                            title={`+${overflow} XP earned beyond this area's weekly cap. Counts toward the weekly total but not this bar.`}
-                            className="px-1 py-px rounded-sm bg-[hsl(var(--area-fast)/0.18)] text-[8px] text-[hsl(var(--area-fast))] font-bold tabular-nums uppercase tracking-wider leading-none"
+                            title={`+${overflow} XP oltre il cap settimanale di quest'area.`}
+                            className="text-[8px] text-[hsl(var(--area-fast))] font-semibold tabular-nums leading-none"
                           >
-                            +{overflow} over cap
+                            +{overflow}
                           </span>
                         )}
                       </div>
@@ -573,42 +574,45 @@ export function WeeklyGoalCard({
                 </div>
               </div>
 
-              {/* S2 CARD */}
-              <div className="rounded-2xl bg-indigo-500/[0.05] border border-indigo-400/[0.08] p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-[3px] h-7 rounded-full bg-indigo-400/80" />
+              {/* Hairline divider */}
+              <div className="h-px bg-border/15 mx-5" />
+
+              {/* SYSTEM 2 */}
+              <div className="px-5 pt-4 pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-px h-8 bg-indigo-400/70" />
                     <div>
-                      <span className="text-[12px] font-bold text-foreground/90 block leading-tight">System 2</span>
-                      <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Deep Thinking</span>
+                      <div className="text-[11px] font-semibold text-foreground/85 tracking-tight leading-tight">System 2</div>
+                      <div className="text-[9px] text-muted-foreground/45 uppercase tracking-[0.14em] mt-0.5">Deep Thinking</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[16px] font-bold text-indigo-300/90 tabular-nums">{s2Earned}</span>
-                    <span className="text-[11px] text-indigo-400/30 font-medium ml-0.5">/{s2Target}</span>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-[15px] font-semibold text-foreground/90 tabular-nums tracking-tight">{s2Earned}</span>
+                    <span className="text-[10px] text-muted-foreground/40 font-medium">/{s2Target}</span>
                   </div>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {s2Areas.map(area => {
                     const pct = Math.min(100, area.progress);
                     const overflow = Math.max(0, Math.round(area.earned - area.target));
                     return <div key={area.area} className="flex items-center gap-3">
-                      <div className="w-[110px] shrink-0">
-                        <span className="text-[11px] text-foreground/60 font-medium truncate block">{labelFor(area.area, "s2")}</span>
+                      <div className="w-[120px] shrink-0">
+                        <span className="text-[11px] text-foreground/55 truncate block">{labelFor(area.area, "s2")}</span>
                       </div>
-                      <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
-                        <motion.div className="h-full rounded-full bg-indigo-400/40" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                      <div className="flex-1 h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                        <motion.div className="h-full rounded-full bg-indigo-400/55" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                       </div>
-                      <div className="w-[78px] text-right shrink-0 flex flex-col items-end gap-0.5">
-                        <span className="text-[10px] text-foreground/50 tabular-nums font-medium">
+                      <div className="w-[70px] text-right shrink-0 flex items-center justify-end gap-1.5">
+                        <span className="text-[10px] text-foreground/45 tabular-nums">
                           {Math.round(area.cappedXP)}/{Math.round(area.target)}
                         </span>
                         {overflow > 0 && (
                           <span
-                            title={`+${overflow} XP earned beyond this area's weekly cap. Counts toward the weekly total but not this bar.`}
-                            className="px-1 py-px rounded-sm bg-indigo-400/15 text-[8px] text-indigo-300 font-bold tabular-nums uppercase tracking-wider leading-none"
+                            title={`+${overflow} XP oltre il cap settimanale di quest'area.`}
+                            className="text-[8px] text-indigo-300 font-semibold tabular-nums leading-none"
                           >
-                            +{overflow} over cap
+                            +{overflow}
                           </span>
                         )}
                       </div>
@@ -617,31 +621,40 @@ export function WeeklyGoalCard({
                 </div>
               </div>
 
-              {/* Overflow legend */}
-              <p className="text-[9.5px] text-muted-foreground/60 leading-snug px-1 -mt-1">
-                <span className="font-bold text-foreground/70">"+N over cap"</span> = extra XP earned beyond an area's weekly target. It still counts toward the weekly total at the top, but the area bar stops at 100%.
-              </p>
+              {/* Hairline divider */}
+              <div className="h-px bg-border/15 mx-5" />
 
-              {/* RECOVERY CARD */}
-              <div className="rounded-2xl bg-teal-500/[0.05] border border-teal-400/[0.08] p-4">
+              {/* RECOVERY */}
+              <div className="px-5 pt-4 pb-5">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-[3px] h-7 rounded-full bg-teal-400/80" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-px h-8 bg-teal-400/70" />
                     <div>
-                      <span className="text-[12px] font-bold text-foreground/90 block leading-tight">Recovery</span>
-                      <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">Detox & Walking</span>
+                      <div className="text-[11px] font-semibold text-foreground/85 tracking-tight leading-tight flex items-center gap-1.5">
+                        Recovery
+                        <CategoryCompleteBadge show={recoveryComplete} />
+                      </div>
+                      <div className="text-[9px] text-muted-foreground/45 uppercase tracking-[0.14em] mt-0.5">Detox & Walking</div>
                     </div>
                   </div>
-                  <div className="text-right flex items-center gap-1.5">
-                    <CategoryCompleteBadge show={recoveryComplete} />
-                    <span className="text-[16px] font-bold text-teal-300/90 tabular-nums">{formatRecoveryTime(recoveryMinutesEarned)}</span>
-                    <span className="text-[11px] text-teal-400/30 font-medium">/{formatRecoveryTime(recoveryMinutesTarget)}</span>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-[15px] font-semibold text-foreground/90 tabular-nums tracking-tight">{formatRecoveryTime(recoveryMinutesEarned)}</span>
+                    <span className="text-[10px] text-muted-foreground/40 font-medium">/{formatRecoveryTime(recoveryMinutesTarget)}</span>
                   </div>
                 </div>
-                <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
-                  <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-teal-400/60" : "bg-teal-400/35"}`} initial={false} animate={{ width: `${Math.min(100, recoveryProgress)}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                  <motion.div className={`h-full rounded-full ${recoveryComplete ? "bg-teal-400/65" : "bg-teal-400/45"}`} initial={false} animate={{ width: `${Math.min(100, recoveryProgress)}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                 </div>
               </div>
+
+              {/* Footnote */}
+              <div className="px-5 pb-4">
+                <p className="text-[9px] text-muted-foreground/45 leading-snug tracking-[0.01em]">
+                  <span className="text-foreground/55 font-medium">+N</span> indica XP oltre il cap settimanale dell'area: contano nel totale, non nella barra.
+                </p>
+              </div>
+            </motion.div>
+          </CollapsibleContent>
             </motion.div>
           </CollapsibleContent>
         </motion.div>
