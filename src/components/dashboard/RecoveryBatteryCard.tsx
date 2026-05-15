@@ -128,8 +128,8 @@ export function RecoveryBatteryCard({
       </div>
 
       {/* Precision segmented bar */}
-      <div className="space-y-1.5">
-        <div className="flex items-end h-4 gap-[2px]">
+      <div className="space-y-1">
+        <div className="flex items-end h-2.5 gap-[1px]">
           {Array.from({ length: SEGMENTS }).map((_, i) => {
             const active = i < filled;
             return (
