@@ -493,7 +493,7 @@ export function WeeklyGoalCard({
                         role="button"
                         tabIndex={0}
                         onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border mt-2 border-green-300 cursor-help"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border mt-2 cursor-help border-slate-600"
                       >
                         <span className="text-[10px] text-muted-foreground/50">Optimal Zone</span>
                         <span className="text-[12px] font-bold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
