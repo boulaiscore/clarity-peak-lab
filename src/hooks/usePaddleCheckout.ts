@@ -25,6 +25,7 @@ export function usePaddleCheckout() {
           successUrl: `${window.location.origin}/app?checkout=success`,
           allowLogout: false,
           variant: "one-page",
+          locale: "en",
         },
       });
     } catch (e) {
