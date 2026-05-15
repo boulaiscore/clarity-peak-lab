@@ -655,8 +655,6 @@ export function WeeklyGoalCard({
               </div>
             </motion.div>
           </CollapsibleContent>
-            </motion.div>
-          </CollapsibleContent>
         </motion.div>
 
         <WeeklyCompleteCelebration show={showCelebration} onComplete={handleCelebrationComplete} />
