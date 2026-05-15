@@ -306,19 +306,16 @@ export function useUpdateUserMetrics() {
           }
         });
         
-        // Calculate initial Cognitive Readiness Score for new users
-        const cognitiveInput: CognitiveInput = {
-          reasoningAccuracy: Number(newMetrics.reasoning_accuracy) || 50,
-          focusIndex: Number(newMetrics.focus_stability) || 50,
-          workingMemoryScore: 50, // visual_processing default
-          fastThinkingScore: Number(newMetrics.fast_thinking) || 50,
-          slowThinkingScore: Number(newMetrics.slow_thinking) || 50,
+        // Initial Cognitive Performance Score using canonical engine
+        const initStates: CognitiveStates = {
+          AE: Number(newMetrics.focus_stability) || 50,
+          RA: Number(newMetrics.fast_thinking) || 50,
+          CT: Number(newMetrics.reasoning_accuracy) || 50,
+          IN: Number(newMetrics.slow_thinking) || 50,
         };
-        
-        const cognitivePerformanceScore = computeCognitiveComponent(cognitiveInput);
-        const cognitiveReadinessScore = computeCognitiveReadiness(null, cognitivePerformanceScore);
-        const readinessClassification = classifyReadiness(cognitiveReadinessScore);
-        
+        const { S1: initS1, S2: initS2 } = calculateSystemScores(initStates);
+        const initialPerformance = (initS1 + initS2) / 2;
+
         // Build insert object with proper types
         const insertData = {
           user_id: userId,
@@ -333,9 +330,7 @@ export function useUpdateUserMetrics() {
           critical_thinking_score: Number(newMetrics.critical_thinking_score) || 50,
           creativity: Number(newMetrics.creativity) || 50,
           philosophical_reasoning: Number(newMetrics.philosophical_reasoning) || 50,
-          cognitive_performance_score: Math.round(cognitivePerformanceScore * 10) / 10,
-          cognitive_readiness_score: Math.round(cognitiveReadinessScore * 10) / 10,
-          readiness_classification: readinessClassification,
+          cognitive_performance_score: Math.round(initialPerformance * 10) / 10,
         };
         
         const { data, error } = await supabase
