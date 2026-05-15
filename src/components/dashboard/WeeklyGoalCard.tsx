@@ -486,10 +486,25 @@ export function WeeklyGoalCard({
                 </div>
 
                 {/* Optimal range pill below gauge */}
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border mt-2 border-green-300">
-                  <span className="text-[10px] text-muted-foreground/50">Optimal Zone</span>
-                  <span className="text-[12px] font-bold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
-                </div>
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border mt-2 border-green-300 cursor-help"
+                      >
+                        <span className="text-[10px] text-muted-foreground/50">Optimal Zone</span>
+                        <span className="text-[12px] font-bold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
+                        <Info className="w-3 h-3 text-muted-foreground/40" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[260px] text-[11px] leading-relaxed">
+                      Calcolata sulla tua <span className="font-semibold">Capacity</span> attuale (~{Math.round(trainingCapacity)} XP): 60–85% del tuo livello sostenibile. Cresce con l'allenamento costante, si abbassa se ti fermi.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
                 {/* Overtraining disclaimer — shift focus to recovery activities */}
                 {adaptiveStatus.status === "above" && (
