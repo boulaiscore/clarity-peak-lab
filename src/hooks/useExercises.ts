@@ -8,12 +8,7 @@ import type {
   UserCognitiveMetrics 
 } from "@/lib/exercises";
 import { getExerciseCountForDuration, shuffleArray } from "@/lib/exercises";
-import {
-  computeCognitiveComponent,
-  computeCognitiveReadiness,
-  classifyReadiness,
-  CognitiveInput,
-} from "@/lib/readiness";
+import { calculateSystemScores, type CognitiveStates } from "@/lib/cognitiveEngine";
 
 // Fetch all exercises
 export function useExercises() {
