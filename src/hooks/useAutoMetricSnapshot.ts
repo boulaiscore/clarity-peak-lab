@@ -54,7 +54,7 @@ export function useAutoMetricSnapshot() {
     isLoading: metricsLoading 
   } = useTodayMetrics();
   
-  const { rq, isLoading: rqLoading } = useReasoningQuality();
+  const { rq, isLoading: rqLoading, isPersisted: rqIsPersisted, persistRQ } = useReasoningQuality();
   const { todaySnapshot, hasTodaySnapshot, saveSnapshot, isSaving, isLoading: snapshotLoading } = useDailyMetricSnapshot();
   
   // Debounce updates to avoid too frequent saves
@@ -100,6 +100,13 @@ export function useAutoMetricSnapshot() {
     }).then(() => {
       // Record an intraday event so 1d trend charts reflect decay/metric changes on app open
       recordMetricsSnapshot('app_open', { trigger: 'auto_snapshot' }, 500);
+      // Persist RQ to user_cognitive_metrics (once/day) so Home, decay logic, and
+      // Cognitive Age modulation read a fresh value instead of the seeded 50.
+      if (!rqIsPersisted) {
+        persistRQ().catch((err) => {
+          console.error("[useAutoMetricSnapshot] Failed to persist RQ:", err);
+        });
+      }
     }).catch((err) => {
       console.error("[useAutoMetricSnapshot] Failed to save snapshot:", err);
       // Allow retry
