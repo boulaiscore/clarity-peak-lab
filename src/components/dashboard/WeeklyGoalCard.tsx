@@ -650,7 +650,7 @@ export function WeeklyGoalCard({
               {/* Footnote */}
               <div className="px-5 pb-4">
                 <p className="text-[9px] text-muted-foreground/45 leading-snug tracking-[0.01em]">
-                  <span className="text-foreground/55 font-medium">+N</span> indica XP oltre il cap settimanale dell'area: contano nel totale, non nella barra.
+                  <span className="text-foreground/55 font-medium">+N</span> marks XP earned beyond an area's weekly cap: counted in the total, not in the bar.
                 </p>
               </div>
             </motion.div>
