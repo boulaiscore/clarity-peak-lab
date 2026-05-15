@@ -361,10 +361,15 @@ export function WeeklyGoalCard({
                   <svg viewBox="0 0 240 140" className="w-full h-full">
                     <defs>
                       <linearGradient id="gaugeProgressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        {/* Building zone: orange → yellow up to optimal min */}
                         <stop offset="0%" stopColor="#fb923c" />
-                        <stop offset="40%" stopColor="#fbbf24" />
-                        <stop offset="70%" stopColor="#4ade80" />
-                        <stop offset="100%" stopColor="#22ff66" />
+                        <stop offset={`${Math.max(0, optimalRangePercent.min - 2)}%`} stopColor="#fbbf24" />
+                        {/* Optimal zone: green */}
+                        <stop offset={`${optimalRangePercent.min}%`} stopColor="#4ade80" />
+                        <stop offset={`${optimalRangePercent.max}%`} stopColor="#22ff66" />
+                        {/* Overtraining zone: amber → red */}
+                        <stop offset={`${Math.min(100, optimalRangePercent.max + 2)}%`} stopColor="#fbbf24" />
+                        <stop offset="100%" stopColor="#ef4444" />
                       </linearGradient>
                     </defs>
                     {/* Background arc track — thin */}
