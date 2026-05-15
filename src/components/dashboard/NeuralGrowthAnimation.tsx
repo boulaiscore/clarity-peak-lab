@@ -554,7 +554,24 @@ export function NeuralGrowthAnimation({
               </p>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(85vh-80px)] pr-2">
-              <SCIExplanation sciBreakdown={sciBreakdown} />
+              <div className="space-y-3 text-xs text-muted-foreground leading-relaxed">
+                <p>
+                  Neural Strength (SCI) blends four sub-skills — Focus Stability, Fast Thinking,
+                  Reasoning Accuracy and Slow Thinking — weighted by their contribution to your
+                  Reasoning Quality.
+                </p>
+                {sciBreakdown && (
+                  <ul className="space-y-1.5">
+                    <li className="flex justify-between"><span>Focus Stability</span><span className="text-foreground">{Math.round(sciBreakdown.focusStability)}</span></li>
+                    <li className="flex justify-between"><span>Fast Thinking</span><span className="text-foreground">{Math.round(sciBreakdown.fastThinking)}</span></li>
+                    <li className="flex justify-between"><span>Reasoning Accuracy</span><span className="text-foreground">{Math.round(sciBreakdown.reasoningAccuracy)}</span></li>
+                    <li className="flex justify-between"><span>Slow Thinking</span><span className="text-foreground">{Math.round(sciBreakdown.slowThinking)}</span></li>
+                  </ul>
+                )}
+                <p>
+                  Train consistently across both System 1 and System 2 games to grow this score.
+                </p>
+              </div>
             </ScrollArea>
           </DialogContent>
         </Dialog>
