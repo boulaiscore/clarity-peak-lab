@@ -501,7 +501,7 @@ export function WeeklyGoalCard({
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="max-w-[260px] text-[11px] leading-relaxed">
-                      Calcolata sulla tua <span className="font-semibold">Capacity</span> attuale (~{Math.round(trainingCapacity)} XP): 60–85% del tuo livello sostenibile. Cresce con l'allenamento costante, si abbassa se ti fermi.
+                      Based on your current <span className="font-semibold">Capacity</span> (~{Math.round(trainingCapacity)} XP): 60–85% of your sustainable level. It grows with consistent training and drops if you stop.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
