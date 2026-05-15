@@ -54,7 +54,7 @@ export function useAutoMetricSnapshot() {
     isLoading: metricsLoading 
   } = useTodayMetrics();
   
-  const { rq, isLoading: rqLoading } = useReasoningQuality();
+  const { rq, isLoading: rqLoading, isPersisted: rqIsPersisted, persistRQ } = useReasoningQuality();
   const { todaySnapshot, hasTodaySnapshot, saveSnapshot, isSaving, isLoading: snapshotLoading } = useDailyMetricSnapshot();
   
   // Debounce updates to avoid too frequent saves
