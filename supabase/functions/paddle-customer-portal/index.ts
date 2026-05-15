@@ -26,7 +26,11 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    if (!sub) throw new Error('No subscription found');
+    if (!sub || !sub.paddle_customer_id) {
+      return new Response(JSON.stringify({ code: 'NO_CUSTOMER' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const paddle = getPaddleClient(env);
     const portal = await paddle.customerPortalSessions.create(
