@@ -263,7 +263,8 @@ export function useUpdateUserMetrics() {
           CT: (updates.reasoning_accuracy as number) ?? existing.reasoning_accuracy ?? 50,
           IN: (updates.slow_thinking as number) ?? existing.slow_thinking ?? 50,
         };
-        const { performanceAvg } = calculateSystemScores(states);
+        const { S1, S2 } = calculateSystemScores(states);
+        const performanceAvg = (S1 + S2) / 2;
         updates.cognitive_performance_score = Math.round(performanceAvg * 10) / 10;
         
         const { data, error } = await supabase
