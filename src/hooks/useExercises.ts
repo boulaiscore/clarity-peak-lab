@@ -8,12 +8,7 @@ import type {
   UserCognitiveMetrics 
 } from "@/lib/exercises";
 import { getExerciseCountForDuration, shuffleArray } from "@/lib/exercises";
-import {
-  computeCognitiveComponent,
-  computeCognitiveReadiness,
-  classifyReadiness,
-  CognitiveInput,
-} from "@/lib/readiness";
+import { calculateSystemScores, type CognitiveStates } from "@/lib/cognitiveEngine";
 
 // Fetch all exercises
 export function useExercises() {
@@ -259,22 +254,18 @@ export function useUpdateUserMetrics() {
           updates.total_sessions = (existing.total_sessions || 0) + 1;
         }
         
-        // Calculate and update Cognitive Readiness Score
-        const cognitiveInput: CognitiveInput = {
-          reasoningAccuracy: (updates.reasoning_accuracy as number) ?? existing.reasoning_accuracy ?? 50,
-          focusIndex: (updates.focus_stability as number) ?? existing.focus_stability ?? 50,
-          workingMemoryScore: (updates.visual_processing as number) ?? existing.visual_processing ?? 50,
-          fastThinkingScore: (updates.fast_thinking as number) ?? existing.fast_thinking ?? 50,
-          slowThinkingScore: (updates.slow_thinking as number) ?? existing.slow_thinking ?? 50,
+        // Calculate Cognitive Performance Score using canonical engine
+        // (Performance Avg = mean of AE/RA/CT/IN). Readiness is computed live in UI
+        // from rolling-window data, so we no longer persist a divergent value here.
+        const states: CognitiveStates = {
+          AE: (updates.focus_stability as number) ?? existing.focus_stability ?? 50,
+          RA: (updates.fast_thinking as number) ?? existing.fast_thinking ?? 50,
+          CT: (updates.reasoning_accuracy as number) ?? existing.reasoning_accuracy ?? 50,
+          IN: (updates.slow_thinking as number) ?? existing.slow_thinking ?? 50,
         };
-        
-        const cognitivePerformanceScore = computeCognitiveComponent(cognitiveInput);
-        const cognitiveReadinessScore = computeCognitiveReadiness(null, cognitivePerformanceScore);
-        const readinessClassification = classifyReadiness(cognitiveReadinessScore);
-        
-        updates.cognitive_performance_score = Math.round(cognitivePerformanceScore * 10) / 10;
-        updates.cognitive_readiness_score = Math.round(cognitiveReadinessScore * 10) / 10;
-        updates.readiness_classification = readinessClassification;
+        const { S1, S2 } = calculateSystemScores(states);
+        const performanceAvg = (S1 + S2) / 2;
+        updates.cognitive_performance_score = Math.round(performanceAvg * 10) / 10;
         
         const { data, error } = await supabase
           .from("user_cognitive_metrics")
@@ -315,19 +306,16 @@ export function useUpdateUserMetrics() {
           }
         });
         
-        // Calculate initial Cognitive Readiness Score for new users
-        const cognitiveInput: CognitiveInput = {
-          reasoningAccuracy: Number(newMetrics.reasoning_accuracy) || 50,
-          focusIndex: Number(newMetrics.focus_stability) || 50,
-          workingMemoryScore: 50, // visual_processing default
-          fastThinkingScore: Number(newMetrics.fast_thinking) || 50,
-          slowThinkingScore: Number(newMetrics.slow_thinking) || 50,
+        // Initial Cognitive Performance Score using canonical engine
+        const initStates: CognitiveStates = {
+          AE: Number(newMetrics.focus_stability) || 50,
+          RA: Number(newMetrics.fast_thinking) || 50,
+          CT: Number(newMetrics.reasoning_accuracy) || 50,
+          IN: Number(newMetrics.slow_thinking) || 50,
         };
-        
-        const cognitivePerformanceScore = computeCognitiveComponent(cognitiveInput);
-        const cognitiveReadinessScore = computeCognitiveReadiness(null, cognitivePerformanceScore);
-        const readinessClassification = classifyReadiness(cognitiveReadinessScore);
-        
+        const { S1: initS1, S2: initS2 } = calculateSystemScores(initStates);
+        const initialPerformance = (initS1 + initS2) / 2;
+
         // Build insert object with proper types
         const insertData = {
           user_id: userId,
@@ -342,9 +330,7 @@ export function useUpdateUserMetrics() {
           critical_thinking_score: Number(newMetrics.critical_thinking_score) || 50,
           creativity: Number(newMetrics.creativity) || 50,
           philosophical_reasoning: Number(newMetrics.philosophical_reasoning) || 50,
-          cognitive_performance_score: Math.round(cognitivePerformanceScore * 10) / 10,
-          cognitive_readiness_score: Math.round(cognitiveReadinessScore * 10) / 10,
-          readiness_classification: readinessClassification,
+          cognitive_performance_score: Math.round(initialPerformance * 10) / 10,
         };
         
         const { data, error } = await supabase
