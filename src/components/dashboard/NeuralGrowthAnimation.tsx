@@ -16,7 +16,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SCIExplanation } from "./SCIExplanation";
 import type { SCIBreakdown, BottleneckResult } from "@/lib/cognitiveNetworkScore";
 
 interface NeuralGrowthAnimationProps {
