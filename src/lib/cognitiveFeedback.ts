@@ -128,7 +128,7 @@ export const WEEKLY_GOAL_MESSAGES = {
   subtitle: "Compounding cognitive resilience",
   categories: {
     games: {
-      label: "Games",
+      label: "Drills",
       benefit: "Sharpens execution under pressure",
     },
     tasks: {
