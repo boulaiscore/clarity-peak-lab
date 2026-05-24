@@ -71,29 +71,22 @@ export default function PaywallPage() {
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
-  const { prices: localPrices, formatInCurrency } = useLocalizedPrices([
-    "looma_pro_monthly",
-    "looma_pro_yearly",
-    "looma_elite_monthly",
-    "looma_elite_yearly",
-  ]);
+  const sym = useCurrencySymbol();
 
   const plans = basePlans.map((p) => {
     if (p.id === "free") {
-      const ref = localPrices["looma_pro_monthly"];
       return {
         ...p,
         priceId: null as string | null,
-        price: ref ? formatInCurrency(0, ref.currencyCode) : "$0",
+        price: `${sym}0`,
         period: "",
       };
     }
     const pricing = PLAN_PRICING[p.id as "pro" | "elite"][cycle];
-    const local = localPrices[pricing.priceId];
     return {
       ...p,
       priceId: pricing.priceId,
-      price: local?.formatted ?? pricing.price,
+      price: `${sym}${pricing.amount}`,
       period: pricing.period,
     };
   });
