@@ -300,7 +300,7 @@ export function identifyBottleneck(breakdown: SCIBreakdown): BottleneckResult {
       weight: WEIGHTS.cognitivePerformance,
       potentialGain: Math.round((100 - breakdown.cognitivePerformance.score) * WEIGHTS.cognitivePerformance),
       actionLabel: "Train Thinking",
-      actionDescription: "Complete games in NeuroLab to improve your cognitive scores"
+      actionDescription: "Complete drills in NeuroLab to improve your cognitive scores"
     },
     {
       variable: "training" as const,
@@ -308,7 +308,7 @@ export function identifyBottleneck(breakdown: SCIBreakdown): BottleneckResult {
       weight: WEIGHTS.behavioralEngagement,
       potentialGain: Math.round((100 - breakdown.behavioralEngagement.score) * WEIGHTS.behavioralEngagement),
       actionLabel: "Earn XP",
-      actionDescription: "Play more games this week to hit your XP target"
+      actionDescription: "Run more drills this week to hit your XP target"
     },
     {
       variable: "recovery" as const,

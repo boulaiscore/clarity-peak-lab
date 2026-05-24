@@ -200,7 +200,7 @@ export const CATEGORY_INFO: Record<ExerciseCategory, { title: string; subtitle: 
     description: "Spatial reasoning through rotation and mental manipulation tasks.",
   },
   game: {
-    title: "Cognitive Games",
+    title: "Cognitive Drills",
     subtitle: "Interactive Training",
     description: "Engage with gamified cognitive tasks combining multiple skills.",
   },

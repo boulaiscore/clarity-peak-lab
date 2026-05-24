@@ -293,7 +293,7 @@ export function DetoxChallengeTab() {
             <p className="font-medium text-foreground mb-1.5">How Recover works</p>
             <p>
               <span className="font-medium text-foreground">Detox & Walking award XP</span> (0.05 XP/min — e.g., 60 min = 3 XP) and restore <span className="font-medium text-foreground">Recovery</span>.
-              Walking 30+ min unlocks full XP; otherwise 50%. Higher recovery unlocks S2 games.
+              Walking 30+ min unlocks full XP; otherwise 50%. Higher recovery unlocks S2 drills.
             </p>
           </PopoverContent>
         </Popover>
