@@ -5,18 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Check, Crown, ArrowLeft, User, Rocket, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { useCurrencySymbol } from "@/hooks/useLocalizedPrices";
+import { useLocalizedPrices } from "@/hooks/useLocalizedPrices";
 
 type BillingCycle = "monthly" | "yearly";
 
 const PLAN_PRICING = {
   pro: {
-    monthly: { priceId: "looma_pro_monthly", amount: "19.90", period: "/mo" },
-    yearly: { priceId: "looma_pro_yearly", amount: "199", period: "/yr" },
+    monthly: { priceId: "looma_pro_monthly", period: "/mo" },
+    yearly: { priceId: "looma_pro_yearly", period: "/yr" },
   },
   elite: {
-    monthly: { priceId: "looma_elite_monthly", amount: "29.90", period: "/mo" },
-    yearly: { priceId: "looma_elite_yearly", amount: "299", period: "/yr" },
+    monthly: { priceId: "looma_elite_monthly", period: "/mo" },
+    yearly: { priceId: "looma_elite_yearly", period: "/yr" },
   },
 } as const;
 
