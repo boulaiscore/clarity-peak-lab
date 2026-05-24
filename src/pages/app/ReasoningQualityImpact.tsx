@@ -233,7 +233,7 @@ export default function ReasoningQualityImpact() {
         weight: "−",
         contribution: -decayContribution,
         type: "negative",
-        description: "Extended inactivity (14+ days without S2 games or tasks) gradually reduces Reasoning Quality.",
+        description: "Extended inactivity (14+ days without S2 drills or tasks) gradually reduces Reasoning Quality.",
         details: {
           period: "14+ days inactivity",
           frequency: `-${decayContribution.toFixed(1)} points`,
