@@ -145,7 +145,7 @@ export default function ReasoningQualityImpact() {
           period: "Last 10 S2 sessions",
           frequency: `${Math.round(s2Consistency)} consistency`,
           direction: s2Consistency >= 50 ? "Positive" : "Neutral",
-          note: "Measures how reliably you perform in deliberate thinking games. It accounts for 30% of your Reasoning Quality score.",
+          note: "Measures how reliably you perform in deliberate thinking drills. It accounts for 30% of your Reasoning Quality score.",
         },
       },
     ];
