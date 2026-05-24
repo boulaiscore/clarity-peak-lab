@@ -17,11 +17,11 @@ type PaidPlanId = "pro" | "elite";
 const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; amount: string; period: string; perMonth?: string }>> = {
   pro: {
     monthly: { priceId: "looma_pro_monthly", amount: "19.90", period: "month" },
-    yearly: { priceId: "looma_pro_yearly", amount: "199", period: "year", perMonth: "$16.58 / month" },
+    yearly: { priceId: "looma_pro_yearly", amount: "199", period: "year", perMonth: "16.58" },
   },
   elite: {
     monthly: { priceId: "looma_elite_monthly", amount: "29.90", period: "month" },
-    yearly: { priceId: "looma_elite_yearly", amount: "299", period: "year", perMonth: "$24.92 / month" },
+    yearly: { priceId: "looma_elite_yearly", amount: "299", period: "year", perMonth: "24.92" },
   },
 };
 
