@@ -35,6 +35,7 @@ export interface NewActiveBook {
   item_id?: string;
   demand?: string;
   pages?: number;
+  cover_url?: string;
 }
 
 const MAX_ACTIVE_BOOKS = 2;
@@ -88,6 +89,7 @@ export function useAddActiveBook() {
           item_id: book.item_id || null,
           demand: book.demand || "MEDIUM",
           pages: book.pages || null,
+          cover_url: book.cover_url || null,
         })
         .select()
         .single();

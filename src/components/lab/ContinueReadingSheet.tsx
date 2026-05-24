@@ -133,6 +133,18 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
                       "flex items-center gap-3"
                     )}
                   >
+                    {book.cover_url ? (
+                      <img
+                        src={book.cover_url}
+                        alt={book.title}
+                        loading="lazy"
+                        className="w-10 h-14 object-cover rounded-md shrink-0 bg-muted"
+                      />
+                    ) : (
+                      <div className="w-10 h-14 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
+                        <BookOpen className="w-5 h-5 text-amber-500" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-semibold text-foreground/90 truncate">
                         {book.title}
