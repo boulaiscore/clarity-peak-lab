@@ -82,6 +82,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <PaymentTestModeBanner />
+      <PastDueBanner />
       {/* Main content with swipe */}
       <main 
         className="flex-1 pb-20"
