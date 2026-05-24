@@ -228,6 +228,22 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
               </button>
 
               <button
+                onClick={() => setMode("search")}
+                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Search className="w-6 h-6 text-amber-500" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold">Search any book</p>
+                  <p className="text-xs text-muted-foreground">
+                    Find covers & buy via Google Books
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+              </button>
+
+              <button
                 onClick={() => setMode("custom")}
                 className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all group"
               >
@@ -235,9 +251,9 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                   <Plus className="w-6 h-6 text-foreground" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold">Custom Book</p>
+                  <p className="font-semibold">Enter manually</p>
                   <p className="text-xs text-muted-foreground">
-                    Add any book you're reading
+                    Type the title yourself
                   </p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
