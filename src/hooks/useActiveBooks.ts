@@ -35,6 +35,7 @@ export interface NewActiveBook {
   item_id?: string;
   demand?: string;
   pages?: number;
+  cover_url?: string;
 }
 
 const MAX_ACTIVE_BOOKS = 2;
