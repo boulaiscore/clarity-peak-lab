@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Crown, ArrowLeft, User, Rocket, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useLocalizedPrices } from "@/hooks/useLocalizedPrices";
 
 type BillingCycle = "monthly" | "yearly";
 
