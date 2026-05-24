@@ -241,6 +241,26 @@ const SubscriptionPage = () => {
                   {monthly && yearly ? (
                     (() => {
                       const active = cycle === "yearly" ? yearly : monthly;
+                      const localActive = localPrices[active.priceId];
+                      const localYearly = localPrices[yearly.priceId];
+
+                      // Main display
+                      const mainPrice = localActive?.formatted ?? `$${active.amount}`;
+
+                      // Secondary line
+                      let secondary: string;
+                      if (cycle === "yearly") {
+                        if (localYearly) {
+                          const perMonth = formatInCurrency(localYearly.amount / 12, localYearly.currencyCode);
+                          secondary = `${perMonth} / month · 2 months free vs monthly`;
+                        } else {
+                          secondary = `${yearly.perMonth} · 2 months free vs monthly`;
+                        }
+                      } else {
+                        const yearlyFormatted = localYearly?.formatted ?? `$${yearly.amount}`;
+                        secondary = `or ${yearlyFormatted}/yr (save 2 months)`;
+                      }
+
                       return (
                         <>
                           <div className="flex items-baseline gap-2">
@@ -250,7 +270,7 @@ const SubscriptionPage = () => {
                                 highlighted ? "text-white" : "text-foreground"
                               )}
                             >
-                              ${active.amount}
+                              {mainPrice}
                             </span>
                             <span
                               className={cn(
@@ -267,9 +287,7 @@ const SubscriptionPage = () => {
                               highlighted ? "text-white/70" : "text-muted-foreground/70"
                             )}
                           >
-                            {cycle === "yearly"
-                              ? `${yearly.perMonth} · 2 months free vs monthly`
-                              : `or $${yearly.amount}/yr (save 2 months)`}
+                            {secondary}
                           </p>
                         </>
                       );
@@ -278,7 +296,10 @@ const SubscriptionPage = () => {
                     <>
                       <div className="flex items-baseline gap-2">
                         <span className="text-5xl font-light tabular-nums tracking-tight text-foreground">
-                          $0
+                          {(() => {
+                            const ref = localPrices["looma_pro_monthly"];
+                            return ref ? formatInCurrency(0, ref.currencyCode) : "$0";
+                          })()}
                         </span>
                         <span className="text-sm font-light text-muted-foreground">
                           forever
