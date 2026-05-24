@@ -9,7 +9,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Play, BookOpen, Bookmark } from "lucide-react";
+import { Play, BookOpen, Bookmark, Info } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
 import reasonListeningImg from "@/assets/reason-listening.jpg";
 import {
