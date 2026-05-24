@@ -325,12 +325,14 @@ export default function NeuroLab() {
                 </div>
               </div>
               {!recoveryLoading && (
-                <button
-                  onClick={() => setActiveTab(ctaTab)}
-                  className="w-full h-10 rounded-xl border border-border/50 bg-foreground/[0.04] hover:bg-foreground/[0.08] hover:border-border/70 text-foreground/90 text-[11px] font-medium uppercase tracking-[0.18em] active:scale-[0.99] transition-all"
-                >
-                  {ctaLabel}
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setActiveTab(ctaTab)}
+                    className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+                  >
+                    {ctaLabel} <span aria-hidden>→</span>
+                  </button>
+                </div>
               )}
             </div>
           );
