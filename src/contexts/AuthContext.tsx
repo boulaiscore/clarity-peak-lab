@@ -35,7 +35,7 @@ export interface UserProfile {
   session_duration: SessionDuration;
   daily_time_commitment: DailyTimeCommitment;
   training_plan: TrainingPlanId;
-  subscription_status: "free" | "premium" | "pro";
+  subscription_status: "free" | "premium" | "pro" | "elite" | "trialing";
   onboarding_completed: boolean;
   reminder_enabled: boolean | null;
   reminder_time: string | null;
