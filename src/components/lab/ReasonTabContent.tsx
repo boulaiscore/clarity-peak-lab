@@ -35,6 +35,7 @@ export function ReasonTabContent() {
   const [showSelector, setShowSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<SessionType>("reading");
   const [showBooks, setShowBooks] = useState(false);
+  const [showContinue, setShowContinue] = useState(false);
 
   const { data: activeSession } = useActiveReasonSession();
   const { data: activeBooks = [] } = useActiveBooks();
