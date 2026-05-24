@@ -316,6 +316,115 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
             </motion.div>
           )}
 
+          {mode === "search" && (
+            <motion.div
+              key="search"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 min-h-0 flex flex-col"
+            >
+              <Button variant="ghost" size="sm" onClick={() => setMode("choose")} className="mb-3 -ml-2">
+                ← Back
+              </Button>
+
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Title, author, ISBN…"
+                  className="pl-9"
+                  maxLength={120}
+                />
+              </div>
+
+              <ScrollArea className="h-[50vh]">
+                <div className="space-y-2 pr-4">
+                  {searchLoading && (
+                    <div className="flex items-center justify-center py-8 text-muted-foreground gap-2 text-xs">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Searching…
+                    </div>
+                  )}
+
+                  {!searchLoading && searchError && (
+                    <p className="text-xs text-destructive text-center py-6">{searchError}</p>
+                  )}
+
+                  {!searchLoading && !searchError && searchTouched && searchResults.length === 0 && searchQuery.trim().length >= 2 && (
+                    <p className="text-xs text-muted-foreground text-center py-6">
+                      No results. Try a different query.
+                    </p>
+                  )}
+
+                  {!searchTouched && (
+                    <p className="text-[11px] text-muted-foreground/70 text-center py-6 leading-relaxed">
+                      Start typing to find any book.<br />
+                      Tap a result to add it, or open its Google page to purchase.
+                    </p>
+                  )}
+
+                  {searchResults.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-3 rounded-xl border border-border hover:border-amber-500/40 transition-all flex gap-3"
+                    >
+                      {item.cover ? (
+                        <img
+                          src={item.cover}
+                          alt={item.title}
+                          loading="lazy"
+                          className="w-12 h-16 object-cover rounded-md shrink-0 bg-muted"
+                        />
+                      ) : (
+                        <div className="w-12 h-16 rounded-md bg-muted flex items-center justify-center shrink-0">
+                          <BookOpen className="w-5 h-5 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
+                        {item.authors.length > 0 && (
+                          <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                            {item.authors.join(", ")}
+                          </p>
+                        )}
+                        {item.pageCount && (
+                          <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                            {item.pageCount} pp
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-auto pt-2">
+                          <Button
+                            size="sm"
+                            className="h-7 text-[11px] px-2.5"
+                            disabled={addBook.isPending}
+                            onClick={() => handlePickSearch(item)}
+                          >
+                            Add
+                          </Button>
+                          {item.infoLink && (
+                            <a
+                              href={item.infoLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] text-amber-500 hover:text-amber-400 transition-colors"
+                            >
+                              View / Buy
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </motion.div>
+          )}
+
+
           {mode === "custom" && (
             <motion.div
               key="custom"
