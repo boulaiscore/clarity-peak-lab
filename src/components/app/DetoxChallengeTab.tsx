@@ -9,6 +9,7 @@ import {
   Clock, Play, Pause, Check, Sparkles, Info, Loader2, Bell, BellOff, 
   Leaf, Footprints, ChevronDown, Zap, Brain, Target, Moon
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
