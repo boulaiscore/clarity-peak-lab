@@ -79,6 +79,17 @@ export function ReasonTabContent() {
         </p>
       </div>
 
+      {/* Quick access: Continue Reading */}
+      <div className="flex items-center justify-end -mb-2">
+        <button
+          onClick={() => setShowContinue(true)}
+          className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-border/40 bg-muted/20 hover:bg-muted/30 hover:border-border/60 text-foreground/80 text-[10px] font-medium uppercase tracking-[0.14em] transition-all"
+        >
+          <Bookmark className="w-3 h-3 text-amber-400" />
+          Continue Reading
+        </button>
+      </div>
+
       {/* Session Cards */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
