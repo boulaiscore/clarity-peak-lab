@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useWearableSync } from "@/hooks/useWearableSync";
 import { getPlatform, isNativePlatform, openHealthSettings } from "@/lib/capacitor/health";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 
 // Wearable brands that sync via system health platforms
