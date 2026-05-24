@@ -143,7 +143,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
       {/* XP Explanation — collapsed, expands on info tap */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
         <p className="flex-1 text-[11px] text-muted-foreground leading-snug">
-          <span className="font-medium text-foreground">System 1</span> & <span className="font-medium text-foreground">System 2</span> games award <span className="font-medium text-foreground">Cognitive XP</span>.
+          <span className="font-medium text-foreground">System 1</span> & <span className="font-medium text-foreground">System 2</span> drills award <span className="font-medium text-foreground">Cognitive XP</span>.
         </p>
         <Popover>
           <PopoverTrigger asChild>
@@ -161,10 +161,11 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
           >
             <p className="font-medium text-foreground mb-1.5">How training XP works</p>
             <p>
-              <span className="font-medium text-foreground">System 1</span> trains fast intuitive thinking — pattern recognition and reaction speed.{" "}
-              <span className="font-medium text-foreground">System 2</span> trains slow analytical thinking — reasoning and structured analysis.
+              <span className="font-medium text-foreground">System 1</span> drills train fast intuitive thinking — pattern recognition and reaction speed.{" "}
+              <span className="font-medium text-foreground">System 2</span> drills train slow analytical thinking — reasoning and structured analysis.
               Both award <span className="font-medium text-foreground">Cognitive XP</span> that fuels Sharpness, Readiness and Reasoning Quality.
             </p>
+
           </PopoverContent>
         </Popover>
       </div>
