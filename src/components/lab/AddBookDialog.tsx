@@ -3,7 +3,7 @@
  * Pick from LOOMA library (BOOK format) or enter a custom book.
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
@@ -12,6 +12,9 @@ import {
   Sparkles,
   ChevronRight,
   Clock,
+  Search,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { CONTENT_LIBRARY, ContentItem, estimateReadingHours, ContentDifficulty } from "@/lib/contentLibrary";
 import { useAddActiveBook } from "@/hooks/useActiveBooks";
+import { searchGoogleBooks, GoogleBookResult } from "@/lib/googleBooks";
 import { toast } from "sonner";
 
 interface AddBookDialogProps {
@@ -41,7 +45,7 @@ interface AddBookDialogProps {
   onBookAdded: () => void;
 }
 
-type Mode = "choose" | "looma" | "custom";
+type Mode = "choose" | "looma" | "search" | "custom";
 
 /** Map demand string to ContentDifficulty for estimation */
 function demandToDifficulty(demand: string): ContentDifficulty {
