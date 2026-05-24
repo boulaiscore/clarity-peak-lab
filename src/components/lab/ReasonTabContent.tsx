@@ -175,6 +175,9 @@ export function ReasonTabContent() {
 
       {/* Evening reading reminder */}
       <EveningReadingReminder />
+
+      {/* Continue Reading bottom sheet (Pro/Elite gated) */}
+      <ContinueReadingSheet open={showContinue} onOpenChange={setShowContinue} />
     </div>
   );
 }
