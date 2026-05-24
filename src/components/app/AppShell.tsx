@@ -9,6 +9,7 @@ import { useAutoMetricSnapshot } from "@/hooks/useAutoMetricSnapshot";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { PastDueBanner } from "@/components/PastDueBanner";
 
 interface AppShellProps {
   children: ReactNode;
