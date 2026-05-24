@@ -78,12 +78,7 @@ const SubscriptionPage = () => {
   const [cycle, setCycle] = useState<BillingCycle>("yearly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
-  const { prices: localPrices, formatInCurrency } = useLocalizedPrices([
-    "looma_pro_monthly",
-    "looma_pro_yearly",
-    "looma_elite_monthly",
-    "looma_elite_yearly",
-  ]);
+  const sym = useCurrencySymbol();
 
   const currentPlanId = isActive ? tier : "free";
 
