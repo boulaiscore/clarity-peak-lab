@@ -89,6 +89,7 @@ export function useAddActiveBook() {
           item_id: book.item_id || null,
           demand: book.demand || "MEDIUM",
           pages: book.pages || null,
+          cover_url: book.cover_url || null,
         })
         .select()
         .single();
