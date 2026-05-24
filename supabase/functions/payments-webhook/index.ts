@@ -13,7 +13,9 @@ function getSupabase() {
 }
 
 const PRICE_TO_TIER: Record<string, 'pro' | 'elite'> = {
+  looma_pro_monthly: 'pro',
   looma_pro_yearly: 'pro',
+  looma_elite_monthly: 'elite',
   looma_elite_yearly: 'elite',
 };
 
