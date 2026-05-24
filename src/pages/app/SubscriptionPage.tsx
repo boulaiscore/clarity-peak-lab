@@ -40,7 +40,7 @@ const basePlans: BasePlan[] = [
     tagline: "Explore cognitive training at your own pace.",
     features: [
       "3 sessions/day",
-      "Limited S1 & S2 games",
+      "Limited S1 & S2 drills",
       "Core dashboard",
       "Baseline calibration",
     ],
