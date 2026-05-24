@@ -9,7 +9,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Play, BookOpen, Bookmark } from "lucide-react";
+import { Play, BookOpen, Bookmark, Info } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
 import reasonListeningImg from "@/assets/reason-listening.jpg";
 import {
@@ -70,11 +71,33 @@ export function ReasonTabContent() {
 
   return (
     <div className="space-y-6">
-      {/* XP Explanation */}
-      <div className="px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
-        <p className="text-[11px] text-muted-foreground leading-snug">
+      {/* XP Explanation — collapsed, expands on info tap */}
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
+        <p className="flex-1 text-[11px] text-muted-foreground leading-snug">
           No XP — boosts <span className="font-medium text-foreground">Reasoning Quality</span> via cognitive priming.
         </p>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              aria-label="How Quality Time affects RQ"
+              className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-muted-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <Info className="w-3.5 h-3.5" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="bottom"
+            align="end"
+            className="w-72 text-[11px] leading-relaxed text-muted-foreground"
+          >
+            <p className="font-medium text-foreground mb-1.5">Why no XP?</p>
+            <p>
+              Quality Time sessions don't award XP — they improve your{" "}
+              <span className="font-medium text-foreground">Reasoning Quality (RQ)</span>{" "}
+              through cognitive priming. Track reading and listening time for a weighted RQ contribution.
+            </p>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Quick access: Continue Reading */}
