@@ -107,7 +107,7 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     id: supabaseUser.id,
     email: supabaseUser.email || "",
     name: profile?.name || supabaseUser.email?.split("@")[0] || null,
-    subscriptionStatus: (profile?.subscription_status as "free" | "premium" | "pro") || "free",
+    subscriptionStatus: (profile?.subscription_status as User["subscriptionStatus"]) || "free",
     createdAt: new Date(supabaseUser.created_at),
     age: profile?.age || undefined,
     birthDate: profile?.birth_date || undefined,
