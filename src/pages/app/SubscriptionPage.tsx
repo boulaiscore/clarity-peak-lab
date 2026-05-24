@@ -14,14 +14,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 type BillingCycle = "monthly" | "yearly";
 type PaidPlanId = "pro" | "elite";
 
-const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; amount: string; period: string; perMonth?: string }>> = {
+const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; period: string }>> = {
   pro: {
-    monthly: { priceId: "looma_pro_monthly", amount: "19.90", period: "month" },
-    yearly: { priceId: "looma_pro_yearly", amount: "199", period: "year", perMonth: "16.58" },
+    monthly: { priceId: "looma_pro_monthly", period: "month" },
+    yearly: { priceId: "looma_pro_yearly", period: "year" },
   },
   elite: {
-    monthly: { priceId: "looma_elite_monthly", amount: "29.90", period: "month" },
-    yearly: { priceId: "looma_elite_yearly", amount: "299", period: "year", perMonth: "24.92" },
+    monthly: { priceId: "looma_elite_monthly", period: "month" },
+    yearly: { priceId: "looma_elite_yearly", period: "year" },
   },
 };
 
