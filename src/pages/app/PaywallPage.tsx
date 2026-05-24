@@ -5,18 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Check, Crown, ArrowLeft, User, Rocket, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { useLocalizedPrices } from "@/hooks/useLocalizedPrices";
+import { useCurrencySymbol } from "@/hooks/useLocalizedPrices";
 
 type BillingCycle = "monthly" | "yearly";
 
 const PLAN_PRICING = {
   pro: {
-    monthly: { priceId: "looma_pro_monthly", price: "$19.90", period: "/mo" },
-    yearly: { priceId: "looma_pro_yearly", price: "$199", period: "/yr" },
+    monthly: { priceId: "looma_pro_monthly", amount: "19.90", period: "/mo" },
+    yearly: { priceId: "looma_pro_yearly", amount: "199", period: "/yr" },
   },
   elite: {
-    monthly: { priceId: "looma_elite_monthly", price: "$29.90", period: "/mo" },
-    yearly: { priceId: "looma_elite_yearly", price: "$299", period: "/yr" },
+    monthly: { priceId: "looma_elite_monthly", amount: "29.90", period: "/mo" },
+    yearly: { priceId: "looma_elite_yearly", amount: "299", period: "/yr" },
   },
 } as const;
 
@@ -71,29 +71,22 @@ export default function PaywallPage() {
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
-  const { prices: localPrices, formatInCurrency } = useLocalizedPrices([
-    "looma_pro_monthly",
-    "looma_pro_yearly",
-    "looma_elite_monthly",
-    "looma_elite_yearly",
-  ]);
+  const sym = useCurrencySymbol();
 
   const plans = basePlans.map((p) => {
     if (p.id === "free") {
-      const ref = localPrices["looma_pro_monthly"];
       return {
         ...p,
         priceId: null as string | null,
-        price: ref ? formatInCurrency(0, ref.currencyCode) : "$0",
+        price: `${sym}0`,
         period: "",
       };
     }
     const pricing = PLAN_PRICING[p.id as "pro" | "elite"][cycle];
-    const local = localPrices[pricing.priceId];
     return {
       ...p,
       priceId: pricing.priceId,
-      price: local?.formatted ?? pricing.price,
+      price: `${sym}${pricing.amount}`,
       period: pricing.period,
     };
   });
