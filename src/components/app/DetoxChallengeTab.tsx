@@ -473,10 +473,11 @@ export function DetoxChallengeTab() {
             </p>
             <button 
               onClick={handleStart}
-              className="w-full min-h-[56px] rounded-2xl bg-foreground text-background text-base font-semibold tracking-wide flex items-center justify-center gap-3 transition-all duration-300 hover:opacity-90 active:scale-[0.98] shadow-[0_4px_20px_-4px_hsl(var(--foreground)/0.3)]"
+              className="group w-full min-h-[52px] rounded-xl bg-card/40 border border-border/50 text-foreground text-[13px] font-medium tracking-[0.08em] uppercase flex items-center justify-center gap-2.5 transition-all duration-300 hover:bg-card/70 hover:border-border active:scale-[0.99] backdrop-blur-sm"
             >
-              <Play className="w-4 h-4 fill-current" />
-              Start {selectedMode === "detox" ? "Detox" : "Walk"} · {selectedDuration} min
+              <Play className="w-3 h-3 fill-current opacity-60 group-hover:opacity-100 transition-opacity" />
+              <span>Start {selectedMode === "detox" ? "Detox" : "Walk"}</span>
+              <span className="text-muted-foreground/70 font-normal normal-case tracking-normal">· {selectedDuration} min</span>
             </button>
           </motion.div>
 
