@@ -437,7 +437,7 @@ export default function NeuroLab() {
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">Train → Recover → Repeat</p>
                       <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Cognitive games build sharpness. Detox and walking restore energy. Consistency drives adaptation.
+                        Cognitive drills build sharpness. Detox and walking restore energy. Consistency drives adaptation.
                       </p>
                     </div>
                   </div>
