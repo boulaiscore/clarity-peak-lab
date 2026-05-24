@@ -178,9 +178,18 @@ export function ActiveBooksView() {
               >
                 {/* Book info */}
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <BookOpen className="w-5 h-5 text-amber-500" />
-                  </div>
+                  {book.cover_url ? (
+                    <img
+                      src={book.cover_url}
+                      alt={book.title}
+                      loading="lazy"
+                      className="w-10 h-14 object-cover rounded-md shrink-0 bg-muted"
+                    />
+                  ) : (
+                    <div className="w-10 h-14 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-5 h-5 text-amber-500" />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-medium line-clamp-1">{book.title}</h4>
                     {book.author && (
