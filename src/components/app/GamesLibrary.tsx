@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Lock, Star } from "lucide-react";
+import { ChevronDown, Lock, Star, Info } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import {
   AttentionalEfficiencyMark,
