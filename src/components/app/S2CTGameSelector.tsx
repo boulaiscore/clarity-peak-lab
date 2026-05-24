@@ -262,7 +262,7 @@ export function S2CTGameSelector({ open, onOpenChange }: S2CTGameSelectorProps) 
             {/* System 2 info */}
             <div className="text-center pt-2">
               <p className="text-[10px] text-muted-foreground/60">
-                System 2 games train deliberate, analytical thinking
+                System 2 drills train deliberate, analytical thinking
               </p>
             </div>
           </div>
