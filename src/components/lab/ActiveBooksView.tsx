@@ -158,11 +158,11 @@ export function ActiveBooksView() {
           <BookOpen className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground mb-1">No books in progress</p>
           <p className="text-[10px] text-muted-foreground/60 mb-4">
-            Choose from the LOOMA library or add your own
+            Pick from the curated LOOMA library or add your own title
           </p>
           <Button size="sm" onClick={() => setShowAddBook(true)} className="gap-1.5">
-            <Plus className="w-3.5 h-3.5" />
-            Add a Book
+            <BookOpen className="w-3.5 h-3.5" />
+            Browse library
           </Button>
         </motion.div>
       ) : (
