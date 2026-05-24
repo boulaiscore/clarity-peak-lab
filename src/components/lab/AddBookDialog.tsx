@@ -237,7 +237,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                 <div className="flex-1 text-left">
                   <p className="font-semibold">Search any book</p>
                   <p className="text-xs text-muted-foreground">
-                    Find covers & buy via Google Books
+                    Find covers & buy links
                   </p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
