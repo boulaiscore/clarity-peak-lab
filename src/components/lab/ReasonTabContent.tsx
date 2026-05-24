@@ -9,7 +9,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Play, BookOpen } from "lucide-react";
+import { Play, BookOpen, Bookmark } from "lucide-react";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
 import reasonListeningImg from "@/assets/reason-listening.jpg";
 import {
@@ -21,6 +21,7 @@ import { ReasonSessionTimer } from "./ReasonSessionTimer";
 import { ReasonContentSelector } from "./ReasonContentSelector";
 import { ActiveBooksView } from "./ActiveBooksView";
 import { EveningReadingReminder } from "./EveningReadingReminder";
+import { ContinueReadingSheet } from "./ContinueReadingSheet";
 import {
   Dialog,
   DialogContent,
