@@ -5,7 +5,7 @@ import { Check, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useCurrencySymbol } from "@/hooks/useLocalizedPrices";
+import { useLocalizedPrices } from "@/hooks/useLocalizedPrices";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { toast } from "sonner";
@@ -14,14 +14,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 type BillingCycle = "monthly" | "yearly";
 type PaidPlanId = "pro" | "elite";
 
-const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; amount: string; period: string; perMonth?: string }>> = {
+const PLAN_PRICING: Record<PaidPlanId, Record<BillingCycle, { priceId: string; period: string }>> = {
   pro: {
-    monthly: { priceId: "looma_pro_monthly", amount: "19.90", period: "month" },
-    yearly: { priceId: "looma_pro_yearly", amount: "199", period: "year", perMonth: "16.58" },
+    monthly: { priceId: "looma_pro_monthly", period: "month" },
+    yearly: { priceId: "looma_pro_yearly", period: "year" },
   },
   elite: {
-    monthly: { priceId: "looma_elite_monthly", amount: "29.90", period: "month" },
-    yearly: { priceId: "looma_elite_yearly", amount: "299", period: "year", perMonth: "24.92" },
+    monthly: { priceId: "looma_elite_monthly", period: "month" },
+    yearly: { priceId: "looma_elite_yearly", period: "year" },
   },
 };
 
@@ -78,7 +78,7 @@ const SubscriptionPage = () => {
   const [cycle, setCycle] = useState<BillingCycle>("yearly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
-  const sym = useCurrencySymbol();
+  const { prices: localPrices, formatInCurrency } = useLocalizedPrices();
 
   const currentPlanId = isActive ? tier : "free";
 
@@ -236,6 +236,11 @@ const SubscriptionPage = () => {
                   {monthly && yearly ? (
                     (() => {
                       const active = cycle === "yearly" ? yearly : monthly;
+                      const activeLocal = localPrices[active.priceId];
+                      const yearlyLocal = localPrices[yearly.priceId];
+                      const perMonthFromYearly = yearlyLocal
+                        ? formatInCurrency(yearlyLocal.amount / 12, yearlyLocal.currencyCode)
+                        : null;
                       return (
                         <>
                           <div className="flex items-baseline gap-2">
@@ -245,7 +250,7 @@ const SubscriptionPage = () => {
                                 highlighted ? "text-white" : "text-foreground"
                               )}
                             >
-                              {sym}{active.amount}
+                              {activeLocal?.formatted ?? "—"}
                             </span>
                             <span
                               className={cn(
@@ -263,8 +268,8 @@ const SubscriptionPage = () => {
                             )}
                           >
                             {cycle === "yearly"
-                              ? `${sym}${yearly.perMonth} / month · 2 months free vs monthly`
-                              : `or ${sym}${yearly.amount}/yr (save 2 months)`}
+                              ? `${perMonthFromYearly ?? "—"} / month · 2 months free vs monthly`
+                              : `or ${yearlyLocal?.formatted ?? "—"}/yr (save 2 months)`}
                           </p>
                         </>
                       );
@@ -273,7 +278,7 @@ const SubscriptionPage = () => {
                     <>
                       <div className="flex items-baseline gap-2">
                         <span className="text-5xl font-light tabular-nums tracking-tight text-foreground">
-                          {sym}0
+                          {formatInCurrency(0, localPrices.looma_pro_monthly?.currencyCode ?? "USD")}
                         </span>
                         <span className="text-sm font-light text-muted-foreground">
                           forever
