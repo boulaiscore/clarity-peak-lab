@@ -459,7 +459,7 @@ export default function NeuroLab() {
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">S1 & S2 Game Systems</p>
                       <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        S1 trains fast thinking (attention, reaction). S2 trains slow thinking (reasoning, analysis). S2 games require higher Recovery to unlock.
+                        S1 trains fast thinking (attention, reaction). S2 trains slow thinking (reasoning, analysis). S2 drills require higher Recovery to unlock.
                       </p>
                     </div>
                   </div>
