@@ -194,7 +194,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
           <DialogDescription>
             {mode === "choose" && "Pick from the curated list, search the web, or add your own."}
             {mode === "looma" && "Select a book to start reading."}
-            {mode === "search" && "Powered by Google Books — covers and purchase links included."}
+            {mode === "search" && "Search any title — covers and purchase links included."}
             {mode === "custom" && "Enter the book you're currently reading."}
           </DialogDescription>
         </DialogHeader>
