@@ -39,7 +39,7 @@ const Dashboard = () => {
     initialSubTab === "detox" ? "detox" : "tasks"
   );
 
-  const isPremium = user?.subscriptionStatus === "premium";
+  const { isActive: isPremium } = useSubscription();
 
   // Initialize cognitive baseline on app load
   useInitializeCognitiveBaseline();
