@@ -126,6 +126,57 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
     }
   };
 
+  /** Debounced Google Books search */
+  useEffect(() => {
+    if (mode !== "search") return;
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setSearchResults([]);
+      setSearchError(null);
+      setSearchLoading(false);
+      return;
+    }
+    searchAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    searchAbortRef.current = ctrl;
+    setSearchLoading(true);
+    setSearchError(null);
+    setSearchTouched(true);
+    const t = setTimeout(async () => {
+      try {
+        const results = await searchGoogleBooks(q, ctrl.signal);
+        if (!ctrl.signal.aborted) setSearchResults(results);
+      } catch (e: any) {
+        if (e?.name !== "AbortError") setSearchError("Search failed. Try again.");
+      } finally {
+        if (!ctrl.signal.aborted) setSearchLoading(false);
+      }
+    }, 350);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [searchQuery, mode]);
+
+  const handlePickSearch = async (item: GoogleBookResult) => {
+    try {
+      await addBook.mutateAsync({
+        title: item.title,
+        author: item.authors[0] || undefined,
+        source: "custom",
+        item_id: `gbooks_${item.id}`,
+        demand: "MEDIUM",
+        pages: item.pageCount,
+        cover_url: item.cover,
+      });
+      toast.success("Book added!", { description: item.title });
+      handleClose();
+      onBookAdded();
+    } catch (e: any) {
+      toast.error(e.message || "Failed to add book");
+    }
+  };
+
   const customEstimate = customPages
     ? estimateReadingHours(parseInt(customPages) || 0, demandToDifficulty(customDemand))
     : null;
@@ -137,11 +188,13 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
           <DialogTitle>
             {mode === "choose" && "Add a Book"}
             {mode === "looma" && "LOOMA Library"}
+            {mode === "search" && "Search any book"}
             {mode === "custom" && "Custom Book"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "choose" && "Choose from curated books or add your own."}
+            {mode === "choose" && "Pick from the curated list, search the web, or add your own."}
             {mode === "looma" && "Select a book to start reading."}
+            {mode === "search" && "Powered by Google Books — covers and purchase links included."}
             {mode === "custom" && "Enter the book you're currently reading."}
           </DialogDescription>
         </DialogHeader>
