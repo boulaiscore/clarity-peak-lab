@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { NeuroLabArea, NeuroLabDuration } from "@/lib/neuroLab";
+import { useSubscription } from "@/hooks/useSubscription";
 
 // Free tier constants
 export const FREE_AREAS: NeuroLabArea[] = ["focus"];
@@ -16,7 +17,9 @@ interface DailySessionInfo {
 export function usePremiumGating() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const isPremium = user?.subscriptionStatus === "premium";
+  // Single source of truth: real Paddle subscription state (env + period_end aware).
+  const { isPro, isElite, isActive } = useSubscription();
+  const isPremium = isActive; // any paid tier (pro or elite)
 
   // Fetch daily sessions info
   const { data: sessionInfo } = useQuery({
@@ -35,27 +38,19 @@ export function usePremiumGating() {
     enabled: !!user?.id,
   });
 
-  // Check if we need to reset daily counter (new day)
   const today = new Date().toISOString().split("T")[0];
   const isNewDay = sessionInfo?.last_session_date !== today;
   const dailySessionsUsed = isNewDay ? 0 : (sessionInfo?.daily_sessions_count || 0);
   const remainingSessions = MAX_DAILY_SESSIONS_FREE - dailySessionsUsed;
 
-  // Mutation to increment daily session count
   const incrementSession = useMutation({
     mutationFn: async () => {
       if (!user?.id) return;
-      
       const newCount = isNewDay ? 1 : dailySessionsUsed + 1;
-      
       const { error } = await supabase
         .from("profiles")
-        .update({
-          daily_sessions_count: newCount,
-          last_session_date: today,
-        })
+        .update({ daily_sessions_count: newCount, last_session_date: today })
         .eq("user_id", user.id);
-      
       if (error) throw error;
     },
     onSuccess: () => {
@@ -63,7 +58,6 @@ export function usePremiumGating() {
     },
   });
 
-  // Access checks
   const canAccessArea = (areaId: NeuroLabArea | string): boolean => {
     if (isPremium) return true;
     return FREE_AREAS.includes(areaId as NeuroLabArea);
@@ -74,29 +68,20 @@ export function usePremiumGating() {
     return FREE_DURATIONS.includes(duration as NeuroLabDuration);
   };
 
-  // Neural Reset is always accessible (no premium gating)
-
-  const canAccessTraining = (): boolean => {
-    // Training now accessible to all users
-    return true;
-  };
+  const canAccessTraining = (): boolean => true;
 
   const canStartSession = (): boolean => {
     if (isPremium) return true;
     return remainingSessions > 0;
   };
 
-  const isAreaLocked = (areaId: NeuroLabArea | string): boolean => {
-    return !canAccessArea(areaId);
-  };
-
-  const isDurationLocked = (duration: NeuroLabDuration | string): boolean => {
-    return !canUseDuration(duration);
-  };
+  const isAreaLocked = (areaId: NeuroLabArea | string): boolean => !canAccessArea(areaId);
+  const isDurationLocked = (duration: NeuroLabDuration | string): boolean => !canUseDuration(duration);
 
   return {
     isPremium,
-    isPro: user?.subscriptionStatus === "pro",
+    isPro,
+    isElite,
     canAccessArea,
     canUseDuration,
     canAccessTraining,
