@@ -5,7 +5,7 @@ import { Check, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useCurrencySymbol } from "@/hooks/useLocalizedPrices";
+import { useLocalizedPrices } from "@/hooks/useLocalizedPrices";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { toast } from "sonner";
