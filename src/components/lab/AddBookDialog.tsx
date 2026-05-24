@@ -61,6 +61,14 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
   const [customPages, setCustomPages] = useState("");
   const [customDemand, setCustomDemand] = useState("MEDIUM");
 
+  // Google Books search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<GoogleBookResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchTouched, setSearchTouched] = useState(false);
+  const searchAbortRef = useRef<AbortController | null>(null);
+
   const addBook = useAddActiveBook();
 
   const books = CONTENT_LIBRARY.filter((c) => c.format === "book");
@@ -71,6 +79,10 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
     setCustomAuthor("");
     setCustomPages("");
     setCustomDemand("MEDIUM");
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchError(null);
+    setSearchTouched(false);
     onClose();
   };
 
