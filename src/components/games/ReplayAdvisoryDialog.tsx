@@ -197,7 +197,7 @@ export function useReplayAdvisory() {
             {state.reason === "cooldown" ? (
               <>
                 <span className="block">
-                  You played this game recently. The optimal window
+                  You ran this drill recently. The optimal window
                   for a clean second reading is{" "}
                   <span className="font-medium text-foreground">
                     {isS2 ? "~4 hours" : "~30 minutes"}
