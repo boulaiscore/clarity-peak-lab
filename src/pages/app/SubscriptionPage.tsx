@@ -78,7 +78,7 @@ const SubscriptionPage = () => {
   const [cycle, setCycle] = useState<BillingCycle>("yearly");
   const { tier, isActive, cancelAtPeriodEnd, currentPeriodEnd, paddleSubscriptionId, refetch } = useSubscription();
   const { openCheckout, loading } = usePaddleCheckout();
-  const sym = useCurrencySymbol();
+  const { prices: localPrices, formatInCurrency } = useLocalizedPrices();
 
   const currentPlanId = isActive ? tier : "free";
 
