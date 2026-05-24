@@ -4,26 +4,40 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getPaddleEnvironment } from "@/lib/paddle";
 
 const PRICE_TIER: Record<string, "pro" | "elite"> = {
+  looma_pro_monthly: "pro",
   looma_pro_yearly: "pro",
+  looma_elite_monthly: "elite",
   looma_elite_yearly: "elite",
 };
 
+export type Tier = "free" | "pro" | "elite";
+
 export interface SubscriptionInfo {
-  tier: "free" | "pro" | "elite";
+  tier: Tier;
   status: string | null;
   isActive: boolean;
+  isPro: boolean;
+  isElite: boolean;
+  isTrialing: boolean;
+  isPastDue: boolean;
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: string | null;
   paddleSubscriptionId: string | null;
+  priceId: string | null;
 }
 
 const FREE: SubscriptionInfo = {
   tier: "free",
   status: null,
   isActive: false,
+  isPro: false,
+  isElite: false,
+  isTrialing: false,
+  isPastDue: false,
   cancelAtPeriodEnd: false,
   currentPeriodEnd: null,
   paddleSubscriptionId: null,
+  priceId: null,
 };
 
 export function useSubscription() {
@@ -55,13 +69,19 @@ export function useSubscription() {
       const isActive =
         (["active", "trialing", "past_due"].includes(data.status) && inWindow) ||
         (data.status === "canceled" && inWindow);
+      const tier: Tier = isActive ? PRICE_TIER[data.price_id] ?? "pro" : "free";
       setInfo({
-        tier: isActive ? PRICE_TIER[data.price_id] ?? "pro" : "free",
+        tier,
         status: data.status,
         isActive,
-        cancelAtPeriodEnd: !!data.cancel_at_period_end,
+        isPro: isActive && (tier === "pro" || tier === "elite"),
+        isElite: isActive && tier === "elite",
+        isTrialing: data.status === "trialing" && inWindow,
+        isPastDue: data.status === "past_due" && inWindow,
+        cancelAtPeriodEnd: !!data.cancel_at_period_end || data.status === "canceled",
         currentPeriodEnd: data.current_period_end,
         paddleSubscriptionId: data.paddle_subscription_id,
+        priceId: data.price_id,
       });
     }
     setLoading(false);
