@@ -216,7 +216,7 @@ export default function PaywallPage() {
         </div>
 
         <p className="text-[10px] text-muted-foreground/50 text-center mt-8">
-          Annual subscriptions auto-renew unless cancelled.
+          14-day free trial · cancel anytime · renews {cycle === "yearly" ? "annually" : "monthly"} after trial
         </p>
       </div>
 

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useWearableSync } from "@/hooks/useWearableSync";
 import { getPlatform, isNativePlatform, openHealthSettings } from "@/lib/capacitor/health";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 
 // Wearable brands that sync via system health platforms
@@ -66,11 +67,10 @@ const Health = () => {
   const platform = getPlatform();
   const isNative = isNativePlatform();
 
-  // Determine user state for premium gating
-  // For MVP: Free users see upsell, Premium users can connect
-  // Trial logic can be added later
-  const subscriptionStatus = user?.subscriptionStatus || "free";
-  const isFreeUser = subscriptionStatus === "free";
+  // Premium gating from real Paddle subscription state (env + period-end aware).
+  const { isActive: isPaid, tier } = useSubscription();
+  const subscriptionStatus = isPaid ? tier : "free";
+  const isFreeUser = !isPaid;
   const isConnected = wearableSync.isConnected;
 
   // Handle native health connection

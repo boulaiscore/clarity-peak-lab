@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { useInitializeCognitiveBaseline } from "@/hooks/useInitializeCognitiveBaseline";
+import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
@@ -39,7 +40,7 @@ const Dashboard = () => {
     initialSubTab === "detox" ? "detox" : "tasks"
   );
 
-  const isPremium = user?.subscriptionStatus === "premium";
+  const { isActive: isPremium } = useSubscription();
 
   // Initialize cognitive baseline on app load
   useInitializeCognitiveBaseline();

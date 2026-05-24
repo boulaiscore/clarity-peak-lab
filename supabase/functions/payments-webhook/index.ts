@@ -13,7 +13,9 @@ function getSupabase() {
 }
 
 const PRICE_TO_TIER: Record<string, 'pro' | 'elite'> = {
+  looma_pro_monthly: 'pro',
   looma_pro_yearly: 'pro',
+  looma_elite_monthly: 'elite',
   looma_elite_yearly: 'elite',
 };
 
@@ -102,6 +104,14 @@ async function handleWebhook(req: Request, env: PaddleEnv) {
       break;
     case EventName.SubscriptionCanceled:
       await handleSubscriptionCanceled(event.data, env);
+      break;
+    case EventName.TransactionPaymentFailed:
+      // Paddle will follow up with subscription.updated (status=past_due).
+      // We only log here so the dunning state is observable in logs.
+      console.log('transaction.payment_failed', {
+        transactionId: (event.data as any)?.id,
+        subscriptionId: (event.data as any)?.subscriptionId,
+      });
       break;
     default:
       console.log('Unhandled event:', event.eventType);
