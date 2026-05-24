@@ -9,7 +9,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Play, BookOpen } from "lucide-react";
+import { Play, BookOpen, Bookmark } from "lucide-react";
 import reasonReadingImg from "@/assets/reason-reading.jpg";
 import reasonListeningImg from "@/assets/reason-listening.jpg";
 import {
@@ -21,6 +21,7 @@ import { ReasonSessionTimer } from "./ReasonSessionTimer";
 import { ReasonContentSelector } from "./ReasonContentSelector";
 import { ActiveBooksView } from "./ActiveBooksView";
 import { EveningReadingReminder } from "./EveningReadingReminder";
+import { ContinueReadingSheet } from "./ContinueReadingSheet";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ export function ReasonTabContent() {
   const [showSelector, setShowSelector] = useState(false);
   const [selectorMode, setSelectorMode] = useState<SessionType>("reading");
   const [showBooks, setShowBooks] = useState(false);
+  const [showContinue, setShowContinue] = useState(false);
 
   const { data: activeSession } = useActiveReasonSession();
   const { data: activeBooks = [] } = useActiveBooks();
@@ -75,6 +77,17 @@ export function ReasonTabContent() {
           <span className="font-medium text-foreground">Reasoning Quality (RQ)</span> through cognitive priming.
           Track reading and listening time for weighted RQ contribution.
         </p>
+      </div>
+
+      {/* Quick access: Continue Reading */}
+      <div className="flex items-center justify-end -mb-2">
+        <button
+          onClick={() => setShowContinue(true)}
+          className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-border/40 bg-muted/20 hover:bg-muted/30 hover:border-border/60 text-foreground/80 text-[10px] font-medium uppercase tracking-[0.14em] transition-all"
+        >
+          <Bookmark className="w-3 h-3 text-amber-400" />
+          Continue Reading
+        </button>
       </div>
 
       {/* Session Cards */}
@@ -162,6 +175,9 @@ export function ReasonTabContent() {
 
       {/* Evening reading reminder */}
       <EveningReadingReminder />
+
+      {/* Continue Reading bottom sheet (Pro/Elite gated) */}
+      <ContinueReadingSheet open={showContinue} onOpenChange={setShowContinue} />
     </div>
   );
 }
