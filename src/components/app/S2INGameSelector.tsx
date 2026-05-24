@@ -253,7 +253,7 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
             {/* System 2 info */}
             <div className="text-center pt-2">
               <p className="text-[10px] text-muted-foreground/60">
-                Insight games train pattern recognition under uncertainty
+                Insight drills train pattern recognition under uncertainty
               </p>
             </div>
           </div>
