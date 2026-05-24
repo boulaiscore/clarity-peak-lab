@@ -54,7 +54,7 @@ export interface User {
   id: string;
   email: string;
   name: string | null;
-  subscriptionStatus: "free" | "premium" | "pro";
+  subscriptionStatus: "free" | "premium" | "pro" | "elite" | "trialing";
   createdAt: Date;
   
   // Personal data
