@@ -201,6 +201,14 @@ const MIN_LABEL_DISTANCE = 40;
 
 function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
+
+  const latestIntradayTime = useMemo(() => {
+    const timestamps = intradayData
+      .map((point) => new Date(point.timestamp).getTime())
+      .filter(Number.isFinite);
+
+    return timestamps.length > 0 ? Math.max(...timestamps) : null;
+  }, [intradayData]);
   
   // Calculate fixed ticks for intraday view (every 4 hours + current time)
   const { fixedTicks, midnightTs, nowTs } = useMemo(() => {
@@ -208,7 +216,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
     // IMPORTANT: do not freeze `now` at mount.
     // If new intraday events arrive after the first render and `nowTs` is stale,
     // Recharts will clamp all points beyond the domain max to the same X position ("now").
-    const now = Date.now();
+    const now = Math.max(Date.now(), latestIntradayTime ?? 0);
     
     // Every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
     const hourlyTicks = [0, 4, 8, 12, 16, 20].map(h => todayStart + h * 60 * 60 * 1000);
@@ -223,7 +231,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
     return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
     // Recompute when switching to 1d or when new intraday points arrive.
     // This keeps the X domain aligned with the latest event timestamps.
-  }, [viewMode, intradayData.length]);
+  }, [latestIntradayTime]);
   
   // For intraday, we process the timeline from midnight baseline to now
   const intradayChartData = useMemo(() => {
