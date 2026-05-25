@@ -56,14 +56,14 @@ export default function CognitiveReport() {
   const { sci: liveSci, isLoading: sciLoading } = useCognitiveNetworkScore();
   const { 
     canViewReport, 
-    canDownloadPDF, 
+    canDownloadPDF: canDownloadPDFReal, 
     reportCredits, 
     monthlyCredits,
-    isPremium,
+    isPremium: isPremiumReal,
     isPro,
     refetchPurchase, 
     useCredit,
-    weeklyPlanCompleted,
+    weeklyPlanCompleted: weeklyPlanCompletedReal,
     weeklyProgress,
     xpRemaining,
     hasCreditsOrPurchase,
@@ -71,6 +71,13 @@ export default function CognitiveReport() {
     planXPTarget,
     currentXP,
   } = useReportAccess();
+
+  // TEST MODE: bypass paywall, credits, and weekly plan gating
+  const { isTestMode } = useTestMode();
+  const isPremium = isTestMode || isPremiumReal;
+  const canDownloadPDF = isTestMode || canDownloadPDFReal;
+  const weeklyPlanCompleted = isTestMode || weeklyPlanCompletedReal;
+
   
   const { reports, isLoading: historyLoading, saveReport } = useReportHistory(userId);
   
