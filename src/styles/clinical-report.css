@@ -356,9 +356,9 @@
 .clinical-note,
 .clinical-final-statement {
   border: 1px solid rgba(23, 32, 27, 0.12);
-  border-radius: 5mm;
+  border-radius: 2.6mm;
   background: rgba(255, 253, 247, 0.84);
-  box-shadow: 0 12px 28px rgba(23, 32, 27, 0.05);
+  box-shadow: none;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -911,6 +911,252 @@
   margin-top: 18mm;
 }
 
+.clinical-record-page {
+  background:
+    linear-gradient(90deg, rgba(14, 24, 19, 0.055) 0 1px, transparent 1px) 0 0 / 9mm 9mm,
+    linear-gradient(180deg, #fffdf7 0%, #f3eee3 100%);
+}
+
+.clinical-record-page::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 7mm;
+  content: "";
+  background: linear-gradient(90deg, var(--clinical-night), #21382c 58%, var(--clinical-gold));
+}
+
+.clinical-record-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4mm;
+  padding-bottom: 5mm;
+  border-bottom: 1px solid rgba(23, 32, 27, 0.16);
+}
+
+.clinical-record-page .clinical-brand svg {
+  color: var(--clinical-green);
+}
+
+.clinical-record-page .clinical-brand span {
+  color: var(--clinical-muted);
+}
+
+.clinical-record-page .clinical-document-class strong {
+  color: var(--clinical-green);
+}
+
+.clinical-record-title {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 10mm;
+  align-items: end;
+  margin: 8mm 0 6mm;
+}
+
+.clinical-record-title .clinical-kicker {
+  grid-column: 1 / -1;
+  margin-bottom: -4mm;
+}
+
+.clinical-record-title h1 {
+  margin: 0;
+  color: var(--clinical-ink);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 36pt;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+}
+
+.clinical-record-title p {
+  margin: 0;
+  padding: 4.5mm;
+  border-left: 2px solid var(--clinical-green);
+  color: var(--clinical-ink);
+  background: rgba(31, 138, 91, 0.08);
+  font-size: 9.3pt;
+  line-height: 1.42;
+}
+
+.clinical-record-identity {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+  margin-bottom: 5mm;
+  border: 1px solid rgba(23, 32, 27, 0.16);
+  background: rgba(255, 253, 247, 0.9);
+}
+
+.clinical-record-identity div {
+  min-height: 18mm;
+  padding: 3.4mm;
+  border-right: 1px solid rgba(23, 32, 27, 0.11);
+}
+
+.clinical-record-identity div:last-child {
+  border-right: 0;
+}
+
+.clinical-record-identity span,
+.clinical-verdict-card span,
+.clinical-index-strip span,
+.clinical-ledger-head span {
+  display: block;
+  color: var(--clinical-muted);
+  font-size: 6.6pt;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.clinical-record-identity strong {
+  display: block;
+  margin-top: 2mm;
+  color: var(--clinical-ink);
+  font-size: 7.8pt;
+  line-height: 1.22;
+}
+
+.clinical-record-summary {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 5mm;
+  margin-bottom: 5mm;
+}
+
+.clinical-verdict-card {
+  min-height: 36mm;
+  padding: 5mm;
+  border: 1px solid rgba(23, 32, 27, 0.16);
+  background: var(--clinical-night);
+  color: #f7f4ea;
+}
+
+.clinical-verdict-card strong {
+  display: block;
+  margin: 2mm 0 3mm;
+  color: #fff9e8;
+  font-size: 11.5pt;
+  line-height: 1.28;
+}
+
+.clinical-verdict-card p {
+  margin: 0;
+  color: rgba(247, 244, 234, 0.68);
+  font-size: 7.9pt;
+  line-height: 1.42;
+}
+
+.clinical-index-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid rgba(23, 32, 27, 0.16);
+  background: rgba(255, 253, 247, 0.9);
+}
+
+.clinical-index-strip div {
+  min-height: 18mm;
+  padding: 3.5mm;
+  border-right: 1px solid rgba(23, 32, 27, 0.1);
+  border-bottom: 1px solid rgba(23, 32, 27, 0.1);
+}
+
+.clinical-index-strip div:nth-child(2n) {
+  border-right: 0;
+}
+
+.clinical-index-strip div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.clinical-index-strip strong {
+  display: block;
+  margin-top: 1.5mm;
+  color: var(--clinical-ink);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 19pt;
+  line-height: 0.95;
+}
+
+.clinical-index-strip em {
+  display: block;
+  margin-top: 1.2mm;
+  color: var(--clinical-green);
+  font-size: 7.2pt;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.clinical-ledger {
+  overflow: hidden;
+  border: 1px solid rgba(23, 32, 27, 0.16);
+  background: rgba(255, 253, 247, 0.92);
+}
+
+.clinical-ledger-head,
+.clinical-ledger-row {
+  display: grid;
+  grid-template-columns: 28mm 15mm 15mm 17mm 1fr;
+  gap: 3mm;
+  align-items: center;
+}
+
+.clinical-ledger-head {
+  min-height: 9mm;
+  padding: 0 3.2mm;
+  background: rgba(23, 32, 27, 0.055);
+}
+
+.clinical-ledger-row {
+  min-height: 13.8mm;
+  padding: 2.4mm 3.2mm;
+  border-top: 1px solid rgba(23, 32, 27, 0.08);
+}
+
+.clinical-ledger-row strong,
+.clinical-ledger-row span {
+  color: var(--clinical-ink);
+  font-size: 8pt;
+}
+
+.clinical-ledger-row span {
+  font-weight: 850;
+}
+
+.clinical-ledger-row .positive {
+  color: var(--clinical-green);
+}
+
+.clinical-ledger-row .negative {
+  color: var(--clinical-red);
+}
+
+.clinical-ledger-row .flat {
+  color: var(--clinical-muted);
+}
+
+.clinical-ledger-row p {
+  margin: 0;
+  color: var(--clinical-ink-soft);
+  font-size: 7.2pt;
+  line-height: 1.35;
+}
+
+.clinical-record-note {
+  position: absolute;
+  right: 16mm;
+  bottom: 24mm;
+  left: 16mm;
+  padding: 3.8mm 4.5mm;
+  border-left: 2px solid var(--clinical-gold);
+  background: rgba(200, 148, 58, 0.1);
+  color: var(--clinical-ink-soft);
+  font-size: 7.8pt;
+  line-height: 1.42;
+}
+
 .clinical-trend-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -921,9 +1167,9 @@
 .clinical-trend-card,
 .clinical-system-card {
   border: 1px solid rgba(23, 32, 27, 0.12);
-  border-radius: 5mm;
+  border-radius: 2.6mm;
   background: rgba(255, 253, 247, 0.84);
-  box-shadow: 0 12px 28px rgba(23, 32, 27, 0.05);
+  box-shadow: none;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -1125,8 +1371,52 @@
   margin-bottom: 5mm;
   padding: 5mm;
   border: 1px solid rgba(23, 32, 27, 0.12);
-  border-radius: 5mm;
+  border-radius: 2.6mm;
   background: rgba(255, 253, 247, 0.84);
+}
+
+.clinical-architecture-table {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin-bottom: 5mm;
+  border: 1px solid rgba(23, 32, 27, 0.16);
+  background: rgba(255, 253, 247, 0.9);
+}
+
+.clinical-architecture-table div {
+  min-height: 32mm;
+  padding: 4mm;
+  border-right: 1px solid rgba(23, 32, 27, 0.1);
+}
+
+.clinical-architecture-table div:last-child {
+  border-right: 0;
+}
+
+.clinical-architecture-table span {
+  display: block;
+  color: var(--clinical-muted);
+  font-size: 6.6pt;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.clinical-architecture-table strong {
+  display: block;
+  margin: 2mm 0;
+  color: var(--clinical-ink);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 25pt;
+  line-height: 0.9;
+}
+
+.clinical-architecture-table p {
+  margin: 0;
+  color: var(--clinical-ink-soft);
+  font-size: 7.6pt;
+  line-height: 1.38;
 }
 
 .clinical-system-one-line {
