@@ -1,10 +1,11 @@
 // src/components/report/ClinicalReport.tsx
-// Medical-grade Cognitive Performance Report
+// Premium Cognitive Performance Dossier for A4/PDF output.
 import React, { useMemo } from "react";
 import { Brain } from "lucide-react";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
 type Area = "focus" | "reasoning" | "creativity";
+type ConfidenceLevel = "Low" | "Developing" | "Moderate" | "High";
 
 interface ClinicalReportProps {
   profile: {
@@ -32,7 +33,7 @@ interface ClinicalReportProps {
     philosophical_reasoning?: number | null;
     cognitive_level?: number | null;
     experience_points?: number | null;
-    total_sessions?: number;           // Lifetime sessions from user_cognitive_metrics
+    total_sessions?: number;
     baseline_fast_thinking?: number | null;
     baseline_slow_thinking?: number | null;
     baseline_focus?: number | null;
@@ -50,7 +51,7 @@ interface ClinicalReportProps {
     preferredDuration?: string;
     mostUsedExercises: { exerciseId: string; count: number }[];
     last30DaysHeatmap?: { date: string; count: number }[];
-    sessionsLast7d?: number;           // v2.0: Sessions in rolling 7-day window
+    sessionsLast7d?: number;
   };
   badges: Array<{
     badge_name: string;
@@ -59,22 +60,30 @@ interface ClinicalReportProps {
   }>;
   generatedAt: Date;
   isPreview?: boolean;
-  // v3.0: Live SCI from useCognitiveNetworkScore for consistency with Dashboard
   liveSci?: SCIBreakdown | null;
 }
 
-// Helper functions
 function calculateAge(birthDate: string): number {
   const birth = new Date(birthDate);
   const today = new Date();
   let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  const monthDelta = today.getMonth() - birth.getMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) age--;
   return age;
 }
 
+function round(value: number, digits = 0): number {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+}
+
+function avg(values: Array<number | null | undefined>, fallback = 50): number {
+  const valid = values.filter((value): value is number => value !== null && value !== undefined);
+  if (!valid.length) return fallback;
+  return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+}
+
 function getPercentile(score: number): number {
-  // Approximate percentile based on normal distribution
   if (score >= 90) return 98;
   if (score >= 85) return 95;
   if (score >= 80) return 90;
@@ -90,21 +99,21 @@ function getPercentile(score: number): number {
   return 15;
 }
 
-function getClassification(score: number): { label: string; class: string } {
-  if (score >= 85) return { label: "Superior", class: "superior" };
-  if (score >= 70) return { label: "Above Average", class: "above-avg" };
-  if (score >= 50) return { label: "Average", class: "average" };
-  if (score >= 35) return { label: "Below Average", class: "below-avg" };
-  return { label: "Significantly Below Average", class: "low" };
+function classifyScore(score: number): { label: string; tone: "excellent" | "strong" | "stable" | "watch" | "risk" } {
+  if (score >= 85) return { label: "Elite", tone: "excellent" };
+  if (score >= 72) return { label: "Strong", tone: "strong" };
+  if (score >= 58) return { label: "Stable", tone: "stable" };
+  if (score >= 45) return { label: "Watch", tone: "watch" };
+  return { label: "Priority", tone: "risk" };
 }
 
 function formatWorkType(type: string | null | undefined): string {
   const map: Record<string, string> = {
-    knowledge: "Knowledge Worker",
-    creative: "Creative Professional",
-    technical: "Technical/Engineering",
-    management: "Management/Executive",
-    student: "Student/Academic",
+    knowledge: "Knowledge work",
+    creative: "Creative professional",
+    technical: "Technical / engineering",
+    management: "Executive / management",
+    student: "Student / academic",
     other: "Other",
   };
   return map[type || ""] || "Not specified";
@@ -112,28 +121,199 @@ function formatWorkType(type: string | null | undefined): string {
 
 function formatEducation(level: string | null | undefined, discipline: string | null | undefined): string {
   const levelMap: Record<string, string> = {
-    high_school: "High School",
-    bachelor: "Bachelor's Degree",
-    master: "Master's Degree",
-    phd: "Doctoral Degree",
+    high_school: "High school",
+    bachelor: "Bachelor degree",
+    master: "Master degree",
+    phd: "Doctoral degree",
     other: "Other",
   };
-  const discMap: Record<string, string> = {
+  const disciplineMap: Record<string, string> = {
     stem: "STEM",
     humanities: "Humanities",
     business: "Business",
-    health: "Health Sciences",
+    health: "Health sciences",
     arts: "Arts",
-    social_sciences: "Social Sciences",
+    social_sciences: "Social sciences",
     law: "Law",
     other: "Other",
   };
-  const l = levelMap[level || ""] || "Not specified";
-  const d = discMap[discipline || ""];
-  return d ? `${l} (${d})` : l;
+  const formattedLevel = levelMap[level || ""] || "Not specified";
+  const formattedDiscipline = disciplineMap[discipline || ""];
+  return formattedDiscipline ? `${formattedLevel}, ${formattedDiscipline}` : formattedLevel;
 }
 
-export function ClinicalReport({ profile, metrics, aggregates, badges, generatedAt, isPreview = false, liveSci }: ClinicalReportProps) {
+function formatGameType(gameType: string): string {
+  const map: Record<string, string> = {
+    "S1-AE": "Attention efficiency",
+    "S1-RA": "Rapid association",
+    "S2-CT": "Critical reasoning",
+    "S2-IN": "Insight formation",
+  };
+  return map[gameType] || gameType.replace(/[-_]/g, " ");
+}
+
+function getDataConfidence(sessionsLast7d: number, totalSessions: number): {
+  level: ConfidenceLevel;
+  score: number;
+  description: string;
+} {
+  const recencyScore = Math.min(1, sessionsLast7d / 7);
+  const volumeScore = Math.min(1, totalSessions / 30);
+  const score = round((recencyScore * 0.55 + volumeScore * 0.45) * 100);
+
+  if (score >= 80) {
+    return {
+      level: "High",
+      score,
+      description: "Recent volume and lifetime sample are sufficient for stable interpretation.",
+    };
+  }
+  if (score >= 55) {
+    return {
+      level: "Moderate",
+      score,
+      description: "Interpretation is useful, with moderate sensitivity to recent behavior.",
+    };
+  }
+  if (score >= 30) {
+    return {
+      level: "Developing",
+      score,
+      description: "Patterns are emerging, but more sessions are needed for high confidence.",
+    };
+  }
+  return {
+    level: "Low",
+    score,
+    description: "Use as an orientation snapshot until additional data is collected.",
+  };
+}
+
+function getBalanceStatus(s1Score: number, s2Score: number): {
+  label: string;
+  interpretation: string;
+  recommendation: string;
+} {
+  const diff = s1Score - s2Score;
+  if (Math.abs(diff) <= 5) {
+    return {
+      label: "Integrated",
+      interpretation: "Fast pattern recognition and deliberate reasoning are currently well balanced.",
+      recommendation: "Preserve cross-domain training and alternate speed-first and reasoning-first sessions.",
+    };
+  }
+  if (diff > 12) {
+    return {
+      label: "Fast-dominant",
+      interpretation: "The profile favors rapid pattern recognition over slower analytical verification.",
+      recommendation: "Add deliberate reasoning work before high-stakes decisions or strategic reviews.",
+    };
+  }
+  if (diff > 5) {
+    return {
+      label: "Fast-leaning",
+      interpretation: "The profile is efficient under time pressure, with a mild intuitive bias.",
+      recommendation: "Use short analytical checklists to reduce overconfidence in ambiguous contexts.",
+    };
+  }
+  if (diff < -12) {
+    return {
+      label: "Analytical-dominant",
+      interpretation: "The profile favors deliberate processing over rapid intuitive commitment.",
+      recommendation: "Train fast association and attentional switching to improve decision velocity.",
+    };
+  }
+  return {
+    label: "Analytical-leaning",
+    interpretation: "The profile is careful and reflective, with a mild speed tradeoff.",
+    recommendation: "Use time-boxed drills to improve speed without sacrificing reasoning quality.",
+  };
+}
+
+function getReadinessText(cri: number): string {
+  if (cri >= 75) return "Prepared for high cognitive demand";
+  if (cri >= 60) return "Operationally ready with manageable load";
+  if (cri >= 45) return "Functional, but recovery or load should be watched";
+  return "Reduce load and prioritize recovery before deep work";
+}
+
+function getPrognosis(params: {
+  sci: number;
+  readiness: number;
+  sessionsLast7d: number;
+  accuracy: number;
+  weakestDomain: string;
+}): string {
+  const { sci, readiness, sessionsLast7d, accuracy, weakestDomain } = params;
+  if (sessionsLast7d < 2) {
+    return `Current evidence is not yet dense enough for a reliable trajectory. The next 14 days should focus on increasing sample quality before interpreting change in ${weakestDomain}.`;
+  }
+  if (sci >= 72 && readiness >= 65 && accuracy >= 70) {
+    return "Current profile supports sustained professional performance if weekly training and recovery cadence remain consistent. Near-term objective: preserve level while increasing resilience under load.";
+  }
+  if (sci >= 55) {
+    return `Trajectory is improvable. A focused block targeting ${weakestDomain} should produce the clearest signal over the next 30 to 45 days if adherence remains consistent.`;
+  }
+  return `The profile is still in a build phase. Prioritize repeatable training volume, sleep/recovery regularity, and low-friction sessions before drawing strong conclusions from week-to-week changes.`;
+}
+
+function PageFooter({ reportId, page }: { reportId: string; page: number }) {
+  return (
+    <footer className="clinical-page-footer">
+      <span>NeuroLoop Labs</span>
+      <span>{reportId}</span>
+      <span>Page {page}</span>
+    </footer>
+  );
+}
+
+function ScorePill({ value, label }: { value: number; label?: string }) {
+  const classification = classifyScore(value);
+  return (
+    <span className={`clinical-score-pill ${classification.tone}`}>
+      {label ?? classification.label}
+    </span>
+  );
+}
+
+function MetricTile({
+  label,
+  value,
+  sublabel,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string | number;
+  sublabel: string;
+  tone?: "neutral" | "accent" | "success" | "warning";
+}) {
+  return (
+    <div className={`clinical-metric-tile ${tone}`}>
+      <span className="clinical-metric-label">{label}</span>
+      <span className="clinical-metric-value">{value}</span>
+      <span className="clinical-metric-sub">{sublabel}</span>
+    </div>
+  );
+}
+
+function ScoreBar({ value }: { value: number }) {
+  const safeValue = Math.max(0, Math.min(100, value));
+  return (
+    <div className="clinical-score-bar" aria-hidden="true">
+      <div style={{ width: `${safeValue}%` }} />
+    </div>
+  );
+}
+
+export function ClinicalReport({
+  profile,
+  metrics,
+  aggregates,
+  badges,
+  generatedAt,
+  isPreview = false,
+  liveSci,
+}: ClinicalReportProps) {
   const reportId = `NL-${generatedAt.getTime().toString(36).toUpperCase()}`;
   const observationWindow = useMemo(() => {
     const endDate = generatedAt;
@@ -145,765 +325,630 @@ export function ClinicalReport({ profile, metrics, aggregates, badges, generated
     };
   }, [generatedAt]);
 
-  // v3.0: Use live SCI from Dashboard calculation for consistency
-  // Falls back to DB value if liveSci not provided
-  const sci = liveSci?.total ?? Math.round(metrics.cognitive_performance_score ?? 50);
-  const sciPercentile = getPercentile(sci);
-  const sciClass = getClassification(sci);
-  const cri = Math.round(metrics.cognitive_readiness_score ?? 50);
-  const xp = metrics.experience_points ?? 0;
-  const level = metrics.cognitive_level ?? 1;
-  // v2.0: Use both lifetime and 7-day session counts
-  const totalSessions = metrics.total_sessions ?? 0;
-  const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
-  const accuracy = aggregates.accuracyRatePct ?? 0;
-  
-  // v3.1: Use metrics directly (same source as Dashboard) for S1/S2 consistency
-  // This ensures Report and Dashboard calculate identical values
   const AE = metrics.focus_stability ?? 50;
   const RA = metrics.fast_thinking ?? 50;
   const CT = metrics.reasoning_accuracy ?? 50;
   const IN = metrics.slow_thinking ?? 50;
-  
-  // Legacy aliases for backward compatibility
-  const fast = RA;
-  const slow = IN;
-  const focus = AE;
-  const reasoning = CT;
-  const creativity = metrics.creativity ?? 50;
-  
-  const age = profile.birth_date ? calculateAge(profile.birth_date) : null;
-  
-  // v3.2: Cognitive Age calculation ALIGNED with Dashboard (src/pages/app/Dashboard.tsx:32-72)
-  // Same formula: average 5 skills, compare to baseline avg, 10 pts improvement = 1 year younger
-  const baselineCogAge = metrics.baseline_cognitive_age ?? (age ?? 35);
-  const cognitiveAge = useMemo(() => {
-    // Current skill averages (same as Dashboard)
-    const currentAvg = (AE + RA + CT + IN + creativity) / 5;
-    
-    // Baseline skill averages
-    const baselineFocus = metrics.baseline_focus ?? 50;
-    const baselineFast = metrics.baseline_fast_thinking ?? 50;
-    const baselineReasoning = metrics.baseline_reasoning ?? 50;
-    const baselineSlow = metrics.baseline_slow_thinking ?? 50;
-    const baselineCreativity = metrics.baseline_creativity ?? 50;
-    const baselineAvg = (baselineFocus + baselineFast + baselineReasoning + baselineSlow + baselineCreativity) / 5;
-    
-    // Performance gain & age adjustment (identical to Dashboard)
-    const performanceGain = currentAvg - baselineAvg;
-    const ageImprovement = performanceGain / 10;
-    
-    return Math.round(baselineCogAge - ageImprovement);
-  }, [AE, RA, CT, IN, creativity, metrics, baselineCogAge]);
-  const cogAgePercentile = useMemo(() => {
-    if (!age) return 50;
-    const delta = age - cognitiveAge;
-    if (delta >= 10) return 95;
-    if (delta >= 5) return 85;
-    if (delta >= 2) return 70;
-    if (delta >= 0) return 55;
-    if (delta >= -2) return 40;
-    if (delta >= -5) return 25;
-    return 10;
-  }, [age, cognitiveAge]);
+  const creativity = metrics.creativity ?? avg([AE, RA, CT, IN]);
 
-  // v3.0: System 1/2 scores aligned with Dashboard calculation
-  // S1 = average of fast skills (AE, RA), S2 = average of slow skills (CT, IN)
-  const s1Score = Math.round((AE + RA) / 2);
-  const s2Score = Math.round((CT + IN) / 2);
-  const systemBalance = useMemo(() => {
-    const diff = s1Score - s2Score;
-    if (Math.abs(diff) <= 5) return { status: "Balanced", desc: "Optimal dual-process integration" };
-    if (diff > 15) return { status: "S1-Dominant", desc: "Intuitive processing preference" };
-    if (diff > 5) return { status: "S1-Leaning", desc: "Mild intuitive bias" };
-    if (diff < -15) return { status: "S2-Dominant", desc: "Analytical processing preference" };
-    return { status: "S2-Leaning", desc: "Mild analytical bias" };
-  }, [s1Score, s2Score]);
+  const s1Score = round((AE + RA) / 2);
+  const s2Score = round((CT + IN) / 2);
+  const corePerformance = round(avg([AE, RA, CT, IN]), 1);
 
-  // Domains
-  const domains = [
+  const sci = liveSci?.total ?? round(metrics.cognitive_performance_score ?? corePerformance);
+  const sciClass = classifyScore(sci);
+  const sciPercentile = getPercentile(sci);
+  const readiness = round(metrics.cognitive_readiness_score ?? avg([metrics.cognitive_readiness_score, corePerformance]), 0);
+  const totalSessions = metrics.total_sessions ?? 0;
+  const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
+  const accuracy = round(aggregates.accuracyRatePct ?? 0, 1);
+  const xp = metrics.experience_points ?? 0;
+  const level = metrics.cognitive_level ?? 1;
+  const participantAge = profile.birth_date ? calculateAge(profile.birth_date) : null;
+
+  const baselineForAge = avg([
+    metrics.baseline_focus,
+    metrics.baseline_fast_thinking,
+    metrics.baseline_reasoning,
+    metrics.baseline_slow_thinking,
+    metrics.baseline_creativity,
+  ]);
+  const baselineCognitiveAge = metrics.baseline_cognitive_age ?? participantAge ?? 35;
+  const hasBaselineSignal = [
+    metrics.baseline_focus,
+    metrics.baseline_fast_thinking,
+    metrics.baseline_reasoning,
+    metrics.baseline_slow_thinking,
+    metrics.baseline_creativity,
+  ].some((value) => value !== null && value !== undefined);
+  const performanceForAge = avg([AE, RA, CT, IN, creativity]);
+
+  const cognitiveAge = hasBaselineSignal
+    ? round(baselineCognitiveAge - ((performanceForAge - baselineForAge) / 10), 1)
+    : null;
+  const cognitiveAgeDelta = participantAge && cognitiveAge !== null ? round(cognitiveAge - participantAge, 1) : null;
+  const cognitiveAgeLabel = cognitiveAge === null
+    ? "Calibrating"
+    : `${cognitiveAge.toFixed(1)}y`;
+
+  const sciComponents = {
+    cognitive: liveSci?.cognitivePerformance.score ?? round(corePerformance),
+    engagement: liveSci?.behavioralEngagement.score ?? round(Math.min(100, (sessionsLast7d / 7) * 100)),
+    recovery: liveSci?.recoveryFactor.score ?? readiness,
+  };
+
+  const domainRows = [
     {
-      name: "Attentional Control",
-      score: focus,
+      key: "AE",
+      name: "Attentional Efficiency",
+      score: AE,
       baseline: metrics.baseline_focus,
-      definition: "Capacity to maintain and shift attention as task demands require.",
-      implication: focus >= 70 
-        ? "Strong attentional regulation supports sustained performance under cognitive load."
-        : focus >= 50
-        ? "Adequate attentional capacity with potential for improvement under distraction."
-        : "Attentional vulnerabilities may impact performance in demanding environments.",
+      evidence: "Focus stability, attentional switching, interference resistance.",
+      interpretation: AE >= 70
+        ? "Supports sustained work blocks and resistance to distraction."
+        : AE >= 55
+          ? "Adequate for normal workload; fatigue may reduce precision."
+          : "Likely bottleneck for deep work and complex task switching.",
     },
     {
-      name: "Analytical Reasoning",
-      score: reasoning,
-      baseline: metrics.baseline_reasoning,
-      definition: "Ability to evaluate evidence, identify logical structures, and draw valid inferences.",
-      implication: reasoning >= 70
-        ? "Robust analytical capacity supports complex decision-making and problem-solving."
-        : reasoning >= 50
-        ? "Functional reasoning with opportunity for enhanced critical evaluation skills."
-        : "Reasoning vulnerabilities may affect judgment in ambiguous situations.",
-    },
-    {
-      name: "Creative Cognition",
-      score: creativity,
-      baseline: metrics.baseline_creativity,
-      definition: "Divergent thinking capacity and ability to generate novel solutions.",
-      implication: creativity >= 70
-        ? "Strong creative capacity enables innovative problem-solving approaches."
-        : creativity >= 50
-        ? "Moderate creative flexibility with potential for enhanced ideation."
-        : "Limited divergent thinking may constrain solution generation.",
-    },
-    {
-      name: "Processing Speed (S1)",
-      score: fast,
+      key: "RA",
+      name: "Rapid Association",
+      score: RA,
       baseline: metrics.baseline_fast_thinking,
-      definition: "Efficiency of automatic, intuitive cognitive processing.",
-      implication: fast >= 70
-        ? "Rapid intuitive processing supports quick pattern recognition and reaction."
-        : fast >= 50
-        ? "Adequate processing speed for routine cognitive demands."
-        : "Slower processing may impact performance in time-sensitive contexts.",
+      evidence: "Speed of pattern linking, intuitive compression, reaction quality.",
+      interpretation: RA >= 70
+        ? "Favors quick synthesis and rapid signal detection."
+        : RA >= 55
+          ? "Functional speed, with room to improve snap judgments."
+          : "May slow early recognition of patterns under time pressure.",
     },
     {
-      name: "Deliberative Processing (S2)",
-      score: slow,
+      key: "CT",
+      name: "Critical Reasoning",
+      score: CT,
+      baseline: metrics.baseline_reasoning,
+      evidence: "Argument structure, causal inference, evidence weighting.",
+      interpretation: CT >= 70
+        ? "Strong for strategic evaluation and high-stakes decisions."
+        : CT >= 55
+          ? "Reliable in familiar contexts; ambiguity remains the main load."
+          : "Primary target for decision quality and bias control.",
+    },
+    {
+      key: "IN",
+      name: "Insight Formation",
+      score: IN,
       baseline: metrics.baseline_slow_thinking,
-      definition: "Capacity for controlled, effortful analytical thinking.",
-      implication: slow >= 70
-        ? "Strong deliberative capacity supports nuanced judgment and complex reasoning."
-        : slow >= 50
-        ? "Functional analytical capacity with room for enhanced depth of processing."
-        : "Limited deliberative engagement may affect complex decision quality.",
+      evidence: "Conceptual reframing, abstraction, slow synthesis.",
+      interpretation: IN >= 70
+        ? "Strong capacity for reframing and second-order thinking."
+        : IN >= 55
+          ? "Good base for reflective work; benefits from deliberate practice."
+          : "May limit strategic synthesis and non-obvious solution generation.",
     },
   ];
 
-  // Strengths and vulnerabilities
-  const sortedDomains = [...domains].sort((a, b) => b.score - a.score);
-  const strengths = sortedDomains.slice(0, 2).filter(d => d.score >= 60);
-  const vulnerabilities = sortedDomains.slice(-2).filter(d => d.score < 60).reverse();
+  const sortedDomains = [...domainRows].sort((a, b) => b.score - a.score);
+  const strongest = sortedDomains[0];
+  const weakest = sortedDomains[sortedDomains.length - 1];
+  const balance = getBalanceStatus(s1Score, s2Score);
+  const dataConfidence = getDataConfidence(sessionsLast7d, totalSessions);
+  const prognosis = getPrognosis({
+    sci,
+    readiness,
+    sessionsLast7d,
+    accuracy,
+    weakestDomain: weakest.name,
+  });
 
-  // Prognosis - v2.0: Use sessionsLast7d for recency-weighted confidence
-  const prognosisText = useMemo(() => {
-    if (sessionsLast7d < 2) {
-      return "Insufficient recent training data for reliable trajectory estimation. Continued engagement is recommended to establish baseline patterns.";
-    }
-    if (sci >= 75 && accuracy >= 75) {
-      return "Based on current performance patterns, maintenance of cognitive indices is likely with continued adherence. Moderate confidence in sustained performance over the next 30-45 days.";
-    }
-    if (sci >= 55 && sessionsLast7d >= 5) {
-      return "Current trajectory suggests gradual improvement is achievable with consistent engagement. With maintained training frequency, an increase of 3-7 SCI points over 30-45 days is plausible.";
-    }
-    return "Performance patterns indicate opportunity for improvement. Consistent engagement at current or increased frequency may yield measurable gains within 30-45 days, contingent on adherence.";
-  }, [sci, accuracy, sessionsLast7d]);
+  const trainingDistribution = [
+    { label: "Focus", value: aggregates.sessionsByArea.focus ?? 0, avg: aggregates.avgScoreByArea.focus ?? 0 },
+    { label: "Reasoning", value: aggregates.sessionsByArea.reasoning ?? 0, avg: aggregates.avgScoreByArea.reasoning ?? 0 },
+    { label: "Creativity", value: aggregates.sessionsByArea.creativity ?? 0, avg: aggregates.avgScoreByArea.creativity ?? 0 },
+  ];
+  const maxTrainingSessions = Math.max(...trainingDistribution.map((item) => item.value), 1);
+  const recommendedSessionLength = profile.session_duration || aggregates.preferredDuration || "10-15 minutes";
+
+  const priorities = [
+    {
+      label: "Primary training lever",
+      value: weakest.name,
+      rationale: `${weakest.name} is currently the lowest measured domain and should receive the highest marginal attention.`,
+    },
+    {
+      label: "Decision safeguard",
+      value: balance.label,
+      rationale: balance.recommendation,
+    },
+    {
+      label: "Recovery watch",
+      value: getReadinessText(readiness),
+      rationale: "Readiness modulates whether training translates into reliable professional performance.",
+    },
+  ];
 
   return (
-    <div className="clinical-report relative">
-      {/* Preview watermark */}
-      {isPreview && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
-          style={{ top: '40%' }}
-        >
-          <div 
-            className="text-amber-500/20 font-bold text-[80px] tracking-[0.3em] select-none"
-            style={{ 
-              transform: 'rotate(-35deg)',
-              textShadow: '0 0 10px rgba(0,0,0,0.05)'
-            }}
-          >
-            PREVIEW
-          </div>
-        </div>
-      )}
-      
-      {/* Page 1: Cover & Identification */}
-      <section className="clinical-page clinical-cover">
-        <header className="clinical-header">
-          <div className="clinical-logo">
-            <Brain size={28} />
-            <div className="clinical-logo-text">
-              <span className="clinical-logo-name">LOOMA</span>
-              <span className="clinical-logo-sub">Cognitive Performance Laboratory</span>
+    <div className="clinical-report">
+      {isPreview && <div className="clinical-watermark">Preview</div>}
+
+      <section className="clinical-page clinical-cover-page">
+        <div className="clinical-cover-topline">
+          <div className="clinical-brand">
+            <Brain size={24} />
+            <div>
+              <strong>NeuroLoop Labs</strong>
+              <span>Cognitive Performance Laboratory</span>
             </div>
           </div>
-          <div className="clinical-classification">
-            <span className="classification-badge">CONFIDENTIAL</span>
-            <span className="classification-type">COGNITIVE PERFORMANCE ASSESSMENT</span>
+          <div className="clinical-document-class">
+            <span>Confidential</span>
+            <strong>Performance dossier</strong>
+          </div>
+        </div>
+
+        <div className="clinical-cover-hero">
+          <span className="clinical-kicker">Professional cognitive report</span>
+          <h1>Cognitive Performance Dossier</h1>
+          <p>
+            A structured assessment of cognitive capacity, decision readiness, training adaptation,
+            and near-term performance priorities for high-demand professional work.
+          </p>
+        </div>
+
+        <div className="clinical-cover-grid">
+          <div>
+            <span>Participant</span>
+            <strong>{profile.name || "Confidential participant"}</strong>
+          </div>
+          <div>
+            <span>Chronological age</span>
+            <strong>{participantAge ? `${participantAge} years` : "Not provided"}</strong>
+          </div>
+          <div>
+            <span>Professional context</span>
+            <strong>{formatWorkType(profile.work_type)}</strong>
+          </div>
+          <div>
+            <span>Education</span>
+            <strong>{formatEducation(profile.education_level, profile.degree_discipline)}</strong>
+          </div>
+          <div>
+            <span>Observation window</span>
+            <strong>{observationWindow.start} - {observationWindow.end}</strong>
+          </div>
+          <div>
+            <span>Report ID</span>
+            <strong>{reportId}</strong>
+          </div>
+        </div>
+
+        <div className="clinical-cover-metrics">
+          <MetricTile label="SCI" value={sci} sublabel={`${sciPercentile}th percentile`} tone="accent" />
+          <MetricTile label="Readiness" value={readiness} sublabel={getReadinessText(readiness)} tone="success" />
+          <MetricTile label="Cognitive Age" value={cognitiveAgeLabel} sublabel={cognitiveAgeDelta === null ? "Baseline pending" : `${Math.abs(cognitiveAgeDelta).toFixed(1)}y ${cognitiveAgeDelta <= 0 ? "younger" : "older"}`} />
+          <MetricTile label="Data Confidence" value={`${dataConfidence.score}%`} sublabel={dataConfidence.level} tone={dataConfidence.score >= 55 ? "success" : "warning"} />
+        </div>
+
+        <div className="clinical-cover-note">
+          This report is designed for performance optimization, not medical diagnosis. Scores reflect behavioral
+          training data and should be interpreted with the data-confidence rating above.
+        </div>
+        <PageFooter reportId={reportId} page={1} />
+      </section>
+
+      <section className="clinical-page">
+        <header className="clinical-page-header">
+          <span>01</span>
+          <div>
+            <h2>Executive Summary</h2>
+            <p>Current operating state and professional implications.</p>
           </div>
         </header>
 
-        <div className="clinical-title-block">
-          <h1 className="clinical-main-title">Cognitive Performance Assessment Report</h1>
-          <p className="clinical-report-id">Report ID: {reportId}</p>
-          {isPreview && (
-            <p className="text-amber-600 text-xs font-medium mt-2 px-3 py-1 bg-amber-50 rounded-md inline-block">
-              ⚠ Preview — Complete weekly training to generate final report
+        <div className="clinical-two-column">
+          <div className="clinical-panel clinical-summary-panel">
+            <h3>Interpretive statement</h3>
+            <p>
+              The current profile shows <strong>{sciClass.label.toLowerCase()}</strong> global cognitive
+              performance with a Synthesized Cognitive Index of <strong>{sci}/100</strong>. The strongest
+              measured domain is <strong>{strongest.name}</strong>; the principal development lever is
+              <strong> {weakest.name}</strong>.
             </p>
-          )}
+            <p>
+              The System 1 / System 2 balance is classified as <strong>{balance.label}</strong>. {balance.interpretation}
+            </p>
+          </div>
+
+          <div className="clinical-panel">
+            <h3>Data quality</h3>
+            <div className="clinical-confidence-ring">
+              <span>{dataConfidence.score}%</span>
+              <ScoreBar value={dataConfidence.score} />
+            </div>
+            <p>{dataConfidence.description}</p>
+            <dl className="clinical-compact-list">
+              <div><dt>Last 7 days</dt><dd>{sessionsLast7d} sessions</dd></div>
+              <div><dt>Lifetime volume</dt><dd>{totalSessions} sessions</dd></div>
+              <div><dt>Mean accuracy</dt><dd>{accuracy}%</dd></div>
+            </dl>
+          </div>
         </div>
 
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">1. IDENTIFICATION & ASSESSMENT CONTEXT</h2>
-          
-          <div className="clinical-field-grid">
-            <div className="clinical-field">
-              <span className="clinical-field-label">Participant</span>
-              <span className="clinical-field-value">{profile.name || "Confidential"}</span>
-            </div>
-            <div className="clinical-field">
-              <span className="clinical-field-label">Date of Birth</span>
-              <span className="clinical-field-value">
-                {profile.birth_date 
-                  ? `${new Date(profile.birth_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}${age ? ` (Age ${age})` : ""}`
-                  : "Not provided"
-                }
-              </span>
-            </div>
-            <div className="clinical-field">
-              <span className="clinical-field-label">Occupation</span>
-              <span className="clinical-field-value">{formatWorkType(profile.work_type)}</span>
-            </div>
-            <div className="clinical-field">
-              <span className="clinical-field-label">Education</span>
-              <span className="clinical-field-value">{formatEducation(profile.education_level, profile.degree_discipline)}</span>
-            </div>
-            <div className="clinical-field">
-              <span className="clinical-field-label">Assessment Date</span>
-              <span className="clinical-field-value">{generatedAt.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}</span>
-            </div>
-            <div className="clinical-field">
-              <span className="clinical-field-label">Observation Window</span>
-              <span className="clinical-field-value">{observationWindow.start} – {observationWindow.end}</span>
-            </div>
-          </div>
+        <div className="clinical-metric-row">
+          <MetricTile label="Core Performance" value={corePerformance.toFixed(1)} sublabel="Mean AE / RA / CT / IN" />
+          <MetricTile label="System 1" value={s1Score} sublabel="Speed and attention" />
+          <MetricTile label="System 2" value={s2Score} sublabel="Reasoning and insight" />
+          <MetricTile label="Training Level" value={`L${level}`} sublabel={`${xp.toLocaleString()} XP`} />
+        </div>
 
-          <div className="clinical-data-sources">
-            <h3 className="clinical-subsection-header">Data Sources</h3>
-            <ul className="clinical-list">
-              <li>In-app sessions (last 7 days): {sessionsLast7d}</li>
-              <li>Lifetime sessions: {totalSessions}</li>
-              <li>Performance metrics from standardized cognitive exercises</li>
-              <li>Longitudinal tracking data ({observationWindow.start} – {observationWindow.end})</li>
-              <li>Response accuracy and latency distributions</li>
-            </ul>
-          </div>
-        </section>
+        <div className="clinical-panel clinical-findings">
+          <h3>Key findings</h3>
+          <ol>
+            <li>
+              <strong>Capacity:</strong> SCI of {sci} places the participant around the {sciPercentile}th percentile
+              in the internal reference model.
+            </li>
+            <li>
+              <strong>Readiness:</strong> CRI of {readiness} indicates {getReadinessText(readiness).toLowerCase()}.
+            </li>
+            <li>
+              <strong>Architecture:</strong> {balance.label} profile with S1 {s1Score} and S2 {s2Score}.
+            </li>
+            <li>
+              <strong>Priority:</strong> {weakest.name} is the clearest near-term performance lever.
+            </li>
+          </ol>
+        </div>
+        <PageFooter reportId={reportId} page={2} />
       </section>
 
-      {/* Page 2: Executive Summary */}
       <section className="clinical-page">
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">2. EXECUTIVE CLINICAL SUMMARY</h2>
-          
-          <div className="clinical-summary-box">
-            <ul className="clinical-summary-list">
-              <li>
-                <strong>Overall Cognitive Status:</strong> The Synthesized Cognitive Index (SCI) of {sci} places this individual 
-                at the {sciPercentile}th percentile relative to the normative reference population.
-              </li>
-              <li>
-                <strong>Performance Classification:</strong> Current cognitive performance is classified as <em>{sciClass.label}</em> based on 
-                standardized cut-off criteria.
-              </li>
-              <li>
-                <strong>Dual-Process Architecture:</strong> Processing profile indicates {systemBalance.status.toLowerCase()} integration 
-                (S1: {s1Score}, S2: {s2Score}).
-              </li>
-              <li>
-                <strong>Cognitive Age Estimate:</strong> Functional cognitive age of {cognitiveAge} years, {cogAgePercentile >= 50 ? "favorable" : "suboptimal"} relative 
-                to chronological age{age ? ` (${age} years)` : ""}.
-              </li>
-              <li>
-                <strong>Training Engagement:</strong> {sessionsLast7d} sessions in last 7 days ({totalSessions} lifetime) with {accuracy.toFixed(1)}% mean accuracy, 
-                indicating {sessionsLast7d >= 7 ? "consistent" : sessionsLast7d >= 3 ? "moderate" : "early-stage"} recent engagement.
-              </li>
-              <li>
-                <strong>Readiness State:</strong> Cognitive Readiness Index (CRI) of {cri} suggests 
-                {cri >= 70 ? " optimal" : cri >= 50 ? " adequate" : " suboptimal"} capacity for sustained performance.
-              </li>
-            </ul>
+        <header className="clinical-page-header">
+          <span>02</span>
+          <div>
+            <h2>SCI Breakdown</h2>
+            <p>Composite performance, training engagement, and recovery contribution.</p>
           </div>
+        </header>
 
-          <div className="clinical-interpretation-box">
-            <p className="clinical-interpretation">
-              <strong>Clinical Interpretation:</strong> Overall cognitive profile is consistent with 
-              {sci >= 75 
-                ? " high-functioning performance capacity with robust cognitive reserves across measured domains."
-                : sci >= 55
-                ? " functional cognitive capacity with identifiable areas for targeted development."
-                : " developing cognitive patterns with significant opportunity for improvement through structured intervention."
-              }
-            </p>
+        <div className="clinical-score-hero">
+          <div>
+            <span className="clinical-kicker">Synthesized Cognitive Index</span>
+            <strong>{sci}</strong>
+            <ScorePill value={sci} />
           </div>
-        </section>
+          <p>
+            SCI integrates cognitive performance, behavioral engagement, and recovery support. It is a functional
+            readiness index for high-demand knowledge work rather than a diagnostic score.
+          </p>
+        </div>
 
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">3. SYNTHESIZED COGNITIVE INDEX (SCI)</h2>
-          
-          <div className="clinical-sci-display">
-            <div className="clinical-sci-main">
-              <span className="clinical-sci-score">{sci}</span>
-              <span className="clinical-sci-max">/100</span>
+        <div className="clinical-component-grid">
+          <div className="clinical-component-card">
+            <span>Cognitive performance</span>
+            <strong>{round(sciComponents.cognitive)}</strong>
+            <ScoreBar value={sciComponents.cognitive} />
+            <p>Current skill base across attention, fast association, reasoning, and insight.</p>
+          </div>
+          <div className="clinical-component-card">
+            <span>Behavioral engagement</span>
+            <strong>{round(sciComponents.engagement)}</strong>
+            <ScoreBar value={sciComponents.engagement} />
+            <p>Training consistency and recent completion density.</p>
+          </div>
+          <div className="clinical-component-card">
+            <span>Recovery factor</span>
+            <strong>{round(sciComponents.recovery)}</strong>
+            <ScoreBar value={sciComponents.recovery} />
+            <p>Estimated capacity to convert effort into stable output.</p>
+          </div>
+        </div>
+
+        <div className="clinical-panel">
+          <h3>Operating interpretation</h3>
+          <p>
+            A high SCI without readiness is fragile; high readiness without engagement is under-utilized. This report
+            therefore treats performance as a system: skill capacity, repeatable training behavior, and recovery must
+            move together for durable improvement.
+          </p>
+          <div className="clinical-alert-row">
+            <div>
+              <span>Current bottleneck</span>
+              <strong>{weakest.name}</strong>
             </div>
-            <div className="clinical-sci-meta">
-              <span className="clinical-percentile">Percentile: {sciPercentile}th</span>
-              <span className="clinical-class">{sciClass.label}</span>
+            <div>
+              <span>Best preservation asset</span>
+              <strong>{strongest.name}</strong>
+            </div>
+            <div>
+              <span>Near-term confidence</span>
+              <strong>{dataConfidence.level}</strong>
             </div>
           </div>
-
-          <div className="clinical-sci-explanation">
-            <h3 className="clinical-subsection-header">Functional Interpretation</h3>
-            <p>
-              The Synthesized Cognitive Index (SCI) represents a composite measure of cognitive performance 
-              aggregated across multiple domains. It integrates processing efficiency (50% weighting), 
-              behavioral engagement patterns (30%), and recovery/sustainability factors (20%).
-            </p>
-            <p>
-              An SCI of {sci} indicates that this individual's overall cognitive performance places them 
-              in the {sciPercentile <= 25 ? "lower" : sciPercentile <= 50 ? "average" : sciPercentile <= 75 ? "above-average" : "upper"} range 
-              of the reference population. This score {sci >= 70 ? "reflects" : "suggests"} 
-              {sci >= 70 
-                ? " robust cognitive functioning with strong adaptive capacity."
-                : sci >= 50 
-                ? " adequate baseline functioning with identifiable areas for enhancement."
-                : " developing cognitive capacity warranting targeted intervention."
-              }
-            </p>
-            <p className="clinical-caveat">
-              <em>Note:</em> The SCI provides a general index of cognitive performance and does not diagnose 
-              cognitive impairment or pathology. Variations within the average range are expected and do not 
-              necessarily indicate clinical significance.
-            </p>
-          </div>
-        </section>
+        </div>
+        <PageFooter reportId={reportId} page={3} />
       </section>
 
-      {/* Page 3: Cognitive Age & Dual-Process */}
       <section className="clinical-page">
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">4. COGNITIVE AGE ANALYSIS</h2>
-          
-          <div className="clinical-age-display">
-            <div className="clinical-age-primary">
-              <span className="clinical-age-label">Estimated Cognitive Age</span>
-              <span className="clinical-age-value">{cognitiveAge} years</span>
-            </div>
-            {age && (
-              <div className="clinical-age-comparison">
-                <span className="clinical-age-label">Chronological Age</span>
-                <span className="clinical-age-value">{age} years</span>
-                <span className="clinical-age-delta">
-                  {age - cognitiveAge > 0 
-                    ? `${age - cognitiveAge} years younger` 
-                    : age - cognitiveAge < 0 
-                    ? `${cognitiveAge - age} years older`
-                    : "Age-congruent"
-                  }
-                </span>
+        <header className="clinical-page-header">
+          <span>03</span>
+          <div>
+            <h2>Cognitive Architecture</h2>
+            <p>Functional age estimate and dual-process balance.</p>
+          </div>
+        </header>
+
+        <div className="clinical-two-column">
+          <div className="clinical-panel clinical-age-panel">
+            <h3>Cognitive Age</h3>
+            <div className="clinical-age-value">{cognitiveAgeLabel}</div>
+            <p>
+              {cognitiveAge === null
+                ? "The age estimate is intentionally withheld until baseline data is sufficient. This avoids presenting a single-session fluctuation as a stable trait."
+                : `Current estimate is ${Math.abs(cognitiveAgeDelta ?? 0).toFixed(1)} years ${cognitiveAgeDelta !== null && cognitiveAgeDelta <= 0 ? "younger" : "older"} than chronological age.`}
+            </p>
+            <dl className="clinical-compact-list">
+              <div><dt>Chronological age</dt><dd>{participantAge ? `${participantAge}y` : "Not provided"}</dd></div>
+              <div><dt>Baseline signal</dt><dd>{hasBaselineSignal ? "Available" : "Calibrating"}</dd></div>
+              <div><dt>Interpretation</dt><dd>Functional performance marker</dd></div>
+            </dl>
+          </div>
+
+          <div className="clinical-panel clinical-age-panel">
+            <h3>Dual-process profile</h3>
+            <div className="clinical-dual-bars">
+              <div>
+                <span>System 1</span>
+                <strong>{s1Score}</strong>
+                <ScoreBar value={s1Score} />
               </div>
+              <div>
+                <span>System 2</span>
+                <strong>{s2Score}</strong>
+                <ScoreBar value={s2Score} />
+              </div>
+            </div>
+            <p>{balance.interpretation}</p>
+          </div>
+        </div>
+
+        <div className="clinical-panel">
+          <h3>Decision-performance implications</h3>
+          <div className="clinical-implication-grid">
+            <div>
+              <span>If time pressure rises</span>
+              <p>{s1Score >= s2Score ? "Use a pre-commitment checklist to protect against fast but under-verified conclusions." : "Use time-boxed heuristics to avoid over-analysis and decision drag."}</p>
+            </div>
+            <div>
+              <span>If ambiguity rises</span>
+              <p>{CT >= 65 ? "Reasoning capacity is sufficient; prioritize evidence quality and assumption logging." : "Escalate to structured causal analysis before choosing a course of action."}</p>
+            </div>
+            <div>
+              <span>If workload rises</span>
+              <p>{readiness >= 65 ? "Current readiness supports load, but monitor recovery after consecutive deep-work days." : "Protect recovery before increasing cognitive training intensity."}</p>
+            </div>
+          </div>
+        </div>
+        <PageFooter reportId={reportId} page={4} />
+      </section>
+
+      <section className="clinical-page">
+        <header className="clinical-page-header">
+          <span>04</span>
+          <div>
+            <h2>Domain Profile</h2>
+            <p>Measured skills, baseline movement, and operational meaning.</p>
+          </div>
+        </header>
+
+        <div className="clinical-domain-table">
+          {domainRows.map((domain) => {
+            const delta = domain.baseline !== null && domain.baseline !== undefined
+              ? round(domain.score - domain.baseline, 1)
+              : null;
+            return (
+              <div key={domain.key} className="clinical-domain-row">
+                <div>
+                  <span>{domain.key}</span>
+                  <strong>{domain.name}</strong>
+                  <p>{domain.evidence}</p>
+                </div>
+                <div className="clinical-domain-score">
+                  <strong>{round(domain.score)}</strong>
+                  <ScorePill value={domain.score} />
+                </div>
+                <div className="clinical-domain-bar-cell">
+                  <ScoreBar value={domain.score} />
+                  <small>{delta === null ? "No baseline delta" : `${delta >= 0 ? "+" : ""}${delta} vs baseline`}</small>
+                </div>
+                <p>{domain.interpretation}</p>
+              </div>
+            );
+          })}
+        </div>
+        <PageFooter reportId={reportId} page={5} />
+      </section>
+
+      <section className="clinical-page">
+        <header className="clinical-page-header">
+          <span>05</span>
+          <div>
+            <h2>Training Load And Adaptation</h2>
+            <p>Recent exposure, domain distribution, and signal maturity.</p>
+          </div>
+        </header>
+
+        <div className="clinical-metric-row">
+          <MetricTile label="Last 7 days" value={sessionsLast7d} sublabel="Completed sessions" />
+          <MetricTile label="Lifetime" value={totalSessions} sublabel="Total sessions" />
+          <MetricTile label="Accuracy" value={`${accuracy}%`} sublabel="Mean session score" />
+          <MetricTile label="XP" value={xp.toLocaleString()} sublabel={`Level ${level}`} />
+        </div>
+
+        <div className="clinical-panel">
+          <h3>Training distribution</h3>
+          <div className="clinical-training-distribution">
+            {trainingDistribution.map((item) => (
+              <div key={item.label}>
+                <div className="clinical-training-row">
+                  <span>{item.label}</span>
+                  <strong>{item.value} sessions</strong>
+                  <em>{round(item.avg)} avg</em>
+                </div>
+                <div className="clinical-distribution-bar">
+                  <div style={{ width: `${(item.value / maxTrainingSessions) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="clinical-two-column">
+          <div className="clinical-panel">
+            <h3>Most repeated drills</h3>
+            {aggregates.mostUsedExercises.length > 0 ? (
+              <ol className="clinical-ranked-list">
+                {aggregates.mostUsedExercises.slice(0, 5).map((exercise) => (
+                  <li key={exercise.exerciseId}>
+                    <span>{formatGameType(exercise.exerciseId)}</span>
+                    <strong>{exercise.count}x</strong>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p>No repeated drill pattern is available yet.</p>
             )}
           </div>
-
-          <div className="clinical-age-explanation">
-            <p>
-              Cognitive age represents a functional indicator of processing efficiency relative to normative 
-              age-based expectations. It is derived from performance patterns across speed, accuracy, and 
-              consistency metrics, adjusted for baseline individual differences.
-            </p>
-            <p>
-              This metric should be interpreted as a relative performance indicator rather than a biological 
-              claim about neural aging. Inter-individual variability is substantial, and cognitive age can 
-              fluctuate based on training engagement, recovery status, and contextual factors.
-            </p>
-            <p>
-              Current cognitive age places this individual at approximately the {cogAgePercentile}th percentile 
-              for their chronological age cohort, suggesting 
-              {cogAgePercentile >= 70 
-                ? " above-average functional capacity."
-                : cogAgePercentile >= 50 
-                ? " age-appropriate functioning."
-                : " opportunity for performance optimization."
-              }
-            </p>
+          <div className="clinical-panel">
+            <h3>Recent achievements</h3>
+            {badges.length > 0 ? (
+              <ol className="clinical-ranked-list">
+                {badges.slice(0, 5).map((badge) => (
+                  <li key={`${badge.badge_name}-${badge.earned_at ?? ""}`}>
+                    <span>{badge.badge_name}</span>
+                    <strong>{badge.badge_category}</strong>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p>No badge signal yet. Prioritize consistency before interpreting achievements.</p>
+            )}
           </div>
-        </section>
-
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">5. DUAL-PROCESS ARCHITECTURE ANALYSIS</h2>
-          
-          <div className="clinical-dual-process">
-            <div className="clinical-system-card">
-              <h3 className="clinical-system-title">System 1 (Intuitive Processing)</h3>
-              <div className="clinical-system-score">{s1Score}</div>
-              <p className="clinical-system-desc">
-                Automatic, rapid processing characterized by pattern recognition, heuristic application, 
-                and intuitive judgment. Operates with minimal cognitive effort and is susceptible to 
-                systematic biases under certain conditions.
-              </p>
-              <div className="clinical-system-components">
-                <span>Processing Speed: {Math.round(fast)}</span>
-                <span>Attentional Efficiency: {Math.round(focus)}</span>
-                <span>Reaction Latency: {Math.round(metrics.reaction_speed ?? 50)}</span>
-              </div>
-            </div>
-
-            <div className="clinical-system-card">
-              <h3 className="clinical-system-title">System 2 (Analytical Processing)</h3>
-              <div className="clinical-system-score">{s2Score}</div>
-              <p className="clinical-system-desc">
-                Controlled, effortful processing involving deliberate reasoning, logical analysis, 
-                and systematic evaluation. Requires sustained attention and cognitive resources but 
-                enables complex problem-solving and bias override.
-              </p>
-              <div className="clinical-system-components">
-                <span>Deliberative Depth: {Math.round(slow)}</span>
-                <span>Analytical Accuracy: {Math.round(reasoning)}</span>
-                <span>Clarity Score: {Math.round(metrics.clarity_score ?? 50)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="clinical-balance-analysis">
-            <h3 className="clinical-subsection-header">Integration & Balance</h3>
-            <p>
-              <strong>Current Status:</strong> {systemBalance.status} — {systemBalance.desc}
-            </p>
-            <p>
-              The relationship between System 1 and System 2 processing has direct implications for 
-              decision-making quality. The current profile suggests 
-              {Math.abs(s1Score - s2Score) <= 5
-                ? " optimal integration, enabling flexible switching between intuitive and analytical modes as task demands require."
-                : s1Score > s2Score
-                ? " a preference for rapid, intuitive processing. While efficient for routine decisions, this pattern may benefit from deliberate activation of analytical processing in complex or high-stakes situations."
-                : " a preference for analytical processing. While thorough, this pattern may benefit from developing trust in intuitive judgment for time-sensitive decisions."
-              }
-            </p>
-          </div>
-        </section>
+        </div>
+        <PageFooter reportId={reportId} page={6} />
       </section>
 
-      {/* Page 4: Domain Analysis */}
       <section className="clinical-page">
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">6. DOMAIN-LEVEL COGNITIVE PROFILE</h2>
-          
-          <div className="clinical-domains">
-            {domains.map((domain, idx) => {
-              const domainClass = getClassification(domain.score);
-              const delta = domain.baseline ? domain.score - domain.baseline : null;
-              return (
-                <div key={idx} className="clinical-domain-card">
-                  <div className="clinical-domain-header">
-                    <h3 className="clinical-domain-name">{domain.name}</h3>
-                    <div className="clinical-domain-score-block">
-                      <span className="clinical-domain-score">{Math.round(domain.score)}</span>
-                      <span className={`clinical-domain-class ${domainClass.class}`}>{domainClass.label}</span>
-                      {delta !== null && (
-                        <span className={`clinical-domain-delta ${delta >= 0 ? "positive" : "negative"}`}>
-                          {delta >= 0 ? "+" : ""}{Math.round(delta)} from baseline
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <p className="clinical-domain-definition">
-                    <strong>Definition:</strong> {domain.definition}
-                  </p>
-                  <p className="clinical-domain-implication">
-                    <strong>Performance Implication:</strong> {domain.implication}
-                  </p>
-                </div>
-              );
-            })}
+        <header className="clinical-page-header">
+          <span>06</span>
+          <div>
+            <h2>Performance Protocol</h2>
+            <p>Actionable guidance for the next 30 to 45 days.</p>
           </div>
-        </section>
+        </header>
+
+        <div className="clinical-panel clinical-prognosis">
+          <h3>Near-term prognosis</h3>
+          <p>{prognosis}</p>
+        </div>
+
+        <div className="clinical-protocol-grid">
+          {priorities.map((priority, index) => (
+            <div key={priority.label} className="clinical-protocol-card">
+              <span>0{index + 1}</span>
+              <h3>{priority.label}</h3>
+              <strong>{priority.value}</strong>
+              <p>{priority.rationale}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="clinical-panel">
+          <h3>Recommended cadence</h3>
+          <div className="clinical-cadence-grid">
+            <div>
+              <strong>5 sessions/week</strong>
+              <span>Minimum dose for a stable training signal.</span>
+            </div>
+            <div>
+              <strong>{recommendedSessionLength}</strong>
+              <span>Preferred session length for sustainable cognitive load.</span>
+            </div>
+            <div>
+              <strong>2 review moments</strong>
+              <span>Weekly review of domain drift and readiness constraints.</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="clinical-note">
+          <strong>Professional use note:</strong> On low-readiness days, use the report as a planning instrument:
+          reduce cognitively expensive meetings, protect deep-work blocks, and delay irreversible strategic choices
+          when decision quality can materially benefit from recovery.
+        </div>
+        <PageFooter reportId={reportId} page={7} />
       </section>
 
-      {/* Page 5: Training Analytics */}
       <section className="clinical-page">
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">7. TRAINING LOAD & ADAPTATION ANALYSIS</h2>
-          
-          <div className="clinical-training-stats">
-            <div className="clinical-stat-block">
-              <span className="clinical-stat-value">{totalSessions}</span>
-              <span className="clinical-stat-label">Sessions Completed</span>
-            </div>
-            <div className="clinical-stat-block">
-              <span className="clinical-stat-value">{accuracy.toFixed(1)}%</span>
-              <span className="clinical-stat-label">Mean Accuracy</span>
-            </div>
-            <div className="clinical-stat-block">
-              <span className="clinical-stat-value">{xp.toLocaleString()}</span>
-              <span className="clinical-stat-label">Experience Points</span>
-            </div>
-            <div className="clinical-stat-block">
-              <span className="clinical-stat-value">Level {level}</span>
-              <span className="clinical-stat-label">Cognitive Level</span>
-            </div>
+        <header className="clinical-page-header">
+          <span>07</span>
+          <div>
+            <h2>Methodology And Limits</h2>
+            <p>How to read this report responsibly.</p>
           </div>
+        </header>
 
-          <div className="clinical-training-interpretation">
-            <h3 className="clinical-subsection-header">Training Dose Interpretation</h3>
+        <div className="clinical-method-grid">
+          <div className="clinical-panel">
+            <h3>Inputs</h3>
             <p>
-              Session count of {totalSessions} with {accuracy.toFixed(1)}% accuracy represents 
-              {totalSessions >= 30 
-                ? " substantial training volume, indicating strong engagement and commitment to cognitive development."
-                : totalSessions >= 15 
-                ? " moderate training volume, suggesting consistent but not intensive engagement."
-                : totalSessions >= 5 
-                ? " early-stage training volume. Reliable trajectory estimation requires continued engagement."
-                : " minimal training data. Extended engagement is necessary to establish stable performance patterns."
-              }
-            </p>
-            <p>
-              {accuracy >= 80 
-                ? "High accuracy rates indicate effective challenge calibration and strong skill acquisition."
-                : accuracy >= 65 
-                ? "Accuracy rates within expected range suggest appropriate difficulty progression."
-                : "Lower accuracy rates may indicate need for difficulty adjustment or focused practice."
-              }
+              Scores are derived from in-app cognitive training, session completion, accuracy patterns,
+              domain routing, and optional recovery signals. The observation window is {observationWindow.start}
+              {" "}to {observationWindow.end}.
             </p>
           </div>
+          <div className="clinical-panel">
+            <h3>Normalization</h3>
+            <p>
+              Metrics are normalized to a 0-100 operating scale. Percentile language is directional and based
+              on the platform reference model, not a clinical population norm.
+            </p>
+          </div>
+          <div className="clinical-panel">
+            <h3>Confidence</h3>
+            <p>
+              Confidence increases with recent volume, lifetime sample size, and consistency. The current
+              confidence classification is {dataConfidence.level}.
+            </p>
+          </div>
+          <div className="clinical-panel">
+            <h3>Limits</h3>
+            <p>
+              This dossier is not a diagnosis, neuropsychological evaluation, medical record, or substitute
+              for clinical care. It is a performance interpretation tool for self-directed optimization.
+            </p>
+          </div>
+        </div>
 
-          <div className="clinical-domain-distribution">
-            <h3 className="clinical-subsection-header">Domain Distribution</h3>
-            <div className="clinical-domain-bars">
-              {[
-                { name: "Focus Arena", key: "focus" as Area, sessions: aggregates.sessionsByArea.focus ?? 0, avg: aggregates.avgScoreByArea.focus ?? 0 },
-                { name: "Critical Reasoning", key: "reasoning" as Area, sessions: aggregates.sessionsByArea.reasoning ?? 0, avg: aggregates.avgScoreByArea.reasoning ?? 0 },
-                { name: "Creativity Hub", key: "creativity" as Area, sessions: aggregates.sessionsByArea.creativity ?? 0, avg: aggregates.avgScoreByArea.creativity ?? 0 },
-              ].map((d) => (
-                <div key={d.key} className="clinical-domain-bar-row">
-                  <span className="clinical-bar-label">{d.name}</span>
-                  <span className="clinical-bar-sessions">{d.sessions} sessions</span>
-                  <span className="clinical-bar-avg">{Math.round(d.avg)}% avg</span>
-                </div>
-              ))}
+        <div className="clinical-final-statement">
+          <div className="clinical-brand small">
+            <Brain size={18} />
+            <div>
+              <strong>NeuroLoop Labs</strong>
+              <span>Preserve human thinking</span>
             </div>
           </div>
-        </section>
-
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">8. CLINICAL-STYLE INTERPRETATION</h2>
-          
-          <div className="clinical-interpretation-grid">
-            <div className="clinical-interpretation-block">
-              <h3 className="clinical-subsection-header">Identified Strengths</h3>
-              {strengths.length > 0 ? (
-                <ul className="clinical-list">
-                  {strengths.map((s, i) => (
-                    <li key={i}>
-                      <strong>{s.name}</strong> ({Math.round(s.score)}): {s.implication}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No domains currently meet the threshold for classification as a relative strength (≥60). 
-                Continued training across all domains is recommended.</p>
-              )}
-            </div>
-
-            <div className="clinical-interpretation-block">
-              <h3 className="clinical-subsection-header">Identified Vulnerabilities</h3>
-              {vulnerabilities.length > 0 ? (
-                <ul className="clinical-list">
-                  {vulnerabilities.map((v, i) => (
-                    <li key={i}>
-                      <strong>{v.name}</strong> ({Math.round(v.score)}): {v.implication}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No domains currently meet the threshold for classification as a vulnerability (&lt;60). 
-                Current profile suggests balanced development across measured domains.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="clinical-patterns-block">
-            <h3 className="clinical-subsection-header">Adaptive vs. Non-Adaptive Patterns</h3>
-            <p>
-              {sci >= 65 && accuracy >= 70
-                ? "Current patterns reflect adaptive cognitive engagement with appropriate challenge-seeking behavior. Performance consistency suggests stable skill acquisition and effective learning transfer."
-                : sci >= 50
-                ? "Patterns suggest mixed adaptive functioning. Some domains show appropriate engagement while others may benefit from adjusted training protocols or increased consistency."
-                : "Current patterns suggest opportunity for enhanced adaptive engagement. Structured, consistent practice with appropriate challenge progression is recommended to optimize skill development."
-              }
-            </p>
-          </div>
-        </section>
-      </section>
-
-      {/* Page 6: Prognosis & Recommendations */}
-      <section className="clinical-page">
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">9. SHORT-TERM PROGNOSIS (30–45 DAYS)</h2>
-          
-          <div className="clinical-prognosis-box">
-            <p>{prognosisText}</p>
-          </div>
-
-          <div className="clinical-confidence-note">
-            <p>
-              <em>Confidence Level:</em> {totalSessions >= 20 ? "Moderate" : totalSessions >= 10 ? "Low-Moderate" : "Low"} — 
-              Prognosis reliability is directly related to available training data volume and consistency.
-            </p>
-          </div>
-        </section>
-
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">10. TARGETED COGNITIVE RECOMMENDATIONS</h2>
-          
-          <div className="clinical-prescription">
-            <h3 className="clinical-subsection-header">Performance Prescription</h3>
-            
-            <div className="clinical-rx-grid">
-              <div className="clinical-rx-item">
-                <span className="clinical-rx-label">Recommended Frequency</span>
-                <span className="clinical-rx-value">5–7 sessions per week</span>
-                <span className="clinical-rx-rationale">
-                  Consistent engagement is the strongest predictor of cognitive improvement. 
-                  Daily practice, even if brief, outperforms sporadic intensive sessions.
-                </span>
-              </div>
-
-              <div className="clinical-rx-item">
-                <span className="clinical-rx-label">Priority Focus</span>
-                <span className="clinical-rx-value">
-                  {vulnerabilities.length > 0 
-                    ? vulnerabilities[0].name 
-                    : systemBalance.status.includes("S1") 
-                    ? "System 2 Exercises" 
-                    : systemBalance.status.includes("S2") 
-                    ? "System 1 Exercises" 
-                    : "Balanced Cross-Domain Training"
-                  }
-                </span>
-                <span className="clinical-rx-rationale">
-                  {vulnerabilities.length > 0 
-                    ? `Addressing the lowest-performing domain provides the highest marginal improvement potential.`
-                    : `Maintaining balanced development across all domains optimizes overall cognitive flexibility.`
-                  }
-                </span>
-              </div>
-
-              <div className="clinical-rx-item">
-                <span className="clinical-rx-label">Session Structure</span>
-                <span className="clinical-rx-value">10–15 minutes focused practice</span>
-                <span className="clinical-rx-rationale">
-                  Optimal cognitive training duration balances engagement intensity with sustainability. 
-                  Sessions beyond 20 minutes show diminishing returns for most individuals.
-                </span>
-              </div>
-
-              <div className="clinical-rx-item">
-                <span className="clinical-rx-label">Recovery Integration</span>
-                <span className="clinical-rx-value">Include 1–2 recovery days weekly</span>
-                <span className="clinical-rx-rationale">
-                  Cognitive consolidation requires rest. Strategic recovery periods support long-term 
-                  adaptation and prevent training fatigue.
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">11. METHODOLOGICAL NOTES</h2>
-          
-          <div className="clinical-methodology">
-            <p>
-              Metrics presented in this report are derived from behavioral performance data collected 
-              during standardized cognitive training exercises. The assessment methodology incorporates:
-            </p>
-            <ul className="clinical-list">
-              <li>
-                <strong>Aggregation:</strong> Individual session scores are aggregated using weighted 
-                averaging algorithms that account for recency, difficulty, and domain specificity.
-              </li>
-              <li>
-                <strong>Normalization:</strong> Raw scores are normalized against age-adjusted reference 
-                distributions derived from the LOOMA user population.
-              </li>
-              <li>
-                <strong>Longitudinal Tracking:</strong> Trend analysis incorporates historical performance 
-                data to identify patterns of improvement, stability, or decline over time.
-              </li>
-              <li>
-                <strong>Composite Index Calculation:</strong> The SCI integrates multiple performance 
-                dimensions using empirically-derived weightings (Cognitive: 50%, Behavioral: 30%, Recovery: 20%).
-              </li>
-            </ul>
-            <p>
-              All metrics should be interpreted in the context of individual variability, testing 
-              conditions, and the inherent limitations of behavioral assessment methodologies.
-            </p>
-          </div>
-        </section>
-      </section>
-
-      {/* Page 7: Disclaimer & Footer */}
-      <section className="clinical-page">
-        <section className="clinical-section">
-          <h2 className="clinical-section-header">12. ETHICAL & CLINICAL DISCLAIMER</h2>
-          
-          <div className="clinical-disclaimer">
-            <p>
-              This cognitive performance assessment is provided for educational and self-improvement 
-              purposes only. It is not intended to diagnose, treat, or predict cognitive impairment, 
-              neurological conditions, or mental health disorders.
-            </p>
-            <p>
-              <strong>Important Limitations:</strong>
-            </p>
-            <ul className="clinical-list">
-              <li>
-                This assessment does not constitute a clinical neuropsychological evaluation.
-              </li>
-              <li>
-                Results are derived from self-directed training activities and may not reflect 
-                performance under controlled clinical conditions.
-              </li>
-              <li>
-                Cognitive metrics can fluctuate based on factors including sleep, stress, motivation, 
-                and environmental conditions.
-              </li>
-              <li>
-                Normative comparisons are based on the NeuroLoop user population and may not 
-                represent general population distributions.
-              </li>
-            </ul>
-            <p>
-              For concerns about cognitive functioning, please consult a qualified healthcare 
-              professional or licensed neuropsychologist.
-            </p>
-            <p>
-              <strong>NeuroLoop</strong> is positioned as a cognitive performance assessment and 
-              training platform. It provides metrics and insights to support self-directed cognitive 
-              development but does not replace professional clinical evaluation when indicated.
-            </p>
-          </div>
-        </section>
-
-        <footer className="clinical-footer">
-          <div className="clinical-footer-content">
-            <div className="clinical-footer-logo">
-              <Brain size={20} />
-              <span>NeuroLoop Pro</span>
-            </div>
-            <div className="clinical-footer-meta">
-              <span>Report ID: {reportId}</span>
-              <span>Generated: {generatedAt.toISOString()}</span>
-              <span>Classification: Confidential</span>
-            </div>
-            <p className="clinical-footer-legal">
-              © {generatedAt.getFullYear()} NeuroLoop. All rights reserved. 
-              This document contains confidential information intended solely for the named participant.
-            </p>
-          </div>
-        </footer>
+          <p>
+            This document contains confidential personal performance information intended for the named
+            participant. Share only with trusted coaches, clinicians, or advisors when relevant.
+          </p>
+          <dl className="clinical-compact-list">
+            <div><dt>Generated</dt><dd>{generatedAt.toISOString()}</dd></div>
+            <div><dt>Classification</dt><dd>Confidential</dd></div>
+            <div><dt>Document type</dt><dd>Cognitive performance dossier</dd></div>
+          </dl>
+        </div>
+        <PageFooter reportId={reportId} page={8} />
       </section>
     </div>
   );

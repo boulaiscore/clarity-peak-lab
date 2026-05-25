@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import "@fontsource/bebas-neue";
+import "@fontsource/outfit";
 
 // In preview environments we disable/unregister any previously installed Service Worker.
 // This prevents stale cached bundles pointing at an old backend project, which can break
