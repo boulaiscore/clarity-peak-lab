@@ -27,10 +27,12 @@ import { ReportPreviewReal } from "@/components/report/ReportPreviewReal";
 import { Progress } from "@/components/ui/progress";
 import { ReportHistoryList } from "@/components/report/ReportHistoryList";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTestMode } from "@/hooks/useTestMode";
 
 import "@/styles/clinical-report.css";
 
 import { ClinicalReport } from "@/components/report/ClinicalReport";
+
 
 const CREDIT_PACKAGES = [
   { id: 'single', credits: 1, price: '€4.99', pricePerReport: '€4.99', popular: false },
@@ -54,14 +56,14 @@ export default function CognitiveReport() {
   const { sci: liveSci, isLoading: sciLoading } = useCognitiveNetworkScore();
   const { 
     canViewReport, 
-    canDownloadPDF, 
+    canDownloadPDF: canDownloadPDFReal, 
     reportCredits, 
     monthlyCredits,
-    isPremium,
+    isPremium: isPremiumReal,
     isPro,
     refetchPurchase, 
     useCredit,
-    weeklyPlanCompleted,
+    weeklyPlanCompleted: weeklyPlanCompletedReal,
     weeklyProgress,
     xpRemaining,
     hasCreditsOrPurchase,
@@ -69,6 +71,13 @@ export default function CognitiveReport() {
     planXPTarget,
     currentXP,
   } = useReportAccess();
+
+  // TEST MODE: bypass paywall, credits, and weekly plan gating
+  const { isTestMode } = useTestMode();
+  const isPremium = isTestMode || isPremiumReal;
+  const canDownloadPDF = isTestMode || canDownloadPDFReal;
+  const weeklyPlanCompleted = isTestMode || weeklyPlanCompletedReal;
+
   
   const { reports, isLoading: historyLoading, saveReport } = useReportHistory(userId);
   
@@ -203,8 +212,8 @@ export default function CognitiveReport() {
     if (!printRef.current) return;
     setDownloading(true);
     
-    // Use a credit if we have credits (not Pro user)
-    if (!isPro && (reportCredits > 0 || monthlyCredits > 0)) {
+    // Use a credit if we have credits (not Pro user, not test mode)
+    if (!isTestMode && !isPro && (reportCredits > 0 || monthlyCredits > 0)) {
       try {
         await useCredit.mutateAsync();
       } catch (err) {
@@ -214,6 +223,7 @@ export default function CognitiveReport() {
         return;
       }
     }
+
     
     // Trigger print dialog - user can save as PDF from browser
     handlePrint();
@@ -222,43 +232,57 @@ export default function CognitiveReport() {
   // Show preview for non-premium users
   if (!isPremium) {
     return (
-      <div className="p-4 max-w-md mx-auto space-y-6">
+      <div className="min-h-screen bg-background">
+        <div className="p-4 max-w-md mx-auto space-y-8 pb-12">
         {/* Header with Back Button */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pt-2">
           <button 
             onClick={() => navigate('/app')} 
-            className="p-2 rounded-full hover:bg-muted transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
-          <div>
-            <h1 className="text-lg font-semibold">Cognitive Intelligence Report</h1>
-            <p className="text-xs text-muted-foreground">Your comprehensive cognitive analysis</p>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+            LOOMA · Intelligence Report
           </div>
         </div>
 
-        {/* Hero Section */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 space-y-4">
-          <div className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center">
-              <Brain className="w-6 h-6 text-primary" />
-            </div>
-            <h2 className="text-lg font-bold">Get Your Cognitive Report</h2>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              Professional-grade analysis based on your training data
-            </p>
-          </div>
+        {/* Premium Editorial Hero */}
+        <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-b from-card via-card to-background">
+          {/* Subtle metallic sheen */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.08),transparent_60%)] pointer-events-none" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="w-full gap-2"
-            onClick={() => navigate("/app/report-preview")}
-          >
-            <Eye className="w-4 h-4" />
-            View Sample Report
-          </Button>
+          <div className="relative px-6 py-10 space-y-6">
+            <div className="space-y-3">
+              <div className="text-[10px] uppercase tracking-[0.3em] text-primary/80 font-medium">
+                Issue №{String(new Date().getFullYear()).slice(-2)}.{String(new Date().getMonth() + 1).padStart(2, '0')}
+              </div>
+              <h2 className="text-[2.25rem] leading-[1.05] font-extralight tracking-tight">
+                Cognitive
+                <br />
+                <span className="font-serif italic text-primary">Intelligence</span>
+                <br />
+                <span className="font-light">Report</span>
+              </h2>
+              <div className="h-px w-12 bg-foreground/30" />
+              <p className="text-[13px] leading-relaxed text-muted-foreground max-w-[28ch]">
+                A confidential, performance-grade analysis of your cognitive system — built from your training data.
+              </p>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-full gap-2 h-10 border-foreground/15 hover:border-foreground/40 bg-transparent"
+              onClick={() => navigate("/app/report-preview")}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span className="tracking-wide">View Sample Issue</span>
+            </Button>
+          </div>
         </div>
+
 
         {/* Buy Report Credits - Primary Option */}
         <div className="space-y-3">
@@ -390,8 +414,10 @@ export default function CognitiveReport() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
     );
+
   }
 
   if (loading) return <div className="p-6">Generating report data…</div>;
