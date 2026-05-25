@@ -26,6 +26,7 @@ const COGNITIVE_AGE_BAD_COLOR = "hsl(0, 84%, 60%)";
 const REAL_AGE_COLOR = "hsl(0, 0%, 50%)";
 const GRID_COLOR = "rgba(100, 116, 139, 0.15)";
 const MUTED_TEXT = "rgba(100, 116, 139, 0.7)";
+const MIN_LIVE_CALIBRATION_DAYS = 10;
 
 interface ChartDataPoint {
   label: string;
@@ -72,27 +73,38 @@ const CustomDot = ({ cx, cy, payload, dataKey }: { cx?: number; cy?: number; pay
 };
 
 /**
- * Calculate cognitive age from daily snapshot performance.
+ * Calculate daily performance from a snapshot.
  * perf = avg(AE, RA, CT, IN) for available values
- * During calibration: baseline = 50 (population average)
- * Each 10 pts improvement = -1 year
  */
-function calcCognitiveAgeFromSnapshot(
+function calcSnapshotPerformance(
   ae: number | null,
   ra: number | null,
   ct: number | null,
-  inScore: number | null,
+  inScore: number | null
+): number | null {
+  const skills = [ae, ra, ct, inScore].filter((v): v is number => v !== null).map(Number);
+  return skills.length >= 2 ? skills.reduce((a, b) => a + b, 0) / skills.length : null;
+}
+
+function average(values: number[]): number | null {
+  return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+}
+
+/**
+ * Calculate cognitive age from a stable performance average.
+ * During calibration: baseline = 50 (population average)
+ * Each 10 pts improvement = -1 year
+ */
+function calcCognitiveAgeFromAverage(
+  performance: number | null,
   realAge: number,
   baselineScore: number | null,
   inactiveDays: number | null
 ): number | null {
-  const skills = [ae, ra, ct, inScore].filter((v): v is number => v !== null).map(Number);
-  if (skills.length < 2) return null;
-  
-  const perf = skills.reduce((a, b) => a + b, 0) / skills.length;
+  if (performance === null) return null;
   const baseline = baselineScore !== null ? baselineScore : 50;
   return calculateCognitiveAgeFromPerformance({
-    performance: perf,
+    performance,
     baselinePerformance: baseline,
     chronologicalAge: realAge,
     inactiveDays,
@@ -189,8 +201,6 @@ export function CognitiveAgeTrendChart() {
 
     // Index weekly data by week_start
     const weeklyMap = new Map(weekly.map((w) => [w.week_start, w]));
-    // Index daily data by snapshot_date
-    const dailyMap = new Map(daily.map((d) => [d.snapshot_date, d]));
 
     // First pass: compute true cognitiveAge from sources where available
     for (const point of skeletonDays) {
@@ -199,13 +209,19 @@ export function CognitiveAgeTrendChart() {
         point.cognitiveAge = Math.round(Number(w.cognitive_age) * 10) / 10;
         continue;
       }
-      const d = dailyMap.get(point.date);
-      if (d) {
-        point.cognitiveAge = calcCognitiveAgeFromSnapshot(
-          d.ae ? Number(d.ae) : null,
-          d.ra ? Number(d.ra) : null,
-          d.ct ? Number(d.ct) : null,
-          d.in_score ? Number(d.in_score) : null,
+      const dailyPerfValues = daily
+        .filter((d) => d.snapshot_date <= point.date)
+        .map((d) => calcSnapshotPerformance(
+          d.ae !== null ? Number(d.ae) : null,
+          d.ra !== null ? Number(d.ra) : null,
+          d.ct !== null ? Number(d.ct) : null,
+          d.in_score !== null ? Number(d.in_score) : null,
+        ))
+        .filter((v): v is number => v !== null);
+
+      if (dailyPerfValues.length >= MIN_LIVE_CALIBRATION_DAYS) {
+        point.cognitiveAge = calcCognitiveAgeFromAverage(
+          average(dailyPerfValues.slice(-30)),
           point.realAge,
           baselineScore,
           null
