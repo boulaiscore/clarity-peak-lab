@@ -46,7 +46,7 @@ export default function CognitiveReport() {
   const { user } = useAuth();
   const userId = user?.id as string;
 
-  const { loading, error, metrics: reportMetrics, profile, sessions, badges, wearable, aggregates } = useReportData(userId);
+  const { loading, error, metrics: reportMetrics, profile, sessions, badges, wearable, aggregates, metricSnapshots } = useReportData(userId);
   
   // v3.3: Use LIVE metrics from useUserMetrics (same source as Dashboard) for S1/S2/Age consistency
   // This ensures Report shows exactly what Dashboard shows
@@ -681,6 +681,7 @@ export default function CognitiveReport() {
             generatedAt={generatedAt}
             isPreview={!weeklyPlanCompleted}
             liveSci={liveSci}
+            metricSnapshots={metricSnapshots}
           />
         </div>
       </div>

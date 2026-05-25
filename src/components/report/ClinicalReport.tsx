@@ -1,11 +1,28 @@
 // src/components/report/ClinicalReport.tsx
-// Premium Cognitive Performance Dossier for A4/PDF output.
+// Cognitive performance intelligence report for A4/PDF output.
 import React, { useMemo } from "react";
 import { Brain } from "lucide-react";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 
 type Area = "focus" | "reasoning" | "creativity";
 type ConfidenceLevel = "Low" | "Developing" | "Moderate" | "High";
+type ScoreTone = "excellent" | "strong" | "stable" | "watch" | "risk";
+type MetricKey = "sharpness" | "readiness" | "recovery" | "reasoningQuality" | "coherence";
+
+export type ReportMetricSnapshot = {
+  snapshot_date: string;
+  sharpness: number | null;
+  readiness: number | null;
+  recovery: number | null;
+  reasoning_quality: number | null;
+  ae: number | null;
+  ra: number | null;
+  ct: number | null;
+  in_score: number | null;
+  s1: number | null;
+  s2: number | null;
+  did_training: boolean | null;
+};
 
 interface ClinicalReportProps {
   profile: {
@@ -22,6 +39,7 @@ interface ClinicalReportProps {
   metrics: {
     cognitive_performance_score?: number | null;
     cognitive_readiness_score?: number | null;
+    reasoning_quality?: number | null;
     fast_thinking?: number | null;
     slow_thinking?: number | null;
     focus_stability?: number | null;
@@ -61,6 +79,7 @@ interface ClinicalReportProps {
   generatedAt: Date;
   isPreview?: boolean;
   liveSci?: SCIBreakdown | null;
+  metricSnapshots?: ReportMetricSnapshot[];
 }
 
 function calculateAge(birthDate: string): number {
@@ -70,6 +89,10 @@ function calculateAge(birthDate: string): number {
   const monthDelta = today.getMonth() - birth.getMonth();
   if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) age--;
   return age;
+}
+
+function clamp(value: number, min = 0, max = 100): number {
+  return Math.max(min, Math.min(max, value));
 }
 
 function round(value: number, digits = 0): number {
@@ -99,7 +122,7 @@ function getPercentile(score: number): number {
   return 15;
 }
 
-function classifyScore(score: number): { label: string; tone: "excellent" | "strong" | "stable" | "watch" | "risk" } {
+function classifyScore(score: number): { label: string; tone: ScoreTone } {
   if (score >= 85) return { label: "Elite", tone: "excellent" };
   if (score >= 72) return { label: "Strong", tone: "strong" };
   if (score >= 58) return { label: "Stable", tone: "stable" };
@@ -116,7 +139,7 @@ function formatWorkType(type: string | null | undefined): string {
     student: "Student / academic",
     other: "Other",
   };
-  return map[type || ""] || "Not specified";
+  return map[type || ""] || type || "Not specified";
 }
 
 function formatEducation(level: string | null | undefined, discipline: string | null | undefined): string {
@@ -137,8 +160,8 @@ function formatEducation(level: string | null | undefined, discipline: string | 
     law: "Law",
     other: "Other",
   };
-  const formattedLevel = levelMap[level || ""] || "Not specified";
-  const formattedDiscipline = disciplineMap[discipline || ""];
+  const formattedLevel = levelMap[level || ""] || level || "Not specified";
+  const formattedDiscipline = disciplineMap[discipline || ""] || discipline;
   return formattedDiscipline ? `${formattedLevel}, ${formattedDiscipline}` : formattedLevel;
 }
 
@@ -152,40 +175,41 @@ function formatGameType(gameType: string): string {
   return map[gameType] || gameType.replace(/[-_]/g, " ");
 }
 
-function getDataConfidence(sessionsLast7d: number, totalSessions: number): {
+function getDataConfidence(snapshotCount: number, sessionsLast7d: number, totalSessions: number): {
   level: ConfidenceLevel;
   score: number;
   description: string;
 } {
-  const recencyScore = Math.min(1, sessionsLast7d / 7);
+  const historyScore = Math.min(1, snapshotCount / 30);
+  const recencyScore = Math.min(1, sessionsLast7d / 5);
   const volumeScore = Math.min(1, totalSessions / 30);
-  const score = round((recencyScore * 0.55 + volumeScore * 0.45) * 100);
+  const score = round((historyScore * 0.45 + recencyScore * 0.3 + volumeScore * 0.25) * 100);
 
   if (score >= 80) {
     return {
       level: "High",
       score,
-      description: "Recent volume and lifetime sample are sufficient for stable interpretation.",
+      description: "Longitudinal signal is sufficient for trend interpretation.",
     };
   }
   if (score >= 55) {
     return {
       level: "Moderate",
       score,
-      description: "Interpretation is useful, with moderate sensitivity to recent behavior.",
+      description: "Directional interpretation is useful, with moderate sensitivity to recent behavior.",
     };
   }
   if (score >= 30) {
     return {
       level: "Developing",
       score,
-      description: "Patterns are emerging, but more sessions are needed for high confidence.",
+      description: "Patterns are emerging; more daily snapshots will stabilize the report.",
     };
   }
   return {
     level: "Low",
     score,
-    description: "Use as an orientation snapshot until additional data is collected.",
+    description: "Use as an orientation snapshot until more history is available.",
   };
 }
 
@@ -198,63 +222,122 @@ function getBalanceStatus(s1Score: number, s2Score: number): {
   if (Math.abs(diff) <= 5) {
     return {
       label: "Integrated",
-      interpretation: "Fast pattern recognition and deliberate reasoning are currently well balanced.",
-      recommendation: "Preserve cross-domain training and alternate speed-first and reasoning-first sessions.",
+      interpretation: "Fast intuition and deliberate reasoning are currently well balanced.",
+      recommendation: "Use mixed training: speed work to keep access high, reasoning work to preserve structure.",
     };
   }
   if (diff > 12) {
     return {
-      label: "Fast-dominant",
-      interpretation: "The profile favors rapid pattern recognition over slower analytical verification.",
-      recommendation: "Add deliberate reasoning work before high-stakes decisions or strategic reviews.",
+      label: "System 1 dominant",
+      interpretation: "The profile favors rapid pattern recognition over slower verification.",
+      recommendation: "Before interviews, exams, investor decisions, or strategic calls, add an explicit evidence check.",
     };
   }
   if (diff > 5) {
     return {
-      label: "Fast-leaning",
-      interpretation: "The profile is efficient under time pressure, with a mild intuitive bias.",
-      recommendation: "Use short analytical checklists to reduce overconfidence in ambiguous contexts.",
+      label: "System 1 leaning",
+      interpretation: "The profile is quick and intuitive, with mild overconfidence risk under ambiguity.",
+      recommendation: "Use a short assumption log to convert speed into reliable judgment.",
     };
   }
   if (diff < -12) {
     return {
-      label: "Analytical-dominant",
-      interpretation: "The profile favors deliberate processing over rapid intuitive commitment.",
-      recommendation: "Train fast association and attentional switching to improve decision velocity.",
+      label: "System 2 dominant",
+      interpretation: "The profile favors deliberate processing over rapid commitment.",
+      recommendation: "Use timed synthesis drills to avoid analysis drag when speed matters.",
     };
   }
   return {
-    label: "Analytical-leaning",
-    interpretation: "The profile is careful and reflective, with a mild speed tradeoff.",
-    recommendation: "Use time-boxed drills to improve speed without sacrificing reasoning quality.",
+    label: "System 2 leaning",
+    interpretation: "The profile is careful and reflective, with mild decision-velocity drag.",
+    recommendation: "Use time-boxed first answers, then verify them with slower reasoning.",
   };
 }
 
-function getReadinessText(cri: number): string {
-  if (cri >= 75) return "Prepared for high cognitive demand";
-  if (cri >= 60) return "Operationally ready with manageable load";
-  if (cri >= 45) return "Functional, but recovery or load should be watched";
-  return "Reduce load and prioritize recovery before deep work";
+function getReadinessText(readiness: number): string {
+  if (readiness >= 75) return "Ready for high-stakes cognitive load";
+  if (readiness >= 60) return "Good for demanding work with normal pacing";
+  if (readiness >= 45) return "Use for routine work; watch recovery";
+  return "Reduce load before strategic decisions";
 }
 
-function getPrognosis(params: {
-  sci: number;
-  readiness: number;
-  sessionsLast7d: number;
-  accuracy: number;
-  weakestDomain: string;
-}): string {
-  const { sci, readiness, sessionsLast7d, accuracy, weakestDomain } = params;
-  if (sessionsLast7d < 2) {
-    return `Current evidence is not yet dense enough for a reliable trajectory. The next 14 days should focus on increasing sample quality before interpreting change in ${weakestDomain}.`;
+function formatShortDate(date: string): string {
+  return new Date(`${date}T12:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+}
+
+function getSnapshotValue(snapshot: ReportMetricSnapshot, key: MetricKey): number | null {
+  if (key === "reasoningQuality") return snapshot.reasoning_quality;
+  if (key === "coherence") {
+    const s1 = snapshot.s1 ?? avg([snapshot.ae, snapshot.ra], NaN);
+    const s2 = snapshot.s2 ?? avg([snapshot.ct, snapshot.in_score], NaN);
+    const balance = Number.isFinite(s1) && Number.isFinite(s2)
+      ? 100 - Math.min(45, Math.abs(s1 - s2) * 2.2)
+      : null;
+    return round(avg([snapshot.reasoning_quality, balance], 50));
   }
-  if (sci >= 72 && readiness >= 65 && accuracy >= 70) {
-    return "Current profile supports sustained professional performance if weekly training and recovery cadence remain consistent. Near-term objective: preserve level while increasing resilience under load.";
+  return snapshot[key];
+}
+
+function getSystemScore(snapshot: ReportMetricSnapshot, system: "s1" | "s2"): number | null {
+  if (system === "s1") return snapshot.s1 ?? (snapshot.ae !== null || snapshot.ra !== null ? round(avg([snapshot.ae, snapshot.ra])) : null);
+  return snapshot.s2 ?? (snapshot.ct !== null || snapshot.in_score !== null ? round(avg([snapshot.ct, snapshot.in_score])) : null);
+}
+
+function getTrendStats(values: Array<number | null>, fallback: number) {
+  const valid = values.filter((value): value is number => value !== null && Number.isFinite(value));
+  if (!valid.length) {
+    return {
+      current: fallback,
+      average: fallback,
+      delta: 0,
+      min: fallback,
+      max: fallback,
+      volatility: 0,
+    };
   }
-  if (sci >= 55) {
-    return `Trajectory is improvable. A focused block targeting ${weakestDomain} should produce the clearest signal over the next 30 to 45 days if adherence remains consistent.`;
-  }
-  return `The profile is still in a build phase. Prioritize repeatable training volume, sleep/recovery regularity, and low-friction sessions before drawing strong conclusions from week-to-week changes.`;
+  const current = valid[valid.length - 1];
+  const first = valid[0];
+  const average = avg(valid);
+  const min = Math.min(...valid);
+  const max = Math.max(...valid);
+  return {
+    current: round(current),
+    average: round(average),
+    delta: round(current - first),
+    min: round(min),
+    max: round(max),
+    volatility: round(max - min),
+  };
+}
+
+function formatDelta(delta: number): string {
+  if (Math.abs(delta) < 0.5) return "flat";
+  return `${delta > 0 ? "+" : ""}${round(delta)}`;
+}
+
+function getDeltaTone(delta: number): "positive" | "negative" | "flat" {
+  if (delta > 1) return "positive";
+  if (delta < -1) return "negative";
+  return "flat";
+}
+
+function getChartPoints(values: number[], width = 260, height = 72, min = 0, max = 100): string {
+  const safeValues = values.length === 1 ? [values[0], values[0]] : values;
+  if (!safeValues.length) return "";
+  const padX = 8;
+  const padY = 8;
+  const range = Math.max(1, max - min);
+  return safeValues
+    .map((value, index) => {
+      const x = padX + (index / Math.max(1, safeValues.length - 1)) * (width - padX * 2);
+      const y = padY + (1 - (clamp(value, min, max) - min) / range) * (height - padY * 2);
+      return `${round(x, 1)},${round(y, 1)}`;
+    })
+    .join(" ");
+}
+
+function getLatest<T>(items: T[]): T | null {
+  return items.length ? items[items.length - 1] : null;
 }
 
 function PageFooter({ reportId, page }: { reportId: string; page: number }) {
@@ -297,10 +380,134 @@ function MetricTile({
 }
 
 function ScoreBar({ value }: { value: number }) {
-  const safeValue = Math.max(0, Math.min(100, value));
+  const safeValue = clamp(value);
   return (
     <div className="clinical-score-bar" aria-hidden="true">
       <div style={{ width: `${safeValue}%` }} />
+    </div>
+  );
+}
+
+function Sparkline({ values, color }: { values: number[]; color: string }) {
+  const min = Math.max(0, Math.min(...values, 40) - 8);
+  const max = Math.min(100, Math.max(...values, 75) + 8);
+  const points = getChartPoints(values, 220, 58, min, max);
+
+  return (
+    <svg className="clinical-sparkline" viewBox="0 0 220 58" role="img" aria-label="Metric trend">
+      <line x1="8" y1="50" x2="212" y2="50" />
+      <polyline points={points} style={{ stroke: color }} />
+      {points && (
+        <circle
+          cx={Number(points.split(" ").slice(-1)[0].split(",")[0])}
+          cy={Number(points.split(" ").slice(-1)[0].split(",")[1])}
+          r="3.6"
+          style={{ fill: color }}
+        />
+      )}
+    </svg>
+  );
+}
+
+function MetricTrendCard({
+  label,
+  value,
+  average,
+  delta,
+  values,
+  color,
+  description,
+}: {
+  label: string;
+  value: number;
+  average: number;
+  delta: number;
+  values: number[];
+  color: string;
+  description: string;
+}) {
+  return (
+    <div className="clinical-trend-card">
+      <div className="clinical-trend-card-head">
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      <Sparkline values={values.length ? values : [value]} color={color} />
+      <div className="clinical-trend-meta">
+        <span>Avg {average}</span>
+        <span className={getDeltaTone(delta)}>Trend {formatDelta(delta)}</span>
+      </div>
+      <p>{description}</p>
+    </div>
+  );
+}
+
+function MultiMetricChart({
+  series,
+}: {
+  series: Array<{ label: string; color: string; values: number[] }>;
+}) {
+  const allValues = series.flatMap((item) => item.values);
+  const min = Math.max(0, Math.min(...allValues, 40) - 8);
+  const max = Math.min(100, Math.max(...allValues, 75) + 8);
+
+  return (
+    <div className="clinical-panel clinical-chart-panel">
+      <div className="clinical-chart-title">
+        <div>
+          <span>90-day operating pattern</span>
+          <strong>Cognitive state trends</strong>
+        </div>
+        <em>0-100 scale</em>
+      </div>
+      <svg className="clinical-large-chart" viewBox="0 0 560 180" role="img" aria-label="Historical cognitive metrics">
+        {[0, 1, 2, 3].map((line) => (
+          <line key={line} x1="28" x2="540" y1={32 + line * 38} y2={32 + line * 38} />
+        ))}
+        {series.map((item) => (
+          <polyline
+            key={item.label}
+            points={getChartPoints(item.values, 560, 180, min, max)}
+            style={{ stroke: item.color }}
+          />
+        ))}
+      </svg>
+      <div className="clinical-chart-legend">
+        {series.map((item) => (
+          <span key={item.label}>
+            <i style={{ background: item.color }} />
+            {item.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DualProcessChart({
+  s1Values,
+  s2Values,
+}: {
+  s1Values: number[];
+  s2Values: number[];
+}) {
+  const allValues = [...s1Values, ...s2Values];
+  const min = Math.max(0, Math.min(...allValues, 40) - 8);
+  const max = Math.min(100, Math.max(...allValues, 75) + 8);
+
+  return (
+    <div className="clinical-system-chart">
+      <svg viewBox="0 0 560 172" role="img" aria-label="System 1 and System 2 trend">
+        {[0, 1, 2, 3].map((line) => (
+          <line key={line} x1="24" x2="540" y1={28 + line * 38} y2={28 + line * 38} />
+        ))}
+        <polyline points={getChartPoints(s1Values, 560, 172, min, max)} className="clinical-system-one-line" />
+        <polyline points={getChartPoints(s2Values, 560, 172, min, max)} className="clinical-system-two-line" />
+      </svg>
+      <div className="clinical-chart-legend">
+        <span><i className="system-one" />System 1: fast, intuitive, pattern-based</span>
+        <span><i className="system-two" />System 2: slow, deliberate, structured</span>
+      </div>
     </div>
   );
 }
@@ -313,38 +520,34 @@ export function ClinicalReport({
   generatedAt,
   isPreview = false,
   liveSci,
+  metricSnapshots = [],
 }: ClinicalReportProps) {
   const reportId = `NL-${generatedAt.getTime().toString(36).toUpperCase()}`;
-  const observationWindow = useMemo(() => {
-    const endDate = generatedAt;
-    const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - 30);
-    return {
-      start: startDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-      end: endDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-    };
-  }, [generatedAt]);
+  const participantAge = profile.birth_date ? calculateAge(profile.birth_date) : null;
 
   const AE = metrics.focus_stability ?? 50;
   const RA = metrics.fast_thinking ?? 50;
   const CT = metrics.reasoning_accuracy ?? 50;
   const IN = metrics.slow_thinking ?? 50;
   const creativity = metrics.creativity ?? avg([AE, RA, CT, IN]);
-
   const s1Score = round((AE + RA) / 2);
   const s2Score = round((CT + IN) / 2);
   const corePerformance = round(avg([AE, RA, CT, IN]), 1);
-
-  const sci = liveSci?.total ?? round(metrics.cognitive_performance_score ?? corePerformance);
-  const sciClass = classifyScore(sci);
-  const sciPercentile = getPercentile(sci);
-  const readiness = round(metrics.cognitive_readiness_score ?? avg([metrics.cognitive_readiness_score, corePerformance]), 0);
+  const readiness = round(metrics.cognitive_readiness_score ?? corePerformance);
   const totalSessions = metrics.total_sessions ?? 0;
   const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
   const accuracy = round(aggregates.accuracyRatePct ?? 0, 1);
   const xp = metrics.experience_points ?? 0;
   const level = metrics.cognitive_level ?? 1;
-  const participantAge = profile.birth_date ? calculateAge(profile.birth_date) : null;
+
+  const sciComponents = {
+    cognitive: liveSci?.cognitivePerformance.score ?? round(corePerformance),
+    engagement: liveSci?.behavioralEngagement.score ?? round(Math.min(100, (sessionsLast7d / 7) * 100)),
+    recovery: liveSci?.recoveryFactor.score ?? readiness,
+  };
+  const sci = liveSci?.total ?? round(metrics.cognitive_performance_score ?? corePerformance);
+  const sciClass = classifyScore(sci);
+  const sciPercentile = getPercentile(sci);
 
   const baselineForAge = avg([
     metrics.baseline_focus,
@@ -362,84 +565,149 @@ export function ClinicalReport({
     metrics.baseline_creativity,
   ].some((value) => value !== null && value !== undefined);
   const performanceForAge = avg([AE, RA, CT, IN, creativity]);
-
   const cognitiveAge = hasBaselineSignal
     ? round(baselineCognitiveAge - ((performanceForAge - baselineForAge) / 10), 1)
     : null;
   const cognitiveAgeDelta = participantAge && cognitiveAge !== null ? round(cognitiveAge - participantAge, 1) : null;
-  const cognitiveAgeLabel = cognitiveAge === null
-    ? "Calibrating"
-    : `${cognitiveAge.toFixed(1)}y`;
+  const cognitiveAgeLabel = cognitiveAge === null ? "Calibrating" : `${cognitiveAge.toFixed(1)}y`;
 
-  const sciComponents = {
-    cognitive: liveSci?.cognitivePerformance.score ?? round(corePerformance),
-    engagement: liveSci?.behavioralEngagement.score ?? round(Math.min(100, (sessionsLast7d / 7) * 100)),
-    recovery: liveSci?.recoveryFactor.score ?? readiness,
-  };
+  const fallbackRecovery = sciComponents.recovery;
+  const fallbackSharpness = round((s1Score * 0.6 + s2Score * 0.4) * (0.7 + (fallbackRecovery / 100) * 0.3));
+  const fallbackReasoningQuality = round(avg([metrics.reasoning_quality, CT, IN, metrics.decision_quality, metrics.bias_resistance]));
+  const fallbackCoherence = round(avg([fallbackReasoningQuality, 100 - Math.min(45, Math.abs(s1Score - s2Score) * 2.2)]));
+  const fallbackSnapshot = useMemo<ReportMetricSnapshot>(() => ({
+    snapshot_date: generatedAt.toISOString().slice(0, 10),
+    sharpness: fallbackSharpness,
+    readiness,
+    recovery: fallbackRecovery,
+    reasoning_quality: fallbackReasoningQuality,
+    ae: AE,
+    ra: RA,
+    ct: CT,
+    in_score: IN,
+    s1: s1Score,
+    s2: s2Score,
+    did_training: sessionsLast7d > 0,
+  }), [AE, CT, IN, RA, fallbackReasoningQuality, fallbackRecovery, fallbackSharpness, generatedAt, readiness, s1Score, s2Score, sessionsLast7d]);
+
+  const history = useMemo(() => {
+    const sorted = [...metricSnapshots]
+      .filter((snapshot) => Boolean(snapshot.snapshot_date))
+      .sort((a, b) => a.snapshot_date.localeCompare(b.snapshot_date));
+    return sorted.length ? sorted.slice(-90) : [fallbackSnapshot];
+  }, [metricSnapshots, fallbackSnapshot]);
+
+  const lastSnapshot = getLatest(history) ?? fallbackSnapshot;
+  const historyWindow = history.length > 1
+    ? `${formatShortDate(history[0].snapshot_date)} - ${formatShortDate(history[history.length - 1].snapshot_date)}`
+    : "Current snapshot";
+
+  const metricDefinitions: Array<{
+    key: MetricKey;
+    label: string;
+    color: string;
+    fallback: number;
+    description: string;
+  }> = [
+    {
+      key: "sharpness",
+      label: "Sharpness",
+      color: "#46a6ff",
+      fallback: fallbackSharpness,
+      description: "How much fast cognitive capacity is accessible today.",
+    },
+    {
+      key: "readiness",
+      label: "Readiness",
+      color: "#8d7bff",
+      fallback: readiness,
+      description: "Capacity to sustain demanding work without quality drop.",
+    },
+    {
+      key: "recovery",
+      label: "Recovery",
+      color: "#38d6ad",
+      fallback: fallbackRecovery,
+      description: "Available restoration buffer supporting cognition.",
+    },
+    {
+      key: "reasoningQuality",
+      label: "Reasoning Quality",
+      color: "#d5a245",
+      fallback: fallbackReasoningQuality,
+      description: "How structured and reliable deliberate thinking is.",
+    },
+    {
+      key: "coherence",
+      label: "Coherence",
+      color: "#f0f1d8",
+      fallback: fallbackCoherence,
+      description: "Derived alignment between reasoning quality and S1/S2 balance.",
+    },
+  ];
+
+  const metricTrends = metricDefinitions.map((definition) => {
+    const values = history.map((snapshot) => getSnapshotValue(snapshot, definition.key));
+    const stats = getTrendStats(values, definition.fallback);
+    return {
+      ...definition,
+      values: values.filter((value): value is number => value !== null).map((value) => round(value)),
+      stats,
+    };
+  });
+
+  const currentSharpness = metricTrends.find((metric) => metric.key === "sharpness")?.stats.current ?? fallbackSharpness;
+  const currentReadiness = metricTrends.find((metric) => metric.key === "readiness")?.stats.current ?? readiness;
+  const currentRecovery = metricTrends.find((metric) => metric.key === "recovery")?.stats.current ?? fallbackRecovery;
+  const currentRQ = metricTrends.find((metric) => metric.key === "reasoningQuality")?.stats.current ?? fallbackReasoningQuality;
+  const currentCoherence = metricTrends.find((metric) => metric.key === "coherence")?.stats.current ?? fallbackCoherence;
+
+  const s1TrendValues = history
+    .map((snapshot) => getSystemScore(snapshot, "s1"))
+    .filter((value): value is number => value !== null)
+    .map((value) => round(value));
+  const s2TrendValues = history
+    .map((snapshot) => getSystemScore(snapshot, "s2"))
+    .filter((value): value is number => value !== null)
+    .map((value) => round(value));
+  const s1Stats = getTrendStats(s1TrendValues, s1Score);
+  const s2Stats = getTrendStats(s2TrendValues, s2Score);
+  const balance = getBalanceStatus(s1Stats.current, s2Stats.current);
+  const dataConfidence = getDataConfidence(history.length, sessionsLast7d, totalSessions);
 
   const domainRows = [
     {
       key: "AE",
-      name: "Attentional Efficiency",
+      name: "Attention",
       score: AE,
       baseline: metrics.baseline_focus,
-      evidence: "Focus stability, attentional switching, interference resistance.",
-      interpretation: AE >= 70
-        ? "Supports sustained work blocks and resistance to distraction."
-        : AE >= 55
-          ? "Adequate for normal workload; fatigue may reduce precision."
-          : "Likely bottleneck for deep work and complex task switching.",
+      evidence: "Sustained focus, switching control, distractor resistance.",
     },
     {
       key: "RA",
-      name: "Rapid Association",
+      name: "Fast Association",
       score: RA,
       baseline: metrics.baseline_fast_thinking,
-      evidence: "Speed of pattern linking, intuitive compression, reaction quality.",
-      interpretation: RA >= 70
-        ? "Favors quick synthesis and rapid signal detection."
-        : RA >= 55
-          ? "Functional speed, with room to improve snap judgments."
-          : "May slow early recognition of patterns under time pressure.",
+      evidence: "Pattern linking, intuitive compression, decision velocity.",
     },
     {
       key: "CT",
       name: "Critical Reasoning",
       score: CT,
       baseline: metrics.baseline_reasoning,
-      evidence: "Argument structure, causal inference, evidence weighting.",
-      interpretation: CT >= 70
-        ? "Strong for strategic evaluation and high-stakes decisions."
-        : CT >= 55
-          ? "Reliable in familiar contexts; ambiguity remains the main load."
-          : "Primary target for decision quality and bias control.",
+      evidence: "Causal analysis, argument quality, evidence weighting.",
     },
     {
       key: "IN",
-      name: "Insight Formation",
+      name: "Insight",
       score: IN,
       baseline: metrics.baseline_slow_thinking,
-      evidence: "Conceptual reframing, abstraction, slow synthesis.",
-      interpretation: IN >= 70
-        ? "Strong capacity for reframing and second-order thinking."
-        : IN >= 55
-          ? "Good base for reflective work; benefits from deliberate practice."
-          : "May limit strategic synthesis and non-obvious solution generation.",
+      evidence: "Reframing, abstraction, second-order synthesis.",
     },
   ];
-
   const sortedDomains = [...domainRows].sort((a, b) => b.score - a.score);
   const strongest = sortedDomains[0];
   const weakest = sortedDomains[sortedDomains.length - 1];
-  const balance = getBalanceStatus(s1Score, s2Score);
-  const dataConfidence = getDataConfidence(sessionsLast7d, totalSessions);
-  const prognosis = getPrognosis({
-    sci,
-    readiness,
-    sessionsLast7d,
-    accuracy,
-    weakestDomain: weakest.name,
-  });
 
   const trainingDistribution = [
     { label: "Focus", value: aggregates.sessionsByArea.focus ?? 0, avg: aggregates.avgScoreByArea.focus ?? 0 },
@@ -448,22 +716,31 @@ export function ClinicalReport({
   ];
   const maxTrainingSessions = Math.max(...trainingDistribution.map((item) => item.value), 1);
   const recommendedSessionLength = profile.session_duration || aggregates.preferredDuration || "10-15 minutes";
+  const trainingDays = history.filter((snapshot) => snapshot.did_training).length;
 
-  const priorities = [
+  const operatingMode = currentReadiness >= 70 && currentSharpness >= 70 && currentRQ >= 60
+    ? "Green zone: suitable for interviews, exams, strategic work, and complex output."
+    : currentRecovery < 50
+      ? "Recovery-limited: protect decisions and rebuild capacity before increasing load."
+      : currentRQ < 50
+        ? "Structure-limited: favor deliberate reasoning drills and written decision frameworks."
+        : "Manageable: productive for routine output, with selective use of deep work.";
+
+  const protocolCards = [
     {
-      label: "Primary training lever",
-      value: weakest.name,
-      rationale: `${weakest.name} is currently the lowest measured domain and should receive the highest marginal attention.`,
+      title: "For case interviews / exams",
+      value: currentRQ >= 60 ? "Push structured reasoning" : "Rebuild reasoning quality",
+      body: "Use timed cases, assumption logs, and post-answer error reviews. Do not train only speed.",
     },
     {
-      label: "Decision safeguard",
-      value: balance.label,
-      rationale: balance.recommendation,
+      title: "For professional output",
+      value: currentSharpness >= 70 ? "Use peak blocks" : "Use lower-friction tasks",
+      body: "Schedule strategy, writing, coding, or analysis when sharpness and readiness are both green.",
     },
     {
-      label: "Recovery watch",
-      value: getReadinessText(readiness),
-      rationale: "Readiness modulates whether training translates into reliable professional performance.",
+      title: "For cognitive longevity",
+      value: currentRecovery >= 60 ? "Maintain dose" : "Prioritize recovery",
+      body: "Recovery is the multiplier: without it, training volume converts poorly into performance.",
     },
   ];
 
@@ -471,27 +748,27 @@ export function ClinicalReport({
     <div className="clinical-report">
       {isPreview && <div className="clinical-watermark">Preview</div>}
 
-      <section className="clinical-page clinical-cover-page">
+      <section className="clinical-page clinical-cover-page clinical-performance-cover">
         <div className="clinical-cover-topline">
           <div className="clinical-brand">
             <Brain size={24} />
             <div>
               <strong>NeuroLoop Labs</strong>
-              <span>Cognitive Performance Laboratory</span>
+              <span>Cognitive Performance Intelligence</span>
             </div>
           </div>
           <div className="clinical-document-class">
             <span>Confidential</span>
-            <strong>Performance dossier</strong>
+            <strong>Operating report</strong>
           </div>
         </div>
 
         <div className="clinical-cover-hero">
-          <span className="clinical-kicker">Professional cognitive report</span>
-          <h1>Cognitive Performance Dossier</h1>
+          <span className="clinical-kicker">For students, young professionals, and high-demand operators</span>
+          <h1>Cognitive Operating Report</h1>
           <p>
-            A structured assessment of cognitive capacity, decision readiness, training adaptation,
-            and near-term performance priorities for high-demand professional work.
+            A concise readout of how your thinking system has behaved over time: state, recovery,
+            reasoning quality, and the balance between fast intuition and deliberate judgment.
           </p>
         </div>
 
@@ -501,11 +778,7 @@ export function ClinicalReport({
             <strong>{profile.name || "Confidential participant"}</strong>
           </div>
           <div>
-            <span>Chronological age</span>
-            <strong>{participantAge ? `${participantAge} years` : "Not provided"}</strong>
-          </div>
-          <div>
-            <span>Professional context</span>
+            <span>Context</span>
             <strong>{formatWorkType(profile.work_type)}</strong>
           </div>
           <div>
@@ -513,8 +786,12 @@ export function ClinicalReport({
             <strong>{formatEducation(profile.education_level, profile.degree_discipline)}</strong>
           </div>
           <div>
-            <span>Observation window</span>
-            <strong>{observationWindow.start} - {observationWindow.end}</strong>
+            <span>History window</span>
+            <strong>{historyWindow}</strong>
+          </div>
+          <div>
+            <span>Training signal</span>
+            <strong>{trainingDays} active days / {history.length} snapshots</strong>
           </div>
           <div>
             <span>Report ID</span>
@@ -523,15 +800,15 @@ export function ClinicalReport({
         </div>
 
         <div className="clinical-cover-metrics">
-          <MetricTile label="SCI" value={sci} sublabel={`${sciPercentile}th percentile`} tone="accent" />
-          <MetricTile label="Readiness" value={readiness} sublabel={getReadinessText(readiness)} tone="success" />
+          <MetricTile label="Sharpness" value={currentSharpness} sublabel={`Trend ${formatDelta(metricTrends[0].stats.delta)}`} tone="accent" />
+          <MetricTile label="Readiness" value={currentReadiness} sublabel={getReadinessText(currentReadiness)} tone="success" />
+          <MetricTile label="Reasoning Quality" value={currentRQ} sublabel={`Coherence ${currentCoherence}`} />
           <MetricTile label="Cognitive Age" value={cognitiveAgeLabel} sublabel={cognitiveAgeDelta === null ? "Baseline pending" : `${Math.abs(cognitiveAgeDelta).toFixed(1)}y ${cognitiveAgeDelta <= 0 ? "younger" : "older"}`} />
-          <MetricTile label="Data Confidence" value={`${dataConfidence.score}%`} sublabel={dataConfidence.level} tone={dataConfidence.score >= 55 ? "success" : "warning"} />
         </div>
 
         <div className="clinical-cover-note">
-          This report is designed for performance optimization, not medical diagnosis. Scores reflect behavioral
-          training data and should be interpreted with the data-confidence rating above.
+          <strong>{operatingMode}</strong> This report is not a clinical diagnosis. It is a performance instrument
+          for deciding when to push, when to recover, and how to train thinking quality.
         </div>
         <PageFooter reportId={reportId} page={1} />
       </section>
@@ -540,64 +817,51 @@ export function ClinicalReport({
         <header className="clinical-page-header">
           <span>01</span>
           <div>
-            <h2>Executive Summary</h2>
-            <p>Current operating state and professional implications.</p>
+            <h2>Longitudinal State</h2>
+            <p>How the core app metrics behaved over the reporting window.</p>
           </div>
         </header>
 
+        <div className="clinical-trend-grid">
+          {metricTrends.slice(0, 4).map((metric) => (
+            <MetricTrendCard
+              key={metric.key}
+              label={metric.label}
+              value={metric.stats.current}
+              average={metric.stats.average}
+              delta={metric.stats.delta}
+              values={metric.values}
+              color={metric.color}
+              description={metric.description}
+            />
+          ))}
+        </div>
+
+        <MultiMetricChart
+          series={metricTrends.slice(0, 4).map((metric) => ({
+            label: metric.label,
+            color: metric.color,
+            values: metric.values.length ? metric.values : [metric.stats.current],
+          }))}
+        />
+
         <div className="clinical-two-column">
           <div className="clinical-panel clinical-summary-panel">
-            <h3>Interpretive statement</h3>
+            <h3>Performance read</h3>
             <p>
-              The current profile shows <strong>{sciClass.label.toLowerCase()}</strong> global cognitive
-              performance with a Synthesized Cognitive Index of <strong>{sci}/100</strong>. The strongest
-              measured domain is <strong>{strongest.name}</strong>; the principal development lever is
-              <strong> {weakest.name}</strong>.
-            </p>
-            <p>
-              The System 1 / System 2 balance is classified as <strong>{balance.label}</strong>. {balance.interpretation}
+              Current SCI is <strong>{sci}/100</strong> ({sciClass.label.toLowerCase()}, approx.
+              {sciPercentile}th percentile in the internal model). The practical question is not only
+              score level, but whether sharpness, readiness, recovery, and reasoning quality move together.
             </p>
           </div>
-
           <div className="clinical-panel">
-            <h3>Data quality</h3>
+            <h3>Data confidence</h3>
             <div className="clinical-confidence-ring">
               <span>{dataConfidence.score}%</span>
               <ScoreBar value={dataConfidence.score} />
             </div>
             <p>{dataConfidence.description}</p>
-            <dl className="clinical-compact-list">
-              <div><dt>Last 7 days</dt><dd>{sessionsLast7d} sessions</dd></div>
-              <div><dt>Lifetime volume</dt><dd>{totalSessions} sessions</dd></div>
-              <div><dt>Mean accuracy</dt><dd>{accuracy}%</dd></div>
-            </dl>
           </div>
-        </div>
-
-        <div className="clinical-metric-row">
-          <MetricTile label="Core Performance" value={corePerformance.toFixed(1)} sublabel="Mean AE / RA / CT / IN" />
-          <MetricTile label="System 1" value={s1Score} sublabel="Speed and attention" />
-          <MetricTile label="System 2" value={s2Score} sublabel="Reasoning and insight" />
-          <MetricTile label="Training Level" value={`L${level}`} sublabel={`${xp.toLocaleString()} XP`} />
-        </div>
-
-        <div className="clinical-panel clinical-findings">
-          <h3>Key findings</h3>
-          <ol>
-            <li>
-              <strong>Capacity:</strong> SCI of {sci} places the participant around the {sciPercentile}th percentile
-              in the internal reference model.
-            </li>
-            <li>
-              <strong>Readiness:</strong> CRI of {readiness} indicates {getReadinessText(readiness).toLowerCase()}.
-            </li>
-            <li>
-              <strong>Architecture:</strong> {balance.label} profile with S1 {s1Score} and S2 {s2Score}.
-            </li>
-            <li>
-              <strong>Priority:</strong> {weakest.name} is the clearest near-term performance lever.
-            </li>
-          </ol>
         </div>
         <PageFooter reportId={reportId} page={2} />
       </section>
@@ -606,63 +870,52 @@ export function ClinicalReport({
         <header className="clinical-page-header">
           <span>02</span>
           <div>
-            <h2>SCI Breakdown</h2>
-            <p>Composite performance, training engagement, and recovery contribution.</p>
+            <h2>System 1 / System 2</h2>
+            <p>A Kahneman-style map of intuition, speed, control, and deliberate reasoning.</p>
           </div>
         </header>
 
-        <div className="clinical-score-hero">
-          <div>
-            <span className="clinical-kicker">Synthesized Cognitive Index</span>
-            <strong>{sci}</strong>
-            <ScorePill value={sci} />
+        <div className="clinical-kahneman-grid">
+          <div className="clinical-system-card one">
+            <span>System 1</span>
+            <strong>{s1Stats.current}</strong>
+            <ScorePill value={s1Stats.current} />
+            <p>Fast, associative, pattern-driven. Useful for quick synthesis and recognition under time pressure.</p>
+            <em>Trend {formatDelta(s1Stats.delta)} | Avg {s1Stats.average}</em>
           </div>
-          <p>
-            SCI integrates cognitive performance, behavioral engagement, and recovery support. It is a functional
-            readiness index for high-demand knowledge work rather than a diagnostic score.
-          </p>
+          <div className="clinical-system-card two">
+            <span>System 2</span>
+            <strong>{s2Stats.current}</strong>
+            <ScorePill value={s2Stats.current} />
+            <p>Slow, structured, evidence-weighted. Critical for case interviews, strategy, analysis, and judgment.</p>
+            <em>Trend {formatDelta(s2Stats.delta)} | Avg {s2Stats.average}</em>
+          </div>
         </div>
 
-        <div className="clinical-component-grid">
-          <div className="clinical-component-card">
-            <span>Cognitive performance</span>
-            <strong>{round(sciComponents.cognitive)}</strong>
-            <ScoreBar value={sciComponents.cognitive} />
-            <p>Current skill base across attention, fast association, reasoning, and insight.</p>
-          </div>
-          <div className="clinical-component-card">
-            <span>Behavioral engagement</span>
-            <strong>{round(sciComponents.engagement)}</strong>
-            <ScoreBar value={sciComponents.engagement} />
-            <p>Training consistency and recent completion density.</p>
-          </div>
-          <div className="clinical-component-card">
-            <span>Recovery factor</span>
-            <strong>{round(sciComponents.recovery)}</strong>
-            <ScoreBar value={sciComponents.recovery} />
-            <p>Estimated capacity to convert effort into stable output.</p>
-          </div>
-        </div>
+        <DualProcessChart
+          s1Values={s1TrendValues.length ? s1TrendValues : [s1Score]}
+          s2Values={s2TrendValues.length ? s2TrendValues : [s2Score]}
+        />
 
         <div className="clinical-panel">
-          <h3>Operating interpretation</h3>
+          <h3>Interpretation</h3>
           <p>
-            A high SCI without readiness is fragile; high readiness without engagement is under-utilized. This report
-            therefore treats performance as a system: skill capacity, repeatable training behavior, and recovery must
-            move together for durable improvement.
+            The current architecture is <strong>{balance.label}</strong>. {balance.interpretation}
+            {" "}For ambitious students and high-output professionals, the goal is not to maximize one system:
+            it is to know when intuition is reliable and when deliberate verification is required.
           </p>
-          <div className="clinical-alert-row">
+          <div className="clinical-implication-grid">
             <div>
-              <span>Current bottleneck</span>
-              <strong>{weakest.name}</strong>
+              <span>When speed matters</span>
+              <p>{s1Stats.current >= s2Stats.current ? "Use fast first-pass synthesis, then verify assumptions." : "Use timed drills to prevent slow reasoning from becoming drag."}</p>
             </div>
             <div>
-              <span>Best preservation asset</span>
-              <strong>{strongest.name}</strong>
+              <span>When stakes rise</span>
+              <p>{currentRQ >= 60 ? "Reasoning quality supports structured decisions; document premises." : "Use written frameworks before committing to conclusions."}</p>
             </div>
             <div>
-              <span>Near-term confidence</span>
-              <strong>{dataConfidence.level}</strong>
+              <span>When recovery drops</span>
+              <p>{currentRecovery >= 55 ? "Training can continue, but avoid stacking several high-load days." : "Protect sleep, reduce cognitive input, and delay irreversible decisions."}</p>
             </div>
           </div>
         </div>
@@ -673,75 +926,19 @@ export function ClinicalReport({
         <header className="clinical-page-header">
           <span>03</span>
           <div>
-            <h2>Cognitive Architecture</h2>
-            <p>Functional age estimate and dual-process balance.</p>
+            <h2>Evidence Profile</h2>
+            <p>What the app has actually measured: domains, sessions, and behavior.</p>
           </div>
         </header>
 
-        <div className="clinical-two-column">
-          <div className="clinical-panel clinical-age-panel">
-            <h3>Cognitive Age</h3>
-            <div className="clinical-age-value">{cognitiveAgeLabel}</div>
-            <p>
-              {cognitiveAge === null
-                ? "The age estimate is intentionally withheld until baseline data is sufficient. This avoids presenting a single-session fluctuation as a stable trait."
-                : `Current estimate is ${Math.abs(cognitiveAgeDelta ?? 0).toFixed(1)} years ${cognitiveAgeDelta !== null && cognitiveAgeDelta <= 0 ? "younger" : "older"} than chronological age.`}
-            </p>
-            <dl className="clinical-compact-list">
-              <div><dt>Chronological age</dt><dd>{participantAge ? `${participantAge}y` : "Not provided"}</dd></div>
-              <div><dt>Baseline signal</dt><dd>{hasBaselineSignal ? "Available" : "Calibrating"}</dd></div>
-              <div><dt>Interpretation</dt><dd>Functional performance marker</dd></div>
-            </dl>
-          </div>
-
-          <div className="clinical-panel clinical-age-panel">
-            <h3>Dual-process profile</h3>
-            <div className="clinical-dual-bars">
-              <div>
-                <span>System 1</span>
-                <strong>{s1Score}</strong>
-                <ScoreBar value={s1Score} />
-              </div>
-              <div>
-                <span>System 2</span>
-                <strong>{s2Score}</strong>
-                <ScoreBar value={s2Score} />
-              </div>
-            </div>
-            <p>{balance.interpretation}</p>
-          </div>
+        <div className="clinical-metric-row">
+          <MetricTile label="SCI" value={sci} sublabel={`${sciPercentile}th percentile`} tone="accent" />
+          <MetricTile label="Recovery" value={currentRecovery} sublabel={`Trend ${formatDelta(metricTrends[2].stats.delta)}`} tone={currentRecovery >= 55 ? "success" : "warning"} />
+          <MetricTile label="Training" value={sessionsLast7d} sublabel="Sessions last 7d" />
+          <MetricTile label="Level" value={`L${level}`} sublabel={`${xp.toLocaleString()} XP`} />
         </div>
 
-        <div className="clinical-panel">
-          <h3>Decision-performance implications</h3>
-          <div className="clinical-implication-grid">
-            <div>
-              <span>If time pressure rises</span>
-              <p>{s1Score >= s2Score ? "Use a pre-commitment checklist to protect against fast but under-verified conclusions." : "Use time-boxed heuristics to avoid over-analysis and decision drag."}</p>
-            </div>
-            <div>
-              <span>If ambiguity rises</span>
-              <p>{CT >= 65 ? "Reasoning capacity is sufficient; prioritize evidence quality and assumption logging." : "Escalate to structured causal analysis before choosing a course of action."}</p>
-            </div>
-            <div>
-              <span>If workload rises</span>
-              <p>{readiness >= 65 ? "Current readiness supports load, but monitor recovery after consecutive deep-work days." : "Protect recovery before increasing cognitive training intensity."}</p>
-            </div>
-          </div>
-        </div>
-        <PageFooter reportId={reportId} page={4} />
-      </section>
-
-      <section className="clinical-page">
-        <header className="clinical-page-header">
-          <span>04</span>
-          <div>
-            <h2>Domain Profile</h2>
-            <p>Measured skills, baseline movement, and operational meaning.</p>
-          </div>
-        </header>
-
-        <div className="clinical-domain-table">
+        <div className="clinical-domain-table clinical-domain-table-compact">
           {domainRows.map((domain) => {
             const delta = domain.baseline !== null && domain.baseline !== undefined
               ? round(domain.score - domain.baseline, 1)
@@ -761,54 +958,34 @@ export function ClinicalReport({
                   <ScoreBar value={domain.score} />
                   <small>{delta === null ? "No baseline delta" : `${delta >= 0 ? "+" : ""}${delta} vs baseline`}</small>
                 </div>
-                <p>{domain.interpretation}</p>
               </div>
             );
           })}
         </div>
-        <PageFooter reportId={reportId} page={5} />
-      </section>
-
-      <section className="clinical-page">
-        <header className="clinical-page-header">
-          <span>05</span>
-          <div>
-            <h2>Training Load And Adaptation</h2>
-            <p>Recent exposure, domain distribution, and signal maturity.</p>
-          </div>
-        </header>
-
-        <div className="clinical-metric-row">
-          <MetricTile label="Last 7 days" value={sessionsLast7d} sublabel="Completed sessions" />
-          <MetricTile label="Lifetime" value={totalSessions} sublabel="Total sessions" />
-          <MetricTile label="Accuracy" value={`${accuracy}%`} sublabel="Mean session score" />
-          <MetricTile label="XP" value={xp.toLocaleString()} sublabel={`Level ${level}`} />
-        </div>
-
-        <div className="clinical-panel">
-          <h3>Training distribution</h3>
-          <div className="clinical-training-distribution">
-            {trainingDistribution.map((item) => (
-              <div key={item.label}>
-                <div className="clinical-training-row">
-                  <span>{item.label}</span>
-                  <strong>{item.value} sessions</strong>
-                  <em>{round(item.avg)} avg</em>
-                </div>
-                <div className="clinical-distribution-bar">
-                  <div style={{ width: `${(item.value / maxTrainingSessions) * 100}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="clinical-two-column">
           <div className="clinical-panel">
-            <h3>Most repeated drills</h3>
+            <h3>Training distribution</h3>
+            <div className="clinical-training-distribution">
+              {trainingDistribution.map((item) => (
+                <div key={item.label}>
+                  <div className="clinical-training-row">
+                    <span>{item.label}</span>
+                    <strong>{item.value} sessions</strong>
+                    <em>{round(item.avg)} avg</em>
+                  </div>
+                  <div className="clinical-distribution-bar">
+                    <div style={{ width: `${(item.value / maxTrainingSessions) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="clinical-panel">
+            <h3>Repeated drills</h3>
             {aggregates.mostUsedExercises.length > 0 ? (
               <ol className="clinical-ranked-list">
-                {aggregates.mostUsedExercises.slice(0, 5).map((exercise) => (
+                {aggregates.mostUsedExercises.slice(0, 4).map((exercise) => (
                   <li key={exercise.exerciseId}>
                     <span>{formatGameType(exercise.exerciseId)}</span>
                     <strong>{exercise.count}x</strong>
@@ -819,113 +996,53 @@ export function ClinicalReport({
               <p>No repeated drill pattern is available yet.</p>
             )}
           </div>
-          <div className="clinical-panel">
-            <h3>Recent achievements</h3>
-            {badges.length > 0 ? (
-              <ol className="clinical-ranked-list">
-                {badges.slice(0, 5).map((badge) => (
-                  <li key={`${badge.badge_name}-${badge.earned_at ?? ""}`}>
-                    <span>{badge.badge_name}</span>
-                    <strong>{badge.badge_category}</strong>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p>No badge signal yet. Prioritize consistency before interpreting achievements.</p>
-            )}
-          </div>
         </div>
-        <PageFooter reportId={reportId} page={6} />
+        <PageFooter reportId={reportId} page={4} />
       </section>
 
       <section className="clinical-page">
         <header className="clinical-page-header">
-          <span>06</span>
+          <span>04</span>
           <div>
             <h2>Performance Protocol</h2>
-            <p>Actionable guidance for the next 30 to 45 days.</p>
+            <p>What to do next if the goal is sharper professional thinking.</p>
           </div>
         </header>
 
         <div className="clinical-panel clinical-prognosis">
-          <h3>Near-term prognosis</h3>
-          <p>{prognosis}</p>
+          <h3>Operating prescription</h3>
+          <p>
+            Primary lever: <strong>{weakest.name}</strong>. Preserve: <strong>{strongest.name}</strong>.
+            {" "}Recommended dose: <strong>5 sessions/week</strong> at <strong>{recommendedSessionLength}</strong>,
+            with recovery protected before high-stakes work. Mean accuracy is <strong>{accuracy}%</strong>.
+          </p>
         </div>
 
         <div className="clinical-protocol-grid">
-          {priorities.map((priority, index) => (
-            <div key={priority.label} className="clinical-protocol-card">
+          {protocolCards.map((card, index) => (
+            <div key={card.title} className="clinical-protocol-card">
               <span>0{index + 1}</span>
-              <h3>{priority.label}</h3>
-              <strong>{priority.value}</strong>
-              <p>{priority.rationale}</p>
+              <h3>{card.title}</h3>
+              <strong>{card.value}</strong>
+              <p>{card.body}</p>
             </div>
           ))}
         </div>
 
-        <div className="clinical-panel">
-          <h3>Recommended cadence</h3>
-          <div className="clinical-cadence-grid">
-            <div>
-              <strong>5 sessions/week</strong>
-              <span>Minimum dose for a stable training signal.</span>
-            </div>
-            <div>
-              <strong>{recommendedSessionLength}</strong>
-              <span>Preferred session length for sustainable cognitive load.</span>
-            </div>
-            <div>
-              <strong>2 review moments</strong>
-              <span>Weekly review of domain drift and readiness constraints.</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="clinical-note">
-          <strong>Professional use note:</strong> On low-readiness days, use the report as a planning instrument:
-          reduce cognitively expensive meetings, protect deep-work blocks, and delay irreversible strategic choices
-          when decision quality can materially benefit from recovery.
-        </div>
-        <PageFooter reportId={reportId} page={7} />
-      </section>
-
-      <section className="clinical-page">
-        <header className="clinical-page-header">
-          <span>07</span>
-          <div>
-            <h2>Methodology And Limits</h2>
-            <p>How to read this report responsibly.</p>
-          </div>
-        </header>
-
-        <div className="clinical-method-grid">
+        <div className="clinical-two-column">
           <div className="clinical-panel">
-            <h3>Inputs</h3>
+            <h3>Method notes</h3>
             <p>
-              Scores are derived from in-app cognitive training, session completion, accuracy patterns,
-              domain routing, and optional recovery signals. The observation window is {observationWindow.start}
-              {" "}to {observationWindow.end}.
-            </p>
-          </div>
-          <div className="clinical-panel">
-            <h3>Normalization</h3>
-            <p>
-              Metrics are normalized to a 0-100 operating scale. Percentile language is directional and based
-              on the platform reference model, not a clinical population norm.
-            </p>
-          </div>
-          <div className="clinical-panel">
-            <h3>Confidence</h3>
-            <p>
-              Confidence increases with recent volume, lifetime sample size, and consistency. The current
-              confidence classification is {dataConfidence.level}.
+              Trends use daily snapshots from the app: sharpness, readiness, recovery, reasoning quality,
+              and S1/S2 component scores. Coherence is derived from reasoning quality plus S1/S2 balance
+              when no direct coherence metric is present.
             </p>
           </div>
           <div className="clinical-panel">
             <h3>Limits</h3>
             <p>
-              This dossier is not a diagnosis, neuropsychological evaluation, medical record, or substitute
-              for clinical care. It is a performance interpretation tool for self-directed optimization.
+              This is a performance report, not a medical diagnosis or neuropsychological evaluation.
+              Use it like a cognitive WHOOP/Oura: to time effort, improve training, and monitor adaptation.
             </p>
           </div>
         </div>
@@ -935,20 +1052,20 @@ export function ClinicalReport({
             <Brain size={18} />
             <div>
               <strong>NeuroLoop Labs</strong>
-              <span>Preserve human thinking</span>
+              <span>Cognitive performance intelligence</span>
             </div>
           </div>
           <p>
-            This document contains confidential personal performance information intended for the named
-            participant. Share only with trusted coaches, clinicians, or advisors when relevant.
+            Built for people whose work depends on clear thinking: students preparing for selective paths,
+            young professionals entering competitive roles, and operators who need sustained cognitive output.
           </p>
           <dl className="clinical-compact-list">
             <div><dt>Generated</dt><dd>{generatedAt.toISOString()}</dd></div>
             <div><dt>Classification</dt><dd>Confidential</dd></div>
-            <div><dt>Document type</dt><dd>Cognitive performance dossier</dd></div>
+            <div><dt>Badges</dt><dd>{badges.length}</dd></div>
           </dl>
         </div>
-        <PageFooter reportId={reportId} page={8} />
+        <PageFooter reportId={reportId} page={5} />
       </section>
     </div>
   );

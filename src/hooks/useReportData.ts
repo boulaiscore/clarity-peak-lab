@@ -46,6 +46,7 @@ type UserCognitiveMetrics = {
 
   cognitive_performance_score: number | null;
   cognitive_readiness_score: number | null;
+  reasoning_quality: number | null;
 
   experience_points: number | null;
   cognitive_level: number | null;
@@ -110,6 +111,21 @@ type WearableSnapshot = {
   activity_score?: number | null;
 };
 
+export type ReportMetricSnapshot = {
+  snapshot_date: string;
+  sharpness: number | null;
+  readiness: number | null;
+  recovery: number | null;
+  reasoning_quality: number | null;
+  ae: number | null;
+  ra: number | null;
+  ct: number | null;
+  in_score: number | null;
+  s1: number | null;
+  s2: number | null;
+  did_training: boolean | null;
+};
+
 type ReportAggregates = {
   sessionsByArea: Record<Area, number>;
   avgScoreByArea: Record<Area, number>;
@@ -162,6 +178,7 @@ export function useReportData(userId: string) {
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [wearable, setWearable] = useState<WearableSnapshot | null>(null);
+  const [metricSnapshots, setMetricSnapshots] = useState<ReportMetricSnapshot[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -172,8 +189,10 @@ export function useReportData(userId: string) {
       setError(null);
 
       try {
+        const snapshotStartDate = subDays(new Date(), 90).toISOString().slice(0, 10);
+
         // v2.0: Fetch from game_sessions instead of neuro_gym_sessions
-        const [mRes, pRes, sRes, bRes, wRes] = await Promise.all([
+        const [mRes, pRes, sRes, bRes, wRes, dRes] = await Promise.all([
           supabase.from("user_cognitive_metrics").select("*").eq("user_id", userId).maybeSingle(),
           supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
           supabase
@@ -190,12 +209,19 @@ export function useReportData(userId: string) {
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle(),
+          supabase
+            .from("daily_metric_snapshots")
+            .select("snapshot_date, sharpness, readiness, recovery, reasoning_quality, ae, ra, ct, in_score, s1, s2, did_training")
+            .eq("user_id", userId)
+            .gte("snapshot_date", snapshotStartDate)
+            .order("snapshot_date", { ascending: true }),
         ]);
 
         if (mRes.error) throw mRes.error;
         if (pRes.error) throw pRes.error;
         if (sRes.error) throw sRes.error;
         if (bRes.error) throw bRes.error;
+        if (dRes.error) throw dRes.error;
         // wRes può essere null senza errore
 
         if (!cancelled) {
@@ -204,9 +230,11 @@ export function useReportData(userId: string) {
           setSessions(sRes.data ?? []);
           setBadges(bRes.data ?? []);
           setWearable(wRes.data ?? null);
+          setMetricSnapshots(dRes.data ?? []);
         }
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? "Unknown error");
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "Unknown error";
+        if (!cancelled) setError(message);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -324,5 +352,5 @@ export function useReportData(userId: string) {
     }
   }, [aggregates, metrics]);
 
-  return { loading, error, metrics, profile, sessions, badges, wearable, aggregates };
+  return { loading, error, metrics, profile, sessions, badges, wearable, aggregates, metricSnapshots };
 }
