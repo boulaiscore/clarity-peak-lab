@@ -414,8 +414,10 @@ export default function CognitiveReport() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
     );
+
   }
 
   if (loading) return <div className="p-6">Generating report data…</div>;
