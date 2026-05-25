@@ -212,8 +212,8 @@ export default function CognitiveReport() {
     if (!printRef.current) return;
     setDownloading(true);
     
-    // Use a credit if we have credits (not Pro user)
-    if (!isPro && (reportCredits > 0 || monthlyCredits > 0)) {
+    // Use a credit if we have credits (not Pro user, not test mode)
+    if (!isTestMode && !isPro && (reportCredits > 0 || monthlyCredits > 0)) {
       try {
         await useCredit.mutateAsync();
       } catch (err) {
@@ -223,6 +223,7 @@ export default function CognitiveReport() {
         return;
       }
     }
+
     
     // Trigger print dialog - user can save as PDF from browser
     handlePrint();
