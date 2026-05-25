@@ -321,6 +321,17 @@ function getDeltaTone(delta: number): "positive" | "negative" | "flat" {
   return "flat";
 }
 
+function interpretMetric(metric: string, current: number, delta: number, volatility: number): string {
+  if (metric === "Recovery" && current < 50) return "Primary constraint: recovery is limiting conversion of effort into output.";
+  if (metric === "Reasoning Quality" && current < 55) return "Needs structure: use deliberate frameworks before high-stakes judgment.";
+  if (metric === "Sharpness" && current >= 72 && delta >= 0) return "Accessible capacity is strong and trending in the right direction.";
+  if (metric === "Readiness" && current >= 72) return "Suitable for cognitively expensive work blocks.";
+  if (volatility >= 22) return "Volatile signal: performance timing matters more than average score.";
+  if (delta > 3) return "Improving trend across the observation window.";
+  if (delta < -3) return "Declining trend; investigate load, recovery, or adherence.";
+  return "Stable signal; use with current operating-state context.";
+}
+
 function getChartPoints(values: number[], width = 260, height = 72, min = 0, max = 100): string {
   const safeValues = values.length === 1 ? [values[0], values[0]] : values;
   if (!safeValues.length) return "";
@@ -438,6 +449,39 @@ function MetricTrendCard({
         <span className={getDeltaTone(delta)}>Trend {formatDelta(delta)}</span>
       </div>
       <p>{description}</p>
+    </div>
+  );
+}
+
+function MetricLedger({
+  rows,
+}: {
+  rows: Array<{
+    label: string;
+    current: number;
+    average: number;
+    delta: number;
+    volatility: number;
+  }>;
+}) {
+  return (
+    <div className="clinical-ledger">
+      <div className="clinical-ledger-head">
+        <span>Measure</span>
+        <span>Now</span>
+        <span>Avg</span>
+        <span>Delta</span>
+        <span>Interpretation</span>
+      </div>
+      {rows.map((row) => (
+        <div key={row.label} className="clinical-ledger-row">
+          <strong>{row.label}</strong>
+          <span>{row.current}</span>
+          <span>{row.average}</span>
+          <span className={getDeltaTone(row.delta)}>{formatDelta(row.delta)}</span>
+          <p>{interpretMetric(row.label, row.current, row.delta, row.volatility)}</p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -743,36 +787,64 @@ export function ClinicalReport({
       body: "Recovery is the multiplier: without it, training volume converts poorly into performance.",
     },
   ];
+  const ledgerRows = metricTrends.map((metric) => ({
+    label: metric.label,
+    current: metric.stats.current,
+    average: metric.stats.average,
+    delta: metric.stats.delta,
+    volatility: metric.stats.volatility,
+  }));
+  const momentumDelta = round(avg(metricTrends.slice(0, 4).map((metric) => metric.stats.delta), 0), 1);
+  const stabilityIndex = round(clamp(100 - avg(metricTrends.slice(0, 4).map((metric) => metric.stats.volatility), 0)));
+  const structureIndex = round(clamp(avg([
+    currentCoherence,
+    currentRQ,
+    100 - Math.abs(s1Stats.current - s2Stats.current) * 2,
+  ], currentCoherence)));
+  const trajectoryLabel = momentumDelta > 3
+    ? "Advancing"
+    : momentumDelta < -3
+      ? "Regressing"
+      : "Consolidating";
+  const structureLabel = structureIndex >= 75
+    ? "Structured"
+    : structureIndex >= 60
+      ? "Functional"
+      : "Unstable";
+  const recordVerdict = currentRecovery < 50
+    ? "Performance is currently recovery-constrained: protect output quality before increasing training load."
+    : structureIndex < 60
+      ? "Thinking quality is the main constraint: prioritize structured reasoning over more volume."
+      : momentumDelta > 3
+        ? "The profile is moving in the right direction: maintain cadence and protect recovery."
+        : "The profile is stable: improvement now depends on better targeting, not more generic activity.";
 
   return (
     <div className="clinical-report">
       {isPreview && <div className="clinical-watermark">Preview</div>}
 
-      <section className="clinical-page clinical-cover-page clinical-performance-cover">
-        <div className="clinical-cover-topline">
+      <section className="clinical-page clinical-record-page">
+        <div className="clinical-record-topline">
           <div className="clinical-brand">
             <Brain size={24} />
             <div>
               <strong>NeuroLoop Labs</strong>
-              <span>Cognitive Performance Intelligence</span>
+              <span>Cognitive Performance Record</span>
             </div>
           </div>
           <div className="clinical-document-class">
             <span>Confidential</span>
-            <strong>Operating report</strong>
+            <strong>Performance assessment</strong>
           </div>
         </div>
 
-        <div className="clinical-cover-hero">
-          <span className="clinical-kicker">For students, young professionals, and high-demand operators</span>
-          <h1>Cognitive Operating Report</h1>
-          <p>
-            A concise readout of how your thinking system has behaved over time: state, recovery,
-            reasoning quality, and the balance between fast intuition and deliberate judgment.
-          </p>
+        <div className="clinical-record-title">
+          <span className="clinical-kicker">Longitudinal cognitive performance record</span>
+          <h1>Thinking Structure & Progress Report</h1>
+          <p>{recordVerdict}</p>
         </div>
 
-        <div className="clinical-cover-grid">
+        <div className="clinical-record-identity">
           <div>
             <span>Participant</span>
             <strong>{profile.name || "Confidential participant"}</strong>
@@ -786,11 +858,11 @@ export function ClinicalReport({
             <strong>{formatEducation(profile.education_level, profile.degree_discipline)}</strong>
           </div>
           <div>
-            <span>History window</span>
+            <span>Observation window</span>
             <strong>{historyWindow}</strong>
           </div>
           <div>
-            <span>Training signal</span>
+            <span>Evidence base</span>
             <strong>{trainingDays} active days / {history.length} snapshots</strong>
           </div>
           <div>
@@ -799,16 +871,45 @@ export function ClinicalReport({
           </div>
         </div>
 
-        <div className="clinical-cover-metrics">
-          <MetricTile label="Sharpness" value={currentSharpness} sublabel={`Trend ${formatDelta(metricTrends[0].stats.delta)}`} tone="accent" />
-          <MetricTile label="Readiness" value={currentReadiness} sublabel={getReadinessText(currentReadiness)} tone="success" />
-          <MetricTile label="Reasoning Quality" value={currentRQ} sublabel={`Coherence ${currentCoherence}`} />
-          <MetricTile label="Cognitive Age" value={cognitiveAgeLabel} sublabel={cognitiveAgeDelta === null ? "Baseline pending" : `${Math.abs(cognitiveAgeDelta).toFixed(1)}y ${cognitiveAgeDelta <= 0 ? "younger" : "older"}`} />
+        <div className="clinical-record-summary">
+          <div className="clinical-verdict-card">
+            <span>Operating verdict</span>
+            <strong>{operatingMode}</strong>
+            <p>
+              The report reads cognitive performance as a system: state access, recovery buffer,
+              reasoning structure, and S1/S2 balance. Scores are useful only when interpreted as a trajectory.
+            </p>
+          </div>
+          <div className="clinical-index-strip">
+            <div>
+              <span>Trajectory</span>
+              <strong>{trajectoryLabel}</strong>
+              <em>{formatDelta(momentumDelta)} net</em>
+            </div>
+            <div>
+              <span>Thinking structure</span>
+              <strong>{structureIndex}</strong>
+              <em>{structureLabel}</em>
+            </div>
+            <div>
+              <span>Stability</span>
+              <strong>{stabilityIndex}</strong>
+              <em>{dataConfidence.level} confidence</em>
+            </div>
+            <div>
+              <span>Cognitive age</span>
+              <strong>{cognitiveAgeLabel}</strong>
+              <em>{cognitiveAgeDelta === null ? "Calibrating" : `${Math.abs(cognitiveAgeDelta).toFixed(1)}y ${cognitiveAgeDelta <= 0 ? "younger" : "older"}`}</em>
+            </div>
+          </div>
         </div>
 
-        <div className="clinical-cover-note">
-          <strong>{operatingMode}</strong> This report is not a clinical diagnosis. It is a performance instrument
-          for deciding when to push, when to recover, and how to train thinking quality.
+        <MetricLedger rows={ledgerRows} />
+
+        <div className="clinical-record-note">
+          <strong>Purpose:</strong> help students, young professionals, and high-demand operators understand
+          how their thinking is structured, whether they are advancing, and when they should push or recover.
+          This is a performance record, not a medical diagnosis.
         </div>
         <PageFooter reportId={reportId} page={1} />
       </section>
@@ -896,6 +997,47 @@ export function ClinicalReport({
           s1Values={s1TrendValues.length ? s1TrendValues : [s1Score]}
           s2Values={s2TrendValues.length ? s2TrendValues : [s2Score]}
         />
+
+        <div className="clinical-architecture-table">
+          {[
+            {
+              label: "Intuition access",
+              value: s1Stats.current,
+              note: s1Stats.current >= 70
+                ? "Fast pattern recognition is accessible."
+                : "Speed layer needs more activation or recovery.",
+            },
+            {
+              label: "Verification depth",
+              value: s2Stats.current,
+              note: s2Stats.current >= 70
+                ? "Deliberate reasoning can support complex judgment."
+                : "Structured reasoning should be trained deliberately.",
+            },
+            {
+              label: "Coherence",
+              value: currentCoherence,
+              note: currentCoherence >= 70
+                ? "Fast and slow systems are translating into a usable thinking stack."
+                : "Thinking may fragment under ambiguity or pressure.",
+            },
+            {
+              label: "Decision risk",
+              value: Math.round(Math.abs(s1Stats.current - s2Stats.current)),
+              note: Math.abs(s1Stats.current - s2Stats.current) <= 6
+                ? "Low imbalance risk."
+                : s1Stats.current > s2Stats.current
+                  ? "Risk: fast conclusions outrun verification."
+                  : "Risk: verification slows commitment.",
+            },
+          ].map((item) => (
+            <div key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.note}</p>
+            </div>
+          ))}
+        </div>
 
         <div className="clinical-panel">
           <h3>Interpretation</h3>
