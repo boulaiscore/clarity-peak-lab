@@ -1,820 +1,934 @@
-/* Clinical Report Styles - Medical-grade PDF Report */
-
-/* ========================================
-   CSS Variables
-   ======================================== */
+/* Premium A4 cognitive performance dossier */
 :root {
-  --clinical-primary: #1a365d;
-  --clinical-secondary: #2c5282;
-  --clinical-accent: #2b6cb0;
-  --clinical-text: #1a202c;
-  --clinical-text-muted: #4a5568;
-  --clinical-border: #e2e8f0;
-  --clinical-bg: #ffffff;
-  --clinical-bg-alt: #f7fafc;
-  --clinical-success: #276749;
-  --clinical-warning: #c05621;
-  --clinical-danger: #9b2c2c;
-}
-
-/* ========================================
-   Base Report Structure
-   ======================================== */
-.clinical-report {
-  font-family: 'Times New Roman', Georgia, serif;
-  font-size: 11pt;
-  line-height: 1.6;
-  color: var(--clinical-text);
-  background: var(--clinical-bg);
-  width: 210mm;
-}
-
-.clinical-page {
-  background: var(--clinical-bg);
-  padding: 15mm 18mm;
-  width: 210mm;
-  height: 297mm;
-  box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
-  page-break-after: always;
-  page-break-inside: avoid;
-}
-
-.clinical-page:last-child {
-  page-break-after: avoid;
-}
-
-/* Page number positioning */
-.clinical-page-number {
-  position: absolute;
-  bottom: 10mm;
-  right: 18mm;
-  font-size: 9pt;
-  color: var(--clinical-text-muted);
-}
-
-/* ========================================
-   Header
-   ======================================== */
-.clinical-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  border-bottom: 2px solid var(--clinical-primary);
-  padding-bottom: 12px;
-  margin-bottom: 20px;
-}
-
-.clinical-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--clinical-primary);
-}
-
-.clinical-logo svg {
-  flex-shrink: 0;
-}
-
-.clinical-logo-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.clinical-logo-name {
-  font-size: 16pt;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  color: var(--clinical-primary);
-}
-
-.clinical-logo-sub {
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.clinical-classification {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.classification-badge {
-  background: var(--clinical-danger);
-  color: white;
-  font-size: 8pt;
-  font-weight: 700;
-  padding: 3px 10px;
-  letter-spacing: 1px;
-}
-
-.classification-type {
-  font-size: 9pt;
-  color: var(--clinical-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* ========================================
-   Title Block
-   ======================================== */
-.clinical-title-block {
-  text-align: center;
-  margin: 30px 0 40px;
-}
-
-.clinical-main-title {
-  font-size: 22pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  margin: 0 0 8px;
-  letter-spacing: -0.5px;
-}
-
-.clinical-report-id {
-  font-size: 10pt;
-  color: var(--clinical-text-muted);
-  font-family: 'Courier New', monospace;
-}
-
-/* ========================================
-   Section Styling
-   ======================================== */
-.clinical-section {
-  margin-bottom: 28px;
-}
-
-.clinical-section-header {
-  font-size: 12pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 1px solid var(--clinical-border);
-  padding-bottom: 6px;
-  margin: 0 0 16px;
-}
-
-.clinical-subsection-header {
-  font-size: 10pt;
-  font-weight: 700;
-  color: var(--clinical-secondary);
-  margin: 16px 0 10px;
-}
-
-/* ========================================
-   Field Grid (Identification)
-   ======================================== */
-.clinical-field-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 24px;
-  margin-bottom: 20px;
-}
-
-.clinical-field {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.clinical-field-label {
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.clinical-field-value {
-  font-size: 10pt;
-  font-weight: 600;
-  color: var(--clinical-text);
-}
-
-/* ========================================
-   Data Sources
-   ======================================== */
-.clinical-data-sources {
-  background: var(--clinical-bg-alt);
-  border: 1px solid var(--clinical-border);
-  padding: 14px 16px;
-  margin-top: 16px;
-}
-
-.clinical-list {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.clinical-list li {
-  margin-bottom: 6px;
-  font-size: 10pt;
-}
-
-.clinical-list li:last-child {
-  margin-bottom: 0;
-}
-
-/* ========================================
-   Summary Box
-   ======================================== */
-.clinical-summary-box {
-  background: var(--clinical-bg-alt);
-  border-left: 4px solid var(--clinical-primary);
-  padding: 16px 18px;
-  margin-bottom: 16px;
-}
-
-.clinical-summary-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.clinical-summary-list li {
-  font-size: 10pt;
-  margin-bottom: 10px;
-  padding-left: 0;
-}
-
-.clinical-summary-list li:last-child {
-  margin-bottom: 0;
-}
-
-.clinical-summary-list li strong {
-  color: var(--clinical-primary);
-}
-
-/* ========================================
-   Interpretation Box
-   ======================================== */
-.clinical-interpretation-box {
-  background: var(--clinical-bg);
-  border: 2px solid var(--clinical-accent);
-  padding: 14px 16px;
-}
-
-.clinical-interpretation {
-  font-size: 10pt;
-  font-style: italic;
-  margin: 0;
-}
-
-/* ========================================
-   SCI Display
-   ======================================== */
-.clinical-sci-display {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, var(--clinical-bg-alt), var(--clinical-bg));
-  border: 2px solid var(--clinical-primary);
-  margin-bottom: 20px;
-}
-
-.clinical-sci-main {
-  display: flex;
-  align-items: baseline;
-}
-
-.clinical-sci-score {
-  font-size: 48pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  line-height: 1;
-}
-
-.clinical-sci-max {
-  font-size: 18pt;
-  color: var(--clinical-text-muted);
-  margin-left: 4px;
-}
-
-.clinical-sci-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.clinical-percentile {
-  font-size: 11pt;
-  font-weight: 600;
-  color: var(--clinical-secondary);
-}
-
-.clinical-class {
-  font-size: 10pt;
-  color: var(--clinical-text-muted);
-}
-
-.clinical-sci-explanation p {
-  font-size: 10pt;
-  margin-bottom: 10px;
-}
-
-.clinical-caveat {
-  font-style: italic;
-  color: var(--clinical-text-muted);
-  font-size: 9pt !important;
-}
-
-/* ========================================
-   Cognitive Age Display
-   ======================================== */
-.clinical-age-display {
-  display: flex;
-  gap: 40px;
-  padding: 20px;
-  background: var(--clinical-bg-alt);
-  border: 1px solid var(--clinical-border);
-  margin-bottom: 20px;
-}
-
-.clinical-age-primary,
-.clinical-age-comparison {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.clinical-age-label {
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.clinical-age-value {
-  font-size: 24pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  line-height: 1.1;
-}
-
-.clinical-age-delta {
-  font-size: 10pt;
-  color: var(--clinical-success);
-  font-weight: 600;
-}
-
-.clinical-age-explanation p {
-  font-size: 10pt;
-  margin-bottom: 10px;
-}
-
-/* ========================================
-   Dual-Process Analysis
-   ======================================== */
-.clinical-dual-process {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.clinical-system-card {
-  background: var(--clinical-bg-alt);
-  border: 1px solid var(--clinical-border);
-  padding: 16px;
-}
-
-.clinical-system-title {
-  font-size: 10pt;
-  font-weight: 700;
-  color: var(--clinical-secondary);
-  margin: 0 0 8px;
-}
-
-.clinical-system-score {
-  font-size: 28pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  margin-bottom: 10px;
-}
-
-.clinical-system-desc {
-  font-size: 9pt;
-  color: var(--clinical-text-muted);
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-
-.clinical-system-components {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  border-top: 1px solid var(--clinical-border);
-  padding-top: 10px;
-}
-
-.clinical-balance-analysis {
-  background: var(--clinical-bg);
-  border: 1px solid var(--clinical-accent);
-  padding: 14px 16px;
-}
-
-.clinical-balance-analysis p {
-  font-size: 10pt;
-  margin-bottom: 8px;
-}
-
-.clinical-balance-analysis p:last-child {
-  margin-bottom: 0;
-}
-
-/* ========================================
-   Domain Cards
-   ======================================== */
-.clinical-domains {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.clinical-domain-card {
-  background: var(--clinical-bg);
-  border: 1px solid var(--clinical-border);
-  padding: 14px 16px;
-  page-break-inside: avoid;
-}
-
-.clinical-domain-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-
-.clinical-domain-name {
-  font-size: 11pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  margin: 0;
-}
-
-.clinical-domain-score-block {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.clinical-domain-score {
-  font-size: 20pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-}
-
-.clinical-domain-class {
-  font-size: 8pt;
-  font-weight: 600;
-  padding: 3px 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.clinical-domain-class.superior {
-  background: #c6f6d5;
-  color: var(--clinical-success);
-}
-
-.clinical-domain-class.above-avg {
-  background: #bee3f8;
-  color: var(--clinical-accent);
-}
-
-.clinical-domain-class.average {
-  background: #e2e8f0;
-  color: var(--clinical-text-muted);
-}
-
-.clinical-domain-class.below-avg {
-  background: #feebc8;
-  color: var(--clinical-warning);
-}
-
-.clinical-domain-class.low {
-  background: #fed7d7;
-  color: var(--clinical-danger);
-}
-
-.clinical-domain-delta {
-  font-size: 9pt;
-  font-weight: 600;
-}
-
-.clinical-domain-delta.positive {
-  color: var(--clinical-success);
-}
-
-.clinical-domain-delta.negative {
-  color: var(--clinical-danger);
-}
-
-.clinical-domain-definition,
-.clinical-domain-implication {
-  font-size: 9pt;
-  margin: 0 0 6px;
-}
-
-.clinical-domain-definition strong,
-.clinical-domain-implication strong {
-  color: var(--clinical-secondary);
-}
-
-/* ========================================
-   Training Stats
-   ======================================== */
-.clinical-training-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.clinical-stat-block {
-  background: var(--clinical-bg-alt);
-  border: 1px solid var(--clinical-border);
-  padding: 14px;
-  text-align: center;
-}
-
-.clinical-stat-value {
-  display: block;
-  font-size: 20pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  line-height: 1.1;
-}
-
-.clinical-stat-label {
-  display: block;
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 4px;
-}
-
-.clinical-training-interpretation p {
-  font-size: 10pt;
-  margin-bottom: 10px;
-}
-
-.clinical-domain-distribution {
-  margin-top: 20px;
-}
-
-.clinical-domain-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.clinical-domain-bar-row {
-  display: grid;
-  grid-template-columns: 140px 80px 60px;
-  gap: 12px;
-  align-items: center;
-  font-size: 9pt;
-}
-
-.clinical-bar-label {
-  font-weight: 600;
-  color: var(--clinical-text);
-}
-
-.clinical-bar-sessions {
-  color: var(--clinical-text-muted);
-}
-
-.clinical-bar-avg {
-  color: var(--clinical-accent);
-  font-weight: 600;
-}
-
-/* ========================================
-   Clinical Interpretation
-   ======================================== */
-.clinical-interpretation-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.clinical-interpretation-block {
-  background: var(--clinical-bg-alt);
-  border: 1px solid var(--clinical-border);
-  padding: 14px 16px;
-}
-
-.clinical-interpretation-block .clinical-list li {
-  margin-bottom: 10px;
-}
-
-.clinical-patterns-block {
-  background: var(--clinical-bg);
-  border: 1px solid var(--clinical-accent);
-  padding: 14px 16px;
-}
-
-.clinical-patterns-block p {
-  font-size: 10pt;
-  margin: 0;
-}
-
-/* ========================================
-   Prognosis
-   ======================================== */
-.clinical-prognosis-box {
-  background: var(--clinical-bg-alt);
-  border-left: 4px solid var(--clinical-secondary);
-  padding: 16px 18px;
-  margin-bottom: 12px;
-}
-
-.clinical-prognosis-box p {
-  font-size: 10pt;
-  margin: 0;
-}
-
-.clinical-confidence-note {
-  font-size: 9pt;
-  color: var(--clinical-text-muted);
-  font-style: italic;
-}
-
-.clinical-confidence-note p {
-  margin: 0;
-}
-
-/* ========================================
-   Prescription Grid
-   ======================================== */
-.clinical-prescription {
-  margin-bottom: 20px;
-}
-
-.clinical-rx-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.clinical-rx-item {
-  background: var(--clinical-bg-alt);
-  border: 1px solid var(--clinical-border);
-  padding: 14px 16px;
-  page-break-inside: avoid;
-}
-
-.clinical-rx-label {
-  display: block;
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-}
-
-.clinical-rx-value {
-  display: block;
-  font-size: 12pt;
-  font-weight: 700;
-  color: var(--clinical-primary);
-  margin-bottom: 8px;
-}
-
-.clinical-rx-rationale {
-  display: block;
-  font-size: 9pt;
-  color: var(--clinical-text-muted);
-  line-height: 1.5;
-}
-
-/* ========================================
-   Methodology
-   ======================================== */
-.clinical-methodology {
-  background: var(--clinical-bg-alt);
-  border: 1px solid var(--clinical-border);
-  padding: 16px 18px;
-}
-
-.clinical-methodology p {
-  font-size: 10pt;
-  margin-bottom: 10px;
-}
-
-.clinical-methodology .clinical-list li strong {
-  color: var(--clinical-secondary);
-}
-
-/* ========================================
-   Disclaimer
-   ======================================== */
-.clinical-disclaimer {
-  background: var(--clinical-bg-alt);
-  border: 2px solid var(--clinical-border);
-  padding: 18px 20px;
-}
-
-.clinical-disclaimer p {
-  font-size: 10pt;
-  margin-bottom: 12px;
-}
-
-.clinical-disclaimer .clinical-list li {
-  margin-bottom: 8px;
-}
-
-/* ========================================
-   Footer
-   ======================================== */
-.clinical-footer {
-  margin-top: 40px;
-  padding-top: 16px;
-  border-top: 2px solid var(--clinical-primary);
-}
-
-.clinical-footer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.clinical-footer-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--clinical-primary);
-  font-weight: 700;
-  font-size: 11pt;
-}
-
-.clinical-footer-meta {
-  display: flex;
-  gap: 20px;
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  font-family: 'Courier New', monospace;
-}
-
-.clinical-footer-legal {
-  font-size: 8pt;
-  color: var(--clinical-text-muted);
-  margin: 0;
-}
-
-/* ========================================
-   Print Optimizations
-   ======================================== */
-@media print {
-  .clinical-report {
-    margin: 0;
-    padding: 0;
-  }
-
-  .clinical-page {
-    padding: 12mm 15mm;
-    height: 297mm;
-    width: 210mm;
-    overflow: hidden;
-  }
-
-  .clinical-section {
-    page-break-inside: avoid;
-  }
-
-  .clinical-domain-card,
-  .clinical-rx-item {
-    page-break-inside: avoid;
-  }
-  
-  .clinical-page-number {
-    display: block;
-  }
-}
-
-@media screen {
-  .clinical-page {
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .clinical-page:last-child {
-    margin-bottom: 0;
-  }
+  --clinical-ink: #17201b;
+  --clinical-ink-soft: #415147;
+  --clinical-muted: #6d7a70;
+  --clinical-line: #d9dfd6;
+  --clinical-paper: #f5f1e8;
+  --clinical-card: #fffdf7;
+  --clinical-card-soft: #fbf7ed;
+  --clinical-night: #0e1813;
+  --clinical-night-2: #17231c;
+  --clinical-mint: #92f0c4;
+  --clinical-green: #1f8a5b;
+  --clinical-teal: #1e6f68;
+  --clinical-gold: #c8943a;
+  --clinical-amber: #b87724;
+  --clinical-red: #a64b3b;
+  --clinical-shadow: 0 24px 70px rgba(14, 24, 19, 0.18);
 }
 
 @page {
   size: A4;
   margin: 0;
+}
+
+.clinical-report {
+  width: 210mm;
+  margin: 0 auto;
+  color: var(--clinical-ink);
+  background: var(--clinical-paper);
+  font-family: "Outfit", "Aptos", "Helvetica Neue", Arial, sans-serif;
+  font-size: 9.2pt;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.clinical-report *,
+.clinical-report *::before,
+.clinical-report *::after {
+  box-sizing: border-box;
+}
+
+.clinical-page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  padding: 15mm 16mm 13mm;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 86% 9%, rgba(146, 240, 196, 0.16), transparent 27mm),
+    linear-gradient(180deg, var(--clinical-card) 0%, var(--clinical-paper) 100%);
+  break-after: page;
+  page-break-after: always;
+  page-break-inside: avoid;
+}
+
+.clinical-page:last-child {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.clinical-watermark {
+  position: fixed;
+  inset: 44% auto auto 50%;
+  z-index: 30;
+  transform: translate(-50%, -50%) rotate(-18deg);
+  color: rgba(166, 75, 59, 0.16);
+  font-size: 48pt;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.clinical-cover-page {
+  color: #f7f4ea;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(146, 240, 196, 0.26), transparent 33mm),
+    radial-gradient(circle at 92% 88%, rgba(200, 148, 58, 0.24), transparent 42mm),
+    linear-gradient(150deg, #0a1210 0%, var(--clinical-night) 42%, #1d2e25 100%);
+}
+
+.clinical-cover-page::before,
+.clinical-cover-page::after {
+  position: absolute;
+  content: "";
+  border: 1px solid rgba(146, 240, 196, 0.16);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.clinical-cover-page::before {
+  width: 116mm;
+  height: 116mm;
+  right: -42mm;
+  top: 38mm;
+}
+
+.clinical-cover-page::after {
+  width: 72mm;
+  height: 72mm;
+  left: -26mm;
+  bottom: 30mm;
+}
+
+.clinical-cover-topline,
+.clinical-page-header,
+.clinical-page-footer,
+.clinical-brand,
+.clinical-document-class,
+.clinical-score-hero,
+.clinical-alert-row,
+.clinical-training-row,
+.clinical-ranked-list li,
+.clinical-cadence-grid,
+.clinical-final-statement {
+  display: flex;
+}
+
+.clinical-cover-topline,
+.clinical-page-header,
+.clinical-page-footer,
+.clinical-alert-row,
+.clinical-training-row,
+.clinical-ranked-list li,
+.clinical-final-statement {
+  justify-content: space-between;
+}
+
+.clinical-cover-topline,
+.clinical-page-header,
+.clinical-brand,
+.clinical-score-hero,
+.clinical-alert-row,
+.clinical-training-row,
+.clinical-ranked-list li,
+.clinical-final-statement {
+  align-items: flex-start;
+}
+
+.clinical-brand {
+  align-items: center;
+  gap: 10px;
+}
+
+.clinical-brand svg {
+  flex: 0 0 auto;
+  color: var(--clinical-mint);
+}
+
+.clinical-brand strong {
+  display: block;
+  font-size: 12pt;
+  letter-spacing: 0.01em;
+}
+
+.clinical-brand span,
+.clinical-document-class span,
+.clinical-kicker,
+.clinical-page-header p,
+.clinical-metric-label,
+.clinical-metric-sub,
+.clinical-component-card span,
+.clinical-alert-row span,
+.clinical-age-panel dt,
+.clinical-domain-row span,
+.clinical-domain-row small,
+.clinical-training-row span,
+.clinical-training-row em,
+.clinical-protocol-card span,
+.clinical-cadence-grid span,
+.clinical-compact-list dt {
+  color: var(--clinical-muted);
+  font-size: 7pt;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.clinical-cover-page .clinical-brand span,
+.clinical-cover-page .clinical-document-class span,
+.clinical-cover-page .clinical-kicker {
+  color: rgba(247, 244, 234, 0.62);
+}
+
+.clinical-document-class {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  text-align: right;
+}
+
+.clinical-document-class strong {
+  color: var(--clinical-mint);
+  font-size: 8pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clinical-cover-hero {
+  position: relative;
+  z-index: 1;
+  max-width: 134mm;
+  margin-top: 43mm;
+}
+
+.clinical-kicker {
+  display: inline-flex;
+  margin-bottom: 7mm;
+  color: var(--clinical-teal);
+}
+
+.clinical-cover-hero h1 {
+  max-width: 128mm;
+  margin: 0;
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 38pt;
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.clinical-cover-hero p {
+  max-width: 116mm;
+  margin: 8mm 0 0;
+  color: rgba(247, 244, 234, 0.76);
+  font-size: 12pt;
+  line-height: 1.5;
+}
+
+.clinical-cover-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5mm;
+  margin-top: 24mm;
+  padding: 7mm;
+  border: 1px solid rgba(247, 244, 234, 0.14);
+  border-radius: 7mm;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+.clinical-cover-grid span {
+  display: block;
+  margin-bottom: 2mm;
+  color: rgba(247, 244, 234, 0.52);
+  font-size: 6.5pt;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.clinical-cover-grid strong {
+  display: block;
+  color: #fff9e8;
+  font-size: 9pt;
+  line-height: 1.25;
+}
+
+.clinical-cover-metrics {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4mm;
+  margin-top: 8mm;
+}
+
+.clinical-cover-note {
+  position: absolute;
+  left: 16mm;
+  right: 16mm;
+  bottom: 24mm;
+  max-width: 150mm;
+  color: rgba(247, 244, 234, 0.62);
+  font-size: 8pt;
+  line-height: 1.5;
+}
+
+.clinical-page-header {
+  gap: 7mm;
+  margin-bottom: 9mm;
+  padding-bottom: 5mm;
+  border-bottom: 1px solid rgba(23, 32, 27, 0.14);
+}
+
+.clinical-page-header > span {
+  min-width: 11mm;
+  color: var(--clinical-gold);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 18pt;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.clinical-page-header div {
+  flex: 1;
+}
+
+.clinical-page-header h2 {
+  margin: 0;
+  color: var(--clinical-ink);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 22pt;
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+}
+
+.clinical-page-header p {
+  margin: 2mm 0 0;
+  letter-spacing: 0.08em;
+}
+
+.clinical-page-footer {
+  position: absolute;
+  right: 16mm;
+  bottom: 7mm;
+  left: 16mm;
+  align-items: center;
+  gap: 6mm;
+  border-top: 1px solid rgba(23, 32, 27, 0.12);
+  padding-top: 2.5mm;
+  color: rgba(65, 81, 71, 0.72);
+  font-size: 6.8pt;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clinical-cover-page .clinical-page-footer {
+  border-color: rgba(247, 244, 234, 0.12);
+  color: rgba(247, 244, 234, 0.54);
+}
+
+.clinical-two-column,
+.clinical-component-grid,
+.clinical-implication-grid,
+.clinical-protocol-grid,
+.clinical-method-grid {
+  display: grid;
+  gap: 5mm;
+}
+
+.clinical-two-column,
+.clinical-method-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.clinical-panel,
+.clinical-metric-tile,
+.clinical-component-card,
+.clinical-domain-row,
+.clinical-protocol-card,
+.clinical-note,
+.clinical-final-statement {
+  border: 1px solid rgba(23, 32, 27, 0.12);
+  border-radius: 5mm;
+  background: rgba(255, 253, 247, 0.84);
+  box-shadow: 0 12px 28px rgba(23, 32, 27, 0.05);
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.clinical-panel {
+  padding: 5.5mm;
+}
+
+.clinical-panel h3,
+.clinical-component-card h3,
+.clinical-protocol-card h3 {
+  margin: 0 0 3mm;
+  color: var(--clinical-ink);
+  font-size: 9.5pt;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.clinical-panel p,
+.clinical-component-card p,
+.clinical-protocol-card p,
+.clinical-note,
+.clinical-final-statement p,
+.clinical-domain-row p {
+  margin: 0;
+  color: var(--clinical-ink-soft);
+  font-size: 8.3pt;
+  line-height: 1.48;
+}
+
+.clinical-panel p + p {
+  margin-top: 3mm;
+}
+
+.clinical-summary-panel {
+  background:
+    linear-gradient(135deg, rgba(146, 240, 196, 0.18), transparent 58%),
+    rgba(255, 253, 247, 0.9);
+}
+
+.clinical-confidence-ring {
+  display: grid;
+  gap: 2.6mm;
+  margin-bottom: 4mm;
+}
+
+.clinical-confidence-ring > span {
+  color: var(--clinical-green);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 27pt;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.clinical-score-bar,
+.clinical-distribution-bar {
+  width: 100%;
+  height: 2.6mm;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(23, 32, 27, 0.1);
+}
+
+.clinical-score-bar > div,
+.clinical-distribution-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--clinical-teal), var(--clinical-mint));
+}
+
+.clinical-compact-list {
+  display: grid;
+  gap: 2.5mm;
+  margin: 4mm 0 0;
+}
+
+.clinical-compact-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 4mm;
+  border-bottom: 1px solid rgba(23, 32, 27, 0.08);
+  padding-bottom: 1.8mm;
+}
+
+.clinical-compact-list dt,
+.clinical-compact-list dd {
+  margin: 0;
+}
+
+.clinical-compact-list dd {
+  color: var(--clinical-ink);
+  font-size: 8pt;
+  font-weight: 800;
+  text-align: right;
+}
+
+.clinical-metric-row,
+.clinical-component-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4mm;
+  margin: 6mm 0;
+}
+
+.clinical-metric-tile {
+  display: grid;
+  min-height: 26mm;
+  padding: 4mm;
+  background: rgba(255, 253, 247, 0.78);
+}
+
+.clinical-cover-page .clinical-metric-tile {
+  border-color: rgba(247, 244, 234, 0.13);
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: none;
+}
+
+.clinical-metric-tile.accent {
+  border-color: rgba(30, 111, 104, 0.32);
+  background: linear-gradient(145deg, rgba(146, 240, 196, 0.18), rgba(255, 253, 247, 0.8));
+}
+
+.clinical-metric-tile.success {
+  border-color: rgba(31, 138, 91, 0.28);
+}
+
+.clinical-metric-tile.warning {
+  border-color: rgba(184, 119, 36, 0.35);
+}
+
+.clinical-metric-value {
+  display: block;
+  margin: 2.5mm 0 1mm;
+  color: var(--clinical-ink);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 20pt;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.clinical-cover-page .clinical-metric-value {
+  color: #fff9e8;
+}
+
+.clinical-metric-sub {
+  align-self: end;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.clinical-findings {
+  margin-top: 5mm;
+}
+
+.clinical-findings ol {
+  display: grid;
+  gap: 2.8mm;
+  margin: 0;
+  padding-left: 5mm;
+}
+
+.clinical-findings li {
+  color: var(--clinical-ink-soft);
+  font-size: 8.5pt;
+}
+
+.clinical-score-hero {
+  gap: 8mm;
+  margin-bottom: 7mm;
+  padding: 8mm;
+  border-radius: 7mm;
+  color: #f7f4ea;
+  background:
+    radial-gradient(circle at 85% 25%, rgba(146, 240, 196, 0.22), transparent 30mm),
+    linear-gradient(140deg, var(--clinical-night), var(--clinical-night-2));
+}
+
+.clinical-score-hero > div {
+  min-width: 48mm;
+}
+
+.clinical-score-hero strong {
+  display: block;
+  margin: 1mm 0 3mm;
+  color: #fff9e8;
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 50pt;
+  font-weight: 850;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+}
+
+.clinical-score-hero p {
+  margin: 0;
+  color: rgba(247, 244, 234, 0.72);
+  font-size: 10pt;
+  line-height: 1.55;
+}
+
+.clinical-score-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 1.3mm 3mm;
+  font-size: 6.7pt;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.clinical-score-pill.excellent {
+  color: #48d995;
+  background: rgba(72, 217, 149, 0.12);
+}
+
+.clinical-score-pill.strong {
+  color: var(--clinical-teal);
+  background: rgba(30, 111, 104, 0.1);
+}
+
+.clinical-score-pill.stable {
+  color: var(--clinical-green);
+  background: rgba(31, 138, 91, 0.1);
+}
+
+.clinical-score-pill.watch {
+  color: var(--clinical-amber);
+  background: rgba(184, 119, 36, 0.1);
+}
+
+.clinical-score-pill.risk {
+  color: var(--clinical-red);
+  background: rgba(166, 75, 59, 0.1);
+}
+
+.clinical-component-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.clinical-component-card {
+  display: grid;
+  gap: 3mm;
+  padding: 5mm;
+}
+
+.clinical-component-card strong {
+  color: var(--clinical-ink);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 24pt;
+  line-height: 0.95;
+}
+
+.clinical-alert-row {
+  gap: 4mm;
+  margin-top: 5mm;
+}
+
+.clinical-alert-row > div {
+  flex: 1;
+  border-left: 2px solid var(--clinical-gold);
+  padding-left: 3mm;
+}
+
+.clinical-alert-row strong {
+  display: block;
+  margin-top: 1mm;
+  color: var(--clinical-ink);
+  font-size: 9pt;
+}
+
+.clinical-age-panel {
+  min-height: 98mm;
+}
+
+.clinical-age-value {
+  margin: 2mm 0 4mm;
+  color: var(--clinical-green);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 36pt;
+  font-weight: 850;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.clinical-dual-bars {
+  display: grid;
+  gap: 5mm;
+  margin: 5mm 0;
+}
+
+.clinical-dual-bars > div {
+  display: grid;
+  grid-template-columns: 24mm 14mm 1fr;
+  align-items: center;
+  gap: 4mm;
+}
+
+.clinical-dual-bars span {
+  color: var(--clinical-muted);
+  font-size: 7.5pt;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.clinical-dual-bars strong {
+  color: var(--clinical-ink);
+  font-size: 13pt;
+}
+
+.clinical-implication-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1mm;
+}
+
+.clinical-implication-grid div {
+  border-top: 2px solid var(--clinical-green);
+  padding-top: 3mm;
+}
+
+.clinical-implication-grid span {
+  color: var(--clinical-ink);
+  font-size: 8pt;
+  font-weight: 850;
+}
+
+.clinical-implication-grid p {
+  margin-top: 2mm;
+}
+
+.clinical-domain-table {
+  display: grid;
+  gap: 4mm;
+}
+
+.clinical-domain-row {
+  display: grid;
+  grid-template-columns: 1.42fr 22mm 1fr;
+  gap: 4mm;
+  padding: 4.5mm;
+}
+
+.clinical-domain-row > p {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(23, 32, 27, 0.08);
+  padding-top: 2.8mm;
+}
+
+.clinical-domain-row strong {
+  display: block;
+  color: var(--clinical-ink);
+  font-size: 10pt;
+  line-height: 1.15;
+}
+
+.clinical-domain-row span {
+  color: var(--clinical-gold);
+}
+
+.clinical-domain-row p {
+  margin-top: 1.8mm;
+}
+
+.clinical-domain-score {
+  text-align: right;
+}
+
+.clinical-domain-score strong {
+  margin-bottom: 2mm;
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 22pt;
+}
+
+.clinical-domain-bar-cell {
+  display: grid;
+  align-content: center;
+  gap: 2mm;
+}
+
+.clinical-training-distribution {
+  display: grid;
+  gap: 4mm;
+}
+
+.clinical-training-row {
+  align-items: baseline;
+  gap: 3mm;
+  margin-bottom: 1.5mm;
+}
+
+.clinical-training-row strong {
+  color: var(--clinical-ink);
+  font-size: 8.5pt;
+}
+
+.clinical-training-row em {
+  margin-left: auto;
+  font-style: normal;
+}
+
+.clinical-ranked-list {
+  display: grid;
+  gap: 2.4mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clinical-ranked-list li {
+  align-items: center;
+  gap: 4mm;
+  border-bottom: 1px solid rgba(23, 32, 27, 0.08);
+  padding-bottom: 2mm;
+}
+
+.clinical-ranked-list span {
+  color: var(--clinical-ink-soft);
+  font-size: 8.2pt;
+}
+
+.clinical-ranked-list strong {
+  color: var(--clinical-green);
+  font-size: 7.5pt;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.clinical-prognosis {
+  margin-bottom: 6mm;
+  border-color: rgba(31, 138, 91, 0.24);
+  background: linear-gradient(135deg, rgba(146, 240, 196, 0.18), rgba(255, 253, 247, 0.78));
+}
+
+.clinical-prognosis p {
+  color: var(--clinical-ink);
+  font-size: 9.2pt;
+}
+
+.clinical-protocol-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 6mm;
+}
+
+.clinical-protocol-card {
+  min-height: 58mm;
+  padding: 5mm;
+}
+
+.clinical-protocol-card > span {
+  color: var(--clinical-gold);
+  font-family: "Bebas Neue", "Outfit", sans-serif;
+  font-size: 16pt;
+  letter-spacing: -0.03em;
+}
+
+.clinical-protocol-card strong {
+  display: block;
+  margin: 2mm 0 3mm;
+  color: var(--clinical-green);
+  font-size: 9pt;
+}
+
+.clinical-cadence-grid {
+  gap: 4mm;
+}
+
+.clinical-cadence-grid > div {
+  flex: 1;
+  padding: 4mm;
+  border-radius: 4mm;
+  background: rgba(23, 32, 27, 0.045);
+}
+
+.clinical-cadence-grid strong {
+  display: block;
+  margin-bottom: 2mm;
+  color: var(--clinical-ink);
+  font-size: 10pt;
+}
+
+.clinical-note {
+  margin-top: 5mm;
+  padding: 4.5mm 5mm;
+  border-color: rgba(200, 148, 58, 0.34);
+  background: rgba(200, 148, 58, 0.09);
+}
+
+.clinical-method-grid {
+  margin-bottom: 7mm;
+}
+
+.clinical-final-statement {
+  align-items: center;
+  gap: 7mm;
+  padding: 6mm;
+  background: var(--clinical-night);
+  color: #f7f4ea;
+}
+
+.clinical-final-statement p {
+  flex: 1;
+  color: rgba(247, 244, 234, 0.72);
+}
+
+.clinical-final-statement .clinical-compact-list {
+  width: 58mm;
+  margin: 0;
+}
+
+.clinical-final-statement .clinical-compact-list div {
+  border-color: rgba(247, 244, 234, 0.14);
+}
+
+.clinical-final-statement .clinical-compact-list dt,
+.clinical-final-statement .clinical-compact-list dd,
+.clinical-brand.small span {
+  color: rgba(247, 244, 234, 0.66);
+}
+
+.clinical-final-statement .clinical-compact-list dd,
+.clinical-brand.small strong {
+  color: #fff9e8;
+}
+
+.clinical-brand.small {
+  min-width: 44mm;
+}
+
+.clinical-brand.small strong {
+  font-size: 9pt;
+}
+
+@media screen {
+  .clinical-report {
+    padding: 12mm 0;
+    background:
+      radial-gradient(circle at 20% 8%, rgba(146, 240, 196, 0.18), transparent 120mm),
+      #e7e1d3;
+  }
+
+  .clinical-page {
+    margin: 0 auto 10mm;
+    box-shadow: var(--clinical-shadow);
+  }
+}
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .clinical-report {
+    width: 210mm;
+    margin: 0;
+    background: #ffffff;
+  }
+
+  .clinical-page {
+    margin: 0;
+    box-shadow: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
