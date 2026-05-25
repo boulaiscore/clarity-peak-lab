@@ -27,10 +27,12 @@ import { ReportPreviewReal } from "@/components/report/ReportPreviewReal";
 import { Progress } from "@/components/ui/progress";
 import { ReportHistoryList } from "@/components/report/ReportHistoryList";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTestMode } from "@/hooks/useTestMode";
 
 import "@/styles/clinical-report.css";
 
 import { ClinicalReport } from "@/components/report/ClinicalReport";
+
 
 const CREDIT_PACKAGES = [
   { id: 'single', credits: 1, price: '€4.99', pricePerReport: '€4.99', popular: false },
