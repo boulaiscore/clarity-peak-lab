@@ -14,6 +14,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function calcDailyPerf(snap: {
+  ae: number | null;
+  ra: number | null;
+  ct: number | null;
+  in_score: number | null;
+}): number | null {
+  const skills = [snap.ae, snap.ra, snap.ct, snap.in_score]
+    .filter((v): v is number => v !== null)
+    .map(Number);
+
+  return skills.length >= 2 ? skills.reduce((a, b) => a + b, 0) / skills.length : null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -63,16 +76,13 @@ Deno.serve(async (req) => {
     // Get daily snapshots count
     const { data: snapshots, error: snapError } = await supabase
       .from("daily_metric_snapshots")
-      .select("snapshot_date, ae, ra, ct, in_score, s2, reasoning_quality")
+      .select("snapshot_date, ae, ra, ct, in_score, reasoning_quality")
       .eq("user_id", userId)
       .order("snapshot_date", { ascending: true });
 
     if (snapError) throw snapError;
 
-    const daysWithData = snapshots?.filter((s) => {
-      const skills = [s.ae, s.ra, s.ct, s.in_score, s.s2].filter((v) => v !== null);
-      return skills.length > 0;
-    }) || [];
+    const daysWithData = snapshots?.filter((s) => calcDailyPerf(s) !== null) || [];
 
     console.log(`User has ${daysWithData.length} days with data`);
 
@@ -86,11 +96,8 @@ Deno.serve(async (req) => {
     if (daysWithData.length >= 10) {
       // Use available data for baseline
       const dailyAvgs = daysWithData.map((snap) => {
-        const skills = [snap.ae, snap.ra, snap.ct, snap.in_score, snap.s2]
-          .filter((v): v is number => v !== null)
-          .map(Number);
         return {
-          avg: skills.length > 0 ? skills.reduce((a, b) => a + b, 0) / skills.length : null,
+          avg: calcDailyPerf(snap),
           rq: snap.reasoning_quality != null ? Number(snap.reasoning_quality) : null,
         };
       }).filter((d) => d.avg !== null);

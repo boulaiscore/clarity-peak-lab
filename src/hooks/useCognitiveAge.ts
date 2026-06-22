@@ -80,6 +80,26 @@ export interface CognitiveAgeData {
 const REGRESSION_THRESHOLD_POINTS = 10;
 const STREAK_WARNING_START = 14;
 const STREAK_REGRESSION = 21;
+const MIN_LIVE_CALIBRATION_DAYS = 10;
+
+type SkillSnapshot = {
+  ae: number | null;
+  ra: number | null;
+  ct: number | null;
+  in_score: number | null;
+};
+
+function calculateSnapshotPerformance(snapshot: SkillSnapshot): number | null {
+  const skills = [snapshot.ae, snapshot.ra, snapshot.ct, snapshot.in_score]
+    .filter((v): v is number => v !== null)
+    .map(Number);
+
+  return skills.length >= 2 ? skills.reduce((a, b) => a + b, 0) / skills.length : null;
+}
+
+function average(values: number[]): number | null {
+  return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+}
 
 // ==========================================
 // MAIN HOOK
@@ -333,44 +353,25 @@ export function useCognitiveAge() {
       targetDate: today,
     });
 
-    // Need at least one snapshot to calculate
-    if (!recentSnapshots || recentSnapshots.length === 0) {
-      return { cognitiveAge: currentRealAge, perf30d: null, perf180d: null };
+    const perf30dValues = (recentSnapshots ?? [])
+      .map(calculateSnapshotPerformance)
+      .filter((v): v is number => v !== null);
+
+    // Do not turn a single snapshot into a Cognitive Age. Until the live
+    // calibration window has enough valid days, the UI should stay in fallback.
+    if (perf30dValues.length < MIN_LIVE_CALIBRATION_DAYS) {
+      return { cognitiveAge: null, perf30d: null, perf180d: null };
     }
 
-    // Calculate current performance (latest snapshot)
-    const latestSnapshot = recentSnapshots[0];
-    const skills = [latestSnapshot.ae, latestSnapshot.ra, latestSnapshot.ct, latestSnapshot.in_score]
-      .filter((v): v is number => v !== null)
-      .map(Number);
-    
-    if (skills.length === 0) {
-      return { cognitiveAge: currentRealAge, perf30d: null, perf180d: null };
-    }
-
-    const currentPerf = skills.reduce((a, b) => a + b, 0) / skills.length;
-
-    // Calculate 30-day average
-    const perf30dValues = recentSnapshots.map(s => {
-      const vals = [s.ae, s.ra, s.ct, s.in_score].filter((v): v is number => v !== null).map(Number);
-      return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-    }).filter((v): v is number => v !== null);
-    
-    const perf30d = perf30dValues.length > 0 
-      ? perf30dValues.reduce((a, b) => a + b, 0) / perf30dValues.length 
-      : null;
+    const perf30d = average(perf30dValues);
 
     // Calculate 180-day average (or use all available data as baseline)
     let perf180d: number | null = null;
     if (snapshots180d && snapshots180d.length > 0) {
-      const perf180dValues = snapshots180d.map(s => {
-        const vals = [s.ae, s.ra, s.ct, s.in_score].filter((v): v is number => v !== null).map(Number);
-        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-      }).filter((v): v is number => v !== null);
-      
-      perf180d = perf180dValues.length > 0 
-        ? perf180dValues.reduce((a, b) => a + b, 0) / perf180dValues.length 
-        : null;
+      const perf180dValues = snapshots180d
+        .map(calculateSnapshotPerformance)
+        .filter((v): v is number => v !== null);
+      perf180d = average(perf180dValues);
     }
 
     // Use baseline if available, otherwise use 50 as neutral baseline
@@ -380,9 +381,9 @@ export function useCognitiveAge() {
       ? Number(baseline.baseline_score_90d)
       : 50; // Always use 50 as neutral baseline during calibration
 
-    const improvementPoints = (currentPerf - calibrationBaseline) / 10;
+    const improvementPoints = perf30d !== null ? (perf30d - calibrationBaseline) / 10 : null;
     const cognitiveAge = calculateCognitiveAgeFromPerformance({
-      performance: currentPerf,
+      performance: perf30d,
       baselinePerformance: calibrationBaseline,
       chronologicalAge: currentRealAge,
       inactiveDays,
@@ -390,11 +391,11 @@ export function useCognitiveAge() {
 
     return { 
       cognitiveAge, 
-      perf30d: perf30d ? Math.round(perf30d * 10) / 10 : null, 
-      perf180d: perf180d ? Math.round(perf180d * 10) / 10 : null,
-      currentPerf: Math.round(currentPerf * 10) / 10,
+      perf30d: perf30d !== null ? Math.round(perf30d * 10) / 10 : null,
+      perf180d: perf180d !== null ? Math.round(perf180d * 10) / 10 : null,
+      currentPerf: perf30d !== null ? Math.round(perf30d * 10) / 10 : null,
       calibrationBaseline: Math.round(calibrationBaseline * 10) / 10,
-      improvementPoints: Math.round(improvementPoints * 10) / 10
+      improvementPoints: improvementPoints !== null ? Math.round(improvementPoints * 10) / 10 : null
     };
   }, [recentSnapshots, snapshots180d, baseline, profile, weeklySnapshot, lastActivityAt]);
 
