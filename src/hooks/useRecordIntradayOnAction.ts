@@ -24,9 +24,18 @@ import { getCurrentRecovery, RecoveryState } from "@/lib/recoveryV2";
 import {
   calculateSharpness,
   calculateReadiness,
-  clamp,
 } from "@/lib/cognitiveEngine";
 import { calculateRQ, type TaskCompletion } from "@/lib/reasoningQuality";
+
+type CognitiveMetricSource = {
+  focus_stability: number | null;
+  fast_thinking: number | null;
+  reasoning_accuracy: number | null;
+  slow_thinking: number | null;
+  rec_value?: number | null;
+  rec_last_ts?: string | null;
+  has_recovery_baseline?: boolean | null;
+};
 
 export function useRecordIntradayOnAction() {
   const { user, session } = useAuth();
@@ -130,41 +139,36 @@ export function useRecordIntradayOnAction() {
       }
 
       try {
-        // Fetch fresh cognitive states from cache or server
-        const cognitiveStates = queryClient.getQueryData<{
-          reasoning_accuracy: number;
-          fast_thinking: number;
-          critical_thinking_score: number;
-          creativity: number;
-        }>(["cognitive-states", userId]);
+        // Fetch the same canonical skill columns used by useCognitiveStates/useTodayMetrics.
+        let metricSource = queryClient.getQueryData<CognitiveMetricSource>(["user-metrics", userId]);
 
         // Fetch fresh recovery state
-        const recoveryState = queryClient.getQueryData<RecoveryState>(
+        let recoveryState = queryClient.getQueryData<RecoveryState>(
           ["recovery-v2-state", userId]
         );
 
-        // If cache is stale, refetch directly from DB
-        let AE = cognitiveStates?.fast_thinking ?? 50;
-        let RA = cognitiveStates?.reasoning_accuracy ?? 50;
-        let CT = cognitiveStates?.critical_thinking_score ?? 50;
-        let IN = cognitiveStates?.creativity ?? 50;
-
-        if (!cognitiveStates) {
+        if (!metricSource || !recoveryState) {
           const { data } = await supabase
             .from("user_cognitive_metrics")
-            .select("fast_thinking, reasoning_accuracy, critical_thinking_score, creativity, rec_value, rec_last_ts, has_recovery_baseline, reasoning_quality")
+            .select("focus_stability, fast_thinking, reasoning_accuracy, slow_thinking, rec_value, rec_last_ts, has_recovery_baseline")
             .eq("user_id", userId)
             .maybeSingle();
 
           if (data) {
-            AE = data.fast_thinking ?? 50;
-            RA = data.reasoning_accuracy ?? 50;
-            CT = data.critical_thinking_score ?? 50;
-            IN = data.creativity ?? 50;
+            metricSource = data;
+            recoveryState ??= {
+              recValue: data.rec_value,
+              recLastTs: data.rec_last_ts,
+              hasRecoveryBaseline: data.has_recovery_baseline ?? false,
+            };
           }
         }
 
         // Calculate current metrics
+        const AE = metricSource?.focus_stability ?? 50;
+        const RA = metricSource?.fast_thinking ?? 50;
+        const CT = metricSource?.reasoning_accuracy ?? 50;
+        const IN = metricSource?.slow_thinking ?? 50;
         const states = { AE, RA, CT, IN };
         const recovery = recoveryState ? getCurrentRecovery(recoveryState) : null;
         const recoveryValue = recovery ?? 0;
@@ -242,7 +246,7 @@ export function useRecordIntradayOnAction() {
         console.error("[useRecordIntradayOnAction] Error:", err);
       }
     },
-    [userId, queryClient]
+    [userId, queryClient, fetchLiveReasoningQuality]
   );
 
   return { recordMetricsSnapshot };
