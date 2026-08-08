@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getNotificationState,
   requestNotificationPermission,
@@ -49,11 +49,11 @@ export function useNotifications() {
     }
   };
 
-  const checkReminders = () => {
+  const checkReminders = useCallback(() => {
     if (state.permission === "granted") {
       setupLocalReminders();
     }
-  };
+  }, [state.permission]);
 
   const setDailyReminder = (
     enabled: boolean,

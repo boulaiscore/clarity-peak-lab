@@ -23,7 +23,11 @@ import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 export default function DetoxSessionRunner() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { duration = 60, blockedApps = [] } = (location.state as { duration?: number; blockedApps?: string[] }) || {};
+  const { duration = 60, blockedApps = [], mode = "detox" } = (location.state as {
+    duration?: number;
+    blockedApps?: string[];
+    mode?: "detox" | "walk";
+  }) || {};
   
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [displaySeconds, setDisplaySeconds] = useState(0);
@@ -64,12 +68,13 @@ export default function DetoxSessionRunner() {
           navigate("/neuro-lab");
           return;
         }
-        // Auto-start walking tracker
-        await startWalking();
+        if (mode === "walk") {
+          await startWalking();
+        }
       }
     };
     initSession();
-  }, [isActive, sessionStarted, duration, blockedApps, startSession, navigate, startWalking]);
+  }, [isActive, sessionStarted, duration, blockedApps, mode, startSession, navigate, startWalking]);
 
   // Timer sync with session - COUNTDOWN mode
   useEffect(() => {
@@ -142,9 +147,9 @@ export default function DetoxSessionRunner() {
     console.log('[DetoxSessionRunner] handleComplete called');
 
     // Stop walking tracker and get final progress
-    const finalWalking = await stopWalking();
+    const finalWalking = mode === "walk" ? await stopWalking() : null;
     
-    const success = await completeSession(finalWalking?.durationMinutes || 0);
+    const success = await completeSession(finalWalking?.durationMinutes || 0, mode);
     console.log('[DetoxSessionRunner] completeSession result:', success);
     
     if (success) {
@@ -156,7 +161,7 @@ export default function DetoxSessionRunner() {
       completingRef.current = false;
       setIsCompleting(false);
     }
-  }, [stopWalking, completeSession, navigate]);
+  }, [mode, stopWalking, completeSession, navigate]);
 
   // Calculate elapsed seconds for completion check
   const elapsedSeconds = duration * 60 - displaySeconds;

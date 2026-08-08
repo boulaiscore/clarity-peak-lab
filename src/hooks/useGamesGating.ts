@@ -31,9 +31,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
-import { useIntradayEvents } from "@/contexts/IntradayEventsContext";
-import { useReasoningQuality } from "@/hooks/useReasoningQuality";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
+import { calculateGameXP, TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { 
   GameType, 
   GameAvailability, 
@@ -46,6 +45,7 @@ import {
 import { recordComboHash } from "@/lib/antiRepetitionEngine";
 import { startOfDay, startOfWeek, subDays, format } from "date-fns";
 import { toast } from "sonner";
+import { trackProductEvent } from "@/lib/productAnalytics";
 
 export type GatingStatus = "ENABLED" | "WITHHELD" | "PROTECTION";
 
@@ -396,8 +396,9 @@ function determineReasonCode(
  * This prevents skill decay for 30 days after training that skill.
  */
 export function useRecordGameSession() {
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   
   return useCallback(async (params: {
     gameType: GameType;
@@ -448,6 +449,25 @@ export function useRecordGameSession() {
     // v1.7: Validate durationSeconds
     const durationSeconds = Math.max(0, Math.floor(params.durationSeconds ?? 0));
     const sessionStatus = params.status ?? 'completed';
+    const difficulty = params.difficulty ?? "medium";
+
+    // One XP formula and one daily cap for every game entry point.
+    let effectiveXP = params.xpAwarded > 0
+      ? calculateGameXP(difficulty, params.score >= 90)
+      : 0;
+    if (sessionStatus === "completed" && effectiveXP > 0) {
+      const planId = (user?.trainingPlan || "light") as TrainingPlanId;
+      const dailyMax = TRAINING_PLANS[planId].gamesGating.dailyGamesWithXP;
+      const { count, error: countError } = await supabase
+        .from("game_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "completed")
+        .gt("xp_awarded", 0)
+        .gte("completed_at", startOfDay(new Date()).toISOString());
+      if (countError) throw countError;
+      if ((count ?? 0) >= dailyMax) effectiveXP = 0;
+    }
     
     console.log("[GameSession] Starting save for user:", userId, "Game:", params.gameType, "Status:", sessionStatus, "Duration:", durationSeconds);
     
@@ -474,7 +494,7 @@ export function useRecordGameSession() {
             game_type: params.gameType,
             gym_area: params.gymArea,
             thinking_mode: params.thinkingMode,
-            xp_awarded: params.xpAwarded,
+            xp_awarded: effectiveXP,
             score: params.score,
             // v1.7: New duration + status tracking
             started_at: params.startedAt ?? null,
@@ -542,7 +562,7 @@ export function useRecordGameSession() {
         }
         
         // 2. Insert into exercise_completions ONLY if completed AND xpAwarded > 0
-        if (params.xpAwarded > 0) {
+        if (effectiveXP > 0) {
           const exerciseId = `game-${params.gameType}-${data.id}`;
           const { error: completionError } = await supabase
             .from("exercise_completions")
@@ -552,7 +572,7 @@ export function useRecordGameSession() {
               gym_area: params.gymArea,
               thinking_mode: params.thinkingMode,
               difficulty: params.difficulty ?? "medium",
-              xp_earned: params.xpAwarded,
+              xp_earned: effectiveXP,
               score: params.score,
               week_start: weekStart,
             });
@@ -569,12 +589,12 @@ export function useRecordGameSession() {
         const skillXpColumn = `last_${skillRouted.toLowerCase()}_xp_at` as
           "last_ae_xp_at" | "last_ra_xp_at" | "last_ct_xp_at" | "last_in_xp_at";
         
-        const SKILL_TO_COLUMN: Record<string, string> = {
+        const SKILL_TO_COLUMN = {
           AE: "focus_stability",
           RA: "fast_thinking",
           CT: "reasoning_accuracy",
           IN: "slow_thinking",
-        };
+        } as const;
         const targetColumn = SKILL_TO_COLUMN[skillRouted];
         
         const { data: currentMetrics } = await supabase
@@ -584,8 +604,8 @@ export function useRecordGameSession() {
           .maybeSingle();
         
         if (currentMetrics) {
-          const currentValue = (currentMetrics as any)[targetColumn] || 50;
-          const currentTotalSessions = (currentMetrics as any).total_sessions ?? 0;
+          const currentValue = Number(currentMetrics[targetColumn] ?? 50);
+          const currentTotalSessions = currentMetrics.total_sessions ?? 0;
           
           // v1.7: Build metrics update conditionally
           const metricsUpdate: Record<string, string | number> = {
@@ -594,9 +614,9 @@ export function useRecordGameSession() {
           };
           
           // v1.7: MANUAL-COMPLIANT: Only update skills/XP timestamps if xpAwarded > 0
-          if (params.xpAwarded > 0) {
+          if (effectiveXP > 0) {
             // v1.7 BUGFIX: Remove score scaling! Delta = XP × 0.5 only (Manual-compliant)
-            const delta = params.xpAwarded * 0.5;
+            const delta = effectiveXP * 0.5;
             const newValue = Math.min(100, currentValue + delta);
             
             metricsUpdate.last_xp_at = nowUtc;
@@ -620,9 +640,9 @@ export function useRecordGameSession() {
           } else {
             console.log(`[GameSession] Metrics updated:`, Object.keys(metricsUpdate).join(", "));
           }
-        } else if (params.xpAwarded > 0) {
+        } else if (effectiveXP > 0) {
           // v1.7 BUGFIX: Remove score scaling for initial insert too!
-          const delta = params.xpAwarded * 0.5;
+          const delta = effectiveXP * 0.5;
           const initialValue = 50 + delta;
           
           await supabase
@@ -650,11 +670,28 @@ export function useRecordGameSession() {
         queryClient.invalidateQueries({ queryKey: ["games-xp-breakdown"] });
         queryClient.invalidateQueries({ queryKey: ["game-sessions-today"] });
         queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
+        queryClient.invalidateQueries({ queryKey: ["s2-game-scores", userId] });
+        queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", userId] });
         queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
         queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
         // CRITICAL: Invalidate intraday events for Analytics 1d charts to update immediately
         queryClient.invalidateQueries({ queryKey: ["intraday-events", userId] });
         
+        await recordMetricsSnapshot("game", {
+          gameName: params.gameName ?? null,
+          gameType: params.gameType,
+          xpAwarded: effectiveXP,
+          score: params.score,
+          difficulty: params.difficulty ?? null,
+        }, 100);
+
+        trackProductEvent("game_completed", {
+          gameName: params.gameName ?? "unknown",
+          gameType: params.gameType,
+          difficulty: params.difficulty ?? "unknown",
+          awardedXP: effectiveXP > 0,
+        });
+
         console.log("[GameSession] ✅ Session recorded successfully:", data.id);
         return data;
         
@@ -671,5 +708,5 @@ export function useRecordGameSession() {
     console.error("[GameSession] All retries failed:", lastError);
     toast.error("Failed to save session - please try again");
     throw lastError;
-  }, [user?.id, session, queryClient]);
+  }, [user?.id, user?.trainingPlan, queryClient, recordMetricsSnapshot]);
 }

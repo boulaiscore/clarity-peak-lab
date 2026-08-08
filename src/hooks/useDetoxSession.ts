@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import AppBlocker, { isNativeAndroid, ViolationEvent } from '@/lib/capacitor/appBlocker';
 import { DETOX_XP_PER_MINUTE } from '@/hooks/useDetoxProgress';
 import { MIN_WALKING_MINUTES, NO_WALKING_XP_MULTIPLIER } from '@/hooks/useWalkingTracker';
+import { useRecoveryV2 } from '@/hooks/useRecoveryV2';
 
 interface DetoxSession {
   id: string;
@@ -41,6 +42,7 @@ function cancelDetoxEndNotification(sessionId: string) {
 export function useDetoxSession() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { applyAction: applyRecoveryAction } = useRecoveryV2();
   const [activeSession, setActiveSession] = useState<DetoxSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [remainingMinutes, setRemainingMinutes] = useState(0);
@@ -50,58 +52,6 @@ export function useDetoxSession() {
   
   // Track session start for timer reset calculation
   const effectiveStartTimeRef = useRef<Date | null>(null);
-
-  // Load active session on mount
-  const loadActiveSession = useCallback(async () => {
-    if (!user?.id) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('detox_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        const endTime = new Date(data.end_time).getTime();
-        const now = Date.now();
-        
-        if (endTime > now) {
-          setActiveSession(data as DetoxSession);
-          setRemainingMinutes(Math.ceil((endTime - now) / 1000 / 60));
-          effectiveStartTimeRef.current = new Date(data.started_at);
-          
-          // Sync with native blocker if on Android
-          if (isNativeAndroid()) {
-            await AppBlocker.startBlocking({
-              packageNames: data.blocked_apps,
-              durationMinutes: Math.ceil((endTime - now) / 1000 / 60),
-              message: 'Stay focused! Detox session in progress.',
-            });
-            
-            // Get current violation count
-            const { violationCount: count } = await AppBlocker.isBlockingActive();
-            setViolationCount(count);
-          }
-        } else {
-          // Session expired, mark as completed
-          await completeSession(data.id, data.duration_minutes);
-        }
-      }
-    } catch (error) {
-      console.error('[useDetoxSession] Error loading session:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user?.id]);
 
   // Reset timer when violation is detected
   const handleViolation = useCallback((event: ViolationEvent) => {
@@ -219,7 +169,8 @@ export function useDetoxSession() {
   const completeSession = useCallback(async (
     sessionId?: string,
     durationMinutes?: number,
-    walkingMinutes?: number
+    walkingMinutes?: number,
+    recoveryMode: 'detox' | 'walk' = 'detox',
   ): Promise<boolean> => {
     const id = sessionId || activeSession?.id;
     const duration = durationMinutes || activeSession?.duration_minutes || 0;
@@ -254,13 +205,23 @@ export function useDetoxSession() {
 
       if (error) throw error;
 
-      // Also record in detox_completions for weekly tracking
-      if (user?.id && actualMinutes >= 30) {
+      // Record only the selected recovery modality in its activity table.
+      if (user?.id && actualMinutes >= 30 && recoveryMode === 'detox') {
         await supabase.from('detox_completions').insert({
           user_id: user.id,
           duration_minutes: actualMinutes,
           xp_earned: xpEarned,
         });
+      }
+
+      if (actualMinutes > 0) {
+        const effectiveWalkingMinutes = recoveryMode === 'walk'
+          ? Math.min(walkingMinutes ?? actualMinutes, actualMinutes)
+          : 0;
+        await applyRecoveryAction(
+          recoveryMode === 'detox' ? actualMinutes : 0,
+          effectiveWalkingMinutes,
+        );
       }
 
       setActiveSession(null);
@@ -291,7 +252,57 @@ export function useDetoxSession() {
       console.error('[useDetoxSession] Error completing session:', error);
       return false;
     }
-  }, [activeSession, user?.id, toast]);
+  }, [activeSession, user?.id, toast, applyRecoveryAction]);
+
+  // Load active session on mount. Declared after completeSession so an expired
+  // cloud session is finalized through the same canonical recovery pathway.
+  const loadActiveSession = useCallback(async () => {
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('detox_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        const endTime = new Date(data.end_time).getTime();
+        const now = Date.now();
+
+        if (endTime > now) {
+          setActiveSession(data as DetoxSession);
+          setRemainingMinutes(Math.ceil((endTime - now) / 1000 / 60));
+          effectiveStartTimeRef.current = new Date(data.started_at);
+
+          if (isNativeAndroid()) {
+            await AppBlocker.startBlocking({
+              packageNames: data.blocked_apps,
+              durationMinutes: Math.ceil((endTime - now) / 1000 / 60),
+              message: 'Stay focused! Detox session in progress.',
+            });
+
+            const { violationCount: count } = await AppBlocker.isBlockingActive();
+            setViolationCount(count);
+          }
+        } else {
+          await completeSession(data.id, data.duration_minutes);
+        }
+      }
+    } catch (error) {
+      console.error('[useDetoxSession] Error loading session:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [completeSession, user?.id]);
 
   // Cancel active session
   const cancelSession = useCallback(async (): Promise<boolean> => {
@@ -373,7 +384,8 @@ export function useDetoxSession() {
     timerResetAt,
     getElapsedSeconds,
     startSession,
-    completeSession: (walkingMinutes?: number) => completeSession(undefined, undefined, walkingMinutes),
+    completeSession: (walkingMinutes?: number, recoveryMode?: 'detox' | 'walk') =>
+      completeSession(undefined, undefined, walkingMinutes, recoveryMode),
     cancelSession,
     refreshSession: loadActiveSession,
   };

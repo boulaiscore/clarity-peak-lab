@@ -6,7 +6,7 @@
  * Provides REC_effective for gating and difficulty decisions.
  * 
  * v2.0 CHANGES:
- * - Uses new continuous decay model (rec_value, rec_last_ts)
+ * - Uses Recovery v2 daily recalibration (rec_value, rec_last_ts)
  * - Falls back to RRI for new users without baseline
  * - Applies decay automatically on each read
  * 
@@ -30,6 +30,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentRecovery, hasValidRecoveryData, RecoveryState } from "@/lib/recoveryV2";
 import { isRRIValid } from "@/lib/recoveryReadinessInit";
 import { getMediumPeriodStart } from "@/lib/temporalWindows";
+import { format } from "date-fns";
 
 export interface UseRecoveryEffectiveResult {
   /** The effective recovery value for gating (0-100) */
@@ -92,6 +93,24 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     staleTime: 30_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+  });
+
+  const today = format(new Date(), "yyyy-MM-dd");
+  const { data: phoneHealthTarget, isLoading: phoneTargetLoading } = useQuery({
+    queryKey: ["phone-health-target", userId, today],
+    queryFn: async (): Promise<number | null> => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from("phone_health_snapshots")
+        .select("target_rec")
+        .eq("user_id", userId)
+        .eq("date", today)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.target_rec ?? null;
+    },
+    enabled: hasUser,
+    staleTime: 5 * 60_000,
   });
   
   // Fetch RRI data from profile (fallback)
@@ -158,7 +177,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   // IMPORTANT: when userId is not resolved yet, React Query marks queries as not loading
   // (because they're disabled). We still want the UI to stay in a loading state instead
   // of falling back to 0%.
-  const isLoading = !hasUser || v2Loading || rriLoading || weeklyLoading;
+  const isLoading = !hasUser || v2Loading || phoneTargetLoading || rriLoading || weeklyLoading;
   const weeklyDetoxMinutes = weeklyData?.detoxMinutes ?? 0;
   const weeklyWalkMinutes = weeklyData?.walkMinutes ?? 0;
   
@@ -170,7 +189,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     
     // Check v2 state
     const isV2Initialized = v2State ? hasValidRecoveryData(v2State) : false;
-    const recoveryV2 = v2State ? getCurrentRecovery(v2State) : null;
+    const recoveryV2 = v2State ? getCurrentRecovery(v2State, phoneHealthTarget) : null;
     
     console.log("[useRecoveryEffective v2] Computing:", {
       isV2Initialized,
@@ -215,7 +234,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       rriValue: null,
       hasRecoveryData: false,
     };
-  }, [v2State, rriData]);
+  }, [v2State, rriData, phoneHealthTarget]);
   
   return {
     ...result,

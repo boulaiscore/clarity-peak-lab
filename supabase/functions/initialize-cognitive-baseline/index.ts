@@ -60,17 +60,26 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .maybeSingle();
 
+    // A calibrated baseline is an anchor, not a moving average. Recomputing it
+    // on every app open would erase real improvement and make Cognitive Age drift.
+    if (existingBaseline?.is_baseline_calibrated) {
+      return new Response(
+        JSON.stringify({ success: true, isCalibrated: true, frozen: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Get daily snapshots count
     const { data: snapshots, error: snapError } = await supabase
       .from("daily_metric_snapshots")
-      .select("snapshot_date, ae, ra, ct, in_score, s2, reasoning_quality")
+      .select("snapshot_date, ae, ra, ct, in_score, reasoning_quality")
       .eq("user_id", userId)
       .order("snapshot_date", { ascending: true });
 
     if (snapError) throw snapError;
 
     const daysWithData = snapshots?.filter((s) => {
-      const skills = [s.ae, s.ra, s.ct, s.in_score, s.s2].filter((v) => v !== null);
+      const skills = [s.ae, s.ra, s.ct, s.in_score].filter((v) => v !== null);
       return skills.length > 0;
     }) || [];
 
@@ -84,9 +93,9 @@ Deno.serve(async (req) => {
     let baselineRq90d: number | null = null;
 
     if (daysWithData.length >= 10) {
-      // Use available data for baseline
-      const dailyAvgs = daysWithData.map((snap) => {
-        const skills = [snap.ae, snap.ra, snap.ct, snap.in_score, snap.s2]
+      // Use only the first 21 valid days so the baseline remains an anchor.
+      const dailyAvgs = daysWithData.slice(0, 21).map((snap) => {
+        const skills = [snap.ae, snap.ra, snap.ct, snap.in_score]
           .filter((v): v is number => v !== null)
           .map(Number);
         return {
@@ -110,7 +119,7 @@ Deno.serve(async (req) => {
     baselineStartDate.setDate(baselineStartDate.getDate() + 14);
     
     const baselineEndDate = new Date(onboardingDate);
-    baselineEndDate.setDate(baselineEndDate.getDate() + 90);
+    baselineEndDate.setDate(baselineEndDate.getDate() + 21);
 
     const baselineData = {
       user_id: userId,

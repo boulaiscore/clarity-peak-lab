@@ -10,7 +10,6 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
-import { IntradayEventsProvider } from "@/contexts/IntradayEventsContext";
 import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
@@ -441,8 +440,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SessionProvider>
-          <IntradayEventsProvider>
-            <AppInitProvider>
+          <AppInitProvider>
               <TooltipProvider>
                 {showSplash && (
                   <SplashScreen 
@@ -460,8 +458,7 @@ const App = () => {
                 </HashRouter>
                 {import.meta.env.DEV && <TestModeFloatingToggle />}
               </TooltipProvider>
-            </AppInitProvider>
-          </IntradayEventsProvider>
+          </AppInitProvider>
         </SessionProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getExerciseXP } from "@/lib/trainingPlans";
 import { startOfWeek, format } from "date-fns";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
+import { trackProductEvent } from "@/lib/productAnalytics";
 import { 
   getXPRouting, 
   calculateStateUpdate, 
@@ -101,7 +102,7 @@ export function useRecordExerciseCompletion() {
       thinkingMode: string | null;
       difficulty: "easy" | "medium" | "hard";
       score: number;
-      exercise?: any; // Legacy, not used
+      exercise?: unknown; // Legacy, not used
       xpOverride?: number; // v1.8: Override XP if provided (for session caps)
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
@@ -141,13 +142,10 @@ export function useRecordExerciseCompletion() {
         .maybeSingle();
 
       if (currentMetrics) {
-        const currentValue = (currentMetrics as any)[targetColumn] || 50;
-        
-        // Apply score scaling: XP = baseXP × (score / 100)
-        const scaledXP = xpEarned * (score / 100);
-        
-        // Apply state update formula: Δstate = XP × 0.5
-        const newValue = calculateStateUpdate(currentValue, scaledXP);
+        const currentValue = Number(currentMetrics[targetColumn] ?? 50);
+
+        // Raw score is feedback only. State update is exactly Δstate = XP × 0.5.
+        const newValue = calculateStateUpdate(currentValue, xpEarned);
         
         // Update skill value AND timestamp for decay tracking
         const timestampColumn = SKILL_TO_TIMESTAMP_COLUMN[routing.skill];
@@ -174,7 +172,7 @@ export function useRecordExerciseCompletion() {
           .eq("user_id", user.id);
       } else {
         // Create new metrics record if none exists - initialize ALL skills to 50
-        const initialValue = calculateStateUpdate(50, xpEarned * (score / 100));
+        const initialValue = calculateStateUpdate(50, xpEarned);
         const timestampColumn = SKILL_TO_TIMESTAMP_COLUMN[routing.skill];
         const now = new Date().toISOString();
         
@@ -276,6 +274,7 @@ export function useRecordContentCompletion() {
         { contentType: variables.contentType, contentId: variables.contentId },
         200
       );
+      trackProductEvent("content_completed", { contentType: variables.contentType });
     },
   });
 }

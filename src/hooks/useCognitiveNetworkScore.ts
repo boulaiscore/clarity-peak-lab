@@ -1,11 +1,8 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserMetrics } from "@/hooks/useExercises";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
-import { supabase } from "@/integrations/supabase/client";
-import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
+import { useCognitiveStates } from "@/hooks/useCognitiveStates";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { 
   calculateSCI, 
   getSCIStatusText, 
@@ -27,25 +24,19 @@ interface UseCognitiveNetworkScoreResult {
   isLoading: boolean;
 }
 
-// v2.0: Use rolling 7-day window instead of calendar week
-function getRollingPeriodStart(): string {
-  return getMediumPeriodStartDate();
-}
-
 /**
  * Hook to calculate the Synthesized Cognitive Index (SCI)
- * v1.4: Aggregates data from:
- * - user_cognitive_metrics (raw cognitive scores)
+ * v2.0: Aggregates data from the same canonical sources as Today:
+ * - effective cognitive states (including inactivity decay)
  * - weekly XP tracking (games only - tasks don't contribute)
- * - weekly detox + walking data (recovery factor)
+ * - Recovery v2 (the same value shown in Today)
  */
 export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
-  const { user } = useAuth();
-  // v2.0: Use rolling 7-day window
-  const rollingStart = getRollingPeriodStart();
+  const { user, session } = useAuth();
+  const activeUser = user ?? session?.user;
   
-  // Fetch cognitive metrics
-  const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
+  const { states, isLoading: statesLoading } = useCognitiveStates();
+  const { recovery, isLoading: todayMetricsLoading } = useTodayMetrics();
   
   // Fetch weekly progress (games only in v1.3)
   const { 
@@ -53,37 +44,10 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     isLoading: progressLoading 
   } = useWeeklyProgress();
   
-  // Fetch weekly detox data
-  const { data: detoxData, isLoading: detoxLoading } = useWeeklyDetoxXP();
-  
-  // Fetch weekly walking minutes for correct REC formula - v2.0: rolling window
-  const { data: walkingData, isLoading: walkingLoading } = useQuery({
-    queryKey: ["weekly-walking-minutes-sci", user?.id, rollingStart],
-    queryFn: async () => {
-      if (!user?.id) return { totalMinutes: 0 };
-      
-      // v2.0: Use rolling 7-day window - query by completed_at
-      const rollingStartDate = getMediumPeriodStart();
-      const { data, error } = await supabase
-        .from("walking_sessions")
-        .select("duration_minutes, status, completed_at")
-        .eq("user_id", user.id)
-        .eq("status", "completed")
-        .gte("completed_at", rollingStartDate.toISOString());
-      
-      if (error) throw error;
-      
-      const totalMinutes = (data || []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
-      return { totalMinutes };
-    },
-    enabled: !!user?.id,
-    staleTime: 60_000,
-  });
-
-  const isLoading = metricsLoading || progressLoading || detoxLoading || walkingLoading;
+  const isLoading = statesLoading || todayMetricsLoading || progressLoading;
 
   const result = useMemo(() => {
-    if (!metrics) {
+    if (!activeUser) {
       return {
         sci: null,
         statusText: "Loading...",
@@ -93,15 +57,15 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     }
 
     // Get training plan targets
-    const trainingPlan = user?.trainingPlan || "expert";
+    const trainingPlan = user?.trainingPlan || "light";
     const targets = getTargetsForPlan(trainingPlan);
 
     // Prepare cognitive metrics input (v1.3 format)
     const cognitiveInput: CognitiveMetricsInput = {
-      focus_stability: metrics.focus_stability ?? 50,      // AE
-      fast_thinking: metrics.fast_thinking ?? 50,          // RA
-      reasoning_accuracy: metrics.reasoning_accuracy ?? 50, // CT
-      slow_thinking: metrics.slow_thinking ?? 50,          // IN
+      focus_stability: states.AE,
+      fast_thinking: states.RA,
+      reasoning_accuracy: states.CT,
+      slow_thinking: states.IN,
     };
 
     // Prepare behavioral engagement input (v1.3: games only)
@@ -110,11 +74,9 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
       xpTargetWeek: targets.xpTargetWeek,
     };
 
-    // Prepare recovery input (v1.4: includes walking)
+    // Prepare Recovery input from the canonical v2 engine.
     const recoveryInput: RecoveryInput = {
-      weeklyDetoxMinutes: detoxData?.totalMinutes ?? 0,
-      weeklyWalkMinutes: walkingData?.totalMinutes ?? 0,
-      detoxTarget: targets.detoxMinutes,
+      recovery,
     };
 
     // Calculate SCI
@@ -124,7 +86,7 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     const bottleneck = identifyBottleneck(sci);
 
     return { sci, statusText, level, bottleneck };
-  }, [metrics, weeklyGamesXP, detoxData, walkingData, user?.trainingPlan]);
+  }, [activeUser, states, weeklyGamesXP, recovery, user?.trainingPlan]);
 
   return {
     ...result,

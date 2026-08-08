@@ -21,8 +21,8 @@ import {
   CaseResult,
   SessionMetrics,
   Difficulty,
-  XP_BASE,
 } from "@/components/games/signal-vs-noise";
+import { calculateGameXP } from "@/lib/trainingPlans";
 
 type Phase = "intro" | "playing" | "results";
 
@@ -66,26 +66,26 @@ export default function SignalVsNoiseRunner() {
     setMetrics(gameMetrics);
     setDurationSeconds(duration);
 
-    // Calculate XP: base * (score/100), min 6
-    const baseXP = XP_BASE[difficulty];
-    const scaledXP = Math.max(6, Math.round(baseXP * (gameMetrics.sessionScore / 100)));
+    const normalizedDifficulty = difficulty === "standard" ? "medium" : difficulty;
+    const scaledXP = calculateGameXP(normalizedDifficulty, gameMetrics.sessionScore >= 90);
     setXpAwarded(scaledXP);
 
     // Record session
     if (user) {
       try {
-        await recordGameSession({
+        const savedSession = await recordGameSession({
           gameType: "S2-IN",
           gymArea: "reasoning",
           thinkingMode: "slow",
           score: gameMetrics.sessionScore,
           xpAwarded: scaledXP,
           durationSeconds: duration,
-          difficulty: difficulty === "standard" ? "medium" : difficulty,
+          difficulty: normalizedDifficulty,
           gameName: "signal_vs_noise",
           startedAt: startedAtRef.current?.toISOString() ?? null,
           status: 'completed',
         });
+        setXpAwarded(savedSession?.xp_awarded ?? 0);
       } catch (error) {
         console.error("Failed to record Signal vs Noise session:", error);
       }

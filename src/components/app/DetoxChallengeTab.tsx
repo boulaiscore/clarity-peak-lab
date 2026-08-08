@@ -30,7 +30,7 @@ import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TargetExceededDialog } from "./TargetExceededDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { REC_TARGET } from "@/lib/decayConstants";
+import { REC_GAIN_COEFFICIENT } from "@/lib/decayConstants";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,18 +41,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Recovery impact percentages based on canonical formula:
-// REC% = (weekly_detox_minutes + 0.5 × weekly_walk_minutes) / REC_TARGET × 100
-// With REC_TARGET = 840 min (14 hrs/week):
-// - Base rate per 30 min = 30/840 × 100 ≈ 3.57%
-// To ensure proportional consistency across durations, we calculate based on 30-min units
+// Recovery impact based on the same gain formula used by Recovery v2:
+// ΔREC = 0.12 × (detox_minutes + 0.5 × walk_minutes)
 const getRecoveryImpact = (minutes: number, mode: "detox" | "walk"): number => {
-  // Calculate exact percentage
-  const exactPercent = (minutes / REC_TARGET) * 100;
-  // For walk, apply 0.5 multiplier before rounding
-  const modeAdjusted = mode === "detox" ? exactPercent : exactPercent * 0.5;
-  // Round to nearest integer for display
-  return Math.round(modeAdjusted);
+  const effectiveMinutes = mode === "detox" ? minutes : minutes * 0.5;
+  return Math.round(effectiveMinutes * REC_GAIN_COEFFICIENT);
 };
 
 type RecoveryMode = "detox" | "walk";

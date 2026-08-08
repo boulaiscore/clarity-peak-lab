@@ -22,6 +22,7 @@ import { ArrowLeft, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
+import { calculateGameXP } from "@/lib/trainingPlans";
 
 type GamePhase = "difficulty" | "playing" | "results";
 
@@ -71,8 +72,7 @@ export default function SemanticDriftRunner() {
     const accuracy = gameResults.length > 0 ? correctCount / gameResults.length : 0;
     const score = Math.round(accuracy * 100);
     
-    const baseXP = { easy: 15, medium: 20, hard: 25 }[difficulty];
-    const xp = Math.round(baseXP * (0.5 + accuracy * 0.5));
+    const xp = calculateGameXP(difficulty, score >= 90);
     setXpAwarded(xp);
     
     // v1.2: Calculate duration from startedAtRef
@@ -88,7 +88,7 @@ export default function SemanticDriftRunner() {
       try {
         console.log("[SemanticDrift] Saving session for user:", userId, "Duration:", calculatedDuration);
         
-        await recordGameSession({
+        const savedSession = await recordGameSession({
           gameType: "S1-RA",
           gymArea: "creativity",
           thinkingMode: "fast",
@@ -101,9 +101,12 @@ export default function SemanticDriftRunner() {
           status: 'completed',
           difficulty,
         });
+        const savedXP = savedSession?.xp_awarded ?? 0;
+        setXpAwarded(savedXP);
         
         console.log("[SemanticDrift] ✅ Session saved successfully");
-        toast.success(`+${xp} XP earned!`, { icon: "⭐" });
+        if (savedXP > 0) toast.success(`+${savedXP} XP earned!`, { icon: "⭐" });
+        else toast.info("Daily XP limit reached. Play for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });

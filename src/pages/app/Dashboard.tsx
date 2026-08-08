@@ -12,15 +12,13 @@ import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 
 import { Button } from "@/components/ui/button";
 import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, LineChart, TrendingUp } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useUserMetrics } from "@/hooks/useExercises";
+import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { useInitializeCognitiveBaseline } from "@/hooks/useInitializeCognitiveBaseline";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
-  const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
   // Initialize tabs from URL params
@@ -45,35 +43,32 @@ const Dashboard = () => {
   // Initialize cognitive baseline on app load
   useInitializeCognitiveBaseline();
 
-  // Fetch real metrics from database
-  const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
+  // Use the same effective states and baselines as Today (including inactivity decay).
+  const { states, baseline, rawMetrics, isLoading: metricsLoading } = useCognitiveStates();
 
   // Get fast/slow thinking scores with deltas from baseline
   // S1 (Fast) = (AE + RA) / 2 = (focus_stability + fast_thinking) / 2
   // S2 (Slow) = (CT + IN) / 2 = (reasoning_accuracy + slow_thinking) / 2
   const thinkingScores = useMemo(() => {
     // Current skill values
-    const AE = metrics?.focus_stability || 50;
-    const RA = metrics?.fast_thinking || 50;
-    const CT = metrics?.reasoning_accuracy || 50;
-    const IN = metrics?.slow_thinking || 50;
+    const { AE, RA, CT, IN } = states;
 
     // Calculate S1 and S2 using correct aggregation formula
     const currentFast = Math.round((AE + RA) / 2); // S1
     const currentSlow = Math.round((CT + IN) / 2); // S2
 
     // Baseline skill values
-    const baselineAE = metrics?.baseline_focus || 50;
-    const baselineRA = metrics?.baseline_fast_thinking || 50;
-    const baselineCT = metrics?.baseline_reasoning || 50;
-    const baselineIN = metrics?.baseline_slow_thinking || 50;
+    const baselineAE = baseline.baselineAE;
+    const baselineRA = baseline.baselineRA;
+    const baselineCT = baseline.baselineCT;
+    const baselineIN = baseline.baselineIN;
 
     // Calculate baseline S1 and S2 with same formula
     const baselineFast = (baselineAE + baselineRA) / 2;
     const baselineSlow = (baselineCT + baselineIN) / 2;
 
     // Only show delta if user has completed at least 1 training session
-    const hasTrainedAfterBaseline = (metrics?.total_sessions || 0) > 0;
+    const hasTrainedAfterBaseline = (rawMetrics?.total_sessions || 0) > 0;
 
     // Calculate improvement from baseline only if training has occurred
     const fastDelta = hasTrainedAfterBaseline ? Math.round(currentFast - baselineFast) : 0;
@@ -87,7 +82,7 @@ const Dashboard = () => {
       baselineFast: Math.round(baselineFast),
       baselineSlow: Math.round(baselineSlow)
     };
-  }, [metrics]);
+  }, [states, baseline, rawMetrics?.total_sessions]);
 
   // Synthesized Cognitive Index (SCI) for neural animation
   const { sci, statusText: sciStatusText, bottleneck, isLoading: sciLoading } = useCognitiveNetworkScore();

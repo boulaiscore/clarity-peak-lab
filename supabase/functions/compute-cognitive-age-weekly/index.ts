@@ -10,7 +10,7 @@
  * cognitive_age = chrono_age - (improvement_points / 10) * effective_multiplier
  * 
  * Where:
- * - improvement_points = score_90d - baseline_score_90d
+ * - improvement_points = score_180d - baseline_score_90d (legacy column name)
  * - effective_multiplier = rq_multiplier if improvement > 0, else 1.0
  * - rq_multiplier = 0.85 + 0.15 * (rq_30d / 100), clamped to [0.85, 1.00]
  * - Cap: ±15 years from chrono_age
@@ -37,7 +37,6 @@ interface DailySnapshot {
   ra: number | null;
   ct: number | null;
   in_score: number | null;
-  s2: number | null;
   reasoning_quality: number | null;
 }
 
@@ -102,16 +101,16 @@ Deno.serve(async (req) => {
         const baselineScore = baseline.baseline_score_90d ? Number(baseline.baseline_score_90d) : null;
         const baselineRq = baseline.baseline_rq_90d ? Number(baseline.baseline_rq_90d) : null;
 
-        // 2) Fetch last 90 days of snapshots for this user
-        const ninetyDaysAgo = new Date(now);
-        ninetyDaysAgo.setUTCDate(now.getUTCDate() - 90);
-        const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split("T")[0];
+        // 2) Fetch the canonical 180-day window.
+        const longWindowStart = new Date(now);
+        longWindowStart.setUTCDate(now.getUTCDate() - 180);
+        const longWindowStartStr = longWindowStart.toISOString().split("T")[0];
 
         const { data: snapshots, error: snapError } = await supabase
           .from("daily_metric_snapshots")
-          .select("snapshot_date, ae, ra, ct, in_score, s2, reasoning_quality")
+          .select("snapshot_date, ae, ra, ct, in_score, reasoning_quality")
           .eq("user_id", userId)
-          .gte("snapshot_date", ninetyDaysAgoStr)
+          .gte("snapshot_date", longWindowStartStr)
           .order("snapshot_date", { ascending: false });
 
         if (snapError) {
@@ -129,7 +128,7 @@ Deno.serve(async (req) => {
         const dailySkillAvgs: { date: string; avg: number; rq: number | null }[] = [];
 
         for (const snap of snapshots as DailySnapshot[]) {
-          const skills = [snap.ae, snap.ra, snap.ct, snap.in_score, snap.s2]
+          const skills = [snap.ae, snap.ra, snap.ct, snap.in_score]
             .filter((v): v is number => v !== null)
             .map(Number);
 

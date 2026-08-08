@@ -21,13 +21,13 @@
  * 3. METRICS (SINGLE SOURCE OF TRUTH):
  *    - Computed ONLY from persistent skill values: AE, RA, CT, IN
  *    - Derived aggregates: S1, S2
- *    - Recovery from Detox/Walk only
+ *    - Recovery from the Recovery v2 persistent state
  *    - NEVER read from per-session data (game scores, baseline sessions)
  * 
  * 4. DAILY COMPUTATION ORDER (MANDATORY):
  *    1. Load persistent skills: AE, RA, CT, IN
  *    2. Compute aggregates: S1 = (AE+RA)/2, S2 = (CT+IN)/2
- *    3. Compute Recovery: REC = min(100, (detox + 0.5×walk) / target × 100)
+ *    3. Compute Recovery through recoveryV2.ts
  *    4. Compute states: Sharpness, Readiness
  *    5. Compute dashboard metrics: Cognitive Age, SCI, Dual-Process
  * 
@@ -50,8 +50,6 @@
  * NOTE: Tasks do NOT give XP. They are cognitive inputs, not training rewards.
  */
 
-import { REC_TARGET } from "@/lib/decayConstants";
-
 // ============================================
 // TYPES
 // ============================================
@@ -66,12 +64,6 @@ export interface CognitiveStates {
 export interface DerivedSystemScores {
   S1: number; // (AE + RA) / 2
   S2: number; // (CT + IN) / 2
-}
-
-export interface RecoveryInput {
-  weeklyDetoxMinutes: number;
-  weeklyWalkMinutes: number;
-  detoxTarget?: number; // Default: REC_TARGET (840 min)
 }
 
 export interface ReadinessPhysioData {
@@ -132,23 +124,6 @@ export function calculateSystemScores(states: CognitiveStates): DerivedSystemSco
 }
 
 // ============================================
-// RECOVERY (REC)
-// Formula: min(100, (weekly_detox_minutes + 0.5 × weekly_walk_minutes) / REC_TARGET × 100)
-// REC_TARGET = 840 min (canonical weekly target from decayConstants)
-// ============================================
-
-export function calculateRecovery(input: RecoveryInput): number {
-  const { weeklyDetoxMinutes, weeklyWalkMinutes, detoxTarget = REC_TARGET } = input;
-  
-  if (detoxTarget <= 0) return 0;
-  
-  const recInput = weeklyDetoxMinutes + 0.5 * weeklyWalkMinutes;
-  const rec = Math.min(100, (recInput / detoxTarget) * 100);
-  
-  return Math.round(rec * 10) / 10; // 1 decimal precision
-}
-
-// ============================================
 // SHARPNESS (PRIMARY TODAY METRIC)
 // Formula:
 //   S1 = (AE + RA) / 2
@@ -161,9 +136,15 @@ export function calculateSharpness(states: CognitiveStates, recovery: number): n
   const { S1, S2 } = calculateSystemScores(states);
   
   const base = 0.6 * S1 + 0.4 * S2;
-  const modulated = base * (0.65 + 0.35 * recovery / 100);
+  const modulated = base * calculateSharpnessRecoveryModifier(recovery);
   
   return clamp(Math.round(modulated * 10) / 10, 0, 100);
+}
+
+/** Canonical Recovery multiplier used by Sharpness and its UI explanations. */
+export function calculateSharpnessRecoveryModifier(recovery: number): number {
+  const normalizedRecovery = clamp(recovery, 0, 100) / 100;
+  return 0.75 + 0.25 * normalizedRecovery;
 }
 
 // ============================================
@@ -417,6 +398,29 @@ export interface DatabaseMetrics {
   baseline_reasoning?: number | null;
   baseline_slow_thinking?: number | null;
   baseline_cognitive_age?: number | null;
+  // Effective baselines and inactivity timestamps
+  baseline_eff_focus?: number | null;
+  baseline_eff_fast_thinking?: number | null;
+  baseline_eff_reasoning?: number | null;
+  baseline_eff_slow_thinking?: number | null;
+  last_ae_xp_at?: string | null;
+  last_ra_xp_at?: string | null;
+  last_ct_xp_at?: string | null;
+  last_in_xp_at?: string | null;
+}
+
+export interface EffectiveCognitiveStatesResult {
+  states: CognitiveStates;
+  rawStates: CognitiveStates;
+  baseline: CognitiveAgeBaseline;
+  skillDecay: {
+    aeDecay: number;
+    raDecay: number;
+    ctDecay: number;
+    inDecay: number;
+  };
+  S1: number;
+  S2: number;
 }
 
 export function mapDatabaseToCognitiveStates(metrics: DatabaseMetrics | null): CognitiveStates {
@@ -593,6 +597,73 @@ export function calculateSkillDecay(input: SkillDecayInput): number {
   const maxDecay = Math.max(0, currentValue - baselineValue);
   
   return Math.min(decay, maxDecay);
+}
+
+/**
+ * Canonical derivation from the database row to the effective states used by
+ * Today, Monitor, SCI, daily snapshots, and intraday snapshots.
+ */
+export function deriveEffectiveCognitiveStates(
+  metrics: DatabaseMetrics | null,
+  chronologicalAge = 35,
+  today = new Date(),
+): EffectiveCognitiveStatesResult {
+  const rawStates = mapDatabaseToCognitiveStates(metrics);
+  const baseline = mapDatabaseToBaseline(metrics ? {
+    ...metrics,
+    baseline_focus: metrics.baseline_eff_focus ?? metrics.baseline_focus,
+    baseline_fast_thinking: metrics.baseline_eff_fast_thinking ?? metrics.baseline_fast_thinking,
+    baseline_reasoning: metrics.baseline_eff_reasoning ?? metrics.baseline_reasoning,
+    baseline_slow_thinking: metrics.baseline_eff_slow_thinking ?? metrics.baseline_slow_thinking,
+  } : null, chronologicalAge);
+
+  const parseXpDate = (value: string | null | undefined): Date | null => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const aeDecay = calculateSkillDecay({
+    lastXpDate: parseXpDate(metrics?.last_ae_xp_at),
+    currentValue: rawStates.AE,
+    baselineValue: baseline.baselineAE,
+    today,
+  });
+  const raDecay = calculateSkillDecay({
+    lastXpDate: parseXpDate(metrics?.last_ra_xp_at),
+    currentValue: rawStates.RA,
+    baselineValue: baseline.baselineRA,
+    today,
+  });
+  const ctDecay = calculateSkillDecay({
+    lastXpDate: parseXpDate(metrics?.last_ct_xp_at),
+    currentValue: rawStates.CT,
+    baselineValue: baseline.baselineCT,
+    today,
+  });
+  const inDecay = calculateSkillDecay({
+    lastXpDate: parseXpDate(metrics?.last_in_xp_at),
+    currentValue: rawStates.IN,
+    baselineValue: baseline.baselineIN,
+    today,
+  });
+
+  const states: CognitiveStates = {
+    AE: clamp(rawStates.AE - aeDecay, baseline.baselineAE, 100),
+    RA: clamp(rawStates.RA - raDecay, baseline.baselineRA, 100),
+    CT: clamp(rawStates.CT - ctDecay, baseline.baselineCT, 100),
+    IN: clamp(rawStates.IN - inDecay, baseline.baselineIN, 100),
+  };
+  const { S1, S2 } = calculateSystemScores(states);
+
+  return {
+    states,
+    rawStates,
+    baseline,
+    skillDecay: { aeDecay, raDecay, ctDecay, inDecay },
+    S1,
+    S2,
+  };
 }
 
 // ============================================

@@ -7,6 +7,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
+import { trackProductEvent } from "@/lib/productAnalytics";
 import { startOfDay } from "date-fns";
 
 export interface ActiveBook {
@@ -204,6 +206,7 @@ export function useHasReadToday() {
 export function useLogManualReading() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
 
   return useMutation({
     mutationFn: async ({ bookId, minutes, bookTitle, bookAuthor }: { bookId: string; minutes: number; bookTitle: string; bookAuthor?: string }) => {
@@ -249,12 +252,25 @@ export function useLogManualReading() {
           .eq("user_id", user.id);
       }
     },
-    onSuccess: () => {
+    onSuccess: async (_result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["active-books"] });
       queryClient.invalidateQueries({ queryKey: ["reason-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["has-read-today"] });
       queryClient.invalidateQueries({ queryKey: ["reason-session-stats"] });
       queryClient.invalidateQueries({ queryKey: ["hybrid-rq-data"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-weighted-minutes-7d", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
+      await recordMetricsSnapshot("task", {
+        source: "manual_reading",
+        bookId: variables.bookId,
+        durationMinutes: variables.minutes,
+      }, 100);
+      trackProductEvent("reasoning_session_completed", {
+        source: "manual_reading",
+        sessionType: "reading",
+        durationMinutes: variables.minutes,
+        validForRQ: variables.minutes >= 5,
+      });
     },
   });
 }

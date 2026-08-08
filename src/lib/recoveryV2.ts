@@ -3,10 +3,10 @@
  * NEUROLOOP PRO – RECOVERY v2.0 ENGINE
  * ============================================
  * 
- * Continuous exponential decay model for Recovery (REC).
+ * Daily snapshot recalibration model for Recovery (REC).
  * 
  * KEY FORMULAS:
- * - Decay: REC = REC × 2^(-Δt_hours / 72)
+ * - New day: REC = target + (REC - target) × 0.85
  * - Gain:  REC = min(100, REC + 0.12 × (detox_min + 0.5 × walk_min))
  * 
  * STATE:
@@ -74,7 +74,7 @@ export function calculateRRI(
 }
 
 // ============================================
-// NIGHT HOURS HELPER
+// LEGACY NIGHT HOURS HELPER
 // ============================================
 
 /**
@@ -91,6 +91,8 @@ function isNightHour(hour: number): boolean {
 
 /**
  * Calculate effective decay hours between two timestamps.
+ * Retained for historical reports; Recovery v2 daily recalibration does not
+ * consume this helper.
  * Night hours (23:00-07:00) are weighted by NIGHT_DECAY_MULTIPLIER (0.2).
  * Day hours are weighted at 1.0.
  * 
@@ -234,12 +236,13 @@ export function applyRecoveryAction(
   currentRec: number,
   lastTs: string,
   detoxMinutes: number,
-  walkMinutes: number
+  walkMinutes: number,
+  targetOverride?: number | null,
 ): RecoveryActionResult {
   const nowTs = new Date().toISOString();
   
   // Step 1: Apply decay first
-  const decayedRec = applyRecoveryDecay(currentRec, lastTs, nowTs);
+  const decayedRec = applyRecoveryDecay(currentRec, lastTs, nowTs, targetOverride);
   
   // Step 2: Apply gain
   const x = detoxMinutes + 0.5 * walkMinutes;
@@ -286,7 +289,10 @@ export function initializeRecoveryBaseline(
  * @param state Current recovery state from DB
  * @returns Current effective recovery value (0-100)
  */
-export function getCurrentRecovery(state: RecoveryState): number | null {
+export function getCurrentRecovery(
+  state: RecoveryState,
+  targetOverride?: number | null,
+): number | null {
   // No baseline yet
   if (!state.hasRecoveryBaseline) return null;
   
@@ -294,7 +300,7 @@ export function getCurrentRecovery(state: RecoveryState): number | null {
   if (state.recValue === null || state.recLastTs === null) return null;
   
   // Apply decay to get current value
-  return applyRecoveryDecay(state.recValue, state.recLastTs);
+  return applyRecoveryDecay(state.recValue, state.recLastTs, new Date().toISOString(), targetOverride);
 }
 
 /**

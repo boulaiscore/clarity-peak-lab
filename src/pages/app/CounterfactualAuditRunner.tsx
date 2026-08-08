@@ -17,13 +17,13 @@ import {
   RoundResult,
   SessionMetrics,
   DIFFICULTY_CONFIG,
-  XP_BASE,
   Difficulty,
 } from "@/components/games/counterfactual-audit";
 import { ArrowLeft, Brain, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
+import { calculateGameXP } from "@/lib/trainingPlans";
 
 type GamePhase = "intro" | "playing" | "results";
 
@@ -74,10 +74,8 @@ export default function CounterfactualAuditRunner() {
     setMetrics(gameMetrics);
     setDurationSeconds(duration);
     
-    // XP calculation
-    const baseXP = XP_BASE[difficulty];
-    const xp = Math.round(baseXP * (gameMetrics.sessionScore / 100));
-    const finalXP = Math.max(6, xp); // Minimum 6 XP for completion
+    const normalizedDifficulty = difficulty === "standard" ? "medium" : difficulty;
+    const finalXP = calculateGameXP(normalizedDifficulty, gameMetrics.sessionScore >= 90);
     setXpAwarded(finalXP);
     
     // Calculate duration from startedAtRef
@@ -93,21 +91,23 @@ export default function CounterfactualAuditRunner() {
       try {
         console.log("[CounterfactualAudit] Saving session for user:", userId, "Duration:", calculatedDuration);
         
-        await recordGameSession({
+        const savedSession = await recordGameSession({
           gameType: "S2-CT",
           gymArea: "reasoning",
           thinkingMode: "slow",
           xpAwarded: finalXP,
           score: gameMetrics.sessionScore,
-          gameName: "causal_ledger", // Using existing game name for now
+          gameName: "counterfactual_audit",
           startedAt: startedAtRef.current?.toISOString() ?? null,
           durationSeconds: calculatedDuration,
           status: 'completed',
-          difficulty: difficulty === "standard" ? "medium" : difficulty,
+          difficulty: normalizedDifficulty,
         });
+        const savedXP = savedSession?.xp_awarded ?? 0;
+        setXpAwarded(savedXP);
         
         console.log("[CounterfactualAudit] ✅ Session saved successfully");
-        toast.success(`+${finalXP} XP · Critical Thinking updated`);
+        toast.success(savedXP > 0 ? `+${savedXP} XP · Critical Thinking updated` : "Daily XP limit reached. Play for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });

@@ -22,11 +22,10 @@ import {
   RoundResult,
   SessionMetrics,
   Difficulty,
-  XP_BASE,
-  CLEAN_LOCK_BONUS,
   SESSION_CONFIG,
 } from "@/components/games/hidden-rule-lab";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
+import { calculateGameXP } from "@/lib/trainingPlans";
 
 type Phase = "intro" | "playing" | "results";
 
@@ -69,9 +68,6 @@ export default function HiddenRuleLabRunner() {
     setMetrics(gameMetrics);
     setDurationSeconds(duration);
     
-    // Calculate XP
-    const baseXP = XP_BASE[difficulty];
-    
     // Check for clean lock bonus
     const lockResult = gameResults.find(r => r.roundType === "lock");
     const ruleCorrect = lockResult?.isCorrect || false;
@@ -81,7 +77,7 @@ export default function HiddenRuleLabRunner() {
     
     setHasCleanLock(cleanLock);
     
-    const xp = cleanLock ? baseXP + CLEAN_LOCK_BONUS : baseXP;
+    const xp = calculateGameXP(difficulty, cleanLock || gameMetrics.sessionScore >= 90);
     setXpAwarded(xp);
     
     // Record session
@@ -89,7 +85,7 @@ export default function HiddenRuleLabRunner() {
     if (userId) {
       setIsSaving(true);
       try {
-        await recordGameSession({
+        const savedSession = await recordGameSession({
           gameType: "S2-IN",
           gymArea: "creativity",
           thinkingMode: "slow",
@@ -101,8 +97,10 @@ export default function HiddenRuleLabRunner() {
           status: 'completed',
           difficulty,
         });
+        const savedXP = savedSession?.xp_awarded ?? 0;
+        setXpAwarded(savedXP);
         
-        toast.success(`+${xp} XP · Insight updated`);
+        toast.success(savedXP > 0 ? `+${savedXP} XP · Insight updated` : "Daily XP limit reached. Play for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });

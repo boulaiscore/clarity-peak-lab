@@ -1,249 +1,207 @@
 /**
- * ============================================
- * INTRADAY EVENT RECORDER FOR ACTIONS
- * ============================================
- * 
- * v2.0: Refactored to properly capture post-action metrics.
- * 
- * Problem: React hooks capture stale values at call time.
- * Solution: Use queryClient.fetchQuery to get fresh values
- * AFTER the action's side effects have completed.
- * 
- * This hook is called AFTER mutations complete to ensure
- * we're capturing the new metric values, not the old ones.
+ * Records a post-action snapshot using the same canonical engines and source
+ * columns used by the live Today and Monitor tabs.
  */
 
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { format, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, parseISO } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
-import type { IntradayEventType } from "@/hooks/useRecordIntradayEvent";
-import { getCurrentRecovery, RecoveryState } from "@/lib/recoveryV2";
+import { getCurrentRecovery, type RecoveryState } from "@/lib/recoveryV2";
 import {
-  calculateSharpness,
+  calculatePhysioComponent,
   calculateReadiness,
+  calculateReadinessDecay,
+  calculateSharpness,
   clamp,
+  deriveEffectiveCognitiveStates,
 } from "@/lib/cognitiveEngine";
 import { calculateRQ, type TaskCompletion } from "@/lib/reasoningQuality";
+import { getMediumPeriodStartDate } from "@/lib/temporalWindows";
+
+export type IntradayEventType =
+  | "decay"
+  | "task"
+  | "game"
+  | "detox"
+  | "walking"
+  | "app_open";
 
 export function useRecordIntradayOnAction() {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
   const queryClient = useQueryClient();
 
-  const fetchLiveReasoningQuality = useCallback(async (): Promise<number | null> => {
-    if (!userId) return null;
+  const fetchLiveReasoningQuality = useCallback(async (
+    S2: number,
+    lastS2GameAt: string | null | undefined,
+    lastTaskAt: string | null | undefined,
+  ): Promise<number> => {
+    if (!userId) return 50;
 
-    // 1) S2 inputs + decay tracking dates
-    const { data: metricsRow, error: metricsErr } = await supabase
-      .from("user_cognitive_metrics")
-      .select("critical_thinking_score, creativity, last_s2_game_at, last_task_at")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (metricsErr) throw metricsErr;
-
-    const CT = metricsRow?.critical_thinking_score ?? 50;
-    const IN = metricsRow?.creativity ?? 50;
-    const S2 = (CT + IN) / 2;
-
-    const lastS2GameAt = metricsRow?.last_s2_game_at ? parseISO(metricsRow.last_s2_game_at) : null;
-    const lastTaskAt = metricsRow?.last_task_at ? parseISO(metricsRow.last_task_at) : null;
-
-    // 2) Last 10 S2 game scores (chronological)
-    const { data: s2Games, error: s2Err } = await supabase
-      .from("game_sessions")
-      .select("score, completed_at")
-      .eq("user_id", userId)
-      .eq("system_type", "S2")
-      .order("completed_at", { ascending: false })
-      .limit(10);
-
-    if (s2Err) throw s2Err;
-
-    const s2GameScores = (s2Games ?? [])
-      .filter((g) => g.score !== null)
-      .map((g) => Number(g.score))
-      .reverse();
-
-    // 3) Last 7 days of task completions
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const { data: tasks, error: tasksErr } = await supabase
-      .from("exercise_completions")
-      .select("exercise_id, completed_at")
-      .eq("user_id", userId)
-      .like("exercise_id", "content-%")
-      .gte("completed_at", sevenDaysAgo.toISOString());
+    const [gamesResult, tasksResult, customResult] = await Promise.all([
+      supabase
+        .from("game_sessions")
+        .select("score, completed_at")
+        .eq("user_id", userId)
+        .eq("system_type", "S2")
+        .order("completed_at", { ascending: false })
+        .limit(10),
+      supabase
+        .from("exercise_completions")
+        .select("exercise_id, completed_at")
+        .eq("user_id", userId)
+        .like("exercise_id", "content-%")
+        .gte("completed_at", sevenDaysAgo.toISOString()),
+      supabase
+        .from("reason_sessions")
+        .select("duration_seconds, weight")
+        .eq("user_id", userId)
+        .eq("source", "custom")
+        .eq("is_valid_for_rq", true)
+        .gte("started_at", sevenDaysAgo.toISOString())
+        .not("ended_at", "is", null),
+    ]);
 
-    if (tasksErr) throw tasksErr;
+    const firstError = gamesResult.error || tasksResult.error || customResult.error;
+    if (firstError) throw firstError;
 
-    const taskCompletions: TaskCompletion[] = (tasks ?? []).map((t) => {
-      const parts = t.exercise_id.split("-");
-      const type = (parts[1] as TaskCompletion["type"]) || "article";
+    const s2GameScores = (gamesResult.data ?? [])
+      .filter((game) => game.score !== null)
+      .map((game) => Number(game.score))
+      .reverse();
+
+    const taskCompletions: TaskCompletion[] = (tasksResult.data ?? []).map((task) => {
+      const type = task.exercise_id.split("-")[1] as TaskCompletion["type"] | undefined;
       return {
-        type,
-        completedAt: parseISO(t.completed_at),
+        type: type === "podcast" || type === "book" ? type : "article",
+        completedAt: parseISO(task.completed_at),
       };
     });
 
-    // 4) Compute live RQ with the same engine as the UI
-    const rqResult = calculateRQ({
+    const customWeightedMinutes = (customResult.data ?? []).reduce((total, reasonSession) => {
+      return total + ((reasonSession.duration_seconds ?? 0) / 60) * (reasonSession.weight ?? 1);
+    }, 0);
+
+    return calculateRQ({
       S2,
       s2GameScores,
       taskCompletions,
-      lastS2GameAt,
-      lastTaskAt,
-    });
-
-    return Math.round(rqResult.rq * 10) / 10;
+      customWeightedMinutes,
+      lastS2GameAt: lastS2GameAt ? parseISO(lastS2GameAt) : null,
+      lastTaskAt: lastTaskAt ? parseISO(lastTaskAt) : null,
+    }).rq;
   }, [userId]);
 
-  /**
-   * Records a metric snapshot AFTER an action completes.
-   * This fetches fresh data from the cache/server to ensure
-   * we capture the post-action values.
-   * 
-   * @param eventType - Type of event (task, game, decay, etc.)
-   * @param eventDetails - Optional metadata about the event
-   * @param delayMs - Optional delay before recording (for cache updates)
-   */
-  const recordMetricsSnapshot = useCallback(
-    async (
-      eventType: IntradayEventType, 
-      eventDetails?: Record<string, unknown>,
-      delayMs: number = 100
-    ) => {
-      console.log("[useRecordIntradayOnAction] 🎯 Called with:", { eventType, eventDetails, userId });
-      
-      if (!userId) {
-        console.error("[useRecordIntradayOnAction] ❌ No user ID, skipping event");
-        return;
-      }
+  const recordMetricsSnapshot = useCallback(async (
+    eventType: IntradayEventType,
+    eventDetails?: Record<string, unknown>,
+    delayMs = 100,
+  ) => {
+    if (!userId) return;
+    if (delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
 
-      // Small delay to allow cache invalidations to propagate
-      if (delayMs > 0) {
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-      }
+    try {
+      const now = new Date();
+      const today = format(now, "yyyy-MM-dd");
+      const [metricsResult, phoneResult, wearableResult] = await Promise.all([
+        supabase
+          .from("user_cognitive_metrics")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle(),
+        supabase
+          .from("phone_health_snapshots")
+          .select("target_rec")
+          .eq("user_id", userId)
+          .eq("date", today)
+          .maybeSingle(),
+        supabase
+          .from("wearable_snapshots")
+          .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency")
+          .eq("user_id", userId)
+          .eq("date", today)
+          .maybeSingle(),
+      ]);
 
+      const firstError = metricsResult.error || phoneResult.error || wearableResult.error;
+      if (firstError) throw firstError;
+      const metrics = metricsResult.data;
+      if (!metrics) throw new Error("Cognitive metrics are not initialized");
+
+      const derived = deriveEffectiveCognitiveStates(metrics, user?.age ?? 35, now);
+      const recoveryState: RecoveryState = {
+        recValue: metrics.rec_value,
+        recLastTs: metrics.rec_last_ts,
+        hasRecoveryBaseline: metrics.has_recovery_baseline ?? false,
+      };
+      const recovery = getCurrentRecovery(recoveryState, phoneResult.data?.target_rec ?? null);
+      const recoveryForFormula = recovery ?? 0;
+
+      const wearable = wearableResult.data;
+      const physioComponent = wearable ? calculatePhysioComponent({
+        hrvMs: wearable.hrv_ms,
+        restingHr: wearable.resting_hr,
+        sleepDurationMin: wearable.sleep_duration_min,
+        sleepEfficiency: wearable.sleep_efficiency,
+      }) : null;
+
+      const rollingStart = getMediumPeriodStartDate();
+      const currentDecayApplied = metrics.readiness_decay_week_start === rollingStart
+        ? (metrics.readiness_decay_applied ?? 0)
+        : 0;
+      const readinessDecay = calculateReadinessDecay({
+        consecutiveLowRecDays: metrics.low_rec_streak_days ?? 0,
+        currentDecayApplied,
+      });
+
+      const sharpness = calculateSharpness(derived.states, recoveryForFormula);
+      const readiness = clamp(
+        calculateReadiness(derived.states, recoveryForFormula, physioComponent) - readinessDecay,
+        0,
+        100,
+      );
+
+      let reasoningQuality = metrics.reasoning_quality;
       try {
-        // Fetch fresh cognitive states from cache or server
-        const cognitiveStates = queryClient.getQueryData<{
-          reasoning_accuracy: number;
-          fast_thinking: number;
-          critical_thinking_score: number;
-          creativity: number;
-        }>(["cognitive-states", userId]);
-
-        // Fetch fresh recovery state
-        const recoveryState = queryClient.getQueryData<RecoveryState>(
-          ["recovery-v2-state", userId]
+        reasoningQuality = await fetchLiveReasoningQuality(
+          derived.S2,
+          metrics.last_s2_game_at,
+          metrics.last_task_at,
         );
-
-        // If cache is stale, refetch directly from DB
-        let AE = cognitiveStates?.fast_thinking ?? 50;
-        let RA = cognitiveStates?.reasoning_accuracy ?? 50;
-        let CT = cognitiveStates?.critical_thinking_score ?? 50;
-        let IN = cognitiveStates?.creativity ?? 50;
-
-        if (!cognitiveStates) {
-          const { data } = await supabase
-            .from("user_cognitive_metrics")
-            .select("fast_thinking, reasoning_accuracy, critical_thinking_score, creativity, rec_value, rec_last_ts, has_recovery_baseline, reasoning_quality")
-            .eq("user_id", userId)
-            .maybeSingle();
-
-          if (data) {
-            AE = data.fast_thinking ?? 50;
-            RA = data.reasoning_accuracy ?? 50;
-            CT = data.critical_thinking_score ?? 50;
-            IN = data.creativity ?? 50;
-          }
-        }
-
-        // Calculate current metrics
-        const states = { AE, RA, CT, IN };
-        const recovery = recoveryState ? getCurrentRecovery(recoveryState) : null;
-        const recoveryValue = recovery ?? 0;
-
-        const sharpness = calculateSharpness(states, recoveryValue);
-        const readiness = calculateReadiness(states, recoveryValue, null);
-
-        // Get RQ (LIVE) - required for correct intraday charts.
-        // Using persisted RQ here causes new profiles (and some edge cases) to show a flat line
-        // because persisted RQ may be null or already at the final value.
-        let reasoningQuality: number | null = null;
-
-        try {
-          reasoningQuality = await fetchLiveReasoningQuality();
-        } catch (e) {
-          console.warn("[useRecordIntradayOnAction] Live RQ calc failed, falling back to persisted:", e);
-
-          // Fallback: persisted value (better than nothing, but may flatten the chart)
-          const cachedRQ = queryClient.getQueryData<{ reasoning_quality: number | null }>(
-            ["reasoning-quality-persisted", userId]
-          );
-
-          if (cachedRQ?.reasoning_quality != null) {
-            reasoningQuality = cachedRQ.reasoning_quality;
-          } else {
-            const { data } = await supabase
-              .from("user_cognitive_metrics")
-              .select("reasoning_quality")
-              .eq("user_id", userId)
-              .maybeSingle();
-
-            reasoningQuality = data?.reasoning_quality ?? null;
-          }
-        }
-
-        // Record the event
-        const today = format(new Date(), "yyyy-MM-dd");
-        const eventPayload = {
-          user_id: userId,
-          event_date: today,
-          event_timestamp: new Date().toISOString(),
-          event_type: eventType,
-          readiness: readiness != null ? Math.round(readiness * 10) / 10 : null,
-          sharpness: sharpness != null ? Math.round(sharpness * 10) / 10 : null,
-          recovery: recovery != null ? Math.round(recovery * 10) / 10 : null,
-          reasoning_quality: reasoningQuality,
-          event_details: (eventDetails ?? null) as Json,
-        };
-
-        console.log("[useRecordIntradayOnAction] 📝 Inserting event:", eventPayload);
-
-        const { data: insertedData, error } = await supabase
-          .from("intraday_metric_events")
-          .insert([eventPayload])
-          .select();
-
-        if (error) {
-          console.error("[useRecordIntradayOnAction] ❌ Error recording event:", error);
-          return;
-        }
-
-        console.log("[useRecordIntradayOnAction] ✅ Inserted successfully:", insertedData);
-
-        console.log(`[useRecordIntradayOnAction] ✅ Recorded ${eventType}:`, {
-          readiness: readiness?.toFixed(1),
-          sharpness: sharpness?.toFixed(1),
-          recovery: recovery?.toFixed(1),
-          rq: reasoningQuality?.toFixed(1),
-        });
-
-        // Invalidate intraday history to refresh charts
-        queryClient.invalidateQueries({ queryKey: ["intraday-events"] });
-
-      } catch (err) {
-        console.error("[useRecordIntradayOnAction] Error:", err);
+      } catch (error) {
+        console.warn("[useRecordIntradayOnAction] Live RQ failed; using persisted RQ", error);
       }
-    },
-    [userId, queryClient]
-  );
+
+      const eventPayload = {
+        user_id: userId,
+        event_date: today,
+        event_timestamp: now.toISOString(),
+        event_type: eventType,
+        readiness: Math.round(readiness * 10) / 10,
+        sharpness: Math.round(sharpness * 10) / 10,
+        recovery: recovery == null ? null : Math.round(recovery * 10) / 10,
+        reasoning_quality: reasoningQuality == null
+          ? null
+          : Math.round(reasoningQuality * 10) / 10,
+        event_details: (eventDetails ?? null) as Json,
+      };
+
+      const { error } = await supabase.from("intraday_metric_events").insert([eventPayload]);
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["intraday-events", userId] });
+    } catch (error) {
+      console.error("[useRecordIntradayOnAction] Failed to record snapshot:", error);
+    }
+  }, [fetchLiveReasoningQuality, queryClient, user?.age, userId]);
 
   return { recordMetricsSnapshot };
 }

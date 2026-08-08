@@ -3,6 +3,8 @@
 import React, { useMemo } from "react";
 import { Brain } from "lucide-react";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
+import { calculateSharpness } from "@/lib/cognitiveEngine";
+import { calculateCognitiveAgeFromPerformance } from "@/lib/cognitiveAge";
 
 type Area = "focus" | "reasoning" | "creativity";
 type ConfidenceLevel = "Low" | "Developing" | "Moderate" | "High";
@@ -598,7 +600,6 @@ export function ClinicalReport({
     metrics.baseline_fast_thinking,
     metrics.baseline_reasoning,
     metrics.baseline_slow_thinking,
-    metrics.baseline_creativity,
   ]);
   const baselineCognitiveAge = metrics.baseline_cognitive_age ?? participantAge ?? 35;
   const hasBaselineSignal = [
@@ -606,17 +607,21 @@ export function ClinicalReport({
     metrics.baseline_fast_thinking,
     metrics.baseline_reasoning,
     metrics.baseline_slow_thinking,
-    metrics.baseline_creativity,
   ].some((value) => value !== null && value !== undefined);
-  const performanceForAge = avg([AE, RA, CT, IN, creativity]);
+  const performanceForAge = avg([AE, RA, CT, IN]);
   const cognitiveAge = hasBaselineSignal
-    ? round(baselineCognitiveAge - ((performanceForAge - baselineForAge) / 10), 1)
+    ? calculateCognitiveAgeFromPerformance({
+        performance: performanceForAge,
+        baselinePerformance: baselineForAge,
+        chronologicalAge: participantAge ?? baselineCognitiveAge,
+        rq: metrics.reasoning_quality,
+      })
     : null;
   const cognitiveAgeDelta = participantAge && cognitiveAge !== null ? round(cognitiveAge - participantAge, 1) : null;
   const cognitiveAgeLabel = cognitiveAge === null ? "Calibrating" : `${cognitiveAge.toFixed(1)}y`;
 
   const fallbackRecovery = sciComponents.recovery;
-  const fallbackSharpness = round((s1Score * 0.6 + s2Score * 0.4) * (0.7 + (fallbackRecovery / 100) * 0.3));
+  const fallbackSharpness = calculateSharpness({ AE, RA, CT, IN }, fallbackRecovery);
   const fallbackReasoningQuality = round(avg([metrics.reasoning_quality, CT, IN, metrics.decision_quality, metrics.bias_resistance]));
   const fallbackCoherence = round(avg([fallbackReasoningQuality, 100 - Math.min(45, Math.abs(s1Score - s2Score) * 2.2)]));
   const fallbackSnapshot = useMemo<ReportMetricSnapshot>(() => ({

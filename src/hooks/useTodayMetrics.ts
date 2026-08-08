@@ -2,7 +2,7 @@
  * Hook that computes Today's metrics (Sharpness, Readiness, Recovery)
  * using the cognitive engine formulas.
  * 
- * v2.0: Now uses Recovery v2.0 continuous decay model instead of weekly aggregates.
+ * v2.0: Uses the Recovery v2 daily snapshot model instead of weekly aggregates.
  * Recovery is fetched from user_cognitive_metrics (rec_value, rec_last_ts)
  * and decay is applied using getCurrentRecovery() from recoveryV2.ts.
  * 
@@ -20,7 +20,7 @@
  * 
  * SHARPNESS = 0.6×S1 + 0.4×S2, modulated by Recovery (0.75 + 0.25×REC/100)
  * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable) - decay
- * RECOVERY = Continuous decay model: REC × 2^(-Δt_hours / 72)
+ * RECOVERY = Daily mean reversion toward the Phone Health target (or 50)
  * 
  * DATA SOURCES:
  * - Cognitive States (AE, RA, CT, IN): from user_cognitive_metrics table
@@ -42,6 +42,7 @@ import {
   clamp,
 } from "@/lib/cognitiveEngine";
 import { getCurrentRecovery, RecoveryState } from "@/lib/recoveryV2";
+import { format } from "date-fns";
 
 export interface UseTodayMetricsResult {
   // Today metrics (0-100)
@@ -79,7 +80,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   const userId = user?.id ?? session?.user?.id;
   // v2.0: Use rolling 7-day window
   const rollingStart = getRollingPeriodStart();
-  const today = new Date().toISOString().split("T")[0];
+  const today = format(new Date(), "yyyy-MM-dd");
   
   const { states, S1, S2, isLoading: statesLoading } = useCognitiveStates();
   
@@ -112,6 +113,24 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     staleTime: 30_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+  });
+
+  // Use the same daily Recovery target as the action and gating flows.
+  const { data: phoneHealthTarget, isLoading: phoneTargetLoading } = useQuery({
+    queryKey: ["phone-health-target", userId, today],
+    queryFn: async (): Promise<number | null> => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from("phone_health_snapshots")
+        .select("target_rec")
+        .eq("user_id", userId)
+        .eq("date", today)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.target_rec ?? null;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
   });
   
   // REMOVED: Old weekly detox/walking minutes queries
@@ -172,16 +191,23 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   });
   
   // Check if all data sources are loaded
-  const allLoaded = !statesLoading && !recoveryV2Loading && !wearableLoading && !decayLoading;
+  const allLoaded = !statesLoading && !recoveryV2Loading && !phoneTargetLoading && !wearableLoading && !decayLoading;
   
   // Use ref to cache last valid result (prevents flicker during refetch)
   const cachedResultRef = useRef<UseTodayMetricsResult | null>(null);
+  const cachedUserIdRef = useRef<string | undefined>(userId);
+  if (cachedUserIdRef.current !== userId) {
+    cachedResultRef.current = null;
+    cachedUserIdRef.current = userId;
+  }
   
   const freshResult = useMemo((): UseTodayMetricsResult => {
     // Calculate Recovery (REC) using v2.0 continuous decay model
     // recoveryRawValue: null if not initialized (used for snapshots to avoid saving 0)
     // recovery: always numeric (0 fallback) for calculations
-    const recoveryRawValue = recoveryV2State ? getCurrentRecovery(recoveryV2State) : null;
+    const recoveryRawValue = recoveryV2State
+      ? getCurrentRecovery(recoveryV2State, phoneHealthTarget)
+      : null;
     const recovery = recoveryRawValue ?? 0;
     const isRecoveryInitialized = recoveryV2State?.hasRecoveryBaseline ?? false;
     
@@ -233,7 +259,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       S2,
       isLoading: !allLoaded,
     };
-  }, [states, S1, S2, recoveryV2State, wearableSnapshot, decayData, rollingStart, allLoaded]);
+  }, [states, S1, S2, recoveryV2State, phoneHealthTarget, wearableSnapshot, decayData, rollingStart, allLoaded]);
   
   // Update cached result only when all data is loaded
   if (allLoaded) {

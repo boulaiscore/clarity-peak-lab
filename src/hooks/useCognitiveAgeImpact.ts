@@ -75,13 +75,13 @@ export function useCognitiveAgeImpact() {
     staleTime: 5 * 60_000,
   });
 
-  // 2) Fetch 90d daily snapshots for current values + baseline per-variable calculation
-  const { data: snapshots90d, isLoading: snapshotsLoading } = useQuery({
-    queryKey: ["daily-snapshots-90d-impact", user?.id],
+  // 2) Fetch the same 180d window used by Cognitive Age v2.
+  const { data: snapshots180d, isLoading: snapshotsLoading } = useQuery({
+    queryKey: ["daily-snapshots-180d-impact", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const startDate = format(subDays(new Date(), 90), "yyyy-MM-dd");
+      const startDate = format(subDays(new Date(), 180), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from("daily_metric_snapshots")
@@ -99,10 +99,10 @@ export function useCognitiveAgeImpact() {
 
   // 3) Calculate per-variable baselines (first 21 days average)
   const variableBaselines = useMemo(() => {
-    if (!snapshots90d || snapshots90d.length < 7) return null;
+    if (!snapshots180d || snapshots180d.length < 7) return null;
 
     // Use first 21 snapshots as baseline (matching calibration logic)
-    const baselineSnapshots = snapshots90d.slice(0, 21);
+    const baselineSnapshots = snapshots180d.slice(0, 21);
     
     const calcAvg = (values: (number | null)[]) => {
       const valid = values.filter((v): v is number => v !== null);
@@ -110,16 +110,16 @@ export function useCognitiveAgeImpact() {
     };
 
     return {
-      ae: calcAvg(baselineSnapshots.map(s => s.ae ? Number(s.ae) : null)),
-      ra: calcAvg(baselineSnapshots.map(s => s.ra ? Number(s.ra) : null)),
-      ct: calcAvg(baselineSnapshots.map(s => s.ct ? Number(s.ct) : null)),
-      in: calcAvg(baselineSnapshots.map(s => s.in_score ? Number(s.in_score) : null)),
+      ae: calcAvg(baselineSnapshots.map(s => s.ae != null ? Number(s.ae) : null)),
+      ra: calcAvg(baselineSnapshots.map(s => s.ra != null ? Number(s.ra) : null)),
+      ct: calcAvg(baselineSnapshots.map(s => s.ct != null ? Number(s.ct) : null)),
+      in: calcAvg(baselineSnapshots.map(s => s.in_score != null ? Number(s.in_score) : null)),
     };
-  }, [snapshots90d]);
+  }, [snapshots180d]);
 
   // 4) Calculate current values (90d rolling average)
   const currentValues = useMemo(() => {
-    if (!snapshots90d || snapshots90d.length === 0) return null;
+    if (!snapshots180d || snapshots180d.length === 0) return null;
 
     const calcAvg = (values: (number | null)[]) => {
       const valid = values.filter((v): v is number => v !== null);
@@ -127,12 +127,12 @@ export function useCognitiveAgeImpact() {
     };
 
     return {
-      ae: calcAvg(snapshots90d.map(s => s.ae ? Number(s.ae) : null)),
-      ra: calcAvg(snapshots90d.map(s => s.ra ? Number(s.ra) : null)),
-      ct: calcAvg(snapshots90d.map(s => s.ct ? Number(s.ct) : null)),
-      in: calcAvg(snapshots90d.map(s => s.in_score ? Number(s.in_score) : null)),
+      ae: calcAvg(snapshots180d.map(s => s.ae != null ? Number(s.ae) : null)),
+      ra: calcAvg(snapshots180d.map(s => s.ra != null ? Number(s.ra) : null)),
+      ct: calcAvg(snapshots180d.map(s => s.ct != null ? Number(s.ct) : null)),
+      in: calcAvg(snapshots180d.map(s => s.in_score != null ? Number(s.in_score) : null)),
     };
-  }, [snapshots90d]);
+  }, [snapshots180d]);
 
   // 5) Calculate contributions
   const contributions = useMemo((): VariableContribution[] => {
@@ -183,16 +183,16 @@ export function useCognitiveAgeImpact() {
 
   // 7) Count unique days with data
   const daysWithData = useMemo(() => {
-    if (!snapshots90d) return 0;
-    const uniqueDates = new Set(snapshots90d.map(s => s.snapshot_date));
+    if (!snapshots180d) return 0;
+    const uniqueDates = new Set(snapshots180d.map(s => s.snapshot_date));
     return uniqueDates.size;
-  }, [snapshots90d]);
+  }, [snapshots180d]);
 
   return {
     contributions,
     totalImprovementPoints,
     isLoading: baselineLoading || snapshotsLoading,
-    hasEnoughData: (snapshots90d?.length ?? 0) >= 3,
+    hasEnoughData: (snapshots180d?.length ?? 0) >= 3,
     isCalibrated: baseline?.is_baseline_calibrated ?? false,
     daysWithData,
     daysRequired: 7,

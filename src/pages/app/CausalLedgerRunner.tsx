@@ -20,6 +20,7 @@ import { ArrowLeft, Brain, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
+import { calculateGameXP } from "@/lib/trainingPlans";
 
 type GamePhase = "intro" | "playing" | "results";
 
@@ -64,9 +65,7 @@ export default function CausalLedgerRunner() {
     const accuracy = gameResults.length > 0 ? correctCount / gameResults.length : 0;
     const score = Math.round(accuracy * 100);
     
-    // XP calculation for S2 game
-    const baseXP = 25;
-    const xp = Math.round(baseXP * (0.5 + accuracy * 0.5));
+    const xp = calculateGameXP("medium", score >= 90);
     setXpAwarded(xp);
     
     // v1.2: Calculate duration from startedAtRef
@@ -82,7 +81,7 @@ export default function CausalLedgerRunner() {
       try {
         console.log("[CausalLedger] Saving session for user:", userId, "Duration:", calculatedDuration);
         
-        await recordGameSession({
+        const savedSession = await recordGameSession({
           gameType: "S2-CT",
           gymArea: "reasoning",
           thinkingMode: "slow",
@@ -95,9 +94,11 @@ export default function CausalLedgerRunner() {
           status: 'completed',
           difficulty: 'medium', // S2 games have fixed difficulty
         });
+        const savedXP = savedSession?.xp_awarded ?? 0;
+        setXpAwarded(savedXP);
         
         console.log("[CausalLedger] ✅ Session saved successfully");
-        toast.success(`+${xp} XP · Critical Thinking updated`);
+        toast.success(savedXP > 0 ? `+${savedXP} XP · Critical Thinking updated` : "Daily XP limit reached. Play for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });

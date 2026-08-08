@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useState, useMemo } from "react";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
+import { calculateSharpnessRecoveryModifier } from "@/lib/cognitiveEngine";
 
 interface IntuitionTabProps {
   onBackToOverview?: () => void;
@@ -102,8 +103,8 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       return { label: "Start Recovery", link: "/neuro-lab?tab=detox", icon: Battery };
     }
     
-    // Calculate recovery modifier (0.7 to 1.0 based on recovery 0-100)
-    const recoveryMod = 0.7 + (recovery / 100) * 0.3;
+    // Use the exact same Recovery modifier as the Sharpness engine.
+    const recoveryMod = calculateSharpnessRecoveryModifier(recovery);
     
     // Calculate potential gains for each lever
     const s1Potential = 0.6 * (100 - S1) * recoveryMod;

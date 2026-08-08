@@ -12,7 +12,7 @@
  * Updated once daily, with 7-day moving average for Task_Priming.
  */
 
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -207,6 +207,11 @@ export function useReasoningQuality(): UseReasoningQualityResult {
   
   // Cached result ref to prevent flicker
   const cachedResultRef = useRef<RQResult | null>(null);
+  const cachedUserIdRef = useRef<string | undefined>(userId);
+  if (cachedUserIdRef.current !== userId) {
+    cachedResultRef.current = null;
+    cachedUserIdRef.current = userId;
+  }
   
   // Calculate task breakdown by type
   const taskBreakdownData = useMemo((): TaskBreakdown => {
@@ -315,9 +320,9 @@ export function useReasoningQuality(): UseReasoningQualityResult {
     return differenceInDays(today, updateDay) === 0;
   }, [persistedData?.rq_last_updated_at]);
   
-  const persistRQ = async () => {
+  const persistRQ = useCallback(async () => {
     await persistMutation.mutateAsync(result);
-  };
+  }, [persistMutation, result]);
   
   return {
     ...result,

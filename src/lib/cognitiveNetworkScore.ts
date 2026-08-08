@@ -11,10 +11,17 @@
  * - CP = clamp(0, 100, PerformanceAvg)
  * - PerformanceAvg = (AE + RA + CT + IN + S2) / 5
  * - BE = min(100, (weekly_games_xp / xp_target_week) × 100)
- * - REC = Recovery from detox + walking
+ * - REC = the same effective Recovery value shown in Today
  * 
  * NOTE: Tasks do NOT contribute to XP or BE in v1.3
  */
+
+import {
+  calculateSCI as calculateCanonicalSCI,
+  getSCILevel as getCanonicalSCILevel,
+  getSCIStatusText as getCanonicalSCIStatusText,
+} from "@/lib/cognitiveEngine";
+import { TRAINING_PLANS, type TrainingPlanId } from "@/lib/trainingPlans";
 
 // Component weights (exported for bottleneck calculation)
 export const WEIGHTS = {
@@ -114,9 +121,7 @@ export interface BehavioralEngagementInput {
 }
 
 export interface RecoveryInput {
-  weeklyDetoxMinutes: number;
-  weeklyWalkMinutes: number; // Added for correct REC formula
-  detoxTarget: number;
+  recovery: number;
 }
 
 export interface SCIBreakdown {
@@ -164,7 +169,7 @@ function calculateCognitivePerformance(metrics: CognitiveMetricsInput): {
   const score = Math.max(0, Math.min(100, performanceAvg));
 
   return {
-    score: Math.round(score),
+    score,
     components: { AE, RA, CT, IN, S2, performanceAvg },
   };
 }
@@ -184,21 +189,17 @@ function calculateBehavioralEngagement(input: BehavioralEngagementInput): {
     : 0;
 
   return {
-    score: Math.round(gamesProgress),
-    components: { gamesProgress: Math.round(gamesProgress) },
+    score: gamesProgress,
+    components: { gamesProgress },
   };
 }
 
 /**
- * Calculate Recovery Factor (20% of SCI)
- * REC = min(100, (detox + 0.5×walk) / target × 100)
+ * Calculate Recovery Factor (20% of SCI).
+ * REC is canonical Recovery v2, not a second weekly approximation.
  */
 function calculateRecoveryFactor(input: RecoveryInput): number {
-  const recInput = input.weeklyDetoxMinutes + 0.5 * (input.weeklyWalkMinutes || 0);
-  const recoveryProgress = input.detoxTarget > 0
-    ? Math.min(100, (recInput / input.detoxTarget) * 100)
-    : 0;
-  return Math.round(recoveryProgress);
+  return Math.max(0, Math.min(100, input.recovery));
 }
 
 /**
@@ -212,28 +213,36 @@ export function calculateSCI(
   const cpResult = calculateCognitivePerformance(metrics);
   const beResult = calculateBehavioralEngagement(behavioral);
   const rfScore = calculateRecoveryFactor(recovery);
+  const canonical = calculateCanonicalSCI(
+    {
+      AE: metrics.focus_stability,
+      RA: metrics.fast_thinking,
+      CT: metrics.reasoning_accuracy,
+      IN: metrics.slow_thinking,
+    },
+    behavioral,
+    rfScore,
+  );
 
-  const cpWeighted = WEIGHTS.cognitivePerformance * cpResult.score;
-  const beWeighted = WEIGHTS.behavioralEngagement * beResult.score;
-  const rfWeighted = WEIGHTS.recoveryFactor * rfScore;
-
-  const total = Math.round(cpWeighted + beWeighted + rfWeighted);
+  const cpWeighted = WEIGHTS.cognitivePerformance * canonical.cognitivePerformance;
+  const beWeighted = WEIGHTS.behavioralEngagement * canonical.behavioralEngagement;
+  const rfWeighted = WEIGHTS.recoveryFactor * canonical.recoveryFactor;
 
   return {
-    total: Math.min(100, Math.max(0, total)),
+    total: canonical.total,
     cognitivePerformance: {
-      score: cpResult.score,
-      weighted: Math.round(cpWeighted),
+      score: canonical.cognitivePerformance,
+      weighted: Math.round(cpWeighted * 10) / 10,
       components: cpResult.components,
     },
     behavioralEngagement: {
-      score: beResult.score,
-      weighted: Math.round(beWeighted),
+      score: canonical.behavioralEngagement,
+      weighted: Math.round(beWeighted * 10) / 10,
       components: beResult.components,
     },
     recoveryFactor: {
-      score: rfScore,
-      weighted: Math.round(rfWeighted),
+      score: canonical.recoveryFactor,
+      weighted: Math.round(rfWeighted * 10) / 10,
     },
   };
 }
@@ -242,22 +251,14 @@ export function calculateSCI(
  * Get status text based on SCI score
  */
 export function getSCIStatusText(score: number): string {
-  if (score >= 80) return "Elite cognitive integration";
-  if (score >= 65) return "High strategic clarity";
-  if (score >= 50) return "Developing strategic capacity";
-  if (score >= 35) return "Building cognitive foundation";
-  return "Early activation phase";
+  return getCanonicalSCIStatusText(score);
 }
 
 /**
  * Get level classification
  */
 export function getSCILevel(score: number): "elite" | "high" | "moderate" | "developing" | "early" {
-  if (score >= 80) return "elite";
-  if (score >= 65) return "high";
-  if (score >= 50) return "moderate";
-  if (score >= 35) return "developing";
-  return "early";
+  return getCanonicalSCILevel(score);
 }
 
 /**
@@ -265,27 +266,31 @@ export function getSCILevel(score: number): "elite" | "high" | "moderate" | "dev
  * - Only games XP target (tasks removed)
  * - Detox minutes for recovery
  */
-export const DEFAULT_TARGETS = {
+export interface SCITargets {
+  xpTargetWeek: number;
+  detoxMinutes: number;
+}
+
+export const DEFAULT_TARGETS: Record<TrainingPlanId, SCITargets> = {
   light: {
-    xpTargetWeek: 120,
-    detoxMinutes: 480, // 8 hours
+    xpTargetWeek: TRAINING_PLANS.light.xpTargetWeek,
+    detoxMinutes: TRAINING_PLANS.light.detox.weeklyMinutes,
   },
   expert: {
-    xpTargetWeek: 200,
-    detoxMinutes: 840, // 14 hours
+    xpTargetWeek: TRAINING_PLANS.expert.xpTargetWeek,
+    detoxMinutes: TRAINING_PLANS.expert.detox.weeklyMinutes,
   },
   superhuman: {
-    xpTargetWeek: 300,
-    detoxMinutes: 1680, // 28 hours
+    xpTargetWeek: TRAINING_PLANS.superhuman.xpTargetWeek,
+    detoxMinutes: TRAINING_PLANS.superhuman.detox.weeklyMinutes,
   },
 };
 
 export type TrainingPlanType = keyof typeof DEFAULT_TARGETS;
 
-export function getTargetsForPlan(plan: string): typeof DEFAULT_TARGETS.expert {
-  if (plan === "light") return DEFAULT_TARGETS.light;
-  if (plan === "superhuman") return DEFAULT_TARGETS.superhuman;
-  return DEFAULT_TARGETS.expert;
+export function getTargetsForPlan(plan: string): SCITargets {
+  const planId: TrainingPlanId = plan === "expert" || plan === "superhuman" ? plan : "light";
+  return DEFAULT_TARGETS[planId];
 }
 
 /**

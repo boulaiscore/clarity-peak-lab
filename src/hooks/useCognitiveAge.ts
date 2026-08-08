@@ -218,7 +218,7 @@ export function useCognitiveAge() {
   });
 
   // 4b) Fetch 180-day snapshots for long-term average
-  const { data: snapshots180d } = useQuery({
+  const { data: snapshots180d, isLoading: snapshots180dLoading } = useQuery({
     queryKey: ["daily-snapshots-180d", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -254,7 +254,7 @@ export function useCognitiveAge() {
     }
 
     // Fallback to calculating from snapshots
-    if (!recentSnapshots || !baseline?.baseline_score_90d) {
+    if (!recentSnapshots || baseline?.baseline_score_90d == null) {
       return { risk: "low" as const, streak: 0 };
     }
 
@@ -316,7 +316,7 @@ export function useCognitiveAge() {
   // 6b) Calculate live Cognitive Age during calibration
   const liveCalibrationAge = useMemo(() => {
     // If already calibrated and has weekly data, don't use live calculation
-    if (baseline?.is_baseline_calibrated && weeklySnapshot?.cognitive_age) {
+    if (baseline?.is_baseline_calibrated && weeklySnapshot?.cognitive_age != null) {
       return null;
     }
 
@@ -324,7 +324,7 @@ export function useCognitiveAge() {
     const currentRealAge = calculateChronologicalAgeAtDate({
       birthDate: profile?.birth_date,
       targetDate: today,
-      fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : 30,
+      fallbackAge: baseline?.chrono_age_at_onboarding != null ? Number(baseline.chrono_age_at_onboarding) : 30,
       fallbackAnchorDate: profile?.created_at ?? baseline?.baseline_start_date ?? null,
     });
     const inactiveDays = getInactiveDays({
@@ -376,11 +376,11 @@ export function useCognitiveAge() {
     // Use baseline if available, otherwise use 50 as neutral baseline
     // During calibration, use 50 (population average) as reference point
     // This allows showing improvement even from the first session
-    const calibrationBaseline = baseline?.baseline_score_90d 
+    const calibrationBaseline = baseline?.baseline_score_90d != null
       ? Number(baseline.baseline_score_90d)
       : 50; // Always use 50 as neutral baseline during calibration
 
-    const improvementPoints = (currentPerf - calibrationBaseline) / 10;
+    const improvementPoints = currentPerf - calibrationBaseline;
     const cognitiveAge = calculateCognitiveAgeFromPerformance({
       performance: currentPerf,
       baselinePerformance: calibrationBaseline,
@@ -390,8 +390,8 @@ export function useCognitiveAge() {
 
     return { 
       cognitiveAge, 
-      perf30d: perf30d ? Math.round(perf30d * 10) / 10 : null, 
-      perf180d: perf180d ? Math.round(perf180d * 10) / 10 : null,
+      perf30d: perf30d != null ? Math.round(perf30d * 10) / 10 : null,
+      perf180d: perf180d != null ? Math.round(perf180d * 10) / 10 : null,
       currentPerf: Math.round(currentPerf * 10) / 10,
       calibrationBaseline: Math.round(calibrationBaseline * 10) / 10,
       improvementPoints: Math.round(improvementPoints * 10) / 10
@@ -404,7 +404,7 @@ export function useCognitiveAge() {
     const currentRealAge = calculateChronologicalAgeAtDate({
       birthDate: profile?.birth_date,
       targetDate: today,
-      fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : 30,
+      fallbackAge: baseline?.chrono_age_at_onboarding != null ? Number(baseline.chrono_age_at_onboarding) : 30,
       fallbackAnchorDate: profile?.created_at ?? baseline?.baseline_start_date ?? null,
     });
     const inactiveDays = getInactiveDays({
@@ -420,15 +420,15 @@ export function useCognitiveAge() {
     let perf30d: number | null;
     let perf180d: number | null;
     
-    if (isCalibrated && weeklySnapshot?.cognitive_age) {
+    if (isCalibrated && weeklySnapshot?.cognitive_age != null) {
       // Use stable weekly data
-      perf30d = weeklySnapshot?.perf_short_30d ? Number(weeklySnapshot.perf_short_30d) : null;
-      perf180d = weeklySnapshot?.perf_long_180d ? Number(weeklySnapshot.perf_long_180d) : null;
+      perf30d = weeklySnapshot?.perf_short_30d != null ? Number(weeklySnapshot.perf_short_30d) : null;
+      perf180d = weeklySnapshot?.perf_long_180d != null ? Number(weeklySnapshot.perf_long_180d) : null;
       cogAge = calculateCognitiveAgeFromPerformance({
         performance: perf180d,
-        baselinePerformance: baseline?.baseline_score_90d ? Number(baseline.baseline_score_90d) : null,
+        baselinePerformance: baseline?.baseline_score_90d != null ? Number(baseline.baseline_score_90d) : null,
         chronologicalAge: currentRealAge,
-        rq: weeklySnapshot?.rq_30d ? Number(weeklySnapshot.rq_30d) : null,
+        rq: weeklySnapshot?.rq_30d != null ? Number(weeklySnapshot.rq_30d) : null,
         regressionPenaltyYears: weeklySnapshot?.regression_penalty_years ?? 0,
         inactiveDays,
       }) ?? Math.round(Number(weeklySnapshot.cognitive_age) * 10) / 10;
@@ -452,11 +452,11 @@ export function useCognitiveAge() {
     return {
       // Weekly snapshot
       cognitiveAge: cogAge,
-      score90d: weeklySnapshot?.score_90d ? Number(weeklySnapshot.score_90d) : null,
-      score30d: weeklySnapshot?.score_30d ? Number(weeklySnapshot.score_30d) : null,
-      rq30d: weeklySnapshot?.rq_30d ? Number(weeklySnapshot.rq_30d) : null,
-      rq90d: weeklySnapshot?.rq_90d ? Number(weeklySnapshot.rq_90d) : null,
-      improvementPoints: weeklySnapshot?.improvement_points 
+      score90d: weeklySnapshot?.score_90d != null ? Number(weeklySnapshot.score_90d) : null,
+      score30d: weeklySnapshot?.score_30d != null ? Number(weeklySnapshot.score_30d) : null,
+      rq30d: weeklySnapshot?.rq_30d != null ? Number(weeklySnapshot.rq_30d) : null,
+      rq90d: weeklySnapshot?.rq_90d != null ? Number(weeklySnapshot.rq_90d) : null,
+      improvementPoints: weeklySnapshot?.improvement_points != null
         ? Number(weeklySnapshot.improvement_points) 
         : null,
       weekStart: weeklySnapshot?.week_start ?? null,
@@ -464,18 +464,18 @@ export function useCognitiveAge() {
       // v2 fields - use live calculation during calibration
       perf30d: perf30d,
       perf180d: perf180d,
-      paceOfAgingX: weeklySnapshot?.pace_of_aging_x ? Number(weeklySnapshot.pace_of_aging_x) : null,
-      engagementIndex: weeklySnapshot?.engagement_index ? Number(weeklySnapshot.engagement_index) : null,
+      paceOfAgingX: weeklySnapshot?.pace_of_aging_x != null ? Number(weeklySnapshot.pace_of_aging_x) : null,
+      engagementIndex: weeklySnapshot?.engagement_index != null ? Number(weeklySnapshot.engagement_index) : null,
       sessions30d: weeklySnapshot?.sessions_30d ?? 0,
       regressionPenaltyYears: weeklySnapshot?.regression_penalty_years ?? 0,
       preRegressionWarning,
       
       // Baseline - now using dynamic current real age
       chronoAgeAtOnboarding: currentRealAge,
-      baselineScore90d: baseline?.baseline_score_90d 
+      baselineScore90d: baseline?.baseline_score_90d != null
         ? Number(baseline.baseline_score_90d) 
         : null,
-      baselineRq90d: baseline?.baseline_rq_90d 
+      baselineRq90d: baseline?.baseline_rq_90d != null
         ? Number(baseline.baseline_rq_90d) 
         : null,
       isBaselineCalibrated: isCalibrated,
@@ -495,7 +495,7 @@ export function useCognitiveAge() {
 
   return {
     data: cognitiveAgeData,
-    isLoading: weeklyLoading || baselineLoading || profileLoading || dailyLoading || snapshotsLoading || activityLoading,
+    isLoading: weeklyLoading || baselineLoading || profileLoading || dailyLoading || snapshotsLoading || snapshots180dLoading || activityLoading,
     hasWeeklyData: !!weeklySnapshot,
     hasBaseline: !!baseline,
     hasDailyData: !!dailyRecord,

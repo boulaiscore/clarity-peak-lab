@@ -440,6 +440,42 @@ export type Database = {
         }
         Relationships: []
       }
+      product_usage_events: {
+        Row: {
+          anonymous_id: string
+          client_event_id: string
+          created_at: string
+          event_name: string
+          occurred_at: string
+          path: string
+          properties: Json
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          anonymous_id: string
+          client_event_id: string
+          created_at?: string
+          event_name: string
+          occurred_at: string
+          path: string
+          properties?: Json
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          anonymous_id?: string
+          client_event_id?: string
+          created_at?: string
+          event_name?: string
+          occurred_at?: string
+          path?: string
+          properties?: Json
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       monthly_content_assignments: {
         Row: {
           completed_at: string | null

@@ -10,7 +10,6 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
 import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
-import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
 import { OrbitLockDrill, OrbitLockFinalResults } from "@/components/games/orbit-lock";
@@ -23,7 +22,6 @@ export default function OrbitLockRunner() {
   const { user, session } = useAuth();
   const recordGameSession = useRecordGameSession();
   const { gamesWithXPToday, dailyMax, isCapReached } = useDailyGamesXPCap();
-  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const [isComplete, setIsComplete] = useState(false);
@@ -81,17 +79,6 @@ export default function OrbitLockRunner() {
         });
         
         console.log("[OrbitLock] ✅ Session saved successfully");
-        
-        // v2.0: Record intraday event AFTER session saved (with delay for cache updates)
-        setTimeout(() => {
-          recordMetricsSnapshot('game', {
-            gameName: 'orbit_lock',
-            gameType: 'S1-AE',
-            xpAwarded: actualXP,
-            score: results.score,
-            difficulty,
-          });
-        }, 200);
         
         // v1.8: Show appropriate toast based on cap status
         if (actualXP > 0) {

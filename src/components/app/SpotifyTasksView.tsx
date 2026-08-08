@@ -54,6 +54,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInProgressTasks } from "@/hooks/useInProgressTasks";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
+import { trackProductEvent } from "@/lib/productAnalytics";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -668,6 +669,7 @@ export function SpotifyTasksView() {
         { contentType, contentId, source: "spotify_tasks_view" },
         250
       );
+      trackProductEvent("content_completed", { contentType, source: "spotify_tasks_view" });
       setSelectedPodcast(null);
       setSelectedReading(null);
     },

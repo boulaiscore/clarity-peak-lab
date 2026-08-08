@@ -8,6 +8,7 @@ import {
   MOCK_PROFILE,
 } from "@/lib/mockReportData";
 import { calculateSCI } from "@/lib/cognitiveNetworkScore";
+import { calculateSharpness } from "@/lib/cognitiveEngine";
 
 function generateSampleSnapshots(anchorDate: Date): ReportMetricSnapshot[] {
   return Array.from({ length: 60 }, (_, index) => {
@@ -24,7 +25,7 @@ function generateSampleSnapshots(anchorDate: Date): ReportMetricSnapshot[] {
     const s1 = Math.round((ae + ra) / 2);
     const s2 = Math.round((ct + inScore) / 2);
     const readiness = Math.round(58 + progress * 17 + Math.sin(index / 6) * 4);
-    const sharpness = Math.round((s1 * 0.6 + s2 * 0.4) * (0.7 + (recovery / 100) * 0.3));
+    const sharpness = Math.round(calculateSharpness({ AE: ae, RA: ra, CT: ct, IN: inScore }, recovery));
     const reasoningQuality = Math.round(57 + progress * 16 + Math.cos(index / 8) * 4);
 
     return {
@@ -59,11 +60,7 @@ export function ClinicalReportMockup() {
       weeklyGamesXP: 850,
       xpTargetWeek: 1000,
     },
-    {
-      weeklyDetoxMinutes: 55,
-      weeklyWalkMinutes: 70,
-      detoxTarget: 100,
-    },
+    { recovery: 72 },
   );
 
   const profile = {

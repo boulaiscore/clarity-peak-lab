@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { PastDueBanner } from "@/components/PastDueBanner";
+import { trackProductEvent } from "@/lib/productAnalytics";
 
 interface AppShellProps {
   children: ReactNode;
@@ -40,6 +41,12 @@ export function AppShell({ children }: AppShellProps) {
   
   // Auto-save daily metric snapshot (readiness, sharpness, recovery, RQ)
   useAutoMetricSnapshot();
+
+  useEffect(() => {
+    trackProductEvent("app_route_viewed", {
+      route: `${location.pathname}${location.search}`,
+    });
+  }, [location.pathname, location.search]);
   
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -77,7 +84,7 @@ export function AppShell({ children }: AppShellProps) {
     if (permission === "granted") {
       checkReminders();
     }
-  }, [permission]);
+  }, [permission, checkReminders]);
 
   return (
     <div className="min-h-screen flex flex-col">

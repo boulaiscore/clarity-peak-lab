@@ -27,13 +27,16 @@ function valuesChanged(
 ): boolean {
   if (!saved) return true;
   
-  const diff = (a: number | null, b: number | null) => Math.abs((a ?? 0) - (b ?? 0));
+  const changed = (a: number | null, b: number | null) => {
+    if (a == null || b == null) return a !== b;
+    return Math.abs(a - b) > VALUE_CHANGE_THRESHOLD;
+  };
   
   return (
-    diff(current.readiness, saved.readiness) > VALUE_CHANGE_THRESHOLD ||
-    diff(current.sharpness, saved.sharpness) > VALUE_CHANGE_THRESHOLD ||
-    diff(current.recovery, saved.recovery) > VALUE_CHANGE_THRESHOLD ||
-    diff(current.rq, saved.reasoning_quality) > VALUE_CHANGE_THRESHOLD
+    changed(current.readiness, saved.readiness) ||
+    changed(current.sharpness, saved.sharpness) ||
+    changed(current.recovery, saved.recovery) ||
+    changed(current.rq, saved.reasoning_quality)
   );
 }
 
@@ -43,7 +46,6 @@ export function useAutoMetricSnapshot() {
   const { 
     sharpness, 
     readiness, 
-    recovery,
     recoveryRaw,
     S1, 
     S2,
@@ -54,7 +56,7 @@ export function useAutoMetricSnapshot() {
     isLoading: metricsLoading 
   } = useTodayMetrics();
   
-  const { rq, isLoading: rqLoading, isPersisted: rqIsPersisted, persistRQ } = useReasoningQuality();
+  const { rq, isLoading: rqLoading, persistRQ } = useReasoningQuality();
   const { todaySnapshot, hasTodaySnapshot, saveSnapshot, isSaving, isLoading: snapshotLoading } = useDailyMetricSnapshot();
   
   // Debounce updates to avoid too frequent saves
@@ -100,13 +102,10 @@ export function useAutoMetricSnapshot() {
     }).then(() => {
       // Record an intraday event so 1d trend charts reflect decay/metric changes on app open
       recordMetricsSnapshot('app_open', { trigger: 'auto_snapshot' }, 500);
-      // Persist RQ to user_cognitive_metrics (once/day) so Home, decay logic, and
-      // Cognitive Age modulation read a fresh value instead of the seeded 50.
-      if (!rqIsPersisted) {
-        persistRQ().catch((err) => {
-          console.error("[useAutoMetricSnapshot] Failed to persist RQ:", err);
-        });
-      }
+      // Keep the cloud summary aligned whenever the computed daily RQ changes.
+      persistRQ().catch((err) => {
+        console.error("[useAutoMetricSnapshot] Failed to persist RQ:", err);
+      });
     }).catch((err) => {
       console.error("[useAutoMetricSnapshot] Failed to save snapshot:", err);
       // Allow retry
@@ -120,7 +119,7 @@ export function useAutoMetricSnapshot() {
     isSaving,
     sharpness,
     readiness,
-    recovery,
+    recoveryRaw,
     rq,
     S1,
     S2,
@@ -130,6 +129,8 @@ export function useAutoMetricSnapshot() {
     IN,
     todaySnapshot,
     saveSnapshot,
+    persistRQ,
+    recordMetricsSnapshot,
   ]);
   
   return {

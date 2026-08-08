@@ -20,6 +20,7 @@ import { ArrowLeft, Brain, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
+import { calculateGameXP } from "@/lib/trainingPlans";
 
 type GamePhase = "intro" | "playing" | "results";
 
@@ -59,8 +60,7 @@ export default function SocraticCrossExamRunner() {
     const avgScore = gameResults.reduce((sum, r) => sum + r.roundScore, 0) / gameResults.length;
     const score = Math.round(avgScore);
     
-    // XP: base 18, min 6, scaled by score
-    const rawXP = Math.max(SOCRATIC_CONFIG.minXP, Math.round(SOCRATIC_CONFIG.baseXP * (score / 100)));
+    const rawXP = calculateGameXP("medium", score >= 90);
     
     // v1.8: Apply daily XP cap
     const actualXP = isCapReached ? 0 : rawXP;
@@ -69,22 +69,24 @@ export default function SocraticCrossExamRunner() {
     const userId = user?.id || session?.user?.id;
     if (userId) {
       try {
-        await recordGameSession({
+        const savedSession = await recordGameSession({
           gameType: "S2-CT",
           gymArea: "reasoning",
           thinkingMode: "slow",
           xpAwarded: actualXP,
           score,
-          gameName: "socratic_cross_exam" as any,
+          gameName: "socratic_cross_exam",
           startedAt: startedAtRef.current?.toISOString() ?? null,
           durationSeconds: duration,
           status: 'completed',
           difficulty: 'medium',
         });
+        const savedXP = savedSession?.xp_awarded ?? 0;
+        setXpAwarded(savedXP);
         
         // v1.8: Show appropriate toast based on cap status
-        if (actualXP > 0) {
-          toast.success(`+${actualXP} XP · Critical Thinking updated`);
+        if (savedXP > 0) {
+          toast.success(`+${savedXP} XP · Critical Thinking updated`);
         } else {
           toast.info("Daily XP limit reached. Play for practice.");
         }

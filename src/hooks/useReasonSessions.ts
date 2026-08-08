@@ -11,6 +11,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
+import { trackProductEvent } from "@/lib/productAnalytics";
 import { startOfDay, subDays } from "date-fns";
 
 // Types
@@ -113,6 +115,7 @@ export function useStartReasonSession() {
 export function useCompleteReasonSession() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { recordMetricsSnapshot } = useRecordIntradayOnAction();
   
   return useMutation({
     mutationFn: async (data: CompleteSessionData): Promise<ReasonSession> => {
@@ -138,11 +141,26 @@ export function useCompleteReasonSession() {
       if (error) throw error;
       return session as ReasonSession;
     },
-    onSuccess: () => {
+    onSuccess: async (completedSession) => {
       queryClient.invalidateQueries({ queryKey: ["reason-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["active-reason-session"] });
       queryClient.invalidateQueries({ queryKey: ["reason-session-stats"] });
       queryClient.invalidateQueries({ queryKey: ["hybrid-rq-data"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-weighted-minutes-7d", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
+
+      await recordMetricsSnapshot("task", {
+        source: completedSession.source,
+        sessionType: completedSession.session_type,
+        durationSeconds: completedSession.duration_seconds,
+        validForRQ: completedSession.is_valid_for_rq,
+      }, 100);
+      trackProductEvent("reasoning_session_completed", {
+        source: completedSession.source,
+        sessionType: completedSession.session_type,
+        durationMinutes: Math.round(completedSession.duration_seconds / 60),
+        validForRQ: completedSession.is_valid_for_rq,
+      });
     },
   });
 }
@@ -370,7 +388,7 @@ export function useHybridRQData() {
       if (sessionsError) throw sessionsError;
       
       // Calculate LOOMA completions score (existing logic)
-      let loomaCompletions = (completions || []).length;
+      const loomaCompletions = (completions || []).length;
       
       // Calculate custom weighted minutes
       let customWeightedMinutes = 0;
