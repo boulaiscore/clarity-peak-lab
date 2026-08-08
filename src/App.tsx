@@ -15,7 +15,6 @@ import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { usePhoneHealthSync } from "@/hooks/usePhoneHealthSync";
 import { SplashScreen } from "@/components/app/SplashScreen";
-import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -456,7 +455,6 @@ const App = () => {
                     <AppRoutes />
                   </DeepLinkHandler>
                 </HashRouter>
-                {import.meta.env.DEV && <TestModeFloatingToggle />}
               </TooltipProvider>
           </AppInitProvider>
         </SessionProvider>

@@ -92,7 +92,7 @@ export function AppShell({ children }: AppShellProps) {
       <PastDueBanner />
       {/* Main content with swipe */}
       <main 
-        className="flex-1 pb-20"
+        className="flex-1 pb-28"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}

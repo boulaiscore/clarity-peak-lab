@@ -37,6 +37,7 @@ import { getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import {
   calculateSharpness,
   calculateReadiness,
+  calculateReadinessCognitiveComponent,
   calculatePhysioComponent,
   calculateReadinessDecay,
   clamp,
@@ -63,6 +64,10 @@ export interface UseTodayMetricsResult {
   IN: number;
   S1: number;
   S2: number;
+  /** Present only when all required wearable signals are available. */
+  physioComponent: number | null;
+  /** Cognitive half used by wearable-based Readiness. */
+  readinessCognitiveComponent: number;
   
   // Status
   hasWearableData: boolean;
@@ -218,6 +223,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       sleepDurationMin: wearableSnapshot.sleep_duration_min ?? null,
       sleepEfficiency: wearableSnapshot.sleep_efficiency ?? null,
     }) : null;
+    const readinessCognitiveComponent = calculateReadinessCognitiveComponent(states);
     
     // Calculate Sharpness
     const sharpness = calculateSharpness(states, recovery);
@@ -249,7 +255,9 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       recoveryRaw: recoveryRawValue,
       readinessDecay,
       consecutiveLowRecDays,
-      hasWearableData: !!wearableSnapshot,
+      // A snapshot alone is not enough to activate the wearable formula: all
+      // signals required by calculatePhysioComponent must be present.
+      hasWearableData: physioComponent !== null,
       isRecoveryInitialized,
       AE: states.AE,
       RA: states.RA,
@@ -257,6 +265,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       IN: states.IN,
       S1,
       S2,
+      physioComponent,
+      readinessCognitiveComponent,
       isLoading: !allLoaded,
     };
   }, [states, S1, S2, recoveryV2State, phoneHealthTarget, wearableSnapshot, decayData, rollingStart, allLoaded]);

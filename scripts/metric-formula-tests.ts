@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
   calculateReadiness,
+  calculateReadinessCognitiveComponent,
+  calculatePhysioComponent,
   calculateSCI as calculateCanonicalSCI,
   calculateSharpness,
   calculateSystemScores,
@@ -22,6 +24,22 @@ closeTo(calculateSharpness(states, 0), 49.5, "Sharpness at zero Recovery");
 closeTo(calculateSharpness(states, 50), 57.8, "Sharpness at mid Recovery");
 closeTo(calculateSharpness(states, 100), 66, "Sharpness at full Recovery");
 closeTo(calculateReadiness(states, 50, null), 62.5, "Readiness without wearable");
+closeTo(
+  calculateReadinessCognitiveComponent(states),
+  67,
+  "Wearable Readiness cognitive component",
+);
+closeTo(calculateReadiness(states, 50, 72), 69.5, "Readiness with wearable");
+assert.equal(
+  calculatePhysioComponent({
+    hrvMs: 70,
+    restingHr: 60,
+    sleepDurationMin: 450,
+    sleepEfficiency: null,
+  }),
+  null,
+  "An incomplete wearable snapshot must not activate wearable mode",
+);
 
 const derived = deriveEffectiveCognitiveStates({
   focus_stability: 80,

@@ -42,6 +42,8 @@ export interface UseReasoningQualityResult {
   s2Core: number;
   s2Consistency: number;
   taskPriming: number;
+  /** Number of usable S2 sessions behind the consistency estimate (max 10). */
+  s2SessionCount: number;
   
   // Pre-calculated contributions (for display consistency)
   s2CoreContribution: number;
@@ -103,6 +105,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
         .select("score, completed_at")
         .eq("user_id", userId)
         .eq("system_type", "S2")
+        .eq("status", "completed")
         .order("completed_at", { ascending: false })
         .limit(10);
       
@@ -326,6 +329,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
   
   return {
     ...result,
+    s2SessionCount: s2GameScores?.length ?? 0,
     taskBreakdown: taskBreakdownData,
     isPersisted,
     lastUpdatedAt: persistedData?.rq_last_updated_at 

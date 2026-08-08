@@ -161,7 +161,7 @@ export function calculateReadiness(
   recovery: number,
   physioComponent: number | null
 ): number {
-  const { S1, S2 } = calculateSystemScores(states);
+  const { S2 } = calculateSystemScores(states);
   
   if (physioComponent === null) {
     // Without wearable
@@ -170,15 +170,24 @@ export function calculateReadiness(
   }
   
   // With wearable
-  const cognitiveComponent = 
-    0.30 * states.CT +
-    0.25 * states.AE +
-    0.20 * states.IN +
-    0.15 * S2 +
-    0.10 * S1;
+  const cognitiveComponent = calculateReadinessCognitiveComponent(states);
   
   const readiness = 0.5 * physioComponent + 0.5 * cognitiveComponent;
   return clamp(Math.round(readiness * 10) / 10, 0, 100);
+}
+
+/** Canonical cognitive half of wearable-based Readiness. */
+export function calculateReadinessCognitiveComponent(states: CognitiveStates): number {
+  const { S1, S2 } = calculateSystemScores(states);
+  return clamp(
+    0.30 * states.CT +
+      0.25 * states.AE +
+      0.20 * states.IN +
+      0.15 * S2 +
+      0.10 * S1,
+    0,
+    100,
+  );
 }
 
 // ============================================

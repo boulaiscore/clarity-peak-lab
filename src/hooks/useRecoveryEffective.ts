@@ -47,6 +47,9 @@ export interface UseRecoveryEffectiveResult {
   
   /** The RRI value from onboarding (if set) */
   rriValue: number | null;
+
+  /** Today's Phone Health recovery target, or the neutral fallback of 50. */
+  recoveryTarget: number;
   
   /** Loading state */
   isLoading: boolean;
@@ -238,6 +241,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   
   return {
     ...result,
+    recoveryTarget: phoneHealthTarget ?? 50,
     isLoading,
     weeklyDetoxMinutes,
     weeklyWalkMinutes,

@@ -1,331 +1,220 @@
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, Battery, Focus, ChevronDown, Zap, LineChart } from "lucide-react";
-import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useState, useMemo } from "react";
+import {
+  MetricDetailHeader,
+  MetricDetailNavigation,
+  MetricFactorCard,
+  MetricFactorsSection,
+  MetricScoreRing,
+} from "@/components/metrics/MetricDetail";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
-import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 
 interface ReasoningTabProps {
   onBackToOverview?: () => void;
 }
 
 export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
-  const { readiness, recovery, S2, AE, isLoading } = useTodayMetrics();
-  
+  const {
+    readiness,
+    recovery,
+    S1,
+    S2,
+    AE,
+    CT,
+    IN,
+    readinessDecay,
+    consecutiveLowRecDays,
+    hasWearableData,
+    physioComponent,
+    isLoading,
+  } = useTodayMetrics();
   const [infoOpen, setInfoOpen] = useState(false);
 
-  // Ring calculations
-  const size = 200;
-  const strokeWidth = 12;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const progress = Math.min(readiness / 100, 1);
-  const strokeDashoffset = circumference - progress * circumference;
+  const subtitle = useMemo(() => {
+    if (readiness >= 80) return "Optimal capacity for sustained, demanding work.";
+    if (readiness >= 65) return "Strong capacity for sustained cognitive work.";
+    if (readiness >= 50) return "Moderate capacity. Use breaks for longer efforts.";
+    if (readiness >= 35) return "Reduced capacity. Prefer shorter work sessions.";
+    return "Sustained cognitive work is currently constrained.";
+  }, [readiness]);
 
-  // Status thresholds - 5 levels for more variance
-  type StatusLevel = "very_low" | "low" | "moderate" | "good" | "high";
-  
-  const getStatus = (value: number): StatusLevel => {
-    if (value >= 80) return "high";
-    if (value >= 65) return "good";
-    if (value >= 50) return "moderate";
-    if (value >= 35) return "low";
-    return "very_low";
-  };
-
-  const readinessStatus = getStatus(readiness);
-  const recoveryStatus = getStatus(recovery);
-  const reasoningStatus = getStatus(S2);
-  const focusStatus = getStatus(AE);
-
-  // Dynamic subtitle based on readiness - 5 levels
-  const getSubtitle = () => {
-    if (readiness >= 80) return "Peak readiness. You can sustain demanding, high-focus work.";
-    if (readiness >= 65) return "You are ready for demanding, high-focus work.";
-    if (readiness >= 50) return "Moderate readiness. You can handle sustained effort with breaks.";
-    if (readiness >= 35) return "Readiness is reduced. Shorter work sessions are advised.";
-    return "Your capacity for sustained cognitive work is currently limited.";
-  };
-
-  // Recovery impact text - 5 levels
-  const getRecoveryImpact = () => {
-    if (recovery >= 80) return "Recovery is excellent, fully supporting sustained effort.";
-    if (recovery >= 65) return "Recovery is good, supporting most cognitive demands.";
-    if (recovery >= 50) return "Recovery partially supports your cognitive endurance.";
-    if (recovery >= 35) return "Recovery is low, limiting your ability to sustain effort.";
-    return "Low recovery significantly reduces your endurance, even if skills are strong.";
-  };
-
-  // Premium functional color - Soft Indigo for Readiness (fixed, not status-based)
-  const ringColor = "hsl(245, 58%, 65%)";
-
-  // Status badge styling - 5 levels, neutral tones
-  const getStatusStyle = (status: StatusLevel) => {
-    switch (status) {
-      case "high":
-        return "bg-primary/20 text-primary border-primary/40";
-      case "good":
-        return "bg-primary/15 text-primary border-primary/30";
-      case "moderate":
-        return "bg-muted/30 text-muted-foreground border-muted-foreground/30";
-      case "low":
-        return "bg-muted/20 text-muted-foreground/70 border-muted-foreground/20";
-      case "very_low":
-        return "bg-muted/10 text-muted-foreground/50 border-muted-foreground/10";
-    }
-  };
-
-  const getStatusLabel = (status: StatusLevel) => {
-    switch (status) {
-      case "high": return "Excellent";
-      case "good": return "Good";
-      case "moderate": return "Moderate";
-      case "low": return "Low";
-      case "very_low": return "Very Low";
-    }
-  };
-
-  // Bottleneck detection for Readiness based on formula:
-  // Readiness = 0.35×REC + 0.35×S2 + 0.30×AE
   const cta = useMemo(() => {
-    // Priority: if recovery is low (<45), it's always the bottleneck
-    if (recovery < 45) {
-      return { label: "Start Recovery", link: "/neuro-lab?tab=detox", icon: Battery };
+    if (!hasWearableData && recovery < 45) {
+      return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
     }
-    
-    // Calculate potential gains for each lever
-    const recPotential = 0.35 * (100 - recovery);
-    const s2Potential = 0.35 * (100 - S2);
-    const aePotential = 0.30 * (100 - AE);
-    
-    // Find the bottleneck (highest potential gain)
-    const potentials = [
-      { key: "recovery", value: recPotential },
-      { key: "S2", value: s2Potential },
-      { key: "AE", value: aePotential },
-    ];
-    
-    const bottleneck = potentials.reduce((a, b) => a.value > b.value ? a : b).key;
-    
-    switch (bottleneck) {
-      case "recovery":
-        return { label: "Start Recovery", link: "/neuro-lab?tab=detox", icon: Battery };
-      case "S2":
-        return { label: "Train Reasoning", link: "/neuro-lab/reasoning", icon: Brain };
-      case "AE":
-        return { label: "Train Focus", link: "/neuro-lab/focus", icon: Zap };
-      default:
-        return { label: "Start Recovery", link: "/neuro-lab?tab=detox", icon: Battery };
-    }
-  }, [recovery, S2, AE]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
+    if (hasWearableData) {
+      const candidates = [
+        { key: "CT", value: 0.15 * (100 - CT) },
+        { key: "AE", value: 0.125 * (100 - AE) },
+        { key: "IN", value: 0.10 * (100 - IN) },
+      ];
+      const bottleneck = candidates.reduce((a, b) => (a.value > b.value ? a : b)).key;
+      if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: "/neuro-lab/focus" };
+      if (bottleneck === "IN") return { label: "Train Insight", link: "/neuro-lab/creativity" };
+      return { label: "Train Critical Thinking", link: "/neuro-lab/reasoning" };
+    }
+
+    const candidates = [
+      { key: "REC", value: 0.35 * (100 - recovery) },
+      { key: "S2", value: 0.35 * (100 - S2) },
+      { key: "AE", value: 0.30 * (100 - AE) },
+    ];
+    const bottleneck = candidates.reduce((a, b) => (a.value > b.value ? a : b)).key;
+    if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab/reasoning" };
+    if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: "/neuro-lab/focus" };
+    return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
+  }, [AE, CT, IN, S2, hasWearableData, recovery]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-6 pb-8"
     >
-      {/* Today Header - Back to Overview + Trend Link */}
-      {onBackToOverview && (
-        <div className="flex items-center justify-between px-2">
-          <button 
-            onClick={onBackToOverview}
-            className="px-4 py-1.5 rounded-full bg-muted/40 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80 hover:bg-muted/60 transition-colors active:scale-[0.97]"
-          >
-            ← Today
-          </button>
-          <Link 
-            to="/app/dashboard?tab=training&subtab=trends"
-            className="p-2 rounded-full bg-muted/40 hover:bg-muted/60 transition-colors active:scale-[0.97]"
-            title="View Trends"
-          >
-            <LineChart className="w-4 h-4 text-foreground/70" />
-          </Link>
-        </div>
-      )}
+      {onBackToOverview && <MetricDetailNavigation onBack={onBackToOverview} />}
 
-      {/* Header */}
-      <div className="text-center space-y-2 pt-2">
-        <h2 className="text-xl font-semibold tracking-tight">Readiness</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
-          {getSubtitle()}
-        </p>
-      </div>
+      <MetricDetailHeader
+        title="Readiness"
+        description={subtitle}
+        context={hasWearableData ? "Wearable mode · physiological data today" : "App mode · no wearable data today"}
+      />
 
-      {/* Main Score Ring */}
-      <div className="flex justify-center py-4">
-        <div className="relative" style={{ width: size, height: size }}>
-          <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              fill="none"
-              stroke="hsl(var(--muted)/0.25)"
-              strokeWidth={strokeWidth}
+      <MetricScoreRing
+        value={readiness}
+        status={getReadinessStatus(readiness).label}
+        color="hsl(245, 58%, 65%)"
+        isLoading={isLoading}
+      />
+
+      <MetricFactorsSection>
+        {hasWearableData ? (
+          <>
+            <MetricFactorCard
+              code="PHYS"
+              name="Physiological State"
+              description="HRV, resting heart rate, sleep duration and sleep efficiency."
+              value={physioComponent}
+              weight="50%"
+              contribution={physioComponent == null ? null : 0.5 * physioComponent}
+              window="Today · wearable"
             />
-          </svg>
-          <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              fill="none"
-              stroke={ringColor}
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-1000 ease-out"
+            <MetricFactorCard
+              code="CT"
+              name="Critical Thinking"
+              description="Analytical accuracy within the cognitive half of Readiness."
+              value={CT}
+              weight="15%"
+              contribution={0.15 * CT}
+              window="Current skill state"
             />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-6xl font-bold tabular-nums text-foreground">
-              {Math.round(readiness)}
-            </span>
-            <span className="text-xs text-muted-foreground/70 mt-1">
-              {getMetricDisplayInfo(
-                getReadinessStatus(readiness).label,
-                getReadinessStatus(readiness).level,
-                null,
-                null
-              ).text}
-            </span>
-          </div>
-        </div>
-      </div>
+            <MetricFactorCard
+              code="AE"
+              name="Attentional Efficiency"
+              description="Ability to maintain stable, directed attention."
+              value={AE}
+              weight="12.5%"
+              contribution={0.125 * AE}
+              window="Current skill state"
+            />
+            <MetricFactorCard
+              code="IN"
+              name="Insight"
+              description="Ability to identify patterns and useful connections."
+              value={IN}
+              weight="10%"
+              contribution={0.10 * IN}
+              window="Current skill state"
+            />
+            <MetricFactorCard
+              code="S2"
+              name="Deliberate Reasoning"
+              description="Combined Critical Thinking and Insight."
+              value={S2}
+              weight="7.5%"
+              contribution={0.075 * S2}
+              window="Current skill state"
+            />
+            <MetricFactorCard
+              code="S1"
+              name="Fast Processing"
+              description="Combined Attentional Efficiency and Rapid Association."
+              value={S1}
+              weight="5%"
+              contribution={0.05 * S1}
+              window="Current skill state"
+            />
+          </>
+        ) : (
+          <>
+            <MetricFactorCard
+              code="REC"
+              name="Recovery"
+              description="Estimated cognitive reserve available today."
+              value={recovery}
+              weight="35%"
+              contribution={0.35 * recovery}
+              window="Today"
+            />
+            <MetricFactorCard
+              code="S2"
+              name="Deliberate Reasoning"
+              description="Combined Critical Thinking and Insight."
+              value={S2}
+              weight="35%"
+              contribution={0.35 * S2}
+              window="Current skill state"
+            />
+            <MetricFactorCard
+              code="AE"
+              name="Attentional Efficiency"
+              description="Ability to maintain stable, directed attention."
+              value={AE}
+              weight="30%"
+              contribution={0.30 * AE}
+              window="Current skill state"
+            />
+          </>
+        )}
 
-      {/* Drivers Section */}
-      <div className="space-y-3">
-        <h3 className="text-xs uppercase tracking-wider text-muted-foreground px-1">
-          What's affecting your readiness today
-        </h3>
-        
-        <div className="space-y-2">
-          {/* Recovery - Primary driver */}
-          <DriverCard
-            icon={<Battery className="w-4 h-4" />}
-            title="Recovery"
-            description="Recovery determines how much mental effort you can sustain today."
-            status={recoveryStatus}
-            emphasis="primary"
-            getStatusStyle={getStatusStyle}
-            getStatusLabel={getStatusLabel}
+        {readinessDecay > 0 && (
+          <MetricFactorCard
+            code="DECAY"
+            name="Low-Recovery Adjustment"
+            description="Applied after at least three consecutive days below REC 40."
+            value={`${consecutiveLowRecDays} days`}
+            weight="−5, then −2/day"
+            contribution={-readinessDecay}
+            contributionTone="negative"
+            window="Rolling week"
           />
-          
-          {/* Reasoning Capacity (S2) - Primary driver */}
-          <DriverCard
-            icon={<Brain className="w-4 h-4" />}
-            title="Reasoning Capacity"
-            description="Reflects your ability to engage in structured, analytical thinking."
-            status={reasoningStatus}
-            emphasis="primary"
-            getStatusStyle={getStatusStyle}
-            getStatusLabel={getStatusLabel}
-          />
-          
-          {/* Focus Stability (AE) - Secondary driver */}
-          <DriverCard
-            icon={<Focus className="w-4 h-4" />}
-            title="Focus Stability"
-            description="Reflects how well you can maintain attention without mental fatigue."
-            status={focusStatus}
-            emphasis="secondary"
-            getStatusStyle={getStatusStyle}
-            getStatusLabel={getStatusLabel}
-          />
-        </div>
-      </div>
+        )}
+      </MetricFactorsSection>
 
-      {/* Recovery Impact */}
-      <div className="space-y-2 px-1">
-        <h3 className="text-xs uppercase tracking-wider text-muted-foreground">
-          Recovery impact
-        </h3>
-        <p className="text-sm text-foreground leading-relaxed">
-          {getRecoveryImpact()}
-        </p>
-        <p className="text-xs text-muted-foreground/70">
-          Improving recovery increases readiness faster than training alone.
-        </p>
-      </div>
+      <Link to={cta.link} className="block pt-1">
+        <Button variant="premium" className="w-full h-12 text-sm">
+          {cta.label}
+        </Button>
+      </Link>
 
-      {/* CTA Button */}
-      <div className="pt-2">
-        <Link to={cta.link}>
-          <Button variant="premium" className="w-full h-12 text-sm gap-2">
-            <cta.icon className="w-4 h-4" />
-            {cta.label}
-          </Button>
-        </Link>
-      </div>
-
-      {/* Collapsible Info */}
       <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
         <CollapsibleTrigger className="flex items-center justify-between w-full py-3 px-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-          <span className="uppercase tracking-wider">What Readiness means</span>
-          <ChevronDown className={`w-4 h-4 transition-transform ${infoOpen ? 'rotate-180' : ''}`} />
+          <span className="uppercase tracking-wider">Formula</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${infoOpen ? "rotate-180" : ""}`} />
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="px-1 pb-4 space-y-2">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Readiness reflects your ability to sustain demanding cognitive work.
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              It changes daily and is strongly influenced by recovery.
-            </p>
+          <div className="rounded-xl border border-border/30 bg-card/35 p-4 text-xs leading-relaxed text-muted-foreground">
+            {hasWearableData
+              ? "Wearable Readiness = 50% physiological state + 50% cognitive state. Recovery is not added directly in this mode."
+              : "App Readiness = 35% REC + 35% S2 + 30% AE, minus any low-Recovery adjustment."}
           </div>
         </CollapsibleContent>
       </Collapsible>
     </motion.div>
-  );
-}
-
-function DriverCard({ 
-  icon, 
-  title, 
-  description, 
-  status,
-  emphasis,
-  getStatusStyle,
-  getStatusLabel
-}: { 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string;
-  status: "very_low" | "low" | "moderate" | "good" | "high";
-  emphasis: "primary" | "secondary" | "modifier";
-  getStatusStyle: (s: "very_low" | "low" | "moderate" | "good" | "high") => string;
-  getStatusLabel: (s: "very_low" | "low" | "moderate" | "good" | "high") => string;
-}) {
-  const emphasisLabel = emphasis === "primary" ? "Primary" : emphasis === "secondary" ? "Secondary" : "Modifier";
-  
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-card/50 border border-border/30">
-      <span className="text-muted-foreground mt-0.5 shrink-0">{icon}</span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{title}</span>
-            <span className="text-[9px] text-muted-foreground/50 uppercase tracking-wider">{emphasisLabel}</span>
-          </div>
-          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusStyle(status)}`}>
-            {getStatusLabel(status)}
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground/80 leading-relaxed">{description}</p>
-      </div>
-    </div>
   );
 }

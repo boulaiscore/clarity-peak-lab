@@ -15,16 +15,25 @@ export interface MetricStatus {
 }
 
 /**
+ * One qualitative scale for every 0–100 metric. The metric name and
+ * explanatory sentence provide semantics; the level label never changes its
+ * meaning between screens.
+ */
+export function getStandardMetricStatus(value: number): MetricStatus {
+  if (value >= 80) return { level: "high", label: "Optimal" };
+  if (value >= 65) return { level: "good", label: "Strong" };
+  if (value >= 50) return { level: "moderate", label: "Moderate" };
+  if (value >= 35) return { level: "low", label: "Low" };
+  return { level: "very_low", label: "Very low" };
+}
+
+/**
  * Sharpness (0-100)
  * Reflects current cognitive clarity and intuitive processing capacity.
  * Higher = sharper, more ready for demanding tasks.
  */
 export function getSharpnessStatus(value: number): MetricStatus {
-  if (value >= 80) return { level: "high", label: "Peak" };
-  if (value >= 65) return { level: "good", label: "Sharp" };
-  if (value >= 50) return { level: "moderate", label: "Steady" };
-  if (value >= 35) return { level: "low", label: "Foggy" };
-  return { level: "very_low", label: "Drained" };
+  return getStandardMetricStatus(value);
 }
 
 /**
@@ -33,11 +42,7 @@ export function getSharpnessStatus(value: number): MetricStatus {
  * Combines recovery, reasoning capacity, and focus stability.
  */
 export function getReadinessStatus(value: number): MetricStatus {
-  if (value >= 80) return { level: "high", label: "Optimal" };
-  if (value >= 65) return { level: "good", label: "Ready" };
-  if (value >= 50) return { level: "moderate", label: "Baseline" };
-  if (value >= 35) return { level: "low", label: "Limited" };
-  return { level: "very_low", label: "Depleted" };
+  return getStandardMetricStatus(value);
 }
 
 /**
@@ -46,11 +51,7 @@ export function getReadinessStatus(value: number): MetricStatus {
  * Built through detox and walking activities.
  */
 export function getRecoveryStatus(value: number): MetricStatus {
-  if (value >= 80) return { level: "high", label: "Restored" };
-  if (value >= 65) return { level: "good", label: "Recovered" };
-  if (value >= 50) return { level: "moderate", label: "Partial" };
-  if (value >= 35) return { level: "low", label: "Fatigued" };
-  return { level: "very_low", label: "Depleted" };
+  return getStandardMetricStatus(value);
 }
 
 /**
@@ -59,9 +60,5 @@ export function getRecoveryStatus(value: number): MetricStatus {
  * Built through S2 training, consistency, and task engagement.
  */
 export function getReasoningQualityStatus(value: number): MetricStatus {
-  if (value >= 80) return { level: "high", label: "Elite" };
-  if (value >= 65) return { level: "good", label: "Strong" };
-  if (value >= 50) return { level: "moderate", label: "Developing" };
-  if (value >= 35) return { level: "low", label: "Building" };
-  return { level: "very_low", label: "Emerging" };
+  return getStandardMetricStatus(value);
 }

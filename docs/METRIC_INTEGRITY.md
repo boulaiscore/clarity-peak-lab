@@ -47,6 +47,24 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
   health values and respects browser Do Not Track.
 - All user-owned metric tables use Row Level Security keyed by `auth.uid()`.
 
+## Display contract
+
+- Every primary metric uses the same 0–100 ring, integer display, navigation,
+  spacing, and factor-card structure.
+- Factor cards always expose canonical code, value, weight or rule, exact score
+  impact, and the data window behind the value.
+- Canonical labels are AE — Attentional Efficiency, RA — Rapid Association,
+  CT — Critical Thinking, IN — Insight, S1 — Fast Processing, S2 — Deliberate
+  Reasoning, REC — Recovery, and RQ — Reasoning Quality.
+- Icons are reserved for navigation and actions. Metric factors use their
+  canonical codes rather than decorative icons.
+- Every 0–100 score shares one qualitative scale: Optimal (80+), Strong (65+),
+  Moderate (50+), Low (35+), and Very low (<35).
+- Provisional inputs must be marked as estimated. In particular, S2
+  Consistency remains provisional until at least five S2 sessions exist.
+- Readiness factors must reflect its active mode: app-only or wearable. The UI
+  must never show app-only weights when the wearable formula is active.
+
 ## Change rule
 
 Any formula change must update the canonical pure engine first, then its tests
