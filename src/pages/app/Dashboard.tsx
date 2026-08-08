@@ -117,12 +117,6 @@ const Dashboard = () => {
   return (
     <AppShell>
       <div className="mx-auto max-w-md space-y-6 px-5 py-5">
-        <MonitorSectionHeader
-          eyebrow="Monitor"
-          title="Your cognitive trend"
-          description="Follow changes against your own baseline. Scores describe trainable performance signals, not fixed ability."
-        />
-
         <MonitorSegmentedControl
           ariaLabel="Monitor view"
           value={activeTab}
