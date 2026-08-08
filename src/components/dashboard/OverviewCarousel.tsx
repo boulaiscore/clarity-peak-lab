@@ -33,11 +33,11 @@ interface OverviewCarouselProps {
 const CARDS = ["cognitive-age", "cognitive-network", "dual-process"] as const;
 type CardType = (typeof CARDS)[number];
 
-const CARD_OPTIONS = [
+const CARD_OPTIONS: { value: CardType; label: string }[] = [
   { value: "cognitive-age", label: "Age" },
   { value: "cognitive-network", label: "Network" },
   { value: "dual-process", label: "Systems" },
-] as const;
+];
 
 const CARD_COPY: Record<CardType, { title: string; description: string }> = {
   "cognitive-age": {

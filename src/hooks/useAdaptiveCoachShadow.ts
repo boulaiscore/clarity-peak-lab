@@ -4,7 +4,7 @@ import { addDays, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { supabase } from "@/integrations/supabase/client";
-import type { Json, TablesInsert } from "@/integrations/supabase/types";
+import type { Json } from "@/integrations/supabase/types";
 import {
   ADAPTIVE_COACH_MODEL_VERSION,
   ADAPTIVE_COACH_OUTCOME_WINDOW_DAYS,
@@ -20,6 +20,40 @@ import {
 import { trackProductEvent } from "@/lib/productAnalytics";
 
 const COACH_QUERY_KEY = "adaptive-coach-predictions";
+
+/**
+ * The `adaptive_coach_predictions` table exists in the database but is not yet
+ * reflected in the auto-generated Supabase types (types.ts). These local types
+ * keep the hook type-safe until the types are regenerated.
+ */
+interface AdaptiveCoachPredictionRow {
+  id?: string;
+  user_id: string;
+  prediction_date: string;
+  predicted_at: string;
+  expires_at: string;
+  mode: string;
+  model_version: string;
+  action_key: string;
+  target_skill: string;
+  candidate_rank: number;
+  is_top_candidate: boolean;
+  is_evaluable: boolean;
+  baseline_score: number;
+  predicted_score: number;
+  predicted_delta: number;
+  priority_score: number;
+  confidence: number;
+  features: Json;
+  explanation: Json;
+  outcome_status?: string | null;
+  observed_delta?: number | null;
+  outcome_at?: string | null;
+  outcome_score?: number | null;
+  evaluated_at?: string | null;
+}
+
+type AdaptiveCoachPredictionInsert = Omit<AdaptiveCoachPredictionRow, "id">;
 
 function isCoachSkill(value: string): value is CoachSkill {
   return value === "AE" || value === "RA" || value === "CT" || value === "IN";
@@ -76,7 +110,7 @@ export function useAdaptiveCoachShadowRecorder(): void {
     queryKey: [COACH_QUERY_KEY, "today", userId, today, ADAPTIVE_COACH_MODEL_VERSION],
     queryFn: async () => {
       if (!userId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => Promise<{ data: AdaptiveCoachPredictionRow[] | null; error: unknown }> } } } } })
         .from("adaptive_coach_predictions")
         .select("id")
         .eq("user_id", userId)
@@ -119,7 +153,7 @@ export function useAdaptiveCoachShadowRecorder(): void {
     queryKey: [COACH_QUERY_KEY, "calibration", userId, ADAPTIVE_COACH_MODEL_VERSION],
     queryFn: async (): Promise<CoachCalibrationOutcome[]> => {
       if (!userId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => { eq: (c: string, v: boolean) => { not: (c: string, op: string, v: string) => { order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: AdaptiveCoachPredictionRow[] | null; error: unknown }> } } } } } } } } })
         .from("adaptive_coach_predictions")
         .select("action_key, predicted_delta, observed_delta")
         .eq("user_id", userId)
@@ -188,7 +222,7 @@ export function useAdaptiveCoachShadowRecorder(): void {
     const expiresAt = addDays(predictedAt, ADAPTIVE_COACH_OUTCOME_WINDOW_DAYS).toISOString();
 
     void (async () => {
-      const payload: TablesInsert<"adaptive_coach_predictions">[] = predictions.map((prediction) => ({
+      const payload: AdaptiveCoachPredictionInsert[] = predictions.map((prediction) => ({
         user_id: userId,
         prediction_date: today,
         predicted_at: predictedAt.toISOString(),
@@ -215,7 +249,7 @@ export function useAdaptiveCoachShadowRecorder(): void {
         } as Json,
       }));
 
-      const { error } = await supabase
+      const { error } = await (supabase as unknown as { from: (t: string) => { upsert: (p: AdaptiveCoachPredictionInsert[], o: { onConflict: string; ignoreDuplicates: boolean }) => Promise<{ error: unknown }> } })
         .from("adaptive_coach_predictions")
         .upsert(payload, {
           onConflict: "user_id,prediction_date,action_key,model_version",
@@ -271,7 +305,7 @@ export function useAdaptiveCoachValidation() {
     queryKey: [COACH_QUERY_KEY, "validation", userId, ADAPTIVE_COACH_MODEL_VERSION],
     queryFn: async () => {
       if (!userId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => { order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: AdaptiveCoachPredictionRow[] | null; error: unknown }> } } } } } })
         .from("adaptive_coach_predictions")
         .select("action_key, predicted_at, outcome_at, predicted_score, outcome_score, predicted_delta, observed_delta, confidence, explanation, is_evaluable, outcome_status")
         .eq("user_id", userId)
@@ -286,7 +320,7 @@ export function useAdaptiveCoachValidation() {
   });
 
   const result = useMemo(() => {
-    const rows = query.data ?? [];
+    const rows: AdaptiveCoachPredictionRow[] = query.data ?? [];
     const validationRecords: CoachValidationRecord[] = rows.flatMap((row) => {
       if (
         row.outcome_status !== "observed" ||
