@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { getReasoningQualityStatus } from "@/lib/metricStatusLabels";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { TASK_TYPE_WEIGHTS } from "@/lib/reasoningQuality";
 import { cn } from "@/lib/utils";
 
@@ -152,7 +153,7 @@ export default function ReasoningQualityImpact() {
         <MetricScoreRing
           value={rq}
           status={getReasoningQualityStatus(rq).label}
-          color="hsl(207, 44%, 55%)"
+          color={METRIC_COLORS.reasoningQuality}
           isLoading={isLoading}
         />
 

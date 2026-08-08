@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
+import { AppPageHeader } from "@/components/app/AppUI";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { ReasonTabContent } from "@/components/lab";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Zap, Battery, BatteryLow, Settings2, RefreshCw } from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
@@ -51,12 +52,9 @@ function ProtocolLink({
   onOpen: () => void;
   planName: string;
 }) {
-  return <button onClick={onOpen} className="w-full flex items-center justify-center gap-2 py-2.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors">
-      <Settings2 className="w-3.5 h-3.5" />
-      <span>
-        Protocol: <span className="font-medium text-foreground/80">{planName}</span>
-      </span>
-      <ChevronRight className="w-3 h-3 opacity-50" />
+  return <button onClick={onOpen} className="flex w-full items-center justify-between py-2.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+      <span className="uppercase tracking-[0.14em]">Protocol</span>
+      <span className="font-medium text-foreground/80">{planName}</span>
     </button>;
 }
 export default function NeuroLab() {
@@ -109,8 +107,6 @@ export default function NeuroLab() {
   const recoveryGuidance = useMemo(() => {
     if (recoveryLoading) {
       return {
-        icon: Battery,
-        iconColor: "text-muted-foreground",
         headline: "Loading your status...",
         message: "",
         action: ""
@@ -121,8 +117,6 @@ export default function NeuroLab() {
     // Peak (80+): Full intensity
     if (rec >= 80) {
       return {
-        icon: Zap,
-        iconColor: "text-emerald-400",
         headline: `Recovery ${Math.round(rec)}% — Primed.`,
         message: "Peak window for deep reasoning.",
         action: "Push S2 games."
@@ -132,8 +126,6 @@ export default function NeuroLab() {
     // Sharp (65-79): Good to go
     if (rec >= 65) {
       return {
-        icon: Battery,
-        iconColor: "text-emerald-400",
         headline: `Recovery ${Math.round(rec)}% — Strong.`,
         message: "Good energy to train.",
         action: "S2 unlocked."
@@ -143,8 +135,6 @@ export default function NeuroLab() {
     // Steady (50-64): Moderate, be strategic
     if (rec >= 50) {
       return {
-        icon: Battery,
-        iconColor: "text-amber-400",
         headline: `Recovery ${Math.round(rec)}% — Moderate.`,
         message: "Train light, don't overdo it.",
         action: "S1 + Quality Time."
@@ -154,8 +144,6 @@ export default function NeuroLab() {
     // Foggy (35-49): Low, focus on recovery
     if (rec >= 35) {
       return {
-        icon: BatteryLow,
-        iconColor: "text-amber-500",
         headline: `Recovery ${Math.round(rec)}% — Low.`,
         message: "Skip intense training.",
         action: "Recover or light Quality Time."
@@ -164,8 +152,6 @@ export default function NeuroLab() {
 
     // Drained (<35): Very low, prioritize recovery
     return {
-      icon: BatteryLow,
-      iconColor: "text-red-400",
       headline: `Recovery ${Math.round(rec)}% — Depleted.`,
       message: "Training now will backfire.",
       action: "Recover. Quality Time is fine."
@@ -286,7 +272,14 @@ export default function NeuroLab() {
       </AppShell>;
   }
   return <AppShell>
-      <div className="px-4 py-5 max-w-md mx-auto space-y-0">
+      <div className="mx-auto max-w-md px-5 py-5">
+
+        <AppPageHeader
+          eyebrow="Lab"
+          title="Train with intent"
+          description="Choose training, quality time or recovery from the same weekly protocol."
+          className="mb-5"
+        />
 
 
         {/* Today's recommended action — single dominant CTA */}
@@ -307,11 +300,9 @@ export default function NeuroLab() {
             ctaTab = "games";
           }
           return (
-            <div className="p-4 rounded-2xl bg-muted/15 border border-border/20 mb-1">
+            <div className="mb-1 rounded-2xl border border-border/30 bg-card/35 p-4">
               <div className="flex items-start gap-3 mb-3">
-                <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
-                  <recoveryGuidance.icon className="w-4 h-4" />
-                </div>
+                <span className="mt-0.5 rounded-md border border-border/40 bg-muted/30 px-2 py-1 text-[9px] font-semibold tracking-wider text-muted-foreground">REC</span>
                 <div className="flex-1 space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
                     Today's recommended action
@@ -376,24 +367,18 @@ export default function NeuroLab() {
         </div>
 
         {/* Training Section - Distinct Background */}
-        <div className="bg-muted/10 -mx-4 px-4 py-5 mt-5 rounded-t-2xl border-t border-border/15">
+        <div className="mt-5 rounded-2xl border border-border/30 bg-card/25 p-3">
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-3 h-10 mb-3 bg-background/60">
-              <TabsTrigger value="games" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-                <Dumbbell className="w-3.5 h-3.5" />
-                Train
+            <TabsList className="mb-3 grid h-auto w-full grid-cols-3 rounded-xl border border-border/30 bg-muted/25 p-1">
+              <TabsTrigger value="games" className="min-h-9 rounded-lg text-[11px] data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Training
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-                <BookMarked className="w-3.5 h-3.5" />
+              <TabsTrigger value="tasks" className="min-h-9 rounded-lg text-[11px] data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 Quality Time
               </TabsTrigger>
-              <TabsTrigger value="detox" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-                <div className="relative w-3.5 h-3.5">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <Ban className="w-3.5 h-3.5 absolute inset-0" />
-                </div>
-                Recover
+              <TabsTrigger value="detox" className="min-h-9 rounded-lg text-[11px] data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Recovery
               </TabsTrigger>
             </TabsList>
 

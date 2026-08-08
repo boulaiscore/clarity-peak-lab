@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { AppPanel } from "@/components/app/AppUI";
 
 interface MonitorSegmentOption<T extends string> {
   value: T;
@@ -106,9 +107,5 @@ interface MonitorPanelProps {
 }
 
 export function MonitorPanel({ children, className }: MonitorPanelProps) {
-  return (
-    <div className={cn("rounded-2xl border border-border/30 bg-card/35", className)}>
-      {children}
-    </div>
-  );
+  return <AppPanel className={className}>{children}</AppPanel>;
 }

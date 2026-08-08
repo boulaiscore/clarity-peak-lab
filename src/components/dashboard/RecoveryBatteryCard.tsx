@@ -6,11 +6,11 @@
  * and a refined editorial header (label · value · delta pill · status indicator).
  */
 
-import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { formatRemainingMinutes } from "@/lib/recovery/acuteBoost";
+import { METRIC_COLORS } from "@/lib/metricColors";
 
 interface RecoveryBatteryCardProps {
   recovery: number;
@@ -24,20 +24,6 @@ interface RecoveryBatteryCardProps {
 }
 
 const SEGMENTS = 20;
-
-// Adaptive color: red → orange → yellow-green → bright green
-function getRecoveryColor(value: number): string {
-  if (value <= 35) {
-    const hue = 0 + (value / 35) * 30;
-    return `hsl(${hue}, 85%, 50%)`;
-  }
-  if (value <= 65) {
-    const hue = 30 + ((value - 35) / 30) * 40;
-    return `hsl(${hue}, 80%, 52%)`;
-  }
-  const hue = 70 + ((value - 65) / 35) * 70;
-  return `hsl(${hue}, 88%, 52%)`;
-}
 
 export function RecoveryBatteryCard({
   recovery,
@@ -59,7 +45,7 @@ export function RecoveryBatteryCard({
 
   const value = Math.max(0, Math.min(100, recovery));
   const filled = Math.round((value / 100) * SEGMENTS);
-  const color = getRecoveryColor(value);
+  const color = METRIC_COLORS.recovery;
   const status = getRecoveryStatus(value);
   const displayInfo = getMetricDisplayInfo(status.label, status.level, null, null);
 
@@ -68,12 +54,9 @@ export function RecoveryBatteryCard({
   const isNegative = deltaVsYesterday?.trim().startsWith("-");
 
   return (
-    <motion.button
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+    <button
       onClick={onClick}
-      className="w-full text-left px-3 py-3 rounded-xl bg-card/40 border border-border/40 transition-colors hover:bg-card/60 active:scale-[0.995]"
+      className="w-full rounded-2xl border border-border/30 bg-card/35 px-4 py-4 text-left transition-colors hover:bg-card/55 active:scale-[0.995]"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -133,11 +116,8 @@ export function RecoveryBatteryCard({
           {Array.from({ length: SEGMENTS }).map((_, i) => {
             const active = i < filled;
             return (
-              <motion.div
+              <div
                 key={i}
-                initial={{ scaleY: 0.4, opacity: 0 }}
-                animate={{ scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.35, delay: 0.05 + i * 0.018, ease: "easeOut" }}
                 className="flex-1 rounded-[1px] origin-bottom"
                 style={{
                   height: active ? "100%" : "50%",
@@ -155,6 +135,6 @@ export function RecoveryBatteryCard({
           <span>Optimal</span>
         </div>
       </div>
-    </motion.button>
+    </button>
   );
 }

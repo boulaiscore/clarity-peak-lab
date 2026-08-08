@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
+import { AppPageHeader } from "@/components/app/AppUI";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import {
@@ -65,7 +66,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function ListGroup({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-card/60 border border-border/40 overflow-hidden divide-y divide-border/40">
+    <div className="overflow-hidden rounded-2xl border border-border/30 bg-card/35 divide-y divide-border/30">
       {children}
     </div>
   );
@@ -242,14 +243,13 @@ const SettingsPage = () => {
 
   return (
     <AppShell>
-      <div className="px-5 py-8 sm:py-10 max-w-xl mx-auto pb-24">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-[26px] font-semibold tracking-tight">Settings</h1>
-          <p className="text-[13px] text-muted-foreground mt-0.5">
-            Preferences, training, and account
-          </p>
-        </div>
+      <div className="mx-auto max-w-md px-5 pb-24 pt-5">
+        <AppPageHeader
+          eyebrow="More"
+          title="Settings"
+          description="Preferences, training and account controls."
+          className="mb-7"
+        />
 
         {/* TRAINING */}
         <SectionLabel>Training</SectionLabel>

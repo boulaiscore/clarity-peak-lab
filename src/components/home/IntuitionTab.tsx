@@ -14,6 +14,7 @@ import {
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
 import { calculateSharpnessRecoveryModifier } from "@/lib/cognitiveEngine";
+import { METRIC_COLORS } from "@/lib/metricColors";
 
 interface IntuitionTabProps {
   onBackToOverview?: () => void;
@@ -68,7 +69,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       <MetricScoreRing
         value={sharpness}
         status={getSharpnessStatus(sharpness).label}
-        color="hsl(210, 100%, 60%)"
+        color={METRIC_COLORS.sharpness}
         isLoading={isLoading}
       />
 

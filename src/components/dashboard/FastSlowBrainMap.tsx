@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { motion } from "framer-motion";
@@ -112,52 +113,14 @@ function generateConnections(nodes: typeof FAST_NODES, density: number = 0.3) {
 }
 
 export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore, slowBaseline, slowDelta }: FastSlowBrainMapProps) {
-  const [fastPulse, setFastPulse] = useState(false);
-  const [slowGlow, setSlowGlow] = useState(false);
-  const [animationPhase, setAnimationPhase] = useState(0);
-  const [activeNodes, setActiveNodes] = useState<{fast: number[], slow: number[]}>({ fast: [], slow: [] });
-
   const fastConnections = useMemo(() => generateConnections(FAST_NODES, 0.5), []);
   const slowConnections = useMemo(() => generateConnections(SLOW_NODES, 0.5), []);
-
-  // Continuous animation with faster update for smoother effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationPhase(p => (p + 2) % 360);
-    }, 30);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Random node activation for "thinking" effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Activate random fast nodes (more frequent for System 1)
-      const newFastActive = Array.from({ length: 4 }, () => 
-        Math.floor(Math.random() * FAST_NODES.length)
-      );
-      // Activate random slow nodes (less frequent for System 2)
-      const newSlowActive = Array.from({ length: 2 }, () => 
-        Math.floor(Math.random() * SLOW_NODES.length)
-      );
-      setActiveNodes({ fast: newFastActive, slow: newSlowActive });
-    }, 400);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Trigger animations when deltas change
-  useEffect(() => {
-    if (fastDelta > 0) {
-      setFastPulse(true);
-      setTimeout(() => setFastPulse(false), 2000);
-    }
-  }, [fastDelta]);
-
-  useEffect(() => {
-    if (slowDelta > 0) {
-      setSlowGlow(true);
-      setTimeout(() => setSlowGlow(false), 3000);
-    }
-  }, [slowDelta]);
+  // Keep this high-density visualization static. Re-rendering the SVG every
+  // 30 ms made tab transitions feel noticeably heavier on mobile devices.
+  const animationPhase = 0;
+  const activeNodes = { fast: [] as number[], slow: [] as number[] };
+  const fastPulse = false;
+  const slowGlow = false;
 
   // Calculate opacity and scale based on scores
   const fastOpacity = 0.5 + (fastScore / 100) * 0.5;
@@ -189,16 +152,16 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           style={{ background: "radial-gradient(ellipse at center, hsl(var(--muted)/0.3) 0%, transparent 100%)" }}
         >
           <defs>
-            {/* Fast network gradient - amber/orange */}
+            {/* Fast network gradient */}
             <linearGradient id="fastGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#fbbf24" />
+              <stop offset="0%" stopColor={METRIC_COLORS.system1} />
+              <stop offset="100%" stopColor={METRIC_COLORS.system1} stopOpacity="0.72" />
             </linearGradient>
             
-            {/* Slow network gradient - violet */}
+            {/* Slow network gradient */}
             <linearGradient id="slowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#8b5cf6" />
-              <stop offset="100%" stopColor="#a78bfa" />
+              <stop offset="0%" stopColor={METRIC_COLORS.system2} />
+              <stop offset="100%" stopColor={METRIC_COLORS.system2} stopOpacity="0.72" />
             </linearGradient>
             
             {/* Glow filters */}
@@ -289,7 +252,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
                     cx={conn.x1 + (conn.x2 - conn.x1) * pulseProgress}
                     cy={conn.y1 + (conn.y2 - conn.y1) * pulseProgress}
                     r={1}
-                    fill="#fbbf24"
+                    fill={METRIC_COLORS.system1}
                     opacity={0.8}
                   />
                 </g>
@@ -310,7 +273,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
                         cy={node.y}
                         r={baseSize * 3}
                         fill="none"
-                        stroke="#fbbf24"
+                        stroke={METRIC_COLORS.system1}
                         strokeWidth="0.5"
                         opacity="0.3"
                       >
@@ -353,7 +316,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
                       cy={node.y}
                       r={node.size * 2.5}
                       fill="none"
-                      stroke="#fbbf24"
+                      stroke={METRIC_COLORS.system1}
                       strokeWidth="0.5"
                       opacity="0.6"
                     />
@@ -407,7 +370,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
                         cy={node.y}
                         r={baseSize * 2}
                         fill="none"
-                        stroke="#22d3ee"
+                        stroke={METRIC_COLORS.system2}
                         strokeWidth="0.8"
                         opacity="0.4"
                       >
@@ -429,7 +392,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
                         cy={node.y}
                         r={baseSize * 1.5}
                         fill="none"
-                        stroke="#06b6d4"
+                        stroke={METRIC_COLORS.system2}
                         strokeWidth="0.5"
                         opacity="0.3"
                       >
@@ -456,10 +419,10 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           </g>
 
           {/* Labels */}
-          <text x="70" y="155" fill="#fbbf24" fontSize="8" fontWeight="600" textAnchor="middle" opacity="0.9">
+          <text x="70" y="155" fill={METRIC_COLORS.system1} fontSize="8" fontWeight="600" textAnchor="middle" opacity="0.9">
             FAST
           </text>
-          <text x="230" y="155" fill="#a78bfa" fontSize="8" fontWeight="600" textAnchor="middle" opacity="0.9">
+          <text x="230" y="155" fill={METRIC_COLORS.system2} fontSize="8" fontWeight="600" textAnchor="middle" opacity="0.9">
             SLOW
           </text>
         </svg>
@@ -469,7 +432,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           {/* Fast current */}
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <span className="text-3xl font-bold text-amber-400 drop-shadow-lg">{fastScore}</span>
+              <span className="text-3xl font-bold text-area-fast">{fastScore}</span>
               <div className="text-[10px] text-muted-foreground mt-1">
                 Baseline: {fastBaseline}
               </div>
@@ -478,7 +441,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           {/* Slow current */}
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <span className="text-3xl font-bold text-violet-400 drop-shadow-lg">{slowScore}</span>
+              <span className="text-3xl font-bold text-area-slow">{slowScore}</span>
               <div className="text-[10px] text-muted-foreground mt-1">
                 Baseline: {slowBaseline}
               </div>
@@ -489,7 +452,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
         {/* Pulse overlay when fast delta positive */}
         {fastPulse && (
           <div className="absolute left-0 top-0 w-1/2 h-full pointer-events-none">
-            <div className="absolute inset-0 bg-amber-500/5 animate-ping" style={{ animationDuration: "2s" }} />
+            <div className="absolute inset-0 bg-area-fast/5 animate-ping" style={{ animationDuration: "2s" }} />
           </div>
         )}
 
@@ -497,7 +460,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
         {slowGlow && (
           <div className="absolute right-0 top-0 w-1/2 h-full pointer-events-none flex items-center justify-center">
             <div 
-              className="w-24 h-24 rounded-full bg-cyan-500/10 animate-pulse" 
+              className="w-24 h-24 rounded-full bg-area-slow/10 animate-pulse"
               style={{ animationDuration: "3s" }} 
             />
           </div>
@@ -514,14 +477,14 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
           
           if (score >= 70) return {
             band: labels.high,
-            color: type === "fast" ? "text-amber-400" : "text-violet-400",
+            color: type === "fast" ? "text-area-fast" : "text-area-slow",
             comment: type === "fast" 
               ? "Quick pattern recognition and intuitive responses."
               : "Strong deliberate reasoning and analysis."
           };
           if (score >= 50) return {
             band: labels.mid,
-            color: type === "fast" ? "text-amber-300" : "text-violet-300",
+            color: type === "fast" ? "text-area-fast/80" : "text-area-slow/80",
             comment: type === "fast"
               ? "Developing rapid intuition."
               : "Growing analytical depth."
