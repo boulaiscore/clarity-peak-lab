@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackProductEvent } from "@/lib/productAnalytics";
 import { useQueryClient } from "@tanstack/react-query";
 
 // Drill components
@@ -61,6 +62,7 @@ export default function QuickBaselineCalibration() {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleIntroComplete = () => {
+    trackProductEvent("calibration_started");
     setStep("AE");
   };
 
@@ -187,6 +189,7 @@ export default function QuickBaselineCalibration() {
       await queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
 
       toast.success("Calibration complete");
+      trackProductEvent("calibration_completed");
       navigate("/app");
       
     } catch (error) {
@@ -218,6 +221,7 @@ export default function QuickBaselineCalibration() {
               onBegin={handleIntroComplete}
               onSkip={async () => {
                 if (!user?.id) return;
+                trackProductEvent("calibration_skipped");
                 
                 // Compute demographic-only baseline (calibration skipped)
                 const demographicInput: DemographicInput = {

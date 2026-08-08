@@ -1,21 +1,22 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { sendPasswordResetEmail } from "@/lib/emailService";
-import { getPasswordResetRedirectUrl, isIOS } from "@/lib/platformUtils";
+import { getPasswordResetRedirectUrl } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
 import { toast } from "@/hooks/use-toast";
 import authBackground from "@/assets/auth-background.png";
+import { trackProductEvent } from "@/lib/productAnalytics";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login, signup, user, isLoading: authLoading } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,6 +27,10 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const showAppleSignIn = isAppleAuthAvailable();
+
+  useEffect(() => {
+    trackProductEvent("auth_viewed", { mode: isLogin ? "login" : "signup" });
+  }, [isLogin]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -51,6 +56,7 @@ const Auth = () => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+    trackProductEvent("auth_submitted", { mode: isLogin ? "login" : "signup" });
 
     try {
       let result;
@@ -61,6 +67,7 @@ const Auth = () => {
       }
       
       if (result.success) {
+        trackProductEvent("auth_succeeded", { mode: isLogin ? "login" : "signup" });
         // Navigation will be handled by the useEffect above
       } else {
         setError(result.error || "An error occurred");
@@ -259,7 +266,15 @@ const Auth = () => {
       {/* Dark overlay for readability */}
       <div className="absolute inset-0 bg-black/60" />
 
-      {/* Header - removed back button for app-only prototype */}
+      <header className="relative z-10 p-5 sm:p-6">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to LOOMA
+        </Link>
+      </header>
 
       {/* Form */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-6 pb-16">
@@ -270,12 +285,12 @@ const Auth = () => {
               <LoomaLogo size={48} className="text-foreground" />
             </div>
             <h1 className="text-2xl font-semibold mb-2">
-              {isLogin ? "Welcome back" : "Start your journey"}
+              {isLogin ? "Welcome back" : "Start your baseline"}
             </h1>
             <p className="text-muted-foreground text-sm">
               {isLogin
-                ? "Sign in to continue your cognitive training"
-                : "Create an account to begin"}
+                ? "Sign in to continue building your personal baseline"
+                : "Your first provisional reading takes about 2 minutes"}
             </p>
           </div>
 
@@ -344,8 +359,17 @@ const Auth = () => {
             )}
 
             <Button type="submit" variant="hero" className="w-full min-h-[52px] rounded-xl" disabled={isLoading}>
-              {isLoading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
+              {isLoading ? "Loading..." : isLogin ? "Sign In" : "Create account & start"}
             </Button>
+
+            {!isLogin && (
+              <p className="text-center text-[10px] leading-relaxed text-white/55">
+                By creating an account you agree to our{" "}
+                <a href="https://www.neurolooplabs.com/#/terms" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-white">Terms</a>
+                {" "}and acknowledge our{" "}
+                <a href="https://www.neurolooplabs.com/#/privacy" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-white">Privacy Policy</a>.
+              </p>
+            )}
 
             {/* Sign in with Apple - iOS only */}
             {showAppleSignIn && (
@@ -392,7 +416,7 @@ const Auth = () => {
           {/* Tagline */}
           <div className="mt-12 text-center">
             <p className="text-xs text-muted-foreground tracking-wide">
-              Recover focus. Rebuild thinking.
+              Personal cognitive self-monitoring · Not a medical assessment
             </p>
           </div>
         </div>

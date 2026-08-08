@@ -48,9 +48,6 @@ const Dashboard = () => {
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = useUserMetrics(user?.id);
 
-  // NOTE: Cognitive Age is now a slow-moving weekly metric managed by useCognitiveAge hook
-  // The CognitiveAgeCard component handles its own data fetching
-
   // Get fast/slow thinking scores with deltas from baseline
   // S1 (Fast) = (AE + RA) / 2 = (focus_stability + fast_thinking) / 2
   // S2 (Slow) = (CT + IN) / 2 = (reasoning_accuracy + slow_thinking) / 2
@@ -286,7 +283,7 @@ const Dashboard = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                        <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Cognitive Intelligence Report</h3>
+                        <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Personal Performance Report</h3>
                         {!isPremium &&
                       <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-area-fast/20 to-area-fast/10 text-area-fast border border-area-fast/30">
                             Premium
@@ -294,7 +291,7 @@ const Dashboard = () => {
                       }
                       </div>
                       <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                        Deep analysis of your cognitive architecture
+                        Review your observed task and recovery trends
                       </p>
                     </div>
                   </div>

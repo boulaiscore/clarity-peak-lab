@@ -2,6 +2,8 @@ import { useState } from "react";
 import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { getRedirectUrl } from "@/lib/platformUtils";
+import { trackProductEvent } from "@/lib/productAnalytics";
 
 export function usePaddleCheckout() {
   const [loading, setLoading] = useState(false);
@@ -14,6 +16,7 @@ export function usePaddleCheckout() {
     }
     setLoading(true);
     try {
+      trackProductEvent("checkout_started", { priceId });
       await initializePaddle();
       const paddlePriceId = await getPaddlePriceId(priceId);
       window.Paddle.Checkout.open({
@@ -22,7 +25,7 @@ export function usePaddleCheckout() {
         customData: { userId: user.id },
         settings: {
           displayMode: "overlay",
-          successUrl: `${window.location.origin}/app?checkout=success`,
+          successUrl: getRedirectUrl("/app?checkout=success"),
           allowLogout: false,
           variant: "one-page",
           locale: "en",

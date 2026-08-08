@@ -1,27 +1,25 @@
 /**
  * Baseline Engine v1.3
  * 
- * Computes demographic and effective baselines for cognitive skill initialization.
+ * Computes neutral and performance-based baselines for cognitive skill initialization.
  * 
  * RULES:
- * - If calibration COMPLETED: effective = λ × calibration + (1-λ) × demographic
- * - If calibration SKIPPED/NOT_STARTED: effective = demographic only
+ * - If calibration COMPLETED: effective = calibration performance
+ * - If calibration SKIPPED/NOT_STARTED: effective = neutral 50
  * 
- * λ (LAMBDA) = 0.70 - Calibration weight
- * 
- * DEMOGRAPHIC CENTER FORMULA:
- * raw_center = 50 + age_adj + edu_adj + work_adj
- * baseline_demo_center = clamp(raw_center, 44, 56)
+ * Demographic information is deliberately excluded from scoring. Age,
+ * education and job category can be used for research segmentation only with
+ * explicit consent; they must not create a higher or lower starting score.
  */
 
 import { clamp } from "@/lib/cognitiveEngine";
 
 // Lambda: weight of calibration vs demographic baseline
-export const CALIBRATION_LAMBDA = 0.70;
+export const CALIBRATION_LAMBDA = 1;
 
 // Demographic baseline range
-export const DEMO_CENTER_MIN = 44;
-export const DEMO_CENTER_MAX = 56;
+export const DEMO_CENTER_MIN = 50;
+export const DEMO_CENTER_MAX = 50;
 
 // ============================================
 // TYPES
@@ -84,70 +82,27 @@ export function computeAge(birthDate: string): number {
   return age;
 }
 
-/**
- * Age adjustment for demographic baseline
- * - age <= 30: +2
- * - 31-40: +1
- * - 41-55: 0
- * - 56+: -2
- */
-export function getAgeAdjustment(age: number): number {
-  if (age <= 30) return 2;
-  if (age <= 40) return 1;
-  if (age <= 55) return 0;
-  return -2;
+/** @deprecated Demographic attributes must not modify a cognitive score. */
+export function getAgeAdjustment(_age: number): number {
+  return 0;
 }
 
 // ============================================
 // EDUCATION ADJUSTMENT
 // ============================================
 
-/**
- * Education level adjustment
- * - High School: -1
- * - Bachelor's: 0
- * - Master's: +1
- * - PhD: +2
- * - Other/Prefer not to say: 0
- */
-export function getEducationAdjustment(educationLevel: string | null): number {
-  if (!educationLevel) return 0;
-  
-  const level = educationLevel.toLowerCase();
-  
-  if (level === "high_school" || level.includes("high school")) return -1;
-  if (level === "bachelor" || level.includes("bachelor")) return 0;
-  if (level === "master" || level.includes("master")) return 1;
-  if (level === "phd" || level.includes("phd") || level.includes("doctorate")) return 2;
-  
-  return 0; // Other or unknown
+/** @deprecated Education must not modify a cognitive score. */
+export function getEducationAdjustment(_educationLevel: string | null): number {
+  return 0;
 }
 
 // ============================================
 // WORK TYPE ADJUSTMENT
 // ============================================
 
-/**
- * Work type adjustment
- * - Technical: +1
- * - Academic (student): +1
- * - Consulting/Analyst (knowledge): +1
- * - Leadership (management): 0
- * - Creative: 0
- * - Other: 0
- */
-export function getWorkAdjustment(workType: string | null): number {
-  if (!workType) return 0;
-  
-  const type = workType.toLowerCase();
-  
-  if (type === "technical" || type.includes("technical")) return 1;
-  if (type === "student" || type.includes("academic") || type.includes("phd")) return 1;
-  if (type === "knowledge" || type.includes("consulting") || type.includes("analyst")) return 1;
-  if (type === "management" || type.includes("leadership")) return 0;
-  if (type === "creative") return 0;
-  
-  return 0; // Other
+/** @deprecated Job category must not modify a cognitive score. */
+export function getWorkAdjustment(_workType: string | null): number {
+  return 0;
 }
 
 // ============================================
@@ -155,26 +110,12 @@ export function getWorkAdjustment(workType: string | null): number {
 // ============================================
 
 /**
- * Compute demographic baseline from user profile data
+ * Return a neutral prior. The input remains part of the public API for backward
+ * compatibility with stored profiles, but does not influence the score.
  */
-export function computeDemographicBaseline(input: DemographicInput): DemographicBaseline {
-  // Get age
-  let age = input.age ?? null;
-  if (!age && input.birthDate) {
-    age = computeAge(input.birthDate);
-  }
-  age = age ?? 35; // Default age if not available
-  
-  // Compute adjustments
-  const ageAdj = getAgeAdjustment(age);
-  const eduAdj = getEducationAdjustment(input.educationLevel);
-  const workAdj = getWorkAdjustment(input.workType);
-  
-  // Compute center
-  const rawCenter = 50 + ageAdj + eduAdj + workAdj;
-  const center = clamp(rawCenter, DEMO_CENTER_MIN, DEMO_CENTER_MAX);
-  
-  // For v1, all skills start at the same center
+export function computeDemographicBaseline(_input: DemographicInput): DemographicBaseline {
+  const center = 50;
+
   return {
     center,
     AE: center,
@@ -210,7 +151,7 @@ export function computeEffectiveBaseline(
     };
   }
   
-  // Apply lambda mix: effective = λ × cal + (1-λ) × demo
+  // A completed calibration is entirely performance-based.
   const lambda = CALIBRATION_LAMBDA;
   const oneMinusLambda = 1 - lambda;
   

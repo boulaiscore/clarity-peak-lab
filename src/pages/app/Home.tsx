@@ -273,21 +273,21 @@ const Home = () => {
   const getInsight = () => {
     if (readiness >= 75) {
       return {
-        title: "Today: train hard",
-        body: "Your readiness is high — push intensity for maximum gains.",
+        title: "Today: protect a focused block",
+        body: "Your recorded signals are elevated. Use the window, then log how the work felt.",
         action: "Start Train"
       };
     }
     if (readiness >= 55) {
       return {
-        title: "Today: maintain rhythm",
-        body: "Conditions are stable — complete your session to stay on track.",
+        title: "Today: follow your normal plan",
+        body: "Your signals are near their usual range. A normal work block adds useful evidence.",
         action: "Start session"
       };
     }
     return {
-      title: "Today: recover",
-      body: "Readiness is low — do Recover or light Quality Time instead.",
+      title: "Today: reduce avoidable load",
+      body: "Your inputs are lower. Try a short reset and re-check before demanding work.",
       action: "Start Recover"
     };
   };

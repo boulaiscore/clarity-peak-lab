@@ -33,13 +33,13 @@ export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
 
         {/* Title */}
         <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-3">
-          Baseline Calibration
+          First performance check
         </h1>
 
         {/* Description */}
         <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-          Four targeted assessments to establish your cognitive baseline. 
-          This data initializes your skill profile and enables personalized training.
+          Four brief tasks create your first provisional reading. LOOMA compares
+          future checks with your own performance — never with your education or job title.
         </p>
 
         {/* Duration indicator */}
@@ -66,7 +66,7 @@ export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
 
         {/* Time estimate */}
         <p className="text-[11px] text-muted-foreground/50 uppercase tracking-widest mb-8">
-          Estimated duration: 2 minutes
+          About 2 minutes · quiet environment recommended
         </p>
 
         {/* Begin button */}
@@ -75,7 +75,7 @@ export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
           className="w-full py-6 text-sm font-semibold"
           size="lg"
         >
-          Begin Calibration
+          Begin check
           <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
 
@@ -85,7 +85,7 @@ export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
             onClick={onSkip}
             className="mt-4 text-xs text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors"
           >
-            Skip for now
+            Do this later
           </button>
         )}
       </motion.div>

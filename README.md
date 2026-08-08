@@ -1,73 +1,67 @@
-# Welcome to your Lovable project
+# LOOMA
 
-## Project info
+LOOMA is a cognitive-performance self-monitoring product for professionals doing high-impact work. A brief check combines task performance with user-reported recovery context to help users decide when to focus, analyze, or reset.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+LOOMA is not a medical device, diagnostic assessment, intelligence test, or predictor of decision outcomes. Scores are intended for within-person comparison and become more useful as a user's personal history grows.
 
-## How can I edit this code?
+## Product loop
 
-There are several ways of editing your application.
+1. Complete a brief performance check.
+2. Compare the result with your personal baseline.
+3. Choose a focused-work or recovery action.
+4. Log the work outcome.
+5. Learn which contexts and interventions are associated with your strongest sessions.
 
-**Use Lovable**
+## Local development
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Requirements: Node.js 20+ and npm.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The Vite development server runs on `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment
 
-**Use GitHub Codespaces**
+Copy the project's existing environment configuration and provide the required Supabase and payment variables. Product funnel events can optionally be sent to a first-party collector:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+VITE_PRODUCT_ANALYTICS_ENDPOINT=https://example.com/events
+```
 
-## What technologies are used for this project?
+Analytics events intentionally exclude names, email addresses, cognitive scores, and health values. Without an endpoint they remain in a capped local queue for development inspection.
 
-This project is built with:
+## Verification
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```sh
+npm run build
+npm run lint
+```
 
-## How can I deploy this project?
+The repository currently contains pre-existing lint debt outside the conversion flow. Files changed for the focused baseline release should also be checked directly with ESLint before merge.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Stack
 
-## Can I connect a custom domain to my Lovable project?
+- React, TypeScript and Vite
+- Tailwind CSS and Radix/shadcn UI primitives
+- Supabase authentication and persistence
+- Paddle web checkout
+- Capacitor and PWA support
 
-Yes, you can!
+## Key routes
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- `/#/` — public product landing page
+- `/#/auth?mode=signup&intent=baseline` — baseline signup
+- `/#/onboarding` — two-step context onboarding
+- `/#/app/calibration` — first performance check
+- `/#/app` — daily signal
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Product principles
+
+- Compare users with themselves, not with demographic assumptions.
+- Label early readings as provisional.
+- Separate measured task performance from self-reported context.
+- Use probabilistic, non-clinical language.
+- Require repeated observations before presenting personalized patterns.

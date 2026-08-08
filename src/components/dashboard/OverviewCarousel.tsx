@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { CognitiveAgeCard } from "./CognitiveAgeCard";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
 import { ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
@@ -13,7 +12,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 import type { SCIBreakdown, BottleneckResult } from "@/lib/cognitiveNetworkScore";
 
 interface OverviewCarouselProps {
@@ -30,13 +28,12 @@ interface OverviewCarouselProps {
   bottleneck?: BottleneckResult | null;
 }
 
-const CARDS = ["cognitive-age", "cognitive-network", "dual-process"] as const;
+const CARDS = ["cognitive-network", "dual-process"] as const;
 type CardType = typeof CARDS[number];
 
 const cardTitles: Record<CardType, string> = {
-  "cognitive-age": "Cognitive Age",
-  "cognitive-network": "Cognitive Network",
-  "dual-process": "Dual-Process Integration"
+  "cognitive-network": "Performance Network",
+  "dual-process": "Task Profile"
 };
 
 export function OverviewCarousel({
@@ -47,9 +44,6 @@ export function OverviewCarousel({
 }: OverviewCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Get cognitive age data for NeuralGrowthAnimation
-  const { data: cognitiveAgeData } = useCognitiveAge();
   
   const swipeConfidenceThreshold = 10000;
   const swipePower = (offset: number, velocity: number) => {
@@ -119,30 +113,20 @@ export function OverviewCarousel({
             <DialogHeader>
               <DialogTitle className="text-base flex items-center gap-2">
                 <Brain className="w-4 h-4 text-primary" />
-                Cognitive Metrics Explained
+                Performance signals explained
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 text-sm">
               <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <Brain className="w-4 h-4 text-primary" />
-                  <span className="font-medium text-foreground">Cognitive Age</span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Your brain's functional age based on cognitive performance. Lower than chronological age indicates sharper cognitive abilities.
-                </p>
-              </div>
-              
-              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
-                <div className="flex items-center gap-2 mb-1.5">
                   <Network className="w-4 h-4 text-cyan-400" />
-                  <span className="font-medium text-foreground">Cognitive Network</span>
+                  <span className="font-medium text-foreground">Performance Network</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  How your cognitive abilities, consistency, and recovery integrate over time.
+                  A product score combining LOOMA task performance, consistency and recorded recovery inputs.
                 </p>
                 <p className="text-[10px] text-muted-foreground/70 mt-1.5">
-                  Tap "Learn More" on the Cognitive Network card for full details.
+                  Use changes as a self-comparison signal, not as an intelligence or clinical measure.
                 </p>
               </div>
               
@@ -152,10 +136,10 @@ export function OverviewCarousel({
                     <Zap className="w-4 h-4 text-amber-400" />
                     <Clock className="w-4 h-4 text-blue-400" />
                   </div>
-                  <span className="font-medium text-foreground">Dual-Process</span>
+                  <span className="font-medium text-foreground">Task profile</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Balance between System 1 (fast, intuitive) and System 2 (slow, analytical) thinking. Optimal performance requires both systems working in harmony.
+                  Your relative performance on fast-response and deliberate-reasoning tasks inside LOOMA.
                 </p>
               </div>
             </div>
@@ -215,13 +199,9 @@ export function OverviewCarousel({
             className="absolute inset-0 cursor-grab active:cursor-grabbing px-6"
           >
             {/* Card content based on current index */}
-            {CARDS[currentIndex] === "cognitive-age" && (
-              <CognitiveAgeCard />
-            )}
-            
             {CARDS[currentIndex] === "cognitive-network" && (
               <NeuralGrowthAnimation
-                cognitiveAgeDelta={-cognitiveAgeData.delta}
+                cognitiveAgeDelta={0}
                 overallCognitiveScore={sci?.total ?? 50}
                 sciBreakdown={sci}
                 statusText={sciStatusText}

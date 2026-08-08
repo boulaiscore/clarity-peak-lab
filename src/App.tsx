@@ -17,6 +17,7 @@ import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { usePhoneHealthSync } from "@/hooks/usePhoneHealthSync";
 import { SplashScreen } from "@/components/app/SplashScreen";
 import { TestModeFloatingToggle } from "@/components/dev/TestModeFloatingToggle";
+import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/app/Home";
@@ -122,8 +123,7 @@ function OnboardingRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Root redirects to auth for app-only prototype */}
-      <Route path="/" element={<Navigate to="/auth" replace />} />
+      <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
       <Route
         path="/onboarding"
@@ -458,7 +458,7 @@ const App = () => {
                     <AppRoutes />
                   </DeepLinkHandler>
                 </HashRouter>
-                <TestModeFloatingToggle />
+                {import.meta.env.DEV && <TestModeFloatingToggle />}
               </TooltipProvider>
             </AppInitProvider>
           </IntradayEventsProvider>

@@ -1,7 +1,7 @@
 /**
  * Calibration Results Screen
  * 
- * Premium, clinical display of baseline scores
+ * Provisional first-reading display.
  */
 
 import { motion } from "framer-motion";
@@ -95,10 +95,10 @@ export function CalibrationResults({
             </svg>
           </div>
           <h1 className="text-xl font-semibold text-foreground mb-2">
-            Calibration Complete
+            First reading complete
           </h1>
           <p className="text-sm text-muted-foreground">
-            Your baseline profile is ready
+            This result becomes more useful as your personal history grows
           </p>
         </div>
 
@@ -167,7 +167,7 @@ export function CalibrationResults({
             className="w-full py-6 text-sm font-semibold"
             size="lg"
           >
-            {isSaving ? "Saving..." : "Enter LOOMA"}
+            {isSaving ? "Saving..." : "Start my 7-day baseline"}
             {!isSaving && <ChevronRight className="w-4 h-4 ml-2" />}
           </Button>
         </motion.div>
@@ -179,7 +179,7 @@ export function CalibrationResults({
           transition={{ delay: 0.7 }}
           className="text-center text-[10px] text-muted-foreground/40 uppercase tracking-widest mt-6"
         >
-          Baseline locked • Training begins
+          Provisional reading · Not a diagnosis or prediction of work outcomes
         </motion.p>
       </motion.div>
     </div>

@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { subDays, format, differenceInDays, parseISO } from "date-fns";
+import { subDays, format } from "date-fns";
 
 export type InsightType = "peak" | "good" | "caution" | "avoid";
 export type InsightCategory = "state" | "trend";
@@ -35,12 +35,6 @@ interface MetricsInput {
   rq: number;
 }
 
-interface CognitiveAgeTrend {
-  delta: number | null; // Difference from chronological age (negative = younger)
-  weeklyChange: number | null; // Change over last 7 days
-  isImproving: boolean;
-}
-
 /**
  * Generate primary insight based on current cognitive state
  * Ordered by priority - first matching condition wins
@@ -48,11 +42,11 @@ interface CognitiveAgeTrend {
 function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   const { sharpness, readiness, recovery, rq } = metrics;
 
-  // Priority 1: Critical recovery warning
+  // Recommendations describe observed inputs, not predicted work outcomes.
   if (recovery < 35) {
     return {
-      headline: "Cognitive overload — avoid important decisions",
-      body: "Your cognitive reserve is depleted. Major decisions made now are more likely to be flawed. Defer strategic choices until you've recovered.",
+      headline: "Low recovery inputs — create space before demanding work",
+      body: "Today's recovery inputs are low. Consider a short reset and re-check; this signal does not predict the quality of a decision.",
       type: "avoid",
       category: "state",
     };
@@ -61,8 +55,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   // Priority 2: Low recovery + low RQ
   if (recovery < 50 && rq < 45) {
     return {
-      headline: "Mental capacity limited — postpone complex analysis",
-      body: "Both your recovery and reasoning depth are below optimal. Stick to routine tasks and avoid negotiations or evaluations requiring nuance.",
+      headline: "Lower signals today — reduce avoidable load",
+      body: "Recovery and task performance are both below your target range. Try a lighter block first, then re-check before complex work.",
       type: "avoid",
       category: "state",
     };
@@ -71,8 +65,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   // Priority 3: Peak state - all systems aligned
   if (sharpness >= 75 && readiness >= 75 && rq >= 60) {
     return {
-      headline: "Peak state — optimal for strategic decisions",
-      body: "Your processing speed, endurance, and reasoning depth are aligned. This is your best window for negotiations, complex analysis, and high-stakes decisions.",
+      headline: "Strong combined signal — protect a focused work block",
+      body: "Today's brief tasks and recovery inputs are aligned. This may be a useful window for demanding work; log the outcome so LOOMA can learn your pattern.",
       type: "peak",
       category: "state",
     };
@@ -81,8 +75,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   // Priority 4: Strong clarity
   if (sharpness >= 70 && readiness >= 70) {
     return {
-      headline: "Strong clarity — tackle your hardest problems",
-      body: "Your cognitive systems are performing well. Good conditions for difficult work that requires sustained focus and rapid judgment.",
+      headline: "Strong signal — use it for focused work",
+      body: "Today's task performance and readiness inputs are elevated. Consider protecting time for work that needs sustained attention.",
       type: "good",
       category: "state",
     };
@@ -91,8 +85,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   // Priority 5: High reasoning quality
   if (rq >= 65 && recovery >= 55) {
     return {
-      headline: "High reasoning quality — ideal for deep analysis",
-      body: "Your reasoning depth is strong and you have adequate reserve. Prioritize work requiring careful evaluation and nuanced thinking.",
+      headline: "Reasoning tasks are strong today",
+      body: "Your recent reasoning-task performance is strong and recovery inputs are adequate. A deliberate analysis block may fit well here.",
       type: "good",
       category: "state",
     };
@@ -101,8 +95,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   // Priority 6: Quick bursts only
   if (sharpness >= 70 && readiness < 55) {
     return {
-      headline: "Quick bursts available — short decisions only",
-      body: "Your processing speed is high but endurance is limited. Make rapid decisions effectively, but avoid marathon sessions.",
+      headline: "Sharp start, lower endurance signal",
+      body: "Brief-task performance is strong while readiness inputs are lower. Favor a short focused block and check how you feel before extending it.",
       type: "caution",
       category: "state",
     };
@@ -111,8 +105,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   // Priority 7: Endurance without sharpness
   if (readiness >= 70 && sharpness < 55) {
     return {
-      headline: "Endurance good, clarity moderate — routine tasks preferred",
-      body: "You can sustain effort but processing speed is reduced. Handle routine work smoothly, but save complex decisions for peak days.",
+      headline: "Stable readiness, moderate task signal",
+      body: "Your recovery inputs are supportive while brief-task performance is moderate. Start with structured work and reassess afterward.",
       type: "caution",
       category: "state",
     };
@@ -121,8 +115,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
   // Priority 8: Low RQ with decent recovery
   if (rq < 40 && recovery >= 55) {
     return {
-      headline: "Reasoning depth limited — avoid complex evaluations",
-      body: "Your analytical capacity is below baseline. Avoid decisions requiring deep reasoning or detecting subtle issues.",
+      headline: "Reasoning tasks are below your target range",
+      body: "Today's brief reasoning tasks were lower. Treat this as a prompt to slow down, use a checklist and verify important assumptions.",
       type: "caution",
       category: "state",
     };
@@ -130,8 +124,8 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
 
   // Default: Stable baseline
   return {
-    headline: "Stable baseline — proceed with normal workload",
-    body: "Your cognitive state is balanced. Standard work and moderate decisions are fine. No special adjustments needed.",
+    headline: "Stable signal — follow your normal plan",
+    body: "Today's task and recovery inputs are near their usual range. Log a work block to help LOOMA connect the signal with your experience.",
     type: "good",
     category: "state",
   };
@@ -141,47 +135,23 @@ function generatePrimaryInsight(metrics: MetricsInput): CognitiveInsight {
  * Generate secondary insight based on long-term trends
  */
 function generateSecondaryInsight(
-  cognitiveAgeTrend: CognitiveAgeTrend | null,
   recentRQTrend: number | null,
   avgRecovery7d: number | null
 ): CognitiveInsight | null {
-  // Priority 1: Cognitive age improvement
-  if (cognitiveAgeTrend && cognitiveAgeTrend.delta !== null && cognitiveAgeTrend.delta < -0.5) {
-    const yearsYounger = Math.abs(cognitiveAgeTrend.delta).toFixed(1);
-    return {
-      headline: `Cognitive Age: ${yearsYounger} years younger than baseline`,
-      body: "Sustained training is reducing your cognitive age. This reflects improved processing and reasoning capacity.",
-      type: "peak",
-      category: "trend",
-    };
-  }
-
-  // Priority 2: RQ growth trend
   if (recentRQTrend !== null && recentRQTrend > 5) {
     return {
-      headline: "Reasoning depth expanding steadily",
-      body: "Your reasoning quality has been building over the past week. Deep work capacity is improving.",
+      headline: "Reasoning-task trend is rising",
+      body: "Scores on LOOMA reasoning tasks increased this week. More observations are needed before connecting this change to work performance.",
       type: "good",
       category: "trend",
     };
   }
 
-  // Priority 3: Good recovery management
   if (avgRecovery7d !== null && avgRecovery7d >= 60) {
     return {
       headline: "Cognitive reserve well-managed",
-      body: "Your recovery has been consistently strong this week. You're maintaining sustainable cognitive load.",
+      body: "Your recorded recovery inputs have been consistently strong this week.",
       type: "good",
-      category: "trend",
-    };
-  }
-
-  // Priority 4: Cognitive age regression warning
-  if (cognitiveAgeTrend && cognitiveAgeTrend.delta !== null && cognitiveAgeTrend.delta > 0.5) {
-    return {
-      headline: "Cognitive Age trend: slight regression",
-      body: "Your cognitive age has increased slightly. Consider prioritizing recovery and consistent training.",
-      type: "caution",
       category: "trend",
     };
   }
@@ -191,53 +161,6 @@ function generateSecondaryInsight(
 
 export function useCognitiveInsights(metrics: MetricsInput): UseCognitiveInsightsResult {
   const { user } = useAuth();
-
-  // Fetch cognitive age trend data
-  const { data: cognitiveAgeTrend, isLoading: ageLoading } = useQuery({
-    queryKey: ["cognitive-age-trend", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-
-      // Get latest weekly cognitive age data
-      const { data: weeklyData, error } = await supabase
-        .from("user_cognitive_age_weekly")
-        .select("cognitive_age, week_start")
-        .eq("user_id", user.id)
-        .order("week_start", { ascending: false })
-        .limit(4);
-
-      if (error || !weeklyData?.length) return null;
-
-      // Get user's chronological age
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("birth_date, age")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      const chronoAge = profile?.age ?? 35; // Fallback to 35
-      const latestCogAge = weeklyData[0]?.cognitive_age;
-      
-      if (latestCogAge === null || latestCogAge === undefined) return null;
-
-      // Calculate delta (negative = younger)
-      const delta = latestCogAge - chronoAge;
-      
-      // Calculate weekly change if we have prior data
-      let weeklyChange: number | null = null;
-      if (weeklyData.length >= 2 && weeklyData[1]?.cognitive_age !== null) {
-        weeklyChange = latestCogAge - weeklyData[1].cognitive_age;
-      }
-
-      return {
-        delta,
-        weeklyChange,
-        isImproving: delta < 0 || (weeklyChange !== null && weeklyChange < 0),
-      };
-    },
-    enabled: !!user?.id,
-    staleTime: 60_000,
-  });
 
   // Fetch RQ trend (compare today vs 7 days ago)
   const { data: rqTrend, isLoading: rqLoading } = useQuery({
@@ -298,7 +221,6 @@ export function useCognitiveInsights(metrics: MetricsInput): UseCognitiveInsight
   const result = useMemo(() => {
     const primaryInsight = generatePrimaryInsight(metrics);
     const secondaryInsight = generateSecondaryInsight(
-      cognitiveAgeTrend ?? null,
       rqTrend ?? null,
       avgRecovery ?? null
     );
@@ -307,9 +229,9 @@ export function useCognitiveInsights(metrics: MetricsInput): UseCognitiveInsight
       primaryInsight,
       secondaryInsight,
       decisionReadiness: primaryInsight.type,
-      isLoading: ageLoading || rqLoading || recoveryLoading,
+      isLoading: rqLoading || recoveryLoading,
     };
-  }, [metrics, cognitiveAgeTrend, rqTrend, avgRecovery, ageLoading, rqLoading, recoveryLoading]);
+  }, [metrics, rqTrend, avgRecovery, rqLoading, recoveryLoading]);
 
   return result;
 }
