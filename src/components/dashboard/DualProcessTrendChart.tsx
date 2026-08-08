@@ -25,7 +25,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { buildDualProcessSeries } from "@/lib/dualProcessHistory";
-import { METRIC_COLORS } from "@/lib/metricColors";
 
 const HISTORY_LOOKBACK_DAYS = 90;
 
@@ -246,9 +245,9 @@ export function DualProcessTrendChart({
                 type="linear"
                 dataKey="s1"
                 name="s1"
-                stroke={METRIC_COLORS.system1}
+                stroke="#f59e0b"
                 strokeWidth={2}
-                dot={{ r: 2, fill: METRIC_COLORS.system1, strokeWidth: 0 }}
+                dot={{ r: 2, fill: "#f59e0b", strokeWidth: 0 }}
                 activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }}
                 connectNulls
                 isAnimationActive={false}
@@ -261,9 +260,9 @@ export function DualProcessTrendChart({
                 type="linear"
                 dataKey="s2"
                 name="s2"
-                stroke={METRIC_COLORS.system2}
+                stroke="#8b5cf6"
                 strokeWidth={2}
-                dot={{ r: 2, fill: METRIC_COLORS.system2, strokeWidth: 0 }}
+                dot={{ r: 2, fill: "#8b5cf6", strokeWidth: 0 }}
                 activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }}
                 connectNulls
                 isAnimationActive={false}
@@ -284,7 +283,7 @@ export function DualProcessTrendChart({
         >
           <span
             className="w-2.5 h-0.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: METRIC_COLORS.system1 }}
+            style={{ backgroundColor: "#f59e0b" }}
           />
           <span className="text-muted-foreground">System 1 (Fast)</span>
         </button>
@@ -297,7 +296,7 @@ export function DualProcessTrendChart({
         >
           <span
             className="w-2.5 h-0.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: METRIC_COLORS.system2 }}
+            style={{ backgroundColor: "#8b5cf6" }}
           />
           <span className="text-muted-foreground">System 2 (Slow)</span>
         </button>

@@ -4,15 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format, subDays, parseISO } from "date-fns";
-import { Dumbbell, CheckCircle2, TrendingUp, Clock } from "lucide-react";
+import { Dumbbell, Zap, Brain, Target, Lightbulb, CheckCircle2, TrendingUp, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-import { METRIC_COLORS } from "@/lib/metricColors";
 
 // System colors - muted premium tones
 const SYSTEM_COLORS = {
-  s1: METRIC_COLORS.system1,
-  s2: METRIC_COLORS.system2,
+  s1: "#C6A86D", // muted amber/gold
+  s2: "#7B6FA8", // muted light violet
 };
 
 // Area labels for tooltip
@@ -188,17 +187,26 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
         <div className="mb-2">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: SYSTEM_COLORS.s1 }} />
-            <span className="text-[10px] font-medium text-area-fast">S1 · Fast: {data.system1} XP</span>
+            <span className="text-[10px] font-medium text-amber-400">S1 · Fast: {data.system1} XP</span>
           </div>
           <div className="pl-3.5 space-y-0.5">
             {data.s1Focus > 0 && (
-              <div className="text-[9px] text-muted-foreground">Focus: {data.s1Focus} XP</div>
+              <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                <Target className="w-2.5 h-2.5" />
+                <span>Focus: {data.s1Focus} XP</span>
+              </div>
             )}
             {data.s1Reasoning > 0 && (
-              <div className="text-[9px] text-muted-foreground">Reasoning: {data.s1Reasoning} XP</div>
+              <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                <Brain className="w-2.5 h-2.5" />
+                <span>Reasoning: {data.s1Reasoning} XP</span>
+              </div>
             )}
             {data.s1Creativity > 0 && (
-              <div className="text-[9px] text-muted-foreground">Creativity: {data.s1Creativity} XP</div>
+              <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                <Lightbulb className="w-2.5 h-2.5" />
+                <span>Creativity: {data.s1Creativity} XP</span>
+              </div>
             )}
           </div>
         </div>
@@ -208,17 +216,26 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
         <div>
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: SYSTEM_COLORS.s2 }} />
-            <span className="text-[10px] font-medium text-area-slow">S2 · Slow: {data.system2} XP</span>
+            <span className="text-[10px] font-medium text-violet-400">S2 · Slow: {data.system2} XP</span>
           </div>
           <div className="pl-3.5 space-y-0.5">
             {data.s2Focus > 0 && (
-              <div className="text-[9px] text-muted-foreground">Focus: {data.s2Focus} XP</div>
+              <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                <Target className="w-2.5 h-2.5" />
+                <span>Focus: {data.s2Focus} XP</span>
+              </div>
             )}
             {data.s2Reasoning > 0 && (
-              <div className="text-[9px] text-muted-foreground">Reasoning: {data.s2Reasoning} XP</div>
+              <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                <Brain className="w-2.5 h-2.5" />
+                <span>Reasoning: {data.s2Reasoning} XP</span>
+              </div>
             )}
             {data.s2Creativity > 0 && (
-              <div className="text-[9px] text-muted-foreground">Creativity: {data.s2Creativity} XP</div>
+              <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                <Lightbulb className="w-2.5 h-2.5" />
+                <span>Creativity: {data.s2Creativity} XP</span>
+              </div>
             )}
           </div>
         </div>
@@ -240,17 +257,13 @@ function formatGameName(exerciseId: string): string {
 // Get area icon
 function AreaIcon({ area }: { area: string }) {
   const normalizedArea = area?.toLowerCase() || "focus";
-  const label = normalizedArea === "focus" || normalizedArea === "memory" || normalizedArea === "visual"
-    ? "AE"
-    : normalizedArea === "reasoning" || normalizedArea === "control"
-      ? "CT"
-      : "RA";
-
-  return (
-    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-border/40 bg-muted/30 px-1 text-[7px] font-semibold tracking-wide text-muted-foreground">
-      {label}
-    </span>
-  );
+  if (normalizedArea === "focus" || normalizedArea === "memory" || normalizedArea === "visual") {
+    return <Target className="w-3 h-3 text-blue-400" />;
+  } else if (normalizedArea === "reasoning" || normalizedArea === "control") {
+    return <Brain className="w-3 h-3 text-purple-400" />;
+  } else {
+    return <Lightbulb className="w-3 h-3 text-amber-400" />;
+  }
 }
 
 export function GamesStats() {
@@ -405,14 +418,14 @@ export function GamesStats() {
         {/* System legend */}
         <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border/20">
           <div className="flex items-center gap-1.5">
-            <span className="text-[8px] font-semibold text-area-fast">S1</span>
-            <span className="text-[10px] text-muted-foreground">Fast</span>
-            <span className="text-[10px] font-medium text-area-fast">{stats.s1XP} XP</span>
+            <Zap className="w-3 h-3 text-amber-400" />
+            <span className="text-[10px] text-muted-foreground">S1 · Fast</span>
+            <span className="text-[10px] font-medium text-amber-400">{stats.s1XP} XP</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[8px] font-semibold text-area-slow">S2</span>
-            <span className="text-[10px] text-muted-foreground">Slow</span>
-            <span className="text-[10px] font-medium text-area-slow">{stats.s2XP} XP</span>
+            <Clock className="w-3 h-3 text-violet-400" />
+            <span className="text-[10px] text-muted-foreground">S2 · Slow</span>
+            <span className="text-[10px] font-medium text-violet-400">{stats.s2XP} XP</span>
           </div>
         </div>
       </div>
@@ -478,12 +491,12 @@ export function GamesStats() {
         {/* Chart legend */}
         <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-border/20">
           <div className="flex items-center gap-1">
-            <span className="text-[8px] font-semibold text-area-fast">S1</span>
-            <span className="text-[8px] text-muted-foreground">Fast</span>
+            <Zap className="w-2.5 h-2.5 text-amber-400" />
+            <span className="text-[8px] text-muted-foreground">S1 · Fast</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-[8px] font-semibold text-area-slow">S2</span>
-            <span className="text-[8px] text-muted-foreground">Slow</span>
+            <Clock className="w-2.5 h-2.5 text-violet-400" />
+            <span className="text-[8px] text-muted-foreground">S2 · Slow</span>
           </div>
         </div>
       </div>
@@ -494,22 +507,22 @@ export function GamesStats() {
           {/* System 1 - Fast */}
           <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-area-fast/12 flex items-center justify-center">
-                <span className="text-[9px] font-semibold text-area-fast">S1</span>
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <Zap className="h-4 w-4 text-amber-400" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">System 1 · Fast</p>
                 <p className="text-[10px] text-muted-foreground">Intuitive responses</p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-area-fast">{stats.s1XP} XP</p>
+                <p className="text-lg font-bold text-amber-400">{stats.s1XP} XP</p>
                 <p className="text-[9px] text-muted-foreground">{stats.s1Count} games · {stats.s1.avgScore}% avg</p>
               </div>
             </div>
             
             {/* S1 Area breakdown */}
             {stats.s1Count > 0 && (
-              <div className="space-y-2 pt-3 border-t border-area-fast/10">
+              <div className="space-y-2 pt-3 border-t border-amber-500/10">
                 {(["focus", "creativity"] as const).map((area) => {
                   const areaStats = stats.s1.areas[area];
                   if (areaStats.count === 0) return null;
@@ -529,7 +542,7 @@ export function GamesStats() {
                         <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} games</span>
                       </div>
                       <div className="flex items-center gap-3 text-[9px]">
-                        <span className="text-area-fast font-medium">+{areaStats.xp} XP</span>
+                        <span className="text-amber-400 font-medium">+{areaStats.xp} XP</span>
                         <span className="text-muted-foreground">·</span>
                         <span className={areaStats.avgScore >= 70 ? "text-green-400" : areaStats.avgScore >= 50 ? "text-amber-400" : "text-red-400"}>
                           {areaStats.avgScore}% accuracy
@@ -537,7 +550,7 @@ export function GamesStats() {
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {metricsImpact[area].map((metric) => (
-                          <span key={metric} className="text-[7px] px-1.5 py-0.5 rounded bg-area-fast/10 text-area-fast/80">
+                          <span key={metric} className="text-[7px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400/80">
                             ↑ {metric}
                           </span>
                         ))}
@@ -552,22 +565,22 @@ export function GamesStats() {
           {/* System 2 - Slow */}
           <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-area-slow/12 flex items-center justify-center">
-                <span className="text-[9px] font-semibold text-area-slow">S2</span>
+              <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                <Brain className="h-4 w-4 text-violet-400" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">System 2 · Slow</p>
                 <p className="text-[10px] text-muted-foreground">Deliberate analysis</p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-area-slow">{stats.s2XP} XP</p>
+                <p className="text-lg font-bold text-violet-400">{stats.s2XP} XP</p>
                 <p className="text-[9px] text-muted-foreground">{stats.s2Count} games · {stats.s2.avgScore}% avg</p>
               </div>
             </div>
             
             {/* S2 Area breakdown */}
             {stats.s2Count > 0 && (
-              <div className="space-y-2 pt-3 border-t border-area-slow/10">
+              <div className="space-y-2 pt-3 border-t border-violet-500/10">
                 {(["reasoning", "creativity"] as const).map((area) => {
                   const areaStats = stats.s2.areas[area];
                   if (areaStats.count === 0) return null;
@@ -586,7 +599,7 @@ export function GamesStats() {
                         <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} games</span>
                       </div>
                       <div className="flex items-center gap-3 text-[9px]">
-                        <span className="text-area-slow font-medium">+{areaStats.xp} XP</span>
+                        <span className="text-violet-400 font-medium">+{areaStats.xp} XP</span>
                         <span className="text-muted-foreground">·</span>
                         <span className={areaStats.avgScore >= 70 ? "text-green-400" : areaStats.avgScore >= 50 ? "text-amber-400" : "text-red-400"}>
                           {areaStats.avgScore}% accuracy
@@ -594,7 +607,7 @@ export function GamesStats() {
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {metricsImpact[area].map((metric) => (
-                          <span key={metric} className="text-[7px] px-1.5 py-0.5 rounded bg-area-slow/10 text-area-slow/80">
+                          <span key={metric} className="text-[7px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400/80">
                             ↑ {metric}
                           </span>
                         ))}
@@ -697,12 +710,17 @@ export function GamesStats() {
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {sessions.slice(0, 10).map((session, idx) => {
               const isS1 = session.thinking_mode === "fast";
+              const systemColor = isS1 ? "amber" : "violet";
               const completedAt = parseISO(session.completed_at);
               
               return (
                 <div 
                   key={session.id || idx}
-                  className={`p-2.5 rounded-lg border ${isS1 ? "bg-area-fast/5 border-area-fast/10" : "bg-area-slow/5 border-area-slow/10"}`}
+                  className={`p-2.5 rounded-lg bg-${systemColor}-500/5 border border-${systemColor}-500/10`}
+                  style={{ 
+                    backgroundColor: isS1 ? 'rgba(245, 158, 11, 0.05)' : 'rgba(139, 92, 246, 0.05)',
+                    borderColor: isS1 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(139, 92, 246, 0.1)'
+                  }}
                 >
                   <div className="flex items-start gap-2">
                     <AreaIcon area={session.gym_area} />
@@ -713,7 +731,7 @@ export function GamesStats() {
                         </span>
                         <span 
                           className={`text-[8px] px-1.5 py-0.5 rounded font-medium ${
-                            isS1 ? 'bg-area-fast/15 text-area-fast' : 'bg-area-slow/15 text-area-slow'
+                            isS1 ? 'bg-amber-500/20 text-amber-400' : 'bg-violet-500/20 text-violet-400'
                           }`}
                         >
                           {isS1 ? 'S1' : 'S2'}

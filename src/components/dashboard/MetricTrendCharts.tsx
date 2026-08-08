@@ -13,7 +13,6 @@ import { format, subDays, startOfDay } from "date-fns";
 import { useMetricHistory } from "@/hooks/useMetricHistory";
 import { useIntradayMetricHistory } from "@/hooks/useIntradayMetricHistory";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine, Area, ComposedChart } from "recharts";
-import { METRIC_COLORS } from "@/lib/metricColors";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
 type ViewMode = "week" | "today";
@@ -23,6 +22,14 @@ interface MetricConfig {
   label: string;
   color: string;
 }
+
+// Metric colors matching Home page
+const METRIC_COLORS = {
+  sharpness: "hsl(210, 100%, 60%)",     // Electric blue
+  readiness: "hsl(245, 58%, 65%)",      // Soft indigo
+  recovery: "hsl(174, 72%, 45%)",       // Teal
+  reasoningQuality: "hsl(215, 45%, 42%)", // Primary steel blue (matches Home)
+};
 
 const METRICS: MetricConfig[] = [
   { key: "sharpness", label: "Sharpness", color: METRIC_COLORS.sharpness },

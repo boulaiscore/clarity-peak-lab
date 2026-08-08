@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { AppPageHeader } from "@/components/app/AppUI";
 import { OverviewCarousel } from "@/components/dashboard/OverviewCarousel";
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
@@ -118,7 +117,7 @@ const Dashboard = () => {
   return (
     <AppShell>
       <div className="mx-auto max-w-md space-y-6 px-5 py-5">
-        <AppPageHeader
+        <MonitorSectionHeader
           eyebrow="Monitor"
           title="Your cognitive trend"
           description="Follow changes against your own baseline. Scores describe trainable performance signals, not fixed ability."

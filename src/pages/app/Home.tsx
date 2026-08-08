@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
-import { AppPageHeader } from "@/components/app/AppUI";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
@@ -33,7 +32,6 @@ import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
 import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
-import { METRIC_COLORS } from "@/lib/metricColors";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 
@@ -265,6 +263,12 @@ const Home = () => {
   } = useTutorialState();
   const hasProtocol = !!user?.trainingPlan;
 
+  // Premium functional color system - fixed colors per metric
+  // Low values are communicated by arc length and copy, not color
+  const sharpnessColor = "hsl(210, 100%, 60%)"; // Electric blue
+  const readinessColor = "hsl(245, 58%, 65%)"; // Soft indigo
+  const rqColor = "hsl(207, 44%, 55%)"; // Steel Blue for RQ
+
   // Get insight based on readiness - direct actionable tone
   const getInsight = () => {
     if (readiness >= 75) {
@@ -340,17 +344,10 @@ const Home = () => {
       </AppShell>;
   }
   return <AppShell>
-      <main className="mx-auto flex min-h-[calc(100dvh-theme(spacing.14))] max-w-md flex-col px-5 pb-4 pt-5">
+      <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-8 pb-4 max-w-md mx-auto">
 
         {/* Tab Content */}
         {activeTab === "overview" && <>
-            <AppPageHeader
-              eyebrow="Home"
-              title="Your cognitive state"
-              description="Today’s signals and the next useful action, based on your own baseline."
-              className="mb-5"
-            />
-
             {/* Date Navigation Header */}
             <motion.section initial={false} className="mb-4 flex justify-center items-center gap-3">
               {/* Left arrow - always visible but disabled at min date */}
@@ -385,9 +382,9 @@ const Home = () => {
             {/* Three Rings with Cognitive Engine Metrics */}
             <motion.section initial={false} className="mb-3">
               <div className="flex justify-center gap-5 mb-5">
-                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={88} strokeWidth={6} color={METRIC_COLORS.sharpness} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
-                <ProgressRing value={displayReadiness} max={100} size={88} strokeWidth={6} color={METRIC_COLORS.readiness} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
-                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={METRIC_COLORS.reasoningQuality} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
+                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={88} strokeWidth={6} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
+                <ProgressRing value={displayReadiness} max={100} size={88} strokeWidth={6} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
+                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
 
               <p className="mb-5 text-center text-[10px] leading-relaxed text-muted-foreground/60">

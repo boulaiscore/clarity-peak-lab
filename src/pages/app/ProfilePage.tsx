@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
-import { AppPageHeader, AppPanel } from "@/components/app/AppUI";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { RotateCcw } from "lucide-react";
+import { User, Save, Brain, Shield, Users, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -116,18 +115,26 @@ const ProfilePage = () => {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-md px-5 py-5">
-          <AppPageHeader
-            eyebrow="More"
-            title="Profile"
-            description="Identity and personal reference information used by LOOMA."
-            className="mb-6"
-          />
+      <div className="container px-6 py-8 sm:py-12">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+              <User className="w-7 h-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold">Profile</h1>
+              <p className="text-muted-foreground text-sm">{user?.email}</p>
+            </div>
+          </div>
 
           <div className="space-y-4">
             {/* Account Information */}
-            <AppPanel className="p-4">
-              <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/65">Account</h2>
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                <Shield className="w-4 h-4 text-primary" />
+                Account
+              </h3>
               <div className="space-y-2">
                 <div className="flex items-center justify-between py-1.5 border-b border-border/30">
                   <span className="text-xs text-muted-foreground">Email</span>
@@ -142,17 +149,20 @@ const ProfilePage = () => {
                   <span className="text-sm font-medium font-mono">{maskedAccountId}</span>
                 </div>
               </div>
-            </AppPanel>
+            </div>
 
             {/* Name Input */}
-            <AppPanel className="p-4">
-              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/65">Display name</label>
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <label className="text-sm font-medium mb-2 block">Display Name</label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="h-11" />
-            </AppPanel>
+            </div>
 
             {/* Demographics */}
-            <AppPanel className="p-4">
-              <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/65">Demographics</h2>
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                <Users className="w-4 h-4 text-primary" />
+                Demographics
+              </h3>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div className="py-1.5">
                   <span className="text-xs text-muted-foreground block">Birth Date</span>
@@ -171,17 +181,21 @@ const ProfilePage = () => {
                   <span className="font-medium capitalize">{user?.workType ? user.workType.replace(/_/g, " ") : "—"}</span>
                 </div>
               </div>
-            </AppPanel>
+            </div>
 
             {/* Cognitive Baseline */}
-            <AppPanel className="p-4">
-              <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/65">Cognitive baseline</h2>
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                <Brain className="w-4 h-4 text-primary" />
+                Cognitive Baseline
+              </h3>
               {hasCompletedAssessment === false ? (
                 <>
                   <p className="text-xs text-muted-foreground mb-3">
                     Take the initial assessment for personalized baseline metrics.
                   </p>
                   <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/onboarding?step=assessment")}>
+                    <Brain className="w-4 h-4" />
                     Take Assessment
                   </Button>
                 </>
@@ -212,13 +226,15 @@ const ProfilePage = () => {
                   </AlertDialog>
                 </>
               )}
-            </AppPanel>
+            </div>
 
             {/* Save Button */}
             <Button onClick={handleSave} variant="hero" className="w-full min-h-[48px] rounded-xl" disabled={isSaving}>
+              <Save className="w-4 h-4" />
               {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
+        </div>
       </div>
     </AppShell>
   );
