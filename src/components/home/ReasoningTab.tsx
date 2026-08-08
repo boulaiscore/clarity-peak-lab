@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   MetricDetailHeader,
+  MetricInterpretationNote,
   MetricDetailNavigation,
   MetricFactorCard,
   MetricFactorsSection,
@@ -36,11 +37,11 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
   const [infoOpen, setInfoOpen] = useState(false);
 
   const subtitle = useMemo(() => {
-    if (readiness >= 80) return "Optimal capacity for sustained, demanding work.";
+    if (readiness >= 80) return "Strong capacity for sustained, demanding work.";
     if (readiness >= 65) return "Strong capacity for sustained cognitive work.";
-    if (readiness >= 50) return "Moderate capacity. Use breaks for longer efforts.";
-    if (readiness >= 35) return "Reduced capacity. Prefer shorter work sessions.";
-    return "Sustained cognitive work is currently constrained.";
+    if (readiness >= 50) return "Steady capacity. Use breaks for longer efforts.";
+    if (readiness >= 35) return "Today favors shorter work sessions with deliberate breaks.";
+    return "Protect capacity today; this signal can move with recovery and practice.";
   }, [readiness]);
 
   const cta = useMemo(() => {
@@ -91,6 +92,8 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
         color="hsl(245, 58%, 65%)"
         isLoading={isLoading}
       />
+
+      <MetricInterpretationNote changeDrivers="recovery, focused practice and daily conditions" />
 
       <MetricFactorsSection>
         {hasWearableData ? (

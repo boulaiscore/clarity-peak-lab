@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Info, Zap, Target, Moon, ArrowRight, HelpCircle } from "lucide-react";
 import { SystemOneMark } from "@/components/icons/ThinkingSystemIcons";
+import { getStandardMetricStatus, type MetricLevel } from "@/lib/metricStatusLabels";
 import {
   Tooltip,
   TooltipContent,
@@ -62,7 +63,7 @@ export function NeuralGrowthAnimation({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
 
-  // Scientific band classification for Neural Strength
+  // Shared state-oriented language for the 0–100 Performance Network signal.
   const getScoreBand = (score: number): {
     band: string;
     range: string;
@@ -71,39 +72,39 @@ export function NeuralGrowthAnimation({
     description: string;
   } => {
     if (score >= 80) return {
-      band: "Elite",
+      band: "Strong",
       range: "80-100",
       color: "text-emerald-400",
       bgColor: "bg-emerald-500/20",
-      description: "Peak cognitive performance. Maintain through balanced training and recovery."
+      description: "Strong current signal. Maintain it through balanced practice and recovery."
     };
     if (score >= 65) return {
-      band: "High",
+      band: "Ready",
       range: "65-79",
       color: "text-primary",
       bgColor: "bg-primary/20",
-      description: "Strong cognitive capacity. Push toward elite with targeted practice."
+      description: "Supportive current conditions for focused cognitive work."
     };
     if (score >= 50) return {
-      band: "Moderate",
+      band: "Steady",
       range: "50-64",
       color: "text-blue-400",
       bgColor: "bg-blue-500/20",
-      description: "Solid foundation. Consistency and variety will accelerate growth."
+      description: "A steady personal signal with room to move through practice and recovery."
     };
     if (score >= 35) return {
-      band: "Developing",
+      band: "Building",
       range: "35-49",
       color: "text-amber-400",
       bgColor: "bg-amber-500/20",
-      description: "Building core capacity. Daily effort compounds quickly at this stage."
+      description: "A building phase in your current personal trend."
     };
     return {
-      band: "Early",
+      band: "Starting point",
       range: "0-34",
       color: "text-muted-foreground",
       bgColor: "bg-muted/20",
-      description: "You are building the foundations of cognitive performance. Early gains come from consistency."
+      description: "A current starting point, not a fixed limit. Consistency adds useful evidence."
     };
   };
 
@@ -113,35 +114,33 @@ export function NeuralGrowthAnimation({
     return { phase: band.band, description: band.description };
   };
 
-  // Get Thinking Scores status (from cognitive metrics - Fast + Slow average)
-  const getThinkingStatus = (score: number) => {
-    if (score >= 70) return { label: "High", color: "text-emerald-500" };
-    if (score >= 40) return { label: "Building", color: "text-primary" };
-    if (score >= 10) return { label: "Active", color: "text-amber-400" };
-    return { label: "Low", color: "text-muted-foreground/60" };
+  const getStateColor = (level: MetricLevel) => {
+    if (level === "high") return "text-emerald-500";
+    if (level === "good" || level === "moderate") return "text-primary";
+    if (level === "low") return "text-amber-400";
+    return "text-muted-foreground/60";
+  };
+
+  // Cognitive and Recovery components use the same qualitative scale as every 0–100 metric.
+  const getStateStatus = (score: number) => {
+    const status = getStandardMetricStatus(score);
+    return { label: status.label, color: getStateColor(status.level) };
   };
 
   // Get Training Load status (from weekly games XP)
   const getTrainingLoadStatus = (score: number) => {
     if (score >= 70) return { label: "On target", color: "text-emerald-500" };
     if (score >= 40) return { label: "Building", color: "text-amber-400" };
-    return { label: "Low", color: "text-muted-foreground/60" };
-  };
-
-  // Get Recovery status (from detox + walking minutes)
-  const getRecoveryStatus = (score: number) => {
-    if (score >= 70) return { label: "High", color: "text-emerald-500" };
-    if (score >= 40) return { label: "Moderate", color: "text-amber-400" };
-    return { label: "Low", color: "text-muted-foreground/60" };
+    return { label: "Ready to begin", color: "text-muted-foreground/60" };
   };
 
   const scoreBand = getScoreBand(overallCognitiveScore);
   const phaseInfo = getPhaseInfo(overallCognitiveScore);
   const statusText = customStatusText || phaseInfo.phase;
   
-  const thinkingStatus = sciBreakdown ? getThinkingStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
+  const thinkingStatus = sciBreakdown ? getStateStatus(sciBreakdown.cognitivePerformance.score) : { label: "—", color: "text-muted-foreground/60" };
   const trainingLoadStatus = sciBreakdown ? getTrainingLoadStatus(sciBreakdown.behavioralEngagement.score) : { label: "—", color: "text-muted-foreground/60" };
-  const recoveryStatus = sciBreakdown ? getRecoveryStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
+  const recoveryStatus = sciBreakdown ? getStateStatus(sciBreakdown.recoveryFactor.score) : { label: "—", color: "text-muted-foreground/60" };
 
   // Map metrics to visual intensity
   const isYounger = cognitiveAgeDelta < 0;
@@ -353,7 +352,7 @@ export function NeuralGrowthAnimation({
 
   return (
     <div className="py-2">
-      <h3 className="label-uppercase text-center mb-3">Neural Strength</h3>
+      <h3 className="label-uppercase text-center mb-3">Performance Network</h3>
       
       <div className="relative flex justify-center">
         <canvas ref={canvasRef} width={200} height={160} className="opacity-90" />
@@ -385,7 +384,7 @@ export function NeuralGrowthAnimation({
         {sciBreakdown && (
           <div className="mt-2 pt-2 border-t border-border/20">
             <p className="text-[9px] text-muted-foreground/70 uppercase tracking-wide mb-1.5">
-              What's shaping your strength
+              What's shaping today's signal
             </p>
             <div className="space-y-1 text-left px-3 pb-3">
               <div className="flex items-center justify-between text-[10px]">
@@ -413,14 +412,14 @@ export function NeuralGrowthAnimation({
           </div>
         )}
         
-        {/* Bottleneck - Focus Here to Grow Faster */}
+        {/* Most actionable lever in the current signal */}
         {bottleneck && bottleneck.potentialGain > 0 && (
           <div className="-mt-1 pt-2 border-t border-border/20">
             {/* Section Header */}
             <div className="flex items-center gap-1.5 mb-2 px-2">
               <Zap className="w-3 h-3 text-amber-400" />
               <span className="text-[9px] uppercase tracking-wider text-amber-400/90 font-semibold">
-                Focus here to grow faster
+                Current opportunity
               </span>
             </div>
             
@@ -440,7 +439,7 @@ export function NeuralGrowthAnimation({
                 }
               }}
             >
-              {/* Clear Message - What's weak and what to do */}
+              {/* Clear, non-judgmental explanation and action */}
               <div className="flex items-start gap-2 mb-3">
                 <div className={`p-1.5 rounded-full ${
                   bottleneck.variable === "recovery"
@@ -456,10 +455,10 @@ export function NeuralGrowthAnimation({
                 <div className="flex-1">
                   <p className="text-[11px] font-medium text-foreground leading-snug">
                     {bottleneck.variable === "recovery" 
-                      ? "Your Recovery is your weakest link."
+                      ? "Recovery is the clearest lever today."
                       : bottleneck.variable === "training"
-                        ? "You're not training enough this week."
-                        : "Your cognitive scores need improvement."}
+                        ? "Recent practice is below your selected weekly rhythm."
+                        : "One performance signal has more room to build."}
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
                     {bottleneck.variable === "recovery"
@@ -475,7 +474,7 @@ export function NeuralGrowthAnimation({
               <div className="mb-3">
                 <div className="flex items-center justify-between text-[9px] mb-1">
                   <span className="text-muted-foreground">Current</span>
-                  <span className="text-muted-foreground">Target: 100</span>
+                  <span className="text-muted-foreground">Scale: 0–100</span>
                 </div>
                 <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
                   <div 
@@ -499,7 +498,7 @@ export function NeuralGrowthAnimation({
                   }`}>
                     {bottleneck.currentScore}
                   </span>
-                  <span className="text-[9px] text-muted-foreground/60">100</span>
+                  <span className="text-[9px] text-muted-foreground/60">Personal trend</span>
                 </div>
               </div>
               
@@ -533,9 +532,9 @@ export function NeuralGrowthAnimation({
         )}
         
         
-        {/* Footer - gym metaphor */}
+        {/* Interpretation guardrail */}
         <p className="text-[9px] text-muted-foreground/50 mt-4 px-4 italic">
-          Neural strength builds like muscle: stimulus, consistency, recovery.
+          A personal trend from practice, consistency and recovery — not an intelligence measure.
         </p>
         
         {/* Learn More button opens detailed explanation */}
@@ -548,7 +547,7 @@ export function NeuralGrowthAnimation({
           </DialogTrigger>
           <DialogContent className="max-w-sm max-h-[85vh]">
             <DialogHeader>
-              <DialogTitle className="text-base">Neural Strength</DialogTitle>
+              <DialogTitle className="text-base">Performance Network</DialogTitle>
               <p className="text-xs text-muted-foreground">
                 How your reasoning and intuition grow over time.
               </p>
@@ -556,7 +555,7 @@ export function NeuralGrowthAnimation({
             <ScrollArea className="max-h-[calc(85vh-80px)] pr-2">
               <div className="space-y-3 text-xs text-muted-foreground leading-relaxed">
                 <p>
-                  Neural Strength (SCI) blends four sub-skills — Focus Stability, Fast Thinking,
+                  Performance Network (SCI) blends four sub-skills — Focus Stability, Fast Thinking,
                   Reasoning Accuracy and Slow Thinking — weighted by their contribution to your
                   Reasoning Quality.
                 </p>

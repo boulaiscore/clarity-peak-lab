@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   MetricDetailHeader,
+  MetricInterpretationNote,
   MetricDetailNavigation,
   MetricFactorCard,
   MetricFactorsSection,
@@ -37,12 +38,12 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
   const subtitle = showNoData
     ? "Complete a Recovery action to establish your first estimate."
     : recovery >= 80
-      ? "Optimal cognitive reserve is available today."
+      ? "Strong cognitive reserve is available today."
       : recovery >= 65
         ? "Strong cognitive reserve is available today."
         : recovery >= 50
-          ? "Moderate reserve. Deep focus is available with pacing."
-          : "Recovery is constrained. Restore capacity before demanding work.";
+          ? "Steady reserve. Deep focus is available with pacing."
+          : "Today favors restoration before demanding work.";
 
   return (
     <motion.div
@@ -65,6 +66,8 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         isLoading={isLoading}
         note={isUsingRRI ? "Initial estimate from onboarding" : undefined}
       />
+
+      <MetricInterpretationNote changeDrivers="rest, screen-free time, walking and daily conditions" />
 
       <MetricFactorsSection title="What moves Recovery">
         <MetricFactorCard

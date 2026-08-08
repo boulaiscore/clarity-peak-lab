@@ -98,7 +98,7 @@ export function CalibrationResults({
             First reading complete
           </h1>
           <p className="text-sm text-muted-foreground">
-            This result becomes more useful as your personal history grows
+            A provisional, changeable starting point — not an intelligence score
           </p>
         </div>
 
@@ -179,7 +179,7 @@ export function CalibrationResults({
           transition={{ delay: 0.7 }}
           className="text-center text-[10px] text-muted-foreground/40 uppercase tracking-widest mt-6"
         >
-          Provisional reading · Not a diagnosis or prediction of work outcomes
+          Compared only with your future self · Not a diagnosis
         </motion.p>
       </motion.div>
     </div>

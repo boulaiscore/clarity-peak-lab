@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   MetricDetailHeader,
+  MetricInterpretationNote,
   MetricDetailNavigation,
   MetricFactorCard,
   MetricFactorsSection,
@@ -29,11 +30,11 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
   const recoveryImpact = sharpness - (s1Contribution + s2Contribution);
 
   const subtitle = useMemo(() => {
-    if (sharpness >= 80) return "Peak mental clarity for your most demanding work.";
+    if (sharpness >= 80) return "Strong clarity for your most demanding work.";
     if (sharpness >= 65) return "Strong clarity for demanding cognitive work.";
-    if (sharpness >= 50) return "Moderate clarity. Pace complex work and protect focus.";
-    if (sharpness >= 35) return "Reduced clarity. Prefer lighter cognitive work.";
-    return "Demanding cognitive work is currently constrained.";
+    if (sharpness >= 50) return "Steady clarity. Pace complex work and protect focus.";
+    if (sharpness >= 35) return "Today favors lighter cognitive work and shorter focus blocks.";
+    return "Protect capacity today; this signal can move with recovery and practice.";
   }, [sharpness]);
 
   const cta = useMemo(() => {
@@ -75,6 +76,8 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
         color="hsl(210, 100%, 60%)"
         isLoading={isLoading}
       />
+
+      <MetricInterpretationNote changeDrivers="recovery and fast-processing or reasoning practice" />
 
       <MetricFactorsSection>
         <MetricFactorCard

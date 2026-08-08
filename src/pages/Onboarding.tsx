@@ -158,7 +158,13 @@ export default function Onboarding() {
           <section className="w-full animate-fade-in">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Your working edge</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">What should LOOMA help you protect?</h1>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">This shapes the experience, not your cognitive score.</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              This personalizes your guidance. LOOMA does not test intelligence or compare you with other people.
+            </p>
+
+            <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/65">
+              Your baseline · Changeable signals · No ranking
+            </p>
 
             <div className="mt-7 space-y-2.5">
               {outcomes.map(({ value, title, description, icon: Icon }) => (
@@ -214,7 +220,7 @@ export default function Onboarding() {
             </div>
 
             <div className="mt-5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-[11px] leading-relaxed text-muted-foreground">
-              Next: a brief four-part check. Your first result is provisional; LOOMA needs repeated observations before identifying personal patterns.
+              Next: a brief four-part check. Your first result is provisional and reflects current conditions, not fixed ability. LOOMA needs repeated observations before identifying personal patterns.
             </div>
 
             <div className="mt-7 flex gap-3">

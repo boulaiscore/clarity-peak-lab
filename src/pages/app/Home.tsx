@@ -387,6 +387,10 @@ const Home = () => {
                 <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
 
+              <p className="mb-5 text-center text-[10px] leading-relaxed text-muted-foreground/60">
+                Personal state signals · changeable over time · no comparison with other people
+              </p>
+
               {/* Outcome headline — Whoop-style human translation */}
               
               {/* Goal Complete indicator - only shows when target reached AND viewing today */}

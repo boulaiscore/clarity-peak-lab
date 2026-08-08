@@ -12,6 +12,7 @@ import { calculateSCI, getTargetsForPlan } from "../src/lib/cognitiveNetworkScor
 import { applyRecoveryDecay } from "../src/lib/recoveryV2";
 import { calculateRQ } from "../src/lib/reasoningQuality";
 import { TRAINING_PLANS } from "../src/lib/trainingPlans";
+import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
 
 const closeTo = (actual: number, expected: number, message: string) => {
   assert.ok(Math.abs(actual - expected) < 0.0001, `${message}: expected ${expected}, got ${actual}`);
@@ -93,5 +94,11 @@ const rq = calculateRQ({
   lastTaskAt: null,
 });
 closeTo(rq.rq, 60, "RQ canonical weighting");
+
+assert.deepEqual(
+  [80, 65, 50, 35, 34].map((value) => getStandardMetricStatus(value).label),
+  ["Strong", "Ready", "Steady", "Building", "Starting point"],
+  "Metric state labels share one non-judgmental scale",
+);
 
 console.log("Metric formula checks passed");

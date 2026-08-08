@@ -61,8 +61,9 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
   Reasoning, REC — Recovery, and RQ — Reasoning Quality.
 - Icons are reserved for navigation and actions. Metric factors use their
   canonical codes rather than decorative icons.
-- Every 0–100 score shares one qualitative scale: Optimal (80+), Strong (65+),
-  Moderate (50+), Low (35+), and Very low (<35).
+- Every 0–100 score shares one qualitative scale: Strong (80+), Ready (65+),
+  Steady (50+), Building (35+), and Starting point (<35). These are state
+  labels, not ability or intelligence labels; numerical thresholds are unchanged.
 - Provisional inputs must be marked as estimated. In particular, S2
   Consistency remains provisional until at least five S2 sessions exist.
 - Readiness factors must reflect its active mode: app-only or wearable. The UI

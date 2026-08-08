@@ -124,6 +124,24 @@ export function MetricScoreRing({
   );
 }
 
+export function MetricInterpretationNote({
+  changeDrivers,
+}: {
+  changeDrivers: string;
+}) {
+  return (
+    <aside className="rounded-xl border border-border/30 bg-card/35 px-4 py-3">
+      <p className="text-[11px] font-medium text-foreground/85">
+        Your signal, not a label.
+      </p>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground/75">
+        This reflects current conditions inside LOOMA, not intelligence or a comparison with other people.
+        It can change with {changeDrivers}.
+      </p>
+    </aside>
+  );
+}
+
 export function MetricFactorsSection({
   title = "What makes up this score",
   children,

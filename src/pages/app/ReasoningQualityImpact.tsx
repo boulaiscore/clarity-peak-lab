@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import {
   MetricDetailHeader,
+  MetricInterpretationNote,
   MetricDetailNavigation,
   MetricFactorCard,
   MetricFactorsSection,
@@ -149,7 +150,7 @@ export default function ReasoningQualityImpact() {
 
         <MetricDetailHeader
           title="Reasoning Quality"
-          description="Quality and stability of deliberate thinking."
+          description="A changeable signal from recent deliberate-thinking practice and consistency."
           context="Current skills · last 10 S2 sessions · rolling 7-day activity"
         />
 
@@ -159,6 +160,8 @@ export default function ReasoningQualityImpact() {
           color="hsl(207, 44%, 55%)"
           isLoading={isLoading}
         />
+
+        <MetricInterpretationNote changeDrivers="deliberate-reasoning practice, consistency and recent learning activity" />
 
         <MetricFactorsSection>
           {drivers.map((driver) => (

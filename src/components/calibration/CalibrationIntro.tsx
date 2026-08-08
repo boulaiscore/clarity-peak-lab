@@ -39,7 +39,8 @@ export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
         {/* Description */}
         <p className="text-sm text-muted-foreground leading-relaxed mb-8">
           Four brief tasks create your first provisional reading. LOOMA compares
-          future checks with your own performance — never with your education or job title.
+          future checks with your own performance. This is not an intelligence test,
+          and task results can change with practice and daily conditions.
         </p>
 
         {/* Duration indicator */}

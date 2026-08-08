@@ -20,11 +20,11 @@ export interface MetricStatus {
  * meaning between screens.
  */
 export function getStandardMetricStatus(value: number): MetricStatus {
-  if (value >= 80) return { level: "high", label: "Optimal" };
-  if (value >= 65) return { level: "good", label: "Strong" };
-  if (value >= 50) return { level: "moderate", label: "Moderate" };
-  if (value >= 35) return { level: "low", label: "Low" };
-  return { level: "very_low", label: "Very low" };
+  if (value >= 80) return { level: "high", label: "Strong" };
+  if (value >= 65) return { level: "good", label: "Ready" };
+  if (value >= 50) return { level: "moderate", label: "Steady" };
+  if (value >= 35) return { level: "low", label: "Building" };
+  return { level: "very_low", label: "Starting point" };
 }
 
 /**

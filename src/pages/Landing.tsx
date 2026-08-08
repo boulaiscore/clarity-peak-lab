@@ -8,7 +8,7 @@ import { trackProductEvent } from "@/lib/productAnalytics";
 const outcomes = [
   {
     title: "Measure your state",
-    copy: "A brief check compares today's performance with your own baseline — not with a demographic norm.",
+    copy: "A brief check reads today's conditions against your own history — never against other people.",
   },
   {
     title: "Choose the right work",
@@ -57,7 +57,7 @@ export default function Landing() {
               Know when your mind is ready for the work that matters.
             </h1>
             <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              A brief daily check combines cognitive performance and recovery signals to help you decide when to focus, analyze or reset.
+              LOOMA tracks changeable cognitive-state and recovery signals against your own baseline — never an intelligence score — so you can decide when to focus, analyze or reset.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -72,8 +72,8 @@ export default function Landing() {
 
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-recovery" />Personal baseline</span>
-              <span className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-recovery" />Actionable daily signal</span>
-              <span className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-recovery" />Non-clinical self-monitoring</span>
+              <span className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-recovery" />Changeable daily signals</span>
+              <span className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-recovery" />No ranking or intelligence test</span>
             </div>
           </div>
 
@@ -105,7 +105,7 @@ export default function Landing() {
                 </p>
               </div>
               <p className="mt-4 text-center text-[10px] leading-relaxed text-muted-foreground/60">
-                Illustrative result. LOOMA supports self-monitoring and does not diagnose or predict decision outcomes.
+                Illustrative personal signal. A lower day reflects current conditions, not fixed ability.
               </p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function Landing() {
           <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-recovery">Seven-day calibration</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Build your baseline before trusting the signal.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-            LOOMA starts with seven days of personal observations. Early results are labeled provisional, and recommendations become more specific only as your history grows.
+            LOOMA starts with seven days of personal observations. Early results are provisional and can move with recovery, practice and daily conditions; recommendations become more specific only as your history grows.
           </p>
           <Button asChild variant="hero" size="xl" className="mt-8">
             <Link to="/auth?mode=signup&intent=baseline" onClick={() => trackCta("closing")}>
@@ -145,7 +145,7 @@ export default function Landing() {
       </main>
 
       <footer className="relative z-10 border-t border-border/40 px-5 py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} LOOMA · Cognitive performance self-monitoring, not a medical device.
+        © {new Date().getFullYear()} LOOMA · Personal cognitive-state guidance, not intelligence or medical testing.
       </footer>
     </div>
   );
