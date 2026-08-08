@@ -53,6 +53,7 @@ import NotFound from "./pages/NotFound";
 import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
 import ReasoningQualityImpact from "./pages/app/ReasoningQualityImpact";
 import RecoveryBreakdown from "./pages/app/RecoveryBreakdown";
+import AdaptiveCoach from "./pages/app/AdaptiveCoach";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -224,6 +225,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/adaptive-coach"
+        element={
+          <ProtectedRoute>
+            <AdaptiveCoach />
           </ProtectedRoute>
         }
       />

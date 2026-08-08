@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "test:metrics": "node scripts/run-metric-formula-tests.mjs",
+    "test:coach": "node scripts/run-adaptive-coach-tests.mjs",
     "preview": "vite preview",
     "cap:sync": "npm run build && npx cap sync",
     "cap:ios": "npm run build && npx cap sync ios && npx cap open ios",

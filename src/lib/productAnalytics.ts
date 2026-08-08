@@ -17,7 +17,8 @@ export type ProductEventName =
   | "game_completed"
   | "recovery_action_completed"
   | "reasoning_session_completed"
-  | "content_completed";
+  | "content_completed"
+  | "coach_shadow_predictions_generated";
 
 type EventProperties = Record<string, string | number | boolean | null>;
 

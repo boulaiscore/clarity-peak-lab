@@ -46,6 +46,9 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
   `product_usage_events`. It excludes identity fields, cognitive scores, and
   health values and respects browser Do Not Track.
 - All user-owned metric tables use Row Level Security keyed by `auth.uid()`.
+- Adaptive Coach forecasts and their matched outcomes are stored separately in
+  `adaptive_coach_predictions`. Shadow predictions may read canonical metrics,
+  but they must never write metric values or alter active training behavior.
 
 ## Display contract
 

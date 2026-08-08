@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { toast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Sun,
   Moon,
@@ -37,6 +37,7 @@ import {
   Trash2,
   ChevronRight,
   CreditCard,
+  BrainCircuit,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -88,7 +89,7 @@ function Row({
   external?: boolean;
 }) {
   const interactive = !!onClick;
-  const Wrapper: any = interactive ? "button" : "div";
+  const Wrapper = interactive ? "button" : "div";
   return (
     <Wrapper
       onClick={onClick}
@@ -130,6 +131,7 @@ function Row({
 
 const SettingsPage = () => {
   const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
   const { permission, isSupported, requestPermission, setDailyReminder } = useNotifications();
   const { theme, toggleTheme } = useTheme();
 
@@ -152,14 +154,15 @@ const SettingsPage = () => {
         body: { environment: getPaddleEnvironment() },
       });
       if (error) throw error;
-      if ((data as any)?.code === "NO_CUSTOMER" || !(data as any)?.url) {
+      const portal = data as { code?: string; url?: string } | null;
+      if (portal?.code === "NO_CUSTOMER" || !portal?.url) {
         toast({
           title: "No billing account yet",
           description: "Subscribe to a plan to access invoices and payment methods.",
         });
         return;
       }
-      window.open((data as any).url, "_blank");
+      window.open(portal.url, "_blank");
     } catch (e) {
       console.error(e);
       toast({ title: "Could not open billing portal", variant: "destructive" });
@@ -256,6 +259,12 @@ const SettingsPage = () => {
             label="Training plan"
             value={currentPlanName}
             onClick={() => setShowPlanSheet(true)}
+          />
+          <Row
+            icon={BrainCircuit}
+            label="Adaptive Cognitive Coach"
+            value="Shadow mode"
+            onClick={() => navigate("/app/adaptive-coach")}
           />
           {isSupported && (
             <>

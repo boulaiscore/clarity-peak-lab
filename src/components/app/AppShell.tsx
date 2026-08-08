@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { PastDueBanner } from "@/components/PastDueBanner";
 import { trackProductEvent } from "@/lib/productAnalytics";
+import { useAdaptiveCoachShadowRecorder } from "@/hooks/useAdaptiveCoachShadow";
 
 interface AppShellProps {
   children: ReactNode;
@@ -41,6 +42,10 @@ export function AppShell({ children }: AppShellProps) {
   
   // Auto-save daily metric snapshot (readiness, sharpness, recovery, RQ)
   useAutoMetricSnapshot();
+
+  // Generate and persist explainable daily forecasts without changing any
+  // active recommendation, plan, gating rule, or difficulty.
+  useAdaptiveCoachShadowRecorder();
 
   useEffect(() => {
     trackProductEvent("app_route_viewed", {

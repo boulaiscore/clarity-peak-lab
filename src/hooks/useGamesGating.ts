@@ -672,6 +672,7 @@ export function useRecordGameSession() {
         queryClient.invalidateQueries({ queryKey: ["game-sessions-weekly"] });
         queryClient.invalidateQueries({ queryKey: ["s2-game-scores", userId] });
         queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", userId] });
+        queryClient.invalidateQueries({ queryKey: ["adaptive-coach-predictions"] });
         queryClient.invalidateQueries({ queryKey: ["weekly-game-completions-v3"] });
         queryClient.invalidateQueries({ queryKey: ["games-history-system-breakdown"] });
         // CRITICAL: Invalidate intraday events for Analytics 1d charts to update immediately

@@ -71,6 +71,104 @@ export type Database = {
         }
         Relationships: []
       }
+      adaptive_coach_predictions: {
+        Row: {
+          action_key: string
+          baseline_score: number
+          candidate_rank: number
+          confidence: number
+          created_at: string
+          evaluated_at: string | null
+          expires_at: string
+          explanation: Json
+          features: Json
+          id: string
+          is_evaluable: boolean
+          is_top_candidate: boolean
+          mode: string
+          model_version: string
+          observed_delta: number | null
+          outcome_at: string | null
+          outcome_context: Json | null
+          outcome_score: number | null
+          outcome_source_id: string | null
+          outcome_status: string
+          predicted_at: string
+          predicted_delta: number
+          predicted_score: number
+          prediction_date: string
+          priority_score: number
+          target_skill: string
+          user_id: string
+        }
+        Insert: {
+          action_key: string
+          baseline_score: number
+          candidate_rank: number
+          confidence: number
+          created_at?: string
+          evaluated_at?: string | null
+          expires_at: string
+          explanation?: Json
+          features?: Json
+          id?: string
+          is_evaluable?: boolean
+          is_top_candidate?: boolean
+          mode?: string
+          model_version: string
+          observed_delta?: number | null
+          outcome_at?: string | null
+          outcome_context?: Json | null
+          outcome_score?: number | null
+          outcome_source_id?: string | null
+          outcome_status?: string
+          predicted_at?: string
+          predicted_delta: number
+          predicted_score: number
+          prediction_date: string
+          priority_score: number
+          target_skill: string
+          user_id: string
+        }
+        Update: {
+          action_key?: string
+          baseline_score?: number
+          candidate_rank?: number
+          confidence?: number
+          created_at?: string
+          evaluated_at?: string | null
+          expires_at?: string
+          explanation?: Json
+          features?: Json
+          id?: string
+          is_evaluable?: boolean
+          is_top_candidate?: boolean
+          mode?: string
+          model_version?: string
+          observed_delta?: number | null
+          outcome_at?: string | null
+          outcome_context?: Json | null
+          outcome_score?: number | null
+          outcome_source_id?: string | null
+          outcome_status?: string
+          predicted_at?: string
+          predicted_delta?: number
+          predicted_score?: number
+          prediction_date?: string
+          priority_score?: number
+          target_skill?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adaptive_coach_predictions_outcome_source_id_fkey"
+            columns: ["outcome_source_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]

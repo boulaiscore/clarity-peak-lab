@@ -59,6 +59,8 @@ Only run iOS/Android commands when the local machine has the required native too
 
 ```sh
 npm run lint
+npm run test:metrics
+npm run test:coach
 npm run build
 ```
 
