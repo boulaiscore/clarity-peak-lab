@@ -1,21 +1,39 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { OverviewCarousel } from "@/components/dashboard/OverviewCarousel";
-
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
 import { GamesStats } from "@/components/dashboard/GamesStats";
 import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
-
+import {
+  MonitorPanel,
+  MonitorSectionHeader,
+  MonitorSegmentedControl,
+} from "@/components/dashboard/MonitorUI";
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, LineChart, TrendingUp } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { useInitializeCognitiveBaseline } from "@/hooks/useInitializeCognitiveBaseline";
 import { useSubscription } from "@/hooks/useSubscription";
-import { cn } from "@/lib/utils";
+
+const PRIMARY_TABS = [
+  { value: "insights", label: "Overview" },
+  { value: "report", label: "Report" },
+] as const;
+
+const ANALYTICS_TABS = [
+  { value: "trends", label: "Trends" },
+  { value: "activity", label: "Activity" },
+] as const;
+
+const ACTIVITY_TABS = [
+  { value: "training", label: "Training" },
+  { value: "tasks", label: "Quality time" },
+  { value: "detox", label: "Recovery" },
+] as const;
 
 const Dashboard = () => {
   const [searchParams] = useSearchParams();
@@ -84,7 +102,7 @@ const Dashboard = () => {
   }, [states, baseline, rawMetrics?.total_sessions]);
 
   // Synthesized Cognitive Index (SCI) for neural animation
-  const { sci, statusText: sciStatusText, bottleneck, isLoading: sciLoading } = useCognitiveNetworkScore();
+  const { sci, statusText: sciStatusText, bottleneck } = useCognitiveNetworkScore();
 
   if (metricsLoading) {
     return (
@@ -92,210 +110,123 @@ const Dashboard = () => {
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
-      </AppShell>);
-
+      </AppShell>
+    );
   }
 
   return (
     <AppShell>
-      <div className="px-5 py-5 max-w-md mx-auto space-y-4">
+      <div className="mx-auto max-w-md space-y-6 px-5 py-5">
+        <MonitorSectionHeader
+          eyebrow="Monitor"
+          title="Your cognitive trend"
+          description="Follow changes against your own baseline. Scores describe trainable performance signals, not fixed ability."
+        />
 
-        {/* Tab Switcher — Insights / Report */}
-        <div className="flex p-1 bg-card/40 rounded-xl border border-border/20">
-          <button
-            onClick={() => setActiveTab("insights")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "insights"
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-            <TrendingUp className="w-3.5 h-3.5" />
-            Insights
-          </button>
-          <button
-            onClick={() => setActiveTab("report")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-medium transition-all",
-              activeTab === "report"
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}>
-            <FileText className="w-3.5 h-3.5" />
-            Report
-          </button>
-        </div>
+        <MonitorSegmentedControl
+          ariaLabel="Monitor view"
+          value={activeTab}
+          options={PRIMARY_TABS}
+          onChange={setActiveTab}
+        />
 
         {/* Baseline Status - shows only when calibration is needed */}
         <BaselineStatusCard />
 
-        {/* Tab Content */}
-        {activeTab === "insights" ?
-        <div className="space-y-4">
-
-            {/* Hero Overview */}
+        {activeTab === "insights" ? (
+          <div className="space-y-8">
             <OverviewCarousel
               sci={sci}
               sciStatusText={sciStatusText}
               thinkingScores={thinkingScores}
-              bottleneck={bottleneck} />
+              bottleneck={bottleneck}
+            />
 
+            <section className="space-y-4">
+              <MonitorSectionHeader
+                eyebrow="History"
+                title="Signals over time"
+                description="Compare metric direction with the activity that may be shaping it."
+              />
 
-            {/* Two main tabs: Trends | Activity */}
-            <div className="bg-muted/40 p-1 rounded-xl">
-              <div className="flex items-center gap-1">
-                <button
-                onClick={() => setAnalyticsTab("trends")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                  analyticsTab === "trends" ?
-                  "bg-background text-foreground shadow-sm" :
-                  "text-muted-foreground hover:text-foreground"
-                )}>
+              <MonitorSegmentedControl
+                ariaLabel="History view"
+                value={analyticsTab}
+                options={ANALYTICS_TABS}
+                onChange={setAnalyticsTab}
+              />
 
-                  <LineChart className="w-3.5 h-3.5" />
-                  <span>Trends</span>
-                </button>
-                <button
-                onClick={() => setAnalyticsTab("activity")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all duration-200",
-                  analyticsTab === "activity" ?
-                  "bg-background text-foreground shadow-sm" :
-                  "text-muted-foreground hover:text-foreground"
-                )}>
+              {analyticsTab === "trends" ? (
+                <MetricTrendCharts />
+              ) : (
+                <div className="space-y-4">
+                  <MonitorSegmentedControl
+                    ariaLabel="Activity type"
+                    value={activitySubTab}
+                    options={ACTIVITY_TABS}
+                    onChange={setActivitySubTab}
+                  />
 
-                  <Activity className="w-3.5 h-3.5" />
-                  <span>Activity</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Tab content swaps immediately to keep navigation responsive. */}
-            {analyticsTab === "trends" ?
-              <MetricTrendCharts /> :
-
-              <div className="space-y-4">
-                    {/* WHOOP-style segmented control for Activity breakdown */}
-                    <div className="flex items-center justify-center">
-                      <div className="inline-flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/30">
-                        <button
-                      onClick={() => setActivitySubTab("training")}
-                      className={cn(
-                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
-                        activitySubTab === "training" ?
-                        "bg-background text-foreground shadow-sm" :
-                        "text-muted-foreground hover:text-foreground"
-                      )}>
-
-                          Train
-                        </button>
-                        <button
-                      onClick={() => setActivitySubTab("tasks")}
-                      className={cn(
-                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
-                        activitySubTab === "tasks" ?
-                        "bg-background text-foreground shadow-sm" :
-                        "text-muted-foreground hover:text-foreground"
-                      )}>
-
-                          Quality Time
-                        </button>
-                        <button
-                      onClick={() => setActivitySubTab("detox")}
-                      className={cn(
-                        "px-4 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-wider transition-all duration-200",
-                        activitySubTab === "detox" ?
-                        "bg-background text-foreground shadow-sm" :
-                        "text-muted-foreground hover:text-foreground"
-                      )}>
-
-                          Recover
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Activity sub-content */}
-                    {activitySubTab === "tasks" ?
-                    <TrainingTasks /> :
-                    activitySubTab === "detox" ?
-                    <DetoxStats /> :
-
+                  {activitySubTab === "tasks" ? (
+                    <TrainingTasks />
+                  ) : activitySubTab === "detox" ? (
+                    <DetoxStats />
+                  ) : (
                     <GamesStats />
-                    }
-                  </div>
-              }
-
-          </div> :
-
-        <div className="space-y-3">
-
-            {/* Report CTA */}
-            <Link to="/app/report" className="block group">
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10">
-                {/* Ambient glow effects */}
-                <div className="absolute inset-0 opacity-40 pointer-events-none">
-                  <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-radial from-primary/30 to-transparent rounded-full blur-2xl" />
-                  <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-gradient-radial from-primary/20 to-transparent rounded-full blur-2xl" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-20 bg-primary/10 rounded-full blur-3xl" />
+                  )}
                 </div>
-                
-                {/* Subtle animated shimmer */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-                
-                <div className="relative z-10">
-                  {/* Header with icon */}
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 shadow-inner flex-shrink-0">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                        <h3 className="text-[13px] sm:text-[15px] font-semibold text-foreground tracking-tight">Personal Performance Report</h3>
-                        {!isPremium &&
-                      <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[7px] sm:text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-area-fast/20 to-area-fast/10 text-area-fast border border-area-fast/30">
-                            Premium
-                          </span>
-                      }
-                      </div>
-                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                        Review your observed task and recovery trends
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Feature highlights */}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:gap-4 mb-4 px-1">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1 h-1 rounded-full bg-primary/60" />
-                      <span className="text-[9px] sm:text-[10px] text-muted-foreground">Performance Metrics</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1 h-1 rounded-full bg-primary/60" />
-                      <span className="text-[9px] sm:text-[10px] text-muted-foreground">Actionable Insights</span>
-                    </div>
-                  </div>
-                  
-                  {/* CTA Button */}
-                  <Button
-                  variant={isPremium ? "premium" : "default"}
-                  className={cn(
-                    "w-full h-11 text-[12px] font-medium gap-2 transition-all duration-300",
-                    isPremium ?
-                    "shadow-lg shadow-primary/20" :
-                    "bg-primary/90 hover:bg-primary text-primary-foreground shadow-md shadow-primary/15"
-                  )}>
+              )}
+            </section>
+          </div>
+        ) : (
+          <section className="space-y-4">
+            <MonitorSectionHeader
+              eyebrow="Report"
+              title="Personal performance report"
+              description="A longer view of your observed task, recovery and consistency patterns."
+            />
 
-                    {isPremium ? "View Full Report" : "Explore Report"}
-                  </Button>
+            <MonitorPanel className="p-5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
+                  Your data, in context
+                </p>
+                {!isPremium && (
+                  <span className="rounded-md border border-border/40 bg-muted/30 px-2 py-1 text-[9px] font-medium text-muted-foreground">
+                    Premium
+                  </span>
+                )}
+              </div>
+
+              <h3 className="mt-4 text-lg font-semibold tracking-tight text-foreground">
+                See what is changing and what to do next.
+              </h3>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                Review multi-week metric direction, supporting activity and practical next steps in one consistent summary.
+              </p>
+
+              <div className="my-5 grid grid-cols-2 gap-3 border-y border-border/25 py-4">
+                <div>
+                  <p className="text-[10px] font-medium text-foreground">Performance trends</p>
+                  <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">Your baseline and recent direction</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-foreground">Next actions</p>
+                  <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">Suggestions grounded in your activity</p>
                 </div>
               </div>
-            </Link>
-          </div>
-        }
-      </div>
-    </AppShell>);
 
+              <Button asChild variant={isPremium ? "premium" : "default"} className="h-11 w-full text-[12px] font-medium">
+                <Link to="/app/report">
+                  {isPremium ? "View full report" : "Explore report"}
+                </Link>
+              </Button>
+            </MonitorPanel>
+          </section>
+        )}
+      </div>
+    </AppShell>
+  );
 };
 
 export default Dashboard;

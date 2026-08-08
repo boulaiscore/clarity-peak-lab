@@ -332,9 +332,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
   return (
     <div className="py-2">
-      <h3 className="label-uppercase text-center mb-6">Cognitive Age</h3>
-
-      <div className="relative flex flex-col items-center justify-center mt-2">
+      <div className="relative flex flex-col items-center justify-center">
         {/* Main sphere container */}
         <div className="relative">
           {/* Canvas for neural network */}

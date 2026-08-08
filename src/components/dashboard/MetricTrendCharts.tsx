@@ -9,12 +9,10 @@
  */
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { format, subDays, startOfDay } from "date-fns";
 import { useMetricHistory } from "@/hooks/useMetricHistory";
 import { useIntradayMetricHistory } from "@/hooks/useIntradayMetricHistory";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine, Area, ComposedChart } from "recharts";
-import { Target, Zap, Battery, Brain } from "lucide-react";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
 type ViewMode = "week" | "today";
@@ -22,7 +20,6 @@ type ViewMode = "week" | "today";
 interface MetricConfig {
   key: MetricKey;
   label: string;
-  icon: React.ElementType;
   color: string;
 }
 
@@ -35,10 +32,10 @@ const METRIC_COLORS = {
 };
 
 const METRICS: MetricConfig[] = [
-  { key: "sharpness", label: "SHARPNESS", icon: Zap, color: METRIC_COLORS.sharpness },
-  { key: "readiness", label: "READINESS", icon: Target, color: METRIC_COLORS.readiness },
-  { key: "recovery", label: "RECOVERY", icon: Battery, color: METRIC_COLORS.recovery },
-  { key: "reasoningQuality", label: "REASONING QUALITY", icon: Brain, color: METRIC_COLORS.reasoningQuality },
+  { key: "sharpness", label: "Sharpness", color: METRIC_COLORS.sharpness },
+  { key: "readiness", label: "Readiness", color: METRIC_COLORS.readiness },
+  { key: "recovery", label: "Recovery", color: METRIC_COLORS.recovery },
+  { key: "reasoningQuality", label: "Reasoning Quality", color: METRIC_COLORS.reasoningQuality },
 ];
 
 // Grid and text colors
@@ -203,27 +200,13 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   
   // Calculate fixed ticks for intraday view (every 4 hours + current time)
-  const { fixedTicks, midnightTs, nowTs } = useMemo(() => {
-    const todayStart = startOfDay(new Date()).getTime();
-    // IMPORTANT: do not freeze `now` at mount.
-    // If new intraday events arrive after the first render and `nowTs` is stale,
-    // Recharts will clamp all points beyond the domain max to the same X position ("now").
-    const now = Date.now();
-    
-    // Every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00
-    const hourlyTicks = [0, 4, 8, 12, 16, 20].map(h => todayStart + h * 60 * 60 * 1000);
-
-    // Filter to only show ticks BEFORE the current time (not equal or after)
-    // e.g. if now is 19:15, show 00:00, 04:00, 08:00, 12:00, 16:00 + current time
-    const passedTicks = hourlyTicks.filter(t => t < now);
-    
-    // Add current time as the last tick
-    const ticks = [...passedTicks, now];
-    
-    return { fixedTicks: ticks, midnightTs: todayStart, nowTs: now };
-    // Recompute when switching to 1d or when new intraday points arrive.
-    // This keeps the X domain aligned with the latest event timestamps.
-  }, [viewMode, intradayData.length]);
+  // Keep the domain current on every render so fresh intraday points cannot be clamped.
+  const midnightTs = startOfDay(new Date()).getTime();
+  const nowTs = Date.now();
+  const hourlyTicks = [0, 4, 8, 12, 16, 20].map(
+    (hour) => midnightTs + hour * 60 * 60 * 1000,
+  );
+  const fixedTicks = [...hourlyTicks.filter((tick) => tick < nowTs), nowTs];
   
   // For intraday, we process the timeline from midnight baseline to now
   const intradayChartData = useMemo(() => {
@@ -378,16 +361,11 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl overflow-hidden bg-transparent"
-    >
+    <div className="overflow-hidden rounded-2xl border border-border/30 bg-card/35">
       {/* Header with metric name and toggle */}
       <div className="px-4 pt-3 pb-0 flex items-center justify-between">
         <span 
-          className="text-[11px] font-semibold tracking-wider"
-          style={{ color: 'rgba(148, 163, 184, 0.95)' }}
+          className="text-[12px] font-medium text-foreground"
         >
           {metric.label}
         </span>
@@ -534,7 +512,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
           </ResponsiveContainer>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -696,19 +674,13 @@ export function MetricTrendCharts() {
 
   return (
     <div className="space-y-3">
-      {METRICS.map((metric, index) => (
-        <motion.div
+      {METRICS.map((metric) => (
+        <SingleMetricChart
           key={metric.key}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, delay: index * 0.04 }}
-        >
-          <SingleMetricChart
-            metric={metric}
-            weeklyData={weeklyChartData[metric.key]}
-            intradayData={intradayChartData[metric.key]}
-          />
-        </motion.div>
+          metric={metric}
+          weeklyData={weeklyChartData[metric.key]}
+          intradayData={intradayChartData[metric.key]}
+        />
       ))}
     </div>
   );

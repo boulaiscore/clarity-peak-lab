@@ -40,13 +40,11 @@ export function CognitiveAgeCard() {
   const rangeLabel = `${format(rangeStart, "MMM d").toUpperCase()} – ${format(today, "MMM d").toUpperCase()}`;
 
   return (
-    <div className="py-2 space-y-6">
-      {/* Date range header — minimal, centered */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/70 uppercase">
-          Healthspan
-        </span>
-        <span className="text-[11px] font-medium text-foreground/80 tracking-wider">
+    <div className="space-y-5 py-1">
+      <div className="flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/65">
+        <span>30-day view</span>
+        <span aria-hidden="true">·</span>
+        <span className="text-foreground/75">
           {rangeLabel}
         </span>
       </div>

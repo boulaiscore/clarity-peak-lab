@@ -362,8 +362,6 @@ export function NeuralGrowthAnimation({
 
   return (
     <div className="py-2">
-      <h3 className="label-uppercase text-center mb-3">Performance Network</h3>
-      
       <div className="relative flex justify-center">
         <canvas ref={canvasRef} width={200} height={160} className="opacity-90" />
       </div>

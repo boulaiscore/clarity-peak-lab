@@ -154,7 +154,7 @@ function useWeeklyCompletedContent(userId: string | undefined) {
       if (assignmentsRes.error) throw assignmentsRes.error;
       if (completionsRes.error) throw completionsRes.error;
 
-      const fromAssignments = (assignmentsRes.data || []).map((row: any) => {
+      const fromAssignments = (assignmentsRes.data || []).map((row) => {
         const t = (row.content_type as string | null) ?? "reading";
         const normalized: InputType = t === "reading" ? "article" : t === "book" ? "book" : "podcast";
         return {
@@ -164,7 +164,7 @@ function useWeeklyCompletedContent(userId: string | undefined) {
       });
 
       const fromCompletions = (completionsRes.data || [])
-        .map((row: any) => {
+        .map((row) => {
           const exerciseId = String(row.exercise_id || "");
           // Expected: content-{type}-{contentId}
           const parts = exerciseId.split("-");
@@ -642,7 +642,7 @@ export function TrainingTasks() {
     
   if (isLoading) {
     return (
-      <div className="p-4 rounded-xl bg-card/40 border border-border/30">
+      <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           Loading tasks...
@@ -652,17 +652,12 @@ export function TrainingTasks() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-4"
-    >
+    <div className="space-y-4">
       {/* Protocol Adherence removed in v1.3 - tasks are cognitive inputs, not tracked metrics */}
 
 
       {/* Reading Time Chart */}
-      <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+      <div className="rounded-2xl border border-border/30 bg-card/35 p-3">
         <div className="flex items-center gap-2 mb-3">
           <BookOpen className="w-3.5 h-3.5 text-amber-500" />
           <span className="text-[11px] font-medium text-foreground">Reading Time</span>
@@ -719,7 +714,7 @@ export function TrainingTasks() {
       </div>
 
       {/* Listening Time Chart */}
-      <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+      <div className="rounded-2xl border border-border/30 bg-card/35 p-3">
         <div className="flex items-center gap-2 mb-3">
           <Headphones className="w-3.5 h-3.5 text-violet-500" />
           <span className="text-[11px] font-medium text-foreground">Listening Time</span>
@@ -775,29 +770,6 @@ export function TrainingTasks() {
         )}
       </div>
 
-      {false && activeTasks.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1">
-            Active
-          </h4>
-          {activeTasks.map((task, idx) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-            >
-              <TaskCard
-                task={task}
-                isCompleted={false}
-                onComplete={() => handleComplete(task.id, task.type)}
-                isToggling={togglingId === task.id}
-              />
-            </motion.div>
-          ))}
-        </div>
-      )}
-
       {/* Completed Tasks */}
       {completedTasks.length > 0 && (
         <div className="space-y-2">
@@ -818,7 +790,7 @@ export function TrainingTasks() {
 
       {/* v1.3: Cognitive Input Impact (tasks don't give XP) */}
       {completedCount > 0 && (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-card/50 to-violet-500/5 border border-primary/20">
+        <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Cognitive Input Impact</p>
           
           {(() => {
@@ -863,6 +835,6 @@ export function TrainingTasks() {
           <p className="text-[10px] text-muted-foreground">{completedCount} Reason activities completed this week</p>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

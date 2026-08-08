@@ -1,10 +1,12 @@
-import { useState, useRef } from "react";
-import { motion, PanInfo } from "framer-motion";
+import { useState } from "react";
 import { CognitiveAgeCard } from "./CognitiveAgeCard";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
-import { ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  MonitorPanel,
+  MonitorSectionHeader,
+  MonitorSegmentedControl,
+} from "./MonitorUI";
 import {
   Dialog,
   DialogContent,
@@ -29,185 +31,132 @@ interface OverviewCarouselProps {
 }
 
 const CARDS = ["cognitive-age", "cognitive-network", "dual-process"] as const;
-type CardType = typeof CARDS[number];
+type CardType = (typeof CARDS)[number];
 
-const cardTitles: Record<CardType, string> = {
-  "cognitive-age": "Cognitive Age",
-  "cognitive-network": "Performance Network",
-  "dual-process": "Task Profile"
+const CARD_OPTIONS = [
+  { value: "cognitive-age", label: "Age" },
+  { value: "cognitive-network", label: "Network" },
+  { value: "dual-process", label: "Systems" },
+] as const;
+
+const CARD_COPY: Record<CardType, { title: string; description: string }> = {
+  "cognitive-age": {
+    title: "Cognitive Age",
+    description: "A rolling estimate derived from your own task-performance trend.",
+  },
+  "cognitive-network": {
+    title: "Performance Network",
+    description: "How performance, activity and recovery combine in your current signal.",
+  },
+  "dual-process": {
+    title: "Dual-Process Profile",
+    description: "Your balance between fast-response and deliberate-reasoning tasks.",
+  },
 };
+
+const METHOD_ITEMS = [
+  {
+    mark: "AGE",
+    title: "Cognitive Age",
+    body: "A training-derived estimate from your LOOMA task trend, expressed in years for easier comparison over time.",
+    note: "It is not biological age, intelligence or a clinical measure.",
+  },
+  {
+    mark: "NET",
+    title: "Performance Network",
+    body: "A product score combining LOOMA task performance, consistency and recorded recovery inputs.",
+    note: "Use changes as a self-comparison signal, not as an intelligence or clinical measure.",
+  },
+  {
+    mark: "S1/2",
+    title: "Dual-Process Profile",
+    body: "Your relative performance on fast-response and deliberate-reasoning tasks inside LOOMA.",
+  },
+] as const;
 
 export function OverviewCarousel({
   sci,
   sciStatusText,
   thinkingScores,
-  bottleneck
+  bottleneck,
 }: OverviewCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  const swipeConfidenceThreshold = 10000;
-  const swipePower = (offset: number, velocity: number) => {
-    return Math.abs(offset) * velocity;
-  };
-  
-  const paginate = (newDirection: number) => {
-    const newIndex = currentIndex + newDirection;
-    if (newIndex >= 0 && newIndex < CARDS.length) {
-      setCurrentIndex(newIndex);
-    }
-  };
-  
-  const handleDragEnd = (e: MouseEvent | TouchEvent | PointerEvent, { offset, velocity }: PanInfo) => {
-    const swipe = swipePower(offset.x, velocity.x);
-    
-    if (swipe < -swipeConfidenceThreshold) {
-      paginate(1);
-    } else if (swipe > swipeConfidenceThreshold) {
-      paginate(-1);
-    }
-  };
-  
+  const [currentCard, setCurrentCard] = useState<CardType>(CARDS[0]);
+  const copy = CARD_COPY[currentCard];
+
   return (
-    <div className="space-y-4">
-      {/* Card indicators with info button */}
-      <div className="flex items-center justify-center gap-2">
-        {CARDS.map((card, index) => (
-          <button
-            key={card}
-            onClick={() => setCurrentIndex(index)}
-            className={cn(
-              "h-1.5 rounded-full transition-all duration-300",
-              currentIndex === index 
-                ? "w-6 bg-primary" 
-                : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-            )}
-            aria-label={`Go to ${cardTitles[card]}`}
-          />
-        ))}
-        
-        {/* Info button */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <button className="ml-2 p-1 rounded-full hover:bg-muted/50 transition-colors">
-              <Info className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
-          </DialogTrigger>
-          <DialogContent className="max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="text-base flex items-center gap-2">
-                <Brain className="w-4 h-4 text-primary" />
-                Performance signals explained
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 text-sm">
-              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Brain className="w-4 h-4 text-primary" />
-                  <span className="font-medium text-foreground">Cognitive Age</span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  A training-derived estimate from your LOOMA task trend, expressed in years for easier comparison over time.
-                </p>
-                <p className="text-[10px] text-muted-foreground/70 mt-1.5">
-                  It is not biological age, intelligence or a clinical measure.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Network className="w-4 h-4 text-cyan-400" />
-                  <span className="font-medium text-foreground">Performance Network</span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  A product score combining LOOMA task performance, consistency and recorded recovery inputs.
-                </p>
-                <p className="text-[10px] text-muted-foreground/70 mt-1.5">
-                  Use changes as a self-comparison signal, not as an intelligence or clinical measure.
-                </p>
-              </div>
-              
-              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="flex items-center gap-1">
-                    <Zap className="w-4 h-4 text-amber-400" />
-                    <Clock className="w-4 h-4 text-blue-400" />
+    <section className="space-y-4">
+      <MonitorSectionHeader
+        eyebrow="Overview"
+        title={copy.title}
+        description={copy.description}
+        action={
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                className="rounded-lg border border-border/30 bg-muted/20 px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+              >
+                Method
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="text-base">Performance signals explained</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 text-sm">
+                {METHOD_ITEMS.map((item) => (
+                  <div key={item.mark} className="rounded-xl border border-border/30 bg-muted/25 p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="min-w-9 rounded-md border border-border/40 bg-background/60 px-1.5 py-1 text-center text-[9px] font-semibold tracking-wider text-muted-foreground">
+                        {item.mark}
+                      </span>
+                      <span className="font-medium text-foreground">{item.title}</span>
+                    </div>
+                    <p className="text-xs leading-relaxed text-muted-foreground">{item.body}</p>
+                    {"note" in item && item.note && (
+                      <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground/70">
+                        {item.note}
+                      </p>
+                    )}
                   </div>
-                  <span className="font-medium text-foreground">Task profile</span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Your relative performance on fast-response and deliberate-reasoning tasks inside LOOMA.
-                </p>
+                ))}
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-      
-      {/* Carousel container */}
-      <div 
-        ref={containerRef}
-        className="relative overflow-hidden"
-        style={{ minHeight: "680px" }}
-      >
-        {/* Navigation arrows */}
-        <button
-          onClick={() => paginate(-1)}
-          disabled={currentIndex === 0}
-          className={cn(
-            "absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-card/80 backdrop-blur-sm border border-border/30 shadow-lg transition-all",
-            currentIndex === 0 
-              ? "opacity-0 pointer-events-none" 
-              : "opacity-100 hover:bg-card"
-          )}
-        >
-          <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-        </button>
-        
-        <button
-          onClick={() => paginate(1)}
-          disabled={currentIndex === CARDS.length - 1}
-          className={cn(
-            "absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-card/80 backdrop-blur-sm border border-border/30 shadow-lg transition-all",
-            currentIndex === CARDS.length - 1 
-              ? "opacity-0 pointer-events-none" 
-              : "opacity-100 hover:bg-card"
-          )}
-        >
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
-        </button>
-        
-        <motion.div
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.08}
-          onDragEnd={handleDragEnd}
-          className="absolute inset-0 cursor-grab active:cursor-grabbing px-6"
-        >
-          {CARDS[currentIndex] === "cognitive-age" && <CognitiveAgeCard />}
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
-          {CARDS[currentIndex] === "cognitive-network" && (
-            <NeuralGrowthAnimation
-              cognitiveAgeDelta={0}
-              overallCognitiveScore={sci?.total ?? 50}
-              sciBreakdown={sci}
-              statusText={sciStatusText}
-              bottleneck={bottleneck}
-            />
-          )}
+      <MonitorSegmentedControl
+        ariaLabel="Overview metric"
+        value={currentCard}
+        options={CARD_OPTIONS}
+        onChange={setCurrentCard}
+      />
 
-          {CARDS[currentIndex] === "dual-process" && (
-            <FastSlowBrainMap
-              fastScore={thinkingScores.fastScore}
-              fastBaseline={thinkingScores.baselineFast}
-              fastDelta={thinkingScores.fastDelta}
-              slowScore={thinkingScores.slowScore}
-              slowBaseline={thinkingScores.baselineSlow}
-              slowDelta={thinkingScores.slowDelta}
-            />
-          )}
-        </motion.div>
-      </div>
-    </div>
+      <MonitorPanel className="min-w-0 overflow-hidden p-4">
+        {currentCard === "cognitive-age" && <CognitiveAgeCard />}
+
+        {currentCard === "cognitive-network" && (
+          <NeuralGrowthAnimation
+            cognitiveAgeDelta={0}
+            overallCognitiveScore={sci?.total ?? 50}
+            sciBreakdown={sci}
+            statusText={sciStatusText}
+            bottleneck={bottleneck}
+          />
+        )}
+
+        {currentCard === "dual-process" && (
+          <FastSlowBrainMap
+            fastScore={thinkingScores.fastScore}
+            fastBaseline={thinkingScores.baselineFast}
+            fastDelta={thinkingScores.fastDelta}
+            slowScore={thinkingScores.slowScore}
+            slowBaseline={thinkingScores.baselineSlow}
+            slowDelta={thinkingScores.slowDelta}
+          />
+        )}
+      </MonitorPanel>
+    </section>
   );
 }
