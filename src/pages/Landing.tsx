@@ -1,23 +1,20 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BrainCircuit, Check, Gauge, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { trackProductEvent } from "@/lib/productAnalytics";
 
 const outcomes = [
   {
-    icon: Gauge,
     title: "Measure your state",
     copy: "A brief check compares today's performance with your own baseline — not with a demographic norm.",
   },
   {
-    icon: BrainCircuit,
     title: "Choose the right work",
     copy: "Turn attention, reasoning and recovery signals into one practical recommendation for your day.",
   },
   {
-    icon: RefreshCw,
     title: "Learn what works",
     copy: "Build a personal record of the habits and resets associated with your strongest work sessions.",
   },
@@ -121,10 +118,9 @@ export default function Landing() {
               Measure. Choose. Learn.
             </h2>
             <div className="mt-12 grid gap-4 md:grid-cols-3">
-              {outcomes.map(({ icon: Icon, title, copy }, index) => (
+              {outcomes.map(({ title, copy }, index) => (
                 <article key={title} className="rounded-2xl border border-border/50 bg-card/60 p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon className="h-5 w-5" /></div>
-                  <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">0{index + 1}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">0{index + 1}</p>
                   <h3 className="mt-2 text-lg font-semibold">{title}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy}</p>
                 </article>
@@ -134,8 +130,9 @@ export default function Landing() {
         </section>
 
         <section className="mx-auto max-w-4xl px-5 py-24 text-center sm:px-8">
-          <ShieldCheck className="mx-auto h-8 w-8 text-recovery" />
-          <h2 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Build your baseline before trusting the signal.</h2>
+          <div className="mx-auto h-px w-12 bg-recovery/70" />
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-recovery">Seven-day calibration</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Build your baseline before trusting the signal.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
             LOOMA starts with seven days of personal observations. Early results are labeled provisional, and recommendations become more specific only as your history grows.
           </p>

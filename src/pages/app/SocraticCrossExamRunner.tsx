@@ -84,9 +84,9 @@ export default function SocraticCrossExamRunner() {
         
         // v1.8: Show appropriate toast based on cap status
         if (actualXP > 0) {
-          toast.success(`+${actualXP} XP → Critical Thinking!`, { icon: "🧠" });
+          toast.success(`+${actualXP} XP · Critical Thinking updated`);
         } else {
-          toast.info("Daily XP limit reached. Play for practice!", { icon: "🎯" });
+          toast.info("Daily XP limit reached. Play for practice.");
         }
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
       } catch (error) {

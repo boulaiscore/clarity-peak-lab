@@ -84,7 +84,7 @@ export default function ConstellationSnapRunner() {
         toast.success(`+${results.xpAwarded} XP earned!`, { icon: "⭐" });
         
         if (results.isPerfect) {
-          toast.success("Perfect Session! 🌟", { duration: 3000 });
+          toast.success("Perfect session", { duration: 3000 });
         }
       } catch (error) {
         console.error("[ConstellationSnap] ❌ Failed to record session:", error);

@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app/AppShell";
-import { Activity, Heart, Moon, Check, ExternalLink, Lock, Sparkles } from "lucide-react";
+import { Activity, Heart, Moon, Check, ExternalLink, Lock } from "lucide-react";
 import { AppleHealthIcon, WhoopIcon, OuraIcon, GarminIcon, OtherWearableIcon } from "@/components/icons/WearableIcons";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -193,9 +193,6 @@ const Health = () => {
             <div className="mb-8 animate-fade-in">
               <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                  </div>
                   <div>
                     <h3 className="text-sm font-semibold">Unlock wearable insights</h3>
                     <p className="text-xs text-muted-foreground">

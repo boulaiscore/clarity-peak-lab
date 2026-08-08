@@ -79,7 +79,7 @@ export function EveningReadingReminder() {
           notifications: [
             {
               id: 9001,
-              title: "Did you read today? 📚",
+              title: "Did you read today?",
               body: `You're reading "${bookTitles}". Even 10 minutes builds your RQ.`,
               schedule: { at: target },
               sound: undefined,

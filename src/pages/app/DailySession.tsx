@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Brain, Zap, Lightbulb, Target, ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { ProductMark } from "@/components/icons/ProductMark";
 
 interface AreaBreakdown {
   area: string;
@@ -36,19 +37,19 @@ export default function DailySession() {
   const areas: AreaBreakdown[] = [
     {
       area: "Focus Arena",
-      icon: <Target className="w-5 h-5" />,
+      icon: <ProductMark name="attention" size={20} />,
       exercises: distribution.focus,
       color: "text-cyan-400",
     },
     {
       area: "Critical Reasoning",
-      icon: <Brain className="w-5 h-5" />,
+      icon: <ProductMark name="critical-thinking" size={20} />,
       exercises: distribution.reasoning,
       color: "text-purple-400",
     },
     {
       area: "Creativity Hub",
-      icon: <Lightbulb className="w-5 h-5" />,
+      icon: <ProductMark name="insight" size={20} />,
       exercises: distribution.creativity,
       color: "text-amber-400",
     },
@@ -78,8 +79,8 @@ export default function DailySession() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm mb-4">
-          <Zap className="w-4 h-4" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-sm mb-4">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
           Daily Training
         </div>
         <h1 className="text-2xl font-bold mb-2">Your Cognitive Session</h1>
@@ -97,9 +98,7 @@ export default function DailySession() {
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Clock className="w-6 h-6 text-primary" />
-            </div>
+            <Clock className="w-5 h-5 text-muted-foreground" />
             <div>
               <p className="font-semibold">{dailyCommitment} Session</p>
               <p className="text-sm text-muted-foreground">{distribution.total} exercises</p>
@@ -143,13 +142,15 @@ export default function DailySession() {
         <h3 className="font-semibold mb-3 text-sm">Training Focus</h3>
         <div className="flex flex-wrap gap-2">
           {trainingGoals.includes("fast_thinking") && (
-            <div className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium">
-              ⚡ Fast Thinking (System 1)
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium">
+              <ProductMark name="system-fast" size={15} />
+              Fast Thinking (System 1)
             </div>
           )}
           {trainingGoals.includes("slow_thinking") && (
-            <div className="px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-medium">
-              🧠 Slow Thinking (System 2)
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-medium">
+              <ProductMark name="system-slow" size={15} />
+              Slow Thinking (System 2)
             </div>
           )}
         </div>

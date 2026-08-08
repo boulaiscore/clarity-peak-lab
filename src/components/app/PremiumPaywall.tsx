@@ -8,7 +8,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Lock, Zap, Clock, Brain, FileText, Dumbbell, ArrowRight } from "lucide-react";
+import { Check, Lock, ArrowRight } from "lucide-react";
 
 interface PremiumPaywallProps {
   open: boolean;
@@ -18,12 +18,12 @@ interface PremiumPaywallProps {
 }
 
 const FEATURES = [
-  { icon: Brain, text: "All training areas (S1 + S2)" },
-  { icon: Clock, text: "Extended sessions (5 min, 7 min)" },
-  { icon: Zap, text: "Neuro Activation warm-up" },
-  { icon: Check, text: "Unlimited daily sessions" },
-  { icon: FileText, text: "Cognitive Intelligence Report" },
-  { icon: Dumbbell, text: "Advanced cognitive training" },
+  "All training areas (S1 + S2)",
+  "Extended sessions (5 min, 7 min)",
+  "Neuro Activation warm-up",
+  "Unlimited daily sessions",
+  "Cognitive Intelligence Report",
+  "Advanced cognitive training",
 ];
 
 const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {
@@ -66,13 +66,11 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-sm mx-auto">
         <AlertDialogHeader className="text-center">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-            {feature === "session-limit" ? (
-              <Lock className="w-7 h-7 text-primary" />
-            ) : (
-              <Crown className="w-7 h-7 text-primary" />
-            )}
-          </div>
+          {feature === "session-limit" ? (
+            <Lock className="w-5 h-5 text-muted-foreground mx-auto mb-3" />
+          ) : (
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">LOOMA Pro</p>
+          )}
           <AlertDialogTitle className="text-lg">
             {message.title}
             {featureName && (
@@ -87,11 +85,9 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
         </AlertDialogHeader>
 
         <div className="py-3 space-y-2.5">
-          {FEATURES.map(({ icon: Icon, text }) => (
+          {FEATURES.map((text) => (
             <div key={text} className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon className="w-3.5 h-3.5 text-primary" />
-              </div>
+              <Check className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="text-sm text-muted-foreground">{text}</span>
             </div>
           ))}
@@ -99,7 +95,6 @@ export function PremiumPaywall({ open, onOpenChange, feature = "area", featureNa
 
         <AlertDialogFooter className="flex-col gap-2 sm:flex-col pt-1">
           <Button onClick={handleUpgrade} variant="hero" className="w-full">
-            <Crown className="w-4 h-4 mr-2" />
             View Plans
             <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
           </Button>

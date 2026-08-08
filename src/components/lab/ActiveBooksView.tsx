@@ -108,7 +108,7 @@ export function ActiveBooksView() {
     if (!confirmComplete) return;
     try {
       await completeBook.mutateAsync(confirmComplete.id);
-      toast.success("Book completed! 📚", {
+      toast.success("Book completed", {
         description: `${confirmComplete.title} — ${confirmComplete.total_minutes_read} min total. RQ impact applied.`,
       });
       setConfirmComplete(null);

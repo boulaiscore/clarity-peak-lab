@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { 
   Gamepad2, Headphones, BookOpen, ChevronRight, Clock, 
-  Brain, Target, Lightbulb, Play, Sparkles, Star
+  Brain, Target, Lightbulb, Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONTENT_LIBRARY, ContentDifficulty } from "@/lib/contentLibrary";
@@ -151,7 +151,6 @@ export function SessionPicker({
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 p-4">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-[10px] text-primary font-medium uppercase tracking-wide">
                 Today's Session
               </span>
@@ -171,7 +170,6 @@ export function SessionPicker({
           <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-amber-400" />
                 <span className="text-[12px] font-semibold">Weekly Cognitive Load</span>
               </div>
               <span className="text-[12px] font-bold text-amber-400">
@@ -264,7 +262,6 @@ export function SessionPicker({
                     {/* XP Badge & Action */}
                     <div className="flex items-center gap-2 shrink-0">
                       <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
-                        <Star className="w-3 h-3 text-amber-400" />
                         <span className="text-[10px] font-semibold text-amber-400">+{step.xp}</span>
                       </div>
                       {isGame && step.areaId && (

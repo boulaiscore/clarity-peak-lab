@@ -144,7 +144,7 @@ export function MentalRotationDrill({ config, timeLimit, onComplete }: MentalRot
   if (isComplete) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="text-6xl mb-4">🧠</div>
+        <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Session complete</p>
         <p className="text-xl font-semibold">Drill Complete!</p>
         <p className="text-muted-foreground mt-2">
           {correct} / {trialsCount} correct

@@ -8,7 +8,7 @@ import { usePremiumGating, FREE_DURATIONS } from "@/hooks/usePremiumGating";
 import { useGamesGating } from "@/hooks/useGamesGating";
 import { getGameTypeFromArea } from "@/lib/gamesGating";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
-import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap, Lock, Crown, ShieldAlert, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, Target, Brain, Sliders, Lightbulb, Sparkles, Gamepad2, Play, Zap, Lock, ShieldAlert, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AREA_ICONS: Record<string, React.ElementType> = {

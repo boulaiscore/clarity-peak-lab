@@ -272,12 +272,12 @@ export function ShapeMatchDrill({ config, onComplete }: ShapeMatchDrillProps) {
         animate={{ opacity: 1, scale: 1 }}
         className="flex-1 flex flex-col items-center justify-center p-6"
       >
-        <div className={cn(
-          "text-7xl mb-4",
+        <p className={cn(
+          "mb-4 text-[10px] font-semibold uppercase tracking-[0.2em]",
           accuracy >= 80 ? "text-green-500" : accuracy >= 60 ? "text-yellow-500" : "text-red-500"
         )}>
-          {accuracy >= 80 ? "🎯" : accuracy >= 60 ? "👍" : "💪"}
-        </div>
+          Session complete
+        </p>
         <p className="text-2xl font-bold mb-2">
           {accuracy}% Accuracy
         </p>
@@ -322,7 +322,7 @@ export function ShapeMatchDrill({ config, onComplete }: ShapeMatchDrillProps) {
           <div className="flex gap-3">
             <span>✓ {correct}</span>
             {streak >= 2 && (
-              <span className="text-primary font-medium">🔥 {streak}</span>
+              <span className="text-primary font-medium">Streak {streak}</span>
             )}
             <span className="text-xs opacity-70">{difficulty.label}</span>
           </div>

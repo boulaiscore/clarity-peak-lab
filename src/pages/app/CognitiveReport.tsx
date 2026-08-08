@@ -1,7 +1,7 @@
 // src/pages/app/CognitiveReport.tsx
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Brain, Play, Download, Lock, FileText, Check, Crown, Package, Sparkles, Target, Eye, ZoomIn, ZoomOut, FolderOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Play, Download, Lock, FileText, Check, Package, Eye, ZoomIn, ZoomOut, FolderOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { useReportAccess } from "@/hooks/useReportAccess";
@@ -28,6 +28,7 @@ import { Progress } from "@/components/ui/progress";
 import { ReportHistoryList } from "@/components/report/ReportHistoryList";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTestMode } from "@/hooks/useTestMode";
+import { LoomaLogo } from "@/components/ui/LoomaLogo";
 
 import "@/styles/clinical-report.css";
 
@@ -335,7 +336,7 @@ export default function CognitiveReport() {
         {/* Premium Option */}
         <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
           <div className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-amber-400" />
+            <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary">Pro</span>
             <div>
               <h4 className="text-sm font-semibold">Upgrade to Pro</h4>
               <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
@@ -343,7 +344,6 @@ export default function CognitiveReport() {
           </div>
           <Link to="/app/subscription">
             <Button variant="outline" className="w-full gap-2 border-primary/30 hover:bg-primary/10">
-              <Crown className="w-4 h-4 text-amber-400" />
               View Plans
             </Button>
           </Link>
@@ -407,7 +407,6 @@ export default function CognitiveReport() {
                 onClick={handleStripeCheckout}
                 disabled={processingPayment}
               >
-                <Sparkles className="w-4 h-4" />
                 {processingPayment ? "Processing..." : "Purchase Now"}
               </Button>
               <AlertDialogCancel className="w-full mt-0">Cancel</AlertDialogCancel>
@@ -428,8 +427,8 @@ export default function CognitiveReport() {
   if (!metrics || !profile || !aggregates) {
     return (
       <div className="p-4 max-w-md mx-auto min-h-[60vh] flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-          <Brain className="w-8 h-8 text-primary" />
+        <div className="w-16 h-16 rounded-2xl bg-foreground flex items-center justify-center mb-4">
+          <LoomaLogo size={30} className="text-background" />
         </div>
         <h1 className="text-lg font-semibold mb-2">No Data Available</h1>
         <p className="text-sm text-muted-foreground mb-6 max-w-xs">
@@ -499,9 +498,8 @@ export default function CognitiveReport() {
             </div>
 
             {isPro ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-[10px]">
-                <Crown className="w-3 h-3 text-primary" />
-                <span className="font-medium">Pro</span>
+              <div className="px-2 py-1 rounded-full border border-primary/20 bg-primary/5 text-[10px]">
+                <span className="font-semibold uppercase tracking-[0.12em] text-primary">Pro</span>
               </div>
             ) : totalCredits > 0 ? (
               <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-[10px]">
@@ -523,10 +521,7 @@ export default function CognitiveReport() {
                   {downloading ? "..." : "PDF"}
                 </>
               ) : !weeklyPlanCompleted ? (
-                <>
-                  <Target className="w-3 h-3" />
-                  Plan
-                </>
+                <>Plan</>
               ) : (
                 <>
                   <Lock className="w-3 h-3" />
@@ -542,9 +537,7 @@ export default function CognitiveReport() {
       {!weeklyPlanCompleted && (
         <div className="mb-4 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 print:hidden">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-              <Target className="w-5 h-5 text-amber-500" />
-            </div>
+            <div className="mt-1 h-2 w-2 rounded-full bg-amber-500 flex-shrink-0" aria-hidden />
             <div className="flex-1 space-y-3">
               <div>
                 <h3 className="text-sm font-semibold text-amber-500">Complete Your Weekly Plan</h3>
@@ -758,7 +751,6 @@ export default function CognitiveReport() {
               onClick={handleStripeCheckout}
               disabled={processingPayment}
             >
-              <Sparkles className="w-4 h-4" />
               {processingPayment ? "Processing..." : `Purchase ${CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.price}`}
             </Button>
             <AlertDialogCancel className="w-full mt-0">Maybe Later</AlertDialogCancel>

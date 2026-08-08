@@ -82,7 +82,7 @@ export function showDetoxReminderNotification(remainingMinutes: number, dailyGoa
   const completedMinutes = dailyGoal - remainingMinutes;
   const progressPercent = Math.round((completedMinutes / dailyGoal) * 100);
   
-  showLocalNotification("📵 Obiettivo Detox incompleto", {
+  showLocalNotification("Obiettivo Detox incompleto", {
     body: `Hai completato ${completedMinutes}/${dailyGoal} minuti oggi (${progressPercent}%). Mancano ${remainingMinutes} minuti per raggiungere il tuo obiettivo!`,
     data: { url: "/app" },
     tag: "neuroloop-detox-reminder",
@@ -173,7 +173,7 @@ export function checkMissedReminder(reminderTime: string, dailyCommitment: strin
     if (lastSession !== today) {
       // Show missed reminder notification
       const exerciseCount = getExerciseCountForCommitment(dailyCommitment);
-      showLocalNotification("🧠 You missed your training reminder", {
+      showLocalNotification("You missed your training reminder", {
         body: `Your ${dailyCommitment} session is still waiting • ${exerciseCount} exercises`,
         data: { url: "/app/daily-session" },
         tag: "neuroloop-missed-reminder",
@@ -284,7 +284,7 @@ function getExerciseCountForCommitment(dailyCommitment: string): number {
 export function showDailyTrainingNotification(dailyCommitment: string): void {
   const exerciseCount = getExerciseCountForCommitment(dailyCommitment);
   
-  showLocalNotification("🧠 Your daily cognitive training is ready", {
+  showLocalNotification("Your daily cognitive training is ready", {
     body: `${dailyCommitment} session • ${exerciseCount} exercises across Focus, Reasoning, Creativity`,
     data: { url: "/app/daily-session" },
     requireInteraction: true,
@@ -383,7 +383,7 @@ export function showRecoveryWarningNotification(streakDays: number, currentRec: 
  * Triggered when REC < 40% for 3+ consecutive days (decay is happening).
  */
 export function showRecoveryCriticalNotification(streakDays: number, decayPoints: number): void {
-  showLocalNotification("🚨 Readiness Decay Attivo", {
+  showLocalNotification("Readiness Decay Attivo", {
     body: `${streakDays} giorni con REC < 40%. La tua Readiness sta calando di -${decayPoints} punti. Completa 45 min di recovery.`,
     data: { url: "/app" },
     tag: "neuroloop-recovery-critical",
@@ -396,7 +396,7 @@ export function showRecoveryCriticalNotification(streakDays: number, decayPoints
  * Triggered when user hasn't earned XP for several days (before SCI decay).
  */
 export function showInactivitySoftNotification(daysSinceXP: number): void {
-  showLocalNotification("💡 Cognitivamente idle", {
+  showLocalNotification("Cognitivamente idle", {
     body: `${daysSinceXP} giorni senza training. Una sessione di 10 min mantiene il tuo SCI stabile.`,
     data: { url: "/neuro-lab" },
     tag: "neuroloop-inactivity-soft",
@@ -409,7 +409,7 @@ export function showInactivitySoftNotification(daysSinceXP: number): void {
  * Triggered when SCI decay is imminent (7+ days without XP).
  */
 export function showInactivityCriticalNotification(daysSinceXP: number): void {
-  showLocalNotification("📉 SCI Decay Imminente", {
+  showLocalNotification("SCI Decay Imminente", {
     body: `${daysSinceXP} giorni senza XP. Il tuo Neural Strength inizierà a calare. Sessione rapida disponibile.`,
     data: { url: "/neuro-lab" },
     tag: "neuroloop-inactivity-critical",
@@ -428,7 +428,7 @@ export function showWeeklyProgressNotification(
   percent: number,
   recovery: number
 ): void {
-  showLocalNotification("📊 Check Settimanale", {
+  showLocalNotification("Check Settimanale", {
     body: `${planName}: ${xp}/${target} XP (${percent}%) | REC: ${recovery}%`,
     data: { url: "/app/dashboard" },
     tag: "neuroloop-weekly-progress",
@@ -445,7 +445,7 @@ export function showWeekendSummaryNotification(
   sessions: number,
   avgRecovery: number
 ): void {
-  showLocalNotification("📈 Riepilogo Settimanale", {
+  showLocalNotification("Riepilogo Settimanale", {
     body: `Settimana completata: ${xp} XP | ${sessions} sessioni | REC media: ${avgRecovery}%`,
     data: { url: "/app/dashboard" },
     tag: "neuroloop-weekend-summary",

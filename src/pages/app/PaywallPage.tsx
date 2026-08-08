@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, ArrowLeft, User, Rocket, ArrowRight } from "lucide-react";
+import { Check, ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useLocalizedPrices } from "@/hooks/useLocalizedPrices";
@@ -25,8 +25,6 @@ const basePlans = [
     id: "free",
     name: "Free",
     tagline: "Get started with core training",
-    icon: User,
-    iconColor: "text-muted-foreground",
     features: [
       "3 training sessions per day",
       "Basic cognitive metrics",
@@ -38,8 +36,6 @@ const basePlans = [
     id: "pro",
     name: "Pro",
     tagline: "Full cognitive training suite",
-    icon: Crown,
-    iconColor: "text-amber-400",
     badge: "MOST POPULAR",
     features: [
       "Unlimited daily sessions",
@@ -54,8 +50,6 @@ const basePlans = [
     id: "elite",
     name: "Elite",
     tagline: "Peak performance optimization",
-    icon: Rocket,
-    iconColor: "text-purple-400",
     features: [
       "Everything in Pro",
       "Reasoning Quality insights",
@@ -151,8 +145,6 @@ export default function PaywallPage() {
         <div className="grid gap-4 md:grid-cols-3">
           {plans.map((plan) => {
             const isHighlighted = plan.id === "pro";
-            const Icon = plan.icon;
-
             return (
               <div
                 key={plan.id}
@@ -173,7 +165,6 @@ export default function PaywallPage() {
 
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon className={cn("w-4 h-4", plan.iconColor)} />
                     <h3 className="text-base font-semibold">{plan.name}</h3>
                   </div>
                   <p className="text-[11px] text-muted-foreground">{plan.tagline}</p>

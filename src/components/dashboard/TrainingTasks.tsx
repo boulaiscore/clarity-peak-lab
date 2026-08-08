@@ -754,7 +754,7 @@ export function TrainingTasks() {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
-                  formatter={(value: number) => [`${value} min`, '🎧 Listening']}
+                  formatter={(value: number) => [`${value} min`, 'Listening']}
                   cursor={false}
                 />
                 <Bar 

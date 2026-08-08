@@ -354,7 +354,7 @@ export const AttentionBudgetGame = ({ prompt, options, correctIndex, explanation
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <p className="text-xs font-medium text-foreground mb-1">💡 Insight</p>
+                <p className="text-xs font-medium text-foreground mb-1">Insight</p>
                 <p className="text-xs text-muted-foreground">{explanation}</p>
               </motion.div>
             </motion.div>

@@ -107,7 +107,7 @@ export default function CounterfactualAuditRunner() {
         });
         
         console.log("[CounterfactualAudit] ✅ Session saved successfully");
-        toast.success(`+${finalXP} XP → Critical Thinking!`, { icon: "🧠" });
+        toast.success(`+${finalXP} XP · Critical Thinking updated`);
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });

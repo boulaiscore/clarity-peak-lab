@@ -401,18 +401,18 @@ export function ReportMockupFull() {
           
           <div className="space-y-3 sm:space-y-4">
             {[
-              { name: "Focus & Attention", score: MOCK_METRICS.focus_stability, baseline: 65, color: "bg-purple-500", icon: "🎯" },
-              { name: "Logical Reasoning", score: MOCK_METRICS.reasoning_accuracy, baseline: 62, color: "bg-blue-500", icon: "🧠" },
-              { name: "Creative Cognition", score: MOCK_METRICS.creativity, baseline: 70, color: "bg-pink-500", icon: "💡" },
-              { name: "Visual Processing", score: MOCK_METRICS.visual_processing, baseline: 68, color: "bg-green-500", icon: "👁️" },
-              { name: "Decision Quality", score: MOCK_METRICS.decision_quality, baseline: 60, color: "bg-amber-500", icon: "⚖️" },
+              { name: "Focus & Attention", score: MOCK_METRICS.focus_stability, baseline: 65, color: "bg-purple-500" },
+              { name: "Logical Reasoning", score: MOCK_METRICS.reasoning_accuracy, baseline: 62, color: "bg-blue-500" },
+              { name: "Creative Cognition", score: MOCK_METRICS.creativity, baseline: 70, color: "bg-pink-500" },
+              { name: "Visual Processing", score: MOCK_METRICS.visual_processing, baseline: 68, color: "bg-green-500" },
+              { name: "Decision Quality", score: MOCK_METRICS.decision_quality, baseline: 60, color: "bg-amber-500" },
             ].map((domain) => {
               const delta = domain.score - domain.baseline;
               const status = getClinicalStatus(domain.score);
               return (
                 <div key={domain.name} className="p-2.5 sm:p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                    <span className="text-sm sm:text-lg">{domain.icon}</span>
+                    <span className={`h-2 w-2 rounded-full ${domain.color}`} aria-hidden />
                     <span className="font-semibold text-gray-800 text-xs sm:text-sm flex-1">{domain.name}</span>
                     <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-xs font-medium ${status.bg} ${status.color}`}>
                       {status.label}
@@ -502,13 +502,13 @@ export function ReportMockupFull() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {[
-              { name: "Focus Master", desc: "90%+ accuracy", icon: "🎯", date: "Jan 5" },
-              { name: "Week Warrior", desc: "7-day streak", icon: "🔥", date: "Jan 3" },
-              { name: "Level 10", desc: "Reached Lv.10", icon: "⭐", date: "Dec 28" },
-              { name: "Creative Spark", desc: "10 sessions", icon: "💡", date: "Dec 22" },
+              { name: "Focus Master", desc: "90%+ accuracy", date: "Jan 5" },
+              { name: "Week Warrior", desc: "7-day streak", date: "Jan 3" },
+              { name: "Level 10", desc: "Reached Lv.10", date: "Dec 28" },
+              { name: "Creative Spark", desc: "10 sessions", date: "Dec 22" },
             ].map((badge) => (
               <div key={badge.name} className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-amber-50 rounded-lg border border-amber-200">
-                <span className="text-xl sm:text-2xl">{badge.icon}</span>
+                <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-amber-900 text-xs sm:text-sm">{badge.name}</div>
                   <div className="text-[10px] sm:text-xs text-amber-700 truncate">{badge.desc}</div>

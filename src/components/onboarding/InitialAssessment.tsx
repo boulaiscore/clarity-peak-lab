@@ -187,7 +187,7 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
         
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 mb-6 max-w-[300px] mx-auto">
           <p className="text-[12px] text-primary/80 leading-relaxed">
-            💡 This is an assessment to calibrate your starting point. Don't worry if exercises feel too easy, too hard, or too fast — just do your best.
+            This assessment calibrates your starting point. Exercises may feel easy, difficult, or fast; complete them at your natural pace.
           </p>
         </div>
 

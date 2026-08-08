@@ -98,10 +98,10 @@ export default function FocusSwitchRunner() {
         if (actualXP > 0) {
           toast.success(`+${actualXP} XP earned!`, { icon: "⭐" });
           if (results.isPerfect) {
-            toast.success("Perfect Session! 🌟", { duration: 3000 });
+            toast.success("Perfect session", { duration: 3000 });
           }
         } else {
-          toast.info("Daily XP limit reached. Play for practice!", { icon: "🎯" });
+          toast.info("Daily XP limit reached. Play for practice.");
         }
       } catch (error) {
         console.error("[FocusSwitch] ❌ Failed to record session:", error);

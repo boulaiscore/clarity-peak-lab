@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Trophy, Sparkles, FileText, Download, ArrowRight } from "lucide-react";
+import { Check, FileText, Download, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -57,11 +57,11 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           />
 
-          {/* Particle effects - only during celebration phase */}
+          {/* Restrained signal particles - only during celebration phase */}
           <AnimatePresence>
             {phase === "celebration" && (
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(30)].map((_, i) => (
+                {[...Array(14)].map((_, i) => (
                   <motion.div
                     key={i}
                     initial={{
@@ -81,9 +81,9 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                       delay: i * 0.03,
                       ease: "easeOut",
                     }}
-                    className="absolute w-3 h-3"
+                    className="absolute h-1.5 w-1.5 rounded-full bg-primary/70"
                   >
-                    <Star className="w-full h-full text-amber-400 fill-amber-400" />
+                    <span className="sr-only">Progress signal</span>
                   </motion.div>
                 ))}
               </div>
@@ -101,11 +101,10 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                 transition={{ type: "spring", damping: 12, stiffness: 200 }}
                 className="relative z-10 flex flex-col items-center gap-4 p-8 pointer-events-none"
               >
-                {/* Trophy icon with glow */}
+                {/* Completion state */}
                 <motion.div
                   animate={{
-                    scale: [1, 1.15, 1],
-                    rotate: [0, -5, 5, 0],
+                    scale: [1, 1.04, 1],
                   }}
                   transition={{
                     duration: 1.2,
@@ -114,9 +113,9 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                   }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-amber-400/40 blur-3xl rounded-full scale-150" />
-                  <div className="relative w-28 h-28 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl">
-                    <Trophy className="w-14 h-14 text-white" />
+                  <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150" />
+                  <div className="relative w-20 h-20 rounded-full border border-primary/40 bg-background/90 flex items-center justify-center shadow-2xl">
+                    <Check className="w-8 h-8 text-primary" strokeWidth={1.5} />
                   </div>
                 </motion.div>
 
@@ -130,12 +129,10 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                   <h2 className="text-3xl font-bold text-white mb-2">
                     This Week's Goal Complete!
                   </h2>
-                  <div className="flex items-center justify-center gap-2">
-                    <Sparkles className="w-5 h-5 text-amber-400" />
-                    <p className="text-lg text-amber-400 font-medium">
+                  <div className="flex items-center justify-center">
+                    <p className="text-lg text-primary font-medium">
                       Same plan, same rhythm. See you next week.
                     </p>
-                    <Sparkles className="w-5 h-5 text-amber-400" />
                   </div>
                 </motion.div>
               </motion.div>
@@ -191,7 +188,6 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                     </div>
                     <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
                     <div className="flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
                       <span>Full Analysis</span>
                     </div>
                   </motion.div>

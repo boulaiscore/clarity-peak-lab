@@ -100,27 +100,27 @@ export interface NotificationMessage {
 
 export const NOTIFICATION_MESSAGES: Record<NotificationType, NotificationMessage> = {
   recovery_warning: {
-    title: "⚠️ Recovery in calo",
+    title: "Recovery in calo",
     bodyTemplate: "REC al {rec}% da {days} giorni. Previeni il decay con 30 min di detox.",
   },
   recovery_critical: {
-    title: "🚨 Readiness Decay Attivo",
+    title: "Readiness Decay Attivo",
     bodyTemplate: "{days} giorni con REC < 40%. La tua Readiness sta calando. Completa 45 min di recovery.",
   },
   inactivity_soft: {
-    title: "💡 Cognitivamente idle",
+    title: "Cognitivamente idle",
     bodyTemplate: "{days} giorni senza training. Una sessione di 10 min mantiene il tuo SCI stabile.",
   },
   inactivity_critical: {
-    title: "📉 SCI Decay Imminente",
+    title: "SCI Decay Imminente",
     bodyTemplate: "{days} giorni senza XP. Il tuo Neural Strength inizierà a calare. Sessione rapida disponibile.",
   },
   weekly_progress: {
-    title: "📊 Check Settimanale",
+    title: "Check Settimanale",
     bodyTemplate: "{plan}: {xp}/{target} XP ({percent}%) | REC: {rec}%",
   },
   weekend_summary: {
-    title: "📈 Riepilogo Settimanale",
+    title: "Riepilogo Settimanale",
     bodyTemplate: "Settimana completata: {xp} XP | {sessions} sessioni | REC media: {avgRec}%",
   },
 };

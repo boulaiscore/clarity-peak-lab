@@ -29,9 +29,9 @@ export function ReportTrainingAnalytics({ profile, metrics, aggregates, sessions
   const level = metrics.cognitive_level ?? 1;
 
   const areaData = [
-    { name: "Focus Arena", key: "focus" as Area, color: "#7e57c2", icon: "🎯" },
-    { name: "Critical Reasoning", key: "reasoning" as Area, color: "#42a5f5", icon: "🧠" },
-    { name: "Creativity Hub", key: "creativity" as Area, color: "#ec407a", icon: "💡" },
+    { name: "Focus Arena", key: "focus" as Area, color: "#7e57c2" },
+    { name: "Critical Reasoning", key: "reasoning" as Area, color: "#42a5f5" },
+    { name: "Creativity Hub", key: "creativity" as Area, color: "#ec407a" },
   ];
   const maxSessions = Math.max(...Object.values(aggregates.sessionsByArea), 1);
 
@@ -123,7 +123,9 @@ export function ReportTrainingAnalytics({ profile, metrics, aggregates, sessions
           const pct = (count / maxSessions) * 100;
           return (
             <div key={area.key} className="area-bar-row">
-              <span className="area-bar-icon">{area.icon}</span>
+              <span className="area-bar-icon" aria-hidden>
+                <span className="block h-2 w-2 rounded-full" style={{ backgroundColor: area.color }} />
+              </span>
               <span className="area-bar-label">{area.name}</span>
               <div className="area-bar-container">
                 <div className="area-bar-fill" style={{ width: `${pct}%`, backgroundColor: area.color }} />

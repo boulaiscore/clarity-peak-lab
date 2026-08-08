@@ -102,7 +102,7 @@ export default function HiddenRuleLabRunner() {
           difficulty,
         });
         
-        toast.success(`+${xp} XP → Insight!`, { icon: "💡" });
+        toast.success(`+${xp} XP · Insight updated`);
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });

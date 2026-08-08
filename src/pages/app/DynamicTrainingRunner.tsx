@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Check, Clock, Zap, Brain, Lightbulb, Target, FlaskConical, Workflow, Sparkles, Scale, Eye, HardDrive, ShieldOff, Sliders, SlidersHorizontal, Flame, BookOpen, Compass, Gamepad2, Move3D, MonitorPlay, Grid3X3 } from "lucide-react";
+import { ArrowLeft, Check, Clock } from "lucide-react";
+import { ProductMark, type ProductMarkName } from "@/components/icons/ProductMark";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGenerateTrainingSession, useSaveTrainingSession, useUpdateUserMetrics } from "@/hooks/useExercises";
@@ -18,27 +19,27 @@ import {
 import { markSessionCompleted } from "@/lib/notifications";
 import { toast } from "@/hooks/use-toast";
 
-const CATEGORY_ICONS: Record<ExerciseCategory, React.ElementType> = {
-  reasoning: FlaskConical,
-  clarity: Target,
-  decision: Workflow,
-  fast: Zap,
-  slow: Brain,
-  bias: Scale,
-  logic_puzzle: Lightbulb,
-  creative: Sparkles,
-  attention: Eye,
-  working_memory: HardDrive,
-  inhibition: ShieldOff,
-  cognitive_control: Sliders,
-  executive_control: SlidersHorizontal,
-  insight: Flame,
-  reflection: BookOpen,
-  philosophical: Compass,
-  visual: MonitorPlay,
-  spatial: Move3D,
-  game: Gamepad2,
-  visual_memory: Grid3X3,
+const CATEGORY_MARKS: Record<ExerciseCategory, ProductMarkName> = {
+  reasoning: "critical-thinking",
+  clarity: "attention",
+  decision: "critical-thinking",
+  fast: "system-fast",
+  slow: "system-slow",
+  bias: "critical-thinking",
+  logic_puzzle: "critical-thinking",
+  creative: "insight",
+  attention: "attention",
+  working_memory: "system-slow",
+  inhibition: "attention",
+  cognitive_control: "system-slow",
+  executive_control: "system-slow",
+  insight: "insight",
+  reflection: "system-slow",
+  philosophical: "critical-thinking",
+  visual: "attention",
+  spatial: "attention",
+  game: "system-fast",
+  visual_memory: "attention",
 };
 
 const DynamicTrainingRunner = () => {
@@ -69,7 +70,7 @@ const DynamicTrainingRunner = () => {
   const progress = totalExercises > 0 ? ((currentIndex + 1) / totalExercises) * 100 : 0;
   
   const categoryInfo = CATEGORY_INFO[category];
-  const CategoryIcon = CATEGORY_ICONS[category] || Brain;
+  const categoryMark = CATEGORY_MARKS[category] || "critical-thinking";
   const isFastMode = category === "fast";
   
   // Generate exercises on mount
@@ -306,7 +307,11 @@ const DynamicTrainingRunner = () => {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="flex items-center gap-2">
-              <CategoryIcon className={cn("w-4 h-4", isFastMode ? "text-warning" : "text-primary")} />
+              <ProductMark
+                name={categoryMark}
+                size={16}
+                className={isFastMode ? "text-warning" : "text-primary"}
+              />
               <span className="text-sm font-medium text-foreground">{categoryInfo.title}</span>
             </div>
             <div className="w-8" />

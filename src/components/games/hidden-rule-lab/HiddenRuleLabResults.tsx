@@ -278,7 +278,7 @@ export function HiddenRuleLabResults({
               </div>
               {hasCleanLock && (
                 <div className="text-[10px] text-emerald-400/80">
-                  ✨ Clean lock bonus applied
+                  Clean lock bonus applied
                 </div>
               )}
             </div>

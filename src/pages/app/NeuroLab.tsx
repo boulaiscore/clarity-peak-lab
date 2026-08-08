@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { ReasonTabContent } from "@/components/lab";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Brain, Zap, Battery, BatteryLow, Settings2, RefreshCw } from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Zap, Battery, BatteryLow, Settings2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
@@ -270,8 +270,8 @@ export default function NeuroLab() {
           opacity: 1,
           y: 0
         }}>
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
-              <Brain className="w-7 h-7 text-primary" />
+            <div className="w-14 h-14 rounded-2xl bg-foreground flex items-center justify-center mx-auto mb-5">
+              <LoomaLogo size={28} className="text-background" />
             </div>
             <h2 className="text-lg font-semibold mb-2">Calibration Required</h2>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">

@@ -11,7 +11,7 @@ import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 
 import { Button } from "@/components/ui/button";
-import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, Sparkles, LineChart, TrendingUp } from "lucide-react";
+import { Info, Loader2, Activity, BarChart3, Play, BookOpen, FileText, LineChart, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserMetrics } from "@/hooks/useExercises";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
@@ -318,7 +318,6 @@ const Dashboard = () => {
                     "bg-primary/90 hover:bg-primary text-primary-foreground shadow-md shadow-primary/15"
                   )}>
 
-                    <Sparkles className="w-4 h-4" />
                     {isPremium ? "View Full Report" : "Explore Report"}
                   </Button>
                 </div>

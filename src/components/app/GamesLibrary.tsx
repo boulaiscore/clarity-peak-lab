@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Lock, Star, Info } from "lucide-react";
+import { ChevronDown, Lock, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import {
@@ -258,7 +258,7 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                             {area.name}
                           </p>
                           {isPicked && !isLocked && (
-                            <Star className="w-3 h-3 flex-shrink-0" style={{ color: system.accentColor }} fill="currentColor" />
+                            <span className="text-[9px] font-semibold uppercase tracking-[0.12em]" style={{ color: system.accentColor }}>Today</span>
                           )}
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug truncate">

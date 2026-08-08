@@ -97,7 +97,7 @@ export default function CausalLedgerRunner() {
         });
         
         console.log("[CausalLedger] ✅ Session saved successfully");
-        toast.success(`+${xp} XP → Critical Thinking!`, { icon: "🧠" });
+        toast.success(`+${xp} XP · Critical Thinking updated`);
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });

@@ -120,7 +120,7 @@ export function GoNoGoDrill({ config, timeLimit, onComplete }: GoNoGoDrillProps)
     
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="text-6xl mb-4">⚡</div>
+        <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Session complete</p>
         <p className="text-xl font-semibold">Drill Complete!</p>
         <div className="mt-4 text-center space-y-1">
           <p className="text-muted-foreground">Hits: <span className="text-green-500 font-semibold">{hits}</span></p>
