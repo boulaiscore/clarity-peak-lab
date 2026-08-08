@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -57,11 +56,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
   }, [S1, S2, recovery, recoveryModifier]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6 pb-8"
-    >
+    <div className="space-y-6 pb-8">
       {onBackToOverview && <MetricDetailNavigation onBack={onBackToOverview} />}
 
       <MetricDetailHeader
@@ -128,6 +123,6 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
           </div>
         </CollapsibleContent>
       </Collapsible>
-    </motion.div>
+    </div>
   );
 }

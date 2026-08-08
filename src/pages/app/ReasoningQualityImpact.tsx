@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import {
   MetricDetailHeader,
@@ -141,11 +140,7 @@ export default function ReasoningQualityImpact() {
 
   return (
     <AppShell>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mx-auto max-w-lg space-y-6 px-5 pt-3 pb-12"
-      >
+      <div className="mx-auto max-w-lg space-y-6 px-5 pt-3 pb-12">
         <MetricDetailNavigation />
 
         <MetricDetailHeader
@@ -184,7 +179,7 @@ export default function ReasoningQualityImpact() {
         <div className="rounded-xl border border-border/30 bg-card/35 p-4 text-xs leading-relaxed text-muted-foreground">
           RQ = 25% CT + 25% IN + 30% S2 Consistency + 20% Task Priming, minus any inactivity adjustment.
         </div>
-      </motion.div>
+      </div>
 
       <Sheet open={!!selectedDriver} onOpenChange={(open) => !open && setSelectedDriver(null)}>
         <SheetContent side="bottom" className="rounded-t-3xl h-auto max-h-[70vh]">

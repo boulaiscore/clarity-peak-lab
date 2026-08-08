@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,11 +45,7 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
           : "Today favors restoration before demanding work.";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6 pb-8"
-    >
+    <div className="space-y-6 pb-8">
       {onBackToOverview && <MetricDetailNavigation onBack={onBackToOverview} />}
 
       <MetricDetailHeader
@@ -127,6 +122,6 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
           </div>
         </CollapsibleContent>
       </Collapsible>
-    </motion.div>
+    </div>
   );
 }

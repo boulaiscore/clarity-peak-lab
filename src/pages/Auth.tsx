@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -267,13 +267,10 @@ const Auth = () => {
       <div className="absolute inset-0 bg-black/60" />
 
       <header className="relative z-10 p-5 sm:p-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to LOOMA
-        </Link>
+        <div className="inline-flex items-center gap-2 text-white/80">
+          <LoomaLogo size={24} className="text-white" />
+          <span className="text-xs font-semibold tracking-[0.18em]">LOOMA</span>
+        </div>
       </header>
 
       {/* Form */}

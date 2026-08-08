@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { isNative } from "@/lib/platformUtils";
 import CognitiveReport from "@/pages/app/CognitiveReport";
 import ReportPreview from "@/pages/app/ReportPreview";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,8 +12,6 @@ import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { usePhoneHealthSync } from "@/hooks/usePhoneHealthSync";
-import { SplashScreen } from "@/components/app/SplashScreen";
-import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/app/Home";
@@ -119,10 +115,25 @@ function OnboardingRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function EntryRedirect() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
+  return <Navigate to={user.onboardingCompleted ? "/app" : "/onboarding"} replace />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<EntryRedirect />} />
       <Route path="/auth" element={<Auth />} />
       <Route
         path="/onboarding"
@@ -441,21 +452,12 @@ function AppRoutes() {
 }
 
 const App = () => {
-  // Skip React splash on native - Capacitor shows the native splash screen
-  const [showSplash, setShowSplash] = useState(!isNative());
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SessionProvider>
           <AppInitProvider>
               <TooltipProvider>
-                {showSplash && (
-                  <SplashScreen 
-                    duration={2500} 
-                    onComplete={() => setShowSplash(false)} 
-                  />
-                )}
                 <Toaster />
                 <Sonner />
                 <HashRouter>

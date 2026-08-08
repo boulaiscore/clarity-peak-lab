@@ -1,6 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { OverviewCarousel } from "@/components/dashboard/OverviewCarousel";
 
@@ -132,10 +131,7 @@ const Dashboard = () => {
 
         {/* Tab Content */}
         {activeTab === "insights" ?
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1 }}
-          className="space-y-4">
+        <div className="space-y-4">
 
             {/* Hero Overview */}
             <OverviewCarousel
@@ -175,16 +171,8 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Tab Content with animation */}
-            <AnimatePresence mode="wait">
-              <motion.div
-              key={analyticsTab}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}>
-
-                {analyticsTab === "trends" ?
+            {/* Tab content swaps immediately to keep navigation responsive. */}
+            {analyticsTab === "trends" ?
               <MetricTrendCharts /> :
 
               <div className="space-y-4">
@@ -228,34 +216,19 @@ const Dashboard = () => {
                     </div>
 
                     {/* Activity sub-content */}
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                    key={activitySubTab}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.15 }}>
-
-                        {activitySubTab === "tasks" ?
+                    {activitySubTab === "tasks" ?
                     <TrainingTasks /> :
                     activitySubTab === "detox" ?
                     <DetoxStats /> :
 
                     <GamesStats />
                     }
-                      </motion.div>
-                    </AnimatePresence>
                   </div>
               }
-              </motion.div>
-            </AnimatePresence>
 
-          </motion.div> :
+          </div> :
 
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1 }}
-          className="space-y-3">
+        <div className="space-y-3">
 
             {/* Report CTA */}
             <Link to="/app/report" className="block group">
@@ -318,7 +291,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </Link>
-          </motion.div>
+          </div>
         }
       </div>
     </AppShell>);

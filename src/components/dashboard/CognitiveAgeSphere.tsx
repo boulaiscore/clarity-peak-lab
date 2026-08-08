@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTheme } from "@/hooks/useTheme";
 
 interface CognitiveAgeSphereProps {
@@ -20,24 +20,8 @@ interface Node {
 }
 
 export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: CognitiveAgeSphereProps) {
-  const [animatedAge, setAnimatedAge] = useState(cognitiveAge);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { theme } = useTheme();
-  const isDark = theme === "dark";
-
-  useEffect(() => {
-    const duration = 1500;
-    const start = performance.now();
-    const startAge = animatedAge;
-    const animate = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setAnimatedAge(startAge + (cognitiveAge - startAge) * eased);
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [cognitiveAge]);
 
   // Neural network animation
   useEffect(() => {
@@ -88,7 +72,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
     // Create nodes arranged around the perimeter
     const nodes: Node[] = [];
-    const nodeCount = 130;
+    const nodeCount = 64;
 
     for (let i = 0; i < nodeCount; i++) {
       const angle = (i / nodeCount) * Math.PI * 2 + Math.random() * 0.3;
@@ -126,6 +110,9 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
     let animationId: number;
     let time = 0;
+    let lastFrameAt = 0;
+    const frameInterval = 1000 / 30;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Generate organic blob shape points - subtle variation
     const blobPoints = 6;
@@ -155,7 +142,12 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       return dist < blobR;
     };
 
-    const draw = () => {
+    const draw = (frameAt = 0) => {
+      if (!reduceMotion && frameAt - lastFrameAt < frameInterval) {
+        animationId = requestAnimationFrame(draw);
+        return;
+      }
+      lastFrameAt = frameAt;
       time += 0.012;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -310,12 +302,14 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         ctx.fill();
       });
 
-      animationId = requestAnimationFrame(draw);
+      if (!reduceMotion) animationId = requestAnimationFrame(draw);
     };
 
     draw();
 
-    return () => cancelAnimationFrame(animationId);
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId);
+    };
   }, [theme, delta, cognitiveAge, chronologicalAge]);
 
   // Calculate comparison text vs chronological age
@@ -349,7 +343,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           {/* Content overlay - age centered */}
           <div className="relative w-[200px] h-[200px] rounded-full flex flex-col items-center justify-center">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-semibold text-foreground number-display">{animatedAge.toFixed(1)}</span>
+              <span className="text-3xl font-semibold text-foreground number-display">{cognitiveAge.toFixed(1)}</span>
               <span className="text-sm text-muted-foreground">years</span>
             </div>
           </div>

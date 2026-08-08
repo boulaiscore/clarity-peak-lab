@@ -9,10 +9,9 @@
  * - Pace of Aging dial
  * - Single elegant insight card
  *
- * No badges, no disclaimers, no stacked warnings.
+ * Cognitive Age remains prominent while its interpretation stays explicit.
  */
 
-import { motion } from "framer-motion";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { Link } from "react-router-dom";
@@ -59,6 +58,10 @@ export function CognitiveAgeCard() {
         chronologicalAge={chronoAge}
       />
 
+      <p className="mx-auto max-w-xs text-center text-[10px] leading-relaxed text-muted-foreground/65">
+        A training-derived estimate from your LOOMA task trend — not biological age, intelligence or a clinical measure.
+      </p>
+
       {/* Pace of Aging dial */}
       <PaceOfAgingDial paceX={data.paceOfAgingX} />
 
@@ -101,11 +104,7 @@ function PaceOfAgingDial({ paceX }: { paceX: number | null }) {
           : "hsl(0, 75%, 58%)";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mx-2"
-    >
+    <div className="mx-2">
       <div className="flex items-baseline justify-between mb-2">
         <span className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">
           Pace of Aging
@@ -124,22 +123,18 @@ function PaceOfAgingDial({ paceX }: { paceX: number | null }) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-px h-2 bg-muted-foreground/30" />
 
         {/* Indicator dot */}
-        <motion.div
+        <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
-          initial={{ left: "50%" }}
-          animate={{ left: `${percent}%` }}
-          transition={{ duration: 1, ease: "easeOut" }}
+          style={{ left: `${percent}%` }}
         >
           <div
-            className="w-3 h-3 rounded-full ring-4"
+            className="w-3 h-3 rounded-full"
             style={{
               backgroundColor: color,
-              boxShadow: `0 0 12px ${color}`,
-              // @ts-ignore CSS var
-              "--tw-ring-color": "hsl(var(--background))",
-            } as React.CSSProperties}
+              boxShadow: `0 0 0 4px hsl(var(--background)), 0 0 12px ${color}`,
+            }}
           />
-        </motion.div>
+        </div>
       </div>
 
       {/* Scale labels */}
@@ -148,7 +143,7 @@ function PaceOfAgingDial({ paceX }: { paceX: number | null }) {
         <span>1.0x</span>
         <span>Fast</span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -167,14 +162,9 @@ function PrimaryInsight({ cognitiveAge, chronoAge, paceX, isCalibrating }: Prima
   const { title, body } = computeInsight(cognitiveAge, chronoAge, paceX, isCalibrating);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="mx-2"
-    >
+    <div className="mx-2">
       <Link
-        to="/app/training"
+        to="/neuro-lab"
         className={cn(
           "block p-4 rounded-2xl bg-card/40 border border-border/40",
           "hover:bg-card/60 hover:border-border/60 transition-colors group",
@@ -191,7 +181,7 @@ function PrimaryInsight({ cognitiveAge, chronoAge, paceX, isCalibrating }: Prima
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
@@ -204,7 +194,7 @@ function computeInsight(
   if (isCalibrating || cognitiveAge == null) {
     return {
       title: "Calibrating your baseline",
-      body: "Keep training daily. After a stable baseline, your Cognitive Age will reflect how your performance compares to your personal benchmark.",
+      body: "Keep collecting consistent sessions. After a stable baseline, Cognitive Age will describe changes from your personal task-performance reference.",
     };
   }
 
@@ -213,25 +203,25 @@ function computeInsight(
 
   if (diff > 0.5 && pace < 1.05) {
     return {
-      title: "Steady and Healthy",
-      body: `Your Cognitive Age is ${diff.toFixed(1)}y younger than your chronological age and your Pace of Aging is slow. Continue your current habits to preserve this trajectory.`,
+      title: "Trend below chronological age",
+      body: `Your Cognitive Age estimate is ${diff.toFixed(1)}y below your chronological age and its recent pace is steady. Continue the habits associated with this trend.`,
     };
   }
   if (diff > 0.5 && pace >= 1.05) {
     return {
-      title: "Younger, but pace rising",
-      body: `You're ${diff.toFixed(1)}y younger than your chronological age, but your recent pace has accelerated. A few consistent sessions this week will stabilize the trend.`,
+      title: "Below age, recent pace rising",
+      body: `The estimate is ${diff.toFixed(1)}y below chronological age, while the recent task trend is rising. Add consistent sessions before interpreting the change.`,
     };
   }
   if (Math.abs(diff) <= 0.5) {
     return {
-      title: "Tracking your chronological age",
-      body: "You're aligned with your real age. Consistent training and quality sessions will start opening a margin of cognitive youth.",
+      title: "Near chronological age",
+      body: "The current estimate is close to chronological age. Watch the multi-week direction rather than any single reading.",
     };
   }
   // older than chrono
   return {
-    title: "Above chronological age",
-    body: `Your performance has been ${Math.abs(diff).toFixed(1)}y above your chronological age. This is reversible — most users return below baseline within 2–3 weeks of consistent training.`,
+    title: "Trend above chronological age",
+    body: `The current estimate is ${Math.abs(diff).toFixed(1)}y above chronological age based on recent LOOMA tasks. It is changeable; use your plan and watch the multi-week trend.`,
   };
 }

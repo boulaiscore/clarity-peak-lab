@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
-import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
+import { CognitiveAgeCard } from "./CognitiveAgeCard";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
 import { ChevronLeft, ChevronRight, Info, Brain, Network, Zap, Clock } from "lucide-react";
@@ -11,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { SCIBreakdown, BottleneckResult } from "@/lib/cognitiveNetworkScore";
 
 interface OverviewCarouselProps {
@@ -28,10 +28,11 @@ interface OverviewCarouselProps {
   bottleneck?: BottleneckResult | null;
 }
 
-const CARDS = ["cognitive-network", "dual-process"] as const;
+const CARDS = ["cognitive-age", "cognitive-network", "dual-process"] as const;
 type CardType = typeof CARDS[number];
 
 const cardTitles: Record<CardType, string> = {
+  "cognitive-age": "Cognitive Age",
   "cognitive-network": "Performance Network",
   "dual-process": "Task Profile"
 };
@@ -67,23 +68,6 @@ export function OverviewCarousel({
     }
   };
   
-  const variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
-      opacity: 0
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 300 : -300,
-      opacity: 0
-    })
-  };
-
   return (
     <div className="space-y-4">
       {/* Card indicators with info button */}
@@ -117,6 +101,19 @@ export function OverviewCarousel({
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 text-sm">
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Brain className="w-4 h-4 text-primary" />
+                  <span className="font-medium text-foreground">Cognitive Age</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  A training-derived estimate from your LOOMA task trend, expressed in years for easier comparison over time.
+                </p>
+                <p className="text-[10px] text-muted-foreground/70 mt-1.5">
+                  It is not biological age, intelligence or a clinical measure.
+                </p>
+              </div>
+
               <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
                 <div className="flex items-center gap-2 mb-1.5">
                   <Network className="w-4 h-4 text-cyan-400" />
@@ -180,47 +177,36 @@ export function OverviewCarousel({
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </button>
         
-        <AnimatePresence initial={false} custom={currentIndex}>
-          <motion.div
-            key={currentIndex}
-            custom={currentIndex}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 }
-            }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={1}
-            onDragEnd={handleDragEnd}
-            className="absolute inset-0 cursor-grab active:cursor-grabbing px-6"
-          >
-            {/* Card content based on current index */}
-            {CARDS[currentIndex] === "cognitive-network" && (
-              <NeuralGrowthAnimation
-                cognitiveAgeDelta={0}
-                overallCognitiveScore={sci?.total ?? 50}
-                sciBreakdown={sci}
-                statusText={sciStatusText}
-                bottleneck={bottleneck}
-              />
-            )}
-            
-            {CARDS[currentIndex] === "dual-process" && (
-              <FastSlowBrainMap
-                fastScore={thinkingScores.fastScore}
-                fastBaseline={thinkingScores.baselineFast}
-                fastDelta={thinkingScores.fastDelta}
-                slowScore={thinkingScores.slowScore}
-                slowBaseline={thinkingScores.baselineSlow}
-                slowDelta={thinkingScores.slowDelta}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.08}
+          onDragEnd={handleDragEnd}
+          className="absolute inset-0 cursor-grab active:cursor-grabbing px-6"
+        >
+          {CARDS[currentIndex] === "cognitive-age" && <CognitiveAgeCard />}
+
+          {CARDS[currentIndex] === "cognitive-network" && (
+            <NeuralGrowthAnimation
+              cognitiveAgeDelta={0}
+              overallCognitiveScore={sci?.total ?? 50}
+              sciBreakdown={sci}
+              statusText={sciStatusText}
+              bottleneck={bottleneck}
+            />
+          )}
+
+          {CARDS[currentIndex] === "dual-process" && (
+            <FastSlowBrainMap
+              fastScore={thinkingScores.fastScore}
+              fastBaseline={thinkingScores.baselineFast}
+              fastDelta={thinkingScores.fastDelta}
+              slowScore={thinkingScores.slowScore}
+              slowBaseline={thinkingScores.baselineSlow}
+              slowDelta={thinkingScores.slowDelta}
+            />
+          )}
+        </motion.div>
       </div>
     </div>
   );

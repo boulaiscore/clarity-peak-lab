@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Home, LayoutDashboard, Activity, Menu, X, User, Settings, CreditCard, LogOut } from "lucide-react";
 import { GarminIcon } from "@/components/icons/WearableIcons";
@@ -32,7 +32,6 @@ const menuItems = [
 
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const { permission, checkReminders } = useNotifications();
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -53,37 +52,6 @@ export function AppShell({ children }: AppShellProps) {
     });
   }, [location.pathname, location.search]);
   
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  
-  const minSwipeDistance = 50;
-
-  const currentIndex = navItems.findIndex(item => item.to === location.pathname);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe && currentIndex < navItems.length - 1) {
-      navigate(navItems[currentIndex + 1].to);
-    }
-    if (isRightSwipe && currentIndex > 0) {
-      navigate(navItems[currentIndex - 1].to);
-    }
-  };
-
   // Check for reminders on mount
   useEffect(() => {
     if (permission === "granted") {
@@ -95,18 +63,12 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-screen flex flex-col">
       <PaymentTestModeBanner />
       <PastDueBanner />
-      {/* Main content with swipe */}
-      <main 
-        className="flex-1 pb-28"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+      <main className="flex-1 pb-28">
         {children}
       </main>
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/30 safe-area-pb">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/30 safe-area-pb">
         <div className="flex items-center justify-around h-14 max-w-md mx-auto px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;

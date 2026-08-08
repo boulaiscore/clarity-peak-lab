@@ -210,6 +210,9 @@ export function NeuralGrowthAnimation({
 
     let animationId: number;
     let time = 0;
+    let lastFrameAt = 0;
+    const frameInterval = 1000 / 30;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const spawnParticle = () => {
       if (particles.length >= maxParticles) return;
@@ -233,7 +236,12 @@ export function NeuralGrowthAnimation({
       });
     };
 
-    const draw = () => {
+    const draw = (frameAt = 0) => {
+      if (!reduceMotion && frameAt - lastFrameAt < frameInterval) {
+        animationId = requestAnimationFrame(draw);
+        return;
+      }
+      lastFrameAt = frameAt;
       time += 0.02 * pulseSpeed;
       ctx.clearRect(0, 0, width, height);
 
@@ -342,12 +350,14 @@ export function NeuralGrowthAnimation({
         ctx.fill();
       });
 
-      animationId = requestAnimationFrame(draw);
+      if (!reduceMotion) animationId = requestAnimationFrame(draw);
     };
 
     draw();
 
-    return () => cancelAnimationFrame(animationId);
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId);
+    };
   }, [nodeCount, connectionDensity, glowIntensity, intensity, pulseSpeed, glowRadius, nodePulseAmplitude, connectionPulseAmplitude, showParticles]);
 
   return (
