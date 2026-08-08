@@ -24,7 +24,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { resolveHistoricalSystemScores } from "@/lib/dualProcessHistory";
+import { buildDualProcessSeries } from "@/lib/dualProcessHistory";
+
+const HISTORY_LOOKBACK_DAYS = 90;
 
 // ==========================================
 // TYPES
@@ -58,7 +60,10 @@ export function DualProcessTrendChart({
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const startDate = format(subDays(new Date(), timeRange - 1), "yyyy-MM-dd");
+      // Fetch an earlier seed so a valid system state recorded before the
+      // visible window can be carried into 7/30/90-day views.
+      const fetchDays = timeRange + HISTORY_LOOKBACK_DAYS;
+      const startDate = format(subDays(new Date(), fetchDays - 1), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from("daily_metric_snapshots")
@@ -79,54 +84,35 @@ export function DualProcessTrendChart({
     if (!snapshots) return [];
 
     const now = new Date();
-    
-    // Create a map of existing snapshots by date
-    const snapshotMap = new Map(
-      snapshots.map(s => [s.snapshot_date, s])
-    );
-
-    // Generate all days in the range
-    const allDays: TrendDataPoint[] = [];
+    const visibleDays: { date: Date; dateStr: string }[] = [];
     for (let i = timeRange - 1; i >= 0; i--) {
       const date = subDays(now, i);
       const dateStr = format(date, "yyyy-MM-dd");
-      const snapshot = snapshotMap.get(dateStr);
-      
-      const resolved = snapshot
-        ? resolveHistoricalSystemScores(snapshot)
-        : { s1: null, s2: null };
-      const isToday = i === 0;
-      const s1 = isToday ? currentS1 : resolved.s1;
-      const s2 = isToday ? currentS2 : resolved.s2;
-      
-      // Format label based on time range
-      let dateLabel = "";
-      const dayIndex = timeRange - 1 - i;
-      const total = timeRange;
-      
-      if (timeRange === 7) {
-        dateLabel = format(date, "d/M");
-      } else if (timeRange === 30) {
-        const step = Math.floor(total / 4);
-        if (dayIndex === 0 || dayIndex === step || dayIndex === step * 2 || dayIndex === step * 3 || dayIndex === total - 1) {
-          dateLabel = format(date, "d/M");
-        }
-      } else {
-        const step = Math.floor(total / 4);
-        if (dayIndex === 0 || dayIndex === step || dayIndex === step * 2 || dayIndex === step * 3 || dayIndex === total - 1) {
-          dateLabel = format(date, "d/M");
-        }
-      }
-
-      allDays.push({
-        date: dateStr,
-        dateLabel,
-        s1,
-        s2,
-      });
+      visibleDays.push({ date, dateStr });
     }
 
-    return allDays;
+    const todayStr = format(now, "yyyy-MM-dd");
+    const series = buildDualProcessSeries(
+      snapshots,
+      visibleDays.map((day) => day.dateStr),
+      { snapshot_date: todayStr, s1: currentS1, s2: currentS2 },
+    );
+
+    const labelStep = Math.floor(timeRange / 4);
+    return series.map((point, dayIndex) => {
+      const shouldLabel =
+        timeRange === 7 ||
+        dayIndex === 0 ||
+        dayIndex === labelStep ||
+        dayIndex === labelStep * 2 ||
+        dayIndex === labelStep * 3 ||
+        dayIndex === timeRange - 1;
+
+      return {
+        ...point,
+        dateLabel: shouldLabel ? format(visibleDays[dayIndex].date, "d/M") : "",
+      };
+    });
   }, [currentS1, currentS2, snapshots, timeRange]);
 
   const hasData = trendData.some(d => d.s1 !== null || d.s2 !== null);
@@ -222,12 +208,12 @@ export function DualProcessTrendChart({
               vertical={false}
             />
             <XAxis
-              dataKey="dateLabel"
+              dataKey="date"
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 9, fill: "rgba(148, 163, 184, 0.7)" }}
               interval={0}
-              tickFormatter={(value) => value || ""}
+              tickFormatter={(value) => trendData.find((point) => point.date === value)?.dateLabel || ""}
             />
             <YAxis
               domain={[yMin, yMax]}

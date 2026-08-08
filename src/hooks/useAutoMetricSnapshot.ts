@@ -17,28 +17,7 @@ import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useDailyMetricSnapshot } from "@/hooks/useDailyMetricSnapshot";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
-
-// Threshold for considering values "changed enough" to warrant an update
-const VALUE_CHANGE_THRESHOLD = 0.5;
-
-function valuesChanged(
-  current: { readiness: number | null; sharpness: number | null; recovery: number | null; rq: number | null },
-  saved: { readiness: number | null; sharpness: number | null; recovery: number | null; reasoning_quality: number | null } | null
-): boolean {
-  if (!saved) return true;
-  
-  const changed = (a: number | null, b: number | null) => {
-    if (a == null || b == null) return a !== b;
-    return Math.abs(a - b) > VALUE_CHANGE_THRESHOLD;
-  };
-  
-  return (
-    changed(current.readiness, saved.readiness) ||
-    changed(current.sharpness, saved.sharpness) ||
-    changed(current.recovery, saved.recovery) ||
-    changed(current.rq, saved.reasoning_quality)
-  );
-}
+import { metricSnapshotNeedsSave } from "@/lib/metricSnapshotIntegrity";
 
 export function useAutoMetricSnapshot() {
   const { user } = useAuth();
@@ -81,10 +60,21 @@ export function useAutoMetricSnapshot() {
     const now = Date.now();
     if (now - lastSaveRef.current < 30_000) return;
     
-    const currentValues = { readiness, sharpness, recovery: recoveryRaw, rq };
+    const currentValues = {
+      readiness,
+      sharpness,
+      recovery: recoveryRaw,
+      rq,
+      s1: S1,
+      s2: S2,
+      ae: AE,
+      ra: RA,
+      ct: CT,
+      inScore: IN,
+    };
     
-    // Only save if values have changed meaningfully
-    if (!valuesChanged(currentValues, todaySnapshot)) return;
+    // Also backfill canonical S1/S2 and component fields on older summary-only rows.
+    if (!metricSnapshotNeedsSave(currentValues, todaySnapshot)) return;
     
     lastSaveRef.current = now;
     

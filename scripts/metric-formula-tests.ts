@@ -13,7 +13,8 @@ import { applyRecoveryDecay } from "../src/lib/recoveryV2";
 import { calculateRQ } from "../src/lib/reasoningQuality";
 import { TRAINING_PLANS } from "../src/lib/trainingPlans";
 import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
-import { resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
+import { buildDualProcessSeries, resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
+import { metricSnapshotNeedsSave } from "../src/lib/metricSnapshotIntegrity";
 
 const closeTo = (actual: number, expected: number, message: string) => {
   assert.ok(Math.abs(actual - expected) < 0.0001, `${message}: expected ${expected}, got ${actual}`);
@@ -116,6 +117,72 @@ assert.deepEqual(
   resolveHistoricalSystemScores({ s1: null, s2: null, ae: 80, ra: null, ct: 70, in_score: null }),
   { s1: null, s2: null },
   "Dual-process history does not invent aggregates from partial components",
+);
+
+assert.deepEqual(
+  buildDualProcessSeries(
+    [
+      { snapshot_date: "2026-07-31", s1: 60, s2: 50 },
+      { snapshot_date: "2026-08-02", s1: 70, s2: null },
+    ],
+    ["2026-08-01", "2026-08-02", "2026-08-03"],
+    { snapshot_date: "2026-08-03", s1: 75, s2: 55 },
+  ),
+  [
+    { date: "2026-08-01", s1: 60, s2: 50 },
+    { date: "2026-08-02", s1: 70, s2: 50 },
+    { date: "2026-08-03", s1: 75, s2: 55 },
+  ],
+  "Dual-process history seeds the visible window and forward-fills each system independently",
+);
+
+assert.deepEqual(
+  buildDualProcessSeries(
+    [{ snapshot_date: "2026-08-03", s1: 64, s2: 52 }],
+    ["2026-08-01", "2026-08-02", "2026-08-03"],
+  ),
+  [
+    { date: "2026-08-01", s1: null, s2: null },
+    { date: "2026-08-02", s1: null, s2: null },
+    { date: "2026-08-03", s1: 64, s2: 52 },
+  ],
+  "Dual-process history does not backfill dates before the first valid observation",
+);
+
+const completeSnapshot = {
+  readiness: 60,
+  sharpness: 54,
+  recovery: 50,
+  reasoning_quality: 40,
+  s1: 75,
+  s2: 50,
+  ae: 80,
+  ra: 70,
+  ct: 55,
+  in_score: 45,
+};
+const completeCurrent = {
+  readiness: 60,
+  sharpness: 54,
+  recovery: 50,
+  rq: 40,
+  s1: 75,
+  s2: 50,
+  ae: 80,
+  ra: 70,
+  ct: 55,
+  inScore: 45,
+};
+
+assert.equal(
+  metricSnapshotNeedsSave(completeCurrent, completeSnapshot),
+  false,
+  "Complete unchanged snapshots do not write repeatedly",
+);
+assert.equal(
+  metricSnapshotNeedsSave(completeCurrent, { ...completeSnapshot, s1: null, ae: null }),
+  true,
+  "Summary-only snapshots are upgraded with system and component values",
 );
 
 console.log("Metric formula checks passed");
