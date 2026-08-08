@@ -9,7 +9,6 @@
  */
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { Loader2, Info } from "lucide-react";
 import { 
   Line, 
@@ -25,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays, format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { resolveHistoricalSystemScores } from "@/lib/dualProcessHistory";
 
 // ==========================================
 // TYPES
@@ -41,7 +41,13 @@ interface TrendDataPoint {
 // COMPONENT
 // ==========================================
 
-export function DualProcessTrendChart() {
+export function DualProcessTrendChart({
+  currentS1,
+  currentS2,
+}: {
+  currentS1: number;
+  currentS2: number;
+}) {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(30);
   const [hiddenLines, setHiddenLines] = useState<Set<"s1" | "s2">>(new Set());
@@ -52,11 +58,11 @@ export function DualProcessTrendChart() {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const startDate = format(subDays(new Date(), 90), "yyyy-MM-dd");
+      const startDate = format(subDays(new Date(), timeRange - 1), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from("daily_metric_snapshots")
-        .select("snapshot_date, ae, ra, ct, in_score")
+        .select("snapshot_date, s1, s2, ae, ra, ct, in_score")
         .eq("user_id", user.id)
         .gte("snapshot_date", startDate)
         .order("snapshot_date", { ascending: true });
@@ -86,34 +92,12 @@ export function DualProcessTrendChart() {
       const dateStr = format(date, "yyyy-MM-dd");
       const snapshot = snapshotMap.get(dateStr);
       
-      // Calculate S1 and S2 from the 4 variables
-      let s1: number | null = null;
-      let s2: number | null = null;
-      
-      if (snapshot) {
-        const ae = snapshot.ae ? Number(snapshot.ae) : null;
-        const ra = snapshot.ra ? Number(snapshot.ra) : null;
-        const ct = snapshot.ct ? Number(snapshot.ct) : null;
-        const inScore = snapshot.in_score ? Number(snapshot.in_score) : null;
-        
-        // S1 = (AE + RA) / 2
-        if (ae !== null && ra !== null) {
-          s1 = (ae + ra) / 2;
-        } else if (ae !== null) {
-          s1 = ae;
-        } else if (ra !== null) {
-          s1 = ra;
-        }
-        
-        // S2 = (CT + IN) / 2
-        if (ct !== null && inScore !== null) {
-          s2 = (ct + inScore) / 2;
-        } else if (ct !== null) {
-          s2 = ct;
-        } else if (inScore !== null) {
-          s2 = inScore;
-        }
-      }
+      const resolved = snapshot
+        ? resolveHistoricalSystemScores(snapshot)
+        : { s1: null, s2: null };
+      const isToday = i === 0;
+      const s1 = isToday ? currentS1 : resolved.s1;
+      const s2 = isToday ? currentS2 : resolved.s2;
       
       // Format label based on time range
       let dateLabel = "";
@@ -143,7 +127,7 @@ export function DualProcessTrendChart() {
     }
 
     return allDays;
-  }, [snapshots, timeRange]);
+  }, [currentS1, currentS2, snapshots, timeRange]);
 
   const hasData = trendData.some(d => d.s1 !== null || d.s2 !== null);
 
@@ -192,11 +176,7 @@ export function DualProcessTrendChart() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-3 rounded-xl bg-muted/30 border border-border/30 mt-3"
-    >
+    <div className="p-3 rounded-xl bg-muted/30 border border-border/30 mt-3">
       {/* Header with toggle */}
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -284,6 +264,7 @@ export function DualProcessTrendChart() {
                 dot={{ r: 2, fill: "#f59e0b", strokeWidth: 0 }}
                 activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }}
                 connectNulls
+                isAnimationActive={false}
               />
             )}
 
@@ -298,6 +279,7 @@ export function DualProcessTrendChart() {
                 dot={{ r: 2, fill: "#8b5cf6", strokeWidth: 0 }}
                 activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }}
                 connectNulls
+                isAnimationActive={false}
               />
             )}
           </ComposedChart>
@@ -333,6 +315,6 @@ export function DualProcessTrendChart() {
           <span className="text-muted-foreground">System 2 (Slow)</span>
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }

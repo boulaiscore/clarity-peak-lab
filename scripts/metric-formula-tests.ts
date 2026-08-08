@@ -13,6 +13,7 @@ import { applyRecoveryDecay } from "../src/lib/recoveryV2";
 import { calculateRQ } from "../src/lib/reasoningQuality";
 import { TRAINING_PLANS } from "../src/lib/trainingPlans";
 import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
+import { resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
 
 const closeTo = (actual: number, expected: number, message: string) => {
   assert.ok(Math.abs(actual - expected) < 0.0001, `${message}: expected ${expected}, got ${actual}`);
@@ -99,6 +100,22 @@ assert.deepEqual(
   [80, 65, 50, 35, 34].map((value) => getStandardMetricStatus(value).label),
   ["Strong", "Ready", "Steady", "Building", "Starting point"],
   "Metric state labels share one non-judgmental scale",
+);
+
+assert.deepEqual(
+  resolveHistoricalSystemScores({ s1: 72, s2: 61, ae: null, ra: null, ct: null, in_score: null }),
+  { s1: 72, s2: 61 },
+  "Dual-process history uses persisted S1/S2 values",
+);
+assert.deepEqual(
+  resolveHistoricalSystemScores({ s1: null, s2: null, ae: 80, ra: 60, ct: 70, in_score: 50 }),
+  { s1: 70, s2: 60 },
+  "Dual-process history derives legacy rows from complete components",
+);
+assert.deepEqual(
+  resolveHistoricalSystemScores({ s1: null, s2: null, ae: 80, ra: null, ct: 70, in_score: null }),
+  { s1: null, s2: null },
+  "Dual-process history does not invent aggregates from partial components",
 );
 
 console.log("Metric formula checks passed");

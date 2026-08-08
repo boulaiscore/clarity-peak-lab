@@ -624,7 +624,7 @@ export function FastSlowBrainMap({ fastScore, fastBaseline, fastDelta, slowScore
       </p>
 
       {/* S1 vs S2 Trend Chart */}
-      <DualProcessTrendChart />
+      <DualProcessTrendChart currentS1={fastScore} currentS2={slowScore} />
     </div>
   );
 }

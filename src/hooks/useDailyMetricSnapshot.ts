@@ -100,6 +100,7 @@ export function useDailyMetricSnapshot() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-metric-snapshot-today"] });
       queryClient.invalidateQueries({ queryKey: ["metric-history"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-snapshots-dual-process"] });
     },
   });
 
