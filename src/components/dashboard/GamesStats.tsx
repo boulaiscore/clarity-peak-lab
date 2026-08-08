@@ -516,7 +516,7 @@ export function GamesStats() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-amber-400">{stats.s1XP} XP</p>
-                <p className="text-[9px] text-muted-foreground">{stats.s1Count} games · {stats.s1.avgScore}% avg</p>
+                <p className="text-[9px] text-muted-foreground">{stats.s1Count} drills · {stats.s1.avgScore}% avg</p>
               </div>
             </div>
             
@@ -539,7 +539,7 @@ export function GamesStats() {
                       <div className="flex items-center gap-2 mb-1">
                         <AreaIcon area={area} />
                         <span className="text-[10px] font-medium">{areaLabels[area]}</span>
-                        <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} games</span>
+                        <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} drills</span>
                       </div>
                       <div className="flex items-center gap-3 text-[9px]">
                         <span className="text-amber-400 font-medium">+{areaStats.xp} XP</span>
@@ -574,7 +574,7 @@ export function GamesStats() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-violet-400">{stats.s2XP} XP</p>
-                <p className="text-[9px] text-muted-foreground">{stats.s2Count} games · {stats.s2.avgScore}% avg</p>
+                <p className="text-[9px] text-muted-foreground">{stats.s2Count} drills · {stats.s2.avgScore}% avg</p>
               </div>
             </div>
             
@@ -596,7 +596,7 @@ export function GamesStats() {
                       <div className="flex items-center gap-2 mb-1">
                         <AreaIcon area={area} />
                         <span className="text-[10px] font-medium">{areaLabels[area]}</span>
-                        <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} games</span>
+                        <span className="text-[9px] text-muted-foreground ml-auto">{areaStats.count} drills</span>
                       </div>
                       <div className="flex items-center gap-3 text-[9px]">
                         <span className="text-violet-400 font-medium">+{areaStats.xp} XP</span>
@@ -682,8 +682,8 @@ export function GamesStats() {
                         : dualProcessBalance >= 50 
                           ? "Good balance, keep diversifying" 
                           : stats.s1XP > stats.s2XP 
-                            ? "Add more S2 (Slow) games" 
-                            : "Add more S1 (Fast) games"}
+                            ? "Add more S2 (Slow) drills"
+                            : "Add more S1 (Fast) drills"}
                     </p>
                   </div>
                   

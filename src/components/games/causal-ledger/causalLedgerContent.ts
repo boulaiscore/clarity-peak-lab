@@ -191,8 +191,8 @@ const ACT_III_SCENARIOS: CausalScenario[] = [
   },
   {
     id: "a3-03",
-    scenario: "A meta-analysis of 47 studies found that cognitive training games showed a small but consistent effect on working memory (d = 0.23).",
-    claim: "Cognitive training games improve working memory.",
+    scenario: "A meta-analysis of 47 studies found that cognitive training drills showed a small but consistent effect on working memory (d = 0.23).",
+    claim: "Cognitive training drills improve working memory.",
     correctDecision: "supported",
     act: 3,
     explanation: "Meta-analyses aggregating multiple studies provide robust evidence despite small individual effect sizes.",

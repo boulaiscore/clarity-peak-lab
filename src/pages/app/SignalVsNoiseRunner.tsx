@@ -22,7 +22,9 @@ import {
   SessionMetrics,
   Difficulty,
 } from "@/components/games/signal-vs-noise";
-import { calculateGameXP } from "@/lib/trainingPlans";
+import { calculateScoredDrillXP } from "@/lib/trainingPlans";
+import { calculateQualityBonus } from "@/lib/gameQualityBonus";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 type Phase = "intro" | "playing" | "results";
 
@@ -36,6 +38,7 @@ export default function SignalVsNoiseRunner() {
   const [results, setResults] = useState<CaseResult[]>([]);
   const [metrics, setMetrics] = useState<SessionMetrics | null>(null);
   const [xpAwarded, setXpAwarded] = useState(0);
+  const [qualityLine, setQualityLine] = useState<string | undefined>();
   const [durationSeconds, setDurationSeconds] = useState(0);
   
   const startedAtRef = useRef<Date | null>(null);
@@ -53,7 +56,7 @@ export default function SignalVsNoiseRunner() {
     setPhase("playing");
   };
 
-  const handleComplete = async (gameResults: CaseResult[], gameMetrics: SessionMetrics) => {
+  const handleComplete = async (gameResults: CaseResult[], gameMetrics: SessionMetrics, generation: DrillGenerationMeta) => {
     if (hasRecordedRef.current) return;
     hasRecordedRef.current = true;
 
@@ -67,15 +70,22 @@ export default function SignalVsNoiseRunner() {
     setDurationSeconds(duration);
 
     const normalizedDifficulty = difficulty === "standard" ? "medium" : difficulty;
-    const scaledXP = calculateGameXP(normalizedDifficulty, gameMetrics.sessionScore >= 90);
+    const baseXP = calculateScoredDrillXP(normalizedDifficulty, gameMetrics.sessionScore, gameMetrics.sessionScore >= 90);
+    const quality = calculateQualityBonus("S2-IN", baseXP, {
+      counterexampleEfficiency: gameMetrics.signalDetectionPct,
+      stressTestQuality: gameMetrics.robustnessThinkingScore,
+      ruleBreakLatency: gameMetrics.meanRT,
+    }, normalizedDifficulty);
+    const scaledXP = quality.totalXP;
     setXpAwarded(scaledXP);
+    setQualityLine(quality.qualityLine);
 
     // Record session
     if (user) {
       try {
         const savedSession = await recordGameSession({
           gameType: "S2-IN",
-          gymArea: "reasoning",
+          gymArea: "creativity",
           thinkingMode: "slow",
           score: gameMetrics.sessionScore,
           xpAwarded: scaledXP,
@@ -84,11 +94,22 @@ export default function SignalVsNoiseRunner() {
           gameName: "signal_vs_noise",
           startedAt: startedAtRef.current?.toISOString() ?? null,
           status: 'completed',
+          qualityScore: quality.qualityScore,
+          bonusApplied: quality.bonus > 0,
+          comboHash: generation.comboHash,
+          antiRepetitionTriggered: generation.duplicatesRejected > 0,
+          duplicatesRejected: generation.duplicatesRejected,
+          fallbackUsed: generation.fallbackUsed,
         });
         setXpAwarded(savedSession?.xp_awarded ?? 0);
       } catch (error) {
+        setXpAwarded(0);
+        setQualityLine(undefined);
         console.error("Failed to record Signal vs Noise session:", error);
       }
+    } else {
+      setXpAwarded(0);
+      setQualityLine(undefined);
     }
 
     setPhase("results");
@@ -98,13 +119,14 @@ export default function SignalVsNoiseRunner() {
     setResults([]);
     setMetrics(null);
     setXpAwarded(0);
+    setQualityLine(undefined);
     startedAtRef.current = null;
     hasRecordedRef.current = false;
     setPhase("intro");
   };
 
   const handleBackToLab = () => {
-    navigate("/neuro-lab?tab=games");
+    navigate("/neuro-lab?tab=games&system=slow");
   };
 
   const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
@@ -115,7 +137,7 @@ export default function SignalVsNoiseRunner() {
         {phase === "intro" && (
           <motion.div
             key="intro"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="min-h-screen p-4 flex flex-col"
@@ -137,7 +159,7 @@ export default function SignalVsNoiseRunner() {
             <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
 
               <motion.h1
-                initial={{ y: 8, opacity: 0 }}
+                initial={false}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.15 }}
                 className="text-xl font-semibold mb-2"
@@ -146,7 +168,7 @@ export default function SignalVsNoiseRunner() {
               </motion.h1>
 
               <motion.p
-                initial={{ y: 8, opacity: 0 }}
+                initial={false}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="text-sm text-muted-foreground max-w-xs mb-2"
@@ -155,7 +177,7 @@ export default function SignalVsNoiseRunner() {
               </motion.p>
 
               <motion.p
-                initial={{ y: 8, opacity: 0 }}
+                initial={false}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.25 }}
                 className="text-sm text-muted-foreground max-w-xs mb-8"
@@ -165,7 +187,7 @@ export default function SignalVsNoiseRunner() {
 
               {/* Difficulty selector */}
               <motion.div
-                initial={{ y: 8, opacity: 0 }}
+                initial={false}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
                 className="flex gap-2 mb-8"
@@ -186,17 +208,17 @@ export default function SignalVsNoiseRunner() {
               </motion.div>
 
               <motion.div
-                initial={{ y: 8, opacity: 0 }}
+                initial={false}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.35 }}
               >
                 <Button onClick={handleStart} size="lg" className="px-8">
-                  Start
+                  Start Drill
                 </Button>
               </motion.div>
 
               <motion.p
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
                 className="text-[10px] text-muted-foreground/60 mt-4"
@@ -210,7 +232,7 @@ export default function SignalVsNoiseRunner() {
         {phase === "playing" && (
           <motion.div
             key="playing"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
@@ -225,7 +247,7 @@ export default function SignalVsNoiseRunner() {
         {phase === "results" && metrics && (
           <motion.div
             key="results"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
@@ -235,6 +257,7 @@ export default function SignalVsNoiseRunner() {
               difficulty={difficulty}
               durationSeconds={durationSeconds}
               xpAwarded={xpAwarded}
+              qualityLine={qualityLine}
               onPlayAgain={handlePlayAgain}
               onBackToLab={handleBackToLab}
             />

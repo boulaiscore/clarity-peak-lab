@@ -55,7 +55,7 @@ const RA_GAMES: RAGameOption[] = [
     tagline: "Pattern Closure",
     description: "Complete visual constellations with the missing link. Fast intuitive associations under time pressure.",
     route: "/neuro-lab/constellation-snap",
-    xpByDifficulty: { easy: 25, medium: 35, hard: 45 },
+    xpByDifficulty: { easy: 15, medium: 22, hard: 30 },
   },
   {
     id: "semantic_drift",
@@ -63,7 +63,7 @@ const RA_GAMES: RAGameOption[] = [
     tagline: "Directional Flow",
     description: "Navigate fast semantic drifts under time pressure. Trains flexible, directional associations.",
     route: "/neuro-lab/semantic-drift",
-    xpByDifficulty: { easy: 15, medium: 20, hard: 25 },
+    xpByDifficulty: { easy: 15, medium: 22, hard: 30 },
   },
 ];
 
@@ -105,7 +105,6 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
     safetyModeActive,
     safetyLabel,
     isLoading: difficultyLoading,
-    _debug,
   } = useS1Difficulty();
   
   // v1.2: Fetch recently played games (last 7 days)
@@ -358,20 +357,11 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                   <div className="flex items-center gap-1.5 text-area-fast">
                     <Star className="w-4 h-4 fill-area-fast/50" />
                     <span className="text-sm font-semibold">
-                      {selectedGame.xpByDifficulty[selectedDifficulty]} XP
+                      ~{selectedGame.xpByDifficulty[selectedDifficulty]} XP
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground">~60 seconds</span>
                 </div>
-                
-                {/* Debug info (hidden in production) */}
-                {false && _debug && (
-                  <div className="p-2 rounded-lg bg-muted/10 text-[9px] text-muted-foreground/60 font-mono">
-                    REC={Math.round(_debug.recovery)} | SHP={Math.round(_debug.sharpness)} | RDY={Math.round(_debug.readiness)}
-                    <br />
-                    XP={_debug.weeklyXP} | TC={_debug.tc} | opt=[{_debug.optMin}-{_debug.optMax}]
-                  </div>
-                )}
                 
                 {/* Start button */}
                 <motion.button
@@ -379,7 +369,7 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
                   onClick={handleConfirmPlay}
                   className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-area-fast to-area-fast text-black"
                 >
-                  Start Session
+                  Start Drill
                 </motion.button>
               </div>
             </motion.div>

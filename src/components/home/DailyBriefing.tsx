@@ -65,13 +65,13 @@ export function generateBriefing(
   }
   
   if (rq < 40 && recovery >= 55) {
-    return "Your reasoning depth could use attention. A library task or reasoning game would help sharpen your thinking.";
+    return "Your reasoning depth could use attention. A library task or reasoning drill would help sharpen your thinking.";
   }
   
   // === TRAINING OPPORTUNITIES ===
   
   if (recovery >= 60 && sharpness < 50) {
-    return "Good recovery supports training today. Focus games would help boost your processing speed.";
+    return "Good recovery supports training today. Focus drills would help boost your processing speed.";
   }
   
   if (recovery >= 60 && readiness < 50) {

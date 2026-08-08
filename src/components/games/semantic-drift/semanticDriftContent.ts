@@ -688,7 +688,7 @@ export function generateSessionNodes(
   const allNodes: SemanticNode[] = [];
   
   // Shuffle chains
-  const shuffledChains = [...chains].sort(() => Math.random() - 0.5);
+  const shuffledChains = shuffleCopy(chains);
   
   // Collect nodes from chains until we have enough
   let chainIndex = 0;
@@ -699,7 +699,7 @@ export function generateSessionNodes(
   }
   
   // Shuffle all collected nodes and take what we need
-  const shuffledNodes = allNodes.sort(() => Math.random() - 0.5);
+  const shuffledNodes = shuffleCopy(allNodes);
   return shuffledNodes.slice(0, roundCount);
 }
 
@@ -726,3 +726,4 @@ export function getSessionHashParams(
     difficulty,
   };
 }
+import { shuffleCopy } from "@/lib/drillSession";

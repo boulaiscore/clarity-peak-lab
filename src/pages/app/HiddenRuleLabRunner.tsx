@@ -25,7 +25,9 @@ import {
   SESSION_CONFIG,
 } from "@/components/games/hidden-rule-lab";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
-import { calculateGameXP } from "@/lib/trainingPlans";
+import { calculateGameXP, calculateScoredDrillXP } from "@/lib/trainingPlans";
+import { calculateQualityBonus } from "@/lib/gameQualityBonus";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 type Phase = "intro" | "playing" | "results";
 
@@ -40,6 +42,7 @@ export default function HiddenRuleLabRunner() {
   const [results, setResults] = useState<RoundResult[]>([]);
   const [metrics, setMetrics] = useState<SessionMetrics | null>(null);
   const [xpAwarded, setXpAwarded] = useState(0);
+  const [qualityLine, setQualityLine] = useState<string | undefined>();
   const [hasCleanLock, setHasCleanLock] = useState(false);
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -59,7 +62,8 @@ export default function HiddenRuleLabRunner() {
   const handleComplete = useCallback(async (
     gameResults: RoundResult[],
     gameMetrics: SessionMetrics,
-    duration: number
+    duration: number,
+    generation: DrillGenerationMeta
   ) => {
     if (hasRecordedRef.current) return;
     hasRecordedRef.current = true;
@@ -77,8 +81,22 @@ export default function HiddenRuleLabRunner() {
     
     setHasCleanLock(cleanLock);
     
-    const xp = calculateGameXP(difficulty, cleanLock || gameMetrics.sessionScore >= 90);
+    const baseXP = calculateScoredDrillXP(
+      difficulty,
+      gameMetrics.sessionScore,
+      cleanLock || gameMetrics.sessionScore >= 90
+    );
+    const meanApplyLatency = gameResults
+      .filter(result => result.roundType === "apply")
+      .reduce((sum, result, _, items) => sum + result.reactionTimeMs / Math.max(1, items.length), 0);
+    const quality = calculateQualityBonus("S2-IN", baseXP, {
+      counterexampleEfficiency: gameMetrics.generalizationAcc,
+      stressTestQuality: gameMetrics.testQualityScore,
+      ruleBreakLatency: meanApplyLatency || undefined,
+    }, difficulty);
+    const xp = quality.totalXP;
     setXpAwarded(xp);
+    setQualityLine(quality.qualityLine);
     
     // Record session
     const userId = user?.id || session?.user?.id;
@@ -96,20 +114,31 @@ export default function HiddenRuleLabRunner() {
           durationSeconds: duration,
           status: 'completed',
           difficulty,
+          qualityScore: quality.qualityScore,
+          bonusApplied: quality.bonus > 0,
+          comboHash: generation.comboHash,
+          antiRepetitionTriggered: generation.duplicatesRejected > 0,
+          duplicatesRejected: generation.duplicatesRejected,
+          fallbackUsed: generation.fallbackUsed,
         });
         const savedXP = savedSession?.xp_awarded ?? 0;
         setXpAwarded(savedXP);
         
-        toast.success(savedXP > 0 ? `+${savedXP} XP · Insight updated` : "Daily XP limit reached. Play for practice.");
+        toast.success(savedXP > 0 ? `+${savedXP} XP · Insight updated` : "Daily XP limit reached. Continue for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
       } catch (error) {
+        setXpAwarded(0);
+        setQualityLine(undefined);
         console.error("[HiddenRuleLab] Failed to record session:", error);
         toast.error("Failed to save session");
       } finally {
         setIsSaving(false);
       }
+    } else {
+      setXpAwarded(0);
+      setQualityLine(undefined);
     }
     
     setPhase("results");
@@ -120,6 +149,7 @@ export default function HiddenRuleLabRunner() {
     setResults([]);
     setMetrics(null);
     setXpAwarded(0);
+    setQualityLine(undefined);
     setHasCleanLock(false);
     setDurationSeconds(0);
     hasRecordedRef.current = false;
@@ -128,7 +158,7 @@ export default function HiddenRuleLabRunner() {
   
   // Back to lab
   const handleBackToLab = useCallback(() => {
-    navigate("/neuro-lab?tab=games");
+    navigate("/neuro-lab?tab=games&system=slow");
   }, [navigate]);
 
   const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
@@ -140,7 +170,7 @@ export default function HiddenRuleLabRunner() {
         {phase === "intro" && (
           <motion.div
             key="intro"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-screen flex flex-col"
@@ -150,7 +180,7 @@ export default function HiddenRuleLabRunner() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/neuro-lab?tab=games")}
+                onClick={() => navigate("/neuro-lab?tab=games&system=slow")}
                 className="h-9 w-9"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -190,7 +220,7 @@ export default function HiddenRuleLabRunner() {
                     <div className="flex items-center justify-center gap-1">
                       <Star className="w-4 h-4 text-amber-400 fill-amber-400/50" />
                     </div>
-                    <div className="text-[10px] text-muted-foreground mt-1">~{XP_BASE[difficulty]} XP</div>
+                    <div className="text-[10px] text-muted-foreground mt-1">~{calculateGameXP(difficulty, false)} XP</div>
                   </div>
                 </div>
                 
@@ -225,7 +255,7 @@ export default function HiddenRuleLabRunner() {
                 {/* CTAs */}
                 <div className="space-y-3 pt-4">
                   <Button onClick={handleStart} className="w-full h-12 text-base">
-                    Start Session
+                    Start Drill
                   </Button>
                   <button
                     onClick={() => setShowHowItWorks(true)}
@@ -303,7 +333,7 @@ export default function HiddenRuleLabRunner() {
         {phase === "playing" && (
           <motion.div
             key="playing"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
@@ -319,7 +349,7 @@ export default function HiddenRuleLabRunner() {
         {phase === "results" && metrics && (
           <motion.div
             key="results"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
@@ -330,6 +360,7 @@ export default function HiddenRuleLabRunner() {
               durationSeconds={durationSeconds}
               xpAwarded={xpAwarded}
               hasCleanLock={hasCleanLock}
+              qualityLine={qualityLine}
               onPlayAgain={handlePlayAgain}
               onBackToLab={handleBackToLab}
             />

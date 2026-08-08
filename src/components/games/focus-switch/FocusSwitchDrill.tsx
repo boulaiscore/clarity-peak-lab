@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FocusSwitchResults } from "./FocusSwitchResults";
 import { GameExitButton } from "@/components/games/GameExitButton";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
 
 // ============================================
 // TYPES & CONFIGURATION
@@ -34,6 +35,9 @@ export interface FocusSwitchFinalResults {
   switchLatencyAvg: number;
   perseverationRate: number;
   postSwitchErrorRate: number;
+  hitRate: number;
+  falseAlarmRate: number;
+  rtVariability: number;
   recoverySpeedIndex: number;
   degradationSlope: number;
   block1Score: number;
@@ -41,12 +45,16 @@ export interface FocusSwitchFinalResults {
   block3Score: number;
   isPerfect: boolean;
   difficulty: "easy" | "medium" | "hard";
+  qualityScore: number;
+  qualityLine?: string;
+  bonusApplied: boolean;
 }
 
 interface FocusSwitchDrillProps {
   difficulty: "easy" | "medium" | "hard";
-  onComplete: (results: FocusSwitchFinalResults) => void;
+  onComplete: (results: FocusSwitchFinalResults) => Promise<number>;
   onExit?: () => void;
+  onStart?: () => void;
 }
 
 type BlockMode = "lock" | "inhibit" | "invert";
@@ -69,7 +77,8 @@ interface DifficultyConfig {
 }
 
 // v1.5: XP imported from centralized config
-import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
+import { GAME_XP_BY_DIFFICULTY, calculateScoredDrillXP } from "@/lib/trainingPlans";
+import { calculateQualityBonus } from "@/lib/gameQualityBonus";
 
 const BLOCK_CONFIGS: BlockConfig[] = [
   { duration: 20, label: "Lock", description: "Find the active lane", rule: "Tap the highlighted lane when a target appears", mode: "lock", switchIntervalMin: 3, switchIntervalMax: 4 },
@@ -94,8 +103,9 @@ const LANE_COLORS = [
 // MAIN COMPONENT
 // ============================================
 
-export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillProps) {
+export function FocusSwitchDrill({ difficulty, onComplete, onExit, onStart }: FocusSwitchDrillProps) {
   const config = DIFFICULTY_CONFIGS[difficulty];
+  const scheduleTimeout = useSafeTimeout();
   const laneCount = config.lanes;
   
   // Game phases
@@ -117,6 +127,8 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   const [postSwitchErrors, setPostSwitchErrors] = useState<number[]>([]);
   const [totalTaps, setTotalTaps] = useState(0);
   const [correctTaps, setCorrectTaps] = useState(0);
+  const [goTargetsPresented, setGoTargetsPresented] = useState(0);
+  const [postSwitchActions, setPostSwitchActions] = useState(0);
   const [actionsAfterSwitch, setActionsAfterSwitch] = useState(0);
   const [errorsAfterSwitch, setErrorsAfterSwitch] = useState(0);
   const [hasRespondedAfterSwitch, setHasRespondedAfterSwitch] = useState(false);
@@ -128,6 +140,8 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   
   // Target system: target appears periodically with a lane + type that depends on block mode
   const [currentTarget, setCurrentTarget] = useState<{ lane: number; type: "solid" | "hollow" } | null>(null);
+  const [persistedXP, setPersistedXP] = useState<number | null>(null);
+  const saveStartedRef = useRef(false);
   const targetIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const targetHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeLaneRef = useRef(0);
@@ -232,6 +246,9 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
       }
 
       setCurrentTarget(target);
+      if (target.type === "solid") {
+        setGoTargetsPresented(prev => prev + 1);
+      }
       if (targetHideTimeoutRef.current) clearTimeout(targetHideTimeoutRef.current);
       targetHideTimeoutRef.current = setTimeout(() => setCurrentTarget(null), 850);
     };
@@ -269,6 +286,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   // ============================================
   
   const handleStart = () => {
+    onStart?.();
     setPhase("countdown");
     setCountdown(3);
   };
@@ -281,7 +299,10 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
     const mode = BLOCK_CONFIGS[currentBlock].mode;
 
     setTotalTaps(prev => prev + 1);
-    if (actionsAfterSwitch < 2) setActionsAfterSwitch(prev => prev + 1);
+    if (actionsAfterSwitch < 2) {
+      setActionsAfterSwitch(prev => prev + 1);
+      setPostSwitchActions(prev => prev + 1);
+    }
 
     // Determine the "expected" lane to tap given current target + mode.
     // null target => any tap is a (mild) error in inhibit/invert; in lock we ignore.
@@ -328,7 +349,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
       setShowFeedback({ lane, type: "error" });
     }
 
-    setTimeout(() => setShowFeedback(null), 200);
+    scheduleTimeout(() => setShowFeedback(null), 200);
   };
 
   const handleNextBlock = () => {
@@ -355,8 +376,14 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
       ? perseverations.length / totalTaps
       : 0;
     
-    const postSwitchErrorRate = postSwitchErrors.length > 0
-      ? postSwitchErrors.reduce((a, b) => a + b, 0) / (postSwitchErrors.length * 2)
+    const postSwitchErrorRate = postSwitchActions > 0
+      ? postSwitchErrors.length / postSwitchActions
+      : 0;
+
+    const hitRate = goTargetsPresented > 0 ? correctTaps / goTargetsPresented : 0;
+    const falseAlarmRate = totalTaps > 0 ? (totalTaps - correctTaps) / totalTaps : 0;
+    const rtVariability = switchLatencies.length > 0
+      ? Math.sqrt(switchLatencies.reduce((sum, value) => sum + Math.pow(value - switchLatencyAvg, 2), 0) / switchLatencies.length)
       : 0;
     
     // Recovery speed: inverse of switch latency, normalized
@@ -366,21 +393,31 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
     const block1Score = blockScores[0];
     const block3Score = blockScores[2];
     const maxBlockScore = Math.max(block1Score, block3Score, 1);
-    const degradationSlope = (block1Score - block3Score) / maxBlockScore;
+    const degradationSlope = (block3Score - block1Score) / maxBlockScore;
     
     // Total score
-    const totalScore = blockScores.reduce((a, b) => a + b, 0);
+    const precision = 1 - falseAlarmRate;
+    const totalScore = Math.round(Math.max(0, Math.min(100, 100 * (0.6 * hitRate + 0.4 * precision))));
     
     // XP calculation - v1.5: Using centralized XP
-    const isPerfect = perseverationRate < 0.1 && switchLatencyAvg < 500 && degradationSlope < 0.2;
-    const xpAwarded = calculateGameXP(difficulty, isPerfect);
+    const isPerfect = totalScore >= 90 && perseverationRate < 0.1 && switchLatencyAvg < 500 && degradationSlope > -0.2;
+    const baseXP = calculateScoredDrillXP(difficulty, totalScore, isPerfect);
+    const quality = calculateQualityBonus("S1-AE", baseXP, {
+      hitRate,
+      falseAlarmRate,
+      rtVariability,
+      degradationSlope,
+    }, difficulty);
     
     return {
       score: totalScore,
-      xpAwarded,
+      xpAwarded: quality.totalXP,
       switchLatencyAvg,
       perseverationRate,
       postSwitchErrorRate,
+      hitRate,
+      falseAlarmRate,
+      rtVariability,
       recoverySpeedIndex,
       degradationSlope,
       block1Score,
@@ -388,8 +425,17 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
       block3Score,
       isPerfect,
       difficulty,
+      qualityScore: quality.qualityScore,
+      qualityLine: quality.qualityLine,
+      bonusApplied: quality.bonus > 0,
     };
-  }, [phase, blockScores, switchLatencies, perseverations, postSwitchErrors, totalTaps, difficulty]);
+  }, [phase, blockScores, switchLatencies, perseverations, postSwitchErrors, postSwitchActions, totalTaps, correctTaps, goTargetsPresented, difficulty]);
+
+  useEffect(() => {
+    if (phase !== "results" || !results || saveStartedRef.current) return;
+    saveStartedRef.current = true;
+    void onComplete(results).then(setPersistedXP).catch(() => setPersistedXP(0));
+  }, [onComplete, phase, results]);
   
   // ============================================
   // RENDER
@@ -398,7 +444,8 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   // Instruction screen
   if (phase === "instruction") {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 py-8">
+      <div className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 py-8">
+        {onExit && <GameExitButton onExit={onExit} />}
         <motion.div
           initial={false}
           animate={{ opacity: 1, y: 0 }}
@@ -436,7 +483,7 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
             onClick={handleStart}
             className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold text-sm"
           >
-            Start Session
+            Start Drill
           </button>
         </motion.div>
       </div>
@@ -446,7 +493,8 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   // Countdown screen
   if (phase === "countdown") {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center">
+      <div className="relative min-h-[70vh] flex flex-col items-center justify-center">
+        {onExit && <GameExitButton onExit={onExit} />}
         <motion.div
           key={countdown}
           initial={false}
@@ -462,7 +510,8 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   // Block complete screen
   if (phase === "block_complete") {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 py-8">
+      <div className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 py-8">
+        {onExit && <GameExitButton onExit={onExit} />}
         <motion.div
           initial={false}
           animate={{ opacity: 1, scale: 1 }}
@@ -501,11 +550,21 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   
   // Results screen
   if (phase === "results" && results) {
+    if (persistedXP === null) {
+      return (
+        <div className="min-h-[70vh] flex items-center justify-center text-sm text-muted-foreground">
+          Saving session…
+        </div>
+      );
+    }
     return (
-      <FocusSwitchResults
-        results={results}
-        onContinue={() => onComplete(results)}
-      />
+      <div className="relative">
+        {onExit && <GameExitButton onExit={onExit} />}
+        <FocusSwitchResults
+          results={{ ...results, xpAwarded: persistedXP }}
+          onContinue={() => onExit?.()}
+        />
+      </div>
     );
   }
   
@@ -516,7 +575,8 @@ export function FocusSwitchDrill({ difficulty, onComplete }: FocusSwitchDrillPro
   const ruleText = BLOCK_CONFIGS[currentBlock].rule;
 
   return (
-    <div className="min-h-[70vh] flex flex-col px-4 py-6">
+    <div className="relative min-h-[70vh] flex flex-col px-4 py-6">
+      {onExit && <GameExitButton onExit={onExit} />}
       {/* Header */}
       <div className="text-center mb-4 space-y-2">
         <div className="text-xs text-muted-foreground uppercase tracking-wider">

@@ -3,14 +3,14 @@
  * UNIFIED GAME RESULTS v1.0
  * ============================================
  * 
- * Standard End Screen for ALL NLOOP games (S1 & S2).
+ * Standard end screen for all NLOOP drills (S1 & S2).
  * Follows the Global Game Feedback Specification.
  * 
  * STRUCTURE (fixed order):
  * 1. Session Summary
  * 2. Primary KPIs (max 3)
  * 3. Skill Impact Statement
- * 4. CTA Row (Review Mistakes | Play Again | Back to Gym)
+ * 4. CTA Row (Review Mistakes | Run Again | Back to Gym)
  */
 
 import { useState } from "react";
@@ -60,6 +60,7 @@ export interface UnifiedGameResultsProps {
   
   // Optional: Review Mistakes data
   mistakes?: ReviewMistake[];
+  reviewMode?: "choices" | "performance";
   
   // Optional: Quality bonus line (from gameQualityBonus)
   qualityLine?: string;
@@ -73,7 +74,7 @@ export interface UnifiedGameResultsProps {
   };
   
   // Actions
-  onPlayAgain: () => void;
+  onPlayAgain?: () => void;
   onExit: () => void;
 }
 
@@ -133,6 +134,7 @@ export function UnifiedGameResults({
   kpis,
   isPerfect = false,
   mistakes = [],
+  reviewMode = "choices",
   qualityLine,
   insight,
   onPlayAgain,
@@ -161,14 +163,14 @@ export function UnifiedGameResults({
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-8"
       >
         {/* Perfect Badge */}
         {isPerfect && (
           <motion.div
-            initial={{ scale: 0, rotate: -10 }}
+            initial={false}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-amber-400/10 border border-amber-500/30"
@@ -182,7 +184,7 @@ export function UnifiedGameResults({
             B1) SESSION SUMMARY
         ───────────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="text-center mb-6"
@@ -199,7 +201,7 @@ export function UnifiedGameResults({
 
         {/* XP Display */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="mb-7 text-center"
@@ -215,7 +217,7 @@ export function UnifiedGameResults({
           {/* Quality Line (subtle, only if bonus applied) */}
           {qualityLine && (
             <motion.p
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
               className="text-xs text-muted-foreground/70 mt-2 italic"
@@ -237,7 +239,7 @@ export function UnifiedGameResults({
           </span>
         </div>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className={cn(
@@ -255,7 +257,7 @@ export function UnifiedGameResults({
         ───────────────────────────────────────────── */}
         {insight && (insight.vsAverage || insight.trend || insight.metricImpact || insight.calibrationNote) && (
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
             className="w-full max-w-sm mb-6 p-3.5 rounded-xl bg-card/40 border border-border/30"
@@ -285,7 +287,7 @@ export function UnifiedGameResults({
             B3) SKILL IMPACT STATEMENT
         ───────────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
           className="text-center mb-8 px-4"
@@ -299,7 +301,7 @@ export function UnifiedGameResults({
             B4) CTA ROW
         ───────────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           className="w-full max-w-sm space-y-3"
@@ -319,14 +321,16 @@ export function UnifiedGameResults({
           
           {/* Secondary row */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={onPlayAgain}
-              className="flex-1 gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Play Again
-            </Button>
+            {onPlayAgain && (
+              <Button
+                variant="outline"
+                onClick={onPlayAgain}
+                className="flex-1 gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Run Again
+              </Button>
+            )}
             <Button
               onClick={onExit}
               className="flex-1 gap-2"
@@ -344,6 +348,7 @@ export function UnifiedGameResults({
         onOpenChange={setShowReviewSheet}
         mistakes={mistakes}
         gameName={gameName}
+        mode={reviewMode}
       />
     </>
   );
@@ -373,7 +378,7 @@ function KPICard({ kpi, index }: { kpi: KPIData; index: number }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 + index * 0.05 }}
       className="relative px-2 pt-3.5 pb-3 rounded-xl bg-card/60 border border-border/30 text-center overflow-hidden"

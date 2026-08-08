@@ -125,7 +125,7 @@ export default function NeuroLab() {
         iconColor: "text-emerald-400",
         headline: `Recovery ${Math.round(rec)}% — Primed.`,
         message: "Peak window for deep reasoning.",
-        action: "Push S2 games."
+        action: "Push S2 drills."
       };
     }
 
@@ -478,7 +478,7 @@ export default function NeuroLab() {
                 <div className="pt-3 border-t border-border/15">
                   <p className="text-[10px] text-muted-foreground">
                     <span className="font-semibold text-foreground/80">Key:</span>{" "}
-                    High recovery → push S2 games. Low recovery → Quality Time & Recover.
+                    High recovery → push S2 drills. Low recovery → Quality Time & Recover.
                   </p>
                 </div>
               </div>

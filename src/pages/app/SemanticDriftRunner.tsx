@@ -22,7 +22,9 @@ import { ArrowLeft, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
-import { calculateGameXP } from "@/lib/trainingPlans";
+import { calculateScoredDrillXP } from "@/lib/trainingPlans";
+import { calculateQualityBonus } from "@/lib/gameQualityBonus";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 type GamePhase = "difficulty" | "playing" | "results";
 
@@ -41,6 +43,7 @@ export default function SemanticDriftRunner() {
   const [results, setResults] = useState<RoundResult[]>([]);
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [xpAwarded, setXpAwarded] = useState(0);
+  const [qualityLine, setQualityLine] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   
   // v1.2: Track session start time for duration calculation
@@ -49,7 +52,7 @@ export default function SemanticDriftRunner() {
   // v1.1: Validate auth before starting game
   useEffect(() => {
     if (!user?.id && !session?.user?.id) {
-      toast.error("Please log in to play");
+      toast.error("Please log in to start a drill");
       navigate("/auth");
     }
   }, [user?.id, session?.user?.id, navigate]);
@@ -63,7 +66,8 @@ export default function SemanticDriftRunner() {
   
   const handleGameComplete = useCallback(async (
     gameResults: RoundResult[],
-    duration: number
+    duration: number,
+    generation: DrillGenerationMeta
   ) => {
     setResults(gameResults);
     setDurationSeconds(duration);
@@ -72,8 +76,25 @@ export default function SemanticDriftRunner() {
     const accuracy = gameResults.length > 0 ? correctCount / gameResults.length : 0;
     const score = Math.round(accuracy * 100);
     
-    const xp = calculateGameXP(difficulty, score >= 90);
+    const reactionTimes = gameResults
+      .map(result => result.reactionTimeMs)
+      .filter((value): value is number => value !== null);
+    const sortedRT = [...reactionTimes].sort((a, b) => a - b);
+    const medianRT = sortedRT.length > 0 ? sortedRT[Math.floor(sortedRT.length / 2)] : DIFFICULTY_CONFIG[difficulty].timePerRound;
+    const meanRT = reactionTimes.length > 0 ? reactionTimes.reduce((sum, value) => sum + value, 0) / reactionTimes.length : medianRT;
+    const rtStdDev = reactionTimes.length > 0
+      ? Math.sqrt(reactionTimes.reduce((sum, value) => sum + Math.pow(value - meanRT, 2), 0) / reactionTimes.length)
+      : 0;
+    const baseXP = calculateScoredDrillXP(difficulty, score, score >= 90);
+    const quality = calculateQualityBonus("S1-RA", baseXP, {
+      hitRate: accuracy,
+      medianReactionTime: medianRT,
+      remoteAssociationRate: accuracy,
+      rtStdDev,
+    }, difficulty);
+    const xp = quality.totalXP;
     setXpAwarded(xp);
+    setQualityLine(quality.qualityLine);
     
     // v1.2: Calculate duration from startedAtRef
     const endedAt = new Date();
@@ -100,23 +121,33 @@ export default function SemanticDriftRunner() {
           durationSeconds: calculatedDuration,
           status: 'completed',
           difficulty,
+          qualityScore: quality.qualityScore,
+          bonusApplied: quality.bonus > 0,
+          comboHash: generation.comboHash,
+          antiRepetitionTriggered: generation.duplicatesRejected > 0,
+          duplicatesRejected: generation.duplicatesRejected,
+          fallbackUsed: generation.fallbackUsed,
         });
         const savedXP = savedSession?.xp_awarded ?? 0;
         setXpAwarded(savedXP);
         
         console.log("[SemanticDrift] ✅ Session saved successfully");
-        if (savedXP > 0) toast.success(`+${savedXP} XP earned!`, { icon: "⭐" });
-        else toast.info("Daily XP limit reached. Play for practice.");
+        if (savedXP > 0) toast.success(`+${savedXP} XP earned`);
+        else toast.info("Daily XP limit reached. Continue for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
       } catch (error) {
+        setXpAwarded(0);
+        setQualityLine(undefined);
         console.error("[SemanticDrift] ❌ Failed to record session:", error);
         toast.error("Failed to save session");
       } finally {
         setIsSaving(false);
       }
     } else {
+      setXpAwarded(0);
+      setQualityLine(undefined);
       console.warn("[SemanticDrift] No user ID, session not saved");
       toast.warning("Session not saved - please log in");
     }
@@ -128,13 +159,14 @@ export default function SemanticDriftRunner() {
     setResults([]);
     setDurationSeconds(0);
     setXpAwarded(0);
+    setQualityLine(undefined);
     // v1.2: Reset start time for new game
     startedAtRef.current = new Date();
     setPhase("playing");
   }, []);
   
   const handleBackToGym = useCallback(() => {
-    navigate("/neuro-lab?tab=games");
+    navigate("/neuro-lab?tab=games&system=fast");
   }, [navigate]);
 
   const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToGym);
@@ -145,7 +177,7 @@ export default function SemanticDriftRunner() {
         {phase === "difficulty" && (
           <motion.div
             key="difficulty"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full"
@@ -154,7 +186,7 @@ export default function SemanticDriftRunner() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/neuro-lab?tab=games")}
+                onClick={() => navigate("/neuro-lab?tab=games&system=fast")}
                 className="h-9 w-9"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -173,7 +205,7 @@ export default function SemanticDriftRunner() {
 
               <div className="rounded-xl border border-border/40 bg-card/40 p-4 space-y-3">
                 <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/80">
-                  How to play
+                  How it works
                 </div>
                 <p className="text-sm text-foreground/90 leading-relaxed">
                   A <span className="font-medium">seed word</span> appears at the center. Four options surround it.
@@ -201,7 +233,7 @@ export default function SemanticDriftRunner() {
                 <Button
                   variant="outline"
                   className="flex-1"
-                  onClick={() => navigate("/neuro-lab?tab=games")}
+                  onClick={() => navigate("/neuro-lab?tab=games&system=fast")}
                 >
                   Cancel
                 </Button>
@@ -212,7 +244,7 @@ export default function SemanticDriftRunner() {
                     setPhase("playing");
                   }}
                 >
-                  Start
+                  Start Drill
                 </Button>
               </div>
             </div>
@@ -222,7 +254,7 @@ export default function SemanticDriftRunner() {
         {phase === "playing" && (
           <motion.div
             key="playing"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full"
@@ -238,7 +270,7 @@ export default function SemanticDriftRunner() {
         {phase === "results" && (
           <motion.div
             key="results"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full overflow-auto"
@@ -248,6 +280,7 @@ export default function SemanticDriftRunner() {
               difficulty={difficulty}
               durationSeconds={durationSeconds}
               xpAwarded={xpAwarded}
+              qualityLine={qualityLine}
               onPlayAgain={handlePlayAgain}
               onBackToGym={handleBackToGym}
             />

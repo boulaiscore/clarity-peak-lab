@@ -37,6 +37,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 export interface ReviewMistake {
   roundNumber: number;
   isTimeout: boolean;
+  segmentLabel?: string;
   
   // Visual reconstruction
   options: MistakeOption[];
@@ -62,6 +63,7 @@ interface ReviewMistakesSheetProps {
   onOpenChange: (open: boolean) => void;
   mistakes: ReviewMistake[];
   gameName: string;
+  mode?: "choices" | "performance";
 }
 
 // ============================================
@@ -73,6 +75,7 @@ export function ReviewMistakesSheet({
   onOpenChange,
   mistakes,
   gameName,
+  mode = "choices",
 }: ReviewMistakesSheetProps) {
   // Select up to 5 mistakes following the rules:
   // 1. Timeouts first (max 2)
@@ -101,13 +104,15 @@ export function ReviewMistakesSheet({
       <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] p-0">
         <SheetHeader className="p-4 pb-2 border-b border-border/30">
           <SheetTitle className="flex items-center justify-between">
-            <span className="text-base">Wrong rounds</span>
+            <span className="text-base">{mode === "performance" ? "Performance gaps" : "Wrong rounds"}</span>
             <span className="text-xs text-muted-foreground font-normal">
               {displayMistakes.length} of {mistakes.length} shown
             </span>
           </SheetTitle>
           <p className="text-[11px] text-muted-foreground/70 text-left">
-            Only rounds you missed or timed out. The four options are shown so you can see what was correct.
+            {mode === "performance"
+              ? "Observed session signals are shown beside a practical reference band."
+              : "Only rounds you missed or timed out. The options are shown so you can see what was correct."}
           </p>
         </SheetHeader>
         
@@ -120,8 +125,8 @@ export function ReviewMistakesSheet({
                 <p className="text-xs mt-1">Perfect performance.</p>
               </div>
             ) : (
-              displayMistakes.map((mistake, index) => (
-                <MistakeCard key={`${mistake.roundNumber}-${index}`} mistake={mistake} />
+                displayMistakes.map((mistake, index) => (
+                  <MistakeCard key={`${mistake.roundNumber}-${index}`} mistake={mistake} mode={mode} />
               ))
             )}
             
@@ -144,8 +149,8 @@ export function ReviewMistakesSheet({
 // MISTAKE CARD COMPONENT
 // ============================================
 
-function MistakeCard({ mistake }: { mistake: ReviewMistake }) {
-  const { roundNumber, isTimeout, options, userChoiceIndex, correctIndex, microLine } = mistake;
+function MistakeCard({ mistake, mode }: { mistake: ReviewMistake; mode: "choices" | "performance" }) {
+  const { roundNumber, isTimeout, segmentLabel, options, userChoiceIndex, correctIndex, microLine } = mistake;
 
   return (
     <motion.div
@@ -155,7 +160,9 @@ function MistakeCard({ mistake }: { mistake: ReviewMistake }) {
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-muted-foreground">Round {roundNumber}</span>
+        <span className="text-xs text-muted-foreground">
+          {segmentLabel ?? `${mode === "performance" ? "Signal" : "Round"} ${roundNumber}`}
+        </span>
         {isTimeout && (
           <div className="flex items-center gap-1 text-orange-400/80">
             <Clock className="w-3 h-3" />
@@ -197,12 +204,12 @@ function MistakeCard({ mistake }: { mistake: ReviewMistake }) {
                       ? "bg-emerald-500/20 text-emerald-400" 
                       : "bg-red-500/20 text-red-400"
                   )}>
-                    Your choice
+                    {mode === "performance" ? "Observed" : "Your choice"}
                   </span>
                 )}
                 {isCorrect && !isUserChoice && (
                   <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                    Best choice
+                    {mode === "performance" ? "Reference" : "Best choice"}
                   </span>
                 )}
               </div>

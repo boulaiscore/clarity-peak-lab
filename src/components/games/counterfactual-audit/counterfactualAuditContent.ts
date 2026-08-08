@@ -1000,7 +1000,7 @@ const ROUNDS: AuditRound[] = [
  */
 export function generateSession(difficulty: Difficulty): AuditRound[] {
   const config = DIFFICULTY_CONFIG[difficulty];
-  const shuffled = [...ROUNDS].sort(() => Math.random() - 0.5);
+  const shuffled = shuffleCopy(ROUNDS);
   return shuffled.slice(0, config.rounds);
 }
 
@@ -1028,3 +1028,4 @@ export function getSessionHashParams(
     difficulty,
   };
 }
+import { shuffleCopy } from "@/lib/drillSession";

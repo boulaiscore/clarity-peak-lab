@@ -194,7 +194,7 @@ export function SessionPicker({
             <div className="flex items-center gap-4 text-[11px]">
               <div className="flex items-center gap-1.5">
                 <Gamepad2 className="w-3.5 h-3.5 text-primary" />
-                <span>{difficultyConfig.gameCount} game{difficultyConfig.gameCount > 1 ? 's' : ''}</span>
+                <span>{difficultyConfig.gameCount} drill{difficultyConfig.gameCount > 1 ? 's' : ''}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5 text-emerald-400" />

@@ -6,7 +6,7 @@
  * Trains Rapid Association (RA): fast, intuitive, non-deliberate associations.
  * 
  * Core Mechanic:
- * - 30 rounds per session (3 acts × 10 rounds)
+ * - 15 rounds per session (3 acts × 5 rounds)
  * - 3 constellation tiles displayed, 4 candidate options
  * - User selects the best associative link
  * - Hard time limits force System 1 decisions
@@ -23,8 +23,14 @@ import {
   shuffleOptions, 
   ConstellationPuzzle,
   ConstellationTile,
+  getSessionHashParams,
 } from "./constellationSnapContent";
 import * as LucideIcons from "lucide-react";
+import { GameExitButton } from "@/components/games/GameExitButton";
+import { calculateQualityBonus } from "@/lib/gameQualityBonus";
+import { useValidSessionGenerator } from "@/hooks/useAntiRepetition";
+import type { ReviewMistake } from "@/components/games/ReviewMistakesSheet";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
 
 // ============================================
 // TYPES & CONFIGURATION
@@ -39,11 +45,19 @@ export interface ConstellationSnapFinalResults {
   isPerfect: boolean;
   difficulty: "easy" | "medium" | "hard";
   roundData: RoundResult[];
+  qualityScore: number;
+  qualityLine?: string;
+  bonusApplied: boolean;
+  comboHash: string;
+  duplicatesRejected: number;
+  fallbackUsed: boolean;
 }
 
 interface ConstellationSnapDrillProps {
   difficulty: "easy" | "medium" | "hard";
-  onComplete: (results: ConstellationSnapFinalResults) => void;
+  onComplete: (results: ConstellationSnapFinalResults) => Promise<number>;
+  onExit?: () => void;
+  onStart?: () => void;
 }
 
 interface RoundResult {
@@ -56,6 +70,7 @@ interface RoundResult {
   reactionTimeMs: number;
   isCorrect: boolean;
   isTimeout: boolean;
+  options: ConstellationTile[];
 }
 
 interface DifficultyConfig {
@@ -63,7 +78,7 @@ interface DifficultyConfig {
 }
 
 // v1.5: XP imported from centralized config
-import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
+import { GAME_XP_BY_DIFFICULTY, calculateScoredDrillXP } from "@/lib/trainingPlans";
 
 const DIFFICULTY_CONFIGS: Record<"easy" | "medium" | "hard", DifficultyConfig> = {
   easy: { timerMs: 2500 },
@@ -93,7 +108,7 @@ function TileRenderer({ tile, size = "md" }: { tile: ConstellationTile; size?: "
   
   
   // Icon type - render from lucide
-  const IconComponent = (LucideIcons as any)[tile.value];
+  const IconComponent = (LucideIcons as unknown as Record<string, React.ElementType>)[tile.value];
   if (!IconComponent) {
     // Fallback to word if icon not found
     return (
@@ -123,8 +138,9 @@ function TileRenderer({ tile, size = "md" }: { tile: ConstellationTile; size?: "
 // MAIN COMPONENT
 // ============================================
 
-export function ConstellationSnapDrill({ difficulty, onComplete }: ConstellationSnapDrillProps) {
+export function ConstellationSnapDrill({ difficulty, onComplete, onExit, onStart }: ConstellationSnapDrillProps) {
   const config = DIFFICULTY_CONFIGS[difficulty];
+  const scheduleTimeout = useSafeTimeout();
   
   // Game phases
   const [phase, setPhase] = useState<"instruction" | "countdown" | "playing" | "feedback" | "act-transition" | "results">("instruction");
@@ -133,7 +149,6 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
   // Round state
   const [currentRound, setCurrentRound] = useState(0);
   const [currentAct, setCurrentAct] = useState(1);
-  const [puzzles, setPuzzles] = useState<ConstellationPuzzle[]>([]);
   const [shuffledOptions, setShuffledOptions] = useState<ConstellationTile[]>([]);
   const [timeRemaining, setTimeRemaining] = useState(config.timerMs);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -143,11 +158,36 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
   const [roundResults, setRoundResults] = useState<RoundResult[]>([]);
   const roundStartTime = useRef<number>(0);
   const sessionStartTime = useRef<number>(0);
+  const sessionDurationSeconds = useRef(0);
+  const roundLockedRef = useRef(false);
+  const proceedRef = useRef<() => void>(() => undefined);
+  const timeoutRef = useRef<() => void>(() => undefined);
+  const [persistedXP, setPersistedXP] = useState<number | null>(null);
+  const saveStartedRef = useRef(false);
   
-  // Initialize puzzles
-  useEffect(() => {
-    setPuzzles(getPuzzlesForSession(difficulty, TOTAL_ROUNDS));
-  }, [difficulty]);
+  const generatePuzzles = useCallback(
+    () => getPuzzlesForSession(difficulty, TOTAL_ROUNDS),
+    [difficulty]
+  );
+  const hashPuzzles = useCallback(
+    (sessionPuzzles: ConstellationPuzzle[]) => getSessionHashParams(sessionPuzzles, difficulty),
+    [difficulty]
+  );
+  const {
+    session: generatedPuzzles,
+    comboHash,
+    duplicatesRejected,
+    fallbackUsed,
+    isLoading: isGenerating,
+  } = useValidSessionGenerator(
+    "constellation_snap",
+    "S1-RA",
+    generatePuzzles,
+    hashPuzzles,
+    true,
+    difficulty
+  );
+  const puzzles = useMemo(() => generatedPuzzles ?? [], [generatedPuzzles]);
   
   // Shuffle options when round changes
   useEffect(() => {
@@ -180,7 +220,7 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
       setTimeRemaining(prev => {
         if (prev <= 10) {
           // Timeout - mark as miss
-          handleTimeout();
+          timeoutRef.current();
           return 0;
         }
         return prev - 10;
@@ -192,7 +232,8 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
   
   // Handle timeout
   const handleTimeout = useCallback(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || roundLockedRef.current) return;
+    roundLockedRef.current = true;
     
     const puzzle = puzzles[currentRound];
     if (!puzzle) return;
@@ -207,20 +248,22 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
       reactionTimeMs: config.timerMs,
       isCorrect: false,
       isTimeout: true,
+      options: [...shuffledOptions],
     };
     
     setRoundResults(prev => [...prev, result]);
     setIsCorrectFeedback(false);
     setPhase("feedback");
     
-    setTimeout(() => {
-      proceedToNextRound();
+    scheduleTimeout(() => {
+      proceedRef.current();
     }, FEEDBACK_DURATION_MS + INTER_ROUND_DELAY_MS);
-  }, [phase, currentRound, currentAct, puzzles, config.timerMs]);
+  }, [phase, currentRound, currentAct, puzzles, config.timerMs, shuffledOptions, scheduleTimeout]);
   
   // Handle option selection
   const handleSelect = useCallback((optionId: string) => {
-    if (phase !== "playing" || selectedOption !== null) return;
+    if (phase !== "playing" || selectedOption !== null || roundLockedRef.current) return;
+    roundLockedRef.current = true;
     
     const puzzle = puzzles[currentRound];
     if (!puzzle) return;
@@ -238,6 +281,7 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
       reactionTimeMs: reactionTime,
       isCorrect,
       isTimeout: false,
+      options: [...shuffledOptions],
     };
     
     setRoundResults(prev => [...prev, result]);
@@ -245,17 +289,17 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
     setIsCorrectFeedback(isCorrect);
     setPhase("feedback");
     
-    setTimeout(() => {
-      proceedToNextRound();
+    scheduleTimeout(() => {
+      proceedRef.current();
     }, FEEDBACK_DURATION_MS + INTER_ROUND_DELAY_MS);
-  }, [phase, selectedOption, currentRound, currentAct, puzzles]);
+  }, [phase, selectedOption, currentRound, currentAct, puzzles, shuffledOptions, scheduleTimeout]);
   
   // Proceed to next round
   const proceedToNextRound = useCallback(() => {
     const nextRound = currentRound + 1;
     
     if (nextRound >= TOTAL_ROUNDS) {
-      // Game complete
+      sessionDurationSeconds.current = Math.round((Date.now() - sessionStartTime.current) / 1000);
       setPhase("results");
       return;
     }
@@ -267,8 +311,9 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
       setCurrentRound(nextRound);
       setPhase("act-transition");
       
-      setTimeout(() => {
+      scheduleTimeout(() => {
         setSelectedOption(null);
+        roundLockedRef.current = false;
         setIsCorrectFeedback(null);
         setPhase("playing");
         roundStartTime.current = Date.now();
@@ -277,12 +322,21 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
     } else {
       setCurrentRound(nextRound);
       setSelectedOption(null);
+      roundLockedRef.current = false;
       setIsCorrectFeedback(null);
       setPhase("playing");
       roundStartTime.current = Date.now();
       setTimeRemaining(config.timerMs);
     }
-  }, [currentRound, currentAct, config.timerMs]);
+  }, [currentRound, currentAct, config.timerMs, scheduleTimeout]);
+
+  useEffect(() => {
+    proceedRef.current = proceedToNextRound;
+  }, [proceedToNextRound]);
+
+  useEffect(() => {
+    timeoutRef.current = handleTimeout;
+  }, [handleTimeout]);
   
   // Calculate final results
   const calculateResults = useMemo((): ConstellationSnapFinalResults => {
@@ -304,6 +358,12 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
     const medianRT = validTimes.length > 0
       ? validTimes[Math.floor(validTimes.length / 2)]
       : config.timerMs;
+    const meanRT = validTimes.length > 0
+      ? validTimes.reduce((sum, value) => sum + value, 0) / validTimes.length
+      : config.timerMs;
+    const rtStdDev = validTimes.length > 0
+      ? Math.sqrt(validTimes.reduce((sum, value) => sum + Math.pow(value - meanRT, 2), 0) / validTimes.length)
+      : 0;
     
     // Speed score (normalized 0-100, faster = better)
     const speedBands = {
@@ -321,50 +381,84 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
     
     // XP calculation - v1.5: Using centralized XP
     const isPerfect = sessionScore >= 90;
-    const xpAwarded = calculateGameXP(difficulty, isPerfect);
+    const baseXP = calculateScoredDrillXP(difficulty, sessionScore, isPerfect);
+    const quality = calculateQualityBonus("S1-RA", baseXP, {
+      hitRate: accuracy / 100,
+      medianReactionTime: medianRT,
+      remoteAssociationRate: remoteAccuracy / 100,
+      rtStdDev,
+    }, difficulty);
     
     return {
       sessionScore,
-      xpAwarded,
+      xpAwarded: quality.totalXP,
       accuracy,
       remoteAccuracy,
       medianReactionTime: Math.round(medianRT),
       isPerfect,
       difficulty,
       roundData: roundResults,
+      qualityScore: quality.qualityScore,
+      qualityLine: quality.qualityLine,
+      bonusApplied: quality.bonus > 0,
+      comboHash,
+      duplicatesRejected,
+      fallbackUsed,
     };
-  }, [roundResults, difficulty, config]);
+  }, [roundResults, difficulty, config, comboHash, duplicatesRejected, fallbackUsed]);
+
+  const reviewMistakes = useMemo<ReviewMistake[]>(() => (
+    roundResults
+      .filter(result => !result.isCorrect)
+      .map(result => ({
+        roundNumber: result.roundIndex + 1,
+        isTimeout: result.isTimeout,
+        options: result.options.map(option => ({
+          id: option.id,
+          label: option.label ?? option.value,
+          type: "text" as const,
+        })),
+        userChoiceIndex: result.selectedOptionId === null
+          ? null
+          : result.options.findIndex(option => option.id === result.selectedOptionId),
+        correctIndex: result.options.findIndex(option => option.id === result.correctOptionId),
+        microLine: result.isTimeout
+          ? "The time window closed before a choice was registered."
+          : "Compare the selected association with the strongest shared link.",
+      }))
+  ), [roundResults]);
   
   // Start game
   const startGame = () => {
+    onStart?.();
     setPhase("countdown");
+    roundLockedRef.current = false;
     setCountdown(3);
   };
-  
-  // Handle results actions
-  const handlePlayAgain = () => {
-    // Reset all state
-    setPhase("instruction");
-    setCurrentRound(0);
-    setCurrentAct(1);
-    setRoundResults([]);
-    setSelectedOption(null);
-    setIsCorrectFeedback(null);
-    setPuzzles(getPuzzlesForSession(difficulty, TOTAL_ROUNDS));
-  };
-  
-  const handleExit = () => {
-    onComplete(calculateResults);
-  };
+
+  useEffect(() => {
+    if (phase !== "results" || saveStartedRef.current) return;
+    saveStartedRef.current = true;
+    void onComplete(calculateResults).then(setPersistedXP).catch(() => setPersistedXP(0));
+  }, [calculateResults, onComplete, phase]);
   
   // Current puzzle
   const currentPuzzle = puzzles[currentRound];
   
   // Timer progress (0-1)
   const timerProgress = timeRemaining / config.timerMs;
+
+  if (isGenerating || puzzles.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center text-sm text-muted-foreground">
+        Preparing a fresh drill…
+      </div>
+    );
+  }
   
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+    <div className="relative min-h-[60vh] flex flex-col items-center justify-center px-4">
+      {onExit && (phase !== "results" || persistedXP !== null) && <GameExitButton onExit={onExit} />}
       <AnimatePresence mode="wait">
         {/* Instruction Screen */}
         {phase === "instruction" && (
@@ -406,7 +500,7 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
               onClick={startGame}
               className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm bg-gradient-to-r from-amber-500 to-amber-400 text-black"
             >
-              Start Session
+              Start Drill
             </motion.button>
           </motion.div>
         )}
@@ -445,7 +539,7 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
         {(phase === "playing" || phase === "feedback") && currentPuzzle && (
           <motion.div
             key="playing"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="w-full max-w-sm"
@@ -515,10 +609,16 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
         )}
         
         {/* Results */}
-        {phase === "results" && (
+        {phase === "results" && persistedXP === null && (
+          <div className="min-h-[60vh] flex items-center justify-center text-sm text-muted-foreground">
+            Saving session…
+          </div>
+        )}
+
+        {phase === "results" && persistedXP !== null && (
           <motion.div
             key="results"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             className="w-full"
           >
@@ -527,14 +627,15 @@ export function ConstellationSnapDrill({ difficulty, onComplete }: Constellation
               accuracy={calculateResults.accuracy}
               remoteAccuracy={calculateResults.remoteAccuracy}
               medianReactionTime={calculateResults.medianReactionTime}
-              xpAwarded={calculateResults.xpAwarded}
+              xpAwarded={persistedXP}
               isPerfect={calculateResults.isPerfect}
               difficulty={difficulty}
               roundsCompleted={roundResults.length}
               totalRounds={TOTAL_ROUNDS}
-              durationSeconds={Math.round((Date.now() - sessionStartTime.current) / 1000)}
-              onPlayAgain={handlePlayAgain}
-              onExit={handleExit}
+              durationSeconds={sessionDurationSeconds.current}
+              onExit={() => onExit?.()}
+              qualityLine={persistedXP > 0 ? calculateResults.qualityLine : undefined}
+              mistakes={reviewMistakes}
             />
           </motion.div>
         )}

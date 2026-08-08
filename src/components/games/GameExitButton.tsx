@@ -1,5 +1,5 @@
 /**
- * Game Exit Button - Reusable component for all games
+ * Drill Exit Button - Reusable component for all drills
  * 
  * Shows a floating X button during gameplay that triggers
  * an exit confirmation or directly exits.
@@ -42,7 +42,7 @@ export function GameExitButton({
           "transition-all duration-150",
           className
         )}
-        aria-label="Exit game"
+        aria-label="Exit drill"
       >
         <X className="w-5 h-5 text-white/60" />
       </button>
@@ -59,21 +59,21 @@ export function GameExitButton({
             "transition-all duration-150",
             className
           )}
-          aria-label="Exit game"
+          aria-label="Exit drill"
         >
           <X className="w-5 h-5 text-white/60" />
         </button>
       </AlertDialogTrigger>
       <AlertDialogContent className="bg-card border-border">
         <AlertDialogHeader>
-          <AlertDialogTitle>Exit Game?</AlertDialogTitle>
+          <AlertDialogTitle>Exit Drill?</AlertDialogTitle>
           <AlertDialogDescription>
             Your progress will be lost. Are you sure you want to exit?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel className="bg-muted hover:bg-muted/80">
-            Continue Playing
+            Continue Drill
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onExit}

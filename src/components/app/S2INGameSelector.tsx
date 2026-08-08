@@ -62,7 +62,7 @@ const GAMES: GameOption[] = [
     description: "Infer hidden mechanisms by observing patterns and choosing informative tests to confirm your hypothesis.",
     icon: FlaskConical,
     route: "/neuro-lab/hidden-rule-lab",
-    estimatedXP: 25,
+    estimatedXP: 22,
     estimatedDuration: "~5 min",
   },
 ];

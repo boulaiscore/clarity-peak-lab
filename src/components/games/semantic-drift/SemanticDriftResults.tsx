@@ -16,6 +16,7 @@ interface SemanticDriftResultsProps {
   difficulty: "easy" | "medium" | "hard";
   durationSeconds: number;
   xpAwarded: number;
+  qualityLine?: string;
   onPlayAgain: () => void;
   onBackToGym: () => void;
 }
@@ -25,6 +26,7 @@ export function SemanticDriftResults({
   difficulty,
   durationSeconds,
   xpAwarded,
+  qualityLine,
   onPlayAgain,
   onBackToGym,
 }: SemanticDriftResultsProps) {
@@ -136,6 +138,7 @@ export function SemanticDriftResults({
       kpis={kpis}
       mistakes={mistakes}
       insight={insight}
+      qualityLine={xpAwarded > 0 ? qualityLine : undefined}
       onPlayAgain={onPlayAgain}
       onExit={onBackToGym}
     />

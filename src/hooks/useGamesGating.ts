@@ -32,7 +32,7 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
-import { calculateGameXP, TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { 
   GameType, 
   GameAvailability, 
@@ -429,6 +429,8 @@ export function useRecordGameSession() {
     qualityScore?: number;
     bonusApplied?: boolean;
     antiRepetitionTriggered?: boolean;
+    duplicatesRejected?: number;
+    fallbackUsed?: boolean;
   }) => {
     // v1.6: Enhanced user validation
     const userId = user?.id;
@@ -451,22 +453,51 @@ export function useRecordGameSession() {
     const sessionStatus = params.status ?? 'completed';
     const difficulty = params.difficulty ?? "medium";
 
-    // One XP formula and one daily cap for every game entry point.
+    // The drill computes canonical base/perfect XP plus any category quality bonus.
+    // This shared boundary enforces the product-wide 9–45 XP range and prevents
+    // malformed scores from leaking into persistence or downstream analytics.
     let effectiveXP = params.xpAwarded > 0
-      ? calculateGameXP(difficulty, params.score >= 90)
+      ? Math.min(45, Math.max(9, Math.round(params.xpAwarded)))
       : 0;
+    const normalizedScore = Math.min(100, Math.max(0, Math.round(params.score)));
     if (sessionStatus === "completed" && effectiveXP > 0) {
       const planId = (user?.trainingPlan || "light") as TrainingPlanId;
-      const dailyMax = TRAINING_PLANS[planId].gamesGating.dailyGamesWithXP;
-      const { count, error: countError } = await supabase
+      const planGating = TRAINING_PLANS[planId].gamesGating;
+      const systemType = params.gameType.startsWith("S1") ? "S1" : "S2";
+      const { data: dailySessions, error: dailyError } = await supabase
         .from("game_sessions")
-        .select("id", { count: "exact", head: true })
+        .select("system_type")
         .eq("user_id", userId)
         .eq("status", "completed")
         .gt("xp_awarded", 0)
         .gte("completed_at", startOfDay(new Date()).toISOString());
-      if (countError) throw countError;
-      if ((count ?? 0) >= dailyMax) effectiveXP = 0;
+      if (dailyError) throw dailyError;
+      const totalToday = dailySessions?.length ?? 0;
+      const systemToday = dailySessions?.filter(session => session.system_type === systemType).length ?? 0;
+      const systemDailyMax = systemType === "S1" ? 3 : 1;
+      if (totalToday >= planGating.dailyGamesWithXP || systemToday >= systemDailyMax) {
+        effectiveXP = 0;
+      }
+
+      if (systemType === "S2" && effectiveXP > 0) {
+        const rollingWeekStart = subDays(new Date(), 7).toISOString();
+        const { data: weeklySessions, error: weeklyError } = await supabase
+          .from("game_sessions")
+          .select("game_type")
+          .eq("user_id", userId)
+          .eq("status", "completed")
+          .gt("xp_awarded", 0)
+          .gte("completed_at", rollingWeekStart);
+        if (weeklyError) throw weeklyError;
+        const s2Week = weeklySessions?.length ?? 0;
+        const insightWeek = weeklySessions?.filter(session => session.game_type === "S2-IN").length ?? 0;
+        if (
+          s2Week >= planGating.s2MaxPerWeek ||
+          (params.gameType === "S2-IN" && insightWeek >= planGating.insightMaxPerWeek)
+        ) {
+          effectiveXP = 0;
+        }
+      }
     }
     
     console.log("[GameSession] Starting save for user:", userId, "Game:", params.gameType, "Status:", sessionStatus, "Duration:", durationSeconds);
@@ -495,7 +526,7 @@ export function useRecordGameSession() {
             gym_area: params.gymArea,
             thinking_mode: params.thinkingMode,
             xp_awarded: effectiveXP,
-            score: params.score,
+            score: normalizedScore,
             // v1.7: New duration + status tracking
             started_at: params.startedAt ?? null,
             completed_at: nowUtc,
@@ -554,8 +585,8 @@ export function useRecordGameSession() {
             params.difficulty ?? "medium",
             params.qualityScore,
             params.bonusApplied,
-            params.antiRepetitionTriggered ? 1 : 0,
-            false
+            params.duplicatesRejected ?? (params.antiRepetitionTriggered ? 1 : 0),
+            params.fallbackUsed ?? false
           ).catch((err) => {
             console.warn("[GameSession] Failed to record combo hash:", err);
           });
@@ -573,7 +604,7 @@ export function useRecordGameSession() {
               thinking_mode: params.thinkingMode,
               difficulty: params.difficulty ?? "medium",
               xp_earned: effectiveXP,
-              score: params.score,
+              score: normalizedScore,
               week_start: weekStart,
             });
           
@@ -678,20 +709,30 @@ export function useRecordGameSession() {
         // CRITICAL: Invalidate intraday events for Analytics 1d charts to update immediately
         queryClient.invalidateQueries({ queryKey: ["intraday-events", userId] });
         
-        await recordMetricsSnapshot("game", {
-          gameName: params.gameName ?? null,
-          gameType: params.gameType,
-          xpAwarded: effectiveXP,
-          score: params.score,
-          difficulty: params.difficulty ?? null,
-        }, 100);
+        // Secondary analytics must never re-enter the session insert retry loop:
+        // the canonical session and metric update have already committed here.
+        try {
+          await recordMetricsSnapshot("game", {
+            gameName: params.gameName ?? null,
+            gameType: params.gameType,
+            xpAwarded: effectiveXP,
+            score: normalizedScore,
+            difficulty: params.difficulty ?? null,
+          }, 100);
+        } catch (snapshotError) {
+          console.warn("[GameSession] Metrics snapshot failed after session commit:", snapshotError);
+        }
 
-        trackProductEvent("game_completed", {
-          gameName: params.gameName ?? "unknown",
-          gameType: params.gameType,
-          difficulty: params.difficulty ?? "unknown",
-          awardedXP: effectiveXP > 0,
-        });
+        try {
+          trackProductEvent("game_completed", {
+            gameName: params.gameName ?? "unknown",
+            gameType: params.gameType,
+            difficulty: params.difficulty ?? "unknown",
+            awardedXP: effectiveXP > 0,
+          });
+        } catch (analyticsError) {
+          console.warn("[GameSession] Product analytics failed after session commit:", analyticsError);
+        }
 
         console.log("[GameSession] ✅ Session recorded successfully:", data.id);
         return data;

@@ -26,7 +26,11 @@ import {
   OutputResult,
   TestOption,
   Difficulty,
+  getSessionHashParams,
 } from "./hiddenRuleLabContent";
+import { useValidSessionGenerator } from "@/hooks/useAntiRepetition";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 // Premium easing
 const EASE_PREMIUM = [0.22, 1, 0.36, 1] as const;
@@ -37,7 +41,9 @@ const safeHaptic = (duration: number) => {
     if ('vibrate' in navigator) {
       navigator.vibrate(duration);
     }
-  } catch {}
+  } catch {
+    // Haptics are optional and may be unavailable in web previews.
+  }
 };
 
 // Round result for analytics
@@ -69,15 +75,33 @@ export interface SessionMetrics {
 
 interface HiddenRuleLabDrillProps {
   difficulty: Difficulty;
-  onComplete: (results: RoundResult[], metrics: SessionMetrics, durationSeconds: number) => void;
+  onComplete: (results: RoundResult[], metrics: SessionMetrics, durationSeconds: number, generation: DrillGenerationMeta) => void;
   onExit?: () => void;
 }
 
 export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRuleLabDrillProps) {
+  const scheduleTimeout = useSafeTimeout();
   const prefersReducedMotion = useReducedMotion();
   
   // Session state
-  const [ruleSet] = useState<RuleSet>(() => generateSession(difficulty));
+  const fallbackRuleSetRef = useRef<RuleSet>(generateSession(difficulty));
+  const generateRuleSet = useCallback(() => generateSession(difficulty), [difficulty]);
+  const hashRuleSet = useCallback((sessionRuleSet: RuleSet) => getSessionHashParams(sessionRuleSet, difficulty), [difficulty]);
+  const {
+    session: generatedRuleSet,
+    comboHash,
+    duplicatesRejected,
+    fallbackUsed,
+    isLoading: isGenerating,
+  } = useValidSessionGenerator(
+    "hidden_rule_lab",
+    "S2-IN",
+    generateRuleSet,
+    hashRuleSet,
+    true,
+    difficulty
+  );
+  const ruleSet = generatedRuleSet ?? fallbackRuleSetRef.current;
   const [currentRound, setCurrentRound] = useState(0);
   const [results, setResults] = useState<RoundResult[]>([]);
   const [phase, setPhase] = useState<"ready" | "playing" | "feedback" | "complete">("ready");
@@ -102,6 +126,8 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
   // Timing refs
   const roundStartTimeRef = useRef<number>(0);
   const sessionStartRef = useRef<number>(Date.now());
+  const proceedRef = useRef<() => void>(() => undefined);
+  const actionLockedRef = useRef(false);
   
   // Determine round type
   const getRoundType = (roundIdx: number): RoundType => {
@@ -163,7 +189,8 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
   
   // Handle hypothesis selection (Discover & Test phases)
   const handleHypothesisSelect = useCallback((hyp: Hypothesis | "NA") => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || actionLockedRef.current) return;
+    actionLockedRef.current = true;
     
     const reactionTime = Date.now() - roundStartTimeRef.current;
     safeHaptic(15);
@@ -185,7 +212,7 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
         reactionTimeMs: reactionTime,
       };
       setResults(prev => [...prev, result]);
-      proceedToNextRound();
+      proceedRef.current();
     } else if (roundType === "test" && testPhaseStep === "pick-hypothesis") {
       // Complete test round
       const chosenTest = currentTestOptions?.[selectedTestIndex!];
@@ -208,13 +235,14 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
       setSelectedTestIndex(null);
       setRevealedOutput(null);
       setTestPhaseStep("pick-test");
-      proceedToNextRound();
+      proceedRef.current();
     }
   }, [phase, roundType, testPhaseStep, currentRound, actIndex, currentExample, currentTestOptions, selectedTestIndex, revealedOutput, ruleSet.correctHypothesis]);
   
   // Handle test selection
   const handleTestSelect = useCallback((index: number) => {
-    if (phase !== "playing" || testPhaseStep !== "pick-test") return;
+    if (phase !== "playing" || testPhaseStep !== "pick-test" || actionLockedRef.current) return;
+    actionLockedRef.current = true;
     
     safeHaptic(12);
     setSelectedTestIndex(index);
@@ -226,14 +254,16 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
     setTestPhaseStep("see-output");
     
     // Auto-advance to hypothesis selection after brief pause
-    setTimeout(() => {
+    scheduleTimeout(() => {
+      actionLockedRef.current = false;
       setTestPhaseStep("pick-hypothesis");
     }, 1200);
-  }, [phase, testPhaseStep, currentTestOptions, ruleSet]);
+  }, [phase, testPhaseStep, currentTestOptions, ruleSet, scheduleTimeout]);
   
   // Handle lock rule
   const handleLockRule = useCallback((hyp: Hypothesis) => {
-    if (phase !== "playing" || roundType !== "lock") return;
+    if (phase !== "playing" || roundType !== "lock" || actionLockedRef.current) return;
+    actionLockedRef.current = true;
     
     const reactionTime = Date.now() - roundStartTimeRef.current;
     safeHaptic(20);
@@ -253,12 +283,13 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
       reactionTimeMs: reactionTime,
     };
     setResults(prev => [...prev, result]);
-    proceedToNextRound();
+    proceedRef.current();
   }, [phase, roundType, currentRound, actIndex, ruleSet.correctHypothesis]);
   
   // Handle apply prediction
   const handleApplyPrediction = useCallback((prediction: number) => {
-    if (phase !== "playing" || roundType !== "apply" || !lockedRule) return;
+    if (phase !== "playing" || roundType !== "apply" || !lockedRule || actionLockedRef.current) return;
+    actionLockedRef.current = true;
     
     const reactionTime = Date.now() - roundStartTimeRef.current;
     
@@ -286,12 +317,12 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
     setResults(prev => [...prev, result]);
     
     // Brief feedback then proceed
-    setTimeout(() => {
+    scheduleTimeout(() => {
       setUserPrediction(null);
       setPhase("playing");
-      proceedToNextRound();
+      proceedRef.current();
     }, 600);
-  }, [phase, roundType, lockedRule, currentApplyInput, currentRound, actIndex, ruleSet]);
+  }, [phase, roundType, lockedRule, currentApplyInput, currentRound, actIndex, ruleSet, scheduleTimeout]);
   
   // Proceed to next round
   const proceedToNextRound = useCallback(() => {
@@ -299,18 +330,23 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
       setPhase("complete");
       const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
       
-      setTimeout(() => {
+      scheduleTimeout(() => {
         setResults(finalResults => {
           const metrics = calculateMetrics(finalResults, ruleSet.correctHypothesis);
-          onComplete(finalResults, metrics, durationSeconds);
+          onComplete(finalResults, metrics, durationSeconds, { comboHash, duplicatesRejected, fallbackUsed });
           return finalResults;
         });
       }, 100);
     } else {
+      actionLockedRef.current = false;
       setCurrentRound(prev => prev + 1);
       roundStartTimeRef.current = Date.now();
     }
-  }, [currentRound, onComplete, ruleSet.correctHypothesis]);
+  }, [comboHash, currentRound, duplicatesRejected, fallbackUsed, onComplete, ruleSet.correctHypothesis, scheduleTimeout]);
+
+  useEffect(() => {
+    proceedRef.current = proceedToNextRound;
+  }, [proceedToNextRound]);
   
   // Calculate session metrics
   const calculateMetrics = (allResults: RoundResult[], correctRule: Hypothesis): SessionMetrics => {
@@ -361,7 +397,7 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
   
   // Start game
   useEffect(() => {
-    if (phase === "ready") {
+    if (phase === "ready" && !isGenerating) {
       const timeout = setTimeout(() => {
         setPhase("playing");
         sessionStartRef.current = Date.now();
@@ -369,7 +405,7 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
       }, 500);
       return () => clearTimeout(timeout);
     }
-  }, [phase]);
+  }, [isGenerating, phase]);
   
   // Progress calculation
   const progress = ((currentRound + 1) / SESSION_CONFIG.totalRounds) * 100;
@@ -381,6 +417,14 @@ export function HiddenRuleLabDrill({ difficulty, onComplete, onExit }: HiddenRul
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
   
+  if (isGenerating) {
+    return (
+      <div className="fixed inset-0 bg-background flex items-center justify-center text-sm text-muted-foreground">
+        Preparing a fresh drill…
+      </div>
+    );
+  }
+
   if (phase === "complete") {
     return (
       <motion.div 

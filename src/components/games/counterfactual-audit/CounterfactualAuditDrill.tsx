@@ -30,7 +30,11 @@ import {
   AuditRound,
   AuditOption,
   Difficulty,
+  getSessionHashParams,
 } from "./counterfactualAuditContent";
+import { useValidSessionGenerator } from "@/hooks/useAntiRepetition";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 // Premium easing
 const EASE_PREMIUM = [0.22, 1, 0.36, 1] as const;
@@ -41,7 +45,9 @@ const safeHaptic = (duration: number) => {
     if ('vibrate' in navigator) {
       navigator.vibrate(duration);
     }
-  } catch {}
+  } catch {
+    // Haptics are optional and may be unavailable in web previews.
+  }
 };
 
 // Round result type
@@ -71,16 +77,33 @@ export interface SessionMetrics {
 
 interface CounterfactualAuditDrillProps {
   difficulty: Difficulty;
-  onComplete: (results: RoundResult[], metrics: SessionMetrics, durationSeconds: number) => void;
+  onComplete: (results: RoundResult[], metrics: SessionMetrics, durationSeconds: number, generation: DrillGenerationMeta) => void;
   onExit?: () => void;
 }
 
 export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: CounterfactualAuditDrillProps) {
   const prefersReducedMotion = useReducedMotion();
   const config = DIFFICULTY_CONFIG[difficulty];
+  const scheduleTimeout = useSafeTimeout();
   
   // Session state
-  const [rounds] = useState<AuditRound[]>(() => generateSession(difficulty));
+  const generateRounds = useCallback(() => generateSession(difficulty), [difficulty]);
+  const hashRounds = useCallback((sessionRounds: AuditRound[]) => getSessionHashParams(sessionRounds, difficulty), [difficulty]);
+  const {
+    session: generatedRounds,
+    comboHash,
+    duplicatesRejected,
+    fallbackUsed,
+    isLoading: isGenerating,
+  } = useValidSessionGenerator(
+    "counterfactual_audit",
+    "S2-CT",
+    generateRounds,
+    hashRounds,
+    true,
+    difficulty
+  );
+  const rounds = generatedRounds ?? [];
   const [currentRound, setCurrentRound] = useState(0);
   const [results, setResults] = useState<RoundResult[]>([]);
   const [phase, setPhase] = useState<"playing" | "confidence" | "feedback" | "complete">("playing");
@@ -95,6 +118,10 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
   const roundStartTimeRef = useRef<number>(Date.now());
   const sessionStartRef = useRef<number>(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutBlockedRef = useRef(false);
+  const submittedRef = useRef(false);
+  const proceedRef = useRef<() => void>(() => undefined);
+  const timeoutRef = useRef<() => void>(() => undefined);
   
   // Current round data
   const currentRoundData = rounds[currentRound];
@@ -103,16 +130,18 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
   
   // Timer effect
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || isGenerating || !currentRoundData) return;
     
     roundStartTimeRef.current = Date.now();
+    timeoutBlockedRef.current = false;
+    submittedRef.current = false;
     setTimeRemaining(config.timePerRound);
     
     timerRef.current = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
           // Time's up - auto submit with timeout
-          handleTimeout();
+          timeoutRef.current();
           return 0;
         }
         return prev - 1;
@@ -122,10 +151,12 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentRound, phase]);
+  }, [config.timePerRound, currentRound, currentRoundData, isGenerating, phase]);
   
   // Handle timeout (no selection made in time)
   const handleTimeout = useCallback(() => {
+    if (timeoutBlockedRef.current || submittedRef.current || !currentRoundData) return;
+    submittedRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
     
     const responseTime = Date.now() - roundStartTimeRef.current;
@@ -149,12 +180,13 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
     setFeedbackState({ correct: false, line: "Time's up — no selection made." });
     setPhase("feedback");
     
-    setTimeout(() => proceedToNextRound(), 1200);
-  }, [currentRound, currentRoundData]);
+    scheduleTimeout(() => proceedRef.current(), 1200);
+  }, [currentRound, currentRoundData, scheduleTimeout]);
   
   // Handle option selection
   const handleOptionSelect = useCallback((optionId: string) => {
-    if (phase !== "playing" || selectedOption !== null) return;
+    if (phase !== "playing" || selectedOption !== null || timeoutBlockedRef.current) return;
+    timeoutBlockedRef.current = true;
     
     if (timerRef.current) clearInterval(timerRef.current);
     
@@ -166,7 +198,8 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
   
   // Handle confidence submit
   const handleConfidenceSubmit = useCallback(() => {
-    if (!selectedOption || phase !== "confidence") return;
+    if (!selectedOption || phase !== "confidence" || submittedRef.current) return;
+    submittedRef.current = true;
     
     const responseTime = Date.now() - roundStartTimeRef.current;
     const chosenOption = currentRoundData.options.find(o => o.id === selectedOption);
@@ -197,12 +230,14 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
     setFeedbackState({ correct: isCorrect, line: feedbackLine });
     setPhase("feedback");
     
-    setTimeout(() => proceedToNextRound(), 1200);
-  }, [selectedOption, confidence, phase, currentRound, currentRoundData]);
+    scheduleTimeout(() => proceedRef.current(), 1200);
+  }, [selectedOption, confidence, phase, currentRound, currentRoundData, scheduleTimeout]);
   
   // Change choice (from confidence sheet)
   const handleChangeChoice = useCallback(() => {
     setSelectedOption(null);
+    timeoutBlockedRef.current = false;
+    submittedRef.current = false;
     setPhase("playing");
     // Resume timer from where it was
     roundStartTimeRef.current = Date.now() - ((config.timePerRound - timeRemaining) * 1000);
@@ -210,13 +245,13 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
     timerRef.current = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
-          handleTimeout();
+          timeoutRef.current();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-  }, [config.timePerRound, timeRemaining, handleTimeout]);
+  }, [config.timePerRound, timeRemaining]);
   
   // Proceed to next round or complete
   const proceedToNextRound = useCallback(() => {
@@ -224,11 +259,11 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
       setPhase("complete");
       
       // Calculate metrics
-      setTimeout(() => {
+      scheduleTimeout(() => {
         setResults(finalResults => {
           const metrics = calculateMetrics(finalResults);
           const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
-          onComplete(finalResults, metrics, durationSeconds);
+          onComplete(finalResults, metrics, durationSeconds, { comboHash, duplicatesRejected, fallbackUsed });
           return finalResults;
         });
       }, 100);
@@ -238,7 +273,15 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
       setFeedbackState(null);
       setPhase("playing");
     }
-  }, [currentRound, totalRounds, onComplete]);
+  }, [comboHash, currentRound, duplicatesRejected, fallbackUsed, onComplete, scheduleTimeout, totalRounds]);
+
+  useEffect(() => {
+    proceedRef.current = proceedToNextRound;
+  }, [proceedToNextRound]);
+
+  useEffect(() => {
+    timeoutRef.current = handleTimeout;
+  }, [handleTimeout]);
   
   // Calculate all session metrics
   const calculateMetrics = (results: RoundResult[]): SessionMetrics => {
@@ -349,6 +392,14 @@ export function CounterfactualAuditDrill({ difficulty, onComplete, onExit }: Cou
   const timerProgress = (timeRemaining / config.timePerRound) * 100;
   const timerStroke = timeRemaining <= 10 ? "text-amber-400" : "text-muted-foreground/30";
   
+  if (isGenerating || rounds.length === 0) {
+    return (
+      <div className="fixed inset-0 bg-background flex items-center justify-center text-sm text-muted-foreground">
+        Preparing a fresh drill…
+      </div>
+    );
+  }
+
   if (phase === "complete") {
     return (
       <motion.div 

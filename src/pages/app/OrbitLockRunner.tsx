@@ -5,46 +5,33 @@
  * v1.9: Added intraday event recording after session completion
  */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecordGameSession } from "@/hooks/useGamesGating";
-import { useDailyGamesXPCap } from "@/hooks/useDailyGamesXPCap";
 import { toast } from "sonner";
-import { useExitConfirmation } from "@/components/games/useExitConfirmation";
 import { OrbitLockDrill, OrbitLockFinalResults } from "@/components/games/orbit-lock";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function OrbitLockRunner() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, session } = useAuth();
   const recordGameSession = useRecordGameSession();
-  const { gamesWithXPToday, dailyMax, isCapReached } = useDailyGamesXPCap();
   
   const difficulty = (searchParams.get("difficulty") as "easy" | "medium" | "hard") || "medium";
-  const [isComplete, setIsComplete] = useState(false);
   
   // v1.2: Track session start time for duration calculation
   const startedAtRef = useRef<Date | null>(null);
   
-  // Initialize start time when component mounts
-  useEffect(() => {
-    startedAtRef.current = new Date();
-  }, []);
-
   // v1.1: Validate auth before starting game
   useEffect(() => {
     if (!user?.id && !session?.user?.id) {
-      toast.error("Please log in to play");
+      toast.error("Please log in to start a drill");
       navigate("/auth");
     }
   }, [user?.id, session?.user?.id, navigate]);
 
   const handleComplete = useCallback(async (results: OrbitLockFinalResults) => {
-    setIsComplete(true);
-    
     // v1.2: Calculate duration
     const endedAt = new Date();
     const durationSeconds = startedAtRef.current
@@ -54,16 +41,13 @@ export default function OrbitLockRunner() {
     const userId = user?.id || session?.user?.id;
     if (userId) {
       try {
-        // v1.8: Apply daily XP cap
-        const actualXP = isCapReached ? 0 : results.xpAwarded;
+        console.log("[OrbitLock] Saving session for user:", userId, "Duration:", durationSeconds, "XP:", results.xpAwarded);
         
-        console.log("[OrbitLock] Saving session for user:", userId, "Duration:", durationSeconds, "XP:", actualXP);
-        
-        await recordGameSession({
+        const savedSession = await recordGameSession({
           gameType: "S1-AE",
           gymArea: "focus",
           thinkingMode: "fast",
-          xpAwarded: actualXP,
+          xpAwarded: results.xpAwarded,
           score: results.score,
           gameName: "orbit_lock",
           timeInBandPct: results.totalTimeInBandPct,
@@ -76,70 +60,48 @@ export default function OrbitLockRunner() {
           durationSeconds,
           status: 'completed',
           difficulty,
+          qualityScore: results.qualityScore,
+          bonusApplied: results.bonusApplied,
         });
+        const savedXP = savedSession?.xp_awarded ?? 0;
         
         console.log("[OrbitLock] ✅ Session saved successfully");
         
-        // v1.8: Show appropriate toast based on cap status
-        if (actualXP > 0) {
-          toast.success(`+${actualXP} XP earned!`, { icon: "⭐" });
+        if (savedXP > 0) {
+          toast.success(`+${savedXP} XP earned`);
           if (results.isPerfect) {
             toast.success("Perfect session", { duration: 3000 });
           }
         } else {
-          toast.info("Daily XP limit reached. Play for practice.");
+          toast.info("Daily XP limit reached. Continue for practice.");
         }
+        return savedXP;
       } catch (error) {
         console.error("[OrbitLock] ❌ Failed to record session:", error);
         toast.error("Failed to save session");
+        return 0;
       }
     } else {
       console.warn("[OrbitLock] No user ID, session not saved");
       toast.warning("Session not saved - please log in");
+      return 0;
     }
-    
-    setTimeout(() => {
-      navigate("/neuro-lab?tab=games");
-    }, 500);
-  }, [user?.id, session?.user?.id, recordGameSession, navigate, difficulty, isCapReached]);
+  }, [user?.id, session?.user?.id, recordGameSession, difficulty]);
 
   const handleBack = () => {
-    navigate("/neuro-lab?tab=games");
+    navigate("/neuro-lab?tab=games&system=fast");
   };
-
-  const { requestExit, ConfirmDialog } = useExitConfirmation(handleBack);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/30">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={requestExit}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Exit</span>
-          </Button>
-          
-          <div className="text-center">
-            <h1 className="text-sm font-semibold">Orbit Lock</h1>
-            <p className="text-[10px] text-muted-foreground capitalize">{difficulty} Mode</p>
-          </div>
-          
-          <div className="w-16" />
-        </div>
-      </div>
-      
-      <div className="pt-16 pb-8 px-4">
+      <div className="pb-8 px-4">
         <OrbitLockDrill
           difficulty={difficulty}
           onComplete={handleComplete}
           onExit={handleBack}
+          onStart={() => { startedAtRef.current = new Date(); }}
         />
       </div>
-      {ConfirmDialog}
     </div>
   );
 }

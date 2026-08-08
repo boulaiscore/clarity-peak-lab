@@ -7,7 +7,7 @@
  * hidden in messy, incomplete data.
  */
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, X } from "lucide-react";
 import { GameExitButton } from "@/components/games/GameExitButton";
@@ -25,7 +25,11 @@ import {
   Difficulty,
   DIFFICULTY_CONFIG,
   generateSession,
+  getSessionHashParams,
 } from "./signalVsNoiseContent";
+import { useValidSessionGenerator } from "@/hooks/useAntiRepetition";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 // ============================================
 // CONSTANTS
@@ -80,7 +84,7 @@ export interface SessionMetrics {
 
 interface SignalVsNoiseDrillProps {
   difficulty: Difficulty;
-  onComplete: (results: CaseResult[], metrics: SessionMetrics) => void;
+  onComplete: (results: CaseResult[], metrics: SessionMetrics, generation: DrillGenerationMeta) => void;
   onExit?: () => void;
 }
 
@@ -194,7 +198,24 @@ function TimerRing({ remaining, total }: { remaining: number; total: number }) {
 
 export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsNoiseDrillProps) {
   const config = DIFFICULTY_CONFIG[difficulty];
-  const [cases] = useState(() => generateSession(difficulty));
+  const scheduleTimeout = useSafeTimeout();
+  const generateCases = useCallback(() => generateSession(difficulty), [difficulty]);
+  const hashCases = useCallback((sessionCases: SignalCase[]) => getSessionHashParams(sessionCases, difficulty), [difficulty]);
+  const {
+    session: generatedCases,
+    comboHash,
+    duplicatesRejected,
+    fallbackUsed,
+    isLoading: isGenerating,
+  } = useValidSessionGenerator(
+    "signal_vs_noise",
+    "S2-IN",
+    generateCases,
+    hashCases,
+    true,
+    difficulty
+  );
+  const cases = useMemo(() => generatedCases ?? [], [generatedCases]);
   const [currentCase, setCurrentCase] = useState(0);
   const [results, setResults] = useState<CaseResult[]>([]);
   
@@ -209,21 +230,25 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
   
   const roundStartRef = useRef(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resultsRef = useRef<CaseResult[]>([]);
+  const roundLockedRef = useRef(false);
+  const timeoutHandlerRef = useRef<() => void>(() => undefined);
 
   // Timer
   useEffect(() => {
-    if (phase !== "playing") {
+    if (phase !== "playing" || isGenerating || !cases[currentCase]) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
     
     roundStartRef.current = Date.now();
+    roundLockedRef.current = false;
     setTimeRemaining(config.timePerCase);
     
     timerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          handleTimeout();
+          timeoutHandlerRef.current();
           return 0;
         }
         return prev - 1;
@@ -233,21 +258,29 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentCase, phase]);
+  }, [cases, config.timePerCase, currentCase, isGenerating, phase]);
 
   const currentCaseData = cases[currentCase];
 
   const handleTimeout = () => {
+    if (roundLockedRef.current) return;
+    roundLockedRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
     safeHaptic("light");
     
     const result = buildResult(null, null, null, true);
-    setResults(prev => [...prev, result]);
+    const nextResults = [...resultsRef.current, result];
+    resultsRef.current = nextResults;
+    setResults(nextResults);
     setFeedbackState("missed");
     setPhase("feedback");
     
-    setTimeout(() => proceedToNextCase(), 1200);
+    scheduleTimeout(() => proceedToNextCase(nextResults), 1200);
   };
+
+  useEffect(() => {
+    timeoutHandlerRef.current = handleTimeout;
+  });
 
   const handleDriverSelect = (driver: "A" | "B" | "C") => {
     safeHaptic("light");
@@ -273,6 +306,8 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
   };
 
   const handleConfidenceSubmit = () => {
+    if (roundLockedRef.current) return;
+    roundLockedRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
     safeHaptic("light");
     
@@ -281,7 +316,9 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
     const isWhyCorrect = selectedWhy === currentCaseData.correctWhyId;
     
     const result = buildResult(selectedDriver, selectedWhy, robustnessAnswer, false, responseTime);
-    setResults(prev => [...prev, result]);
+    const nextResults = [...resultsRef.current, result];
+    resultsRef.current = nextResults;
+    setResults(nextResults);
     
     if (isDriverCorrect && isWhyCorrect) {
       setFeedbackState("correct");
@@ -292,7 +329,7 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
     }
     
     setPhase("feedback");
-    setTimeout(() => proceedToNextCase(), 1200);
+    scheduleTimeout(() => proceedToNextCase(nextResults), 1200);
   };
 
   const handleChangeChoice = () => {
@@ -339,11 +376,11 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
     };
   };
 
-  const proceedToNextCase = () => {
+  const proceedToNextCase = (completedResults: CaseResult[]) => {
     if (currentCase + 1 >= cases.length) {
-      const metrics = calculateMetrics(results.concat(results.length === currentCase ? [] : []));
+      const metrics = calculateMetrics(completedResults);
       setPhase("complete");
-      setTimeout(() => onComplete(results, metrics), 300);
+      scheduleTimeout(() => onComplete(completedResults, metrics, { comboHash, duplicatesRejected, fallbackUsed }), 300);
     } else {
       setCurrentCase(prev => prev + 1);
       setSelectedDriver(null);
@@ -432,6 +469,14 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
     };
   };
 
+  if (isGenerating || cases.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-sm text-muted-foreground">
+        Preparing a fresh drill…
+      </div>
+    );
+  }
+
   if (phase === "complete") {
     return (
       <motion.div
@@ -454,7 +499,7 @@ export function SignalVsNoiseDrill({ difficulty, onComplete, onExit }: SignalVsN
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.22 }}
       className="min-h-screen bg-background p-4 pb-24 relative"

@@ -21,15 +21,21 @@ import {
   DIFFICULTY_CONFIG,
   SemanticNode,
   SemanticOption,
+  getSessionHashParams,
 } from "./semanticDriftContent";
 import { GameExitButton } from "@/components/games/GameExitButton";
+import { useValidSessionGenerator } from "@/hooks/useAntiRepetition";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
+import { shuffleCopy, type DrillGenerationMeta } from "@/lib/drillSession";
 
 const EASE_PREMIUM = [0.22, 1, 0.36, 1] as const;
 
 const safeHaptic = (duration: number) => {
   try {
     if ("vibrate" in navigator) navigator.vibrate(duration);
-  } catch {}
+  } catch {
+    // Haptics are optional and may be unavailable in web previews.
+  }
 };
 
 export interface RoundResult {
@@ -45,16 +51,39 @@ export interface RoundResult {
 
 interface SemanticDriftDrillProps {
   difficulty: "easy" | "medium" | "hard";
-  onComplete: (results: RoundResult[], durationSeconds: number) => void;
+  onComplete: (results: RoundResult[], durationSeconds: number, generation: DrillGenerationMeta) => void;
   onExit?: () => void;
 }
 
 export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticDriftDrillProps) {
   const config = DIFFICULTY_CONFIG[difficulty];
+  const scheduleTimeout = useSafeTimeout();
   const prefersReducedMotion = useReducedMotion();
 
   // Session state
-  const [nodes] = useState<SemanticNode[]>(() => generateSessionNodes(difficulty, config.rounds));
+  const generateNodes = useCallback(
+    () => generateSessionNodes(difficulty, config.rounds),
+    [difficulty, config.rounds]
+  );
+  const hashNodes = useCallback(
+    (sessionNodes: SemanticNode[]) => getSessionHashParams(sessionNodes, difficulty),
+    [difficulty]
+  );
+  const {
+    session: generatedNodes,
+    comboHash,
+    duplicatesRejected,
+    fallbackUsed,
+    isLoading: isGenerating,
+  } = useValidSessionGenerator(
+    "semantic_drift",
+    "S1-RA",
+    generateNodes,
+    hashNodes,
+    true,
+    difficulty
+  );
+  const nodes = useMemo(() => generatedNodes ?? [], [generatedNodes]);
   const [currentRound, setCurrentRound] = useState(0);
   const [phase, setPhase] = useState<"ready" | "playing" | "feedback" | "transitioning" | "complete">("ready");
 
@@ -86,7 +115,7 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   useEffect(() => {
     if (!currentNode) return;
     const indexed = currentNode.options.map((opt, idx) => ({ option: opt, originalIndex: idx }));
-    setShuffledOptions(indexed.sort(() => Math.random() - 0.5));
+    setShuffledOptions(shuffleCopy(indexed));
   }, [currentNode]);
 
   // Clear any pending timeout
@@ -100,6 +129,7 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
   // Forward declarations through refs to break the cycle
   const proceedRef = useRef<() => void>(() => {});
   const handleTimeoutRef = useRef<() => void>(() => {});
+  const startRoundRef = useRef<(roundIdx: number) => void>(() => {});
 
   // Proceed to next round (or finish) — idempotent per round
   const proceedToNextRound = useCallback(() => {
@@ -110,7 +140,11 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       setPhase("complete");
       phaseRef.current = "complete";
       const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
-      setTimeout(() => onComplete(resultsRef.current, durationSeconds), 60);
+      scheduleTimeout(() => onComplete(resultsRef.current, durationSeconds, {
+        comboHash,
+        duplicatesRejected,
+        fallbackUsed,
+      }), 60);
       return;
     }
     setCurrentRound(next);
@@ -122,15 +156,15 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
     proceedScheduledRef.current = false;
     setPhase("playing");
     phaseRef.current = "playing";
-    startRound(next);
-  }, [clearRoundTimeout, config.rounds, onComplete]);
+    startRoundRef.current(next);
+  }, [clearRoundTimeout, comboHash, config.rounds, duplicatesRejected, fallbackUsed, onComplete, scheduleTimeout]);
 
   // Schedule proceed exactly once per round
   const scheduleProceed = useCallback((delay: number) => {
     if (proceedScheduledRef.current) return;
     proceedScheduledRef.current = true;
-    setTimeout(() => proceedRef.current(), delay);
-  }, []);
+    scheduleTimeout(() => proceedRef.current(), delay);
+  }, [scheduleTimeout]);
 
   // Handle a timed-out round
   const handleTimeout = useCallback(() => {
@@ -174,6 +208,10 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
     [clearRoundTimeout, config.timePerRound]
   );
 
+  useEffect(() => {
+    startRoundRef.current = startRound;
+  }, [startRound]);
+
   // Handle option selection
   const handleSelect = useCallback(
     (optionIndex: number) => {
@@ -211,7 +249,7 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
 
   // Kick off the session
   useEffect(() => {
-    if (phase === "ready") {
+    if (phase === "ready" && !isGenerating && nodes.length > 0) {
       const t = setTimeout(() => {
         setPhase("playing");
         sessionStartRef.current = Date.now();
@@ -221,7 +259,7 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
       }, 400);
       return () => clearTimeout(t);
     }
-  }, [phase, startRound]);
+  }, [isGenerating, nodes.length, phase, startRound]);
 
   // Cleanup
   useEffect(() => {
@@ -239,6 +277,14 @@ export function SemanticDriftDrill({ difficulty, onComplete, onExit }: SemanticD
     }),
     [prefersReducedMotion]
   );
+
+  if (isGenerating || nodes.length === 0) {
+    return (
+      <div className="fixed inset-0 bg-background flex items-center justify-center text-sm text-muted-foreground">
+        Preparing a fresh drill…
+      </div>
+    );
+  }
 
   if (phase === "complete") {
     return (

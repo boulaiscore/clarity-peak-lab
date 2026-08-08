@@ -45,7 +45,7 @@ export function useExitConfirmation(onConfirm: () => void) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel className="bg-muted hover:bg-muted/80">
-            Continue Playing
+            Continue Drill
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}

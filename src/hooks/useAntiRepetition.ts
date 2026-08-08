@@ -114,7 +114,8 @@ export function useValidSessionGenerator<T>(
   gameType: string,
   generator: () => T,
   getHashParams: (session: T) => ComboHashParams,
-  enabled: boolean = true
+  enabled: boolean = true,
+  generationKey: string = "default"
 ) {
   const { user } = useAuth();
   const [result, setResult] = useState<SessionGeneratorResult<T> | null>(null);
@@ -176,7 +177,7 @@ export function useValidSessionGenerator<T>(
     };
 
     generateSession();
-  }, [user?.id, gameName, gameType, systemType, enabled]); // Note: generator and getHashParams intentionally excluded
+  }, [user?.id, gameName, gameType, systemType, enabled, generationKey, generator, getHashParams]);
 
   const regenerate = useCallback(async () => {
     if (!user?.id) {

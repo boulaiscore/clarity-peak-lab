@@ -23,7 +23,8 @@ import { ArrowLeft, Brain, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
-import { calculateGameXP } from "@/lib/trainingPlans";
+import { calculateScoredDrillXP } from "@/lib/trainingPlans";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 type GamePhase = "intro" | "playing" | "results";
 
@@ -55,7 +56,7 @@ export default function CounterfactualAuditRunner() {
   // Validate auth
   useEffect(() => {
     if (!user?.id && !session?.user?.id) {
-      toast.error("Please log in to play");
+      toast.error("Please log in to start a drill");
       navigate("/auth");
     }
   }, [user?.id, session?.user?.id, navigate]);
@@ -68,14 +69,15 @@ export default function CounterfactualAuditRunner() {
   const handleGameComplete = useCallback(async (
     gameResults: RoundResult[],
     gameMetrics: SessionMetrics,
-    duration: number
+    duration: number,
+    generation: DrillGenerationMeta
   ) => {
     setResults(gameResults);
     setMetrics(gameMetrics);
     setDurationSeconds(duration);
     
     const normalizedDifficulty = difficulty === "standard" ? "medium" : difficulty;
-    const finalXP = calculateGameXP(normalizedDifficulty, gameMetrics.sessionScore >= 90);
+    const finalXP = calculateScoredDrillXP(normalizedDifficulty, gameMetrics.sessionScore, gameMetrics.sessionScore >= 90);
     setXpAwarded(finalXP);
     
     // Calculate duration from startedAtRef
@@ -102,22 +104,28 @@ export default function CounterfactualAuditRunner() {
           durationSeconds: calculatedDuration,
           status: 'completed',
           difficulty: normalizedDifficulty,
+          comboHash: generation.comboHash,
+          antiRepetitionTriggered: generation.duplicatesRejected > 0,
+          duplicatesRejected: generation.duplicatesRejected,
+          fallbackUsed: generation.fallbackUsed,
         });
         const savedXP = savedSession?.xp_awarded ?? 0;
         setXpAwarded(savedXP);
         
         console.log("[CounterfactualAudit] ✅ Session saved successfully");
-        toast.success(savedXP > 0 ? `+${savedXP} XP · Critical Thinking updated` : "Daily XP limit reached. Play for practice.");
+        toast.success(savedXP > 0 ? `+${savedXP} XP · Critical Thinking updated` : "Daily XP limit reached. Continue for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
       } catch (error) {
+        setXpAwarded(0);
         console.error("[CounterfactualAudit] ❌ Failed to record session:", error);
         toast.error("Failed to save session");
       } finally {
         setIsSaving(false);
       }
     } else {
+      setXpAwarded(0);
       console.warn("[CounterfactualAudit] No user ID, session not saved");
       toast.warning("Session not saved - please log in");
     }
@@ -135,7 +143,7 @@ export default function CounterfactualAuditRunner() {
   }, []);
   
   const handleBackToLab = useCallback(() => {
-    navigate("/neuro-lab?tab=games");
+    navigate("/neuro-lab?tab=games&system=slow");
   }, [navigate]);
 
   const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
@@ -148,7 +156,7 @@ export default function CounterfactualAuditRunner() {
         {phase === "intro" && (
           <motion.div
             key="intro"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full flex flex-col"
@@ -158,7 +166,7 @@ export default function CounterfactualAuditRunner() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/neuro-lab?tab=games")}
+                onClick={() => navigate("/neuro-lab?tab=games&system=slow")}
                 className="h-9 w-9"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -210,7 +218,7 @@ export default function CounterfactualAuditRunner() {
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => navigate("/neuro-lab?tab=games")}
+                    onClick={() => navigate("/neuro-lab?tab=games&system=slow")}
                   >
                     Cancel
                   </Button>
@@ -218,7 +226,7 @@ export default function CounterfactualAuditRunner() {
                     className="flex-1 bg-violet-600 hover:bg-violet-700"
                     onClick={handleStartGame}
                   >
-                    Start
+                    Start Drill
                   </Button>
                 </div>
               </div>
@@ -229,7 +237,7 @@ export default function CounterfactualAuditRunner() {
         {phase === "playing" && (
           <motion.div
             key="playing"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full"
@@ -245,7 +253,7 @@ export default function CounterfactualAuditRunner() {
         {phase === "results" && metrics && (
           <motion.div
             key="results"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full overflow-auto"

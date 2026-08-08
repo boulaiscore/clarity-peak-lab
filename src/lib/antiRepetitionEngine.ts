@@ -17,7 +17,7 @@ export interface ComboHashParams {
   stimulusIds: string[];
   distractorSet?: string[];
   temporalParams?: Record<string, number>;
-  ruleParams?: Record<string, any>;
+  ruleParams?: Record<string, unknown>;
   difficulty: string;
 }
 
@@ -45,10 +45,10 @@ export interface SessionGeneratorResult<T> {
 
 const EXCLUSION_WINDOW = {
   S1: 3, // Exclude last 3 sessions for S1 games
-  S2: 2, // Exclude last 2 sessions for S2 games (stronger protection)
+  S2: 2, // Exclude last 2 sessions for S2 drills
 };
 
-const DAYS_WINDOW = 7; // Also exclude any combo from last 7 days
+const DAYS_WINDOW = 7; // Bound the history query used by the session window
 const SIMILARITY_THRESHOLD = 0.75; // Reject if similarity >= 0.75
 const MAX_GENERATION_ATTEMPTS = 10;
 
@@ -63,11 +63,11 @@ const MAX_GENERATION_ATTEMPTS = 10;
 export function generateComboHash(params: ComboHashParams): string {
   const parts: string[] = [
     params.difficulty,
-    ...params.stimulusIds.sort(),
+    ...[...params.stimulusIds].sort(),
   ];
 
   if (params.distractorSet?.length) {
-    parts.push("D:" + params.distractorSet.sort().join(","));
+    parts.push("D:" + [...params.distractorSet].sort().join(","));
   }
 
   if (params.temporalParams) {
@@ -312,7 +312,6 @@ export async function generateValidSession<T>(
   const recentCombos = await fetchRecentCombos(userId, gameName);
   
   let duplicatesRejected = 0;
-  let fallbackUsed = false;
   let bestCandidate: T | null = null;
   let bestHash: string = "";
 
@@ -350,21 +349,15 @@ export async function generateValidSession<T>(
   }
 
   // Fallback: use the best candidate we found, even if it's a near-duplicate
-  fallbackUsed = true;
   console.warn("[AntiRepetition] Fallback used after exhausting attempts:", {
     gameName,
     duplicatesRejected,
   });
 
-  // Generate one more with randomized temporal params as fallback
-  const fallbackSession = generator();
-  const fallbackParams = getHashParams(fallbackSession);
-  // Add randomization to make it unique
-  fallbackParams.temporalParams = {
-    ...fallbackParams.temporalParams,
-    _fallbackNoise: Math.random(),
-  };
-  const fallbackHash = generateComboHash(fallbackParams);
+  // Keep the hash faithful to the content shown. Artificially salting a
+  // repeated session would make future duplicate checks believe it was new.
+  const fallbackSession = bestCandidate ?? generator();
+  const fallbackHash = bestHash || generateComboHash(getHashParams(fallbackSession));
 
   return {
     session: fallbackSession,

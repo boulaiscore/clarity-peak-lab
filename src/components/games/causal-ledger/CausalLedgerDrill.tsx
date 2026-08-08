@@ -22,7 +22,11 @@ import {
   DECISION_LABELS,
   CausalScenario,
   Decision,
+  getSessionHashParams,
 } from "./causalLedgerContent";
+import { useValidSessionGenerator } from "@/hooks/useAntiRepetition";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 // Premium easing
 const EASE_PREMIUM = [0.22, 1, 0.36, 1] as const;
@@ -33,7 +37,9 @@ const safeHaptic = (duration: number) => {
     if ('vibrate' in navigator) {
       navigator.vibrate(duration);
     }
-  } catch {}
+  } catch {
+    // Haptics are optional and may be unavailable in web previews.
+  }
 };
 
 export interface RoundResult {
@@ -49,15 +55,30 @@ export interface RoundResult {
 }
 
 interface CausalLedgerDrillProps {
-  onComplete: (results: RoundResult[], durationSeconds: number) => void;
+  onComplete: (results: RoundResult[], durationSeconds: number, generation: DrillGenerationMeta) => void;
   onExit?: () => void;
 }
 
 export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps) {
+  const scheduleTimeout = useSafeTimeout();
   const prefersReducedMotion = useReducedMotion();
   
   // Session state
-  const [scenarios] = useState<CausalScenario[]>(() => generateSessionScenarios());
+  const generateScenarios = useCallback(() => generateSessionScenarios(), []);
+  const hashScenarios = useCallback((sessionScenarios: CausalScenario[]) => getSessionHashParams(sessionScenarios), []);
+  const {
+    session: generatedScenarios,
+    comboHash,
+    duplicatesRejected,
+    fallbackUsed,
+    isLoading: isGenerating,
+  } = useValidSessionGenerator(
+    "causal_ledger",
+    "S2-CT",
+    generateScenarios,
+    hashScenarios
+  );
+  const scenarios = generatedScenarios ?? [];
   const [currentRound, setCurrentRound] = useState(0);
   const [results, setResults] = useState<RoundResult[]>([]);
   const [phase, setPhase] = useState<"ready" | "reading" | "deciding" | "feedback" | "complete">("ready");
@@ -69,6 +90,8 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
   // Timing refs
   const roundStartTimeRef = useRef<number>(0);
   const sessionStartRef = useRef<number>(Date.now());
+  const proceedRef = useRef<() => void>(() => undefined);
+  const decisionLockedRef = useRef(false);
   
   // Current scenario
   const currentScenario = scenarios[currentRound];
@@ -94,7 +117,8 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
   
   // Handle decision selection
   const handleDecision = useCallback((decision: Decision) => {
-    if (phase !== "deciding" || selectedDecision !== null) return;
+    if (phase !== "deciding" || selectedDecision !== null || decisionLockedRef.current) return;
+    decisionLockedRef.current = true;
     
     const decisionTime = Date.now() - roundStartTimeRef.current;
     const isCorrect = decision === currentScenario.correctDecision;
@@ -121,8 +145,8 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
     setPhase("feedback");
     
     // Brief feedback then proceed
-    setTimeout(() => proceedToNextRound(), 400);
-  }, [phase, selectedDecision, currentScenario, currentRound, currentAct]);
+    scheduleTimeout(() => proceedRef.current(), 400);
+  }, [phase, selectedDecision, currentScenario, currentRound, currentAct, scheduleTimeout]);
   
   // Proceed to next round
   const proceedToNextRound = useCallback(() => {
@@ -130,10 +154,10 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
       // Session complete
       setPhase("complete");
       const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
-      setTimeout(() => {
+      scheduleTimeout(() => {
         // Get final results including last one
         setResults(finalResults => {
-          onComplete(finalResults, durationSeconds);
+          onComplete(finalResults, durationSeconds, { comboHash, duplicatesRejected, fallbackUsed });
           return finalResults;
         });
       }, 100);
@@ -141,23 +165,23 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
       setCurrentRound(prev => prev + 1);
       setSelectedDecision(null);
       setFeedbackState(null);
+      decisionLockedRef.current = false;
       setPhase("reading");
       roundStartTimeRef.current = Date.now();
     }
-  }, [currentRound, onComplete]);
+  }, [comboHash, currentRound, duplicatesRejected, fallbackUsed, onComplete, scheduleTimeout]);
+
+  useEffect(() => {
+    proceedRef.current = proceedToNextRound;
+  }, [proceedToNextRound]);
   
   // Start game after ready phase
   useEffect(() => {
-    if (phase === "ready") {
+    if (phase === "ready" && !isGenerating && scenarios.length > 0) {
       const timeout = setTimeout(() => {
         setPhase("reading");
         sessionStartRef.current = Date.now();
         roundStartTimeRef.current = Date.now();
-        
-        // After brief reading pause, enable decisions
-        setTimeout(() => {
-          setPhase("deciding");
-        }, 800);
       }, 500);
       return () => clearTimeout(timeout);
     }
@@ -168,7 +192,7 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
       }, 800);
       return () => clearTimeout(timeout);
     }
-  }, [phase, currentRound]);
+  }, [currentRound, isGenerating, phase, scenarios.length]);
   
   // Progress calculation
   const progress = ((currentRound + 1) / CAUSAL_LEDGER_CONFIG.rounds) * 100;
@@ -182,6 +206,14 @@ export function CausalLedgerDrill({ onComplete, onExit }: CausalLedgerDrillProps
     }
   };
   
+  if (isGenerating || scenarios.length === 0) {
+    return (
+      <div className="fixed inset-0 bg-background flex items-center justify-center text-sm text-muted-foreground">
+        Preparing a fresh drill…
+      </div>
+    );
+  }
+
   if (phase === "complete") {
     return (
       <motion.div 

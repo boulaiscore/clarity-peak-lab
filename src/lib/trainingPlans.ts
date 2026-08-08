@@ -148,6 +148,24 @@ export function calculateGameXP(difficulty: GameDifficulty, isPerfect: boolean):
   return config.base + (isPerfect ? config.perfectBonus : 0);
 }
 
+/**
+ * Canonical XP curve for scored drills.
+ * Completion alone earns the global 9 XP floor; performance then unlocks the
+ * configured difficulty base, with the perfect bonus reserved for a verified
+ * high-quality session. Category quality bonuses are applied afterwards.
+ */
+export function calculateScoredDrillXP(
+  difficulty: GameDifficulty,
+  score: number,
+  isPerfect: boolean
+): number {
+  const config = GAME_XP_BY_DIFFICULTY[difficulty];
+  const normalizedScore = Math.min(100, Math.max(0, score));
+  const performanceFactor = 0.30 + 0.70 * (normalizedScore / 100);
+  const performanceBase = Math.max(9, Math.round(config.base * performanceFactor));
+  return Math.min(45, performanceBase + (isPerfect ? config.perfectBonus : 0));
+}
+
 // Helper to get XP for exercise difficulty
 export function getExerciseXP(difficulty: "easy" | "medium" | "hard"): number {
   switch (difficulty) {
@@ -201,7 +219,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     // v1.5: Clear communication fields
     dailyEstimate: {
       total: "~15-20 min",
-      games: "1 game/day (~15 min)",
+      games: "1 drill/day (~15 min)",
       recovery: "~30 min (Detox/Walking)",
       tasks: "Optional"
     },
@@ -212,7 +230,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "Complete a Detox or Walking session"
     },
     whatYouDo: [
-      "4-5 S1 games/week (Easy/Medium)",
+      "4-5 S1 drills/week (Easy/Medium)",
       "S2 unlocked when Recovery ≥ 50%",
       "Tasks optional — boost Reasoning Quality"
     ],
@@ -299,7 +317,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     // v1.5: Clear communication fields
     dailyEstimate: {
       total: "~25-35 min",
-      games: "1-2 games/day (~20-25 min)",
+      games: "1-2 drills/day (~20-25 min)",
       recovery: "~30 min (Detox/Walking)",
       tasks: "10-15 min (2/week)"
     },
@@ -310,7 +328,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "Maintain consistent Detox/Walking habit"
     },
     whatYouDo: [
-      "6-7 balanced S1+S2 games/week",
+      "6-7 balanced S1+S2 drills/week",
       "Medium difficulty standard",
       "2 tasks/week — build Reasoning Quality"
     ],
@@ -397,7 +415,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     // v1.5: Clear communication fields
     dailyEstimate: {
       total: "~45-60 min",
-      games: "2-3 games/day (~30-35 min)",
+      games: "2-3 drills/day (~30-35 min)",
       recovery: "~40 min (Detox/Walking)",
       tasks: "15-20 min (3/week mandatory)"
     },
@@ -408,7 +426,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
       prerequisiteForS2: "28h/week Detox + Walking required"
     },
     whatYouDo: [
-      "8-10 intensive S1+S2 games/week",
+      "8-10 intensive S1+S2 drills/week",
       "Medium/Hard difficulty preferred",
       "3 mandatory tasks/week — maximize Reasoning Quality"
     ],

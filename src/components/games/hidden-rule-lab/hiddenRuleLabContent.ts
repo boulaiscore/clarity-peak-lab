@@ -554,7 +554,7 @@ export function getAllRuleSets(): RuleSet[] {
 export function getSessionHashParams(
   ruleSet: RuleSet,
   difficulty: Difficulty
-): { stimulusIds: string[]; ruleParams: Record<string, any>; difficulty: string } {
+): { stimulusIds: string[]; ruleParams: Record<string, unknown>; difficulty: string } {
   return {
     stimulusIds: [ruleSet.id],
     ruleParams: { correctHypothesis: ruleSet.correctHypothesis },

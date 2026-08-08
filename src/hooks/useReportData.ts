@@ -346,7 +346,7 @@ export function useReportData(userId: string) {
       if (weeklyGamesXP > 0 && aggregates.sessionsLast7d === 0) {
         console.warn(
           "[Data Mismatch] XP ledger has entries but session ledger is empty for last 7 days. " +
-          "Check game completion flow in useRecordGameSession."
+          "Check drill completion flow in useRecordGameSession."
         );
       }
     }

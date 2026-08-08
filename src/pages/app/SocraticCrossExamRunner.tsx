@@ -40,7 +40,7 @@ export default function SocraticCrossExamRunner() {
   
   useEffect(() => {
     if (!user?.id && !session?.user?.id) {
-      toast.error("Please log in to play");
+      toast.error("Please log in to start this drill");
       navigate("/auth");
     }
   }, [user?.id, session?.user?.id, navigate]);
@@ -88,7 +88,7 @@ export default function SocraticCrossExamRunner() {
         if (savedXP > 0) {
           toast.success(`+${savedXP} XP · Critical Thinking updated`);
         } else {
-          toast.info("Daily XP limit reached. Play for practice.");
+          toast.info("Daily XP limit reached. Continue for practice.");
         }
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
       } catch (error) {

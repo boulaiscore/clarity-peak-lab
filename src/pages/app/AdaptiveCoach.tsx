@@ -193,7 +193,7 @@ export default function AdaptiveCoach() {
           <div>
             <h2 className="text-sm font-medium">What the model uses</h2>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Current AE, RA, CT and IN states; recent same-skill game scores; time since matching training; and today’s Recovery, Sharpness and Readiness.
+              Current AE, RA, CT and IN states; recent same-skill drill scores; time since matching training; and today’s Recovery, Sharpness and Readiness.
             </p>
           </div>
           <div className="border-t border-border/25 pt-3">

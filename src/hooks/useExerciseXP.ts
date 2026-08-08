@@ -162,7 +162,7 @@ export function useRecordExerciseCompletion() {
           routing,
           targetColumn,
           currentValue,
-          scaledXP,
+          xpEarned,
           newValue,
         });
 

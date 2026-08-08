@@ -11,7 +11,7 @@ type PlanSpec = { label: string; value: string };
 
 const PLAN_SPECS: Record<TrainingPlanId, PlanSpec[]> = {
   light: [
-    { label: "Volume", value: "4–5 games / week" },
+    { label: "Volume", value: "4–5 drills / week" },
     { label: "Focus", value: "System 1 (intuitive)" },
     { label: "Reasoning", value: "Up to 4 S2 / week" },
     { label: "Unlock", value: "Recovery ≥ 50%" },
@@ -19,14 +19,14 @@ const PLAN_SPECS: Record<TrainingPlanId, PlanSpec[]> = {
     { label: "Tasks", value: "Optional" },
   ],
   expert: [
-    { label: "Volume", value: "6–7 games / week" },
+    { label: "Volume", value: "6–7 drills / week" },
     { label: "Focus", value: "S1 + S2 balanced" },
     { label: "Reasoning", value: "Up to 7 S2 / week" },
     { label: "Recovery", value: "14h / week" },
     { label: "Tasks", value: "2 / week" },
   ],
   superhuman: [
-    { label: "Volume", value: "8–10 games / week" },
+    { label: "Volume", value: "8–10 drills / week" },
     { label: "Focus", value: "Heavy System 2" },
     { label: "Reasoning", value: "Up to 10 S2 / week" },
     { label: "Unlock", value: "Recovery ≥ 55%" },

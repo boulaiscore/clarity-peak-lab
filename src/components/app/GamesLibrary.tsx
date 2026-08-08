@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Lock, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -83,7 +83,11 @@ const SYSTEMS = [
 
 export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibraryProps) {
   const navigate = useNavigate();
-  const [openSystem, setOpenSystem] = useState<ThinkingSystem | null>(null);
+  const [searchParams] = useSearchParams();
+  const systemFromUrl = searchParams.get("system");
+  const [openSystem, setOpenSystem] = useState<ThinkingSystem | null>(
+    systemFromUrl === "fast" || systemFromUrl === "slow" ? systemFromUrl : null
+  );
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
   const [pickerMode, setPickerMode] = useState<ThinkingSystem>("fast");

@@ -117,7 +117,7 @@ export function getS1AEQualityBonus(score: number, baseXP: number): QualityBonus
 
   // Apply hard cap
   const maxXP = Math.floor(baseXP * XP_CAPS["S1-AE"]);
-  const totalXP = Math.min(baseXP + bonus, maxXP);
+  const totalXP = Math.min(baseXP + bonus, maxXP, 45);
   const actualBonus = totalXP - baseXP;
 
   return {
@@ -187,7 +187,7 @@ export function getS1RAQualityBonus(score: number, baseXP: number): QualityBonus
 
   // Apply hard cap
   const maxXP = Math.floor(baseXP * XP_CAPS["S1-RA"]);
-  const totalXP = Math.min(baseXP + bonus, maxXP);
+  const totalXP = Math.min(baseXP + bonus, maxXP, 45);
   const actualBonus = totalXP - baseXP;
 
   return {
@@ -275,7 +275,7 @@ export function getS2INQualityBonus(score: number, baseXP: number): QualityBonus
 
   // Apply hard cap
   const maxXP = Math.floor(baseXP * XP_CAPS["S2-IN"]);
-  const totalXP = Math.min(baseXP + bonus, maxXP);
+  const totalXP = Math.min(baseXP + bonus, maxXP, 45);
   const actualBonus = totalXP - baseXP;
 
   return {

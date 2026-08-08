@@ -472,7 +472,7 @@ export function NeuralGrowthAnimation({
                     {bottleneck.variable === "recovery"
                       ? "Complete Detox or Walking sessions to boost it."
                       : bottleneck.variable === "training"
-                        ? "Play more games to earn XP and level up."
+                        ? "Complete more drills to earn XP and level up."
                         : "Train in NeuroLab to sharpen your thinking."}
                   </p>
                 </div>

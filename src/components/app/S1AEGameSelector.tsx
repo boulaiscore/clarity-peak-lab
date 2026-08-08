@@ -59,7 +59,7 @@ const GAMES: GameOption[] = [
     description: "Keep a signal locked in the target band using smooth dial control. Trains attentional stability and distraction resistance.",
     icon: Target,
     route: "/neuro-lab/orbit-lock",
-    xpByDifficulty: { easy: 9, medium: 15, hard: 34 },
+    xpByDifficulty: { easy: 15, medium: 22, hard: 30 },
     accentColor: "violet",
   },
   {
@@ -69,7 +69,7 @@ const GAMES: GameOption[] = [
     description: "Track and respond only to the active lane as focus shifts unpredictably. Trains attentional flexibility and recovery speed.",
     icon: RefreshCcw,
     route: "/neuro-lab/focus-switch",
-    xpByDifficulty: { easy: 9, medium: 15, hard: 24 },
+    xpByDifficulty: { easy: 15, medium: 22, hard: 30 },
     accentColor: "emerald",
   },
 ];
@@ -121,7 +121,6 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
     safetyModeActive,
     safetyLabel,
     isLoading: difficultyLoading,
-    _debug,
   } = useS1Difficulty();
   
   // v1.6: Fetch recently played games (last 7 days)
@@ -403,20 +402,11 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                   <div className="flex items-center gap-1.5 text-area-fast">
                     <Star className="w-4 h-4 fill-area-fast/50" />
                     <span className="text-sm font-semibold">
-                      {selectedGame.xpByDifficulty[selectedDifficulty]} XP
+                      ~{selectedGame.xpByDifficulty[selectedDifficulty]} XP
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground">~90 seconds</span>
                 </div>
-                
-                {/* Debug info — disabled in production builds */}
-                {false && _debug && (
-                  <div className="p-2 rounded-lg bg-muted/10 text-[9px] text-muted-foreground/60 font-mono">
-                    REC={Math.round(_debug.recovery)} | SHP={Math.round(_debug.sharpness)} | RDY={Math.round(_debug.readiness)}
-                    <br />
-                    XP={_debug.weeklyXP} | TC={_debug.tc} | opt=[{_debug.optMin}-{_debug.optMax}]
-                  </div>
-                )}
                 
                 {/* Start button */}
                 <motion.button
@@ -432,7 +422,7 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
                         : "from-primary to-primary/80"
                   )}
                 >
-                  Start Session
+                  Start Drill
                 </motion.button>
               </div>
             </motion.div>

@@ -209,7 +209,7 @@ export function useReplayAdvisory() {
                   from now.
                 </span>
                 <span className="block text-muted-foreground/80">
-                  Replaying earlier still works, but the score will
+                  Repeating it earlier still works, but the score will
                   carry residual fatigue and contribute less to your
                   metrics.
                 </span>

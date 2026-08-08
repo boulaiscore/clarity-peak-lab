@@ -20,8 +20,9 @@ export interface ConstellationSnapResultsProps {
   roundsCompleted: number;
   totalRounds: number;
   durationSeconds: number;
+  qualityLine?: string;
   mistakes?: ReviewMistake[];
-  onPlayAgain: () => void;
+  onPlayAgain?: () => void;
   onExit: () => void;
 }
 
@@ -36,6 +37,7 @@ export function ConstellationSnapResults({
   roundsCompleted,
   totalRounds,
   durationSeconds,
+  qualityLine,
   mistakes = [],
   onPlayAgain,
   onExit,
@@ -104,6 +106,7 @@ export function ConstellationSnapResults({
       kpis={kpis}
       isPerfect={isPerfect}
       mistakes={mistakes}
+      qualityLine={qualityLine}
       insight={insight}
       onPlayAgain={onPlayAgain}
       onExit={onExit}

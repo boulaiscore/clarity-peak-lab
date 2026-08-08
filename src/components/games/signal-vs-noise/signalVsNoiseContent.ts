@@ -727,7 +727,7 @@ export const CASES: SignalCase[] = [
 
 export function generateSession(difficulty: Difficulty): SignalCase[] {
   const config = DIFFICULTY_CONFIG[difficulty];
-  const shuffled = [...CASES].sort(() => Math.random() - 0.5);
+  const shuffled = shuffleCopy(CASES);
   
   // Ensure at least 3 robustness cases for standard/hard
   const robustnessCases = shuffled.filter(c => c.isRobustnessCase);
@@ -739,7 +739,7 @@ export function generateSession(difficulty: Difficulty): SignalCase[] {
   const selectedOthers = otherCases.slice(0, remaining);
   
   // Combine and shuffle final order
-  return [...selectedRobustness, ...selectedOthers].sort(() => Math.random() - 0.5);
+  return shuffleCopy([...selectedRobustness, ...selectedOthers]);
 }
 
 export function getAllCases(): SignalCase[] {
@@ -763,3 +763,4 @@ export function getSessionHashParams(
     difficulty,
   };
 }
+import { shuffleCopy } from "@/lib/drillSession";

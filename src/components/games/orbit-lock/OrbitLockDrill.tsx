@@ -6,6 +6,7 @@ import { OrbitPlayfield } from "./OrbitPlayfield";
 import { OrbitLockResults } from "./OrbitLockResults";
 import { Target, Zap, Shield } from "lucide-react";
 import { GameExitButton } from "@/components/games/GameExitButton";
+import { useSafeTimeout } from "@/hooks/useSafeTimeout";
 
 // ============================================
 // TYPES & CONFIGURATION
@@ -13,8 +14,9 @@ import { GameExitButton } from "@/components/games/GameExitButton";
 
 interface OrbitLockDrillProps {
   difficulty: "easy" | "medium" | "hard";
-  onComplete: (results: OrbitLockFinalResults) => void;
+  onComplete: (results: OrbitLockFinalResults) => Promise<number>;
   onExit?: () => void;
+  onStart?: () => void;
 }
 
 export interface OrbitLockFinalResults {
@@ -31,6 +33,9 @@ export interface OrbitLockFinalResults {
   isPerfect: boolean;
   difficulty: "easy" | "medium" | "hard";
   actsCount: number;
+  qualityScore: number;
+  qualityLine?: string;
+  bonusApplied: boolean;
 }
 
 interface ActConfig {
@@ -50,7 +55,8 @@ interface DifficultyConfig {
 }
 
 // v1.5: XP imported from centralized config
-import { GAME_XP_BY_DIFFICULTY, calculateGameXP } from "@/lib/trainingPlans";
+import { GAME_XP_BY_DIFFICULTY, calculateScoredDrillXP } from "@/lib/trainingPlans";
+import { calculateQualityBonus } from "@/lib/gameQualityBonus";
 
 const ACT_CONFIGS: ActConfig[] = [
   { duration: 25, label: "Stabilize", description: "Find your rhythm", driftStrength: 1.0, pulseFrequency: 0, glintFrequency: 0, orbitSpeedMult: 1.0 },
@@ -77,8 +83,9 @@ const PERFECT_OVERCORRECTION_THRESHOLD = 0.3;
 // MAIN COMPONENT
 // ============================================
 
-export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDrillProps) {
+export function OrbitLockDrill({ difficulty, onComplete, onExit, onStart }: OrbitLockDrillProps) {
   const config = DIFFICULTY_CONFIGS[difficulty];
+  const scheduleTimeout = useSafeTimeout();
   
   // Game phases
   const [phase, setPhase] = useState<"instruction" | "playing" | "act_complete" | "transition" | "results">("instruction");
@@ -116,6 +123,8 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   const [dialChanges, setDialChanges] = useState<number[]>([]);
   const [distractionTimeInBand, setDistractionTimeInBand] = useState(0);
   const [distractionTotalTime, setDistractionTotalTime] = useState(0);
+  const [persistedXP, setPersistedXP] = useState<number | null>(null);
+  const saveStartedRef = useRef(false);
 
   const prevDialValue = useRef(0.5);
   const lastUpdateTime = useRef(Date.now());
@@ -228,13 +237,13 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
       const pulseInterval = setInterval(() => {
         if (Math.random() < 0.3 * config.distractionIntensity) {
           setShowPulse(true);
-          setTimeout(() => setShowPulse(false), 1000);
+          scheduleTimeout(() => setShowPulse(false), 1000);
         }
       }, (10000 / actConfig.pulseFrequency));
       
       return () => clearInterval(pulseInterval);
     }
-  }, [phase, currentAct, config.distractionIntensity]);
+  }, [phase, currentAct, config.distractionIntensity, scheduleTimeout]);
   
   useEffect(() => {
     if (phase !== "playing") return;
@@ -246,13 +255,13 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
       const glintInterval = setInterval(() => {
         if (Math.random() < 0.25 * config.distractionIntensity) {
           setShowGlint(true);
-          setTimeout(() => setShowGlint(false), 800);
+          scheduleTimeout(() => setShowGlint(false), 800);
         }
       }, (12000 / actConfig.glintFrequency));
       
       return () => clearInterval(glintInterval);
     }
-  }, [phase, currentAct, config.distractionIntensity]);
+  }, [phase, currentAct, config.distractionIntensity, scheduleTimeout]);
   
   // ============================================
   // ACT TRANSITIONS
@@ -261,10 +270,10 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   const handleActComplete = useCallback(() => {
     setPhase("act_complete");
 
-    setTimeout(() => {
+    scheduleTimeout(() => {
       if (currentAct < 2) {
         setPhase("transition");
-        setTimeout(() => {
+        scheduleTimeout(() => {
           setCurrentAct(prev => prev + 1);
           setActTimeRemaining(ACT_CONFIGS[currentAct + 1]?.duration || 0);
           signalPosRef.current = 0.5;
@@ -279,9 +288,10 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
         setPhase("results");
       }
     }, 300);
-  }, [currentAct, setDialValue]);
+  }, [currentAct, scheduleTimeout, setDialValue]);
 
   const handleStart = useCallback(() => {
+    onStart?.();
     setPhase("playing");
     setCurrentAct(0);
     setActTimeRemaining(ACT_CONFIGS[0].duration);
@@ -292,7 +302,7 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
     directionChangeTimer.current = 0;
     lastUpdateTime.current = Date.now();
     driftDirection.current = Math.random() > 0.5 ? 1 : -1;
-  }, [setDialValue]);
+  }, [onStart, setDialValue]);
   
   // ============================================
   // CALCULATE FINAL RESULTS
@@ -341,11 +351,17 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
     const isPerfect = totalTimeInBandPct >= PERFECT_TIME_IN_BAND_THRESHOLD 
       && overcorrectionIndex < PERFECT_OVERCORRECTION_THRESHOLD
       && act3Pct >= act1Pct * 0.8; // No major degradation
-    const xpAwarded = calculateGameXP(difficulty, isPerfect);
+    const baseXP = calculateScoredDrillXP(difficulty, score, isPerfect);
+    const quality = calculateQualityBonus("S1-AE", baseXP, {
+      hitRate: totalTimeInBandPct,
+      falseAlarmRate: dropoutTimePct,
+      rtVariability: overcorrectionIndex * 150,
+      degradationSlope,
+    }, difficulty);
     
     return {
       score,
-      xpAwarded,
+      xpAwarded: quality.totalXP,
       totalTimeInBandPct: Math.round(totalTimeInBandPct * 100),
       act1TimeInBandPct: Math.round(act1Pct * 100),
       act2TimeInBandPct: Math.round(act2Pct * 100),
@@ -357,8 +373,17 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
       isPerfect,
       difficulty,
       actsCount: 3,
+      qualityScore: quality.qualityScore,
+      qualityLine: quality.qualityLine,
+      bonusApplied: quality.bonus > 0,
     };
   }, [phase, timeInBandPerAct, totalTimePerAct, dialChanges, distractionTimeInBand, distractionTotalTime, difficulty]);
+
+  useEffect(() => {
+    if (phase !== "results" || !finalResults || saveStartedRef.current) return;
+    saveStartedRef.current = true;
+    void onComplete(finalResults).then(setPersistedXP).catch(() => setPersistedXP(0));
+  }, [finalResults, onComplete, phase]);
   
   // ============================================
   // RENDER
@@ -372,7 +397,8 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   // Instruction screen
   if (phase === "instruction") {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center">
+      <div className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 text-center">
+        {onExit && <GameExitButton onExit={onExit} />}
         <motion.div
           initial={false}
           animate={{ opacity: 1, y: 0 }}
@@ -385,25 +411,25 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">Orbit Lock</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Mantieni il segnale ancorato nella banda target lungo l'orbita. Il sistema deriva continuamente: tu devi contrastarlo.
+              Keep the signal inside the target band as the orbit drifts. Use small, deliberate corrections.
             </p>
           </div>
 
-          {/* How to play */}
+          {/* Instructions */}
           <div className="bg-muted/30 rounded-xl p-4 text-left space-y-3">
-            <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Come giocare</h3>
+            <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">How it works</h3>
             <ul className="text-xs text-muted-foreground space-y-2">
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">1.</span>
-                <span>Una <span className="text-cyan-400">deriva costante</span> spinge il segnale fuori banda</span>
+                <span>A <span className="text-cyan-400">constant drift</span> moves the signal away from the target band</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">2.</span>
-                <span>Usa la <span className="text-foreground font-medium">slider</span>: <span className="text-cyan-400">◀ ANTI</span> ruota in senso antiorario, <span className="text-cyan-400">PRO ▶</span> in senso orario</span>
+                <span>Use the <span className="text-foreground font-medium">control</span>: <span className="text-cyan-400">◀ ANTI</span> moves counter-clockwise, <span className="text-cyan-400">PRO ▶</span> clockwise</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">3.</span>
-                <span>Più sposti la slider, più <span className="text-foreground font-medium">forza</span> applichi. Cerca l'equilibrio.</span>
+                <span>Larger movements apply more <span className="text-foreground font-medium">force</span>. Aim for steady balance.</span>
               </li>
             </ul>
           </div>
@@ -411,18 +437,18 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
           <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50" />
-              <span>In banda</span>
+              <span>In band</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full bg-orange-400 shadow-lg shadow-orange-400/50" />
-              <span>Fuori banda</span>
+              <span>Out of band</span>
             </div>
           </div>
           
           <div className="grid grid-cols-3 gap-2 text-[10px]">
             {ACT_CONFIGS.map((act, i) => (
               <div key={i} className="p-2 rounded-lg bg-muted/30 border border-border/50">
-                <div className="font-medium text-foreground">Fase {i + 1}</div>
+                <div className="font-medium text-foreground">Act {i + 1}</div>
                 <div className="text-muted-foreground">{act.label}</div>
               </div>
             ))}
@@ -432,7 +458,7 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
             onClick={handleStart}
             className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-semibold text-sm hover:opacity-90 transition-opacity"
           >
-            Inizia Sessione
+            Start Drill
           </button>
         </motion.div>
       </div>
@@ -441,18 +467,29 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   
   // Results screen
   if (phase === "results" && finalResults) {
+    if (persistedXP === null) {
+      return (
+        <div className="min-h-[70vh] flex items-center justify-center text-sm text-muted-foreground">
+          Saving session…
+        </div>
+      );
+    }
     return (
-      <OrbitLockResults 
-        results={finalResults} 
-        onContinue={() => onComplete(finalResults)} 
-      />
+      <div className="relative">
+        {onExit && <GameExitButton onExit={onExit} />}
+        <OrbitLockResults
+          results={{ ...finalResults, xpAwarded: persistedXP }}
+          onContinue={() => onExit?.()}
+        />
+      </div>
     );
   }
   
   // Act complete overlay
   if (phase === "act_complete") {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
+      <div className="relative min-h-[70vh] flex items-center justify-center">
+        {onExit && <GameExitButton onExit={onExit} />}
         <motion.div
           initial={false}
           animate={{ scale: 1, opacity: 1 }}
@@ -469,7 +506,8 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit }: OrbitLockDril
   if (phase === "transition") {
     const nextAct = ACT_CONFIGS[currentAct + 1];
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
+      <div className="relative min-h-[70vh] flex items-center justify-center">
+        {onExit && <GameExitButton onExit={onExit} />}
         <motion.div
           initial={false}
           animate={{ opacity: 1 }}

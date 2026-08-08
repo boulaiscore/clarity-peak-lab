@@ -20,7 +20,8 @@ import { ArrowLeft, Brain, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useExitConfirmation } from "@/components/games/useExitConfirmation";
-import { calculateGameXP } from "@/lib/trainingPlans";
+import { calculateScoredDrillXP } from "@/lib/trainingPlans";
+import type { DrillGenerationMeta } from "@/lib/drillSession";
 
 type GamePhase = "intro" | "playing" | "results";
 
@@ -42,7 +43,7 @@ export default function CausalLedgerRunner() {
   // Validate auth
   useEffect(() => {
     if (!user?.id && !session?.user?.id) {
-      toast.error("Please log in to play");
+      toast.error("Please log in to start a drill");
       navigate("/auth");
     }
   }, [user?.id, session?.user?.id, navigate]);
@@ -55,7 +56,8 @@ export default function CausalLedgerRunner() {
   
   const handleGameComplete = useCallback(async (
     gameResults: RoundResult[],
-    duration: number
+    duration: number,
+    generation: DrillGenerationMeta
   ) => {
     setResults(gameResults);
     setDurationSeconds(duration);
@@ -65,7 +67,7 @@ export default function CausalLedgerRunner() {
     const accuracy = gameResults.length > 0 ? correctCount / gameResults.length : 0;
     const score = Math.round(accuracy * 100);
     
-    const xp = calculateGameXP("medium", score >= 90);
+    const xp = calculateScoredDrillXP("medium", score, score >= 90);
     setXpAwarded(xp);
     
     // v1.2: Calculate duration from startedAtRef
@@ -93,22 +95,28 @@ export default function CausalLedgerRunner() {
           durationSeconds: calculatedDuration,
           status: 'completed',
           difficulty: 'medium', // S2 games have fixed difficulty
+          comboHash: generation.comboHash,
+          antiRepetitionTriggered: generation.duplicatesRejected > 0,
+          duplicatesRejected: generation.duplicatesRejected,
+          fallbackUsed: generation.fallbackUsed,
         });
         const savedXP = savedSession?.xp_awarded ?? 0;
         setXpAwarded(savedXP);
         
         console.log("[CausalLedger] ✅ Session saved successfully");
-        toast.success(savedXP > 0 ? `+${savedXP} XP · Critical Thinking updated` : "Daily XP limit reached. Play for practice.");
+        toast.success(savedXP > 0 ? `+${savedXP} XP · Critical Thinking updated` : "Daily XP limit reached. Continue for practice.");
         
         queryClient.invalidateQueries({ queryKey: ["weekly-progress"] });
         queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
       } catch (error) {
+        setXpAwarded(0);
         console.error("[CausalLedger] ❌ Failed to record session:", error);
         toast.error("Failed to save session");
       } finally {
         setIsSaving(false);
       }
     } else {
+      setXpAwarded(0);
       console.warn("[CausalLedger] No user ID, session not saved");
       toast.warning("Session not saved - please log in");
     }
@@ -126,7 +134,7 @@ export default function CausalLedgerRunner() {
   }, []);
   
   const handleBackToLab = useCallback(() => {
-    navigate("/neuro-lab?tab=games");
+    navigate("/neuro-lab?tab=games&system=slow");
   }, [navigate]);
 
   const { requestExit, ConfirmDialog } = useExitConfirmation(handleBackToLab);
@@ -137,7 +145,7 @@ export default function CausalLedgerRunner() {
         {phase === "intro" && (
           <motion.div
             key="intro"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full flex flex-col"
@@ -147,7 +155,7 @@ export default function CausalLedgerRunner() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/neuro-lab?tab=games")}
+                onClick={() => navigate("/neuro-lab?tab=games&system=slow")}
                 className="h-9 w-9"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -175,7 +183,7 @@ export default function CausalLedgerRunner() {
                 {/* Info cards */}
                 <div className="grid grid-cols-3 gap-3 py-4">
                   <div className="p-3 rounded-xl bg-card border border-border/40 text-center">
-                    <div className="text-lg font-semibold text-foreground">12</div>
+                    <div className="text-lg font-semibold text-foreground">{CAUSAL_LEDGER_CONFIG.rounds}</div>
                     <div className="text-[10px] text-muted-foreground">Rounds</div>
                   </div>
                   <div className="p-3 rounded-xl bg-card border border-border/40 text-center">
@@ -200,7 +208,7 @@ export default function CausalLedgerRunner() {
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => navigate("/neuro-lab?tab=games")}
+                    onClick={() => navigate("/neuro-lab?tab=games&system=slow")}
                   >
                     Cancel
                   </Button>
@@ -208,7 +216,7 @@ export default function CausalLedgerRunner() {
                     className="flex-1 bg-violet-600 hover:bg-violet-700"
                     onClick={handleStartGame}
                   >
-                    Begin
+                    Start Drill
                   </Button>
                 </div>
               </div>
@@ -219,7 +227,7 @@ export default function CausalLedgerRunner() {
         {phase === "playing" && (
           <motion.div
             key="playing"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full"
@@ -231,7 +239,7 @@ export default function CausalLedgerRunner() {
         {phase === "results" && (
           <motion.div
             key="results"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="h-full overflow-auto"
