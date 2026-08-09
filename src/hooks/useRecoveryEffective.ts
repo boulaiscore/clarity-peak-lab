@@ -211,6 +211,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         recoveryV2,
         rriValue,
         hasRecoveryData: true,
+        recoveryTarget: phoneHealthTarget ?? 50,
       };
     }
     
@@ -224,6 +225,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         recoveryV2: null,
         rriValue,
         hasRecoveryData: false,
+        recoveryTarget: phoneHealthTarget ?? 50,
       };
     }
     
@@ -236,6 +238,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       recoveryV2: null,
       rriValue: null,
       hasRecoveryData: false,
+      recoveryTarget: phoneHealthTarget ?? 50,
     };
   }, [v2State, rriData, phoneHealthTarget]);
   
