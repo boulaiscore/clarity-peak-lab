@@ -128,81 +128,6 @@ export type Database = {
         }
         Relationships: []
       }
-      daily_work_recommendations: {
-        Row: {
-          action_key: string
-          created_at: string
-          ended_at: string | null
-          effort_rating: number | null
-          generated_at: string
-          id: string
-          intensity: string
-          outcome_achieved: string | null
-          outcome_submitted_at: string | null
-          planned_duration_minutes: number
-          policy_version: string
-          primary_outcome: string
-          quality_rating: number | null
-          rationale: string
-          recommendation_date: string
-          shown_at: string
-          started_at: string | null
-          state_snapshot: Json
-          status: string
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          action_key: string
-          created_at?: string
-          ended_at?: string | null
-          effort_rating?: number | null
-          generated_at?: string
-          id?: string
-          intensity: string
-          outcome_achieved?: string | null
-          outcome_submitted_at?: string | null
-          planned_duration_minutes: number
-          policy_version: string
-          primary_outcome: string
-          quality_rating?: number | null
-          rationale: string
-          recommendation_date: string
-          shown_at?: string
-          started_at?: string | null
-          state_snapshot?: Json
-          status?: string
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          action_key?: string
-          created_at?: string
-          ended_at?: string | null
-          effort_rating?: number | null
-          generated_at?: string
-          id?: string
-          intensity?: string
-          outcome_achieved?: string | null
-          outcome_submitted_at?: string | null
-          planned_duration_minutes?: number
-          policy_version?: string
-          primary_outcome?: string
-          quality_rating?: number | null
-          rationale?: string
-          recommendation_date?: string
-          shown_at?: string
-          started_at?: string | null
-          state_snapshot?: Json
-          status?: string
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       daily_metric_snapshots: {
         Row: {
           ae: number | null
@@ -253,6 +178,81 @@ export type Database = {
           s2?: number | null
           sharpness?: number | null
           snapshot_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_work_recommendations: {
+        Row: {
+          action_key: string
+          created_at: string
+          effort_rating: number | null
+          ended_at: string | null
+          generated_at: string
+          id: string
+          intensity: string
+          outcome_achieved: string | null
+          outcome_submitted_at: string | null
+          planned_duration_minutes: number
+          policy_version: string
+          primary_outcome: string
+          quality_rating: number | null
+          rationale: string
+          recommendation_date: string
+          shown_at: string
+          started_at: string | null
+          state_snapshot: Json
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_key: string
+          created_at?: string
+          effort_rating?: number | null
+          ended_at?: string | null
+          generated_at?: string
+          id?: string
+          intensity: string
+          outcome_achieved?: string | null
+          outcome_submitted_at?: string | null
+          planned_duration_minutes: number
+          policy_version: string
+          primary_outcome: string
+          quality_rating?: number | null
+          rationale: string
+          recommendation_date: string
+          shown_at?: string
+          started_at?: string | null
+          state_snapshot?: Json
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_key?: string
+          created_at?: string
+          effort_rating?: number | null
+          ended_at?: string | null
+          generated_at?: string
+          id?: string
+          intensity?: string
+          outcome_achieved?: string | null
+          outcome_submitted_at?: string | null
+          planned_duration_minutes?: number
+          policy_version?: string
+          primary_outcome?: string
+          quality_rating?: number | null
+          rationale?: string
+          recommendation_date?: string
+          shown_at?: string
+          started_at?: string | null
+          state_snapshot?: Json
+          status?: string
+          title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
