@@ -2,14 +2,15 @@
 
 ## Release state
 
-Version 1 is an explainable shadow model. It generates forecasts and evaluates
+Version 2 is an explainable shadow model. It generates forecasts and evaluates
 them, but it has no code path that can change the user's training plan, game
 order, gating, difficulty, or active CTA.
 
-The product also records one explainable daily professional-work
-recommendation in `daily_work_recommendations`. That outcome loop is the target
-data source for the next coach version; it is deliberately independent of XP
-and drill skill updates.
+There is no daily coach card in Home. Passive inputs are collected in the
+background so the product can validate predictions without influencing the
+behavior it is trying to observe. The previously created
+`daily_work_recommendations` table remains an optional historical outcome source
+but no visible flow writes new recommendations in this release.
 
 The product must not describe this phase as generic AI or claim that a training
 action caused an improvement. The observed relationship is predictive and can
@@ -34,7 +35,8 @@ Each candidate stores:
 - model version, prediction time, and seven-day outcome window.
 
 The interpretable prior uses development gap, time since matching training,
-current state fit, recent same-skill performance trend, and data uncertainty.
+current state fit, recent same-skill performance trend, longitudinal metric
+trend, health availability, aggregate attention load, and data uncertainty.
 After evaluated outcomes exist, a shrinkage calibration adds only a bounded
 fraction of the user's mean prior forecast error. One noisy observation cannot
 dominate a forecast.
@@ -57,21 +59,29 @@ prior matching sessions are collected but excluded from validation metrics.
 This remains a drill-forecast validation target only. It must not be presented
 as evidence that the coach improved professional performance.
 
-## Real-work outcome loop
+## Passive feature contract
 
-The Home work card persists:
+`adaptive_daily_feature_snapshots` stores one versioned, user-owned feature
+bundle per day:
 
-- the policy version, action, duration and primary user outcome;
-- the Sharpness, Readiness, Recovery and Reasoning snapshot present when the
-  recommendation was generated;
-- whether the recommendation was started, dismissed or abandoned;
-- outcome completion (`yes`, `partly`, `no`), focus quality and perceived
-  effort for a completed work block.
+- current cognitive signals and their 14-day within-person slopes;
+- drill, quality-time and recovery behavior aggregated over seven days;
+- first-party product activity counts and active days;
+- latest permitted phone-health and wearable inputs;
+- aggregate device attention time relative to the user's own 14-day median;
+- explicit source availability and a coverage score.
 
-The active work card uses deterministic `explainable-work-rules-v1` guidance.
-No machine-learning policy is active. Future shadow models should predict
-real-work quality and completion from eligible recommendations, and they must
-be validated separately from the existing same-skill drill forecast.
+`device_usage_snapshots` contains only daily aggregate minutes, active app count
+and recency. Package/app names, domains, content, contacts and social identities
+are removed on-device before upload. Android uses explicit Usage Access. iOS
+Device Activity requires a separate Family Controls entitlement and user
+authorization, so no iOS Screen Time data is claimed or synthesized in this
+release.
+
+Passive context is bounded to a small adjustment in the shadow forecast. Skill
+trends can affect *where* training may help; health and attention load affect
+*when* a session may be well-timed. These remain predictive associations, not
+causal conclusions.
 
 An active personalized policy requires controlled exposure data (for example,
 safe micro-randomization between eligible recommendations), calibration and a
@@ -94,10 +104,11 @@ the exact authority granted to active recommendations.
 
 ## Privacy and storage
 
-Predictions live in `adaptive_coach_predictions` inside the project's Supabase
+Predictions and passive feature snapshots live inside the project's Supabase
 cloud. Row Level Security restricts users to their own data. Model inputs exclude
-name, email, demographics, and free text. Cognitive values stay in this dedicated
-user-owned table and are never added to privacy-safe product usage telemetry.
+name, email, demographics, free text, app identities and social content.
+Cognitive and health values stay in dedicated user-owned tables and are never
+added to privacy-safe product usage telemetry.
 
 The user-facing status page exposes validation progress and completed forecasts,
 not the current hidden candidate, so shadow predictions do not influence the

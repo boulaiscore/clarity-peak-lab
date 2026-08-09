@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { useAdaptivePassiveFeatures } from "@/hooks/useAdaptivePassiveFeatures";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import {
@@ -99,12 +101,30 @@ export function useAdaptiveCoachShadowRecorder(): void {
     RA,
     CT,
     IN,
+    S1,
+    S2,
     sharpness,
     readiness,
     recovery,
+    physioComponent,
     isRecoveryInitialized,
     isLoading: metricsLoading,
   } = useTodayMetrics();
+  const { rq, isLoading: reasoningLoading } = useReasoningQuality();
+  const { payload: passiveFeatures, isLoading: passiveFeaturesLoading } = useAdaptivePassiveFeatures({
+    sharpness,
+    readiness,
+    recovery,
+    reasoningQuality: rq,
+    AE,
+    RA,
+    CT,
+    IN,
+    S1,
+    S2,
+    physioComponent,
+    isLoading: metricsLoading || reasoningLoading,
+  });
 
   const { data: existingToday, isLoading: existingLoading, isError: existingError } = useQuery({
     queryKey: [COACH_QUERY_KEY, "today", userId, today, ADAPTIVE_COACH_MODEL_VERSION],
@@ -185,6 +205,7 @@ export function useAdaptiveCoachShadowRecorder(): void {
       readiness,
       recovery,
       recoveryInitialized: isRecoveryInitialized,
+      passive: passiveFeatures?.coachContext,
     },
     recentSessions ?? [],
     calibrationOutcomes ?? [],
@@ -197,13 +218,14 @@ export function useAdaptiveCoachShadowRecorder(): void {
     readiness,
     recovery,
     isRecoveryInitialized,
+    passiveFeatures,
     recentSessions,
     calibrationOutcomes,
   ]);
 
   useEffect(() => {
     const attemptKey = userId ? `${userId}:${today}:${ADAPTIVE_COACH_MODEL_VERSION}` : null;
-    const loading = metricsLoading || existingLoading || sessionsLoading || calibrationLoading;
+    const loading = metricsLoading || passiveFeaturesLoading || existingLoading || sessionsLoading || calibrationLoading;
     if (
       !userId ||
       !attemptKey ||
@@ -244,7 +266,8 @@ export function useAdaptiveCoachShadowRecorder(): void {
           forecast_target: "next_same_skill_game_score_delta",
           outcome_window_days: ADAPTIVE_COACH_OUTCOME_WINDOW_DAYS,
           reasons: prediction.reasons as unknown as Json,
-          formula: "rolling baseline + recent trend + state fit + regression + shrunk personal residual",
+          formula: "rolling baseline + skill trend + state fit + personal health/attention context + regression + shrunk personal residual",
+          passive_feature_schema: passiveFeatures?.schemaVersion ?? null,
           limitation: "Predictive association only; not a causal training-effect estimate.",
         } as Json,
       }));
@@ -273,6 +296,7 @@ export function useAdaptiveCoachShadowRecorder(): void {
     userId,
     today,
     metricsLoading,
+    passiveFeaturesLoading,
     existingLoading,
     sessionsLoading,
     calibrationLoading,
@@ -281,6 +305,7 @@ export function useAdaptiveCoachShadowRecorder(): void {
     calibrationError,
     existingToday,
     predictions,
+    passiveFeatures?.schemaVersion,
     queryClient,
   ]);
 }

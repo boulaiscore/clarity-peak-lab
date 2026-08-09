@@ -39,6 +39,13 @@ export interface AppBlockerPlugin {
   // Get usage stats for today
   getUsageStats(): Promise<{ stats: AppUsageStat[] }>;
 
+  // Get privacy-safe totals without exposing app identities to the web layer
+  getUsageAggregate(): Promise<{
+    attentionUsageMin: number;
+    activeAppCount: number;
+    lastAttentionUseAt: number | null;
+  }>;
+
   // Get current violation count
   getViolationCount(): Promise<{ violationCount: number }>;
 
@@ -127,6 +134,9 @@ const AppBlocker = registerPlugin<AppBlockerPlugin>('AppBlocker', {
     },
     async getUsageStats() {
       return { stats: [] };
+    },
+    async getUsageAggregate() {
+      return { attentionUsageMin: 0, activeAppCount: 0, lastAttentionUseAt: null };
     },
     async getViolationCount() {
       return { violationCount: 0 };

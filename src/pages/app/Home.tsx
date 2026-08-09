@@ -32,7 +32,6 @@ import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
-import { DailyWorkCoachCard } from "@/components/home/DailyWorkCoachCard";
 
 // Circular progress ring component with icon and status inside
 interface RingProps {
@@ -128,8 +127,6 @@ const Home = () => {
     sharpness,
     readiness,
     recoveryRaw,
-    isRecoveryInitialized,
-    hasWearableData,
     isLoading: metricsLoading
   } = useTodayMetrics();
 
@@ -144,14 +141,7 @@ const Home = () => {
   const acuteBoost = useAcuteRecoveryBoost();
 
   // Reasoning Quality metric
-  const {
-    rq,
-    s2Core,
-    s2Consistency,
-    taskPriming,
-    isDecaying: rqIsDecaying,
-    isLoading: rqLoading
-  } = useReasoningQuality();
+  const { rq } = useReasoningQuality();
 
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const {
@@ -238,8 +228,6 @@ const Home = () => {
     : recoveryEffective;
   const displayRecovery = isViewingToday ? recoveryWithBoost : historicalMetrics?.recovery ?? 0;
   const displayRQ = isViewingToday ? rq : historicalMetrics?.reasoningQuality ?? 0;
-  const displayS2Core = isViewingToday ? s2Core : historicalMetrics?.s2 ?? 0;
-  const displayTaskPriming = isViewingToday ? taskPriming : 0; // Historical doesn't store this separately
   const isDisplayLoading = isViewingToday ? metricsLoading || recoveryEffectiveLoading : historicalLoading;
   const hasHistoricalData = !isViewingToday && historicalMetrics !== null;
 
@@ -334,19 +322,6 @@ const Home = () => {
                 <ChevronRight className="w-4 h-4 text-foreground/70" />
               </button>
             </motion.section>
-
-            {isViewingToday && (
-              <DailyWorkCoachCard
-                sharpness={sharpness}
-                readiness={readiness}
-                recovery={recoveryWithBoost}
-                reasoningQuality={rq}
-                recoveryInitialized={isRecoveryInitialized}
-                hasWearableData={hasWearableData}
-                isLoading={metricsLoading || recoveryEffectiveLoading || rqLoading}
-              />
-            )}
-
 
             {/* No data warning for historical dates */}
             {!isViewingToday && !historicalLoading && !hasHistoricalData && <motion.div initial={{

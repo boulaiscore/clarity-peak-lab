@@ -3,7 +3,8 @@ import {
   evaluateCoachValidation,
   generateCoachShadowPredictions,
 } from "../src/lib/adaptiveCoach";
-import { generateDailyWorkRecommendation } from "../src/lib/workCoach";
+import { aggregateAttentionUsage } from "../src/lib/deviceUsageAggregation";
+import { buildPassiveFeaturePayload } from "../src/lib/passiveCoachFeatures";
 
 const now = new Date("2026-08-08T12:00:00.000Z");
 const context = {
@@ -47,6 +48,66 @@ assert.ok(calibratedAe);
 assert.equal(calibratedAe.features.personalCalibrationSamples, 2);
 assert.ok(calibratedAe.features.personalCalibrationAdjustment > 0);
 
+const attentionAggregate = aggregateAttentionUsage([
+  { packageName: "private.social.one", appName: "Private One", usageMinutes: 18, lastUsed: now.getTime() - 1_000 },
+  { packageName: "private.social.two", appName: "Private Two", usageMinutes: 27, lastUsed: now.getTime() },
+]);
+assert.deepEqual(attentionAggregate, {
+  attentionUsageMin: 45,
+  activeAppCount: 2,
+  lastAttentionUseAt: now.toISOString(),
+});
+assert.doesNotMatch(JSON.stringify(attentionAggregate), /private|packageName|appName/);
+
+const passivePayload = buildPassiveFeaturePayload({
+  featureDate: "2026-08-08",
+  currentMetrics: {
+    sharpness: 62,
+    readiness: 68,
+    recovery: 64,
+    reasoningQuality: 66,
+    AE: 45,
+    RA: 70,
+    CT: 55,
+    IN: 80,
+    S1: 57.5,
+    S2: 67.5,
+    physioComponent: 70,
+  },
+  metricHistory: [
+    { date: "2026-08-06", sharpness: 58, readiness: 64, reasoningQuality: 62, AE: 43, RA: 68, CT: 53, IN: 78 },
+    { date: "2026-08-07", sharpness: 60, readiness: 66, reasoningQuality: 64, AE: 44, RA: 69, CT: 54, IN: 79 },
+    { date: "2026-08-08", sharpness: 62, readiness: 68, reasoningQuality: 66, AE: 45, RA: 70, CT: 55, IN: 80 },
+  ],
+  games: [{ completedAt: "2026-08-08T10:00:00.000Z", durationSeconds: 180, score: 70 }],
+  reasonSessions: [{ startedAt: "2026-08-07T10:00:00.000Z", durationSeconds: 1200, backgroundInterrupts: 1, isValidForRq: true }],
+  recoverySessions: [{ completedAt: "2026-08-06T10:00:00.000Z", durationMinutes: 30 }],
+  productEvents: [{ occurredAt: "2026-08-08T09:00:00.000Z" }],
+  phoneHealth: [{ date: "2026-08-08", sleepMin: 450, bedtimeDeviationMin: 12, steps: 7200, activeMinutes: 35, pickups: null, phi: 72, confidence: 0.8, source: "health_connect" }],
+  wearable: [{ date: "2026-08-08", hrvMs: 48, restingHr: 58, sleepDurationMin: 450, sleepEfficiency: 88, activityScore: 62, source: "health_connect" }],
+  deviceUsage: [
+    { date: "2026-08-06", attentionUsageMin: 40, activeAppCount: 3, lastAttentionUseAt: null, permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
+    { date: "2026-08-07", attentionUsageMin: 50, activeAppCount: 4, lastAttentionUseAt: null, permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
+    { date: "2026-08-08", attentionUsageMin: 90, activeAppCount: 5, lastAttentionUseAt: now.toISOString(), permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
+  ],
+  primaryOutcome: "focus",
+});
+assert.equal(passivePayload.coachContext.healthScore, 72);
+assert.equal(passivePayload.coachContext.attentionUsageBaselineMinutes, 45);
+assert.equal(passivePayload.coachContext.attentionLoadRatio, 2);
+assert.ok(passivePayload.coachContext.metricTrendPerDay > 0);
+assert.equal(passivePayload.deviceUsage.privacyLevel, "aggregate_only_no_app_names_or_content");
+
+const passivePredictions = generateCoachShadowPredictions({
+  ...context,
+  passive: passivePayload.coachContext,
+}, observations);
+const passiveAe = passivePredictions.find((candidate) => candidate.actionKey === "train_ae");
+assert.ok(passiveAe);
+assert.equal(passiveAe.features.healthScore, 72);
+assert.equal(passiveAe.features.attentionLoadRatio, 2);
+assert.ok(passiveAe.features.passiveDataCoverage > 0);
+
 const collecting = evaluateCoachValidation([
   { actionKey: "train_ae", predictedDelta: 2, observedDelta: 3 },
 ]);
@@ -65,45 +126,4 @@ assert.equal(validated.gates.directionalAccuracy, true);
 assert.equal(validated.gates.beatsNoChange, true);
 assert.equal(validated.gates.actionCoverage, true);
 
-const protectiveDecision = generateDailyWorkRecommendation({
-  primaryOutcome: "decide",
-  sharpness: 58,
-  readiness: 38,
-  recovery: 30,
-  reasoningQuality: 62,
-  recoveryInitialized: true,
-  hasWearableData: false,
-});
-assert.equal(protectiveDecision.actionKey, "decision_block");
-assert.equal(protectiveDecision.intensity, "protective");
-assert.equal(protectiveDecision.plannedDurationMinutes, 25);
-assert.match(protectiveDecision.title, /Prepare the decision/);
-
-const strongFocus = generateDailyWorkRecommendation({
-  primaryOutcome: "focus",
-  sharpness: 78,
-  readiness: 81,
-  recovery: 70,
-  reasoningQuality: 68,
-  recoveryInitialized: true,
-  hasWearableData: true,
-});
-assert.equal(strongFocus.actionKey, "focus_block");
-assert.equal(strongFocus.intensity, "strong");
-assert.equal(strongFocus.plannedDurationMinutes, 50);
-assert.equal(strongFocus.confidenceLabel, "richer signal");
-
-const steadyReasoning = generateDailyWorkRecommendation({
-  primaryOutcome: "reason",
-  sharpness: 60,
-  readiness: 61,
-  recovery: 55,
-  reasoningQuality: 64,
-  recoveryInitialized: false,
-  hasWearableData: false,
-});
-assert.equal(steadyReasoning.actionKey, "analysis_block");
-assert.equal(steadyReasoning.intensity, "steady");
-assert.equal(steadyReasoning.confidenceLabel, "early signal");
-
-console.log("Adaptive coach and real-work recommendation checks passed");
+console.log("Adaptive coach and passive feature checks passed");

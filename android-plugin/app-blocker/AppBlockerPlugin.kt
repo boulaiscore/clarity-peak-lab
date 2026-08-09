@@ -229,6 +229,55 @@ class AppBlockerPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun getUsageAggregate(call: PluginCall) {
+        if (!checkUsageAccessPermission()) {
+            val result = JSObject()
+            result.put("attentionUsageMin", 0)
+            result.put("activeAppCount", 0)
+            result.put("lastAttentionUseAt", null)
+            call.resolve(result)
+            return
+        }
+
+        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val calendar = Calendar.getInstance()
+        val endTime = calendar.timeInMillis
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startTime = calendar.timeInMillis
+
+        val usageStatsList = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            startTime,
+            endTime
+        )
+
+        var attentionUsageMin = 0
+        var activeAppCount = 0
+        var lastAttentionUseAt: Long? = null
+
+        for (usageStats in usageStatsList) {
+            if (!socialAppPackages.contains(usageStats.packageName)) continue
+            val usageMinutes = (usageStats.totalTimeInForeground / 1000 / 60).toInt()
+            if (usageMinutes <= 0) continue
+
+            attentionUsageMin += usageMinutes
+            activeAppCount += 1
+            if (lastAttentionUseAt == null || usageStats.lastTimeUsed > lastAttentionUseAt!!) {
+                lastAttentionUseAt = usageStats.lastTimeUsed
+            }
+        }
+
+        val result = JSObject()
+        result.put("attentionUsageMin", attentionUsageMin)
+        result.put("activeAppCount", activeAppCount)
+        result.put("lastAttentionUseAt", lastAttentionUseAt)
+        call.resolve(result)
+    }
+
+    @PluginMethod
     fun startBlocking(call: PluginCall) {
         // Store blocking preferences
         val packageNames = call.getArray("packageNames")

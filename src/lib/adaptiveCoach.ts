@@ -1,6 +1,6 @@
 import { clamp, type CognitiveStates } from "@/lib/cognitiveEngine";
 
-export const ADAPTIVE_COACH_MODEL_VERSION = "interpretable-shadow-v1";
+export const ADAPTIVE_COACH_MODEL_VERSION = "interpretable-shadow-v2-passive";
 export const ADAPTIVE_COACH_OUTCOME_WINDOW_DAYS = 7;
 export const ADAPTIVE_COACH_MIN_BASELINE_SESSIONS = 3;
 
@@ -21,7 +21,7 @@ export interface CoachCalibrationOutcome {
 }
 
 export interface CoachReason {
-  code: "skill_gap" | "time_since_training" | "state_fit" | "limited_history" | "recent_decline" | "personal_calibration";
+  code: "skill_gap" | "time_since_training" | "state_fit" | "limited_history" | "recent_decline" | "passive_context" | "personal_calibration";
   label: string;
   evidence: string;
   strength: number;
@@ -39,6 +39,12 @@ export interface CoachCandidateFeatures {
   trainingState: CoachTrainingState;
   personalCalibrationSamples: number;
   personalCalibrationAdjustment: number;
+  metricTrendPerDay: number;
+  healthScore: number | null;
+  attentionLoadRatio: number | null;
+  activeDays7d: number;
+  passiveDataCoverage: number;
+  passiveContextAdjustment: number;
 }
 
 export interface CoachShadowPrediction {
@@ -62,6 +68,14 @@ export interface CoachContext {
   readiness: number;
   recovery: number;
   recoveryInitialized: boolean;
+  passive?: {
+    metricTrendPerDay: number;
+    skillTrendPerDay: Partial<Record<CoachSkill, number>>;
+    healthScore: number | null;
+    attentionLoadRatio: number | null;
+    activeDays7d: number;
+    dataCoverage: number;
+  };
   now?: Date;
 }
 
@@ -153,6 +167,22 @@ function calculatePersonalCalibration(
   };
 }
 
+function calculatePassiveContextAdjustment(
+  skill: CoachSkill,
+  context: CoachContext,
+): number {
+  if (!context.passive) return 0;
+  const skillTrend = context.passive.skillTrendPerDay[skill] ?? 0;
+  const healthAdjustment = context.passive.healthScore === null
+    ? 0
+    : clamp((context.passive.healthScore - 50) * 0.01, -0.5, 0.5);
+  const attentionAdjustment = context.passive.attentionLoadRatio === null
+    ? 0
+    : clamp((1 - context.passive.attentionLoadRatio) * 0.6, -0.8, 0.4);
+  const trendAdjustment = clamp(skillTrend * 0.35, -1.2, 1.2);
+  return clamp(trendAdjustment + healthAdjustment + attentionAdjustment, -2, 2);
+}
+
 function selectReasons(features: CoachCandidateFeatures): CoachReason[] {
   const reasons: CoachReason[] = [
     {
@@ -192,6 +222,15 @@ function selectReasons(features: CoachCandidateFeatures): CoachReason[] {
       label: "Recent performance trend",
       evidence: `${round(features.recentTrendPerSession, 1)} score points per recent session.`,
       strength: clamp(Math.abs(features.recentTrendPerSession) * 12, 0, 100),
+    });
+  }
+
+  if (features.passiveDataCoverage >= 0.35) {
+    reasons.push({
+      code: "passive_context",
+      label: "Personal context",
+      evidence: `Forecast context includes the user's metric trend, health availability and aggregate attention load (${Math.round(features.passiveDataCoverage * 100)}% coverage).`,
+      strength: features.passiveDataCoverage * 70,
     });
   }
 
@@ -237,6 +276,8 @@ export function generateCoachShadowPredictions(
     const uncertainty = 100 - Math.min(100, history.length * 20);
     const trainingState: CoachTrainingState = context.recovery < 35 ? "defer" : "available";
     const personalCalibration = calculatePersonalCalibration(actionKey, calibrationOutcomes);
+    const passiveContextAdjustment = calculatePassiveContextAdjustment(skill, context);
+    const passiveSkillTrend = context.passive?.skillTrendPerDay[skill] ?? 0;
 
     const features: CoachCandidateFeatures = {
       skillValue: round(skillValue),
@@ -250,16 +291,23 @@ export function generateCoachShadowPredictions(
       trainingState,
       personalCalibrationSamples: personalCalibration.samples,
       personalCalibrationAdjustment: round(personalCalibration.adjustment),
+      metricTrendPerDay: round(passiveSkillTrend, 3),
+      healthScore: context.passive?.healthScore ?? null,
+      attentionLoadRatio: context.passive?.attentionLoadRatio ?? null,
+      activeDays7d: context.passive?.activeDays7d ?? 0,
+      passiveDataCoverage: context.passive?.dataCoverage ?? 0,
+      passiveContextAdjustment: round(passiveContextAdjustment),
     };
 
     const recencyScore = clamp((daysSinceTraining / 14) * 100, 0, 100);
     const declineNeed = clamp(-recentTrendPerSession * 12, 0, 100);
     const priorityScore = clamp(
-      0.38 * skillGap +
-        0.22 * recencyScore +
-        0.20 * stateFit +
+      0.35 * skillGap +
+        0.20 * recencyScore +
+        0.18 * stateFit +
         0.12 * uncertainty +
-        0.08 * declineNeed,
+        0.08 * declineNeed +
+        0.07 * clamp(-passiveSkillTrend * 20, 0, 100),
       0,
       100,
     );
@@ -271,13 +319,19 @@ export function generateCoachShadowPredictions(
       trendAdjustment +
         stateAdjustment +
         regressionAdjustment +
+        passiveContextAdjustment +
         personalCalibration.adjustment,
       -12,
       12,
     );
     const predictedScore = clamp(baselineScore + predictedDelta, 0, 100);
     const confidenceBase = clamp(0.15 + history.length * 0.12, 0.15, 0.8);
-    const confidence = confidenceBase * (context.recoveryInitialized ? 1 : 0.8);
+    const passiveCoverageFactor = context.passive
+      ? 0.85 + 0.15 * context.passive.dataCoverage
+      : 1;
+    const confidence = confidenceBase *
+      (context.recoveryInitialized ? 1 : 0.8) *
+      passiveCoverageFactor;
 
     return {
       actionKey,

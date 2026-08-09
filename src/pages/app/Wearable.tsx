@@ -9,6 +9,7 @@ import { getPlatform, isNativePlatform, openHealthSettings } from "@/lib/capacit
 import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
+import { useDeviceUsagePermission } from "@/hooks/useDeviceUsagePermission";
 
 // Wearable brands that sync via system health platforms
 interface WearableItem {
@@ -64,6 +65,7 @@ const Health = () => {
   
   // Wearable sync hook for native platforms
   const wearableSync = useWearableSync();
+  const deviceUsage = useDeviceUsagePermission();
   const platform = getPlatform();
   const isNative = isNativePlatform();
 
@@ -282,6 +284,34 @@ const Health = () => {
               );
             })}
           </div>
+
+          {deviceUsage.supported && (
+            <div className="mb-8 rounded-xl border border-border/40 bg-card/30 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-sm font-semibold">Digital behavior context</h2>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    LOOMA can learn from daily aggregate time in attention-heavy apps.
+                    App names, messages, content and social identities never leave this device.
+                  </p>
+                </div>
+                {deviceUsage.granted && (
+                  <span className="shrink-0 rounded-md bg-green-500/10 px-2 py-1 text-[10px] font-medium text-green-500">
+                    Connected
+                  </span>
+                )}
+              </div>
+              {!deviceUsage.granted && !deviceUsage.isLoading && (
+                <button
+                  type="button"
+                  onClick={() => void deviceUsage.request()}
+                  className="mt-4 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+                >
+                  Enable aggregate usage
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Disclaimer */}
           <div className="p-4 rounded-xl bg-muted/10 border border-border/30">
