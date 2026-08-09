@@ -71,6 +71,48 @@ export type Database = {
         }
         Relationships: []
       }
+      adaptive_daily_feature_snapshots: {
+        Row: {
+          availability: Json
+          behavior: Json
+          created_at: string
+          device_usage: Json
+          feature_date: string
+          health: Json
+          id: string
+          metrics: Json
+          schema_version: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability?: Json
+          behavior?: Json
+          created_at?: string
+          device_usage?: Json
+          feature_date: string
+          health?: Json
+          id?: string
+          metrics?: Json
+          schema_version: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability?: Json
+          behavior?: Json
+          created_at?: string
+          device_usage?: Json
+          feature_date?: string
+          health?: Json
+          id?: string
+          metrics?: Json
+          schema_version?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]
@@ -332,6 +374,51 @@ export type Database = {
           walking_distance_meters?: number | null
           walking_minutes?: number | null
           xp_earned?: number | null
+        }
+        Relationships: []
+      }
+      device_usage_snapshots: {
+        Row: {
+          active_app_count: number | null
+          attention_usage_min: number | null
+          confidence: number
+          coverage: string
+          created_at: string
+          id: string
+          last_attention_use_at: string | null
+          permission_state: string
+          snapshot_date: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_app_count?: number | null
+          attention_usage_min?: number | null
+          confidence?: number
+          coverage?: string
+          created_at?: string
+          id?: string
+          last_attention_use_at?: string | null
+          permission_state?: string
+          snapshot_date: string
+          source: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_app_count?: number | null
+          attention_usage_min?: number | null
+          confidence?: number
+          coverage?: string
+          created_at?: string
+          id?: string
+          last_attention_use_at?: string | null
+          permission_state?: string
+          snapshot_date?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
