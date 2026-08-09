@@ -54,8 +54,8 @@ function SelectField<T extends string>({
   label: string;
   value: T | undefined;
   placeholder: string;
-  options: ReadonlyArray<{ value: T; label: string }>;
-  onChange: (value: T) => void;
+  options: ReadonlyArray<{ value: NoInfer<T>; label: string }>;
+  onChange: (value: NoInfer<T>) => void;
 }) {
   return (
     <label className="block rounded-2xl border border-border/50 bg-card/50 p-4">
