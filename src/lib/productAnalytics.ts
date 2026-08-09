@@ -81,7 +81,12 @@ async function flushQueueToSupabase(): Promise<void> {
   const delivered = new Set<string>();
 
   for (const event of queued) {
-    const { error } = await supabase.from("product_usage_events").insert({
+    const looseSupabase = supabase as unknown as {
+      from(table: string): {
+        insert(values: Record<string, unknown>): PromiseLike<{ error: { code?: string; message?: string } | null }>;
+      };
+    };
+    const { error } = await looseSupabase.from("product_usage_events").insert({
       client_event_id: event.clientEventId,
       user_id: userId,
       anonymous_id: event.anonymousId,
