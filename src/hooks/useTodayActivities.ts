@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { startOfDay } from "date-fns";
 
-export type ActivityKey = "games" | "quality" | "detox" | "walk";
+export type ActivityKey = "games" | "quality" | "detox" | "walk" | "work";
 
 export interface TodayActivity {
   id: string;
@@ -15,6 +15,28 @@ export interface TodayActivity {
   startedAt: string;
   /** Session end time (ISO). */
   endedAt: string;
+}
+
+interface GameActivityRow {
+  id: string;
+  started_at: string | null;
+  completed_at: string;
+  duration_seconds: number;
+}
+
+interface QualityActivityRow {
+  id: string;
+  started_at: string;
+  ended_at: string;
+  duration_seconds: number;
+  content_type: string;
+}
+
+interface RecoveryActivityRow {
+  id: string;
+  started_at: string | null;
+  completed_at: string;
+  duration_minutes: number;
 }
 
 const fmtMin = (m: number) => (m >= 10 ? Math.round(m).toString() : m.toFixed(1));
@@ -29,7 +51,7 @@ export function useTodayActivities() {
 
       const todayStart = startOfDay(new Date()).toISOString();
 
-      const [gamesRes, qualityRes, detoxRes, walkRes] = await Promise.all([
+      const [gamesRes, qualityRes, detoxRes, walkRes, workRes] = await Promise.all([
         supabase
           .from("game_sessions")
           .select("id, started_at, completed_at, duration_seconds")
@@ -51,23 +73,29 @@ export function useTodayActivities() {
           .select("id, started_at, completed_at, duration_minutes")
           .eq("user_id", user.id)
           .gte("completed_at", todayStart),
+        supabase
+          .from("daily_work_recommendations")
+          .select("id, started_at, ended_at, planned_duration_minutes")
+          .eq("user_id", user.id)
+          .eq("status", "completed")
+          .gte("ended_at", todayStart),
       ]);
 
       const rows: TodayActivity[] = [];
 
-      (gamesRes.data || []).forEach((r: any) => {
+      ((gamesRes.data ?? []) as unknown as GameActivityRow[]).forEach((r) => {
         const min = (Number(r.duration_seconds) || 0) / 60;
         rows.push({
           id: `g-${r.id}`,
           key: "games",
-          label: "Cognitive Game",
+          label: "Cognitive Drill",
           tileValue: fmtMin(min),
           startedAt: r.started_at || r.completed_at,
           endedAt: r.completed_at,
         });
       });
 
-      (qualityRes.data || []).forEach((r: any) => {
+      ((qualityRes.data ?? []) as unknown as QualityActivityRow[]).forEach((r) => {
         const min = (Number(r.duration_seconds) || 0) / 60;
         const isPodcast = r.content_type === "podcast";
         rows.push({
@@ -80,7 +108,7 @@ export function useTodayActivities() {
         });
       });
 
-      (detoxRes.data || []).forEach((r: any) => {
+      ((detoxRes.data ?? []) as unknown as RecoveryActivityRow[]).forEach((r) => {
         const min = Number(r.duration_minutes) || 0;
         rows.push({
           id: `d-${r.id}`,
@@ -92,7 +120,7 @@ export function useTodayActivities() {
         });
       });
 
-      (walkRes.data || []).forEach((r: any) => {
+      ((walkRes.data ?? []) as unknown as RecoveryActivityRow[]).forEach((r) => {
         const min = Number(r.duration_minutes) || 0;
         rows.push({
           id: `w-${r.id}`,
@@ -101,6 +129,22 @@ export function useTodayActivities() {
           tileValue: fmtMin(min),
           startedAt: r.started_at || r.completed_at,
           endedAt: r.completed_at,
+        });
+      });
+
+      (workRes.data || []).forEach((r) => {
+        if (!r.started_at || !r.ended_at) return;
+        const actualMinutes = Math.max(
+          1,
+          (new Date(r.ended_at).getTime() - new Date(r.started_at).getTime()) / 60_000,
+        );
+        rows.push({
+          id: `work-${r.id}`,
+          key: "work",
+          label: "Work Block",
+          tileValue: fmtMin(actualMinutes || r.planned_duration_minutes),
+          startedAt: r.started_at,
+          endedAt: r.ended_at,
         });
       });
 

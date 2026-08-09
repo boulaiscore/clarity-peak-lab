@@ -6,6 +6,11 @@ Version 1 is an explainable shadow model. It generates forecasts and evaluates
 them, but it has no code path that can change the user's training plan, game
 order, gating, difficulty, or active CTA.
 
+The product also records one explainable daily professional-work
+recommendation in `daily_work_recommendations`. That outcome loop is the target
+data source for the next coach version; it is deliberately independent of XP
+and drill skill updates.
+
 The product must not describe this phase as generic AI or claim that a training
 action caused an improvement. The observed relationship is predictive and can
 still contain selection bias because the user chooses which session to perform.
@@ -48,6 +53,30 @@ A database trigger resolves only the newest eligible prediction. Older
 overlapping predictions for the same action become `superseded`, which prevents
 one game from being counted more than once. Predictions with fewer than three
 prior matching sessions are collected but excluded from validation metrics.
+
+This remains a drill-forecast validation target only. It must not be presented
+as evidence that the coach improved professional performance.
+
+## Real-work outcome loop
+
+The Home work card persists:
+
+- the policy version, action, duration and primary user outcome;
+- the Sharpness, Readiness, Recovery and Reasoning snapshot present when the
+  recommendation was generated;
+- whether the recommendation was started, dismissed or abandoned;
+- outcome completion (`yes`, `partly`, `no`), focus quality and perceived
+  effort for a completed work block.
+
+The active work card uses deterministic `explainable-work-rules-v1` guidance.
+No machine-learning policy is active. Future shadow models should predict
+real-work quality and completion from eligible recommendations, and they must
+be validated separately from the existing same-skill drill forecast.
+
+An active personalized policy requires controlled exposure data (for example,
+safe micro-randomization between eligible recommendations), calibration and a
+demonstrated uplift on real-work outcomes. Correlation between a recommendation
+and a later outcome is not sufficient.
 
 ## Validation gate
 

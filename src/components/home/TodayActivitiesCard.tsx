@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
-import { ChevronRight, Brain, BookOpen, Headphones, Wind, Footprints } from "lucide-react";
+import { Brain, BookOpen, Wind, Footprints, BriefcaseBusiness } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTodayActivities, ActivityKey, TodayActivity } from "@/hooks/useTodayActivities";
 import { cn } from "@/lib/utils";
 
 const ROUTES: Record<ActivityKey, string> = {
-  games: "/app/training",
-  quality: "/app/quality-time",
-  detox: "/app/recover",
-  walk: "/app/recover",
+  games: "/neuro-lab?tab=games",
+  quality: "/neuro-lab?tab=tasks",
+  detox: "/neuro-lab?tab=detox",
+  walk: "/neuro-lab?tab=detox",
+  work: "/app",
 };
 
 // WHOOP-style flat blue tiles. One accent per category — calm, monochrome family.
@@ -17,6 +18,7 @@ const ACCENT: Record<ActivityKey, string> = {
   quality: "hsl(207, 55%, 60%)",
   detox: "hsl(195, 60%, 55%)",
   walk: "hsl(180, 45%, 55%)",
+  work: "hsl(216, 48%, 48%)",
 };
 
 const ICON: Record<ActivityKey, React.ComponentType<{ className?: string }>> = {
@@ -24,6 +26,7 @@ const ICON: Record<ActivityKey, React.ComponentType<{ className?: string }>> = {
   quality: BookOpen,
   detox: Wind,
   walk: Footprints,
+  work: BriefcaseBusiness,
 };
 
 interface ActiveQualityTime {
@@ -34,7 +37,6 @@ interface ActiveQualityTime {
 }
 
 interface TodayActivitiesCardProps {
-  outlook: { label: string; line: string };
   activeQualityTime?: ActiveQualityTime | null;
 }
 
@@ -52,7 +54,7 @@ function formatTime(iso: string) {
  * WHOOP-style end-of-day summary: each row is a completed session today,
  * with a flat colored value tile, UPPERCASE label, and start/end timestamps.
  */
-export function TodayActivitiesCard({ outlook, activeQualityTime }: TodayActivitiesCardProps) {
+export function TodayActivitiesCard({ activeQualityTime }: TodayActivitiesCardProps) {
   const navigate = useNavigate();
   const { data: activities = [], isLoading } = useTodayActivities();
 

@@ -8,6 +8,7 @@ import {
   type RRIDetoxHours,
   type RRIMentalState,
   type RRISleepHours,
+  type PrimaryOutcome,
   type TrainingGoal,
   type WorkType,
 } from "@/contexts/AuthContext";
@@ -21,8 +22,6 @@ import {
 import { trackProductEvent } from "@/lib/productAnalytics";
 
 type Step = 1 | 2;
-type PrimaryOutcome = "decide" | "focus" | "reason";
-
 const outcomes: Array<{
   value: PrimaryOutcome;
   title: string;
@@ -115,6 +114,7 @@ export default function Onboarding() {
 
     try {
       await updateUser({
+        primaryOutcome,
         workType,
         trainingGoals,
         sessionDuration: "2min",

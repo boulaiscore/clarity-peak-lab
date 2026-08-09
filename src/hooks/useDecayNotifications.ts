@@ -12,7 +12,10 @@
  */
 
 import { useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
@@ -93,13 +96,31 @@ export function useDecayNotifications() {
   const { lowRecStreakDays, isLoading: isLoadingSnapshot } = useDailyRecoverySnapshot();
   const { weeklyXPEarned, weeklyXPTarget, isLoading: isLoadingProgress } = useWeeklyProgress();
   const { recoveryProgress, isLoading: isLoadingLoad } = useStableCognitiveLoad();
-  
-  const isLoading = isLoadingSnapshot || isLoadingProgress || isLoadingLoad;
-  
-  // For now, we don't have a direct "days since last XP" tracker
-  // This would need a separate query to exercise_completions with max(created_at)
-  // For MVP, we'll focus on recovery streak which is already tracked
-  const daysSinceLastXP = 0; // TODO: Add proper tracking in future iteration
+
+  const { data: lastXpAt, isLoading: isLoadingLastXp } = useQuery({
+    queryKey: ["last-xp-at", user?.id],
+    queryFn: async (): Promise<string | null> => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("user_cognitive_metrics")
+        .select("last_xp_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.last_xp_at ?? null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
+
+  const isLoading = isLoadingSnapshot || isLoadingProgress || isLoadingLoad || isLoadingLastXp;
+
+  // `last_xp_at` is updated by the canonical XP flow. If the user has never
+  // earned XP, use account age so a new user is not incorrectly called idle.
+  const inactivityReference = lastXpAt
+    ? parseISO(lastXpAt)
+    : user?.createdAt ?? new Date();
+  const daysSinceLastXP = Math.max(0, differenceInCalendarDays(new Date(), inactivityReference));
   
   // Get plan-specific thresholds
   const thresholds = useMemo<PlanNotificationThresholds>(

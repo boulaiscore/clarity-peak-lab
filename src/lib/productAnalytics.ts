@@ -18,7 +18,12 @@ export type ProductEventName =
   | "recovery_action_completed"
   | "reasoning_session_completed"
   | "content_completed"
-  | "coach_shadow_predictions_generated";
+  | "coach_shadow_predictions_generated"
+  | "work_recommendation_shown"
+  | "work_recommendation_dismissed"
+  | "work_block_started"
+  | "work_block_abandoned"
+  | "work_outcome_logged";
 
 type EventProperties = Record<string, string | number | boolean | null>;
 

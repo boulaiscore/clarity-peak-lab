@@ -14,14 +14,12 @@ import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
-import { useCognitiveInsights } from "@/hooks/useCognitiveInsights";
 import { useTutorialState } from "@/hooks/useTutorialState";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { useActiveReasonSession } from "@/hooks/useReasonSessions";
 import { cn } from "@/lib/utils";
 import { getSharpnessStatus, getReadinessStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
-import { CognitiveInsightCard } from "@/components/home/CognitiveInsightCard";
 import { HomeTabId } from "@/components/home/HomeTabs";
 import { IntuitionTab } from "@/components/home/IntuitionTab";
 import { ReasoningTab } from "@/components/home/ReasoningTab";
@@ -34,6 +32,7 @@ import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
+import { DailyWorkCoachCard } from "@/components/home/DailyWorkCoachCard";
 
 // Circular progress ring component with icon and status inside
 interface RingProps {
@@ -129,6 +128,8 @@ const Home = () => {
     sharpness,
     readiness,
     recoveryRaw,
+    isRecoveryInitialized,
+    hasWearableData,
     isLoading: metricsLoading
   } = useTodayMetrics();
 
@@ -151,14 +152,6 @@ const Home = () => {
     isDecaying: rqIsDecaying,
     isLoading: rqLoading
   } = useReasoningQuality();
-
-  // Cognitive decision insights - must be after metrics are defined
-  const cognitiveInsights = useCognitiveInsights({
-    sharpness,
-    readiness,
-    recovery: recoveryEffective,
-    rq,
-  });
 
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const {
@@ -269,30 +262,6 @@ const Home = () => {
   const readinessColor = "hsl(245, 58%, 65%)"; // Soft indigo
   const rqColor = "hsl(207, 44%, 55%)"; // Steel Blue for RQ
 
-  // Get insight based on readiness - direct actionable tone
-  const getInsight = () => {
-    if (readiness >= 75) {
-      return {
-        title: "Today: protect a focused block",
-        body: "Your recorded signals are elevated. Use the window, then log how the work felt.",
-        action: "Start Train"
-      };
-    }
-    if (readiness >= 55) {
-      return {
-        title: "Today: follow your normal plan",
-        body: "Your signals are near their usual range. A normal work block adds useful evidence.",
-        action: "Start session"
-      };
-    }
-    return {
-      title: "Today: reduce avoidable load",
-      body: "Your inputs are lower. Try a short reset and re-check before demanding work.",
-      action: "Start Recover"
-    };
-  };
-  const insight = getInsight();
-
   // Baseline calibration not completed - show CTA to complete it
   if (!baselineLoading && !isCalibrated) {
     return <AppShell>
@@ -366,6 +335,17 @@ const Home = () => {
               </button>
             </motion.section>
 
+            {isViewingToday && (
+              <DailyWorkCoachCard
+                sharpness={sharpness}
+                readiness={readiness}
+                recovery={recoveryWithBoost}
+                reasoningQuality={rq}
+                recoveryInitialized={isRecoveryInitialized}
+                hasWearableData={hasWearableData}
+                isLoading={metricsLoading || recoveryEffectiveLoading || rqLoading}
+              />
+            )}
 
 
             {/* No data warning for historical dates */}
@@ -412,7 +392,6 @@ const Home = () => {
         {/* My Day — Daily Outlook + Today's Activities */}
         {isViewingToday && (
           <TodayActivitiesCard
-            outlook={{ label: insight.title, line: insight.body }}
             activeQualityTime={
               activeReasonSession
                 ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
@@ -422,19 +401,6 @@ const Home = () => {
             }
           />
         )}
-
-        {/* Cognitive Decision Insight Card */}
-        {isViewingToday && (
-          <motion.section initial={false} className="mb-5">
-            <CognitiveInsightCard
-              primaryInsight={cognitiveInsights.primaryInsight}
-              secondaryInsight={cognitiveInsights.secondaryInsight}
-              decisionReadiness={cognitiveInsights.decisionReadiness}
-              isLoading={metricsLoading || rqLoading || cognitiveInsights.isLoading}
-            />
-          </motion.section>
-        )}
-
 
         {/* Single priority — Whoop-style focus, secondary suggestions removed for calm */}
 

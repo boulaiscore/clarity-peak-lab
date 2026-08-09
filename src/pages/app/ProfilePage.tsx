@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, type PrimaryOutcome } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { User, Save, Brain, Shield, Users, RotateCcw } from "lucide-react";
@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 // Education level labels mapping
 const educationLevelLabels: Record<string, string> = {
@@ -29,10 +30,17 @@ const educationLevelLabels: Record<string, string> = {
   other: "Other",
 };
 
+const primaryOutcomes: Array<{ value: PrimaryOutcome; label: string; description: string }> = [
+  { value: "focus", label: "Focus", description: "Deep, distraction-resistant work" },
+  { value: "decide", label: "Decide", description: "High-impact choices and trade-offs" },
+  { value: "reason", label: "Analyze", description: "Evidence, causality and strategy" },
+];
+
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
+  const [primaryOutcome, setPrimaryOutcome] = useState<PrimaryOutcome>(user?.primaryOutcome ?? "focus");
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState<boolean | null>(null);
@@ -61,6 +69,7 @@ const ProfilePage = () => {
   useEffect(() => {
     if (user) {
       setName(user.name || "");
+      setPrimaryOutcome(user.primaryOutcome ?? "focus");
     }
   }, [user]);
 
@@ -104,8 +113,7 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    updateUser({ name });
+    await updateUser({ name, primaryOutcome });
     toast({ title: "Profile saved", description: "Your profile has been updated." });
     setIsSaving(false);
   };
@@ -155,6 +163,33 @@ const ProfilePage = () => {
             <div className="p-5 rounded-xl bg-card border border-border shadow-card">
               <label className="text-sm font-medium mb-2 block">Display Name</label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="h-11" />
+            </div>
+
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold">Primary work outcome</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  This shapes tomorrow’s work recommendation. It is not an ability label.
+                </p>
+              </div>
+              <div className="space-y-2">
+                {primaryOutcomes.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setPrimaryOutcome(option.value)}
+                    className={cn(
+                      "w-full rounded-xl border px-3 py-3 text-left transition-colors",
+                      primaryOutcome === option.value
+                        ? "border-primary/60 bg-primary/10"
+                        : "border-border/40 bg-background/30 hover:border-primary/35",
+                    )}
+                  >
+                    <span className="block text-xs font-semibold">{option.label}</span>
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">{option.description}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Demographics */}

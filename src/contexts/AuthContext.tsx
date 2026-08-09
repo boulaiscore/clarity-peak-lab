@@ -11,6 +11,7 @@ export type SessionDuration = "30s" | "2min" | "5min" | "7min";
 export type DailyTimeCommitment = "3min" | "7min" | "10min";
 export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
 export type WorkType = "knowledge" | "creative" | "technical" | "management" | "student" | "other";
+export type PrimaryOutcome = "decide" | "focus" | "reason";
 export type EducationLevel = "high_school" | "bachelor" | "master" | "phd" | "other";
 export type DegreeDiscipline = "stem" | "humanities" | "business" | "health" | "arts" | "social_sciences" | "law" | "other";
 
@@ -40,6 +41,7 @@ export interface UserProfile {
   reminder_enabled: boolean | null;
   reminder_time: string | null;
   primary_device: PrimaryDevice | null;
+  primary_outcome: PrimaryOutcome | null;
   // RRI fields
   rri_sleep_hours: RRISleepHours | null;
   rri_detox_hours: RRIDetoxHours | null;
@@ -62,6 +64,7 @@ export interface User {
   birthDate?: string;
   gender?: Gender;
   workType?: WorkType;
+  primaryOutcome?: PrimaryOutcome;
   educationLevel?: EducationLevel;
   degreeDiscipline?: DegreeDiscipline;
   
@@ -103,6 +106,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | null): User {
+  const storedPrimaryOutcome = typeof window !== "undefined"
+    ? localStorage.getItem("looma_primary_outcome") as PrimaryOutcome | null
+    : null;
   return {
     id: supabaseUser.id,
     email: supabaseUser.email || "",
@@ -113,6 +119,7 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     birthDate: profile?.birth_date || undefined,
     gender: profile?.gender || undefined,
     workType: profile?.work_type || undefined,
+    primaryOutcome: profile?.primary_outcome || storedPrimaryOutcome || undefined,
     educationLevel: profile?.education_level || undefined,
     degreeDiscipline: profile?.degree_discipline || undefined,
     trainingGoals: profile?.training_goals || [],
@@ -379,6 +386,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.birthDate !== undefined) profileUpdates.birth_date = updates.birthDate;
     if (updates.gender !== undefined) profileUpdates.gender = updates.gender;
     if (updates.workType !== undefined) profileUpdates.work_type = updates.workType;
+    if (updates.primaryOutcome !== undefined) profileUpdates.primary_outcome = updates.primaryOutcome;
     if (updates.educationLevel !== undefined) profileUpdates.education_level = updates.educationLevel;
     if (updates.degreeDiscipline !== undefined) profileUpdates.degree_discipline = updates.degreeDiscipline;
     if (updates.trainingGoals !== undefined) profileUpdates.training_goals = updates.trainingGoals;
@@ -398,16 +406,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.rriSetAt !== undefined) profileUpdates.rri_set_at = updates.rriSetAt;
 
     // Use upsert to create profile if missing (e.g., if trigger didn't fire)
-    const { error } = await supabase
+    let { error } = await supabase
       .from("profiles")
       .upsert(
         { user_id: user.id, ...profileUpdates },
         { onConflict: "user_id" }
       );
 
+    // During a staged rollout the app may reach a preview before the new
+    // `primary_outcome` migration reaches Supabase. Preserve every other
+    // profile update and keep the preference locally until cloud schema catches up.
+    if (
+      error &&
+      updates.primaryOutcome !== undefined &&
+      (error.code === "PGRST204" || error.code === "42703" || error.message.includes("primary_outcome"))
+    ) {
+      delete profileUpdates.primary_outcome;
+      const retry = await supabase
+        .from("profiles")
+        .upsert(
+          { user_id: user.id, ...profileUpdates },
+          { onConflict: "user_id" }
+        );
+      error = retry.error;
+    }
+
     if (error) {
       console.error("Error updating profile:", error.message, error.code, error.details);
       return;
+    }
+
+    if (updates.primaryOutcome !== undefined) {
+      localStorage.setItem("looma_primary_outcome", updates.primaryOutcome);
     }
 
     // Update local state

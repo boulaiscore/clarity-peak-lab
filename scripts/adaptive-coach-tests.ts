@@ -3,6 +3,7 @@ import {
   evaluateCoachValidation,
   generateCoachShadowPredictions,
 } from "../src/lib/adaptiveCoach";
+import { generateDailyWorkRecommendation } from "../src/lib/workCoach";
 
 const now = new Date("2026-08-08T12:00:00.000Z");
 const context = {
@@ -64,4 +65,45 @@ assert.equal(validated.gates.directionalAccuracy, true);
 assert.equal(validated.gates.beatsNoChange, true);
 assert.equal(validated.gates.actionCoverage, true);
 
-console.log("Adaptive coach checks passed");
+const protectiveDecision = generateDailyWorkRecommendation({
+  primaryOutcome: "decide",
+  sharpness: 58,
+  readiness: 38,
+  recovery: 30,
+  reasoningQuality: 62,
+  recoveryInitialized: true,
+  hasWearableData: false,
+});
+assert.equal(protectiveDecision.actionKey, "decision_block");
+assert.equal(protectiveDecision.intensity, "protective");
+assert.equal(protectiveDecision.plannedDurationMinutes, 25);
+assert.match(protectiveDecision.title, /Prepare the decision/);
+
+const strongFocus = generateDailyWorkRecommendation({
+  primaryOutcome: "focus",
+  sharpness: 78,
+  readiness: 81,
+  recovery: 70,
+  reasoningQuality: 68,
+  recoveryInitialized: true,
+  hasWearableData: true,
+});
+assert.equal(strongFocus.actionKey, "focus_block");
+assert.equal(strongFocus.intensity, "strong");
+assert.equal(strongFocus.plannedDurationMinutes, 50);
+assert.equal(strongFocus.confidenceLabel, "richer signal");
+
+const steadyReasoning = generateDailyWorkRecommendation({
+  primaryOutcome: "reason",
+  sharpness: 60,
+  readiness: 61,
+  recovery: 55,
+  reasoningQuality: 64,
+  recoveryInitialized: false,
+  hasWearableData: false,
+});
+assert.equal(steadyReasoning.actionKey, "analysis_block");
+assert.equal(steadyReasoning.intensity, "steady");
+assert.equal(steadyReasoning.confidenceLabel, "early signal");
+
+console.log("Adaptive coach and real-work recommendation checks passed");
