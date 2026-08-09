@@ -10,7 +10,7 @@ interface MonitorSegmentedControlProps<T extends string> {
   ariaLabel: string;
   value: T;
   options: readonly MonitorSegmentOption<NoInfer<T>>[];
-  onChange: (value: T) => void;
+  onChange: (value: NoInfer<T>) => void;
   className?: string;
 }
 
