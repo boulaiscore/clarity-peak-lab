@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -108,6 +108,7 @@ export function useAdaptivePassiveFeatures(
   const sinceDate = format(subDays(new Date(), 14), "yyyy-MM-dd");
   const sinceTimestamp = subDays(new Date(), 14).toISOString();
   const persistedHashRef = useRef<string | null>(null);
+  const queryClient = useQueryClient();
 
   const sourceQuery = useQuery({
     queryKey: ["adaptive-passive-sources", userId, sinceDate],
@@ -342,9 +343,11 @@ export function useAdaptivePassiveFeatures(
 
       if (error) {
         console.error("[AdaptiveCoach] Passive feature persistence failed:", error);
+        return;
       }
+      await queryClient.invalidateQueries({ queryKey: ["adaptive-coach-feature-status", userId] });
     })();
-  }, [featureDate, payload, userId]);
+  }, [featureDate, payload, queryClient, userId]);
 
   return { payload, isLoading };
 }

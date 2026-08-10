@@ -398,3 +398,62 @@ export function useAdaptiveCoachValidation() {
     error: query.error,
   };
 }
+
+interface AdaptiveCoachFeatureAvailability {
+  metricsHistory: boolean;
+  firstPartyBehavior: boolean;
+  phoneHealth: boolean;
+  wearable: boolean;
+  deviceUsage: boolean;
+  coverage: number;
+}
+
+function jsonRecord(value: Json): Record<string, Json | undefined> {
+  return value && !Array.isArray(value) && typeof value === "object" ? value : {};
+}
+
+export function useAdaptiveCoachFeatureStatus() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  const query = useQuery({
+    queryKey: ["adaptive-coach-feature-status", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from("adaptive_daily_feature_snapshots")
+        .select("feature_date, schema_version, availability, updated_at")
+        .eq("user_id", userId)
+        .order("feature_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+
+  const availability = useMemo<AdaptiveCoachFeatureAvailability | null>(() => {
+    if (!query.data) return null;
+    const raw = jsonRecord(query.data.availability);
+    const bool = (key: string) => raw[key] === true;
+    const coverage = Number(raw.coverage);
+    return {
+      metricsHistory: bool("metricsHistory"),
+      firstPartyBehavior: bool("firstPartyBehavior"),
+      phoneHealth: bool("phoneHealth"),
+      wearable: bool("wearable"),
+      deviceUsage: bool("deviceUsage"),
+      coverage: Number.isFinite(coverage) ? Math.max(0, Math.min(1, coverage)) : 0,
+    };
+  }, [query.data]);
+
+  return {
+    availability,
+    featureDate: query.data?.feature_date ?? null,
+    schemaVersion: query.data?.schema_version ?? null,
+    isLoading: query.isLoading,
+    error: query.error,
+  };
+}

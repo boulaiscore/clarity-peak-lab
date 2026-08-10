@@ -1,7 +1,10 @@
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
-import { useAdaptiveCoachValidation } from "@/hooks/useAdaptiveCoachShadow";
+import {
+  useAdaptiveCoachFeatureStatus,
+  useAdaptiveCoachValidation,
+} from "@/hooks/useAdaptiveCoachShadow";
 import { getCoachActionLabel } from "@/lib/adaptiveCoach";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +51,48 @@ function GateRow({ code, label, passed, value }: { code: string; label: string; 
   );
 }
 
+function InputRow({
+  code,
+  label,
+  available,
+  detail,
+}: {
+  code: string;
+  label: string;
+  available: boolean;
+  detail: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 py-3">
+      <span className="w-12 rounded-md border border-border/50 bg-background/40 px-2 py-1 text-center text-[9px] font-semibold tracking-[0.1em]">
+        {code}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-foreground/90">{label}</p>
+        <p className="text-[10px] leading-relaxed text-muted-foreground">{detail}</p>
+      </div>
+      <span className={cn(
+        "rounded-full border px-2 py-1 text-[8px] uppercase tracking-[0.1em]",
+        available
+          ? "border-primary/25 bg-primary/10 text-primary"
+          : "border-border/40 text-muted-foreground",
+      )}>
+        {available ? "Learning" : "Waiting"}
+      </span>
+    </div>
+  );
+}
+
+function isStorageSetupError(error: unknown): boolean {
+  if (!error) return false;
+  const serialized = error instanceof Error
+    ? error.message
+    : typeof error === "string"
+    ? error
+    : JSON.stringify(error);
+  return /adaptive_coach_predictions|PGRST205|42P01|schema cache/i.test(serialized);
+}
+
 export default function AdaptiveCoach() {
   const {
     validation,
@@ -58,6 +103,8 @@ export default function AdaptiveCoach() {
     isLoading,
     error,
   } = useAdaptiveCoachValidation();
+  const featureStatus = useAdaptiveCoachFeatureStatus();
+  const storageSetupRequired = isStorageSetupError(error);
 
   const statusLabel = validation.status === "ready_for_review"
     ? "Ready for manual review"
@@ -92,9 +139,61 @@ export default function AdaptiveCoach() {
           </div>
         </header>
 
+        <section className="rounded-2xl border border-border/30 bg-card/40 p-4">
+          <div className="flex items-start justify-between gap-3 border-b border-border/25 pb-3">
+            <div>
+              <h2 className="text-sm font-medium">What the coach is learning</h2>
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                Daily context is compared only with your own history.
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-semibold tabular-nums">
+                {featureStatus.isLoading || !featureStatus.availability
+                  ? "—"
+                  : `${Math.round(featureStatus.availability.coverage * 100)}%`}
+              </p>
+              <p className="text-[8px] uppercase tracking-[0.1em] text-muted-foreground">Data coverage</p>
+            </div>
+          </div>
+          <div className="divide-y divide-border/20">
+            <InputRow
+              code="MET"
+              label="Metric trajectory"
+              available={featureStatus.availability?.metricsHistory ?? false}
+              detail="AE, RA, CT, IN and cognitive-state slopes over 14 days."
+            />
+            <InputRow
+              code="BEH"
+              label="Training behavior"
+              available={featureStatus.availability?.firstPartyBehavior ?? false}
+              detail="Drills, Quality Time, recovery activity and LOOMA usage over 7 days."
+            />
+            <InputRow
+              code="HLT"
+              label="Health context"
+              available={(featureStatus.availability?.phoneHealth ?? false) || (featureStatus.availability?.wearable ?? false)}
+              detail="Permitted sleep, activity, HRV and resting-heart-rate signals."
+            />
+            <InputRow
+              code="ATT"
+              label="Attention load"
+              available={featureStatus.availability?.deviceUsage ?? false}
+              detail="Aggregate attention-app minutes versus your personal baseline."
+            />
+          </div>
+          {featureStatus.featureDate && (
+            <p className="border-t border-border/25 pt-3 text-[9px] text-muted-foreground">
+              Latest private snapshot · {format(parseISO(featureStatus.featureDate), "MMM d")}
+            </p>
+          )}
+        </section>
+
         {error ? (
           <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-xs leading-relaxed text-muted-foreground">
-            Coach validation data is temporarily unavailable. Your active training remains unaffected.
+            {storageSetupRequired
+              ? "Coach storage is not initialized yet. Apply the pending Adaptive Coach database migration in Lovable; active training remains unaffected."
+              : "Coach validation data is temporarily unavailable. Your active training remains unaffected."}
           </div>
         ) : (
           <>
@@ -189,19 +288,11 @@ export default function AdaptiveCoach() {
           </>
         )}
 
-        <section className="space-y-3 rounded-2xl border border-border/30 bg-card/40 p-4">
-          <div>
-            <h2 className="text-sm font-medium">What the model uses</h2>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Current AE, RA, CT and IN states; recent same-skill drill scores; time since matching training; and today’s Recovery, Sharpness and Readiness.
-            </p>
-          </div>
-          <div className="border-t border-border/25 pt-3">
-            <h2 className="text-sm font-medium">What it does not use</h2>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Name, email, demographics or free text. It does not claim causality and does not personalize active training while in shadow mode.
-            </p>
-          </div>
+        <section className="rounded-2xl border border-border/30 bg-card/40 p-4">
+          <h2 className="text-sm font-medium">Privacy boundary</h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            The model does not use your name, email, demographics, free text, app names, messages or social content. It learns associations, not intelligence or causality, and cannot personalize active training while in shadow mode.
+          </p>
         </section>
       </div>
     </AppShell>
