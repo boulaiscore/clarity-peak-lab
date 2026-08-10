@@ -2,7 +2,7 @@
 
 ## Release state
 
-Version 3 is an explainable shadow system. It collects passive outcomes and
+Version 4 is an explainable shadow system. It collects passive outcomes and
 tests forecasts, but has no code path that can change a plan, game order,
 gating, difficulty or active CTA.
 
@@ -16,23 +16,24 @@ behavior being observed.
 The primary target is next-observed-day **Focus Integrity**: a within-person
 proxy for sustained attention. It can use only available aggregate signals:
 
+- automatically detected desktop work blocks, continuity and switching;
 - attention-app time relative to the user's own recent median;
 - background interruptions during an existing Quality Time session;
 - automatic session validity/completion.
 
-Available components are normalized by their declared weights. A daily outcome
-is evaluable only when coverage is at least 55% and source confidence is at
-least 45%. Phone attention alone therefore needs a personal baseline; an
-isolated in-app session cannot qualify as a passive daily outcome by itself.
+Desktop work integrity has 65% of the outcome contract. Available components
+are normalized by their declared weights. A daily outcome is evaluable only
+when coverage is at least 60% and source confidence is at least 45%. Phone
+attention or an isolated in-app session cannot qualify as a professional-work
+outcome by themselves.
 
 Focus Integrity does **not** measure intelligence, productivity, decision
-quality or the semantic quality of work. Those claims require a separate,
-verifiable outcome source such as a privacy-safe desktop or work-tool
-integration.
+quality or the semantic quality of work. It measures observable continuity and
+attention leakage only.
 
 ## Shadow forecast
 
-Once per local day, `focus-integrity-shadow-v1` stores a forecast for the next
+Once per local day, `focus-integrity-shadow-v2-desktop` stores a forecast for the next
 observed day. The bounded interpretable prior uses:
 
 - current Sharpness, Readiness and Recovery;
@@ -76,6 +77,7 @@ separate product decision.
 - first-party behavior aggregated over seven days;
 - latest permitted phone-health and wearable inputs;
 - aggregate attention time relative to a personal median;
+- desktop block counts, focused minutes and integrity aggregates;
 - explicit availability and coverage.
 
 `passive_focus_observations` stores only the normalized daily score, component
@@ -87,6 +89,17 @@ The existing `device_usage_snapshots` table contains only daily aggregate
 minutes, active app count and recency. Package names, app names, domains,
 content, contacts and social identities are removed on-device before upload.
 
+`desktop_work_blocks` stores only timestamps, local time bucket, durations,
+interruption/switch counts, attention minutes, continuity, confidence and the
+derived integrity score. The extension holds the current hostname only in
+`chrome.storage.session` to detect a switch. URLs, hostnames, titles and page
+content never enter its completed-block queue or Supabase.
+
+Monitor exposes a single `Focus patterns` panel. Best window and sustainable
+duration remain blank until enough work blocks exist. Pattern status is
+`learning` below 7 blocks, `emerging` from 7 blocks and `reliable` only after 30
+blocks across at least 7 days.
+
 ## Privacy boundary
 
 All rows are user-owned in Supabase and protected by Row Level Security. Model
@@ -94,6 +107,6 @@ inputs exclude name, email, demographics, free text, app identities and social
 content. The system learns predictive associations inside one person's history;
 it does not claim causality or compare people.
 
-Desktop work continuity is not inferred unless a future browser/desktop sensor
-supplies privacy-safe aggregates. The mobile implementation must not claim
-universal professional-work detection before that source exists.
+Calendar context is not yet connected. The desktop sensor detects browser work
+continuity, not work performed entirely in native desktop applications. Those
+limits must remain visible in product and validation decisions.

@@ -1,6 +1,6 @@
 import { clamp } from "@/lib/cognitiveEngine";
 
-export const FOCUS_INTEGRITY_MODEL_VERSION = "focus-integrity-shadow-v1";
+export const FOCUS_INTEGRITY_MODEL_VERSION = "focus-integrity-shadow-v2-desktop";
 export const FOCUS_INTEGRITY_MIN_BASELINE_DAYS = 5;
 export const FOCUS_INTEGRITY_VALIDATION_DAYS = 21;
 
@@ -11,6 +11,7 @@ export interface FocusSessionSignal {
 }
 
 export interface FocusIntegrityComponents {
+  desktopFocus: number | null;
   attentionStability: number | null;
   sessionContinuity: number | null;
   sessionCompletion: number | null;
@@ -25,6 +26,8 @@ export interface FocusIntegrityObservation {
   evidence: {
     attentionBaselineDays: number;
     attentionLoadRatio: number | null;
+    desktopBlockCount: number;
+    desktopFocusedMinutes: number;
     focusMinutes: number;
     interruptions: number;
     completedSessions: number;
@@ -136,6 +139,11 @@ export function buildFocusIntegrityObservation(input: {
   attentionLoadRatio: number | null;
   attentionBaselineDays: number;
   attentionConfidence: number | null;
+  desktopBlocks?: Array<{
+    score: number;
+    confidence: number;
+    focusedMinutes: number;
+  }>;
   sessions: FocusSessionSignal[];
 }): FocusIntegrityObservation {
   const validDurations = input.sessions.filter((session) =>
@@ -151,6 +159,29 @@ export function buildFocusIntegrityObservation(input: {
   );
   const completedSessions = validDurations.filter((session) => session.isValid).length;
 
+  const desktopBlocks = (input.desktopBlocks ?? []).filter((block) =>
+    Number.isFinite(block.score) &&
+    Number.isFinite(block.confidence) &&
+    Number.isFinite(block.focusedMinutes) &&
+    block.focusedMinutes >= 10,
+  );
+  const desktopWeight = desktopBlocks.reduce(
+    (sum, block) => sum + Math.min(120, block.focusedMinutes),
+    0,
+  );
+  const desktopFocus = desktopWeight > 0
+    ? desktopBlocks.reduce(
+        (sum, block) => sum + clamp(block.score, 0, 100) * Math.min(120, block.focusedMinutes),
+        0,
+      ) / desktopWeight
+    : null;
+  const desktopConfidence = desktopWeight > 0
+    ? desktopBlocks.reduce(
+        (sum, block) => sum + clamp(block.confidence, 0, 1) * Math.min(120, block.focusedMinutes),
+        0,
+      ) / desktopWeight
+    : 0;
+
   const attentionStability = input.attentionLoadRatio === null || input.attentionBaselineDays < 3
     ? null
     : clamp(50 + 35 * (1 - input.attentionLoadRatio), 0, 100);
@@ -163,19 +194,24 @@ export function buildFocusIntegrityObservation(input: {
 
   const weighted = [
     {
+      value: desktopFocus,
+      weight: 0.65,
+      reliability: desktopConfidence,
+    },
+    {
       value: attentionStability,
-      weight: 0.6,
+      weight: 0.2,
       reliability: Math.min(1, input.attentionBaselineDays / 5) *
         clamp(input.attentionConfidence ?? 0.7, 0, 1),
     },
     {
       value: sessionContinuity,
-      weight: 0.25,
+      weight: 0.1,
       reliability: Math.min(1, focusMinutes / 45),
     },
     {
       value: sessionCompletion,
-      weight: 0.15,
+      weight: 0.05,
       reliability: Math.min(1, validDurations.length / 2),
     },
   ].filter((component) => component.value !== null);
@@ -198,8 +234,9 @@ export function buildFocusIntegrityObservation(input: {
     score: score === null ? null : round(score, 1),
     coverage: round(coverage, 3),
     confidence: round(confidence, 3),
-    isEvaluable: score !== null && coverage >= 0.55 && confidence >= 0.45,
+    isEvaluable: score !== null && coverage >= 0.6 && confidence >= 0.45,
     components: {
+      desktopFocus: desktopFocus === null ? null : round(desktopFocus, 1),
       attentionStability: attentionStability === null ? null : round(attentionStability, 1),
       sessionContinuity: sessionContinuity === null ? null : round(sessionContinuity, 1),
       sessionCompletion: sessionCompletion === null ? null : round(sessionCompletion, 1),
@@ -207,6 +244,11 @@ export function buildFocusIntegrityObservation(input: {
     evidence: {
       attentionBaselineDays: input.attentionBaselineDays,
       attentionLoadRatio: input.attentionLoadRatio,
+      desktopBlockCount: desktopBlocks.length,
+      desktopFocusedMinutes: round(
+        desktopBlocks.reduce((sum, block) => sum + block.focusedMinutes, 0),
+        1,
+      ),
       focusMinutes: round(focusMinutes, 1),
       interruptions,
       completedSessions,

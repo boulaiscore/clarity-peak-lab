@@ -7,6 +7,7 @@ import { GamesStats } from "@/components/dashboard/GamesStats";
 import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
+import { FocusPatternsPanel } from "@/components/dashboard/FocusPatternsPanel";
 import {
   MonitorPanel,
   MonitorSectionHeader,
@@ -135,6 +136,8 @@ const Dashboard = () => {
               thinkingScores={thinkingScores}
               bottleneck={bottleneck}
             />
+
+            <FocusPatternsPanel />
 
             <section className="space-y-4">
               <MonitorSectionHeader

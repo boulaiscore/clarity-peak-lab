@@ -10,6 +10,14 @@ import {
   evaluateFocusIntegrityValidation,
   generateFocusIntegrityForecast,
 } from "../src/lib/focusIntegrity";
+import {
+  calculateDesktopBlockIntegrity,
+  deriveFocusPatterns,
+} from "../src/lib/workFocusPatterns";
+import {
+  advanceDetector,
+  createDetectorState,
+} from "../browser-extension/detector.js";
 
 const now = new Date("2026-08-08T12:00:00.000Z");
 const context = {
@@ -95,6 +103,9 @@ const passivePayload = buildPassiveFeaturePayload({
     { date: "2026-08-07", attentionUsageMin: 50, activeAppCount: 4, lastAttentionUseAt: null, permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
     { date: "2026-08-08", attentionUsageMin: 90, activeAppCount: 5, lastAttentionUseAt: now.toISOString(), permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
   ],
+  desktopWorkBlocks: [
+    { localDate: "2026-08-08", integrityScore: 78, confidence: 0.82, focusedMinutes: 45 },
+  ],
   primaryOutcome: "focus",
 });
 assert.equal(passivePayload.coachContext.healthScore, 72);
@@ -102,6 +113,8 @@ assert.equal(passivePayload.coachContext.attentionUsageBaselineMinutes, 45);
 assert.equal(passivePayload.coachContext.attentionLoadRatio, 2);
 assert.ok(passivePayload.coachContext.metricTrendPerDay > 0);
 assert.equal(passivePayload.deviceUsage.privacyLevel, "aggregate_only_no_app_names_or_content");
+assert.equal(passivePayload.availability.desktopWork, true);
+assert.equal(passivePayload.behavior.desktopWorkBlocks7d, 1);
 
 const passivePredictions = generateCoachShadowPredictions({
   ...context,
@@ -117,16 +130,18 @@ const focusObservation = buildFocusIntegrityObservation({
   attentionLoadRatio: 0.8,
   attentionBaselineDays: 5,
   attentionConfidence: 0.85,
+  desktopBlocks: [{ score: 80, confidence: 0.85, focusedMinutes: 45 }],
   sessions: [],
 });
 assert.equal(focusObservation.isEvaluable, true);
-assert.equal(focusObservation.coverage, 0.6);
-assert.equal(focusObservation.score, 57);
+assert.equal(focusObservation.coverage, 0.85);
+assert.ok((focusObservation.score ?? 0) > 70);
 
 const focusWithoutPassiveSignal = buildFocusIntegrityObservation({
   attentionLoadRatio: null,
   attentionBaselineDays: 0,
   attentionConfidence: null,
+  desktopBlocks: [],
   sessions: [{ durationSeconds: 1800, backgroundInterrupts: 1, isValid: true }],
 });
 assert.equal(focusWithoutPassiveSignal.isEvaluable, false);
@@ -150,6 +165,79 @@ const focusForecast = generateFocusIntegrityForecast({
 assert.equal(focusForecast.isEvaluable, true);
 assert.ok(focusForecast.predictedDelta > 0);
 assert.ok(focusForecast.reasons.length <= 3);
+
+const desktopIntegrity = calculateDesktopBlockIntegrity({
+  clientBlockId: "f1707d7c-786b-44c9-91cc-14ad087b3574",
+  source: "chrome_extension",
+  sensorVersion: "desktop-focus-v1",
+  startedAt: "2026-08-08T08:00:00.000Z",
+  endedAt: "2026-08-08T09:00:00.000Z",
+  localDate: "2026-08-08",
+  localStartHour: 9,
+  localWeekday: 6,
+  timezoneOffsetMinutes: -120,
+  durationMinutes: 60,
+  activeMinutes: 58,
+  focusedMinutes: 54,
+  attentionMinutes: 2,
+  idleMinutes: 2,
+  interruptionCount: 1,
+  contextSwitchCount: 2,
+  longestContinuousMinutes: 34,
+  endedAbruptly: false,
+  terminationReason: "idle",
+  confidence: 0.85,
+});
+assert.ok(desktopIntegrity.score > 65);
+assert.ok(desktopIntegrity.confidence > 0.8);
+
+const focusPatterns = deriveFocusPatterns([
+  ...Array.from({ length: 5 }, (_, index) => ({
+    localDate: `2026-08-0${index + 1}`,
+    localStartHour: 9,
+    focusedMinutes: 60 + index,
+    attentionMinutes: 1,
+    interruptionCount: 1,
+    contextSwitchCount: 2,
+    endedAbruptly: false,
+    integrityScore: 82 - index,
+    confidence: 0.85,
+  })),
+  ...Array.from({ length: 3 }, (_, index) => ({
+    localDate: `2026-08-0${index + 1}`,
+    localStartHour: 15,
+    focusedMinutes: 35,
+    attentionMinutes: 6,
+    interruptionCount: 3,
+    contextSwitchCount: 5,
+    endedAbruptly: false,
+    integrityScore: 55 + index,
+    confidence: 0.75,
+  })),
+]);
+assert.equal(focusPatterns.status, "emerging");
+assert.equal(focusPatterns.bestWindow, "08:00–10:00");
+assert.ok(focusPatterns.sustainableDuration);
+
+let detectorState = createDetectorState();
+let detectedBlock = null;
+const detectorStart = Date.parse("2026-08-08T08:00:00.000Z");
+for (let minute = 0; minute <= 20; minute += 1) {
+  const isAttention = minute >= 12;
+  const result = advanceDetector(detectorState, {
+    timestamp: detectorStart + minute * 60_000,
+    activity: "active",
+    category: isAttention ? "attention" : "work",
+    siteToken: isAttention ? "private-social.example" : minute < 5 ? "work-a.example" : "work-b.example",
+  });
+  detectorState = result.state;
+  detectedBlock = result.completedBlock ?? detectedBlock;
+}
+assert.ok(detectedBlock);
+assert.ok(detectedBlock.focusedMinutes >= 10);
+assert.equal(detectedBlock.contextSwitchCount, 1);
+assert.equal(detectedBlock.interruptionCount, 1);
+assert.doesNotMatch(JSON.stringify(detectedBlock), /private-social|work-a|work-b/);
 
 const collecting = evaluateCoachValidation([
   { actionKey: "train_ae", predictedDelta: 2, observedDelta: 3 },

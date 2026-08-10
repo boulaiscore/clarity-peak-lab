@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "LOOMA Focus Sensor",
+  "version": "0.1.0",
+  "description": "Privacy-safe automatic work-block sensing for LOOMA.",
+  "minimum_chrome_version": "116",
+  "permissions": ["alarms", "idle", "storage", "tabs"],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "LOOMA Focus Sensor",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://clarity-peak-lab.lovable.app/*",
+        "https://*.lovableproject.com/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": ["bridge.js"],
+      "run_at": "document_start",
+      "all_frames": false,
+      "world": "ISOLATED"
+    }
+  ]
+}

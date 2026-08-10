@@ -110,7 +110,7 @@ export default function AdaptiveCoach() {
 
           <div className="mt-5 grid grid-cols-2 gap-2">
             <Signal label="METRICS" active={availability?.metricsHistory ?? false} />
-            <Signal label="BEHAVIOR" active={availability?.firstPartyBehavior ?? false} />
+            <Signal label="WORK" active={availability?.desktopWork ?? false} />
             <Signal label="HEALTH" active={(availability?.phoneHealth ?? false) || (availability?.wearable ?? false)} />
             <Signal label="ATTENTION" active={availability?.deviceUsage ?? false} />
           </div>

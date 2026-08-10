@@ -125,6 +125,7 @@ export function useAdaptivePassiveFeatures(
         wearableResult,
         productResult,
         deviceResult,
+        desktopResult,
       ] = await Promise.all([
         supabase
           .from("daily_metric_snapshots")
@@ -188,6 +189,13 @@ export function useAdaptivePassiveFeatures(
           .gte("snapshot_date", sinceDate)
           .order("snapshot_date", { ascending: true })
           .limit(30),
+        looseSupabase
+          .from("desktop_work_blocks")
+          .select("local_date, integrity_score, confidence, focused_minutes")
+          .eq("user_id", userId)
+          .gte("local_date", sinceDate)
+          .order("local_date", { ascending: true })
+          .limit(300),
       ]);
 
       const errors = [
@@ -200,6 +208,7 @@ export function useAdaptivePassiveFeatures(
         wearableResult.error,
         productResult.error,
         deviceResult.error,
+        desktopResult.error,
       ].filter(Boolean);
       if (errors.length > 0) {
         console.warn("[AdaptiveCoach] Some passive sources are unavailable:", errors);
@@ -215,6 +224,7 @@ export function useAdaptivePassiveFeatures(
         wearableRows: wearableResult.data ?? [],
         productRows: productResult.data,
         deviceRows: deviceResult.data,
+        desktopRows: desktopResult.data,
       };
     },
     enabled: !!userId,
@@ -317,6 +327,18 @@ export function useAdaptivePassiveFeatures(
         source: row.source,
       })),
       deviceUsage: parseDeviceUsage(source.deviceRows),
+      desktopWorkBlocks: records(source.desktopRows).flatMap((row) => {
+        const localDate = stringValue(row.local_date);
+        const integrityScore = numberValue(row.integrity_score);
+        const confidence = numberValue(row.confidence);
+        const focusedMinutes = numberValue(row.focused_minutes);
+        return localDate &&
+          integrityScore !== null &&
+          confidence !== null &&
+          focusedMinutes !== null
+          ? [{ localDate, integrityScore, confidence, focusedMinutes }]
+          : [];
+      }),
       primaryOutcome: user.primaryOutcome ?? null,
     });
   }, [current, featureDate, isLoading, sourceQuery.data, user, userId]);

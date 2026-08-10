@@ -4,7 +4,7 @@ import {
   type FocusIntegrityObservation,
 } from "@/lib/focusIntegrity";
 
-export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v2-focus";
+export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v3-desktop";
 
 type NullableNumber = number | null | undefined;
 
@@ -91,6 +91,13 @@ export interface PassiveDeviceUsagePoint {
   coverage: "attention_apps" | "screen_time_categories";
 }
 
+export interface PassiveDesktopWorkBlock {
+  localDate: string;
+  integrityScore: number;
+  confidence: number;
+  focusedMinutes: number;
+}
+
 export interface PassiveFeatureInput {
   featureDate: string;
   currentMetrics: PassiveCurrentMetrics;
@@ -102,6 +109,7 @@ export interface PassiveFeatureInput {
   phoneHealth: PassivePhoneHealthPoint[];
   wearable: PassiveWearablePoint[];
   deviceUsage: PassiveDeviceUsagePoint[];
+  desktopWorkBlocks: PassiveDesktopWorkBlock[];
   primaryOutcome: string | null;
 }
 
@@ -267,6 +275,13 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
     attentionLoadRatio,
     attentionBaselineDays: priorAttentionMinutes.length,
     attentionConfidence: finite(currentDevice?.confidence),
+    desktopBlocks: input.desktopWorkBlocks
+      .filter((block) => block.localDate === input.featureDate)
+      .map((block) => ({
+        score: block.integrityScore,
+        confidence: block.confidence,
+        focusedMinutes: block.focusedMinutes,
+      })),
     sessions: reason7d
       .filter((session) => session.startedAt.slice(0, 10) === input.featureDate)
       .map((session) => ({
@@ -278,12 +293,21 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
 
   const metricsCoverage = clamp(history14d.length / 7, 0, 1);
   const behaviorCoverage = clamp(activeDays7d / 4, 0, 1);
+  const desktopDays7d = activeDays(
+    input.desktopWorkBlocks
+      .filter((block) => isWithinDays(block.localDate, input.featureDate, 7))
+      .map((block) => block.localDate),
+    input.featureDate,
+    7,
+  );
+  const desktopCoverage = clamp(desktopDays7d / 3, 0, 1);
   const healthCoverage = healthScore === null ? 0 : 1;
   const deviceCoverage = attentionUsageMinutes === null ? 0 : 1;
   const dataCoverage = round(
-    0.35 * metricsCoverage +
-      0.25 * behaviorCoverage +
-      0.25 * healthCoverage +
+    0.3 * metricsCoverage +
+      0.1 * behaviorCoverage +
+      0.25 * desktopCoverage +
+      0.2 * healthCoverage +
       0.15 * deviceCoverage,
     4,
   );
@@ -307,6 +331,15 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       productEvents7d: product7d.length,
       productActiveDays7d: activeDays(product7d.map((event) => event.occurredAt), input.featureDate, 7),
       cognitiveActivityDays7d: activeDays7d,
+      desktopWorkBlocks7d: input.desktopWorkBlocks.filter((block) =>
+        isWithinDays(block.localDate, input.featureDate, 7),
+      ).length,
+      desktopFocusedMinutes7d: round(
+        input.desktopWorkBlocks
+          .filter((block) => isWithinDays(block.localDate, input.featureDate, 7))
+          .reduce((sum, block) => sum + block.focusedMinutes, 0),
+        1,
+      ),
     },
     health: {
       phone: latestPhone ? {
@@ -351,6 +384,7 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       phoneHealth: latestPhone !== null,
       wearable: latestWearable !== null,
       deviceUsage: attentionUsageMinutes !== null,
+      desktopWork: input.desktopWorkBlocks.length > 0,
       focusIntegrity: focusIntegrity.isEvaluable,
       coverage: dataCoverage,
     },
