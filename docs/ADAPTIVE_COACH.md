@@ -2,114 +2,98 @@
 
 ## Release state
 
-Version 2 is an explainable shadow model. It generates forecasts and evaluates
-them, but it has no code path that can change the user's training plan, game
-order, gating, difficulty, or active CTA.
+Version 3 is an explainable shadow system. It collects passive outcomes and
+tests forecasts, but has no code path that can change a plan, game order,
+gating, difficulty or active CTA.
 
-There is no daily coach card in Home. Passive inputs are collected in the
-background so the product can validate predictions without influencing the
-behavior it is trying to observe. The previously created
-`daily_work_recommendations` table remains an optional historical outcome source
-but no visible flow writes new recommendations in this release.
+No questionnaires, ratings or manual outcome logging are required. The Coach
+page exposes signal coverage and validation quality, not a verbose daily advice
+feed. Current hidden forecasts are not shown, so they cannot influence the
+behavior being observed.
 
-The product must not describe this phase as generic AI or claim that a training
-action caused an improvement. The observed relationship is predictive and can
-still contain selection bias because the user chooses which session to perform.
+## Primary target: Focus Integrity
 
-## Daily prediction contract
+The primary target is next-observed-day **Focus Integrity**: a within-person
+proxy for sustained attention. It can use only available aggregate signals:
 
-Once per local day, the app creates four candidates:
+- attention-app time relative to the user's own recent median;
+- background interruptions during an existing Quality Time session;
+- automatic session validity/completion.
 
-- `train_ae` — Attentional Efficiency
-- `train_ra` — Rapid Association
-- `train_ct` — Critical Thinking
-- `train_in` — Insight
+Available components are normalized by their declared weights. A daily outcome
+is evaluable only when coverage is at least 55% and source confidence is at
+least 45%. Phone attention alone therefore needs a personal baseline; an
+isolated in-app session cannot qualify as a passive daily outcome by itself.
 
-Each candidate stores:
+Focus Integrity does **not** measure intelligence, productivity, decision
+quality or the semantic quality of work. Those claims require a separate,
+verifiable outcome source such as a privacy-safe desktop or work-tool
+integration.
 
-- its rank and priority score;
-- the rolling pre-prediction performance baseline;
-- predicted next-session score and delta;
-- confidence and whether the baseline is evaluable;
-- the exact input features and three strongest reasons;
-- model version, prediction time, and seven-day outcome window.
+## Shadow forecast
 
-The interpretable prior uses development gap, time since matching training,
-current state fit, recent same-skill performance trend, longitudinal metric
-trend, health availability, aggregate attention load, and data uncertainty.
-After evaluated outcomes exist, a shrinkage calibration adds only a bounded
-fraction of the user's mean prior forecast error. One noisy observation cannot
-dominate a forecast.
+Once per local day, `focus-integrity-shadow-v1` stores a forecast for the next
+observed day. The bounded interpretable prior uses:
 
-Recovery below 35 marks every candidate `defer`. The flag is stored for later
-validation but does not block or reorder training.
+- current Sharpness, Readiness and Recovery;
+- permitted health/wearable context;
+- aggregate attention load versus the personal baseline;
+- up to 14 prior evaluable Focus Integrity observations;
+- the personal trend and regression toward the personal rolling mean.
 
-## Outcome contract
+The first five observed days are cold-start data. The forecast is stored but is
+excluded from validation until a personal baseline exists.
 
-The objective outcome is the score of the next completed game routed to the
-same skill within seven days. The observed delta is:
+When an evaluable observation arrives for the target date, a database trigger
+records the observed score and delta automatically. Repeated same-day aggregate
+syncs update the matched shadow outcome; active product behavior remains
+unchanged.
 
-`next matching game score - rolling score baseline at prediction time`
+## Secondary calibration target
 
-A database trigger resolves only the newest eligible prediction. Older
-overlapping predictions for the same action become `superseded`, which prevents
-one game from being counted more than once. Predictions with fewer than three
-prior matching sessions are collected but excluded from validation metrics.
-
-This remains a drill-forecast validation target only. It must not be presented
-as evidence that the coach improved professional performance.
-
-## Passive feature contract
-
-`adaptive_daily_feature_snapshots` stores one versioned, user-owned feature
-bundle per day:
-
-- current cognitive signals and their 14-day within-person slopes;
-- drill, quality-time and recovery behavior aggregated over seven days;
-- first-party product activity counts and active days;
-- latest permitted phone-health and wearable inputs;
-- aggregate device attention time relative to the user's own 14-day median;
-- explicit source availability and a coverage score.
-
-`device_usage_snapshots` contains only daily aggregate minutes, active app count
-and recency. Package/app names, domains, content, contacts and social identities
-are removed on-device before upload. Android uses explicit Usage Access. iOS
-Device Activity requires a separate Family Controls entitlement and user
-authorization, so no iOS Screen Time data is claimed or synthesized in this
-release.
-
-Passive context is bounded to a small adjustment in the shadow forecast. Skill
-trends can affect *where* training may help; health and attention load affect
-*when* a session may be well-timed. These remain predictive associations, not
-causal conclusions.
-
-An active personalized policy requires controlled exposure data (for example,
-safe micro-randomization between eligible recommendations), calibration and a
-demonstrated uplift on real-work outcomes. Correlation between a recommendation
-and a later outcome is not sufficient.
+The earlier drill model remains in the background as a secondary calibration
+sensor. It forecasts the next same-skill drill delta for AE, RA, CT and IN. Its
+results are not the Coach's primary product outcome and must not be presented as
+evidence of professional performance.
 
 ## Validation gate
 
-Active personalization must not start automatically. Version 1 can become
-`ready_for_review` only when all personal evidence gates pass:
+Focus-based personalization requires all personal evidence gates:
 
-- at least 30 evaluable outcomes;
+- at least 21 evaluable forecast/outcome pairs;
 - at least 60% directional accuracy;
-- at least 10% lower mean absolute error than predicting no change;
-- at least three skills with five or more evaluated outcomes each.
+- at least 10% lower mean absolute error than predicting no change.
 
-Passing these gates permits a manual model and product review only. A later
-release must separately define experimentation, rollback, consent, safety, and
-the exact authority granted to active recommendations.
+Passing the gates permits manual review only. It never activates suggestions by
+itself. A later active release still needs controlled exposure, rollback and a
+separate product decision.
 
-## Privacy and storage
+## Passive feature contract
 
-Predictions and passive feature snapshots live inside the project's Supabase
-cloud. Row Level Security restricts users to their own data. Model inputs exclude
-name, email, demographics, free text, app identities and social content.
-Cognitive and health values stay in dedicated user-owned tables and are never
-added to privacy-safe product usage telemetry.
+`adaptive_daily_feature_snapshots` stores one versioned daily feature bundle:
 
-The user-facing status page exposes validation progress and completed forecasts,
-not the current hidden candidate, so shadow predictions do not influence the
-behavior they are intended to observe.
+- current cognitive signals and 14-day within-person slopes;
+- first-party behavior aggregated over seven days;
+- latest permitted phone-health and wearable inputs;
+- aggregate attention time relative to a personal median;
+- explicit availability and coverage.
+
+`passive_focus_observations` stores only the normalized daily score, component
+scores, coverage, confidence and aggregate evidence counts.
+`adaptive_focus_forecasts` stores the immutable shadow prior and its automatic
+outcome check.
+
+The existing `device_usage_snapshots` table contains only daily aggregate
+minutes, active app count and recency. Package names, app names, domains,
+content, contacts and social identities are removed on-device before upload.
+
+## Privacy boundary
+
+All rows are user-owned in Supabase and protected by Row Level Security. Model
+inputs exclude name, email, demographics, free text, app identities and social
+content. The system learns predictive associations inside one person's history;
+it does not claim causality or compare people.
+
+Desktop work continuity is not inferred unless a future browser/desktop sensor
+supplies privacy-safe aggregates. The mobile implementation must not claim
+universal professional-work detection before that source exists.

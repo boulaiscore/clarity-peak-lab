@@ -345,6 +345,29 @@ export function useAdaptivePassiveFeatures(
         console.error("[AdaptiveCoach] Passive feature persistence failed:", error);
         return;
       }
+
+      if (payload.focusIntegrity.score !== null) {
+        const { error: focusError } = await looseSupabase
+          .from("passive_focus_observations")
+          .upsert({
+            user_id: userId,
+            observation_date: featureDate,
+            source_version: PASSIVE_FEATURE_SCHEMA_VERSION,
+            score: payload.focusIntegrity.score,
+            coverage: payload.focusIntegrity.coverage,
+            confidence: payload.focusIntegrity.confidence,
+            is_evaluable: payload.focusIntegrity.isEvaluable,
+            components: payload.focusIntegrity.components as unknown as Json,
+            evidence: payload.focusIntegrity.evidence as unknown as Json,
+            observed_at: new Date().toISOString(),
+          }, { onConflict: "user_id,observation_date,source_version" });
+
+        if (focusError) {
+          console.warn("[AdaptiveCoach] Focus observation unavailable:", focusError);
+        } else {
+          await queryClient.invalidateQueries({ queryKey: ["adaptive-focus"] });
+        }
+      }
       await queryClient.invalidateQueries({ queryKey: ["adaptive-coach-feature-status", userId] });
     })();
   }, [featureDate, payload, queryClient, userId]);

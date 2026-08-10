@@ -4,6 +4,10 @@ import { addDays, format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useAdaptivePassiveFeatures } from "@/hooks/useAdaptivePassiveFeatures";
+import {
+  PASSIVE_FEATURE_SCHEMA_VERSION,
+  type PassiveFeaturePayload,
+} from "@/lib/passiveCoachFeatures";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
@@ -86,11 +90,16 @@ function parseReasons(value: Json): CoachReason[] {
 }
 
 /**
- * Generates one immutable daily candidate set. The hook deliberately has no
- * return value that can be consumed by training UI, keeping shadow predictions
- * separated from active recommendations.
+ * Generates one immutable daily drill-calibration set and exposes only the
+ * passive feature state to the separate focus shadow recorder. Neither return
+ * value can change an active recommendation.
  */
-export function useAdaptiveCoachShadowRecorder(): void {
+export interface AdaptiveCoachPassiveState {
+  passiveFeatures: PassiveFeaturePayload | null;
+  isLoading: boolean;
+}
+
+export function useAdaptiveCoachShadowRecorder(): AdaptiveCoachPassiveState {
   const { user } = useAuth();
   const userId = user?.id;
   const queryClient = useQueryClient();
@@ -308,6 +317,16 @@ export function useAdaptiveCoachShadowRecorder(): void {
     passiveFeatures?.schemaVersion,
     queryClient,
   ]);
+
+  return {
+    passiveFeatures,
+    isLoading: metricsLoading ||
+      reasoningLoading ||
+      passiveFeaturesLoading ||
+      existingLoading ||
+      sessionsLoading ||
+      calibrationLoading,
+  };
 }
 
 export interface AdaptiveCoachLatestOutcome {
@@ -405,6 +424,7 @@ interface AdaptiveCoachFeatureAvailability {
   phoneHealth: boolean;
   wearable: boolean;
   deviceUsage: boolean;
+  focusIntegrity: boolean;
   coverage: number;
 }
 
@@ -424,6 +444,7 @@ export function useAdaptiveCoachFeatureStatus() {
         .from("adaptive_daily_feature_snapshots")
         .select("feature_date, schema_version, availability, updated_at")
         .eq("user_id", userId)
+        .eq("schema_version", PASSIVE_FEATURE_SCHEMA_VERSION)
         .order("feature_date", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -445,6 +466,7 @@ export function useAdaptiveCoachFeatureStatus() {
       phoneHealth: bool("phoneHealth"),
       wearable: bool("wearable"),
       deviceUsage: bool("deviceUsage"),
+      focusIntegrity: bool("focusIntegrity"),
       coverage: Number.isFinite(coverage) ? Math.max(0, Math.min(1, coverage)) : 0,
     };
   }, [query.data]);

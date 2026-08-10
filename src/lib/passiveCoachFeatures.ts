@@ -1,6 +1,10 @@
 import { clamp } from "@/lib/cognitiveEngine";
+import {
+  buildFocusIntegrityObservation,
+  type FocusIntegrityObservation,
+} from "@/lib/focusIntegrity";
 
-export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v1";
+export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v2-focus";
 
 type NullableNumber = number | null | undefined;
 
@@ -120,6 +124,7 @@ export interface PassiveFeaturePayload {
   deviceUsage: Record<string, unknown>;
   availability: Record<string, unknown>;
   coachContext: PassiveCoachContext;
+  focusIntegrity: FocusIntegrityObservation;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -258,6 +263,19 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       : attentionUsageMinutes === 0 ? 1 : null
     : null;
 
+  const focusIntegrity = buildFocusIntegrityObservation({
+    attentionLoadRatio,
+    attentionBaselineDays: priorAttentionMinutes.length,
+    attentionConfidence: finite(currentDevice?.confidence),
+    sessions: reason7d
+      .filter((session) => session.startedAt.slice(0, 10) === input.featureDate)
+      .map((session) => ({
+        durationSeconds: session.durationSeconds,
+        backgroundInterrupts: session.backgroundInterrupts,
+        isValid: session.isValidForRq,
+      })),
+  });
+
   const metricsCoverage = clamp(history14d.length / 7, 0, 1);
   const behaviorCoverage = clamp(activeDays7d / 4, 0, 1);
   const healthCoverage = healthScore === null ? 0 : 1;
@@ -333,6 +351,7 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       phoneHealth: latestPhone !== null,
       wearable: latestWearable !== null,
       deviceUsage: attentionUsageMinutes !== null,
+      focusIntegrity: focusIntegrity.isEvaluable,
       coverage: dataCoverage,
     },
     coachContext: {
@@ -352,5 +371,6 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       activeDays7d,
       dataCoverage,
     },
+    focusIntegrity,
   };
 }

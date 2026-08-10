@@ -12,6 +12,7 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { PastDueBanner } from "@/components/PastDueBanner";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { useAdaptiveCoachShadowRecorder } from "@/hooks/useAdaptiveCoachShadow";
+import { useAdaptiveFocusShadowRecorder } from "@/hooks/useAdaptiveFocusCoach";
 
 interface AppShellProps {
   children: ReactNode;
@@ -44,7 +45,8 @@ export function AppShell({ children }: AppShellProps) {
 
   // Generate and persist explainable daily forecasts without changing any
   // active recommendation, plan, gating rule, or difficulty.
-  useAdaptiveCoachShadowRecorder();
+  const adaptiveCoachState = useAdaptiveCoachShadowRecorder();
+  useAdaptiveFocusShadowRecorder(adaptiveCoachState);
 
   useEffect(() => {
     trackProductEvent("app_route_viewed", {

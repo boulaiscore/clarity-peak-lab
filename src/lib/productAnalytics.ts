@@ -19,6 +19,7 @@ export type ProductEventName =
   | "reasoning_session_completed"
   | "content_completed"
   | "coach_shadow_predictions_generated"
+  | "coach_focus_shadow_forecast_generated"
   | "work_recommendation_shown"
   | "work_recommendation_dismissed"
   | "work_block_started"

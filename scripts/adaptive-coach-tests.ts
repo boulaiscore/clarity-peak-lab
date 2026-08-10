@@ -5,6 +5,11 @@ import {
 } from "../src/lib/adaptiveCoach";
 import { aggregateAttentionUsage } from "../src/lib/deviceUsageAggregation";
 import { buildPassiveFeaturePayload } from "../src/lib/passiveCoachFeatures";
+import {
+  buildFocusIntegrityObservation,
+  evaluateFocusIntegrityValidation,
+  generateFocusIntegrityForecast,
+} from "../src/lib/focusIntegrity";
 
 const now = new Date("2026-08-08T12:00:00.000Z");
 const context = {
@@ -108,6 +113,44 @@ assert.equal(passiveAe.features.healthScore, 72);
 assert.equal(passiveAe.features.attentionLoadRatio, 2);
 assert.ok(passiveAe.features.passiveDataCoverage > 0);
 
+const focusObservation = buildFocusIntegrityObservation({
+  attentionLoadRatio: 0.8,
+  attentionBaselineDays: 5,
+  attentionConfidence: 0.85,
+  sessions: [],
+});
+assert.equal(focusObservation.isEvaluable, true);
+assert.equal(focusObservation.coverage, 0.6);
+assert.equal(focusObservation.score, 57);
+
+const focusWithoutPassiveSignal = buildFocusIntegrityObservation({
+  attentionLoadRatio: null,
+  attentionBaselineDays: 0,
+  attentionConfidence: null,
+  sessions: [{ durationSeconds: 1800, backgroundInterrupts: 1, isValid: true }],
+});
+assert.equal(focusWithoutPassiveSignal.isEvaluable, false);
+assert.ok((focusWithoutPassiveSignal.score ?? 0) > 0);
+
+const focusForecast = generateFocusIntegrityForecast({
+  sharpness: 66,
+  readiness: 64,
+  recovery: 62,
+  healthScore: 70,
+  attentionLoadRatio: 0.8,
+  passiveCoverage: 0.75,
+  history: [
+    { date: "2026-08-03", score: 48 },
+    { date: "2026-08-04", score: 50 },
+    { date: "2026-08-05", score: 52 },
+    { date: "2026-08-06", score: 54 },
+    { date: "2026-08-07", score: 56 },
+  ],
+});
+assert.equal(focusForecast.isEvaluable, true);
+assert.ok(focusForecast.predictedDelta > 0);
+assert.ok(focusForecast.reasons.length <= 3);
+
 const collecting = evaluateCoachValidation([
   { actionKey: "train_ae", predictedDelta: 2, observedDelta: 3 },
 ]);
@@ -125,5 +168,16 @@ assert.equal(validated.gates.minimumSample, true);
 assert.equal(validated.gates.directionalAccuracy, true);
 assert.equal(validated.gates.beatsNoChange, true);
 assert.equal(validated.gates.actionCoverage, true);
+
+const validatedFocus = evaluateFocusIntegrityValidation(
+  Array.from({ length: 24 }, (_, index) => ({
+    predictedDelta: index % 2 === 0 ? 2 : -2,
+    observedDelta: index % 2 === 0 ? 2.4 : -2.4,
+  })),
+);
+assert.equal(validatedFocus.status, "ready_for_review");
+assert.equal(validatedFocus.gates.minimumSample, true);
+assert.equal(validatedFocus.gates.directionalAccuracy, true);
+assert.equal(validatedFocus.gates.beatsNoChange, true);
 
 console.log("Adaptive coach and passive feature checks passed");
