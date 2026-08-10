@@ -211,6 +211,86 @@ export type Database = {
         }
         Relationships: []
       }
+      adaptive_focus_forecasts: {
+        Row: {
+          baseline_score: number
+          confidence: number
+          created_at: string
+          evaluated_at: string | null
+          explanation: Json
+          features: Json
+          forecast_date: string
+          id: string
+          is_evaluable: boolean
+          mode: string
+          model_version: string
+          observed_delta: number | null
+          observed_score: number | null
+          outcome_at: string | null
+          outcome_observation_id: string | null
+          outcome_status: string
+          predicted_at: string
+          predicted_delta: number
+          predicted_score: number
+          target_date: string
+          user_id: string
+        }
+        Insert: {
+          baseline_score: number
+          confidence: number
+          created_at?: string
+          evaluated_at?: string | null
+          explanation?: Json
+          features?: Json
+          forecast_date: string
+          id?: string
+          is_evaluable?: boolean
+          mode?: string
+          model_version: string
+          observed_delta?: number | null
+          observed_score?: number | null
+          outcome_at?: string | null
+          outcome_observation_id?: string | null
+          outcome_status?: string
+          predicted_at?: string
+          predicted_delta: number
+          predicted_score: number
+          target_date: string
+          user_id: string
+        }
+        Update: {
+          baseline_score?: number
+          confidence?: number
+          created_at?: string
+          evaluated_at?: string | null
+          explanation?: Json
+          features?: Json
+          forecast_date?: string
+          id?: string
+          is_evaluable?: boolean
+          mode?: string
+          model_version?: string
+          observed_delta?: number | null
+          observed_score?: number | null
+          outcome_at?: string | null
+          outcome_observation_id?: string | null
+          outcome_status?: string
+          predicted_at?: string
+          predicted_delta?: number
+          predicted_score?: number
+          target_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adaptive_focus_forecasts_outcome_observation_id_fkey"
+            columns: ["outcome_observation_id"]
+            isOneToOne: false
+            referencedRelation: "passive_focus_observations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]
@@ -792,6 +872,54 @@ export type Database = {
           is_daily_training?: boolean | null
           score?: number
           total_questions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      passive_focus_observations: {
+        Row: {
+          components: Json
+          confidence: number
+          coverage: number
+          created_at: string
+          evidence: Json
+          id: string
+          is_evaluable: boolean
+          observation_date: string
+          observed_at: string
+          score: number
+          source_version: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          components?: Json
+          confidence: number
+          coverage: number
+          created_at?: string
+          evidence?: Json
+          id?: string
+          is_evaluable?: boolean
+          observation_date: string
+          observed_at?: string
+          score: number
+          source_version: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          components?: Json
+          confidence?: number
+          coverage?: number
+          created_at?: string
+          evidence?: Json
+          id?: string
+          is_evaluable?: boolean
+          observation_date?: string
+          observed_at?: string
+          score?: number
+          source_version?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
