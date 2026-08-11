@@ -6,7 +6,7 @@
  * Daily snapshot recalibration model for Recovery (REC).
  * 
  * KEY FORMULAS:
- * - New day: REC = target + (REC - target) × 0.85
+ * - New day: REC = target + (REC - target) × 0.35
  * - Gain:  REC = min(100, REC + 0.12 × (detox_min + 0.5 × walk_min))
  * 
  * STATE:
@@ -16,7 +16,6 @@
  */
 
 import {
-  REC_HALF_LIFE_HOURS,
   REC_GAIN_COEFFICIENT,
   REC_DEFAULT_RRI,
   REC_RRI_MIN,
@@ -39,6 +38,40 @@ export interface RecoveryState {
 export interface RecoveryActionResult {
   newRecValue: number;
   newRecLastTs: string;
+}
+
+export interface RecoveryWearableEstimate {
+  rawScore: number;
+  confidence: number;
+}
+
+/**
+ * Combines the confidence-blended Phone Health target with today's wearable
+ * physiology. Wearable confidence controls its influence, so a partial record
+ * improves the estimate without replacing a complete Health target.
+ */
+export function calculateDailyRecoveryTarget(
+  phoneHealthTarget: number | null | undefined,
+  wearable: RecoveryWearableEstimate | null | undefined,
+): number {
+  const phoneTarget = phoneHealthTarget != null && Number.isFinite(phoneHealthTarget)
+    ? Math.max(0, Math.min(100, phoneHealthTarget))
+    : null;
+  const wearableConfidence = wearable
+    ? Math.max(0, Math.min(1, wearable.confidence))
+    : 0;
+  const wearableTarget = wearable
+    ? 35 + 0.30 * Math.max(0, Math.min(100, wearable.rawScore))
+    : 50;
+
+  if (phoneTarget === null) {
+    return Math.round((50 + wearableConfidence * (wearableTarget - 50)) * 10) / 10;
+  }
+  if (wearableConfidence <= 0) return Math.round(phoneTarget * 10) / 10;
+
+  const wearableWeight = 0.50 * wearableConfidence;
+  const combined = phoneTarget * (1 - wearableWeight) + wearableTarget * wearableWeight;
+  return Math.round(Math.max(0, Math.min(100, combined)) * 10) / 10;
 }
 
 // ============================================
@@ -153,15 +186,14 @@ const REC_DAILY_BASELINE = 50;
 
 /**
  * How much of the gap toward baseline is closed each missed day.
- * 0.15 = 15% mean reversion per day.
+ * 0.65 = 65% recalibration toward today's passive Health target.
  * Examples (starting from 80, baseline 50):
- *   Day 1: 80 → 75.5
- *   Day 3: ~67
- *   Day 7: ~57
- *   Day 14: ~52
+ *   Day 1: 80 → 60.5
+ *   Day 3: ~51.3
+ *   Day 7: ~50
  * Never collapses to 0.
  */
-const REC_DAILY_MEAN_REVERSION = 0.15;
+const REC_DAILY_MEAN_REVERSION = 0.65;
 
 /**
  * Number of full calendar days between two ISO timestamps (local time).

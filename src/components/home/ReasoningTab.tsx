@@ -22,15 +22,14 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
   const {
     readiness,
     recovery,
-    S1,
     S2,
     AE,
-    CT,
-    IN,
+    readinessCognitiveComponent,
+    dailyState,
+    signalCoverage,
+    signalCoverageLevel,
     readinessDecay,
     consecutiveLowRecDays,
-    hasWearableData,
-    physioComponent,
     isLoading,
   } = useTodayMetrics();
   const [infoOpen, setInfoOpen] = useState(false);
@@ -44,20 +43,8 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
   }, [readiness]);
 
   const cta = useMemo(() => {
-    if (!hasWearableData && recovery < 45) {
+    if (recovery < 45 || (signalCoverage >= 0.35 && dailyState < 40)) {
       return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
-    }
-
-    if (hasWearableData) {
-      const candidates = [
-        { key: "CT", value: 0.15 * (100 - CT) },
-        { key: "AE", value: 0.125 * (100 - AE) },
-        { key: "IN", value: 0.10 * (100 - IN) },
-      ];
-      const bottleneck = candidates.reduce((a, b) => (a.value > b.value ? a : b)).key;
-      if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: "/neuro-lab/focus" };
-      if (bottleneck === "IN") return { label: "Train Insight", link: "/neuro-lab/creativity" };
-      return { label: "Train Critical Thinking", link: "/neuro-lab/reasoning" };
     }
 
     const candidates = [
@@ -69,7 +56,12 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
     if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab/reasoning" };
     if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: "/neuro-lab/focus" };
     return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
-  }, [AE, CT, IN, S2, hasWearableData, recovery]);
+  }, [AE, S2, dailyState, recovery, signalCoverage]);
+
+  const appReadiness = 0.35 * recovery + 0.35 * S2 + 0.30 * AE;
+  const appWeight = 1 - signalCoverage;
+  const cognitiveWeight = 0.40 * signalCoverage;
+  const dailyStateWeight = 0.60 * signalCoverage;
 
   return (
     <div className="space-y-6 pb-8">
@@ -78,7 +70,7 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
       <MetricDetailHeader
         title="Readiness"
         description={subtitle}
-        context={hasWearableData ? "Wearable mode · physiological data today" : "App mode · no wearable data today"}
+        context={`${signalCoverageLevel} passive coverage · personal baseline`}
       />
 
       <MetricScoreRing
@@ -91,91 +83,35 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
       <MetricInterpretationNote changeDrivers="recovery, focused practice and daily conditions" />
 
       <MetricFactorsSection>
-        {hasWearableData ? (
+        <MetricFactorCard
+          code="APP"
+          name="App State"
+          description="Recovery, Deliberate Reasoning and Attentional Efficiency."
+          value={appReadiness}
+          weight={`${Math.round(appWeight * 100)}%`}
+          contribution={appWeight * appReadiness}
+          window="Current + today"
+        />
+        {signalCoverage > 0 && (
           <>
             <MetricFactorCard
-              code="PHYS"
-              name="Physiological State"
-              description="HRV, resting heart rate, sleep duration and sleep efficiency."
-              value={physioComponent}
-              weight="50%"
-              contribution={physioComponent == null ? null : 0.5 * physioComponent}
-              window="Today · wearable"
-            />
-            <MetricFactorCard
-              code="CT"
-              name="Critical Thinking"
-              description="Analytical accuracy within the cognitive half of Readiness."
-              value={CT}
-              weight="15%"
-              contribution={0.15 * CT}
+              code="COG"
+              name="Cognitive State"
+              description="CT, AE, IN, S2 and S1 combined in the canonical cognitive component."
+              value={readinessCognitiveComponent}
+              weight={`${Math.round(cognitiveWeight * 100)}%`}
+              contribution={cognitiveWeight * readinessCognitiveComponent}
               window="Current skill state"
             />
             <MetricFactorCard
-              code="AE"
-              name="Attentional Efficiency"
-              description="Ability to maintain stable, directed attention."
-              value={AE}
-              weight="12.5%"
-              contribution={0.125 * AE}
-              window="Current skill state"
-            />
-            <MetricFactorCard
-              code="IN"
-              name="Insight"
-              description="Ability to identify patterns and useful connections."
-              value={IN}
-              weight="10%"
-              contribution={0.10 * IN}
-              window="Current skill state"
-            />
-            <MetricFactorCard
-              code="S2"
-              name="Deliberate Reasoning"
-              description="Combined Critical Thinking and Insight."
-              value={S2}
-              weight="7.5%"
-              contribution={0.075 * S2}
-              window="Current skill state"
-            />
-            <MetricFactorCard
-              code="S1"
-              name="Fast Processing"
-              description="Combined Attentional Efficiency and Rapid Association."
-              value={S1}
-              weight="5%"
-              contribution={0.05 * S1}
-              window="Current skill state"
-            />
-          </>
-        ) : (
-          <>
-            <MetricFactorCard
-              code="REC"
-              name="Recovery"
-              description="Estimated cognitive reserve available today."
-              value={recovery}
-              weight="35%"
-              contribution={0.35 * recovery}
-              window="Today"
-            />
-            <MetricFactorCard
-              code="S2"
-              name="Deliberate Reasoning"
-              description="Combined Critical Thinking and Insight."
-              value={S2}
-              weight="35%"
-              contribution={0.35 * S2}
-              window="Current skill state"
-            />
-            <MetricFactorCard
-              code="AE"
-              name="Attentional Efficiency"
-              description="Ability to maintain stable, directed attention."
-              value={AE}
-              weight="30%"
-              contribution={0.30 * AE}
-              window="Current skill state"
+              code="DAY"
+              name="Daily State"
+              description="Health, wearable, attention load and schedule context available today."
+              value={dailyState}
+              weight={`${Math.round(dailyStateWeight * 100)}%`}
+              contribution={dailyStateWeight * dailyState}
+              window="Today · passive"
+              estimated
             />
           </>
         )}
@@ -207,9 +143,9 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="rounded-xl border border-border/30 bg-card/35 p-4 text-xs leading-relaxed text-muted-foreground">
-            {hasWearableData
-              ? "Wearable Readiness = 50% physiological state + 50% cognitive state. Recovery is not added directly in this mode."
-              : "App Readiness = 35% REC + 35% S2 + 30% AE, minus any low-Recovery adjustment."}
+            Readiness starts from App State: 35% REC + 35% S2 + 30% AE.
+            Signal coverage progressively blends it with 60% Daily State + 40% Cognitive State,
+            minus any low-Recovery adjustment.
           </div>
         </CollapsibleContent>
       </Collapsible>

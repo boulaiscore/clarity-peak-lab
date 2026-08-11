@@ -106,6 +106,8 @@ export function useCalendarContextSync(): void {
           return;
         }
         await queryClient.invalidateQueries({ queryKey: ["mobile-cognitive-rhythm", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["today-passive-context", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["today-metrics", userId] });
         await queryClient.invalidateQueries({ queryKey: ["adaptive-passive-sources", userId] });
       } catch (error) {
         attemptedRef.current = null;

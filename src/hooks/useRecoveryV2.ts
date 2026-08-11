@@ -28,7 +28,9 @@ import {
   applyRecoveryAction,
   initializeRecoveryBaseline,
   calculateRRI,
+  calculateDailyRecoveryTarget,
 } from "@/lib/recoveryV2";
+import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
 
 export interface UseRecoveryV2Result {
   /** Current recovery value with decay applied (0-100), null if not initialized */
@@ -107,7 +109,7 @@ export function useRecoveryV2(): UseRecoveryV2Result {
   });
   
   // Fetch today's phone health snapshot for dynamic REC target
-  const { data: phoneHealthTarget } = useQuery({
+  const { data: phoneHealthTarget, isLoading: phoneHealthLoading } = useQuery({
     queryKey: ["phone-health-target", userId, format(new Date(), "yyyy-MM-dd")],
     queryFn: async (): Promise<number | null> => {
       if (!userId) return null;
@@ -124,6 +126,34 @@ export function useRecoveryV2(): UseRecoveryV2Result {
     staleTime: 5 * 60_000,
   });
 
+  const { data: wearableSnapshot, isLoading: wearableLoading } = useQuery({
+    queryKey: ["wearable-snapshot", userId, format(new Date(), "yyyy-MM-dd")],
+    queryFn: async () => {
+      if (!userId) return null;
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("wearable_snapshots")
+        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
+        .eq("user_id", userId)
+        .eq("date", today)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+
+  const recoveryTarget = useMemo(() => {
+    const physio = wearableSnapshot ? calculatePhysioEstimate({
+      hrvMs: wearableSnapshot.hrv_ms,
+      restingHr: wearableSnapshot.resting_hr,
+      sleepDurationMin: wearableSnapshot.sleep_duration_min,
+      sleepEfficiency: wearableSnapshot.sleep_efficiency,
+    }) : null;
+    return calculateDailyRecoveryTarget(phoneHealthTarget, physio);
+  }, [phoneHealthTarget, wearableSnapshot]);
+
   // Compute current recovery with decay applied (using phone-health target if available)
   const currentRecovery = useMemo(() => {
     if (!recoveryState) return null;
@@ -133,9 +163,9 @@ export function useRecoveryV2(): UseRecoveryV2Result {
       recoveryState.recValue,
       recoveryState.recLastTs,
       new Date().toISOString(),
-      phoneHealthTarget ?? null
+      recoveryTarget,
     );
-  }, [recoveryState, phoneHealthTarget]);
+  }, [recoveryState, recoveryTarget]);
   
   const isInitialized = recoveryState ? hasValidRecoveryData(recoveryState) : false;
   
@@ -171,7 +201,7 @@ export function useRecoveryV2(): UseRecoveryV2Result {
         baseTs,
         detoxMinutes,
         walkMinutes,
-        phoneHealthTarget ?? null,
+        recoveryTarget,
       );
       
       const { error } = await supabase
@@ -279,7 +309,7 @@ export function useRecoveryV2(): UseRecoveryV2Result {
   return {
     recovery: currentRecovery,
     isInitialized,
-    isLoading: stateLoading,
+    isLoading: stateLoading || phoneHealthLoading || wearableLoading,
     rawState: recoveryState ?? null,
     applyAction,
     initializeBaseline,

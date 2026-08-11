@@ -128,6 +128,8 @@ export function useDeviceUsageSync(): void {
         }
 
         await queryClient.invalidateQueries({ queryKey: ["device-usage-snapshots", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["today-passive-context", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["today-metrics", userId] });
         await queryClient.invalidateQueries({ queryKey: ["adaptive-passive-sources", userId] });
       } catch (error) {
         attemptedRef.current = null;

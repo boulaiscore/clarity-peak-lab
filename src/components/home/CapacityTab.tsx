@@ -51,7 +51,7 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
       <MetricDetailHeader
         title="Recovery"
         description={subtitle}
-        context="Daily estimate · phone health and completed recovery actions"
+        context="Daily estimate · health, wearable and recovery actions"
       />
 
       <MetricScoreRing
@@ -68,9 +68,9 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         <MetricFactorCard
           code="RECₜ"
           name="Daily Recovery Target"
-          description="Phone Health target, confidence-blended toward the neutral baseline of 50."
+          description="Health and wearable target, confidence-blended toward the neutral baseline of 50."
           value={recoveryTarget}
-          weight="15% of gap/day"
+          weight="65% of gap/day"
           contribution={`Toward ${Math.round(recoveryTarget)}`}
           contributionTone="muted"
           window="Today"
@@ -116,7 +116,7 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="rounded-xl border border-border/30 bg-card/35 p-4 text-xs leading-relaxed text-muted-foreground">
-            Each new day, REC closes 15% of the gap toward its Phone Health target (or 50 without data).
+            Each new day, REC closes 65% of the gap toward its Health and wearable target (or 50 without data).
             Completed actions then add 0.12 × (Detox minutes + 0.5 × Walking minutes), capped at 100.
             Action impacts above are gross rolling inputs; daily recalibration determines the current score.
           </div>

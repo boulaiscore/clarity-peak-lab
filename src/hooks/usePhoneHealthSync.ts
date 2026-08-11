@@ -217,7 +217,10 @@ async function runSync(
     });
 
     queryClient.invalidateQueries({ queryKey: ["phone-health-snapshot", userId] });
+    queryClient.invalidateQueries({ queryKey: ["phone-health-daily-context", userId] });
+    queryClient.invalidateQueries({ queryKey: ["phone-health-target", userId] });
     queryClient.invalidateQueries({ queryKey: ["recovery-v2-state", userId] });
+    queryClient.invalidateQueries({ queryKey: ["today-metrics", userId] });
     return true;
   } catch (err) {
     console.error("[usePhoneHealth] sync error:", err);

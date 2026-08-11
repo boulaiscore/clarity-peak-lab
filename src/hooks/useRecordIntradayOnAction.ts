@@ -5,19 +5,24 @@
 
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Json } from "@/integrations/supabase/types";
-import { getCurrentRecovery, type RecoveryState } from "@/lib/recoveryV2";
 import {
-  calculatePhysioComponent,
+  calculateDailyRecoveryTarget,
+  getCurrentRecovery,
+  type RecoveryState,
+} from "@/lib/recoveryV2";
+import {
+  calculatePhysioEstimate,
   calculateReadiness,
   calculateReadinessDecay,
   calculateSharpness,
   clamp,
   deriveEffectiveCognitiveStates,
 } from "@/lib/cognitiveEngine";
+import { buildDailyPassiveState, calculateRelativeLoadEstimate } from "@/lib/dailyPassiveState";
 import { calculateRQ, type TaskCompletion } from "@/lib/reasoningQuality";
 import { getMediumPeriodStartDate } from "@/lib/temporalWindows";
 
@@ -111,7 +116,8 @@ export function useRecordIntradayOnAction() {
     try {
       const now = new Date();
       const today = format(now, "yyyy-MM-dd");
-      const [metricsResult, phoneResult, wearableResult] = await Promise.all([
+      const passiveHistoryStart = format(subDays(now, 14), "yyyy-MM-dd");
+      const [metricsResult, phoneResult, wearableResult, deviceResult, calendarResult] = await Promise.all([
         supabase
           .from("user_cognitive_metrics")
           .select("*")
@@ -119,20 +125,38 @@ export function useRecordIntradayOnAction() {
           .maybeSingle(),
         supabase
           .from("phone_health_snapshots")
-          .select("target_rec")
+          .select("target_rec, phi, confidence, updated_at")
           .eq("user_id", userId)
           .eq("date", today)
           .maybeSingle(),
         supabase
           .from("wearable_snapshots")
-          .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency")
+          .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
           .eq("user_id", userId)
           .eq("date", today)
           .maybeSingle(),
+        supabase
+          .from("device_usage_snapshots")
+          .select("snapshot_date, attention_usage_min, active_app_count, permission_state, confidence, updated_at")
+          .eq("user_id", userId)
+          .gte("snapshot_date", passiveHistoryStart)
+          .order("snapshot_date", { ascending: true }),
+        supabase
+          .from("calendar_context_snapshots")
+          .select("snapshot_date, busy_minutes, meeting_count, permission_state, confidence, updated_at")
+          .eq("user_id", userId)
+          .gte("snapshot_date", passiveHistoryStart)
+          .order("snapshot_date", { ascending: true }),
       ]);
 
       const firstError = metricsResult.error || phoneResult.error || wearableResult.error;
       if (firstError) throw firstError;
+      if (deviceResult.error || calendarResult.error) {
+        console.warn("[useRecordIntradayOnAction] Passive context partially unavailable", {
+          attention: deviceResult.error,
+          schedule: calendarResult.error,
+        });
+      }
       const metrics = metricsResult.data;
       if (!metrics) throw new Error("Cognitive metrics are not initialized");
 
@@ -142,16 +166,89 @@ export function useRecordIntradayOnAction() {
         recLastTs: metrics.rec_last_ts,
         hasRecoveryBaseline: metrics.has_recovery_baseline ?? false,
       };
-      const recovery = getCurrentRecovery(recoveryState, phoneResult.data?.target_rec ?? null);
-      const recoveryForFormula = recovery ?? 0;
-
       const wearable = wearableResult.data;
-      const physioComponent = wearable ? calculatePhysioComponent({
+      const physioEstimate = wearable ? calculatePhysioEstimate({
         hrvMs: wearable.hrv_ms,
         restingHr: wearable.resting_hr,
         sleepDurationMin: wearable.sleep_duration_min,
         sleepEfficiency: wearable.sleep_efficiency,
       }) : null;
+      const recoveryTarget = calculateDailyRecoveryTarget(
+        phoneResult.data?.target_rec,
+        physioEstimate,
+      );
+      const recovery = getCurrentRecovery(recoveryState, recoveryTarget);
+      const recoveryForFormula = recovery ?? 0;
+
+      const deviceRows = deviceResult.data ?? [];
+      const currentDevice = deviceRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
+      const previousDevice = deviceRows.filter((row) => row.snapshot_date !== today && row.permission_state === "granted");
+      const attentionMinutes = calculateRelativeLoadEstimate({
+        current: currentDevice?.attention_usage_min,
+        history: previousDevice.map((row) => row.attention_usage_min),
+        sourceConfidence: currentDevice?.confidence ?? 0,
+        minimumBaseline: 30,
+      });
+      const attentionApps = calculateRelativeLoadEstimate({
+        current: currentDevice?.active_app_count,
+        history: previousDevice.map((row) => row.active_app_count),
+        sourceConfidence: currentDevice?.confidence ?? 0,
+        minimumBaseline: 2,
+      });
+      const attentionScore = attentionMinutes.score === null && attentionApps.score === null
+        ? null
+        : 0.75 * (attentionMinutes.score ?? 50) + 0.25 * (attentionApps.score ?? 50);
+
+      const calendarRows = calendarResult.data ?? [];
+      const currentCalendar = calendarRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
+      const previousCalendar = calendarRows.filter((row) => row.snapshot_date !== today && row.permission_state === "granted");
+      const scheduleBusy = calculateRelativeLoadEstimate({
+        current: currentCalendar?.busy_minutes,
+        history: previousCalendar.map((row) => row.busy_minutes),
+        sourceConfidence: currentCalendar?.confidence ?? 0,
+        minimumBaseline: 30,
+      });
+      const scheduleMeetings = calculateRelativeLoadEstimate({
+        current: currentCalendar?.meeting_count,
+        history: previousCalendar.map((row) => row.meeting_count),
+        sourceConfidence: currentCalendar?.confidence ?? 0,
+        minimumBaseline: 1,
+      });
+      const scheduleScore = scheduleBusy.score === null && scheduleMeetings.score === null
+        ? null
+        : 0.75 * (scheduleBusy.score ?? 50) + 0.25 * (scheduleMeetings.score ?? 50);
+
+      const passiveState = buildDailyPassiveState([
+        {
+          id: "health",
+          label: "Health",
+          score: phoneResult.data?.phi ?? null,
+          confidence: phoneResult.data?.confidence ?? 0,
+          updatedAt: phoneResult.data?.updated_at ?? null,
+        },
+        {
+          id: "wearable",
+          label: "Wearable",
+          score: physioEstimate?.rawScore ?? null,
+          confidence: physioEstimate?.confidence ?? 0,
+          updatedAt: wearable?.updated_at ?? null,
+        },
+        {
+          id: "attention",
+          label: "Attention",
+          score: attentionScore,
+          confidence: Math.max(attentionMinutes.confidence, attentionApps.confidence),
+          updatedAt: currentDevice?.updated_at ?? null,
+        },
+        {
+          id: "schedule",
+          label: "Schedule",
+          score: scheduleScore,
+          confidence: Math.max(scheduleBusy.confidence, scheduleMeetings.confidence),
+          updatedAt: currentCalendar?.updated_at ?? null,
+        },
+      ]);
+      const dailyStateContext = { score: passiveState.score, coverage: passiveState.coverage };
 
       const rollingStart = getMediumPeriodStartDate();
       const currentDecayApplied = metrics.readiness_decay_week_start === rollingStart
@@ -162,9 +259,9 @@ export function useRecordIntradayOnAction() {
         currentDecayApplied,
       });
 
-      const sharpness = calculateSharpness(derived.states, recoveryForFormula);
+      const sharpness = calculateSharpness(derived.states, recoveryForFormula, dailyStateContext);
       const readiness = clamp(
-        calculateReadiness(derived.states, recoveryForFormula, physioComponent) - readinessDecay,
+        calculateReadiness(derived.states, recoveryForFormula, dailyStateContext) - readinessDecay,
         0,
         100,
       );

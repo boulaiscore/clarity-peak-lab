@@ -13,20 +13,35 @@ import {
 } from "@/components/metrics/MetricDetail";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
-import { calculateSharpnessRecoveryModifier } from "@/lib/cognitiveEngine";
+import {
+  calculateSharpnessDailyModifier,
+  calculateSharpnessRecoveryModifier,
+} from "@/lib/cognitiveEngine";
 
 interface IntuitionTabProps {
   onBackToOverview?: () => void;
 }
 
 export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
-  const { sharpness, S1, S2, recovery, isLoading } = useTodayMetrics();
+  const {
+    sharpness,
+    S1,
+    S2,
+    recovery,
+    dailyState,
+    signalCoverage,
+    signalCoverageLevel,
+    isLoading,
+  } = useTodayMetrics();
   const [infoOpen, setInfoOpen] = useState(false);
 
   const recoveryModifier = calculateSharpnessRecoveryModifier(recovery);
+  const dailyModifier = calculateSharpnessDailyModifier(dailyState);
   const s1Contribution = 0.6 * S1;
   const s2Contribution = 0.4 * S2;
-  const recoveryImpact = sharpness - (s1Contribution + s2Contribution);
+  const capacityBase = s1Contribution + s2Contribution;
+  const recoveryImpact = (1 - signalCoverage) * capacityBase * (recoveryModifier - 1);
+  const dailyStateImpact = signalCoverage * capacityBase * (dailyModifier - 1);
 
   const subtitle = useMemo(() => {
     if (sharpness >= 80) return "Strong clarity for your most demanding work.";
@@ -62,7 +77,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       <MetricDetailHeader
         title="Sharpness"
         description={subtitle}
-        context="Current capacity · updates after training or recovery"
+        context={`Current capacity · ${signalCoverageLevel.toLowerCase()} passive coverage`}
       />
 
       <MetricScoreRing
@@ -103,6 +118,19 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
           contributionTone={recoveryImpact < 0 ? "negative" : "default"}
           window="Today"
         />
+        {signalCoverage > 0 && (
+          <MetricFactorCard
+            code="DAY"
+            name="Daily State"
+            description="Health, wearable, attention load and schedule context available today."
+            value={dailyState}
+            weight={`${Math.round(signalCoverage * 100)}% coverage`}
+            contribution={dailyStateImpact}
+            contributionTone={dailyStateImpact < 0 ? "negative" : "default"}
+            window="Today · passive"
+            estimated
+          />
+        )}
       </MetricFactorsSection>
 
       <Link to={cta.link} className="block pt-1">
@@ -118,8 +146,8 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="rounded-xl border border-border/30 bg-card/35 p-4 text-xs leading-relaxed text-muted-foreground">
-            Sharpness = (0.60 × S1 + 0.40 × S2) × (0.75 + 0.25 × REC / 100).
-            Contributions above show the pre-Recovery capacity and the exact Recovery adjustment.
+            Sharpness starts from 60% S1 + 40% S2. Signal coverage progressively blends
+            the Recovery modifier with today&apos;s passive-state modifier; missing signals stay neutral.
           </div>
         </CollapsibleContent>
       </Collapsible>

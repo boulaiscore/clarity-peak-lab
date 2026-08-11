@@ -27,7 +27,13 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCurrentRecovery, hasValidRecoveryData, RecoveryState } from "@/lib/recoveryV2";
+import {
+  calculateDailyRecoveryTarget,
+  getCurrentRecovery,
+  hasValidRecoveryData,
+  RecoveryState,
+} from "@/lib/recoveryV2";
+import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
 import { isRRIValid } from "@/lib/recoveryReadinessInit";
 import { getMediumPeriodStart } from "@/lib/temporalWindows";
 import { format } from "date-fns";
@@ -48,7 +54,7 @@ export interface UseRecoveryEffectiveResult {
   /** The RRI value from onboarding (if set) */
   rriValue: number | null;
 
-  /** Today's Phone Health recovery target, or the neutral fallback of 50. */
+  /** Today's combined Health + wearable recovery target, or neutral 50. */
   recoveryTarget: number;
   
   /** Loading state */
@@ -115,6 +121,33 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     enabled: hasUser,
     staleTime: 5 * 60_000,
   });
+
+  const { data: wearableSnapshot, isLoading: wearableLoading } = useQuery({
+    queryKey: ["wearable-snapshot", userId, today],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from("wearable_snapshots")
+        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
+        .eq("user_id", userId)
+        .eq("date", today)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: hasUser,
+    staleTime: 5 * 60_000,
+  });
+
+  const combinedRecoveryTarget = useMemo(() => {
+    const physio = wearableSnapshot ? calculatePhysioEstimate({
+      hrvMs: wearableSnapshot.hrv_ms,
+      restingHr: wearableSnapshot.resting_hr,
+      sleepDurationMin: wearableSnapshot.sleep_duration_min,
+      sleepEfficiency: wearableSnapshot.sleep_efficiency,
+    }) : null;
+    return calculateDailyRecoveryTarget(phoneHealthTarget, physio);
+  }, [phoneHealthTarget, wearableSnapshot]);
   
   // Fetch RRI data from profile (fallback)
   const { data: rriData, isLoading: rriLoading } = useQuery({
@@ -180,7 +213,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   // IMPORTANT: when userId is not resolved yet, React Query marks queries as not loading
   // (because they're disabled). We still want the UI to stay in a loading state instead
   // of falling back to 0%.
-  const isLoading = !hasUser || v2Loading || phoneTargetLoading || rriLoading || weeklyLoading;
+  const isLoading = !hasUser || v2Loading || phoneTargetLoading || wearableLoading || rriLoading || weeklyLoading;
   const weeklyDetoxMinutes = weeklyData?.detoxMinutes ?? 0;
   const weeklyWalkMinutes = weeklyData?.walkMinutes ?? 0;
   
@@ -192,7 +225,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     
     // Check v2 state
     const isV2Initialized = v2State ? hasValidRecoveryData(v2State) : false;
-    const recoveryV2 = v2State ? getCurrentRecovery(v2State, phoneHealthTarget) : null;
+    const recoveryV2 = v2State ? getCurrentRecovery(v2State, combinedRecoveryTarget) : null;
     
     console.log("[useRecoveryEffective v2] Computing:", {
       isV2Initialized,
@@ -211,7 +244,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         recoveryV2,
         rriValue,
         hasRecoveryData: true,
-        recoveryTarget: phoneHealthTarget ?? 50,
+        recoveryTarget: combinedRecoveryTarget,
       };
     }
     
@@ -225,7 +258,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         recoveryV2: null,
         rriValue,
         hasRecoveryData: false,
-        recoveryTarget: phoneHealthTarget ?? 50,
+        recoveryTarget: combinedRecoveryTarget,
       };
     }
     
@@ -238,13 +271,13 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       recoveryV2: null,
       rriValue: null,
       hasRecoveryData: false,
-      recoveryTarget: phoneHealthTarget ?? 50,
+      recoveryTarget: combinedRecoveryTarget,
     };
-  }, [v2State, rriData, phoneHealthTarget]);
+  }, [v2State, rriData, combinedRecoveryTarget]);
   
   return {
     ...result,
-    recoveryTarget: phoneHealthTarget ?? 50,
+    recoveryTarget: combinedRecoveryTarget,
     isLoading,
     weeklyDetoxMinutes,
     weeklyWalkMinutes,

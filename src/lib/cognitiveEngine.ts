@@ -19,15 +19,16 @@
  *    - Performance MUST NOT directly affect Sharpness/Readiness/SCI/CognitiveAge
  * 
  * 3. METRICS (SINGLE SOURCE OF TRUTH):
- *    - Computed ONLY from persistent skill values: AE, RA, CT, IN
+ *    - Capacity metrics use persistent skill values: AE, RA, CT, IN
  *    - Derived aggregates: S1, S2
- *    - Recovery from the Recovery v2 persistent state
+ *    - Daily state may modulate Sharpness/Readiness by measured coverage
+ *    - Recovery comes from Recovery v2 and passive Health/wearable targets
  *    - NEVER read from per-session data (game scores, baseline sessions)
  * 
  * 4. DAILY COMPUTATION ORDER (MANDATORY):
  *    1. Load persistent skills: AE, RA, CT, IN
  *    2. Compute aggregates: S1 = (AE+RA)/2, S2 = (CT+IN)/2
- *    3. Compute Recovery through recoveryV2.ts
+ *    3. Compute Recovery and passive Daily State
  *    4. Compute states: Sharpness, Readiness
  *    5. Compute dashboard metrics: Cognitive Age, SCI, Dual-Process
  * 
@@ -71,6 +72,20 @@ export interface ReadinessPhysioData {
   restingHr: number | null;
   sleepDurationMin: number | null;
   sleepEfficiency: number | null;
+}
+
+export interface PhysioEstimate {
+  /** Renormalized score across the wearable signals available today. */
+  rawScore: number;
+  /** Score conservatively blended toward 50 according to confidence. */
+  score: number;
+  /** Share of the canonical wearable signal weights available (0-1). */
+  confidence: number;
+}
+
+export interface DailyStateMetricContext {
+  score: number;
+  coverage: number;
 }
 
 export interface TodayMetrics {
@@ -128,15 +143,26 @@ export function calculateSystemScores(states: CognitiveStates): DerivedSystemSco
 // Formula:
 //   S1 = (AE + RA) / 2
 //   S2 = (CT + IN) / 2
-//   Sharpness_base = 0.6 × S1 + 0.4 × S2
-//   Sharpness_today = Sharpness_base × (0.75 + 0.25 × REC / 100)
+//   Capacity = 0.6 × S1 + 0.4 × S2
+//   AppSharpness = Capacity × (0.75 + 0.25 × REC / 100)
+//   ContextSharpness = Capacity × (0.70 + 0.30 × DailyState / 100)
+//   Sharpness = (1 − coverage) × AppSharpness + coverage × ContextSharpness
 // ============================================
 
-export function calculateSharpness(states: CognitiveStates, recovery: number): number {
+export function calculateSharpness(
+  states: CognitiveStates,
+  recovery: number,
+  dailyState?: DailyStateMetricContext | null,
+): number {
   const { S1, S2 } = calculateSystemScores(states);
-  
   const base = 0.6 * S1 + 0.4 * S2;
-  const modulated = base * calculateSharpnessRecoveryModifier(recovery);
+  const recoveryModifier = calculateSharpnessRecoveryModifier(recovery);
+  const coverage = clamp(dailyState?.coverage ?? 0, 0, 1);
+  const dailyModifier = dailyState
+    ? calculateSharpnessDailyModifier(dailyState.score)
+    : recoveryModifier;
+  const blendedModifier = (1 - coverage) * recoveryModifier + coverage * dailyModifier;
+  const modulated = base * blendedModifier;
   
   return clamp(Math.round(modulated * 10) / 10, 0, 100);
 }
@@ -147,36 +173,41 @@ export function calculateSharpnessRecoveryModifier(recovery: number): number {
   return 0.75 + 0.25 * normalizedRecovery;
 }
 
+/** Daily passive-state multiplier used as signal coverage grows. */
+export function calculateSharpnessDailyModifier(dailyState: number): number {
+  return 0.70 + 0.30 * (clamp(dailyState, 0, 100) / 100);
+}
+
 // ============================================
 // READINESS (SUPPORT TODAY METRIC)
-// Without wearable:
+// Without passive context:
 //   Readiness = 0.35 × REC + 0.35 × S2 + 0.30 × AE
-// With wearable:
+// With passive context:
 //   CognitiveComponent = 0.30 × CT + 0.25 × AE + 0.20 × IN + 0.15 × S2 + 0.10 × S1
-//   Readiness = 0.5 × PhysioComponent + 0.5 × CognitiveComponent
+//   ContextTarget = 0.60 × DailyState + 0.40 × CognitiveComponent
+//   Readiness = (1 − coverage) × AppReadiness + coverage × ContextTarget
 // ============================================
 
 export function calculateReadiness(
   states: CognitiveStates,
   recovery: number,
-  physioComponent: number | null
+  dailyState?: DailyStateMetricContext | null,
 ): number {
   const { S2 } = calculateSystemScores(states);
-  
-  if (physioComponent === null) {
-    // Without wearable
-    const readiness = 0.35 * recovery + 0.35 * S2 + 0.30 * states.AE;
-    return clamp(Math.round(readiness * 10) / 10, 0, 100);
+  const appReadiness = 0.35 * recovery + 0.35 * S2 + 0.30 * states.AE;
+  const coverage = clamp(dailyState?.coverage ?? 0, 0, 1);
+  if (!dailyState || coverage === 0) {
+    return clamp(Math.round(appReadiness * 10) / 10, 0, 100);
   }
-  
-  // With wearable
+
   const cognitiveComponent = calculateReadinessCognitiveComponent(states);
-  
-  const readiness = 0.5 * physioComponent + 0.5 * cognitiveComponent;
+  const contextTarget =
+    0.60 * clamp(dailyState.score, 0, 100) + 0.40 * cognitiveComponent;
+  const readiness = (1 - coverage) * appReadiness + coverage * contextTarget;
   return clamp(Math.round(readiness * 10) / 10, 0, 100);
 }
 
-/** Canonical cognitive half of wearable-based Readiness. */
+/** Canonical cognitive component of context-aware Readiness. */
 export function calculateReadinessCognitiveComponent(states: CognitiveStates): number {
   const { S1, S2 } = calculateSystemScores(states);
   return clamp(
@@ -192,41 +223,64 @@ export function calculateReadinessCognitiveComponent(states: CognitiveStates): n
 
 // ============================================
 // PHYSIO COMPONENT (from wearables)
-// HRV 40%, resting HR 20%, sleep 40%
+// HRV 40%, resting HR 20%, sleep duration 24%, sleep efficiency 16%
 // ============================================
 
 export function calculatePhysioComponent(data: ReadinessPhysioData | null): number | null {
+  return calculatePhysioEstimate(data)?.score ?? null;
+}
+
+/**
+ * Partial wearable estimator. Available signals are renormalized, while the
+ * public score is shrunk toward 50 in proportion to missing-signal weight.
+ */
+export function calculatePhysioEstimate(data: ReadinessPhysioData | null): PhysioEstimate | null {
   if (!data) return null;
-  
   const { hrvMs, restingHr, sleepDurationMin, sleepEfficiency } = data;
-  
-  if (hrvMs == null || restingHr == null || sleepDurationMin == null || sleepEfficiency == null) {
-    return null;
-  }
-  
-  // Normalize HRV (20-120 ms → 0-100)
-  const hrvMin = 20, hrvMax = 120;
-  const hrvClipped = Math.max(hrvMin, Math.min(hrvMax, hrvMs));
-  const hrvScore = ((hrvClipped - hrvMin) / (hrvMax - hrvMin)) * 100;
-  
-  // Normalize resting HR (45-90 bpm → lower is better)
-  const rhrMin = 45, rhrMax = 90;
-  const rhrClipped = Math.max(rhrMin, Math.min(rhrMax, restingHr));
-  const rhrScore = (1 - (rhrClipped - rhrMin) / (rhrMax - rhrMin)) * 100;
-  
-  // Sleep score (duration + efficiency)
-  const durMin = 300, durMax = 540; // 5h-9h
-  const durClipped = Math.max(durMin, Math.min(durMax, sleepDurationMin));
-  const durScore = ((durClipped - durMin) / (durMax - durMin)) * 100;
-  
-  const eff = sleepEfficiency > 1 ? sleepEfficiency / 100 : sleepEfficiency;
-  const effClipped = Math.max(0.7, Math.min(0.98, eff));
-  const effScore = ((effClipped - 0.7) / 0.28) * 100;
-  
-  const sleepScore = 0.6 * durScore + 0.4 * effScore;
-  
-  // Final: HRV 40%, resting HR 20%, sleep 40%
-  return 0.4 * hrvScore + 0.2 * rhrScore + 0.4 * sleepScore;
+
+  const signals: Array<{ value: number | null; weight: number }> = [
+    {
+      value: hrvMs == null
+        ? null
+        : ((clamp(hrvMs, 20, 120) - 20) / 100) * 100,
+      weight: 0.40,
+    },
+    {
+      value: restingHr == null
+        ? null
+        : (1 - (clamp(restingHr, 45, 90) - 45) / 45) * 100,
+      weight: 0.20,
+    },
+    {
+      value: sleepDurationMin == null
+        ? null
+        : ((clamp(sleepDurationMin, 300, 540) - 300) / 240) * 100,
+      weight: 0.24,
+    },
+    {
+      value: sleepEfficiency == null
+        ? null
+        : ((clamp(sleepEfficiency > 1 ? sleepEfficiency / 100 : sleepEfficiency, 0.70, 0.98) - 0.70) / 0.28) * 100,
+      weight: 0.16,
+    },
+  ];
+  const available = signals.filter(
+    (signal): signal is { value: number; weight: number } => signal.value !== null,
+  );
+  const confidence = available.reduce((sum, signal) => sum + signal.weight, 0);
+  if (confidence <= 0) return null;
+
+  const rawScore = available.reduce(
+    (sum, signal) => sum + signal.value * signal.weight,
+    0,
+  ) / confidence;
+  const score = 50 * (1 - confidence) + rawScore * confidence;
+
+  return {
+    rawScore: Math.round(clamp(rawScore, 0, 100) * 10) / 10,
+    score: Math.round(clamp(score, 0, 100) * 10) / 10,
+    confidence: Math.round(confidence * 100) / 100,
+  };
 }
 
 // ============================================

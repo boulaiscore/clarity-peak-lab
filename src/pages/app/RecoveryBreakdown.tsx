@@ -2,8 +2,8 @@
  * Recovery Breakdown — WHOOP-style detail screen
  *
  * Visible when tapping the Recovery monitor card on Home.
- * Surfaces the Phone Health Index (PHI) sources, the dynamic
- * REC target for tonight, and today's cognitive recovery actions.
+ * Surfaces the Phone Health Index (PHI) sources, the combined Health +
+ * wearable REC target, and today's cognitive recovery actions.
  *
  * v2 — Transparent partial degradation: every source shows whether it's
  * connected, and a confidence indicator reflects how complete today's
@@ -21,7 +21,7 @@ import {
   Check,
   Minus,
 } from "lucide-react";
-import { useRecoveryV2 } from "@/hooks/useRecoveryV2";
+import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useTodayPhoneHealthSnapshot } from "@/hooks/usePhoneHealthSync";
 import { useTodayActivities } from "@/hooks/useTodayActivities";
 import {
@@ -143,7 +143,7 @@ function confidenceLabel(c: number): string {
 
 export default function RecoveryBreakdown() {
   const navigate = useNavigate();
-  const { recovery } = useRecoveryV2();
+  const { recoveryEffective: recovery, recoveryTarget } = useRecoveryEffective();
   const { data: snapshot } = useTodayPhoneHealthSnapshot();
   const { data: activities } = useTodayActivities();
   const detoxMinutes = (activities ?? [])
@@ -282,17 +282,17 @@ export default function RecoveryBreakdown() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[12px] text-muted-foreground">
-              Target REC tonight
+              Health target today
             </span>
             <span className="text-[14px] font-semibold tabular-nums text-recovery">
-              {result.targetRec.toFixed(0)}
+              {recoveryTarget.toFixed(0)}
             </span>
           </div>
           {result.hasData && result.confidence < 1 && (
             <div className="mt-2 pt-2 border-t border-border/30 text-[10.5px] text-foreground/50 leading-relaxed">
-              Blended with baseline 50 at{" "}
+              Phone Health is blended with baseline 50 at{" "}
               {Math.round((1 - result.confidence) * 100)}% due to missing
-              sources.
+              sources. Wearable physiology is added when available.
             </div>
           )}
         </div>

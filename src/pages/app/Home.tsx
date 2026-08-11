@@ -32,6 +32,7 @@ import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
+import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
 
 interface RingProps {
   value: number;
@@ -118,6 +119,10 @@ const Home = () => {
     sharpness,
     readiness,
     recoveryRaw,
+    signalCoverage,
+    signalCoverageLevel,
+    signalUpdatedAt,
+    signalSources,
     isLoading: metricsLoading
   } = useTodayMetrics();
 
@@ -311,6 +316,15 @@ const Home = () => {
                 <ChevronRight className="w-4 h-4 text-foreground/70" />
               </button>
             </motion.section>
+
+            {isViewingToday && !metricsLoading && (
+              <SignalCoverageRow
+                level={signalCoverageLevel}
+                coverage={signalCoverage}
+                updatedAt={signalUpdatedAt}
+                sources={signalSources}
+              />
+            )}
 
             {/* No data warning for historical dates */}
             {!isViewingToday && !historicalLoading && !hasHistoricalData && <motion.div initial={{

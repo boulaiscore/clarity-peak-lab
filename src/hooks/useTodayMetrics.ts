@@ -14,18 +14,22 @@
  * 
  * 1. Load persistent skills: AE, RA, CT, IN (from useCognitiveStates)
  * 2. Compute aggregates: S1 = (AE+RA)/2, S2 = (CT+IN)/2 (from useCognitiveStates)
- * 3. Compute Recovery: Using v2.0 exponential decay model (72h half-life)
- * 4. Compute Sharpness and Readiness from skill values and Recovery
+ * 3. Compute combined Health + wearable Recovery target and daily state
+ * 4. Compute Sharpness and Readiness from capacity and daily state
  * 5. Apply Readiness decay if consecutive low REC days >= 3
  * 
- * SHARPNESS = 0.6×S1 + 0.4×S2, modulated by Recovery (0.75 + 0.25×REC/100)
- * READINESS = 0.35×REC + 0.35×S2 + 0.30×AE (without wearable) - decay
- * RECOVERY = Daily mean reversion toward the Phone Health target (or 50)
+ * SHARPNESS blends its Recovery modifier with the passive daily-state modifier
+ * according to observed signal coverage.
+ * READINESS blends app-only Readiness with 60% daily state + 40% cognitive state
+ * according to observed signal coverage, then applies low-Recovery decay.
+ * RECOVERY = Daily recalibration toward the Health + wearable target (or 50)
  * 
  * DATA SOURCES:
  * - Cognitive States (AE, RA, CT, IN): from user_cognitive_metrics table
  * - Recovery: from user_cognitive_metrics (rec_value, rec_last_ts, has_recovery_baseline)
  * - Wearable Data: from wearable_snapshots table
+ * - Attention aggregates: from device_usage_snapshots (never app names/content)
+ * - Schedule density: from calendar_context_snapshots (never event content)
  */
 
 import { useMemo, useRef } from "react";
@@ -39,11 +43,21 @@ import {
   calculateReadiness,
   calculateReadinessCognitiveComponent,
   calculatePhysioComponent,
+  calculatePhysioEstimate,
   calculateReadinessDecay,
   clamp,
 } from "@/lib/cognitiveEngine";
-import { getCurrentRecovery, RecoveryState } from "@/lib/recoveryV2";
-import { format } from "date-fns";
+import {
+  calculateDailyRecoveryTarget,
+  getCurrentRecovery,
+  RecoveryState,
+} from "@/lib/recoveryV2";
+import { format, subDays } from "date-fns";
+import {
+  buildDailyPassiveState,
+  calculateRelativeLoadEstimate,
+  type DailyPassiveState,
+} from "@/lib/dailyPassiveState";
 
 export interface UseTodayMetricsResult {
   // Today metrics (0-100)
@@ -64,10 +78,16 @@ export interface UseTodayMetricsResult {
   IN: number;
   S1: number;
   S2: number;
-  /** Present only when all required wearable signals are available. */
+  /** Confidence-adjusted wearable estimate; partial inputs are supported. */
   physioComponent: number | null;
-  /** Cognitive half used by wearable-based Readiness. */
+  /** Cognitive component used by context-aware Readiness. */
   readinessCognitiveComponent: number;
+  /** Canonical daily state from Health, wearable, attention and schedule. */
+  dailyState: number;
+  signalCoverage: number;
+  signalCoverageLevel: DailyPassiveState["level"];
+  signalUpdatedAt: string | null;
+  signalSources: DailyPassiveState["sources"];
   
   // Status
   hasWearableData: boolean;
@@ -86,6 +106,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   // v2.0: Use rolling 7-day window
   const rollingStart = getRollingPeriodStart();
   const today = format(new Date(), "yyyy-MM-dd");
+  const passiveHistoryStart = format(subDays(new Date(), 14), "yyyy-MM-dd");
   
   const { states, S1, S2, isLoading: statesLoading } = useCognitiveStates();
   
@@ -121,18 +142,18 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   });
 
   // Use the same daily Recovery target as the action and gating flows.
-  const { data: phoneHealthTarget, isLoading: phoneTargetLoading } = useQuery({
-    queryKey: ["phone-health-target", userId, today],
-    queryFn: async (): Promise<number | null> => {
+  const { data: phoneHealthSnapshot, isLoading: phoneHealthLoading } = useQuery({
+    queryKey: ["phone-health-daily-context", userId, today],
+    queryFn: async () => {
       if (!userId) return null;
       const { data, error } = await supabase
         .from("phone_health_snapshots")
-        .select("target_rec")
+        .select("target_rec, phi, confidence, updated_at")
         .eq("user_id", userId)
         .eq("date", today)
         .maybeSingle();
       if (error) throw error;
-      return data?.target_rec ?? null;
+      return data;
     },
     enabled: !!userId,
     staleTime: 5 * 60_000,
@@ -149,7 +170,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       
       const { data, error } = await supabase
         .from("wearable_snapshots")
-        .select("*")
+        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
         .eq("user_id", userId)
         .eq("date", today)
         .maybeSingle();
@@ -161,6 +182,43 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+  });
+
+  const { data: passiveContext, isLoading: passiveContextLoading } = useQuery({
+    queryKey: ["today-passive-context", userId, passiveHistoryStart],
+    queryFn: async () => {
+      if (!userId) return { deviceRows: [], calendarRows: [] };
+
+      const [deviceResult, calendarResult] = await Promise.all([
+        supabase
+          .from("device_usage_snapshots")
+          .select("snapshot_date, attention_usage_min, active_app_count, permission_state, confidence, updated_at")
+          .eq("user_id", userId)
+          .gte("snapshot_date", passiveHistoryStart)
+          .order("snapshot_date", { ascending: true }),
+        supabase
+          .from("calendar_context_snapshots")
+          .select("snapshot_date, busy_minutes, meeting_count, permission_state, confidence, updated_at")
+          .eq("user_id", userId)
+          .gte("snapshot_date", passiveHistoryStart)
+          .order("snapshot_date", { ascending: true }),
+      ]);
+
+      if (deviceResult.error) {
+        console.warn("[useTodayMetrics] Attention context unavailable:", deviceResult.error);
+      }
+      if (calendarResult.error) {
+        console.warn("[useTodayMetrics] Schedule context unavailable:", calendarResult.error);
+      }
+
+      return {
+        deviceRows: deviceResult.data ?? [],
+        calendarRows: calendarResult.data ?? [],
+      };
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
   });
   
   // Fetch readiness decay tracking data
@@ -196,7 +254,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   });
   
   // Check if all data sources are loaded
-  const allLoaded = !statesLoading && !recoveryV2Loading && !phoneTargetLoading && !wearableLoading && !decayLoading;
+  const allLoaded = !statesLoading && !recoveryV2Loading && !phoneHealthLoading &&
+    !wearableLoading && !passiveContextLoading && !decayLoading;
   
   // Use ref to cache last valid result (prevents flicker during refetch)
   const cachedResultRef = useRef<UseTodayMetricsResult | null>(null);
@@ -207,29 +266,107 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   }
   
   const freshResult = useMemo((): UseTodayMetricsResult => {
-    // Calculate Recovery (REC) using v2.0 continuous decay model
-    // recoveryRawValue: null if not initialized (used for snapshots to avoid saving 0)
-    // recovery: always numeric (0 fallback) for calculations
-    const recoveryRawValue = recoveryV2State
-      ? getCurrentRecovery(recoveryV2State, phoneHealthTarget)
-      : null;
-    const recovery = recoveryRawValue ?? 0;
-    const isRecoveryInitialized = recoveryV2State?.hasRecoveryBaseline ?? false;
-    
     // Calculate Physio component (if wearable data available)
-    const physioComponent = wearableSnapshot ? calculatePhysioComponent({
+    const physioInput = wearableSnapshot ? {
       hrvMs: wearableSnapshot.hrv_ms ?? null,
       restingHr: wearableSnapshot.resting_hr ?? null,
       sleepDurationMin: wearableSnapshot.sleep_duration_min ?? null,
       sleepEfficiency: wearableSnapshot.sleep_efficiency ?? null,
-    }) : null;
+    } : null;
+    const physioEstimate = calculatePhysioEstimate(physioInput);
+    const physioComponent = calculatePhysioComponent(physioInput);
     const readinessCognitiveComponent = calculateReadinessCognitiveComponent(states);
+    const recoveryTarget = calculateDailyRecoveryTarget(
+      phoneHealthSnapshot?.target_rec,
+      physioEstimate,
+    );
+    // Recovery uses the same combined Health + wearable target as actions and gating.
+    const recoveryRawValue = recoveryV2State
+      ? getCurrentRecovery(recoveryV2State, recoveryTarget)
+      : null;
+    const recovery = recoveryRawValue ?? 0;
+    const isRecoveryInitialized = recoveryV2State?.hasRecoveryBaseline ?? false;
+
+    const deviceRows = passiveContext?.deviceRows ?? [];
+    const currentDevice = deviceRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
+    const previousDevice = deviceRows.filter((row) => row.snapshot_date !== today && row.permission_state === "granted");
+    const attentionMinutes = calculateRelativeLoadEstimate({
+      current: currentDevice?.attention_usage_min,
+      history: previousDevice.map((row) => row.attention_usage_min),
+      sourceConfidence: currentDevice?.confidence ?? 0,
+      minimumBaseline: 30,
+    });
+    const attentionApps = calculateRelativeLoadEstimate({
+      current: currentDevice?.active_app_count,
+      history: previousDevice.map((row) => row.active_app_count),
+      sourceConfidence: currentDevice?.confidence ?? 0,
+      minimumBaseline: 2,
+    });
+    const attentionScore = attentionMinutes.score === null && attentionApps.score === null
+      ? null
+      : 0.75 * (attentionMinutes.score ?? 50) + 0.25 * (attentionApps.score ?? 50);
+    const attentionConfidence = Math.max(attentionMinutes.confidence, attentionApps.confidence);
+
+    const calendarRows = passiveContext?.calendarRows ?? [];
+    const currentCalendar = calendarRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
+    const previousCalendar = calendarRows.filter((row) => row.snapshot_date !== today && row.permission_state === "granted");
+    const scheduleBusy = calculateRelativeLoadEstimate({
+      current: currentCalendar?.busy_minutes,
+      history: previousCalendar.map((row) => row.busy_minutes),
+      sourceConfidence: currentCalendar?.confidence ?? 0,
+      minimumBaseline: 30,
+    });
+    const scheduleMeetings = calculateRelativeLoadEstimate({
+      current: currentCalendar?.meeting_count,
+      history: previousCalendar.map((row) => row.meeting_count),
+      sourceConfidence: currentCalendar?.confidence ?? 0,
+      minimumBaseline: 1,
+    });
+    const scheduleScore = scheduleBusy.score === null && scheduleMeetings.score === null
+      ? null
+      : 0.75 * (scheduleBusy.score ?? 50) + 0.25 * (scheduleMeetings.score ?? 50);
+    const scheduleConfidence = Math.max(scheduleBusy.confidence, scheduleMeetings.confidence);
+
+    const passiveState = buildDailyPassiveState([
+      {
+        id: "health",
+        label: "Health",
+        score: phoneHealthSnapshot?.phi ?? null,
+        confidence: phoneHealthSnapshot?.confidence ?? 0,
+        updatedAt: phoneHealthSnapshot?.updated_at ?? null,
+      },
+      {
+        id: "wearable",
+        label: "Wearable",
+        score: physioEstimate?.rawScore ?? null,
+        confidence: physioEstimate?.confidence ?? 0,
+        updatedAt: wearableSnapshot?.updated_at ?? null,
+      },
+      {
+        id: "attention",
+        label: "Attention",
+        score: attentionScore,
+        confidence: attentionConfidence,
+        updatedAt: currentDevice?.updated_at ?? null,
+      },
+      {
+        id: "schedule",
+        label: "Schedule",
+        score: scheduleScore,
+        confidence: scheduleConfidence,
+        updatedAt: currentCalendar?.updated_at ?? null,
+      },
+    ]);
+    const dailyStateContext = {
+      score: passiveState.score,
+      coverage: passiveState.coverage,
+    };
     
     // Calculate Sharpness
-    const sharpness = calculateSharpness(states, recovery);
+    const sharpness = calculateSharpness(states, recovery, dailyStateContext);
     
     // Calculate base Readiness
-    const baseReadiness = calculateReadiness(states, recovery, physioComponent);
+    const baseReadiness = calculateReadiness(states, recovery, dailyStateContext);
     
     // Calculate Readiness decay (using low_rec_streak_days from daily snapshot)
     // v2.0: Compare against rolling period instead of calendar week
@@ -255,9 +392,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       recoveryRaw: recoveryRawValue,
       readinessDecay,
       consecutiveLowRecDays,
-      // A snapshot alone is not enough to activate the wearable formula: all
-      // signals required by calculatePhysioComponent must be present.
-      hasWearableData: physioComponent !== null,
+      hasWearableData: physioEstimate !== null,
       isRecoveryInitialized,
       AE: states.AE,
       RA: states.RA,
@@ -267,9 +402,14 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       S2,
       physioComponent,
       readinessCognitiveComponent,
+      dailyState: passiveState.score,
+      signalCoverage: passiveState.coverage,
+      signalCoverageLevel: passiveState.level,
+      signalUpdatedAt: passiveState.updatedAt,
+      signalSources: passiveState.sources,
       isLoading: !allLoaded,
     };
-  }, [states, S1, S2, recoveryV2State, phoneHealthTarget, wearableSnapshot, decayData, rollingStart, allLoaded]);
+  }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, wearableSnapshot, passiveContext, today, decayData, rollingStart, allLoaded]);
   
   // Update cached result only when all data is loaded
   if (allLoaded) {

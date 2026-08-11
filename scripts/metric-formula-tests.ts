@@ -3,18 +3,20 @@ import {
   calculateReadiness,
   calculateReadinessCognitiveComponent,
   calculatePhysioComponent,
+  calculatePhysioEstimate,
   calculateSCI as calculateCanonicalSCI,
   calculateSharpness,
   calculateSystemScores,
   deriveEffectiveCognitiveStates,
 } from "../src/lib/cognitiveEngine";
 import { calculateSCI, getTargetsForPlan } from "../src/lib/cognitiveNetworkScore";
-import { applyRecoveryDecay } from "../src/lib/recoveryV2";
+import { applyRecoveryDecay, calculateDailyRecoveryTarget } from "../src/lib/recoveryV2";
 import { calculateRQ } from "../src/lib/reasoningQuality";
 import { TRAINING_PLANS } from "../src/lib/trainingPlans";
 import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
 import { buildDualProcessSeries, resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
 import { metricSnapshotNeedsSave } from "../src/lib/metricSnapshotIntegrity";
+import { buildDailyPassiveState, calculateRelativeLoadEstimate } from "../src/lib/dailyPassiveState";
 
 const closeTo = (actual: number, expected: number, message: string) => {
   assert.ok(Math.abs(actual - expected) < 0.0001, `${message}: expected ${expected}, got ${actual}`);
@@ -26,23 +28,61 @@ assert.deepEqual(calculateSystemScores(states), { S1: 70, S2: 60 });
 closeTo(calculateSharpness(states, 0), 49.5, "Sharpness at zero Recovery");
 closeTo(calculateSharpness(states, 50), 57.8, "Sharpness at mid Recovery");
 closeTo(calculateSharpness(states, 100), 66, "Sharpness at full Recovery");
-closeTo(calculateReadiness(states, 50, null), 62.5, "Readiness without wearable");
+closeTo(calculateReadiness(states, 50, null), 62.5, "Readiness without passive context");
 closeTo(
   calculateReadinessCognitiveComponent(states),
   67,
-  "Wearable Readiness cognitive component",
+  "Context-aware Readiness cognitive component",
 );
-closeTo(calculateReadiness(states, 50, 72), 69.5, "Readiness with wearable");
-assert.equal(
+closeTo(
+  calculateReadiness(states, 50, { score: 72, coverage: 0.5 }),
+  66.3,
+  "Readiness blends passive context according to coverage",
+);
+closeTo(
+  calculateSharpness(states, 50, { score: 72, coverage: 1 }),
+  60.5,
+  "Sharpness uses daily state at full coverage",
+);
+const partialPhysio = calculatePhysioEstimate({
+    hrvMs: 70,
+    restingHr: 60,
+    sleepDurationMin: 450,
+    sleepEfficiency: null,
+  });
+assert.ok(partialPhysio, "A partial wearable snapshot remains usable");
+closeTo(partialPhysio.confidence, 0.84, "Partial wearable confidence");
+closeTo(partialPhysio.score, 56.3, "Partial wearable score is shrunk toward neutral");
+closeTo(
   calculatePhysioComponent({
     hrvMs: 70,
     restingHr: 60,
     sleepDurationMin: 450,
     sleepEfficiency: null,
-  }),
-  null,
-  "An incomplete wearable snapshot must not activate wearable mode",
+  }) ?? 0,
+  56.3,
+  "Public wearable component supports partial data",
 );
+
+const passiveState = buildDailyPassiveState([
+  { id: "health", label: "Health", score: 80, confidence: 1, updatedAt: "2026-08-09T08:00:00.000Z" },
+  { id: "wearable", label: "Wearable", score: 60, confidence: 0.8, updatedAt: "2026-08-09T09:00:00.000Z" },
+  { id: "attention", label: "Attention", score: 40, confidence: 0.5, updatedAt: "2026-08-09T10:00:00.000Z" },
+]);
+closeTo(passiveState.coverage, 0.68, "Passive coverage uses canonical source weights");
+closeTo(passiveState.score, 65.9, "Missing passive sources do not count as zero");
+assert.equal(passiveState.level, "Enhanced");
+assert.equal(passiveState.updatedAt, "2026-08-09T10:00:00.000Z");
+
+const attentionLoad = calculateRelativeLoadEstimate({
+  current: 100,
+  history: [50, 50, 50, 50, 50, 50, 50],
+  sourceConfidence: 0.8,
+  minimumBaseline: 30,
+});
+closeTo(attentionLoad.ratio ?? 0, 2, "Attention load compares with personal baseline");
+closeTo(attentionLoad.score ?? 0, 26, "Above-baseline attention load lowers neutral daily state");
+closeTo(attentionLoad.confidence, 0.8, "Seven baseline days reach full source maturity");
 
 const derived = deriveEffectiveCognitiveStates({
   focus_stability: 80,
@@ -83,8 +123,18 @@ closeTo(
 );
 closeTo(
   applyRecoveryDecay(80, "2026-08-08T08:00:00.000Z", "2026-08-09T08:00:00.000Z"),
-  75.5,
+  60.5,
   "Recovery recalibrates once per new day",
+);
+closeTo(
+  calculateDailyRecoveryTarget(60, { rawScore: 80, confidence: 1 }),
+  59.5,
+  "Recovery target combines Phone Health and complete wearable physiology",
+);
+closeTo(
+  calculateDailyRecoveryTarget(null, { rawScore: 100, confidence: 0.5 }),
+  57.5,
+  "Partial wearable recovery target shrinks toward neutral without Phone Health",
 );
 
 const rq = calculateRQ({

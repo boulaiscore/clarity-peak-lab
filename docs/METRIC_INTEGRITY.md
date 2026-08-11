@@ -19,19 +19,49 @@ baseline. The single derivation is `deriveEffectiveCognitiveStates`.
 
 - `S1 = (AE + RA) / 2`
 - `S2 = (CT + IN) / 2`
-- `Sharpness = (0.60 × S1 + 0.40 × S2) × (0.75 + 0.25 × REC / 100)`
-- Readiness without wearable: `0.35 × REC + 0.35 × S2 + 0.30 × AE`
-- Readiness with wearable: `0.50 × Physio + 0.50 × Cognitive`, where
-  `Cognitive = 0.30 × CT + 0.25 × AE + 0.20 × IN + 0.15 × S2 + 0.10 × S1`
+- `Capacity = 0.60 × S1 + 0.40 × S2`
+- `Sharpness app = Capacity × (0.75 + 0.25 × REC / 100)`
+- `Sharpness context = Capacity × (0.70 + 0.30 × DailyState / 100)`
+- `Sharpness = (1 − coverage) × Sharpness app + coverage × Sharpness context`
+- `Readiness app = 0.35 × REC + 0.35 × S2 + 0.30 × AE`
+- `Cognitive = 0.30 × CT + 0.25 × AE + 0.20 × IN + 0.15 × S2 + 0.10 × S1`
+- `Readiness context = 0.60 × DailyState + 0.40 × Cognitive`
+- `Readiness = (1 − coverage) × Readiness app + coverage × Readiness context − decay`
 - `RQ = 0.50 × S2 Core + 0.30 × S2 Consistency + 0.20 × Task Priming`
 - `SCI = 0.50 × Cognitive Performance + 0.30 × Behavioral Engagement + 0.20 × REC`
 - Cognitive Age performance uses the average of AE, RA, CT, and IN only. S2 is
   not counted a second time. The long window is 180 days and the short window
   is 30 days.
 
-`REC` is Recovery v2 everywhere: the persisted value is recalibrated once per
-calendar day toward the Phone Health target (or 50), then Detox/Walking gains
-are applied. SCI does not calculate a second weekly Recovery approximation.
+`REC` is Recovery v2 everywhere: the persisted value closes 65% of the gap
+toward the current Health target once per calendar day, then Detox/Walking
+gains are applied. The target uses confidence-blended Phone Health and adds up
+to 50% wearable physiology influence as wearable coverage becomes complete;
+without either source it is 50. SCI does not calculate a second weekly Recovery
+approximation.
+
+## Passive daily state
+
+Daily State is separate from the slower trainable capacity layer. It can alter
+Sharpness and Readiness, but never writes AE, RA, CT, IN, S1, S2, RQ or
+Cognitive Age.
+
+- Health contributes 30% of possible coverage (sleep, consistency and movement).
+- Wearable contributes 35% (HRV, resting heart rate, sleep duration and efficiency).
+- Attention contributes 20% (aggregate attention-app minutes and active-app count).
+- Schedule contributes 15% (busy minutes and meeting density).
+- Wearable inputs degrade partially: available signal weights are renormalized
+  and missing weights reduce confidence instead of disabling wearable mode.
+- Attention and schedule are evaluated against the user's own rolling median.
+  A partially elapsed day cannot create an artificial positive score; only
+  load above baseline reduces their neutral state value of 50.
+- The Daily State score uses only observed sources. `coverage` is the weighted
+  confidence across all four source groups and determines how strongly Daily
+  State may replace the app-only formula.
+- Coverage labels are Basic below 35%, Enhanced from 35% to 74%, and High from
+  75%. These labels describe input coverage, not medical or predictive accuracy.
+- App names, domains, content, calendar titles, attendees and locations are
+  never part of these inputs or stored in the cloud.
 
 ## Update and cloud contract
 
@@ -66,8 +96,9 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
   labels, not ability or intelligence labels; numerical thresholds are unchanged.
 - Provisional inputs must be marked as estimated. In particular, S2
   Consistency remains provisional until at least five S2 sessions exist.
-- Readiness factors must reflect its active mode: app-only or wearable. The UI
-  must never show app-only weights when the wearable formula is active.
+- Readiness factors must expose the current App State, Cognitive State, Daily
+  State and effective coverage weights. The UI must not show the retired
+  all-or-nothing wearable formula.
 
 ## Daily state and recommendation contract
 
@@ -80,8 +111,9 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
 - Recommendation priority is conservative: limited recovery first, then high
   attention or schedule load, then demanding-work readiness, trainable
   Sharpness/RQ opportunities, and finally the steady default.
-- Home keeps its canonical metric rings and Recovery presentation unchanged;
-  passive data collection and shadow evaluation run independently of its UI.
+- Home keeps its canonical metric rings and Recovery presentation unchanged.
+  A single compact coverage row may disclose source status and freshness;
+  passive inputs affect only the canonical formulas documented above.
 - The recommendation rules choose explanatory copy and navigation only. They never mutate a
   metric, training gate, protocol, difficulty or Adaptive Coach forecast.
 - The Adaptive Coach remains in shadow mode. It may replace these active rules
