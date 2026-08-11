@@ -459,7 +459,9 @@ function buildAdaptiveContextPoints(input: PassiveFeatureInput): AdaptiveContext
       const focusScores = dailyReasons
         .map((session) => clamp(
           50 + Math.min(18, session.durationSeconds / 120) - session.backgroundInterrupts * 8,
-        , 0, 100));
+          0,
+          100,
+        ));
       const earliestOutcomeAt = [
         ...dailyGames.map((session) => {
           const completedAt = dateValue(session.completedAt);
