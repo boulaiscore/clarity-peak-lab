@@ -220,27 +220,23 @@ export default function SubscriptionPage() {
               <article
                 key={planId}
                 className={cn(
-                  "relative flex min-h-[420px] flex-col overflow-hidden rounded-[28px] border p-6 sm:p-7",
-                  planId === "pro"
+                  "relative flex flex-col overflow-hidden rounded-[28px] border p-6 sm:p-7",
+                  highlighted
                     ? "border-primary/35 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--primary)/0.09))]"
                     : "border-border/50 bg-card/45",
                 )}
               >
-                <div className="flex min-h-7 items-start justify-between gap-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    {plan.promise}
-                  </p>
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-2xl font-semibold tracking-tight">{plan.name}</h2>
                   {highlighted && (
                     <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-primary">
                       Recommended
                     </span>
                   )}
                 </div>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
 
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">{plan.name}</h2>
-                <p className="mt-2 min-h-10 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
-
-                <div className="mt-7">
+                <div className="mt-6">
                   {founding && (
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                       Founding offer · first 100
@@ -248,18 +244,23 @@ export default function SubscriptionPage() {
                   )}
                   <div className="flex items-end gap-2">
                     <span className="text-4xl font-medium tabular-nums tracking-tight">{displayPrice(option)}</span>
-                    <span className="pb-1 text-xs text-muted-foreground">/{interval === "annual" ? "year" : "month"}</span>
+                    <span className="pb-1 text-xs text-muted-foreground">
+                      {interval === "annual" ? "billed yearly" : "per month"}
+                    </span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    {founding
-                      ? `First year · standard Pro ${displayPrice(pricingConfig.pro_annual)}`
-                      : interval === "annual"
-                        ? `Save ${displayedAnnualSavings(planId)}% vs monthly`
-                        : `Annual option ${displayPrice(optionFor(planId, "annual"))}`}
+                    {interval === "annual"
+                      ? `${perMonthLabel(option)} per month · save ${displayedAnnualSavings(planId)}% vs monthly`
+                      : `or ${displayPrice(optionFor(planId, "annual"))} billed yearly`}
                   </p>
+                  {founding && (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      First year only · renews at {displayPrice(pricingConfig.pro_annual)}/year
+                    </p>
+                  )}
                 </div>
 
-                <ul className="mt-7 flex-1 space-y-3">
+                <ul className="mt-6 flex-1 space-y-3">
                   {CARD_FEATURES[planId].map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm text-foreground/85">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={2} />
@@ -273,10 +274,13 @@ export default function SubscriptionPage() {
                   disabled={current || checkout.loading}
                   onClick={() => void selectPlan(option.id)}
                   className="mt-7 h-12 w-full rounded-full text-[11px] font-semibold uppercase tracking-[0.16em]"
-                  variant={planId === "pro" ? "hero" : "outline"}
+                  variant={highlighted ? "hero" : "outline"}
                 >
-                  {current ? "Current plan" : option.ctaLabel}
+                  {current ? "Your current plan" : option.ctaLabel}
                 </Button>
+                <p className="mt-2.5 text-center text-[11px] text-muted-foreground/70">
+                  Cancel anytime · {plan.promise.toLowerCase()}
+                </p>
               </article>
             );
           })}
@@ -284,7 +288,14 @@ export default function SubscriptionPage() {
 
         <section className="mt-5 flex flex-col gap-4 rounded-3xl border border-border/40 bg-card/30 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-medium">Free / Diagnostic</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Free</p>
+              {subscription.tier === "free" && (
+                <span className="rounded-full border border-border/50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Current plan
+                </span>
+              )}
+            </div>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Daily state, data connections, one protocol per day and 7-day history.
             </p>
@@ -298,9 +309,10 @@ export default function SubscriptionPage() {
               navigate("/app");
             }}
           >
-            {subscription.tier === "free" ? "Current plan" : "Go to Home"}
+            Go to Home
           </Button>
         </section>
+
 
         <details className="group mt-5 rounded-3xl border border-border/40 bg-card/25">
           <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-sm font-medium">
