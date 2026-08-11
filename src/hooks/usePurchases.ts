@@ -1,58 +1,79 @@
-/**
- * Hook for managing in-app purchases (placeholder — no real billing wired)
- */
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  getCustomerInfo,
+  initializePurchases,
+  purchaseSubscription,
+  restorePurchases,
+  supportsIAP,
+  type CustomerInfo,
+  type PurchaseResult,
+} from "@/lib/capacitor/purchases";
+import { pricingConfig } from "@/config/pricing";
 
-import { useState, useCallback } from 'react';
-import { toast } from '@/hooks/use-toast';
+export function usePurchases() {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(supportsIAP());
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
 
-export interface PurchaseResult {
-  success: boolean;
-  error?: string;
-  entitlements?: string[];
-}
+  const refreshCustomerInfo = useCallback(async () => {
+    if (!supportsIAP()) {
+      setIsLoading(false);
+      return;
+    }
+    const initialized = await initializePurchases(user?.id);
+    if (!initialized.initialized) {
+      setIsLoading(false);
+      return;
+    }
+    setCustomerInfo(await getCustomerInfo());
+    setIsLoading(false);
+  }, [user?.id]);
 
-export interface CustomerInfo {
-  isPro: boolean;
-  isPremium: boolean;
-}
+  useEffect(() => {
+    void refreshCustomerInfo();
+  }, [refreshCustomerInfo]);
 
-interface UsePurchasesReturn {
-  isLoading: boolean;
-  isRestoring: boolean;
-  isPurchasing: boolean;
-  customerInfo: CustomerInfo | null;
-  purchasePremium: () => Promise<PurchaseResult>;
-  purchasePro: () => Promise<PurchaseResult>;
-  restoreAllPurchases: () => Promise<PurchaseResult>;
-  refreshCustomerInfo: () => Promise<void>;
-  useNativeIAP: boolean;
-}
+  const purchase = useCallback(async (productId: string | null): Promise<PurchaseResult> => {
+    if (!productId) return { success: false, error: "Product is not configured" };
+    setIsPurchasing(true);
+    try {
+      const initialized = await initializePurchases(user?.id);
+      if (!initialized.initialized) return { success: false, error: initialized.error };
+      const result = await purchaseSubscription(productId);
+      if (result.success) await refreshCustomerInfo();
+      return result;
+    } finally {
+      setIsPurchasing(false);
+    }
+  }, [refreshCustomerInfo, user?.id]);
 
-export function usePurchases(): UsePurchasesReturn {
-  const [isLoading] = useState(false);
-  const [isRestoring] = useState(false);
-  const [isPurchasing] = useState(false);
-  const [customerInfo] = useState<CustomerInfo | null>(null);
-
-  const placeholderResult = useCallback(async (): Promise<PurchaseResult> => {
-    toast({
-      title: "Plan selected",
-      description: "Billing activation will be connected in the next release.",
-    });
-    return { success: false, error: 'Billing not yet active' };
-  }, []);
-
-  const refreshCustomerInfo = useCallback(async () => {}, []);
+  const restoreAllPurchases = useCallback(async (): Promise<PurchaseResult> => {
+    setIsRestoring(true);
+    try {
+      const initialized = await initializePurchases(user?.id);
+      if (!initialized.initialized) return { success: false, error: initialized.error };
+      const result = await restorePurchases();
+      if (result.success) await refreshCustomerInfo();
+      return result;
+    } finally {
+      setIsRestoring(false);
+    }
+  }, [refreshCustomerInfo, user?.id]);
 
   return {
     isLoading,
     isRestoring,
     isPurchasing,
     customerInfo,
-    purchasePremium: placeholderResult,
-    purchasePro: placeholderResult,
-    restoreAllPurchases: placeholderResult,
+    purchaseCore: () => purchase(pricingConfig.core_annual.nativeProductId),
+    purchasePro: () => purchase(pricingConfig.pro_annual.nativeProductId),
+    purchaseFoundingPro: () => purchase(pricingConfig.founding_pro_annual.nativeProductId),
+    purchaseProduct: purchase,
+    restoreAllPurchases,
     refreshCustomerInfo,
-    useNativeIAP: false,
+    useNativeIAP: supportsIAP(),
   };
 }

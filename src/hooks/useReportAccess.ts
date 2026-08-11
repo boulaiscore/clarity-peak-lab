@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
 import { useSubscription } from "@/hooks/useSubscription";
+import { canExportReports } from "@/lib/entitlements";
 
 export function useReportAccess() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  // Single source of truth from Paddle subscription state.
-  const { tier, isPro, isElite, isActive } = useSubscription();
+  // Single source of truth from provider-neutral subscription state.
+  const { tier, isCore, isPro, isActive } = useSubscription();
   const isPremium = isActive; // any paid plan
 
   const planId = (user?.trainingPlan || "light") as TrainingPlanId;
@@ -69,10 +70,10 @@ export function useReportAccess() {
   const useCredit = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("Not authenticated");
-      // Elite: unlimited on-demand reports.
-      if (isElite) return;
-      // Pro: consume monthly credit, fall back to purchased.
-      if (isPro && monthlyCredits > 0) {
+      // Pro includes formatted report exports.
+      if (canExportReports(tier)) return;
+      // Preserve already-issued legacy credits.
+      if (monthlyCredits > 0) {
         const { error } = await supabase
           .from("profiles")
           .update({ monthly_report_credits: monthlyCredits - 1 })
@@ -98,10 +99,10 @@ export function useReportAccess() {
   let canDownload = false;
   let hasCreditsOrPurchase = false;
 
-  if (isElite) {
+  if (canExportReports(tier)) {
     canDownload = weeklyPlanCompleted;
     hasCreditsOrPurchase = true;
-  } else if (isPro) {
+  } else if (isCore) {
     hasCreditsOrPurchase = monthlyCredits > 0 || reportCredits > 0 || hasPurchasedPDF;
     canDownload = hasCreditsOrPurchase && weeklyPlanCompleted;
   } else {
@@ -117,8 +118,9 @@ export function useReportAccess() {
     reportCredits,
     monthlyCredits,
     isPremium,
+    isCore,
     isPro,
-    isElite,
+    isElite: isPro,
     subscriptionStatus: tier,
     isLoading: creditsLoading || purchaseLoading || progressLoading,
     weeklyPlanCompleted,

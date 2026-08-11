@@ -7,8 +7,11 @@ import { isIOS, isAndroid, isNative } from '@/lib/platformUtils';
 
 // RevenueCat Product IDs - must match RevenueCat products/store products
 export const PRODUCT_IDS = {
-  PREMIUM_ANNUAL: 'looma_premium_annual',
+  CORE_MONTHLY: 'looma_core_monthly',
+  CORE_ANNUAL: 'looma_core_annual',
+  PRO_MONTHLY: 'looma_pro_monthly',
   PRO_ANNUAL: 'looma_pro_annual',
+  FOUNDING_PRO_ANNUAL: 'looma_founding_pro_annual',
   REPORT_SINGLE: 'looma_report_single',
   REPORT_PACK_5: 'looma_report_pack_5',
   REPORT_PACK_10: 'looma_report_pack_10',
@@ -16,8 +19,10 @@ export const PRODUCT_IDS = {
 
 // Entitlement identifiers in RevenueCat
 export const ENTITLEMENTS = {
-  PREMIUM: 'premium',
+  CORE: 'core',
+  PREMIUM_LEGACY: 'premium',
   PRO: 'pro',
+  FOUNDING_PRO: 'founding_pro',
 } as const;
 
 export interface PurchaseResult {
@@ -28,6 +33,7 @@ export interface PurchaseResult {
 }
 
 export interface CustomerInfo {
+  planId: 'free' | 'core' | 'pro' | 'founding_pro';
   isPremium: boolean;
   isPro: boolean;
   activeEntitlements: string[];
@@ -42,11 +48,27 @@ export interface PurchasesInitResult {
 
 let purchasesInstance: typeof import('@revenuecat/purchases-capacitor').Purchases | null = null;
 let isInitialized = false;
+let identifiedUserId: string | null = null;
 
 function getMissingApiKeyError(): string {
   return isIOS()
     ? 'RevenueCat iOS key is missing (VITE_REVENUECAT_IOS_KEY).'
     : 'RevenueCat Android key is missing (VITE_REVENUECAT_ANDROID_KEY).';
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+  return fallback;
+}
+
+function errorCode(error: unknown): string | null {
+  if (typeof error === 'object' && error && 'code' in error && typeof error.code === 'string') {
+    return error.code;
+  }
+  return null;
 }
 
 /**
@@ -57,6 +79,14 @@ export async function initializePurchases(userId?: string): Promise<PurchasesIni
   if (!isNative()) {
     console.log('[Purchases] Web platform - skipping RevenueCat initialization');
     return { initialized: false, code: 'not_native', error: 'Not running on native platform' };
+  }
+
+  if (isInitialized && purchasesInstance) {
+    if (userId && userId !== identifiedUserId) {
+      await purchasesInstance.logIn({ appUserID: userId });
+      identifiedUserId = userId;
+    }
+    return { initialized: true };
   }
 
   try {
@@ -89,6 +119,7 @@ export async function initializePurchases(userId?: string): Promise<PurchasesIni
     });
 
     isInitialized = true;
+    identifiedUserId = userId ?? null;
     console.log('[Purchases] RevenueCat initialized successfully');
     return { initialized: true };
   } catch (error) {
@@ -109,6 +140,7 @@ export async function loginPurchases(userId: string): Promise<void> {
 
   try {
     await purchasesInstance.logIn({ appUserID: userId });
+    identifiedUserId = userId;
     console.log('[Purchases] User logged in:', userId);
   } catch (error) {
     console.error('[Purchases] Login failed:', error);
@@ -123,6 +155,7 @@ export async function logoutPurchases(): Promise<void> {
 
   try {
     await purchasesInstance.logOut();
+    identifiedUserId = null;
     console.log('[Purchases] User logged out');
   } catch (error) {
     console.error('[Purchases] Logout failed:', error);
@@ -132,7 +165,7 @@ export async function logoutPurchases(): Promise<void> {
 /**
  * Get available products/packages
  */
-export async function getOfferings(): Promise<any> {
+export async function getOfferings(): Promise<unknown> {
   if (!isInitialized || !purchasesInstance) {
     return null;
   }
@@ -150,7 +183,7 @@ export async function getOfferings(): Promise<any> {
  * Purchase a subscription product
  */
 export async function purchaseSubscription(
-  productId: typeof PRODUCT_IDS[keyof typeof PRODUCT_IDS]
+  productId: string,
 ): Promise<PurchaseResult> {
   if (!isInitialized || !purchasesInstance) {
     return {
@@ -169,8 +202,8 @@ export async function purchaseSubscription(
 
     // Find the package that contains our product
     const packages = currentOffering.availablePackages;
-    const targetPackage = packages.find((pkg: any) => 
-      pkg.product?.identifier === productId || 
+    const targetPackage = packages.find((pkg) =>
+      pkg.product?.identifier === productId ||
       pkg.identifier === productId
     );
 
@@ -189,13 +222,13 @@ export async function purchaseSubscription(
       productId,
       entitlements: activeEntitlements,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Check if user cancelled
-    if (error.code === 'PURCHASE_CANCELLED') {
+    if (errorCode(error) === 'PURCHASE_CANCELLED') {
       return { success: false, error: 'Purchase cancelled' };
     }
     console.error('[Purchases] Purchase failed:', error);
-    return { success: false, error: error.message || 'Purchase failed' };
+    return { success: false, error: errorMessage(error, 'Purchase failed') };
   }
 }
 
@@ -219,9 +252,9 @@ export async function restorePurchases(): Promise<PurchaseResult> {
     } else {
       return { success: false, error: 'No purchases to restore' };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Purchases] Restore failed:', error);
-    return { success: false, error: error.message || 'Restore failed' };
+    return { success: false, error: errorMessage(error, 'Restore failed') };
   }
 }
 
@@ -230,6 +263,7 @@ export async function restorePurchases(): Promise<PurchaseResult> {
  */
 export async function getCustomerInfo(): Promise<CustomerInfo> {
   const defaultInfo: CustomerInfo = {
+    planId: 'free',
     isPremium: false,
     isPro: false,
     activeEntitlements: [],
@@ -243,12 +277,18 @@ export async function getCustomerInfo(): Promise<CustomerInfo> {
     const { customerInfo } = await purchasesInstance.getCustomerInfo();
     const activeEntitlements = Object.keys(customerInfo.entitlements.active || {});
 
+    const isFounding = activeEntitlements.includes(ENTITLEMENTS.FOUNDING_PRO);
+    const isPro = isFounding || activeEntitlements.includes(ENTITLEMENTS.PRO);
+    const isCore = isPro || activeEntitlements.includes(ENTITLEMENTS.CORE) || activeEntitlements.includes(ENTITLEMENTS.PREMIUM_LEGACY);
     return {
-      isPremium: activeEntitlements.includes(ENTITLEMENTS.PREMIUM),
-      isPro: activeEntitlements.includes(ENTITLEMENTS.PRO),
+      planId: isFounding ? 'founding_pro' : isPro ? 'pro' : isCore ? 'core' : 'free',
+      isPremium: isCore,
+      isPro,
       activeEntitlements,
-      expirationDate: customerInfo.entitlements.active?.premium?.expirationDate || 
-                      customerInfo.entitlements.active?.pro?.expirationDate,
+      expirationDate: customerInfo.entitlements.active?.founding_pro?.expirationDate ||
+                      customerInfo.entitlements.active?.pro?.expirationDate ||
+                      customerInfo.entitlements.active?.core?.expirationDate ||
+                      customerInfo.entitlements.active?.premium?.expirationDate,
     };
   } catch (error) {
     console.error('[Purchases] Failed to get customer info:', error);
@@ -264,10 +304,10 @@ export function supportsIAP(): boolean {
 }
 
 /**
- * Check if we should use native IAP vs Stripe
+ * Check if we should use native IAP vs web billing
  * On iOS: Must use IAP for digital content (App Store rules)
  * On Android: Can use either, but IAP is recommended
- * On Web: Use Stripe
+ * On Web: Use Paddle
  */
 export function shouldUseNativeIAP(): boolean {
   return isNative() && (isIOS() || isAndroid());

@@ -120,8 +120,9 @@ export function AdminActions({ user, onUpdate }: AdminActionsProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
+                <SelectItem value="core">Core</SelectItem>
                 <SelectItem value="pro">Pro</SelectItem>
+                <SelectItem value="founding_pro">Founding Pro</SelectItem>
               </SelectContent>
             </Select>
             <Button

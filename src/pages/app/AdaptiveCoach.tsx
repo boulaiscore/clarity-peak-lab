@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
+import { Button } from "@/components/ui/button";
 import { useAdaptiveCoachFeatureStatus } from "@/hooks/useAdaptiveCoachShadow";
 import { useAdaptiveFocusValidation } from "@/hooks/useAdaptiveFocusCoach";
+import { useSubscription } from "@/hooks/useSubscription";
 import { FOCUS_INTEGRITY_VALIDATION_DAYS } from "@/lib/focusIntegrity";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +48,8 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 }
 
 export default function AdaptiveCoach() {
+  const subscription = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
   const featureStatus = useAdaptiveCoachFeatureStatus();
   const {
     validation,
@@ -57,6 +63,32 @@ export default function AdaptiveCoach() {
   const adaptiveEstimate = featureStatus.adaptiveEstimate;
   const coverage = availability?.coverage ?? 0;
   const setupRequired = isStorageSetupError(error);
+
+  if (!subscription.loading && !subscription.isPro) {
+    return (
+      <AppShell>
+        <div className="mx-auto max-w-lg px-5 pb-12 pt-5">
+          <Link
+            to="/app/settings"
+            className="inline-flex rounded-full bg-muted/35 px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/75"
+          >
+            ← Settings
+          </Link>
+          <section className="mt-8 rounded-3xl border border-border/40 bg-card/45 p-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">LOOMA Pro</p>
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight">Adaptive Coach</h1>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Looma is already learning privately in shadow mode. Pro reveals its explainable forecasts, coverage and validation.
+            </p>
+            <Button type="button" variant="hero" className="mt-6 h-11 w-full rounded-full" onClick={() => setShowPaywall(true)}>
+              Explore Pro
+            </Button>
+          </section>
+        </div>
+        <PremiumPaywall open={showPaywall} onOpenChange={setShowPaywall} feature="coach" />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

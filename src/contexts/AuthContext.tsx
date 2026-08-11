@@ -36,7 +36,7 @@ export interface UserProfile {
   session_duration: SessionDuration;
   daily_time_commitment: DailyTimeCommitment;
   training_plan: TrainingPlanId;
-  subscription_status: "free" | "premium" | "pro" | "elite" | "trialing";
+  subscription_status: "free" | "premium" | "core" | "pro" | "elite" | "founding_pro" | "trialing";
   onboarding_completed: boolean;
   reminder_enabled: boolean | null;
   reminder_time: string | null;
@@ -56,7 +56,7 @@ export interface User {
   id: string;
   email: string;
   name: string | null;
-  subscriptionStatus: "free" | "premium" | "pro" | "elite" | "trialing";
+  subscriptionStatus: "free" | "premium" | "core" | "pro" | "elite" | "founding_pro" | "trialing";
   createdAt: Date;
   
   // Personal data
@@ -445,7 +445,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const upgradeToPremium = async () => {
-    await updateUser({ subscriptionStatus: "premium" });
+    await updateUser({ subscriptionStatus: "core" });
   };
 
   return (

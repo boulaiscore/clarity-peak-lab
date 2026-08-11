@@ -12,7 +12,19 @@ export type ProductEventName =
   | "calibration_started"
   | "calibration_completed"
   | "calibration_skipped"
+  | "pricing_page_viewed"
+  | "billing_toggle_changed"
+  | "plan_card_clicked"
   | "checkout_started"
+  | "checkout_completed"
+  | "checkout_failed"
+  | "paywall_viewed"
+  | "paywall_cta_clicked"
+  | "locked_feature_clicked"
+  | "trial_protocol_completed"
+  | "onboarding_completed"
+  | "subscription_restored"
+  | "team_waitlist_joined"
   | "app_route_viewed"
   | "game_completed"
   | "recovery_action_completed"
@@ -42,6 +54,14 @@ const QUEUE_KEY = "looma_product_events_v2";
 const SESSION_KEY = "looma_analytics_session_v1";
 const ANONYMOUS_KEY = "looma_analytics_anonymous_v1";
 const MAX_QUEUED_EVENTS = 100;
+export const FIRST_PROTOCOL_PAYWALL_PENDING_KEY = "looma_first_protocol_paywall_pending_v1";
+const FIRST_PROTOCOL_RECORDED_KEY = "looma_first_protocol_recorded_v1";
+const PROTOCOL_COMPLETION_EVENTS = new Set<ProductEventName>([
+  "game_completed",
+  "recovery_action_completed",
+  "reasoning_session_completed",
+  "content_completed",
+]);
 let flushPromise: Promise<void> | null = null;
 let onlineListenerAttached = false;
 
@@ -151,6 +171,12 @@ export function trackProductEvent(
 
   queueEvent(payload);
   void flushProductEvents();
+
+  if (PROTOCOL_COMPLETION_EVENTS.has(event) && !localStorage.getItem(FIRST_PROTOCOL_RECORDED_KEY)) {
+    localStorage.setItem(FIRST_PROTOCOL_RECORDED_KEY, payload.occurredAt);
+    localStorage.setItem(FIRST_PROTOCOL_PAYWALL_PENDING_KEY, "true");
+    trackProductEvent("trial_protocol_completed", { sourceEvent: event });
+  }
 
   if (!onlineListenerAttached) {
     window.addEventListener("online", () => void flushProductEvents());

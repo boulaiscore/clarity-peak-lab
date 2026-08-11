@@ -1,14 +1,10 @@
 import { AppShell } from "@/components/app/AppShell";
-import { Activity, Heart, Moon, Check, ExternalLink, Lock } from "lucide-react";
+import { Activity, Heart, Moon, Check, ExternalLink } from "lucide-react";
 import { AppleHealthIcon, WhoopIcon, OuraIcon, GarminIcon, OtherWearableIcon } from "@/components/icons/WearableIcons";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useWearableSync } from "@/hooks/useWearableSync";
-import { getPlatform, isNativePlatform, openHealthSettings } from "@/lib/capacitor/health";
-import { usePremiumGating } from "@/hooks/usePremiumGating";
-import { useSubscription } from "@/hooks/useSubscription";
-import { useNavigate } from "react-router-dom";
+import { isNativePlatform, openHealthSettings } from "@/lib/capacitor/health";
 import { useDeviceUsagePermission } from "@/hooks/useDeviceUsagePermission";
 import { useCalendarContextPermission } from "@/hooks/useCalendarContextPermission";
 
@@ -60,21 +56,12 @@ const WEARABLE_ITEMS: WearableItem[] = [
 ];
 
 const Health = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const { isPremium } = usePremiumGating();
-  
   // Wearable sync hook for native platforms
   const wearableSync = useWearableSync();
   const deviceUsage = useDeviceUsagePermission();
   const calendarContext = useCalendarContextPermission();
-  const platform = getPlatform();
   const isNative = isNativePlatform();
 
-  // Premium gating from real Paddle subscription state (env + period-end aware).
-  const { isActive: isPaid, tier } = useSubscription();
-  const subscriptionStatus = isPaid ? tier : "free";
-  const isFreeUser = !isPaid;
   const isConnected = wearableSync.isConnected;
 
   // Handle native health connection
@@ -102,18 +89,12 @@ const Health = () => {
     openHealthSettings();
   };
 
-  const handleUpgrade = () => {
-    navigate("/app/subscription");
-  };
-
   // Format last sync time
   const formatLastSync = (timestamp: Date | string | null) => {
     if (!timestamp) return null;
     const date = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-
-  const platformName = platform === "ios" ? "Apple Health" : "Health Connect";
 
   return (
     <AppShell>
@@ -136,7 +117,7 @@ const Health = () => {
           </div>
 
           {/* Connected State */}
-          {isConnected && !isFreeUser && (
+          {isConnected && (
             <div className="mb-8 animate-fade-in">
               <div className="p-5 rounded-2xl bg-gradient-to-br from-green-500/5 to-green-500/10 border border-green-500/20">
                 {/* Header */}
@@ -192,44 +173,20 @@ const Health = () => {
             </div>
           )}
 
-          {/* Free User Upsell */}
-          {isFreeUser && (
-            <div className="mb-8 animate-fade-in">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
-                <div className="flex items-center gap-3 mb-3">
-                  <div>
-                    <h3 className="text-sm font-semibold">Unlock wearable insights</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Upgrade to Pro or Elite to connect your wearable
-                      and unlock Cognitive Readiness.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleUpgrade}
-                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                >
-                  View subscription options
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Connection List */}
           <div className="space-y-2 mb-8">
             {WEARABLE_ITEMS.map((item) => {
               const isPrimary = item.type === "primary";
               const isSystemSync = item.type === "system_sync";
-              const showConnectButton = isPrimary && !isFreeUser && !isConnected && isNative;
-              const showConnectedBadge = isPrimary && isConnected && !isFreeUser;
-              const showLockIcon = isPrimary && isFreeUser;
+              const showConnectButton = isPrimary && !isConnected && isNative;
+              const showConnectedBadge = isPrimary && isConnected;
 
               return (
                 <div
                   key={item.id}
                   className={cn(
                     "flex items-center gap-4 p-4 rounded-xl border transition-all",
-                    isPrimary && !isFreeUser
+                    isPrimary
                       ? "border-primary/30 bg-primary/5"
                       : "border-border/50 bg-card/30"
                   )}
@@ -259,10 +216,6 @@ const Health = () => {
                       <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-muted/50 text-muted-foreground">
                         System sync
                       </span>
-                    )}
-
-                    {showLockIcon && (
-                      <Lock className="w-4 h-4 text-muted-foreground" />
                     )}
 
                     {showConnectedBadge && (

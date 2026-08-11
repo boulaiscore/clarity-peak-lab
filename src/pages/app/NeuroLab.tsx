@@ -11,7 +11,7 @@ import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { DailyTrainingConfirmDialog } from "@/components/app/DailyTrainingConfirmDialog";
-import { useDailyTraining } from "@/hooks/useDailyTraining";
+import { useDailyTraining, useDailyTrainingStreak } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
@@ -86,6 +86,7 @@ export default function NeuroLab() {
     isInReminderWindow,
     reminderTime
   } = useDailyTraining();
+  const { data: streakData } = useDailyTrainingStreak(user?.id);
   const {
     getNextSession,
     completedSessionTypes,
@@ -112,11 +113,21 @@ export default function NeuroLab() {
   } = useTodayMetrics();
   const { rq, isLoading: reasoningLoading } = useReasoningQuality();
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit">("area");
+  const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit" | "three-day-streak">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
+
+  useEffect(() => {
+    if (isPremium || streakData?.streak !== 3 || !user?.id) return;
+    const key = `looma_three_day_streak_paywall:${user.id}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "shown");
+    setPaywallFeature("three-day-streak");
+    setPaywallFeatureName("");
+    setShowPaywall(true);
+  }, [isPremium, streakData?.streak, user?.id]);
 
   // Current training plan for display
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;

@@ -14,6 +14,9 @@ import { trackProductEvent } from "@/lib/productAnalytics";
 import { useAdaptiveCoachShadowRecorder } from "@/hooks/useAdaptiveCoachShadow";
 import type { AdaptiveCoachPassiveState } from "@/hooks/useAdaptiveCoachShadow";
 import { useAdaptiveFocusShadowRecorder } from "@/hooks/useAdaptiveFocusCoach";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
+import { FIRST_PROTOCOL_PAYWALL_PENDING_KEY } from "@/lib/productAnalytics";
 
 interface AppShellProps {
   children: ReactNode | ((coachState: AdaptiveCoachPassiveState) => ReactNode);
@@ -36,7 +39,9 @@ export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
   const { permission, checkReminders } = useNotifications();
   const { logout } = useAuth();
+  const subscription = useSubscription();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showFirstProtocolPaywall, setShowFirstProtocolPaywall] = useState(false);
   
   // Initialize decay notifications on app load
   useDecayNotificationInit();
@@ -54,6 +59,19 @@ export function AppShell({ children }: AppShellProps) {
       route: `${location.pathname}${location.search}`,
     });
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (subscription.loading) return;
+    if (subscription.tier !== "free") {
+      localStorage.removeItem(FIRST_PROTOCOL_PAYWALL_PENDING_KEY);
+      return;
+    }
+    if (location.pathname === "/app/subscription") return;
+    if (localStorage.getItem(FIRST_PROTOCOL_PAYWALL_PENDING_KEY) === "true") {
+      localStorage.removeItem(FIRST_PROTOCOL_PAYWALL_PENDING_KEY);
+      setShowFirstProtocolPaywall(true);
+    }
+  }, [location.pathname, subscription.loading, subscription.tier]);
   
   // Check for reminders on mount
   useEffect(() => {
@@ -154,6 +172,12 @@ export function AppShell({ children }: AppShellProps) {
           )}
         </AnimatePresence>
       </nav>
+
+      <PremiumPaywall
+        open={showFirstProtocolPaywall}
+        onOpenChange={setShowFirstProtocolPaywall}
+        feature="first-protocol"
+      />
     </div>
   );
 }

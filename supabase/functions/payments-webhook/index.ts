@@ -12,14 +12,27 @@ function getSupabase() {
   return _supabase;
 }
 
-const PRICE_TO_TIER: Record<string, 'pro' | 'elite'> = {
-  looma_pro_monthly: 'pro',
-  looma_pro_yearly: 'pro',
-  looma_elite_monthly: 'elite',
-  looma_elite_yearly: 'elite',
+type PaidPlan = 'core' | 'pro' | 'founding_pro';
+
+const PRICE_TO_TIER: Record<string, PaidPlan> = {
+  // Legacy Paddle products retain their prices and move to the new names.
+  looma_pro_monthly: 'core',
+  looma_pro_yearly: 'core',
+  looma_elite_monthly: 'pro',
+  looma_elite_yearly: 'pro',
+  looma_core_monthly: 'core',
+  looma_core_annual: 'core',
+  looma_pro_annual: 'pro',
+  looma_founding_pro_annual: 'founding_pro',
 };
 
-async function syncProfileTier(userId: string, tier: 'pro' | 'elite' | 'free') {
+function resolvePlan(priceId: string, customData: Record<string, unknown> | null | undefined): PaidPlan {
+  const selected = customData?.selectedPlanId;
+  if (selected === 'core' || selected === 'pro' || selected === 'founding_pro') return selected;
+  return PRICE_TO_TIER[priceId] ?? 'core';
+}
+
+async function syncProfileTier(userId: string, tier: PaidPlan | 'free') {
   await getSupabase()
     .from('profiles')
     .update({ subscription_status: tier })
@@ -53,10 +66,13 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
     current_period_start: currentBillingPeriod?.startsAt,
     current_period_end: currentBillingPeriod?.endsAt,
     environment: env,
+    provider: 'paddle',
+    external_subscription_id: id,
+    plan_id: resolvePlan(priceId, customData),
     updated_at: new Date().toISOString(),
   }, { onConflict: 'paddle_subscription_id' });
 
-  const tier = PRICE_TO_TIER[priceId] ?? 'pro';
+  const tier = resolvePlan(priceId, customData);
   if (status === 'active' || status === 'trialing') {
     await syncProfileTier(userId, tier);
   }
@@ -72,6 +88,9 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
       cancel_at_period_end: scheduledChange?.action === 'cancel',
       price_id: items?.[0]?.price?.importMeta?.externalId ?? undefined,
       product_id: items?.[0]?.product?.importMeta?.externalId ?? undefined,
+      plan_id: items?.[0]?.price?.importMeta?.externalId
+        ? resolvePlan(items[0].price.importMeta.externalId, customData)
+        : undefined,
       updated_at: new Date().toISOString(),
     })
     .eq('paddle_subscription_id', id)
@@ -81,7 +100,7 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
   const userId = customData?.userId;
   const priceId = items?.[0]?.price?.importMeta?.externalId;
   if (userId && priceId && (status === 'active' || status === 'trialing')) {
-    await syncProfileTier(userId, PRICE_TO_TIER[priceId] ?? 'pro');
+    await syncProfileTier(userId, resolvePlan(priceId, customData));
   }
 }
 
