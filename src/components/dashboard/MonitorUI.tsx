@@ -43,7 +43,7 @@ export function MonitorSegmentedControl<T extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               "min-h-8 rounded-[8px] px-2 text-[10px] font-semibold uppercase tracking-[0.11em] transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+              "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30",
               isActive
                 ? "bg-white/[0.075] text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.035)]"
                 : "text-muted-foreground/65 hover:bg-white/[0.035] hover:text-foreground/85",
