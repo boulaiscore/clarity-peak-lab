@@ -68,6 +68,7 @@ export default function SubscriptionPage() {
   const checkout = useCheckout();
   const { prices, formatInCurrency } = useLocalizedPrices();
   const [interval, setInterval] = useState<SelectedInterval>(DEFAULT_BILLING_INTERVAL);
+  const [selectedPlan, setSelectedPlan] = useState<PaidCardId | null>(null);
   const [teamOpen, setTeamOpen] = useState(false);
   const [teamEmail, setTeamEmail] = useState(user?.email ?? "");
   const [teamName, setTeamName] = useState("");
