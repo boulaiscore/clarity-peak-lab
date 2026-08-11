@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { useNavigate } from "react-router-dom";
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -111,15 +111,46 @@ export function NeuralGrowthAnimation({
   const pulseDuration = Math.max(1.9, 4.4 - score * 0.025);
   const animatedNodeStride = score >= 75 ? 1 : score >= 50 ? 2 : 3;
   const signalStride = score >= 75 ? 7 : score >= 50 ? 10 : 14;
+  const fieldOpacity = Math.min(0.78, 0.2 + score / 150);
+  const fieldDuration = Math.max(1.75, 3.35 - score * 0.014);
   const actionRoute = bottleneck?.variable === "recovery" ? "/detox-session" : "/neuro-lab";
 
   return (
     <div className="py-1">
       <div className="overflow-hidden rounded-[18px] border border-white/[0.06] bg-[radial-gradient(ellipse_at_center,hsl(var(--recovery)/0.09),transparent_69%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
         <div className="relative h-[238px] w-full">
+          <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
+            <motion.div
+              className="h-[168px] w-[208px] rounded-[48%] bg-[radial-gradient(ellipse_at_center,hsl(var(--success)/0.38),hsl(var(--recovery)/0.16)_48%,transparent_72%)] blur-[15px]"
+              animate={reduceMotion ? undefined : {
+                opacity: [fieldOpacity * 0.38, fieldOpacity, fieldOpacity * 0.38],
+                scale: [0.88, 1.12, 0.88],
+              }}
+              transition={reduceMotion ? undefined : {
+                duration: fieldDuration,
+                ease: "easeInOut",
+                repeat: Infinity,
+              }}
+              style={reduceMotion ? { opacity: fieldOpacity * 0.58 } : undefined}
+            />
+          </div>
+          <div className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center" aria-hidden="true">
+            <motion.div
+              className="h-[178px] w-[216px] rounded-[48%] border border-[hsl(var(--recovery)/0.42)] shadow-[0_0_28px_hsl(var(--success)/0.2)]"
+              animate={reduceMotion ? undefined : {
+                opacity: [0.12, Math.min(0.68, 0.3 + score / 250), 0.12],
+                scale: [0.9, 1.08, 0.9],
+              }}
+              transition={reduceMotion ? undefined : {
+                duration: fieldDuration,
+                ease: "easeInOut",
+                repeat: Infinity,
+              }}
+            />
+          </div>
           <svg
             viewBox="0 0 240 180"
-            className="h-full w-full"
+            className="relative z-[1] h-full w-full"
             role="img"
             aria-label={`Performance Network score ${Math.round(score)} out of 100`}
           >
@@ -276,7 +307,7 @@ export function NeuralGrowthAnimation({
             </g>
           </svg>
 
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+          <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center text-center">
             <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/55">Performance Network</span>
             <span className="mt-1.5 text-[46px] font-semibold leading-none tabular-nums tracking-[-0.055em] text-foreground drop-shadow-[0_2px_14px_rgba(0,0,0,0.7)]">{Math.round(score)}</span>
             <span className="mt-2 rounded-full border border-white/[0.08] bg-background/45 px-2.5 py-1 text-[9px] font-semibold text-[hsl(var(--recovery))] backdrop-blur-sm">

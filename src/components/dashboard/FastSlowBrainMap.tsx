@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { DualProcessTrendChart } from "./DualProcessTrendChart";
 
 interface FastSlowBrainMapProps {
@@ -252,14 +252,71 @@ export function FastSlowBrainMap({
       : "Deliberate processing currently leads.";
   const balanceActivity = Math.max(0.15, 1 - absoluteDifference / 70);
   const bridgeDuration = Math.max(2, 4.5 - ((fast + slow) / 2) * 0.026);
+  const fastFieldOpacity = Math.min(0.78, 0.18 + fast / 150);
+  const slowFieldOpacity = Math.min(0.78, 0.18 + slow / 150);
+  const fastFieldDuration = Math.max(1.8, 3.5 - fast * 0.015);
+  const slowFieldDuration = Math.max(1.8, 3.5 - slow * 0.015);
 
   return (
     <div className="py-1">
       <div className="overflow-hidden rounded-[18px] border border-white/[0.06] bg-[radial-gradient(ellipse_at_center,hsl(var(--muted)/0.2),transparent_68%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
         <div className="relative h-[224px] w-full">
+          <div className="pointer-events-none absolute inset-0 z-0 grid grid-cols-2" aria-hidden="true">
+            <div className="flex items-center justify-center">
+              <motion.div
+                className="h-[142px] w-[132px] rounded-[48%] bg-[radial-gradient(ellipse_at_center,hsl(var(--area-fast)/0.48),hsl(var(--area-fast)/0.13)_54%,transparent_74%)] blur-[13px]"
+                animate={reduceMotion ? undefined : {
+                  opacity: [fastFieldOpacity * 0.36, fastFieldOpacity, fastFieldOpacity * 0.36],
+                  scale: [0.86, 1.14, 0.86],
+                }}
+                transition={reduceMotion ? undefined : {
+                  duration: fastFieldDuration,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                }}
+                style={reduceMotion ? { opacity: fastFieldOpacity * 0.56 } : undefined}
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <motion.div
+                className="h-[142px] w-[132px] rounded-[48%] bg-[radial-gradient(ellipse_at_center,hsl(var(--area-slow)/0.48),hsl(var(--area-slow)/0.13)_54%,transparent_74%)] blur-[13px]"
+                animate={reduceMotion ? undefined : {
+                  opacity: [slowFieldOpacity * 0.36, slowFieldOpacity, slowFieldOpacity * 0.36],
+                  scale: [0.86, 1.14, 0.86],
+                }}
+                transition={reduceMotion ? undefined : {
+                  duration: slowFieldDuration,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                }}
+                style={reduceMotion ? { opacity: slowFieldOpacity * 0.56 } : undefined}
+              />
+            </div>
+          </div>
+          <div className="pointer-events-none absolute inset-0 z-[2] grid grid-cols-2" aria-hidden="true">
+            {[
+              { opacity: fastFieldOpacity, duration: fastFieldDuration, color: "border-[hsl(var(--area-fast)/0.5)]" },
+              { opacity: slowFieldOpacity, duration: slowFieldDuration, color: "border-[hsl(var(--area-slow)/0.5)]" },
+            ].map((field, index) => (
+              <div key={field.color} className="flex items-center justify-center">
+                <motion.div
+                  className={`h-[148px] w-[136px] rounded-[48%] border ${field.color}`}
+                  animate={reduceMotion ? undefined : {
+                    opacity: [0.1, Math.min(0.72, field.opacity), 0.1],
+                    scale: [0.88, 1.1, 0.88],
+                  }}
+                  transition={reduceMotion ? undefined : {
+                    duration: field.duration + index * 0.24,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
           <svg
             viewBox="0 0 300 160"
-            className="h-full w-full"
+            className="relative z-[1] h-full w-full"
             role="img"
             aria-label={`System 1 score ${fast}; System 2 score ${slow}`}
           >
@@ -330,7 +387,7 @@ export function FastSlowBrainMap({
             </g>
           </svg>
 
-          <div className="pointer-events-none absolute inset-0 grid grid-cols-2 items-center pt-1">
+          <div className="pointer-events-none absolute inset-0 z-10 grid grid-cols-2 items-center pt-1">
             <div className="text-center">
               <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-[hsl(var(--area-fast))]">System 1</p>
               <p className="mt-1 text-[34px] font-semibold leading-none tabular-nums tracking-[-0.05em] text-[hsl(var(--area-fast))] drop-shadow-lg">{fast}</p>
