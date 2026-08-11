@@ -68,7 +68,7 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl border-border/30 max-h-[80vh] flex flex-col"
+        className="flex max-h-[82dvh] flex-col rounded-t-[28px] border-white/[0.08] bg-[#0b0d10] shadow-[0_-24px_80px_rgba(0,0,0,0.58)]"
       >
         <SheetHeader className="text-left">
           <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
                   <li
                     key={book.id}
                     className={cn(
-                      "p-3 rounded-xl border border-border/30 bg-muted/15",
+                      "rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3",
                       "flex items-center gap-3"
                     )}
                   >
@@ -164,8 +164,8 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
                       disabled={startSession.isPending}
                       className={cn(
                         "shrink-0 inline-flex items-center gap-1.5 px-3 h-9 rounded-lg",
-                        "bg-amber-500/15 border border-amber-500/30 text-amber-300",
-                        "hover:bg-amber-500/25 active:scale-[0.98] transition-all",
+                        "border border-foreground/15 bg-foreground text-background",
+                        "hover:bg-foreground/90 active:scale-[0.98] transition-all",
                         "text-[11px] font-medium uppercase tracking-[0.14em]",
                         "disabled:opacity-50"
                       )}
