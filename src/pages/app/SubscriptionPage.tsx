@@ -187,10 +187,11 @@ export default function SubscriptionPage() {
                   interval === value ? "bg-foreground text-background" : "text-muted-foreground",
                 )}
               >
-                {value}
+                {value === "annual" ? "Annual · save 17%" : "Monthly"}
               </button>
             ))}
           </div>
+
         </header>
 
         {subscription.isActive && (
