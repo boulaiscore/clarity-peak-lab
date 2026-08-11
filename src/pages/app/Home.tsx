@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, ChevronLeft, Check } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
@@ -13,92 +13,20 @@ import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
-import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useTutorialState } from "@/hooks/useTutorialState";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { useActiveReasonSession } from "@/hooks/useReasonSessions";
 import { cn } from "@/lib/utils";
-import { getSharpnessStatus, getReadinessStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
-import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { HomeTabId } from "@/components/home/HomeTabs";
 import { IntuitionTab } from "@/components/home/IntuitionTab";
 import { ReasoningTab } from "@/components/home/ReasoningTab";
 import { CapacityTab } from "@/components/home/CapacityTab";
-import { RecoveryBatteryCard } from "@/components/dashboard/RecoveryBatteryCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
-
-import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
+import { CognitiveStateCard } from "@/components/home/CognitiveStateCard";
 import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
-
-// Circular progress ring component with icon and status inside
-interface RingProps {
-  value: number;
-  max: number;
-  size: number;
-  strokeWidth: number;
-  color: string;
-  label: string;
-  displayValue: string;
-  dynamicIndicator?: string;
-  deltaIndicator?: string | null;
-  icon?: React.ReactNode;
-  onClick?: () => void;
-}
-const ProgressRing = ({
-  value,
-  max,
-  size,
-  strokeWidth,
-  color,
-  label,
-  displayValue,
-  dynamicIndicator,
-  deltaIndicator,
-  icon,
-  onClick
-}: RingProps) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const progress = Math.min(value / max, 1);
-  const strokeDashoffset = circumference - progress * circumference;
-  return <button className="flex flex-col items-center cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.97]" onClick={onClick}>
-      <div className="relative" style={{
-      width: size,
-      height: size
-    }}>
-        {/* Background ring — full track for premium WHOOP feel */}
-        <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--foreground))" strokeWidth={strokeWidth} className="opacity-[0.08]" />
-        </svg>
-        {/* Progress ring */}
-        <svg className="absolute inset-0 -rotate-90" width={size} height={size}>
-          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000 ease-out" style={{ filter: `drop-shadow(0 0 6px ${color}55)` }} />
-        </svg>
-        {/* Center content: big number, WHOOP-style */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[26px] font-normal tracking-tight text-foreground tabular-nums leading-none">
-            {displayValue}
-          </span>
-          {deltaIndicator && <span className="text-[9px] font-medium mt-1 tabular-nums opacity-70" style={{
-          color
-        }}>
-              {deltaIndicator}
-            </span>}
-        </div>
-      </div>
-      {/* Label + status below the ring */}
-      <span className="mt-3 inline-flex items-center gap-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground">
-        {label}
-        {onClick && <ChevronRight className="w-3 h-3 opacity-80" strokeWidth={2.5} />}
-      </span>
-      {dynamicIndicator && <span className="mt-1 text-[11px] font-semibold tracking-wide" style={{ color }}>
-        {dynamicIndicator}
-      </span>}
-    </button>;
-};
 const Home = () => {
   const navigate = useNavigate();
   const {
@@ -110,11 +38,6 @@ const Home = () => {
     isCalibrated,
     isLoading: baselineLoading
   } = useBaselineStatus();
-
-  // Capped weekly progress for smart training reminders
-  const {
-    totalProgress
-  } = useCappedWeeklyProgress();
 
   // Active books for "Currently Reading" card
   const { data: activeBooks = [] } = useActiveBooks();
@@ -133,7 +56,6 @@ const Home = () => {
   // REC_effective for UI display (uses RRI until first real recovery activity)
   const {
     recoveryEffective,
-    isUsingRRI,
     isLoading: recoveryEffectiveLoading
   } = useRecoveryEffective();
 
@@ -235,7 +157,6 @@ const Home = () => {
   const sharpnessDelta = isViewingToday ? formatDeltaPercent(sharpness, yesterdayMetrics?.sharpness ?? null) : null;
   const readinessDelta = isViewingToday ? formatDeltaPercent(readiness, yesterdayMetrics?.readiness ?? null) : null;
   const recoveryDelta = isViewingToday ? formatDeltaPercent(recoveryEffective, yesterdayMetrics?.recovery ?? null) : null;
-  const rqDelta = isViewingToday ? formatDeltaPercent(rq, yesterdayMetrics?.reasoningQuality ?? null) : null;
 
   // Tutorial state - shows after first onboarding completion
   const {
@@ -243,12 +164,6 @@ const Home = () => {
     markTutorialComplete
   } = useTutorialState();
   const hasProtocol = !!user?.trainingPlan;
-
-  // Premium functional color system - fixed colors per metric
-  // Low values are communicated by arc length and copy, not color
-  const sharpnessColor = "hsl(210, 100%, 60%)"; // Electric blue
-  const readinessColor = "hsl(245, 58%, 65%)"; // Soft indigo
-  const rqColor = "hsl(207, 44%, 55%)"; // Steel Blue for RQ
 
   // Baseline calibration not completed - show CTA to complete it
   if (!baselineLoading && !isCalibrated) {
@@ -301,6 +216,7 @@ const Home = () => {
       </AppShell>;
   }
   return <AppShell>
+      {({ passiveFeatures, isLoading: passiveLoading }) => <>
       <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-8 pb-4 max-w-md mx-auto">
 
         {/* Tab Content */}
@@ -334,34 +250,24 @@ const Home = () => {
                 </p>
               </motion.div>}
             
-            {/* Three Rings with Cognitive Engine Metrics */}
-            <motion.section initial={false} className="mb-3">
-              <div className="flex justify-center gap-5 mb-5">
-                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={88} strokeWidth={6} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
-                <ProgressRing value={displayReadiness} max={100} size={88} strokeWidth={6} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
-                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
-              </div>
-
-              <p className="mb-5 text-center text-[10px] leading-relaxed text-muted-foreground/60">
-                Personal state signals · changeable over time · no comparison with other people
-              </p>
-
-              {/* Outcome headline — Whoop-style human translation */}
-              
-              {/* Goal Complete indicator - only shows when target reached AND viewing today */}
-              {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-xs font-medium text-emerald-400">Weekly Target Reached</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1.5">
-                    Same plan, same rhythm. Keep training or rest freely.
-                  </p>
-                </div>}
-              
-              {/* Recovery Battery Card */}
-              <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
-            </motion.section>
+            <motion.div initial={false}>
+              <CognitiveStateCard
+                readiness={displayReadiness}
+                recovery={displayRecovery}
+                sharpness={displaySharpness}
+                reasoningQuality={displayRQ}
+                readinessDelta={readinessDelta}
+                recoveryDelta={recoveryDelta}
+                sharpnessDelta={sharpnessDelta}
+                passiveFeatures={isViewingToday ? passiveFeatures : null}
+                isLoading={isDisplayLoading}
+                passiveLoading={passiveLoading}
+                isHistorical={!isViewingToday}
+                onReadiness={isViewingToday ? () => setActiveTab("reasoning") : undefined}
+                onRecovery={isViewingToday ? () => setActiveTab("capacity") : undefined}
+                onSharpness={isViewingToday ? () => setActiveTab("intuition") : undefined}
+              />
+            </motion.div>
 
 
         {/* My Day — Daily Outlook + Today's Activities */}
@@ -378,15 +284,6 @@ const Home = () => {
         )}
 
         {/* Single priority — Whoop-style focus, secondary suggestions removed for calm */}
-
-
-
-
-        {/* Fast Charge - WHOOP-style swipe card */}
-        <motion.div initial={false} className="mb-8">
-          <FastChargeSwipeCard />
-        </motion.div>
-
           </>}
 
         {activeTab === "intuition" && <IntuitionTab onBackToOverview={() => setActiveTab("overview")} />}
@@ -397,7 +294,7 @@ const Home = () => {
       
       {/* Onboarding Tutorial - appears once after first login post-onboarding */}
       <OnboardingTutorial show={showTutorial} onComplete={markTutorialComplete} />
-      
+      </>}
     </AppShell>;
 };
 export default Home;

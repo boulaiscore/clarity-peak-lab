@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { ReasonTabContent } from "@/components/lab";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Zap, Battery, BatteryLow, Settings2, RefreshCw } from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Zap, Settings2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
@@ -15,6 +15,8 @@ import { useDailyTraining } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
@@ -26,6 +28,7 @@ import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
+import { deriveDailyCognitiveState } from "@/lib/dailyCognitiveState";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -104,73 +107,12 @@ export default function NeuroLab() {
     recoveryEffective,
     isLoading: recoveryLoading
   } = useRecoveryEffective();
-
-  // Dynamic guidance based on Recovery level
-  const recoveryGuidance = useMemo(() => {
-    if (recoveryLoading) {
-      return {
-        icon: Battery,
-        iconColor: "text-muted-foreground",
-        headline: "Loading your status...",
-        message: "",
-        action: ""
-      };
-    }
-    const rec = recoveryEffective;
-
-    // Peak (80+): Full intensity
-    if (rec >= 80) {
-      return {
-        icon: Zap,
-        iconColor: "text-emerald-400",
-        headline: `Recovery ${Math.round(rec)}% — Primed.`,
-        message: "Peak window for deep reasoning.",
-        action: "Push S2 drills."
-      };
-    }
-
-    // Sharp (65-79): Good to go
-    if (rec >= 65) {
-      return {
-        icon: Battery,
-        iconColor: "text-emerald-400",
-        headline: `Recovery ${Math.round(rec)}% — Strong.`,
-        message: "Good energy to train.",
-        action: "S2 unlocked."
-      };
-    }
-
-    // Steady (50-64): Moderate, be strategic
-    if (rec >= 50) {
-      return {
-        icon: Battery,
-        iconColor: "text-amber-400",
-        headline: `Recovery ${Math.round(rec)}% — Moderate.`,
-        message: "Train light, don't overdo it.",
-        action: "S1 + Quality Time."
-      };
-    }
-
-    // Foggy (35-49): Low, focus on recovery
-    if (rec >= 35) {
-      return {
-        icon: BatteryLow,
-        iconColor: "text-amber-500",
-        headline: `Recovery ${Math.round(rec)}% — Low.`,
-        message: "Skip intense training.",
-        action: "Recover or light Quality Time."
-      };
-    }
-
-    // Drained (<35): Very low, prioritize recovery
-    return {
-      icon: BatteryLow,
-      iconColor: "text-red-400",
-      headline: `Recovery ${Math.round(rec)}% — Depleted.`,
-      message: "Training now will backfire.",
-      action: "Recover. Quality Time is fine."
-    };
-  }, [recoveryEffective, recoveryLoading]);
+  const {
+    sharpness,
+    readiness,
+    isLoading: metricsLoading,
+  } = useTodayMetrics();
+  const { rq, isLoading: reasoningLoading } = useReasoningQuality();
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
@@ -286,51 +228,53 @@ export default function NeuroLab() {
       </AppShell>;
   }
   return <AppShell>
+      {({ passiveFeatures, isLoading: passiveLoading }) => <>
       <div className="px-4 py-5 max-w-md mx-auto space-y-0">
 
 
         {/* Today's recommended action — single dominant CTA */}
         {(() => {
-          const rec = recoveryEffective;
-          let ctaLabel = "Start session";
-          let ctaTab: "games" | "tasks" | "detox" = "games";
-          if (recoveryLoading) {
-            ctaLabel = "Loading…";
-          } else if (rec < 45) {
-            ctaLabel = "Recover now";
-            ctaTab = "detox";
-          } else if (rec < 65) {
-            ctaLabel = "Quality Time";
-            ctaTab = "tasks";
-          } else {
-            ctaLabel = "Train";
-            ctaTab = "games";
-          }
+          const guidance = deriveDailyCognitiveState({
+            readiness,
+            recovery: recoveryEffective,
+            sharpness,
+            reasoningQuality: rq,
+            healthScore: passiveFeatures?.coachContext.healthScore,
+            attentionLoadRatio: passiveFeatures?.coachContext.attentionLoadRatio,
+            scheduleLoadRatio: passiveFeatures?.coachContext.scheduleLoadRatio,
+          });
+          const isGuidanceLoading = recoveryLoading || metricsLoading || reasoningLoading || passiveLoading;
+          const handleGuidanceAction = () => {
+            if (guidance.actionRoute.includes("tab=detox")) setActiveTab("detox");
+            else if (guidance.actionRoute.includes("tab=tasks")) setActiveTab("tasks");
+            else if (guidance.actionRoute.includes("tab=games")) setActiveTab("games");
+            else navigate(guidance.actionRoute);
+          };
           return (
             <div className="p-4 rounded-2xl bg-muted/15 border border-border/20 mb-1">
               <div className="flex items-start gap-3 mb-3">
-                <div className={cn("mt-0.5", recoveryGuidance.iconColor)}>
-                  <recoveryGuidance.icon className="w-4 h-4" />
-                </div>
+                <span className="mt-0.5 rounded-full border border-border/35 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Next
+                </span>
                 <div className="flex-1 space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
-                    Today's recommended action
+                    Recommended today
                   </p>
                   <p className="text-[13px] font-semibold text-foreground/90 leading-tight">
-                    {recoveryGuidance.headline}
+                    {isGuidanceLoading ? "Updating your state" : guidance.headline}
                   </p>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    {recoveryGuidance.message} {recoveryGuidance.action}
+                    {isGuidanceLoading ? "Syncing passive signals." : guidance.summary}
                   </p>
                 </div>
               </div>
-              {!recoveryLoading && (
+              {!isGuidanceLoading && (
                 <div className="flex justify-end">
                   <button
-                    onClick={() => setActiveTab(ctaTab)}
+                    onClick={handleGuidanceAction}
                     className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
                   >
-                    {ctaLabel} <span aria-hidden>→</span>
+                    {guidance.actionLabel} <span aria-hidden>→</span>
                   </button>
                 </div>
               )}
@@ -494,5 +438,6 @@ export default function NeuroLab() {
       <SessionPicker open={showSessionPicker} onOpenChange={setShowSessionPicker} sessionName={nextSession?.name || "Training Session"} sessionDescription={nextSession?.description || ""} sessionType={nextSession?.id || null} recommendedAreas={recommendedAreas} contentDifficulty={sessionDifficulty} weeklyXPTarget={weeklyXPTarget} weeklyXPEarned={weeklyLoadXP} />
 
       <ProtocolChangeSheet open={showProtocolSheet} onOpenChange={setShowProtocolSheet} />
+      </>}
     </AppShell>;
 }

@@ -12,10 +12,11 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { PastDueBanner } from "@/components/PastDueBanner";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { useAdaptiveCoachShadowRecorder } from "@/hooks/useAdaptiveCoachShadow";
+import type { AdaptiveCoachPassiveState } from "@/hooks/useAdaptiveCoachShadow";
 import { useAdaptiveFocusShadowRecorder } from "@/hooks/useAdaptiveFocusCoach";
 
 interface AppShellProps {
-  children: ReactNode;
+  children: ReactNode | ((coachState: AdaptiveCoachPassiveState) => ReactNode);
 }
 
 const navItems = [
@@ -66,7 +67,7 @@ export function AppShell({ children }: AppShellProps) {
       <PaymentTestModeBanner />
       <PastDueBanner />
       <main className="flex-1 pb-28">
-        {children}
+        {typeof children === "function" ? children(adaptiveCoachState) : children}
       </main>
 
       {/* Bottom navigation */}

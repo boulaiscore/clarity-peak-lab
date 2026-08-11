@@ -69,6 +69,23 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
 - Readiness factors must reflect its active mode: app-only or wearable. The UI
   must never show app-only weights when the wearable formula is active.
 
+## Daily state and recommendation contract
+
+- The Home state card and the Lab recommendation both use
+  `deriveDailyCognitiveState`; neither tab may recreate its own thresholds.
+- The recommendation can read canonical Readiness, Recovery, Sharpness and RQ,
+  plus privacy-safe Health, attention-load and schedule-load aggregates.
+- Attention and schedule loads are ratios against the user's own rolling
+  baseline. Raw app names, event titles and content never enter the rule.
+- Recommendation priority is conservative: limited recovery first, then high
+  attention or schedule load, then demanding-work readiness, trainable
+  Sharpness/RQ opportunities, and finally the steady default.
+- These rules choose explanatory copy and navigation only. They never mutate a
+  metric, training gate, protocol, difficulty or Adaptive Coach forecast.
+- The Adaptive Coach remains in shadow mode. It may replace these active rules
+  only after its documented evidence gates pass and a separate product release
+  explicitly enables personalization.
+
 ## Change rule
 
 Any formula change must update the canonical pure engine first, then its tests

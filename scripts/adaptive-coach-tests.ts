@@ -13,6 +13,7 @@ import {
 import {
   deriveMobileCognitiveRhythm,
 } from "../src/lib/mobileCognitiveRhythm";
+import { deriveDailyCognitiveState } from "../src/lib/dailyCognitiveState";
 
 const now = new Date("2026-08-08T12:00:00.000Z");
 const context = {
@@ -186,6 +187,52 @@ assert.equal(mobileRhythm.openWindow, "10:00–12:00");
 assert.equal(mobileRhythm.attentionLoad, "High");
 assert.equal(mobileRhythm.scheduleLoad, "Packed");
 assert.ok(mobileRhythm.topDriver);
+
+const demandingWorkState = deriveDailyCognitiveState({
+  readiness: 82,
+  recovery: 76,
+  sharpness: 74,
+  reasoningQuality: 68,
+  healthScore: 72,
+  attentionLoadRatio: 0.9,
+  scheduleLoadRatio: 0.8,
+});
+assert.equal(demandingWorkState.headline, "Ready for demanding work");
+assert.equal(demandingWorkState.actionRoute, "/app/dashboard");
+assert.equal(demandingWorkState.loadLabel, "Usual");
+
+const recoveryFirstState = deriveDailyCognitiveState({
+  readiness: 38,
+  recovery: 30,
+  sharpness: 58,
+  reasoningQuality: 62,
+});
+assert.equal(recoveryFirstState.headline, "Recovery first");
+assert.equal(recoveryFirstState.actionRoute, "/neuro-lab?tab=detox");
+assert.equal(recoveryFirstState.loadLabel, "Learning");
+
+const attentionState = deriveDailyCognitiveState({
+  readiness: 68,
+  recovery: 66,
+  sharpness: 70,
+  reasoningQuality: 64,
+  attentionLoadRatio: 1.6,
+  scheduleLoadRatio: 0.9,
+});
+assert.equal(attentionState.headline, "Protect your attention");
+assert.equal(attentionState.actionRoute, "/neuro-lab?tab=detox");
+assert.equal(attentionState.loadLabel, "High");
+
+const focusTrainingState = deriveDailyCognitiveState({
+  readiness: 62,
+  recovery: 68,
+  sharpness: 44,
+  reasoningQuality: 70,
+  attentionLoadRatio: 0.8,
+  scheduleLoadRatio: 0.7,
+});
+assert.equal(focusTrainingState.headline, "Focus is trainable today");
+assert.equal(focusTrainingState.actionRoute, "/neuro-lab?tab=games");
 
 const collecting = evaluateCoachValidation([
   { actionKey: "train_ae", predictedDelta: 2, observedDelta: 3 },
