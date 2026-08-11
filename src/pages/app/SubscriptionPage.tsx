@@ -32,7 +32,8 @@ import {
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { cn } from "@/lib/utils";
 
-type PaidCardId = "core" | "pro";
+type StandardPaidCardId = "core" | "pro";
+type PaidCardId = StandardPaidCardId | "founding_pro";
 type SelectedInterval = Exclude<BillingInterval, "none">;
 
 const CARD_FEATURES: Record<PaidCardId, string[]> = {
@@ -48,15 +49,21 @@ const CARD_FEATURES: Record<PaidCardId, string[]> = {
     "Advanced personal-pattern analytics",
     "Formatted reports and early access",
   ],
+  founding_pro: [
+    "Everything in Elite",
+    "First-year launch price",
+    "Founding Member badge",
+    "Early access to new protocols",
+  ],
 };
 
-function recommendedPlan(workType?: string, primaryOutcome?: string): PaidCardId {
+function recommendedPlan(workType?: string, primaryOutcome?: string): StandardPaidCardId {
   if (workType === "management") return "pro";
   if (workType === "knowledge" && (primaryOutcome === "decide" || primaryOutcome === "reason")) return "pro";
   return "core";
 }
 
-function optionFor(planId: PaidCardId, interval: SelectedInterval): PricingOption {
+function optionFor(planId: StandardPaidCardId, interval: SelectedInterval): PricingOption {
   return paidOptionFor(planId, interval);
 }
 
@@ -119,13 +126,12 @@ export default function SubscriptionPage() {
   };
 
   const activeOption = (planId: PaidCardId): PricingOption => {
-    if (planId === "pro" && interval === "annual" && subscription.tier === "free") {
-      return pricingConfig.founding_pro_annual;
-    }
-    return optionFor(planId, interval);
+    return planId === "founding_pro"
+      ? pricingConfig.founding_pro_annual
+      : optionFor(planId, interval);
   };
 
-  const displayedAnnualSavings = (planId: PaidCardId) => {
+  const displayedAnnualSavings = (planId: StandardPaidCardId) => {
     const monthly = optionFor(planId, "monthly");
     const annual = optionFor(planId, "annual");
     const localizedMonthly = monthly.webPriceId ? prices[monthly.webPriceId]?.amount : null;
@@ -136,8 +142,7 @@ export default function SubscriptionPage() {
   };
 
   const isCurrent = (planId: PaidCardId) => {
-    if (planId === "core") return subscription.tier === "core";
-    return subscription.tier === "pro" || subscription.tier === "founding_pro";
+    return subscription.tier === planId;
   };
 
   const selectPlan = async (optionId: PricingOptionId) => {
@@ -167,7 +172,7 @@ export default function SubscriptionPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-4xl px-5 pb-14 pt-8 sm:pt-12">
+      <div className="mx-auto w-full max-w-6xl px-5 pb-14 pt-8 sm:pt-12">
         <header className="mx-auto max-w-xl text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">LOOMA Membership</p>
           <div className="mt-5 inline-flex rounded-full border border-border/50 bg-card/50 p-1">
@@ -205,12 +210,12 @@ export default function SubscriptionPage() {
           </div>
         )}
 
-        <section className="mt-9 grid gap-4 md:grid-cols-2">
-          {(["core", "pro"] as PaidCardId[]).map((planId) => {
+        <section className="mt-9 grid gap-4 md:grid-cols-3">
+          {(["core", "pro", "founding_pro"] as PaidCardId[]).map((planId) => {
             const plan = PLAN_CATALOG[planId];
             const option = activeOption(planId);
             const current = isCurrent(planId);
-            const founding = option.id === "founding_pro_annual";
+            const founding = planId === "founding_pro";
             const highlighted = planId === recommendation;
             const isSelected = (selectedPlan ?? recommendation) === planId;
             return (
@@ -221,7 +226,10 @@ export default function SubscriptionPage() {
                 aria-pressed={isSelected}
                 onClick={() => {
                   setSelectedPlan(planId);
-                  trackProductEvent("plan_card_clicked", { planId, billingInterval: interval });
+                  trackProductEvent("plan_card_clicked", {
+                    planId,
+                    billingInterval: founding ? "annual" : interval,
+                  });
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
@@ -233,6 +241,8 @@ export default function SubscriptionPage() {
                   "relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border p-5 transition-all sm:min-h-[420px] sm:rounded-[28px] sm:p-7",
                   planId === "pro"
                     ? "border-primary/35 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--primary)/0.09))]"
+                    : founding
+                      ? "border-foreground/20 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--foreground)/0.04))]"
                     : "border-border/50 bg-card/45",
                   isSelected ? "ring-1 ring-primary/50" : "opacity-90 hover:opacity-100",
                 )}
@@ -241,7 +251,11 @@ export default function SubscriptionPage() {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     {plan.promise}
                   </p>
-                  {highlighted && (
+                  {founding ? (
+                    <span className="rounded-full border border-foreground/15 bg-foreground/5 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
+                      First 100
+                    </span>
+                  ) : highlighted && (
                     <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-primary">
                       Recommended
                     </span>
@@ -253,20 +267,20 @@ export default function SubscriptionPage() {
 
                 <div className="mt-5 sm:mt-7">
                   {founding && (
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-                      Founding offer · first 100
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/75">
+                      Launch offer · annual only
                     </p>
                   )}
                   <div className="flex items-end gap-2">
                     <span className="text-3xl font-medium tabular-nums tracking-tight sm:text-4xl">{displayPrice(option)}</span>
-                    <span className="pb-1 text-xs text-muted-foreground">/{interval === "annual" ? "year" : "month"}</span>
+                    <span className="pb-1 text-xs text-muted-foreground">/{founding || interval === "annual" ? "year" : "month"}</span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
                     {founding
-                      ? `First year · standard Elite ${displayPrice(pricingConfig.pro_annual)}`
+                      ? `First year · then Elite ${displayPrice(pricingConfig.pro_annual)}/year`
                       : interval === "annual"
-                        ? `Save ${displayedAnnualSavings(planId)}% vs monthly`
-                        : `Annual option ${displayPrice(optionFor(planId, "annual"))}`}
+                        ? `Save ${displayedAnnualSavings(planId as StandardPaidCardId)}% vs monthly`
+                        : `Annual option ${displayPrice(optionFor(planId as StandardPaidCardId, "annual"))}`}
                   </p>
                 </div>
 
