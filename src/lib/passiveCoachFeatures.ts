@@ -644,6 +644,8 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       }),
       readiness: round(clamp(
         input.currentMetrics.readiness + adaptiveReadiness - fixedReadiness,
+        0,
+        100,
       ), 1),
       recovery: round(input.currentMetrics.recovery, 1),
       reasoningQuality: round(input.currentMetrics.reasoningQuality, 1),
