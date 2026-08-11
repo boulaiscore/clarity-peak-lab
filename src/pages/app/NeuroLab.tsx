@@ -228,7 +228,7 @@ export default function NeuroLab() {
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
               Complete your baseline calibration before accessing training and tasks.
             </p>
-            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
+            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-5 py-3 text-sm font-semibold text-background transition-all hover:bg-foreground/90 active:scale-[0.98]">
               Begin Calibration
               <ChevronRight className="w-4 h-4 ml-2" />
             </button>

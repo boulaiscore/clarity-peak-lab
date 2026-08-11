@@ -257,7 +257,7 @@ const Home = () => {
               A 2-minute cognitive baseline is required before Train begins. 
               This establishes your personalized skill references.
             </p>
-            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center px-6 py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-lg hover:shadow-xl transition-all active:scale-[0.98]">
+            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-6 py-3.5 text-sm font-semibold text-background shadow-[0_12px_28px_-18px_rgba(0,0,0,0.9)] transition-all hover:bg-foreground/90 active:scale-[0.98]">
               Begin Calibration
               <ChevronRight className="w-4 h-4 ml-2" />
             </button>
@@ -281,7 +281,7 @@ const Home = () => {
             <p className="text-sm text-muted-foreground/60 mb-8">
               Assessment required before training
             </p>
-            <button onClick={() => navigate("/onboarding")} className="inline-flex items-center px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+            <button onClick={() => navigate("/onboarding")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-6 py-3 text-sm font-medium text-background transition-all hover:bg-foreground/90 active:scale-[0.98]">
               Begin Assessment
             </button>
           </motion.div>

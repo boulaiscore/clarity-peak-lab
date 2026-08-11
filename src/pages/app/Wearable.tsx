@@ -229,7 +229,7 @@ const Health = () => {
                       <button
                         onClick={handleConnect}
                         disabled={wearableSync.isSyncing}
-                        className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                        className="rounded-lg border border-foreground/15 bg-foreground px-4 py-1.5 text-xs font-medium text-background transition-all hover:bg-foreground/90 active:scale-[0.98] disabled:opacity-50"
                       >
                         {wearableSync.isSyncing ? "Connecting..." : "Connect"}
                       </button>
