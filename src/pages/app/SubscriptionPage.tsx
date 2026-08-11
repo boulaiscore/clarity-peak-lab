@@ -326,8 +326,39 @@ export default function SubscriptionPage() {
             Compare plans
             <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
           </summary>
-          <div className="overflow-x-auto border-t border-border/35 px-5 pb-5 pt-3">
-            <table className="w-full min-w-[540px] text-left text-xs">
+          <div className="border-t border-border/35 px-5 pb-5 pt-3">
+            {/* Mobile: stacked, no horizontal scrolling */}
+            <div className="divide-y divide-border/25 md:hidden">
+              {COMPARISON_FEATURES.map((feature) => (
+                <div key={feature} className="py-3">
+                  <p className="text-xs font-medium text-foreground/85">{FEATURE_LABELS[feature]}</p>
+                  <div className="mt-2 grid grid-cols-4 gap-1.5">
+                    {(["free", "core", "pro", "founding_pro"] as PlanId[]).map((id) => {
+                      const included = PLAN_CATALOG[id].features[feature];
+                      return (
+                        <div
+                          key={id}
+                          className={cn(
+                            "flex flex-col items-center gap-1 rounded-xl border px-1 py-1.5",
+                            included ? "border-primary/25 bg-primary/5" : "border-border/30 bg-transparent",
+                          )}
+                        >
+                          <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                            {PLAN_CATALOG[id].shortName}
+                          </span>
+                          {included
+                            ? <Check className="h-3.5 w-3.5 text-primary" />
+                            : <span className="text-[11px] leading-none text-muted-foreground/40">—</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: full table */}
+            <table className="hidden w-full text-left text-xs md:table">
               <thead className="text-muted-foreground">
                 <tr>
                   <th className="py-2 font-medium">Feature</th>
