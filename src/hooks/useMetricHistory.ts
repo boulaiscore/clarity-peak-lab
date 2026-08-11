@@ -56,7 +56,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
           .order("snapshot_date", { ascending: true }),
         supabase
           .from("phone_health_snapshots")
-          .select("date, target_rec")
+          .select("date, target_rec, sleep_min")
           .eq("user_id", user.id)
           .gte("date", startDate)
           .order("date", { ascending: true }),
@@ -101,7 +101,9 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
         restingHr: wearable.resting_hr,
         sleepDurationMin: wearable.sleep_duration_min,
         sleepEfficiency: wearable.sleep_efficiency,
-      } : null);
+      } : null, {
+        includeSleepDuration: phone?.sleep_min == null,
+      });
       return calculateDailyRecoveryTarget(phone?.target_rec, estimate);
     };
 

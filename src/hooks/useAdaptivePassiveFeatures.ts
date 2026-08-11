@@ -170,7 +170,7 @@ export function useAdaptivePassiveFeatures(
           .order("snapshot_date", { ascending: true }),
         supabase
           .from("game_sessions")
-          .select("completed_at, duration_seconds, score")
+          .select("completed_at, duration_seconds, score, skill_routed")
           .eq("user_id", userId)
           .eq("status", "completed")
           .gte("completed_at", sinceTimestamp)
@@ -322,6 +322,10 @@ export function useAdaptivePassiveFeatures(
         completedAt: row.completed_at,
         durationSeconds: Number(row.duration_seconds),
         score: Number(row.score),
+        skillRouted: row.skill_routed === "AE" || row.skill_routed === "RA" ||
+          row.skill_routed === "CT" || row.skill_routed === "IN"
+          ? row.skill_routed
+          : null,
       })),
       reasonSessions: source.reasonRows.map((row) => ({
         startedAt: row.started_at,

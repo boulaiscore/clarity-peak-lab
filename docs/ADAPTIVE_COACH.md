@@ -2,7 +2,7 @@
 
 ## Release state
 
-Version 5 is mobile-first and remains in explainable shadow mode. It collects
+Version 6 is mobile-first and remains in explainable shadow mode. It collects
 passive context, stores forecasts and evaluates later outcomes, but has no code
 path that can change a plan, drill order, gating, difficulty or active CTA.
 
@@ -70,12 +70,18 @@ cold-start data.
 - aggregate schedule load against a personal median;
 - explicit availability and data coverage.
 
+The embedded state estimator uses the versioned registry in
+`SCIENTIFIC_PRIORS.md`. It selects sleep duration once across Health and
+wearable sources, applies sensor-reliability attenuation, and fits attention
+and executive outcomes separately. HRV and resting HR wait for a personal
+baseline rather than using population-wide absolute ranges.
+
 `device_usage_snapshots` and `calendar_context_snapshots` contain only daily
 aggregates. All rows are user-owned and protected by Row Level Security.
 
 ## Validation gate
 
-Personalization still requires all evidence gates:
+Focus Integrity activation still requires all evidence gates:
 
 - at least 21 evaluable forecast/outcome pairs;
 - at least 60% directional accuracy;
@@ -83,3 +89,7 @@ Personalization still requires all evidence gates:
 
 Passing the gates permits manual review only. A later active release requires
 controlled exposure, rollback and a separate product decision.
+
+The broader domain estimator has a stricter maturity label: 45 prior outcomes
+in both attention and executive domains. Maturity never replaces prospective
+validation against the fixed formula and a no-change baseline.

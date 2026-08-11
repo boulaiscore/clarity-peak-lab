@@ -234,9 +234,13 @@ export function calculatePhysioComponent(data: ReadinessPhysioData | null): numb
  * Partial wearable estimator. Available signals are renormalized, while the
  * public score is shrunk toward 50 in proportion to missing-signal weight.
  */
-export function calculatePhysioEstimate(data: ReadinessPhysioData | null): PhysioEstimate | null {
+export function calculatePhysioEstimate(
+  data: ReadinessPhysioData | null,
+  options: { includeSleepDuration?: boolean } = {},
+): PhysioEstimate | null {
   if (!data) return null;
   const { hrvMs, restingHr, sleepDurationMin, sleepEfficiency } = data;
+  const includeSleepDuration = options.includeSleepDuration ?? true;
 
   const signals: Array<{ value: number | null; weight: number }> = [
     {
@@ -252,7 +256,7 @@ export function calculatePhysioEstimate(data: ReadinessPhysioData | null): Physi
       weight: 0.20,
     },
     {
-      value: sleepDurationMin == null
+      value: !includeSleepDuration || sleepDurationMin == null
         ? null
         : ((clamp(sleepDurationMin, 300, 540) - 300) / 240) * 100,
       weight: 0.24,

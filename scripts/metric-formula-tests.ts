@@ -58,6 +58,14 @@ const partialPhysio = calculatePhysioEstimate({
 assert.ok(partialPhysio, "A partial wearable snapshot remains usable");
 closeTo(partialPhysio.confidence, 0.84, "Partial wearable confidence");
 closeTo(partialPhysio.score, 56.3, "Partial wearable score is shrunk toward neutral");
+const deduplicatedPhysio = calculatePhysioEstimate({
+  hrvMs: 70,
+  restingHr: 60,
+  sleepDurationMin: 450,
+  sleepEfficiency: null,
+}, { includeSleepDuration: false });
+assert.ok(deduplicatedPhysio, "Wearable context remains usable after duplicate sleep duration is excluded");
+closeTo(deduplicatedPhysio.confidence, 0.6, "Duplicate sleep duration does not count toward wearable context coverage");
 closeTo(
   calculatePhysioComponent({
     hrvMs: 70,

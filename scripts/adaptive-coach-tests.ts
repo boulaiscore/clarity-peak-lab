@@ -89,7 +89,7 @@ const passivePayload = buildPassiveFeaturePayload({
     { date: "2026-08-07", sharpness: 60, readiness: 66, reasoningQuality: 64, AE: 44, RA: 69, CT: 54, IN: 79 },
     { date: "2026-08-08", sharpness: 62, readiness: 68, reasoningQuality: 66, AE: 45, RA: 70, CT: 55, IN: 80 },
   ],
-  games: [{ completedAt: "2026-08-08T10:00:00.000Z", durationSeconds: 180, score: 70 }],
+  games: [{ completedAt: "2026-08-08T10:00:00.000Z", durationSeconds: 180, score: 70, skillRouted: "AE" }],
   reasonSessions: [{ startedAt: "2026-08-07T10:00:00.000Z", durationSeconds: 1200, backgroundInterrupts: 1, isValidForRq: true }],
   recoverySessions: [{ completedAt: "2026-08-06T10:00:00.000Z", durationMinutes: 30 }],
   productEvents: [{ occurredAt: "2026-08-08T09:00:00.000Z" }],
@@ -110,6 +110,9 @@ const passivePayload = buildPassiveFeaturePayload({
 assert.equal(passivePayload.adaptiveEstimate.mode, "shadow");
 assert.equal(passivePayload.adaptiveEstimate.status, "learning");
 assert.ok(passivePayload.adaptiveEstimate.uncertainty > 0);
+assert.ok(passivePayload.adaptiveEstimate.evidenceVersion.startsWith("cognitive-priors-v1"));
+assert.ok(passivePayload.adaptiveEstimate.domains.attention.predictedScore > 0);
+assert.ok(passivePayload.adaptiveEstimate.domains.executive.predictedScore > 0);
 assert.equal(passivePayload.adaptiveEstimate.projectedMetrics.recovery, 64);
 assert.equal(passivePayload.coachContext.healthScore, 72);
 assert.equal(passivePayload.coachContext.attentionUsageBaselineMinutes, 45);
@@ -193,35 +196,75 @@ assert.equal(mobileRhythm.attentionLoad, "High");
 assert.equal(mobileRhythm.scheduleLoad, "Packed");
 assert.ok(mobileRhythm.topDriver);
 
-const adaptiveSeries = Array.from({ length: 25 }, (_, index) => ({
-  date: `2026-07-${String(index + 1).padStart(2, "0")}`,
-  health: 40 + index * 1.5,
-  wearable: 42 + index * 1.4,
-  attention: 45 + index * 0.8,
-  schedule: 48,
-  outcome: index === 24 ? null : 42 + index * 1.3,
+const adaptiveSeries = Array.from({ length: 46 }, (_, index) => ({
+  date: new Date(Date.UTC(2026, 5, index + 1)).toISOString().slice(0, 10),
+  features: {
+    sleepDuration: -0.8 + index * 0.035,
+    sleepConsistency: -0.5 + index * 0.02,
+    sleepEfficiency: -0.4 + index * 0.018,
+    hrv: -0.3 + index * 0.015,
+    restingHr: -0.2 + index * 0.01,
+    activity: -0.4 + index * 0.018,
+    attentionLoad: -0.5 + index * 0.012,
+    scheduleLoad: 0,
+  },
+  reliability: {
+    sleepDuration: 0.75,
+    sleepConsistency: 0.65,
+    sleepEfficiency: 0.6,
+    hrv: 0.55,
+    restingHr: 0.8,
+    activity: 0.75,
+    attentionLoad: 0.7,
+    scheduleLoad: 0.85,
+  },
+  outcomes: index === 45
+    ? { attention: null, executive: null }
+    : {
+        attention: 45 + index * 0.55,
+        executive: 47 + index * 0.42,
+      },
 }));
+const adaptiveCurrentDate = adaptiveSeries[adaptiveSeries.length - 1].date;
 const learnedState = estimateAdaptiveDailyState({
   points: adaptiveSeries,
-  currentDate: "2026-07-25",
+  currentDate: adaptiveCurrentDate,
   fixedDailyState: 58,
 });
 assert.equal(learnedState.status, "personalized");
-assert.equal(learnedState.outcomeSampleCount, 24);
+assert.equal(learnedState.outcomeSampleCount, 90);
+assert.equal(learnedState.domains.attention.outcomeSampleCount, 45);
+assert.equal(learnedState.domains.executive.outcomeSampleCount, 45);
 assert.ok(learnedState.predictedDailyState > 50);
 assert.ok(learnedState.confidence > 0.25);
 
 const noLeakageState = estimateAdaptiveDailyState({
-  points: adaptiveSeries.map((point) => point.date === "2026-07-25"
-    ? { ...point, outcome: 100 }
+  points: adaptiveSeries.map((point) => point.date === adaptiveCurrentDate
+    ? { ...point, outcomes: { attention: 100, executive: 100 } }
     : point),
-  currentDate: "2026-07-25",
+  currentDate: adaptiveCurrentDate,
   fixedDailyState: 58,
 });
 assert.equal(
   noLeakageState.predictedDailyState,
   learnedState.predictedDailyState,
   "Today's outcome must not leak into today's shadow prediction",
+);
+
+const shortSleepPrior = estimateAdaptiveDailyState({
+  points: [{
+    date: "2026-08-08",
+    features: { sleepDuration: -1 },
+    reliability: { sleepDuration: 1 },
+    outcomes: {},
+  }],
+  currentDate: "2026-08-08",
+  fixedDailyState: 50,
+});
+assert.ok(
+  shortSleepPrior.domains.attention.predictedScore <
+    shortSleepPrior.domains.executive.predictedScore,
+  "Literature prior should make short sleep affect attention more than executive performance",
 );
 
 const demandingWorkState = deriveDailyCognitiveState({

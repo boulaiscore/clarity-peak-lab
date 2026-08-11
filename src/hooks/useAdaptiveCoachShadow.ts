@@ -489,6 +489,28 @@ export function useAdaptiveCoachFeatureStatus() {
     const uncertainty = Number(estimate.uncertainty);
     const outcomeSampleCount = Number(estimate.outcomeSampleCount);
     const status = estimate.status;
+    const domains = jsonRecord(estimate.domains);
+    const parseDomain = (key: "attention" | "executive") => {
+      const domain = jsonRecord(domains[key]);
+      const predictedScore = Number(domain.predictedScore);
+      const domainUncertainty = Number(domain.uncertainty);
+      const domainConfidence = Number(domain.confidence);
+      const domainOutcomeCount = Number(domain.outcomeSampleCount);
+      if (
+        !Number.isFinite(predictedScore) ||
+        !Number.isFinite(domainUncertainty) ||
+        !Number.isFinite(domainConfidence) ||
+        !Number.isFinite(domainOutcomeCount)
+      ) return null;
+      return {
+        predictedScore,
+        uncertainty: Math.max(0, domainUncertainty),
+        confidence: Math.max(0, Math.min(1, domainConfidence)),
+        outcomeSampleCount: Math.max(0, Math.round(domainOutcomeCount)),
+      };
+    };
+    const attention = parseDomain("attention");
+    const executive = parseDomain("executive");
     if (
       !Number.isFinite(predictedDailyState) ||
       !Number.isFinite(fixedDailyState) ||
@@ -506,6 +528,10 @@ export function useAdaptiveCoachFeatureStatus() {
       uncertainty: Math.max(0, uncertainty),
       outcomeSampleCount: Math.max(0, Math.round(outcomeSampleCount)),
       status,
+      evidenceVersion: typeof estimate.evidenceVersion === "string"
+        ? estimate.evidenceVersion
+        : null,
+      domains: attention && executive ? { attention, executive } : null,
     };
   }, [query.data]);
 

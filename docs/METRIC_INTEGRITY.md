@@ -43,7 +43,10 @@ toward the current Health target once per calendar day, then Detox/Walking
 gains are applied. The target uses confidence-blended Phone Health and adds up
 to 50% wearable physiology influence as wearable coverage becomes complete;
 without either source it is 50. SCI does not calculate a second weekly Recovery
-approximation.
+approximation. When Phone Health already contains sleep duration, wearable
+context excludes that same duration observation; HRV, resting HR and sleep
+efficiency remain distinct inputs. Live, gating, intraday and historical paths
+all apply this de-duplication rule.
 
 When Recovery is not initialized, Sharpness and Readiness use the current
 confidence-aware Recovery target (neutral 50 without passive evidence). Missing
@@ -96,21 +99,27 @@ Cognitive Age.
 
 ## Adaptive estimator contract
 
-- The first estimator is an explainable ridge model with conservative
-  population priors, not a generative-AI score.
+- The estimator is a pair of explainable ridge models with versioned,
+  literature-informed priors, not a generative-AI score. Attention and
+  executive outcomes are modelled separately; the evidence registry and
+  coefficient rationale live in `SCIENTIFIC_PRIORS.md`.
 - It learns only from prior-day objective outcomes: drill scores and valid
   focus-session integrity. Today's outcome cannot enter today's prediction.
 - Historical aggregate attention is used for training only when its latest
   captured use precedes that day's first outcome; otherwise it is treated as
   missing to prevent within-day future leakage.
-- Health, wearable physiology, aggregate attention load and aggregate schedule
-  load are the contextual features. Wearable features switch from safe generic
-  ranges to robust within-person baselines after at least five prior readings.
+- Atomic sleep duration, sleep consistency, sleep efficiency, HRV, resting HR,
+  activity, aggregate attention load and aggregate schedule load are the
+  contextual features. Sleep duration is selected once across Health and
+  wearable sources. HRV and resting HR do not receive population-wide absolute
+  scores and enter only after at least five prior readings establish a robust
+  within-person baseline.
 - Missing sources are neutral-imputed and reduce coverage/confidence; they never
   become zero performance. Uncertainty grows as source coverage or outcome
   history falls.
-- Status is `learning` below 7 evaluable outcomes, `emerging` from 7 to 20 and
-  `personalized` from 21. These describe model maturity, not accuracy.
+- Per-domain status is `learning` below 14 evaluable outcomes, `emerging` from
+  14 to 44 and `personalized` from 45. The combined model is personalized only
+  when both domains qualify. These describe maturity, not accuracy.
 - Synthetic data may test invariants, missingness and calibration plumbing but
   must not be used as evidence that production predictions are accurate.
 - The Coach is a separate decision layer. It may consume validated state

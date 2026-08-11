@@ -149,6 +149,17 @@ export default function AdaptiveCoach() {
             />
           </div>
 
+          {adaptiveEstimate?.domains && (
+            <div className="flex items-center justify-between border-t border-border/25 py-3 text-[10px] text-muted-foreground/70">
+              <span>
+                Attention <span className="tabular-nums text-foreground/80">{Math.round(adaptiveEstimate.domains.attention.predictedScore)}</span>
+              </span>
+              <span>
+                Executive <span className="tabular-nums text-foreground/80">{Math.round(adaptiveEstimate.domains.executive.predictedScore)}</span>
+              </span>
+            </div>
+          )}
+
           <p className="border-t border-border/25 pt-4 text-[10px] leading-relaxed text-muted-foreground/65">
             Shadow only. Home stays on the validated formula while this estimate is checked against later performance.
           </p>
@@ -215,7 +226,7 @@ export default function AdaptiveCoach() {
           </summary>
           <div className="mt-4 space-y-3 border-t border-border/20 pt-4 text-[10px] leading-relaxed text-muted-foreground">
             <p>
-              Focus Integrity estimates sustained attention from aggregate usage, interruptions and session continuity. It does not rate intelligence or work quality.
+              Literature priors are updated only by later attention and executive outcomes. This is not an intelligence score.
             </p>
             <p>
               No app names, messages, domains or content are stored. Shadow forecasts cannot change your training.

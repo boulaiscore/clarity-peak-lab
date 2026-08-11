@@ -125,7 +125,7 @@ export function useRecordIntradayOnAction() {
           .maybeSingle(),
         supabase
           .from("phone_health_snapshots")
-          .select("target_rec, phi, confidence, updated_at")
+          .select("target_rec, phi, confidence, sleep_min, updated_at")
           .eq("user_id", userId)
           .eq("date", today)
           .maybeSingle(),
@@ -172,6 +172,8 @@ export function useRecordIntradayOnAction() {
         restingHr: wearable.resting_hr,
         sleepDurationMin: wearable.sleep_duration_min,
         sleepEfficiency: wearable.sleep_efficiency,
+      }, {
+        includeSleepDuration: phoneResult.data?.sleep_min == null,
       }) : null;
       const recoveryTarget = calculateDailyRecoveryTarget(
         phoneResult.data?.target_rec,

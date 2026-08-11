@@ -106,16 +106,19 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const today = format(new Date(), "yyyy-MM-dd");
   const { data: phoneHealthTarget, isLoading: phoneTargetLoading } = useQuery({
     queryKey: ["phone-health-target", userId, today],
-    queryFn: async (): Promise<number | null> => {
+    queryFn: async (): Promise<{ targetRec: number | null; sleepMin: number | null } | null> => {
       if (!userId) return null;
       const { data, error } = await supabase
         .from("phone_health_snapshots")
-        .select("target_rec")
+        .select("target_rec, sleep_min")
         .eq("user_id", userId)
         .eq("date", today)
         .maybeSingle();
       if (error) throw error;
-      return data?.target_rec ?? null;
+      return data ? {
+        targetRec: data.target_rec ?? null,
+        sleepMin: data.sleep_min ?? null,
+      } : null;
     },
     enabled: hasUser,
     staleTime: 5 * 60_000,
@@ -143,12 +146,14 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       restingHr: wearableSnapshot.resting_hr,
       sleepDurationMin: wearableSnapshot.sleep_duration_min,
       sleepEfficiency: wearableSnapshot.sleep_efficiency,
-    }) : null, [wearableSnapshot]);
+    }, {
+      includeSleepDuration: phoneHealthTarget?.sleepMin == null,
+    }) : null, [phoneHealthTarget?.sleepMin, wearableSnapshot]);
   const combinedRecoveryTarget = useMemo(() => calculateDailyRecoveryTarget(
-    phoneHealthTarget,
+    phoneHealthTarget?.targetRec,
     wearablePhysioEstimate,
   ), [phoneHealthTarget, wearablePhysioEstimate]);
-  const hasPassiveRecoveryTarget = phoneHealthTarget !== null || wearablePhysioEstimate !== null;
+  const hasPassiveRecoveryTarget = phoneHealthTarget?.targetRec != null || wearablePhysioEstimate !== null;
   
   // Fetch weekly breakdown for UI display (v2.0: still useful for breakdown)
   const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
