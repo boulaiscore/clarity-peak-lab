@@ -57,7 +57,8 @@ export function normalizeLegacyProfileTier(value: string | null | undefined): Pl
 }
 
 export function resolveSubjectPlan(subject: EntitlementSubject): PlanId {
-  if (typeof subject === "string" || subject == null) return normalizePlanId(subject);
+  if (subject == null) return normalizePlanId(null);
+  if (typeof subject === "string") return normalizePlanId(subject);
   return normalizePlanId(subject.planId ?? subject.tier ?? subject.subscriptionStatus);
 }
 
