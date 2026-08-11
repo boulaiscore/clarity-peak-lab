@@ -28,7 +28,6 @@ import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
-import { deriveDailyCognitiveState } from "@/lib/dailyCognitiveState";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
