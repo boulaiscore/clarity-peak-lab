@@ -1,4 +1,4 @@
-package com.looma.plugins
+package com.neurolooplabs.looma.plugins
 
 import android.Manifest
 import android.content.pm.PackageManager

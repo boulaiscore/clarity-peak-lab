@@ -66,11 +66,11 @@ Register the service inside the `<application>` tag:
 In `android/app/src/main/java/com/looma/MainActivity.kt`, register the plugin:
 
 ```kotlin
-package com.looma
+package com.neurolooplabs.looma
 
 import android.os.Bundle
 import com.getcapacitor.BridgeActivity
-import com.looma.plugins.AppBlockerPlugin
+import com.neurolooplabs.looma.plugins.AppBlockerPlugin
 
 class MainActivity : BridgeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

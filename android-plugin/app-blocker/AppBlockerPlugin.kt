@@ -1,4 +1,4 @@
-package com.looma.plugins
+package com.neurolooplabs.looma.plugins
 
 import android.app.AppOpsManager
 import android.app.usage.UsageStats

@@ -4,7 +4,7 @@ import DeviceActivity
 import FamilyControls
 import SwiftUI
 
-private let loomaAppGroup = "group.com.looma.shared"
+private let loomaAppGroup = "group.com.neurolooplabs.looma.shared"
 private let selectionKey = "looma.attention.selection"
 
 @available(iOS 16.0, *)

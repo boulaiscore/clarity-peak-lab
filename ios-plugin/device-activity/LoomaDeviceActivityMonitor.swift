@@ -1,7 +1,7 @@
 import DeviceActivity
 import Foundation
 
-private let loomaAppGroup = "group.com.looma.shared"
+private let loomaAppGroup = "group.com.neurolooplabs.looma.shared"
 
 final class LoomaDeviceActivityMonitor: DeviceActivityMonitor {
     override func eventDidReachThreshold(
