@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useMobileCognitiveRhythm } from "@/hooks/useMobileCognitiveRhythm";
+import { useYesterdayMetrics } from "@/hooks/useYesterdayMetrics";
 import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
 import {
   deriveDailyOutlook,
@@ -120,6 +121,22 @@ function behaviorContextFromPayload(
   return Object.values(values).some((value) => value !== null) ? values : null;
 }
 
+/** Human first name for coach copy; never an email address or handle. */
+function displayFirstName(
+  name: string | null | undefined,
+  email: string | null | undefined,
+): string | null {
+  const raw = typeof name === "string" ? name.trim() : "";
+  const source = raw && !raw.includes("@")
+    ? raw
+    : (typeof email === "string" ? email.split("@")[0] : "");
+  const token = source.split(/[\s._-]+/).filter(Boolean)[0];
+  if (!token) return null;
+  const cleaned = token.replace(/[^\p{L}\p{M}'-]/gu, "");
+  if (!cleaned) return null;
+  return cleaned.charAt(0).toLocaleUpperCase() + cleaned.slice(1);
+}
+
 function isStorageUnavailable(error: LooseResult["error"]): boolean {
   return Boolean(error && /daily_outlooks|PGRST205|42P01|schema cache/i.test(error.message ?? ""));
 }
@@ -130,6 +147,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   const queryClient = useQueryClient();
   const { rhythm, isLoading: rhythmLoading } = useMobileCognitiveRhythm();
   const today = format(new Date(), "yyyy-MM-dd");
+  const { yesterdayMetrics } = useYesterdayMetrics(today);
   const shownRef = useRef<string | null>(null);
   const canPersonalize = subscription.tier !== "free";
   const personalizationLoading = canPersonalize && rhythmLoading;
@@ -155,9 +173,11 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     primaryOutcome: user?.primaryOutcome ?? "focus",
     workType: user?.workType ?? null,
     behaviorContext,
+    previousMetrics: yesterdayMetrics ?? null,
     canPersonalize,
     rhythm: canPersonalize ? rhythm : null,
   }), [
+    yesterdayMetrics,
     canPersonalize,
     behaviorContext,
     input.passiveFeatures,
@@ -197,6 +217,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       primaryOutcome: user?.primaryOutcome ?? "focus",
     },
     behavior: behaviorContext,
+    previousDay: yesterdayMetrics ?? null,
     pattern: {
       status: canPersonalize ? rhythm.status : "locked",
       observedDays: canPersonalize ? rhythm.observedDays : 0,
@@ -208,6 +229,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   }), [
     canPersonalize,
     behaviorContext,
+    yesterdayMetrics,
     input.activeSourceCount,
     input.readiness,
     input.reasoningQuality,
@@ -389,7 +411,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   return {
     outlook,
     copySource,
-    coachName: user?.name?.trim().split(/\s+/)[0] || null,
+    coachName: displayFirstName(user?.name, user?.email),
     isLoading: input.isLoading || subscription.loading || personalizationLoading,
     isGeneratingCopy: generatedCopyQuery.isLoading,
     markOpened,
