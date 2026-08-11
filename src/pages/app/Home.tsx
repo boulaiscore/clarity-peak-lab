@@ -26,12 +26,12 @@ import { CapacityTab } from "@/components/home/CapacityTab";
 import { RecoveryBatteryCard } from "@/components/dashboard/RecoveryBatteryCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
-import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
 import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
+import { DailyOutlookCard } from "@/components/home/DailyOutlookCard";
 
 interface RingProps {
   value: number;
@@ -225,6 +225,7 @@ const Home = () => {
   const readinessDelta = isViewingToday ? formatDeltaPercent(readiness, yesterdayMetrics?.readiness ?? null) : null;
   const recoveryDelta = isViewingToday ? formatDeltaPercent(recovery, yesterdayMetrics?.recovery ?? null) : null;
   const rqDelta = isViewingToday ? formatDeltaPercent(rq, yesterdayMetrics?.reasoningQuality ?? null) : null;
+  const activeSourceCount = signalSources.filter((source) => source.status !== "off").length;
 
   // Tutorial state - shows after first onboarding completion
   const {
@@ -288,6 +289,7 @@ const Home = () => {
       </AppShell>;
   }
   return <AppShell>
+    {({ passiveFeatures, isLoading: passiveLoading }) => <>
       <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-8 pb-4 max-w-md mx-auto">
 
         {/* Tab Content */}
@@ -355,27 +357,30 @@ const Home = () => {
             </motion.section>
 
 
-        {/* My Day — Daily Outlook + Today's Activities */}
+        {/* My Day — one outlook, then observed activity */}
         {isViewingToday && (
-          <TodayActivitiesCard
-            activeQualityTime={
-              activeReasonSession
-                ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
-                : activeBooks.length > 0
-                ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
-                : null
-            }
-          />
+          <>
+            <DailyOutlookCard
+              sharpness={sharpness}
+              readiness={readiness}
+              recovery={recoveryWithBoost}
+              reasoningQuality={rq}
+              signalCoverage={signalCoverage}
+              activeSourceCount={activeSourceCount}
+              passiveFeatures={passiveFeatures}
+              isLoading={isDisplayLoading || passiveLoading}
+            />
+            <TodayActivitiesCard
+              activeQualityTime={
+                activeReasonSession
+                  ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
+                  : activeBooks.length > 0
+                  ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
+                  : null
+              }
+            />
+          </>
         )}
-
-        {/* Single priority — Whoop-style focus, secondary suggestions removed for calm */}
-
-
-
-
-        <motion.div initial={false} className="mb-8">
-          <FastChargeSwipeCard />
-        </motion.div>
           </>}
 
         {activeTab === "intuition" && <IntuitionTab onBackToOverview={() => setActiveTab("overview")} />}
@@ -386,6 +391,7 @@ const Home = () => {
       
       {/* Onboarding Tutorial - appears once after first login post-onboarding */}
       <OnboardingTutorial show={showTutorial} onComplete={markTutorialComplete} />
+    </>}
     </AppShell>;
 };
 export default Home;

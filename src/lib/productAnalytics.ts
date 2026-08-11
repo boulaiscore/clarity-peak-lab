@@ -36,7 +36,10 @@ export type ProductEventName =
   | "work_recommendation_dismissed"
   | "work_block_started"
   | "work_block_abandoned"
-  | "work_outcome_logged";
+  | "work_outcome_logged"
+  | "daily_outlook_shown"
+  | "daily_outlook_opened"
+  | "daily_outlook_action_started";
 
 type EventProperties = Record<string, string | number | boolean | null>;
 

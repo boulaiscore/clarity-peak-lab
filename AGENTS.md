@@ -66,6 +66,7 @@ npm run lint
 npm run test:metrics
 npm run test:coach
 npm run test:subscriptions
+npm run test:outlook
 npm run build
 ```
 

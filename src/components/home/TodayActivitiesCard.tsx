@@ -67,7 +67,7 @@ export function TodayActivitiesCard({ activeQualityTime }: TodayActivitiesCardPr
     >
       <div className="flex items-center justify-between mb-2.5 px-0.5">
         <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
-          Today
+          Today&apos;s activities
         </h2>
 
         {/* Active Quality Time indicator — discreet inline pill */}
