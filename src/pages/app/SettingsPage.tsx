@@ -9,13 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
@@ -30,7 +23,6 @@ import {
   Mail,
   ExternalLink,
   Bell,
-  Dumbbell,
   Play,
   FileText,
   Shield,
@@ -41,8 +33,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCheckout } from "@/hooks/useCheckout";
-import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
-import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -131,19 +122,17 @@ function Row({
 }
 
 const SettingsPage = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const { isPro: hasCoachInsights } = useSubscription();
   const checkout = useCheckout();
   const navigate = useNavigate();
   const { permission, isSupported, requestPermission, setDailyReminder } = useNotifications();
   const { theme, toggleTheme } = useTheme();
 
-  const [trainingPlan, setTrainingPlan] = useState<TrainingPlanId>(user?.trainingPlan || "light");
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState("08:30");
   const [timezone, setTimezone] = useState("UTC");
   const [showTutorial, setShowTutorial] = useState(false);
-  const [showPlanSheet, setShowPlanSheet] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
 
   const handleOpenBillingPortal = async () => {
@@ -180,10 +169,6 @@ const SettingsPage = () => {
     loadSettings();
   }, [user?.id]);
 
-  useEffect(() => {
-    if (user) setTrainingPlan(user.trainingPlan || "light");
-  }, [user]);
-
   const handleReminderToggle = async (enabled: boolean) => {
     if (enabled && permission !== "granted") {
       const result = await requestPermission();
@@ -197,8 +182,7 @@ const SettingsPage = () => {
       }
     }
     setReminderEnabled(enabled);
-    const planConfig = TRAINING_PLANS[trainingPlan];
-    const planDuration = planConfig.sessionDuration.split("-")[0];
+    const planDuration = DEFAULT_TRAINING_PLAN.sessionDuration.split("-")[0];
     setDailyReminder(enabled, reminderTime, `${planDuration}min`);
     if (user?.id) {
       await supabase.from("profiles").update({ reminder_enabled: enabled }).eq("user_id", user.id);
@@ -207,8 +191,7 @@ const SettingsPage = () => {
 
   const handleReminderTimeChange = async (time: string) => {
     setReminderTime(time);
-    const planConfig = TRAINING_PLANS[trainingPlan];
-    const planDuration = planConfig.sessionDuration.split("-")[0];
+    const planDuration = DEFAULT_TRAINING_PLAN.sessionDuration.split("-")[0];
     if (reminderEnabled) setDailyReminder(true, time, `${planDuration}min`);
     if (user?.id) {
       await supabase.from("profiles").update({ reminder_time: time + ":00" }).eq("user_id", user.id);
@@ -222,13 +205,6 @@ const SettingsPage = () => {
     }
   };
 
-  const handlePlanSelect = (planId: TrainingPlanId) => {
-    setTrainingPlan(planId);
-    updateUser({ trainingPlan: planId });
-    toast({ title: "Training plan updated", description: TRAINING_PLANS[planId].name });
-  };
-
-  const currentPlanName = TRAINING_PLANS[trainingPlan]?.name ?? "—";
   const deviceLabel = user?.primaryDevice ? DEVICE_LABELS[user.primaryDevice] : "Not set";
 
   return (
@@ -245,12 +221,6 @@ const SettingsPage = () => {
         {/* TRAINING */}
         <SectionLabel>Training</SectionLabel>
         <ListGroup>
-          <Row
-            icon={Dumbbell}
-            label="Training plan"
-            value={currentPlanName}
-            onClick={() => setShowPlanSheet(true)}
-          />
           <Row
             icon={BrainCircuit}
             label="Adaptive Cognitive Coach"
@@ -394,23 +364,6 @@ const SettingsPage = () => {
           LOOMA · Cognitive Performance OS
         </p>
       </div>
-
-      {/* Training Plan Sheet */}
-      <Sheet open={showPlanSheet} onOpenChange={setShowPlanSheet}>
-        <SheetContent side="bottom" className="h-[88vh] overflow-y-auto px-4 py-6">
-          <SheetHeader className="text-left mb-4">
-            <SheetTitle className="text-[20px] font-semibold">Training plan</SheetTitle>
-            <SheetDescription className="text-[12px]">
-              Tunes weekly XP target, daily caps, S2 access thresholds, and recovery requirements.
-            </SheetDescription>
-          </SheetHeader>
-          <TrainingPlanSelector
-            selectedPlan={trainingPlan}
-            onSelectPlan={handlePlanSelect}
-            showDetails={true}
-          />
-        </SheetContent>
-      </Sheet>
 
       <OnboardingTutorial show={showTutorial} onComplete={() => setShowTutorial(false)} />
     </AppShell>

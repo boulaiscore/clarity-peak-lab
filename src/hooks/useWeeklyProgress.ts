@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
-import { TrainingPlanId, TRAINING_PLANS, SessionType, XP_VALUES } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN_ID, TrainingPlanId, TRAINING_PLANS, SessionType, XP_VALUES } from "@/lib/trainingPlans";
 import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -66,7 +66,7 @@ export function useWeeklyProgress() {
 
   const userId = computedUserId ?? lastUserIdRef.current;
 
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
+  const planId = DEFAULT_TRAINING_PLAN_ID;
   const plan = TRAINING_PLANS[planId];
 
   // Persist last known userId for stability across remounts (tab switches)
@@ -196,12 +196,16 @@ export function useWeeklyProgress() {
         // Content XP from monthly_content_assignments (fallback/backfill)
         // IMPORTANT: only add assignments that are NOT already present in exercise_completions,
         // otherwise we under/over-count when both systems are active.
-        const contentXPFromAssignmentsMissing = (contentRes.data || []).reduce((sum, row) => {
-          const contentId = String((row as any).content_id || "");
+        const assignmentRows = (contentRes.data || []) as Array<{
+          content_id: string | null;
+          content_type: string | null;
+        }>;
+        const contentXPFromAssignmentsMissing = assignmentRows.reduce((sum, row) => {
+          const contentId = String(row.content_id || "");
           if (!contentId) return sum;
           if (contentIdsFromCompletions.has(contentId)) return sum;
 
-          const t = (row as any).content_type as string | null;
+          const t = row.content_type;
           const normalized: "podcast" | "book" | "article" =
             t === "reading" ? "article" : t === "book" ? "book" : "podcast";
 

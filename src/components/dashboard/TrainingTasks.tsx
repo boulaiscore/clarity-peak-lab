@@ -23,7 +23,7 @@ import { XP_VALUES } from "@/lib/trainingPlans";
 import { startOfWeek, addDays, format, subDays, parseISO } from "date-fns";
 import { getMediumPeriodStart, getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 type InputType = "podcast" | "book" | "article";
@@ -105,13 +105,9 @@ const CONTENT_LIBRARY: Record<string, CognitiveInput> = {
   "meditations-aurelius": { id: "meditations-aurelius", type: "book", title: "Meditations", author: "Marcus Aurelius", duration: "10–15 min/session", difficulty: 2, thinkingSystem: "S2", primaryUrl: "" },
 };
 
-// Get tasks for specific plan based on contentPerWeek
-function getTasksForPlan(planId: TrainingPlanId): CognitiveInput[] {
-  const plan = TRAINING_PLANS[planId];
-  if (!plan) return ALL_TASKS.slice(0, 1);
-  
-  // Return tasks based on plan's contentPerWeek requirement
-  return ALL_TASKS.slice(0, plan.contentPerWeek);
+// The single canonical protocol owns the content cadence.
+function getDefaultTasks(): CognitiveInput[] {
+  return ALL_TASKS.slice(0, DEFAULT_TRAINING_PLAN.contentPerWeek);
 }
 
 // Helper to get content info from library or create a fallback
@@ -518,23 +514,7 @@ export function TrainingTasks() {
     return ticks;
   }, [readingTrendMax]);
 
-  // Get user's training plan for XP target
-  const { data: profile } = useQuery({
-    queryKey: ["profile", stableUserId],
-    queryFn: async () => {
-      if (!stableUserId) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("training_plan")
-        .eq("user_id", stableUserId)
-        .single();
-      return data;
-    },
-    enabled: !!stableUserId,
-  });
-  
-  const userPlan = (profile?.training_plan as TrainingPlanId) || "light";
-  const plan = TRAINING_PLANS[userPlan];
+  const plan = DEFAULT_TRAINING_PLAN;
   
   // Extract completed content IDs for this week
   const completedThisWeek = weeklyCompletions.map(c => c.contentId);
@@ -615,8 +595,7 @@ export function TrainingTasks() {
     toggleMutation.mutate({ taskId, taskType });
   };
 
-  // Get tasks for the user's plan only
-  const planTasks = getTasksForPlan(userPlan);
+  const planTasks = getDefaultTasks();
   
   // Filter active tasks (not completed) - only from plan tasks
   const activeTasks = planTasks.filter(t => !completedThisWeek.includes(t.id));

@@ -212,8 +212,8 @@ export function isTodayWeeklyCheckDay(planId: TrainingPlanId): boolean {
 export function getPlanDisplayName(planId: TrainingPlanId): string {
   const names: Record<TrainingPlanId, string> = {
     light: "Light",
-    expert: "Expert",
+    expert: "LOOMA",
     superhuman: "Superhuman",
   };
-  return names[planId] ?? "Expert";
+  return names[planId] ?? "LOOMA";
 }

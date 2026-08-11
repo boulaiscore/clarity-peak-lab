@@ -14,6 +14,12 @@
 
 export type TrainingPlanId = "light" | "expert" | "superhuman";
 
+/**
+ * LOOMA ships one canonical training protocol. The legacy ids remain in this
+ * module only so historical rows can still be decoded safely.
+ */
+export const DEFAULT_TRAINING_PLAN_ID: TrainingPlanId = "expert";
+
 export type SessionType = "fast-focus" | "mixed" | "consolidation" | "fast-control" | "slow-reasoning" | "dual-process" | "heavy-slow" | "dual-stress" | "reflection";
 
 export type ContentType = "podcast" | "reading" | "book-extract" | "none";
@@ -301,7 +307,7 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
   },
   expert: {
     id: "expert",
-    name: "Expert Training",
+    name: "LOOMA Training",
     tagline: "Balanced adaptive training",
     description: "Wider effective load window with stable recovery requirements. Supports deeper cognitive adaptation.",
     philosophy: "Balances training intensity with recovery capacity for sustained adaptation.",
@@ -501,6 +507,8 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
     ]
   }
 };
+
+export const DEFAULT_TRAINING_PLAN = TRAINING_PLANS[DEFAULT_TRAINING_PLAN_ID];
 
 export function getTrainingPlan(id: TrainingPlanId): TrainingPlan {
   return TRAINING_PLANS[id];

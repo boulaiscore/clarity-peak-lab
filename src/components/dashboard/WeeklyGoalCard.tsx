@@ -6,8 +6,6 @@ import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuth } from "@/contexts/AuthContext";
-import { TrainingPlanId } from "@/lib/trainingPlans";
 
 // Adaptive range status types
 type AdaptiveStatus = "building" | "within" | "above";
@@ -171,11 +169,6 @@ interface WeeklyGoalCardProps {
 export function WeeklyGoalCard({
   compact = false
 }: WeeklyGoalCardProps) {
-  const {
-    user
-  } = useAuth();
-  const planId = (user?.trainingPlan || "expert") as TrainingPlanId;
-
   // Use dynamic Training Capacity hook
   const {
     trainingCapacity,

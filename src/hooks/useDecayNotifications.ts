@@ -34,7 +34,7 @@ import {
   showInactivityCriticalNotification,
   showWeeklyProgressNotification,
 } from "@/lib/notifications";
-import type { TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN_ID } from "@/lib/trainingPlans";
 
 // ============================================
 // TYPES
@@ -91,7 +91,7 @@ function isNotificationEnabled(key: string): boolean {
 
 export function useDecayNotifications() {
   const { user } = useAuth();
-  const planId = (user?.trainingPlan as TrainingPlanId) ?? "expert";
+  const planId = DEFAULT_TRAINING_PLAN_ID;
   
   const { lowRecStreakDays, isLoading: isLoadingSnapshot } = useDailyRecoverySnapshot();
   const { weeklyXPEarned, weeklyXPTarget, isLoading: isLoadingProgress } = useWeeklyProgress();

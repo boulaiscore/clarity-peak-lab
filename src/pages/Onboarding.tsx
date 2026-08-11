@@ -20,6 +20,7 @@ import {
   RRI_SLEEP_OPTIONS,
 } from "@/lib/recoveryReadinessInit";
 import { trackProductEvent } from "@/lib/productAnalytics";
+import { DEFAULT_TRAINING_PLAN_ID } from "@/lib/trainingPlans";
 
 type Step = 1 | 2;
 const outcomes: Array<{
@@ -119,7 +120,7 @@ export default function Onboarding() {
         trainingGoals,
         sessionDuration: "2min",
         dailyTimeCommitment: "3min",
-        trainingPlan: "light",
+        trainingPlan: DEFAULT_TRAINING_PLAN_ID,
         reminderEnabled: false,
         rriSleepHours: sleep,
         rriDetoxHours: detox,

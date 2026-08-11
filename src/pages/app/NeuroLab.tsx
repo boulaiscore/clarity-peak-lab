@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { ReasonTabContent } from "@/components/lab";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, Settings2, RefreshCw } from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
@@ -19,13 +19,11 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
-import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
 
@@ -45,20 +43,6 @@ function TasksTabContent() {
   return <ReasonTabContent />;
 }
 
-// Discrete protocol change link - elegant and non-invasive
-function ProtocolLink({
-  onOpen,
-  planName
-}: {
-  onOpen: () => void;
-  planName: string;
-}) {
-  return <button onClick={onOpen} className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60 transition-colors hover:text-foreground">
-      <Settings2 className="h-3 w-3" />
-      <span>{planName}</span>
-      <ChevronRight className="h-3 w-3 opacity-45" />
-    </button>;
-}
 export default function NeuroLab() {
   // Scroll to top on mount
   useEffect(() => {
@@ -108,7 +92,6 @@ export default function NeuroLab() {
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
-  const [showProtocolSheet, setShowProtocolSheet] = useState(false);
 
   useEffect(() => {
     if (isPremium || streakData?.streak !== 3 || !user?.id) return;
@@ -119,9 +102,6 @@ export default function NeuroLab() {
     setPaywallFeatureName("");
     setShowPaywall(true);
   }, [isPremium, streakData?.streak, user?.id]);
-
-  // Current training plan for display
-  const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
 
   // Read tab from URL query param, default to "games" (Training first)
   const tabFromUrl = searchParams.get("tab");
@@ -145,7 +125,6 @@ export default function NeuroLab() {
   // Auto-open session picker if continuing session
   const continueSession = searchParams.get("continueSession") === "true";
   const [showSessionPicker, setShowSessionPicker] = useState(continueSession);
-  const trainingPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const nextSession = getNextSession();
   const recommendedAreas = nextSession ? SESSION_TO_AREAS[nextSession.id] || [] : [];
   const isWeekComplete = sessionsCompleted >= sessionsRequired;
@@ -230,9 +209,8 @@ export default function NeuroLab() {
   return <AppShell>
       {({ passiveFeatures }) => <>
       <div className="mx-auto max-w-md px-4 pb-5 pt-4">
-        <header className="mb-4 flex items-center justify-between px-0.5">
+        <header className="mb-4 flex items-center px-0.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Lab</p>
-          <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
         </header>
 
         {/* Week Complete Banner - Success styling with actionable CTA */}
@@ -379,7 +357,6 @@ export default function NeuroLab() {
 
       <SessionPicker open={showSessionPicker} onOpenChange={setShowSessionPicker} sessionName={nextSession?.name || "Training Session"} sessionDescription={nextSession?.description || ""} sessionType={nextSession?.id || null} recommendedAreas={recommendedAreas} contentDifficulty={sessionDifficulty} weeklyXPTarget={weeklyXPTarget} weeklyXPEarned={weeklyLoadXP} />
 
-      <ProtocolChangeSheet open={showProtocolSheet} onOpenChange={setShowProtocolSheet} />
       </>}
     </AppShell>;
 }

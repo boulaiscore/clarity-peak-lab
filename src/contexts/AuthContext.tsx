@@ -3,7 +3,7 @@ import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { sendWelcomeEmail } from "@/lib/emailService";
 import { getAuthRedirectUrl } from "@/lib/platformUtils";
-import { TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN_ID, TrainingPlanId } from "@/lib/trainingPlans";
 import { calculateRRI, initializeRecoveryBaseline } from "@/lib/recoveryV2";
 
 export type TrainingGoal = "fast_thinking" | "slow_thinking";
@@ -125,7 +125,9 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     trainingGoals: profile?.training_goals || [],
     sessionDuration: profile?.session_duration || "2min",
     dailyTimeCommitment: profile?.daily_time_commitment || "10min",
-    trainingPlan: (profile?.training_plan as TrainingPlanId) || "light",
+    // A single canonical protocol is used for every account. Stored legacy
+    // values are intentionally ignored so targets and gating cannot diverge.
+    trainingPlan: DEFAULT_TRAINING_PLAN_ID,
     reminderEnabled: profile?.reminder_enabled ?? false,
     reminderTime: profile?.reminder_time || undefined,
     primaryDevice: profile?.primary_device || undefined,
@@ -392,7 +394,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.trainingGoals !== undefined) profileUpdates.training_goals = updates.trainingGoals;
     if (updates.sessionDuration !== undefined) profileUpdates.session_duration = updates.sessionDuration;
     if (updates.dailyTimeCommitment !== undefined) profileUpdates.daily_time_commitment = updates.dailyTimeCommitment;
-    if (updates.trainingPlan !== undefined) profileUpdates.training_plan = updates.trainingPlan;
+    if (updates.trainingPlan !== undefined) profileUpdates.training_plan = DEFAULT_TRAINING_PLAN_ID;
     if (updates.subscriptionStatus !== undefined) profileUpdates.subscription_status = updates.subscriptionStatus;
     if (updates.reminderEnabled !== undefined) profileUpdates.reminder_enabled = updates.reminderEnabled;
     if (updates.reminderTime !== undefined) profileUpdates.reminder_time = updates.reminderTime;
@@ -441,7 +443,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Update local state
-    setUser(prev => prev ? { ...prev, ...updates } : null);
+    setUser(prev => prev ? {
+      ...prev,
+      ...updates,
+      trainingPlan: DEFAULT_TRAINING_PLAN_ID,
+    } : null);
   };
 
   const upgradeToPremium = async () => {

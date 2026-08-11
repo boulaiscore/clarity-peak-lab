@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { format, subDays } from "date-fns";
-import { TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN_ID } from "@/lib/trainingPlans";
 import {
   computeAEGuidance,
   AEGuidanceResult,
@@ -51,7 +51,7 @@ interface RawSessionRow {
 export function useAEGuidance(): UseAEGuidanceResult {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
-  const planId = (user?.trainingPlan || "expert") as TrainingPlanId;
+  const planId = DEFAULT_TRAINING_PLAN_ID;
   
   const { trainingCapacity, isLoading: tcLoading } = useTrainingCapacity();
   const { recovery, isLoading: metricsLoading } = useTodayMetrics();

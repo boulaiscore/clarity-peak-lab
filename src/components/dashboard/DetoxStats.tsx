@@ -4,34 +4,14 @@ import { useWeeklyDetoxXP, useTodayDetoxMinutes, useDetoxHistory } from "@/hooks
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { TRAINING_PLANS, type TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 
 export function DetoxStats() {
-  const { user } = useAuth();
   const { data: weeklyData, isLoading } = useWeeklyDetoxXP();
   const { data: todayMinutes } = useTodayDetoxMinutes();
   const { data: historyData } = useDetoxHistory(14);
 
-  // Get user's training plan
-  const { data: profile } = useQuery({
-    queryKey: ['profile-detox', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('training_plan')
-        .eq('user_id', user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  const planId = (profile?.training_plan || 'light') as TrainingPlanId;
-  const plan = TRAINING_PLANS[planId];
+  const plan = DEFAULT_TRAINING_PLAN;
   const detoxRequirement = plan.detox;
 
   const totalMinutes = weeklyData?.totalMinutes || 0;

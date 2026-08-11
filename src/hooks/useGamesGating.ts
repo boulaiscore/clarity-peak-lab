@@ -34,8 +34,8 @@ import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import {
   calculateGameSkillUpdate,
+  DEFAULT_TRAINING_PLAN_ID,
   TRAINING_PLANS,
-  TrainingPlanId,
 } from "@/lib/trainingPlans";
 import { 
   GameType, 
@@ -135,7 +135,7 @@ export function useGamesGating(): UseGamesGatingResult {
   const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
   
   // Get plan configuration
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
+  const planId = DEFAULT_TRAINING_PLAN_ID;
   const plan = TRAINING_PLANS[planId];
   const gatingModifiers = plan.gamesGating;
   
@@ -468,7 +468,7 @@ export function useRecordGameSession() {
       : 0;
     const normalizedScore = Math.min(100, Math.max(0, Math.round(params.score)));
     if (sessionStatus === "completed" && effectiveXP > 0) {
-      const planId = (user?.trainingPlan || "light") as TrainingPlanId;
+      const planId = DEFAULT_TRAINING_PLAN_ID;
       const planGating = TRAINING_PLANS[planId].gamesGating;
       const systemType = params.gameType.startsWith("S1") ? "S1" : "S2";
       const { data: dailySessions, error: dailyError } = await supabase
@@ -774,5 +774,5 @@ export function useRecordGameSession() {
     console.error("[GameSession] All retries failed:", lastError);
     toast.error("Failed to save session - please try again");
     throw lastError;
-  }, [user?.id, user?.trainingPlan, queryClient, recordMetricsSnapshot]);
+  }, [user?.id, queryClient, recordMetricsSnapshot]);
 }
