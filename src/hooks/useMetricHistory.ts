@@ -43,7 +43,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
   const { data: rawData, isLoading, error } = useQuery({
     queryKey: ["metric-history", user?.id, days, forwardFill, lookbackDays],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) return { metrics: [], phone: [], wearable: [] };
 
       const startDate = format(subDays(new Date(), fetchDays), "yyyy-MM-dd");
 
