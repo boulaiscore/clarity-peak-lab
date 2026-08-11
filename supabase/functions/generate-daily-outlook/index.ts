@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const MODEL = "google/gemini-2.5-flash";
-const MODEL_VERSION = "daily-outlook-copy-gemini-2.5-flash-v3-conversational-health";
+const MODEL_VERSION = "daily-outlook-copy-gemini-2.5-flash-v4-personal-insight";
 const ACTION_KEYS = new Set([
   "recover",
   "protect_attention",
@@ -114,6 +114,72 @@ function healthSignalsFromStateSnapshot(value: unknown): SafeHealthSignals | nul
   return parseHealthSignals(passive?.healthSignals);
 }
 
+function sanitizeStateSnapshot(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) return {};
+  const metrics = isRecord(value.metrics) ? value.metrics : {};
+  const passive = isRecord(value.passive) ? value.passive : {};
+  const personal = isRecord(value.personal) ? value.personal : {};
+  const behavior = isRecord(value.behavior) ? value.behavior : {};
+  const pattern = isRecord(value.pattern) ? value.pattern : {};
+  const topDriver = isRecord(pattern.topDriver) ? pattern.topDriver : null;
+  const primaryOutcome = ["focus", "decide", "reason"].includes(String(personal.primaryOutcome))
+    ? String(personal.primaryOutcome)
+    : null;
+  const patternStatus = ["locked", "learning", "emerging", "reliable"].includes(String(pattern.status))
+    ? String(pattern.status)
+    : "learning";
+  const driverLabel = topDriver && ["Recovery", "Health", "Attention", "Schedule"].includes(String(topDriver.label))
+    ? String(topDriver.label)
+    : null;
+  const driverDirection = topDriver && ["supports", "limits"].includes(String(topDriver.direction))
+    ? String(topDriver.direction)
+    : null;
+
+  return {
+    metrics: {
+      sharpness: boundedNumber(metrics.sharpness, 0, 100),
+      readiness: boundedNumber(metrics.readiness, 0, 100),
+      recovery: boundedNumber(metrics.recovery, 0, 100),
+      reasoningQuality: boundedNumber(metrics.reasoningQuality, 0, 100),
+    },
+    passive: {
+      healthScore: boundedNumber(passive.healthScore, 0, 100),
+      healthSignals: parseHealthSignals(passive.healthSignals),
+      attentionLoadRatio: boundedNumber(passive.attentionLoadRatio, 0, 10),
+      scheduleLoadRatio: boundedNumber(passive.scheduleLoadRatio, 0, 10),
+      signalCoverage: boundedNumber(passive.signalCoverage, 0, 1),
+      activeSourceCount: boundedNumber(passive.activeSourceCount, 0, 20),
+    },
+    personal: {
+      workType: safeText(personal.workType, 40),
+      primaryOutcome,
+    },
+    behavior: {
+      metricTrendPerDay: boundedNumber(behavior.metricTrendPerDay, -100, 100),
+      cognitiveActivityDays7d: boundedNumber(behavior.cognitiveActivityDays7d, 0, 7),
+      gameSessions7d: boundedNumber(behavior.gameSessions7d, 0, 1_000),
+      qualityTimeMinutes7d: boundedNumber(behavior.qualityTimeMinutes7d, 0, 10_080),
+      recoveryMinutes7d: boundedNumber(behavior.recoveryMinutes7d, 0, 10_080),
+    },
+    pattern: {
+      status: patternStatus,
+      observedDays: boundedNumber(pattern.observedDays, 0, 3650),
+      openWindow: safeText(pattern.openWindow, 40),
+      attentionLoad: ["Low", "Usual", "High"].includes(String(pattern.attentionLoad))
+        ? String(pattern.attentionLoad)
+        : null,
+      scheduleLoad: ["Light", "Moderate", "Packed"].includes(String(pattern.scheduleLoad))
+        ? String(pattern.scheduleLoad)
+        : null,
+      topDriver: driverLabel && driverDirection ? {
+        label: driverLabel,
+        direction: driverDirection,
+        strength: boundedNumber(topDriver?.strength, 0, 1),
+      } : null,
+    },
+  };
+}
+
 function parseOutlook(value: unknown): SafeOutlook | null {
   if (!isRecord(value) || !isRecord(value.action) || !Array.isArray(value.evidence)) return null;
   const policyVersion = safeText(value.policyVersion, 80);
@@ -174,7 +240,7 @@ function parseOutlook(value: unknown): SafeOutlook | null {
     evidence,
     confidence,
     healthSignals: parseHealthSignals(value.healthSignals),
-    stateSnapshot: isRecord(value.stateSnapshot) ? value.stateSnapshot : {},
+    stateSnapshot: sanitizeStateSnapshot(value.stateSnapshot),
   };
 }
 
@@ -216,13 +282,11 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
     const tier = String(profile?.subscription_status ?? "free").toLowerCase();
-    const isPro = tier === "pro" || tier === "founding_pro" || tier === "elite";
-    if (!isPro) {
-      return new Response(JSON.stringify({ error: "Pro entitlement required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const storedPlanId = tier === "founding_pro"
+      ? "founding_pro"
+      : tier === "pro" || tier === "elite"
+        ? "pro"
+        : tier === "core" || tier === "premium" ? "core" : "free";
 
     const { data: existing } = await supabase
       .from("daily_outlooks")
@@ -258,6 +322,7 @@ serve(async (req) => {
       action: outlook.action,
       evidence: outlook.evidence,
       healthSignals: outlook.healthSignals,
+      personalContext: outlook.stateSnapshot,
     });
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -270,7 +335,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are the LOOMA Daily Coach for a non-medical cognitive performance app. Write a warm, conversational and premium daily briefing using only the supplied facts. Address the user naturally in second person, as a thoughtful coach who knows their recent context—not as a dashboard listing values. Write one cohesive paragraph of 80–120 words and 4–5 sentences. Begin with today's cognitive state, weave in the most relevant 2–3 signals, and finish by naturally introducing the exact action selected by the explainable policy. If granular healthSignals are supplied, mention at least one relevant observation such as sleep, HRV, resting heart rate or movement. A raw health observation is context only: never call it good, poor, high or low and never infer a cause unless that comparison or relationship is explicitly present in evidence. Never add metrics, numbers, causes, diagnoses, guarantees, health claims, baseline comparisons or recommendations that are not supplied. Never imply intelligence or fixed ability. Do not invent a work block, duration, task or protocol. Use no bullets or markdown. Keep the headline under 7 words. The action is selected by a separate explainable policy and must not be changed.`,
+            content: `You are the LOOMA Daily Coach for a non-medical cognitive performance app. Produce an insight, not a dashboard recap. Write a warm, specific and conversational briefing using only supplied facts. Address the user in second person and connect today's state with their stated work type, performance outcome, recent behavior, learned pattern, Health context, digital attention load or schedule context whenever those fields are actually available. Do not inventory Sharpness, Readiness, Recovery and Reasoning or repeat several Home scores. Mention at most one cognitive score, and only if essential to explaining the recommendation. If history is immature, say plainly that LOOMA is still learning instead of pretending the guidance is personalized. Write one cohesive paragraph of 75–115 words and 4–5 sentences: interpret the state, explain what it means for this user's goal, mention one genuinely personal or connected-data pattern when available, and finish by naturally introducing the exact action selected by policy. Raw Health observations are neutral unless an explicit personal-baseline comparison is supplied. Never invent metrics, numbers, causes, diagnoses, guarantees, medical claims, comparisons, recommendations, durations or protocols. Never imply intelligence or fixed ability. Use no bullets or markdown. Keep the headline under 7 words. The action is fixed by an explainable policy and must not be changed.`,
           },
           { role: "user", content: factualSource },
         ],
@@ -310,7 +375,7 @@ serve(async (req) => {
       user_id: user.id,
       outlook_date: outlookDate,
       policy_version: outlook.policyVersion,
-      plan_id: tier === "founding_pro" ? "founding_pro" : "pro",
+      plan_id: storedPlanId,
       headline: finalHeadline,
       summary: finalSummary,
       intensity: outlook.intensity,

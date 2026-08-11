@@ -8,6 +8,7 @@ import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
 import {
   deriveDailyOutlook,
   type DailyOutlook,
+  type DailyOutlookBehaviorContext,
   type DailyOutlookHealthSignals,
   type DailyOutlookInput,
 } from "@/lib/dailyOutlook";
@@ -104,6 +105,21 @@ function healthSignalsFromPayload(
   };
 }
 
+function behaviorContextFromPayload(
+  payload: PassiveFeaturePayload | null,
+): DailyOutlookBehaviorContext | null {
+  if (!payload) return null;
+  const behavior = record(payload.behavior);
+  const values: DailyOutlookBehaviorContext = {
+    metricTrendPerDay: finiteNumber(payload.coachContext.metricTrendPerDay),
+    cognitiveActivityDays7d: finiteNumber(behavior?.cognitiveActivityDays7d),
+    gameSessions7d: finiteNumber(behavior?.gameSessions7d),
+    qualityTimeMinutes7d: finiteNumber(behavior?.qualityTimeMinutes7d),
+    recoveryMinutes7d: finiteNumber(behavior?.recoveryMinutes7d),
+  };
+  return Object.values(values).some((value) => value !== null) ? values : null;
+}
+
 function isStorageUnavailable(error: LooseResult["error"]): boolean {
   return Boolean(error && /daily_outlooks|PGRST205|42P01|schema cache/i.test(error.message ?? ""));
 }
@@ -121,6 +137,10 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     () => healthSignalsFromPayload(input.passiveFeatures),
     [input.passiveFeatures],
   );
+  const behaviorContext = useMemo(
+    () => behaviorContextFromPayload(input.passiveFeatures),
+    [input.passiveFeatures],
+  );
 
   const policyInput = useMemo<DailyOutlookInput>(() => ({
     sharpness: input.sharpness,
@@ -133,10 +153,13 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     scheduleLoadRatio: input.passiveFeatures?.coachContext.scheduleLoadRatio ?? null,
     signalCoverage: input.signalCoverage,
     primaryOutcome: user?.primaryOutcome ?? "focus",
+    workType: user?.workType ?? null,
+    behaviorContext,
     canPersonalize,
     rhythm: canPersonalize ? rhythm : null,
   }), [
     canPersonalize,
+    behaviorContext,
     input.passiveFeatures,
     input.readiness,
     input.reasoningQuality,
@@ -146,6 +169,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     healthSignals,
     rhythm,
     user?.primaryOutcome,
+    user?.workType,
   ]);
 
   const deterministicOutlook = useMemo(
@@ -168,12 +192,22 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       signalCoverage: input.signalCoverage,
       activeSourceCount: input.activeSourceCount,
     },
+    personal: {
+      workType: user?.workType ?? null,
+      primaryOutcome: user?.primaryOutcome ?? "focus",
+    },
+    behavior: behaviorContext,
     pattern: {
       status: canPersonalize ? rhythm.status : "locked",
       observedDays: canPersonalize ? rhythm.observedDays : 0,
+      openWindow: canPersonalize ? rhythm.openWindow : null,
+      topDriver: canPersonalize ? rhythm.topDriver : null,
+      attentionLoad: canPersonalize ? rhythm.attentionLoad : null,
+      scheduleLoad: canPersonalize ? rhythm.scheduleLoad : null,
     },
   }), [
     canPersonalize,
+    behaviorContext,
     input.activeSourceCount,
     input.readiness,
     input.reasoningQuality,
@@ -185,7 +219,13 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     policyInput.healthScore,
     policyInput.scheduleLoadRatio,
     rhythm.observedDays,
+    rhythm.openWindow,
+    rhythm.topDriver,
+    rhythm.attentionLoad,
+    rhythm.scheduleLoad,
     rhythm.status,
+    user?.primaryOutcome,
+    user?.workType,
   ]);
 
   const generatedCopyQuery = useQuery({
@@ -197,6 +237,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       deterministicOutlook.action.key,
       deterministicOutlook.headline,
       deterministicOutlook.healthSignals,
+      stateSnapshot,
     ],
     queryFn: async (): Promise<GeneratedCopy | null> => {
       const { data, error } = await supabase.functions.invoke("generate-daily-outlook", {
@@ -220,7 +261,6 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     },
     enabled: Boolean(
       user?.id &&
-      subscription.isPro &&
       !subscription.loading &&
       !input.isLoading &&
       !personalizationLoading,
@@ -348,6 +388,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   return {
     outlook,
     copySource,
+    coachName: user?.name?.trim().split(/\s+/)[0] || null,
     isLoading: input.isLoading || subscription.loading || personalizationLoading,
     isGeneratingCopy: generatedCopyQuery.isLoading,
     markOpened,

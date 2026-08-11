@@ -1,6 +1,6 @@
 import { clamp } from "@/lib/cognitiveEngine";
 
-export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v2-metric-coach";
+export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v3-personal-coach";
 
 export type DailyOutlookActionKey =
   | "recover"
@@ -23,6 +23,20 @@ export interface DailyOutlookHealthSignals {
   activeMinutes: number | null;
   observedDate: string | null;
   sources: string[];
+}
+
+export interface DailyOutlookBehaviorContext {
+  metricTrendPerDay: number | null;
+  cognitiveActivityDays7d: number | null;
+  gameSessions7d: number | null;
+  qualityTimeMinutes7d: number | null;
+  recoveryMinutes7d: number | null;
+}
+
+export interface DailyOutlookCoachBasis {
+  goalGuidance: string;
+  patternInsight: string;
+  learnedFromHistory: boolean;
 }
 
 export interface DailyOutlookEvidence {
@@ -57,6 +71,7 @@ export interface DailyOutlook {
   confidenceLabel: "Baseline" | "Medium" | "High";
   personalization: "state" | "personal";
   healthSignals: DailyOutlookHealthSignals | null;
+  coachBasis: DailyOutlookCoachBasis;
 }
 
 export interface DailyOutlookInput {
@@ -70,6 +85,8 @@ export interface DailyOutlookInput {
   scheduleLoadRatio?: number | null;
   signalCoverage: number;
   primaryOutcome?: "decide" | "focus" | "reason" | null;
+  workType?: string | null;
+  behaviorContext?: Partial<DailyOutlookBehaviorContext> | null;
   canPersonalize: boolean;
   rhythm?: {
     status: "learning" | "emerging" | "reliable";
@@ -148,14 +165,105 @@ function healthContextSentence(value: DailyOutlookInput["healthSignals"]): strin
     observations.push(`${Math.round(signals.activeMinutes)} active minutes`);
   }
   if (observations.length === 0) return "";
-  return ` Your latest Health data also records ${observations.slice(0, 2).join(" and ")}; LOOMA treats these as context and learns their meaning against your baseline over time.`;
+  return `Your latest Health context includes ${observations.slice(0, 2).join(" and ")}; LOOMA interprets these against your own baseline rather than in isolation.`;
 }
 
-function withHealthContext(
-  summary: string,
-  healthSignals: DailyOutlookInput["healthSignals"],
+function workContext(workType: string | null | undefined): string {
+  switch (workType) {
+    case "management": return " in your management work";
+    case "creative": return " in your creative work";
+    case "technical": return " in your technical work";
+    case "student": return " in your study work";
+    case "knowledge": return " in your knowledge work";
+    default: return "";
+  }
+}
+
+function goalGuidance(
+  input: DailyOutlookInput,
+  intensity: DailyOutlookIntensity,
 ): string {
-  return `${summary}${healthContextSentence(healthSignals)}`;
+  const context = workContext(input.workType);
+  const outcome = input.primaryOutcome ?? "focus";
+  if (intensity === "protective") {
+    if (outcome === "decide") return `For decision quality${context}, reduce avoidable choices and protect the decisions that matter most.`;
+    if (outcome === "reason") return `For analytical quality${context}, favor one bounded problem over prolonged mental effort.`;
+    return `For your focus goal${context}, protecting continuity matters more than adding duration today.`;
+  }
+  if (intensity === "strong") {
+    if (outcome === "decide") return `For decision quality${context}, reserve this capacity for the decision with the highest consequence.`;
+    if (outcome === "reason") return `For analytical quality${context}, use this capacity on the problem that benefits most from deliberate depth.`;
+    return `For your focus goal${context}, reserve this capacity for the work that needs uninterrupted attention.`;
+  }
+  if (outcome === "decide") return `For decision quality${context}, keep the day deliberate and avoid spending clarity on low-value choices.`;
+  if (outcome === "reason") return `For analytical quality${context}, keep the workload structured and stop before precision begins to soften.`;
+  return `For your focus goal${context}, favor a clear priority and a sustainable pace.`;
+}
+
+function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, "patternInsight" | "learnedFromHistory"> {
+  if (input.canPersonalize && input.rhythm?.topDriver) {
+    const driver = input.rhythm.topDriver;
+    return {
+      patternInsight: `Your own history currently links ${driver.label.toLowerCase()} with ${driver.direction === "supports" ? "stronger" : "weaker"} next-day cognitive state.`,
+      learnedFromHistory: true,
+    };
+  }
+
+  const trend = finite(input.behaviorContext?.metricTrendPerDay);
+  if (trend !== null && Math.abs(trend) >= 0.12) {
+    return {
+      patternInsight: trend > 0
+        ? "Across your recent history, your overall cognitive trend is moving upward."
+        : "Across your recent history, your overall cognitive trend has been softening.",
+      learnedFromHistory: true,
+    };
+  }
+
+  const activityDays = finite(input.behaviorContext?.cognitiveActivityDays7d);
+  if (activityDays !== null && activityDays > 0) {
+    return {
+      patternInsight: `You recorded cognitive activity on ${Math.round(activityDays)} of the last 7 days, so this read can reflect your recent training rhythm.`,
+      learnedFromHistory: true,
+    };
+  }
+
+  if (input.canPersonalize && input.rhythm && input.rhythm.observedDays > 0) {
+    return {
+      patternInsight: `LOOMA has ${Math.round(input.rhythm.observedDays)} days of passive context and is still testing which patterns repeat for you.`,
+      learnedFromHistory: input.rhythm.status !== "learning",
+    };
+  }
+
+  return {
+    patternInsight: "LOOMA is still establishing how your own behavior and physiology relate to later performance.",
+    learnedFromHistory: false,
+  };
+}
+
+function buildCoachBasis(
+  input: DailyOutlookInput,
+  intensity: DailyOutlookIntensity,
+): DailyOutlookCoachBasis {
+  return {
+    goalGuidance: goalGuidance(input, intensity),
+    ...patternInsight(input),
+  };
+}
+
+function coachSummary(
+  stateInterpretation: string,
+  input: DailyOutlookInput,
+  intensity: DailyOutlookIntensity,
+  nextMove: string,
+): string {
+  const basis = buildCoachBasis(input, intensity);
+  return [
+    stateInterpretation,
+    basis.goalGuidance,
+    healthContextSentence(input.healthSignals),
+    basis.patternInsight,
+    nextMove,
+  ].filter(Boolean).join(" ");
 }
 
 function metricTone(value: number, supportiveAt = 60, limitingBelow = 45): DailyOutlookTone {
@@ -334,12 +442,18 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   const attentionLoadRatio = finite(input.attentionLoadRatio);
   const scheduleLoadRatio = finite(input.scheduleLoadRatio);
   const confidence = calculateConfidence(input);
+  const hasHistoricalPersonalization = Boolean(
+    input.canPersonalize && (
+      (input.rhythm?.observedDays ?? 0) > 0 ||
+      (finite(input.behaviorContext?.cognitiveActivityDays7d) ?? 0) > 0
+    ),
+  );
   const shared = {
     policyVersion: DAILY_OUTLOOK_POLICY_VERSION,
     evidence: buildEvidence(input),
     confidence: Math.round(confidence * 100) / 100,
     confidenceLabel: confidenceLabel(confidence),
-    personalization: input.canPersonalize ? "personal" as const : "state" as const,
+    personalization: hasHistoricalPersonalization ? "personal" as const : "state" as const,
     healthSignals: normalizeHealthSignals(input.healthSignals),
   };
 
@@ -351,8 +465,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     const metricValue = limitingHealth ? healthScore : limitingReadiness ? input.readiness : input.recovery;
     return {
       ...shared,
+      coachBasis: buildCoachBasis(input, "protective"),
       headline: "Recovery is the priority today",
-      summary: withHealthContext(`${metricLabel} is ${roundedScore(metricValue ?? 0)}, the clearest limiting signal today. Avoid adding cognitive load before restoring reserve.`, input.healthSignals),
+      summary: coachSummary(
+        "Your current signals point to reduced reserve, so today is better used to recover than to add cognitive strain.",
+        input,
+        "protective",
+        "The useful move now is a recovery protocol in Lab, then reassess rather than forcing output.",
+      ),
       intensity: "protective",
       windowLabel: null,
       windowSource: null,
@@ -372,8 +492,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   if (attentionLoadRatio !== null && attentionLoadRatio >= 1.35) {
     return {
       ...shared,
+      coachBasis: buildCoachBasis(input, "protective"),
       headline: "Digital load is the constraint",
-      summary: withHealthContext(`Attention load is ${Math.round((attentionLoadRatio - 1) * 100)}% above your baseline. A reset is more relevant than adding another cognitive demand.`, input.healthSignals),
+      summary: coachSummary(
+        "Your digital load is the clearest pressure on attention today, so adding another demand is unlikely to improve the quality of your work.",
+        input,
+        "protective",
+        "Use an attention reset in Lab before deciding whether more cognitive work is worthwhile.",
+      ),
       intensity: "protective",
       windowLabel: null,
       windowSource: null,
@@ -393,8 +519,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   if (scheduleLoadRatio !== null && scheduleLoadRatio >= 1.35 && input.readiness < 65) {
     return {
       ...shared,
+      coachBasis: buildCoachBasis(input, "protective"),
       headline: "Protect capacity from schedule load",
-      summary: withHealthContext(`Schedule load is ${Math.round((scheduleLoadRatio - 1) * 100)}% above baseline while Readiness is ${roundedScore(input.readiness)}. No extra training is recommended.`, input.healthSignals),
+      summary: coachSummary(
+        "Your schedule is consuming more capacity than usual while sustained readiness is constrained.",
+        input,
+        "protective",
+        "Keep cognitive demand below your usual peak and skip extra training today.",
+      ),
       intensity: "protective",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
@@ -419,8 +551,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   ) {
     return {
       ...shared,
+      coachBasis: buildCoachBasis(input, "strong"),
       headline: "Your signals are aligned",
-      summary: withHealthContext(`Readiness ${roundedScore(input.readiness)}, Sharpness ${roundedScore(input.sharpness)} and Recovery ${roundedScore(input.recovery)} support demanding cognitive work today.`, input.healthSignals),
+      summary: coachSummary(
+        "Your main cognitive signals are aligned, giving you room for demanding work without needing an extra protocol first.",
+        input,
+        "strong",
+        "Use this state on your highest-priority cognitive work while the capacity is available.",
+      ),
       intensity: "strong",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
@@ -440,8 +578,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   if (input.recovery >= 55 && input.sharpness < 50) {
     return {
       ...shared,
+      coachBasis: buildCoachBasis(input, "steady"),
       headline: "Sharpness is today’s opportunity",
-      summary: withHealthContext(`Recovery is ${roundedScore(input.recovery)}, while Sharpness is ${roundedScore(input.sharpness)}. A focus drill is the most directly connected intervention.`, input.healthSignals),
+      summary: coachSummary(
+        "You have enough reserve to train, but attentional sharpness is the clearest opportunity today.",
+        input,
+        "steady",
+        "An attentional-control drill in Lab is the intervention most directly connected to that opportunity.",
+      ),
       intensity: "steady",
       windowLabel: null,
       windowSource: null,
@@ -461,8 +605,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   if (input.recovery >= 55 && input.reasoningQuality < 45) {
     return {
       ...shared,
+      coachBasis: buildCoachBasis(input, "steady"),
       headline: "Reasoning is today’s opportunity",
-      summary: withHealthContext(`Recovery is ${roundedScore(input.recovery)}, while Reasoning is ${roundedScore(input.reasoningQuality)}. A deliberate-reasoning drill is the most relevant training action.`, input.healthSignals),
+      summary: coachSummary(
+        "You have enough reserve to train, and deliberate reasoning is the clearest opportunity today.",
+        input,
+        "steady",
+        "A deliberate-reasoning drill in Lab is the intervention most directly connected to that opportunity.",
+      ),
       intensity: "steady",
       windowLabel: null,
       windowSource: null,
@@ -482,8 +632,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   if (input.readiness < 55) {
     return {
       ...shared,
+      coachBasis: buildCoachBasis(input, "protective"),
       headline: "Sustained capacity is limited",
-      summary: withHealthContext(`Readiness is ${roundedScore(input.readiness)}, below the range used for demanding sustained work. Keep cognitive demand below your usual peak.`, input.healthSignals),
+      summary: coachSummary(
+        "Today is better suited to protecting consistency than pushing sustained cognitive capacity.",
+        input,
+        "protective",
+        "Skip additional training today and keep the most important work deliberately bounded.",
+      ),
       intensity: "protective",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
@@ -502,8 +658,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
 
   return {
     ...shared,
+    coachBasis: buildCoachBasis(input, "steady"),
     headline: "Your state is steady",
-    summary: withHealthContext(`Readiness is ${roundedScore(input.readiness)} and Recovery is ${roundedScore(input.recovery)}, with no dominant limiting signal. Follow your normal plan today.`, input.healthSignals),
+    summary: coachSummary(
+      "Your state is steady, with no single signal strong enough to justify changing the whole day.",
+      input,
+      "steady",
+      "Follow your normal plan and let today add another observation to your personal pattern.",
+    ),
     intensity: "steady",
     windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
     windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,

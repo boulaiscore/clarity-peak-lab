@@ -11,9 +11,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
-import type { DailyOutlookEvidence, DailyOutlookTone } from "@/lib/dailyOutlook";
 import { useDailyOutlook } from "@/hooks/useDailyOutlook";
-import { cn } from "@/lib/utils";
 
 interface DailyOutlookCardProps {
   sharpness: number;
@@ -26,41 +24,10 @@ interface DailyOutlookCardProps {
   isLoading: boolean;
 }
 
-const toneDotClass: Record<DailyOutlookTone, string> = {
-  support: "bg-emerald-300/85",
-  limit: "bg-amber-300/90",
-  neutral: "bg-foreground/35",
-};
-
-const toneExplanation: Record<DailyOutlookTone, string> = {
-  support: "This is supporting your cognitive capacity today.",
-  limit: "This is the clearest constraint to account for today.",
-  neutral: "This is close to your current baseline.",
-};
-
-const healthEvidenceCodes = new Set(["SLP", "HRV", "RHR", "ACT"]);
-
-function explanationForEvidence(item: DailyOutlookEvidence): string {
-  if (healthEvidenceCodes.has(item.code) && item.tone === "neutral") {
-    return "LOOMA uses this as context without treating one observation as good or bad on its own.";
-  }
-  return toneExplanation[item.tone];
-}
-
-function selectHighlights(evidence: DailyOutlookEvidence[]): DailyOutlookEvidence[] {
-  const firstHealthSignal = evidence.find((item) => healthEvidenceCodes.has(item.code));
-  if (!firstHealthSignal) return evidence.slice(0, 3);
-  const remaining = evidence.filter((item) => item !== firstHealthSignal);
-  return [remaining[0], firstHealthSignal, ...remaining.slice(1)]
-    .filter((item): item is DailyOutlookEvidence => Boolean(item))
-    .slice(0, 3);
-}
-
-function greetingForNow(): string {
+function greetingForNow(name: string | null): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return name ? `${greeting}, ${name}` : greeting;
 }
 
 export function DailyOutlookCard(props: DailyOutlookCardProps) {
@@ -69,6 +36,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
   const {
     outlook,
     copySource,
+    coachName,
     isLoading,
     isGeneratingCopy,
     markOpened,
@@ -88,10 +56,11 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
     }
   };
 
-  const highlights = selectHighlights(outlook.evidence);
+  const hasLearnedPattern = outlook.coachBasis.learnedFromHistory;
+  const hasPersonalConfidence = hasLearnedPattern && outlook.confidence >= 0.1;
   const sourceLine = props.activeSourceCount > 0
-    ? `${props.activeSourceCount} connected · ${outlook.confidenceLabel} confidence`
-    : "Personal baseline · learning";
+    ? `${hasLearnedPattern ? "Personal pattern" : "Learning"} · ${props.activeSourceCount} connected`
+    : hasLearnedPattern ? "Personal pattern" : "Learning your pattern";
 
   return (
     <motion.section
@@ -147,7 +116,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
 
               <div className="mt-4 flex items-center justify-between border-t border-white/[0.055] pt-3">
                 <span className="text-[9px] text-muted-foreground/60">
-                  {highlights.length} key signals · 1 recommended action
+                  {hasLearnedPattern ? "Personal read" : "Daily guidance"} · 1 next action
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/85">
                   Read briefing
@@ -174,14 +143,14 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                   LOOMA Coach
                 </p>
                 <p className="mt-0.5 text-[8px] uppercase tracking-[0.16em] text-muted-foreground/50">
-                  {copySource === "ai" ? "Personalized daily briefing" : "Metric-based daily briefing"}
+                  {copySource === "ai" ? "Adaptive daily guidance" : "Daily guidance · learning"}
                 </p>
               </div>
             </div>
 
             <SheetHeader className="mt-9 text-left">
               <p className="text-[12px] font-medium text-muted-foreground/75">
-                {greetingForNow()} — here is your outlook.
+                {greetingForNow(coachName)} — here is what matters today.
               </p>
               <SheetTitle className="mt-2 text-[28px] leading-[1.08] tracking-tight">
                 {outlook.headline}
@@ -192,35 +161,27 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
             </SheetHeader>
 
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-white/[0.06] py-3 text-[8px] uppercase tracking-[0.14em] text-muted-foreground/50">
-              <span>{outlook.confidenceLabel} confidence · {Math.round(outlook.confidence * 100)}%</span>
+              <span>
+                {hasPersonalConfidence
+                  ? `${outlook.confidenceLabel} personal confidence · ${Math.round(outlook.confidence * 100)}%`
+                  : "Learning your baseline"}
+              </span>
               {outlook.windowLabel && <span>Best observed window · {outlook.windowLabel}</span>}
-              <span>{copySource === "ai" ? "AI phrasing · explainable policy" : "Explainable policy"}</span>
+              {props.activeSourceCount > 0 && <span>{props.activeSourceCount} connected sources</span>}
             </div>
 
-            <section className="mt-8" aria-labelledby="outlook-highlights-title">
-              <h3
-                id="outlook-highlights-title"
-                className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/82"
-              >
-                Today’s highlights
-              </h3>
+            {hasLearnedPattern && (
+              <section className="mt-8 rounded-[18px] border border-white/[0.06] bg-white/[0.025] px-4 py-4" aria-labelledby="outlook-pattern-title">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/55">
+                  Learned from your pattern
+                </p>
+                <h3 id="outlook-pattern-title" className="mt-2 text-[13px] font-medium leading-relaxed text-foreground/82">
+                  {outlook.coachBasis.patternInsight}
+                </h3>
+              </section>
+            )}
 
-              <div className="mt-4 space-y-5">
-                {highlights.map((item) => (
-                  <div key={`${item.code}-${item.label}`} className="flex items-start gap-3">
-                    <span className={cn("mt-2 h-1.5 w-1.5 shrink-0 rounded-full", toneDotClass[item.tone])} />
-                    <p className="text-[13px] leading-relaxed text-foreground/72">
-                      <strong className="font-semibold text-foreground/95">
-                        {item.label}: {item.detail}.
-                      </strong>{" "}
-                      {explanationForEvidence(item)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="mt-9 border-t border-white/[0.07] pt-7" aria-labelledby="outlook-action-title">
+            <section className="mt-8 border-t border-white/[0.07] pt-7" aria-labelledby="outlook-action-title">
               <h3
                 id="outlook-action-title"
                 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/82"
@@ -237,7 +198,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                     {outlook.action.label}
                   </p>
                   <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/68">
-                    Recommended from {outlook.action.metricLabel.toLowerCase()} — {outlook.action.metricDetail}.
+                    Selected because {outlook.action.metricLabel.toLowerCase()} is the signal most directly connected to this action.
                   </p>
                 </div>
               </div>
@@ -255,7 +216,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
             </section>
 
             <p className="mt-9 border-t border-white/[0.06] pt-5 text-center text-[9px] leading-relaxed text-muted-foreground/42">
-              Generated from today’s metrics and your own baseline. Missing signals stay neutral and never count against you.
+              Built from your goal, current state, connected context and—when available—your own history.
               {isGeneratingCopy ? " Updating your briefing…" : ""}
             </p>
           </div>

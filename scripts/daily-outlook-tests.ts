@@ -21,6 +21,14 @@ const base = {
   scheduleLoadRatio: 1,
   signalCoverage: 0.7,
   primaryOutcome: "focus" as const,
+  workType: "knowledge",
+  behaviorContext: {
+    metricTrendPerDay: 0.2,
+    cognitiveActivityDays7d: 4,
+    gameSessions7d: 3,
+    qualityTimeMinutes7d: 90,
+    recoveryMinutes7d: 35,
+  },
   canPersonalize: true,
   rhythm: {
     status: "reliable" as const,
@@ -34,7 +42,8 @@ const recoveryFirst = deriveDailyOutlook({ ...base, recovery: 30 });
 assert.equal(recoveryFirst.action.key, "recover");
 assert.equal(recoveryFirst.intensity, "protective");
 assert.equal(recoveryFirst.action.metricCode, "REC");
-assert.match(recoveryFirst.summary, /30/);
+assert.match(recoveryFirst.summary, /focus goal in your knowledge work/i);
+assert.match(recoveryFirst.summary, /moving upward/i);
 
 const attentionProtection = deriveDailyOutlook({ ...base, attentionLoadRatio: 1.5 });
 assert.equal(attentionProtection.action.key, "protect_attention");
@@ -57,7 +66,7 @@ assert.equal(strongDecisionDay.windowLabel, "09:30–10:45");
 const scheduleProtection = deriveDailyOutlook({ ...base, readiness: 60, scheduleLoadRatio: 1.5 });
 assert.equal(scheduleProtection.action.key, "protect_capacity");
 assert.equal(scheduleProtection.action.kind, "guidance");
-assert.match(scheduleProtection.summary, /50% above baseline/);
+assert.match(scheduleProtection.summary, /schedule is consuming more capacity than usual/i);
 
 const focusTraining = deriveDailyOutlook({ ...base, recovery: 65, sharpness: 42 });
 assert.equal(focusTraining.action.key, "train_focus");
@@ -85,10 +94,13 @@ const missingSignals = deriveDailyOutlook({
   scheduleLoadRatio: null,
   signalCoverage: 0,
   canPersonalize: false,
+  behaviorContext: null,
   rhythm: null,
 });
 assert.equal(missingSignals.confidenceLabel, "Baseline");
 assert.ok(missingSignals.evidence.every((item) => !["HLT", "SLP", "HRV", "RHR", "ACT", "ATT", "CAL"].includes(item.code)));
+assert.match(missingSignals.summary, /still establishing/i);
+assert.doesNotMatch(missingSignals.summary, /Readiness is|Recovery is|Reasoning is|Sharpness is/i);
 
 for (const outlook of [recoveryFirst, attentionProtection, strongDecisionDay, scheduleProtection, focusTraining, steadyState, missingSignals]) {
   assert.ok(outlook.action.metricCode, "Every recommendation must identify its source metric");
