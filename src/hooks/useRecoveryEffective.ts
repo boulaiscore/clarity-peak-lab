@@ -28,7 +28,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  calculateDailyRecoveryTarget,
+  calculateDailyRecoveryTargetBreakdown,
   getCurrentRecovery,
   hasValidRecoveryData,
   RecoveryState,
@@ -55,6 +55,20 @@ export interface UseRecoveryEffectiveResult {
 
   /** Today's combined Health + wearable recovery target, or neutral 50. */
   recoveryTarget: number;
+
+  /** Exact passive inputs used by the canonical Recovery target. */
+  phoneHealthTarget: number | null;
+  phoneHealthConfidence: number;
+  phoneHealthAvailableSources: string[];
+  phoneHealthUpdatedAt: string | null;
+  phoneHealthSource: string | null;
+  wearableRawScore: number | null;
+  wearableTarget: number | null;
+  wearableConfidence: number;
+  wearableWeight: number;
+  wearableContribution: number;
+  wearableUpdatedAt: string | null;
+  wearableSource: string | null;
   
   /** Loading state */
   isLoading: boolean;
@@ -106,11 +120,18 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const today = format(new Date(), "yyyy-MM-dd");
   const { data: phoneHealthTarget, isLoading: phoneTargetLoading } = useQuery({
     queryKey: ["phone-health-target", userId, today],
-    queryFn: async (): Promise<{ targetRec: number | null; sleepMin: number | null } | null> => {
+    queryFn: async (): Promise<{
+      targetRec: number | null;
+      sleepMin: number | null;
+      confidence: number;
+      availableSources: string[];
+      updatedAt: string | null;
+      source: string | null;
+    } | null> => {
       if (!userId) return null;
       const { data, error } = await supabase
         .from("phone_health_snapshots")
-        .select("target_rec, sleep_min")
+        .select("target_rec, sleep_min, confidence, available_sources, updated_at, source")
         .eq("user_id", userId)
         .eq("date", today)
         .maybeSingle();
@@ -118,6 +139,10 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       return data ? {
         targetRec: data.target_rec ?? null,
         sleepMin: data.sleep_min ?? null,
+        confidence: data.confidence ?? 0,
+        availableSources: data.available_sources ?? [],
+        updatedAt: data.updated_at ?? null,
+        source: data.source ?? null,
       } : null;
     },
     enabled: hasUser,
@@ -130,9 +155,11 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       if (!userId) return null;
       const { data, error } = await supabase
         .from("wearable_snapshots")
-        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
+        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at, source")
         .eq("user_id", userId)
         .eq("date", today)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -149,10 +176,11 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     }, {
       includeSleepDuration: phoneHealthTarget?.sleepMin == null,
     }) : null, [phoneHealthTarget?.sleepMin, wearableSnapshot]);
-  const combinedRecoveryTarget = useMemo(() => calculateDailyRecoveryTarget(
+  const recoveryTargetBreakdown = useMemo(() => calculateDailyRecoveryTargetBreakdown(
     phoneHealthTarget?.targetRec,
     wearablePhysioEstimate,
   ), [phoneHealthTarget, wearablePhysioEstimate]);
+  const combinedRecoveryTarget = recoveryTargetBreakdown.combinedTarget;
   const hasPassiveRecoveryTarget = phoneHealthTarget?.targetRec != null || wearablePhysioEstimate !== null;
   
   // Fetch weekly breakdown for UI display (v2.0: still useful for breakdown)
@@ -224,6 +252,18 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         rriValue: null,
         hasRecoveryData: true,
         recoveryTarget: combinedRecoveryTarget,
+        phoneHealthTarget: recoveryTargetBreakdown.phoneHealthTarget,
+        phoneHealthConfidence: phoneHealthTarget?.confidence ?? 0,
+        phoneHealthAvailableSources: phoneHealthTarget?.availableSources ?? [],
+        phoneHealthUpdatedAt: phoneHealthTarget?.updatedAt ?? null,
+        phoneHealthSource: phoneHealthTarget?.source ?? null,
+        wearableRawScore: recoveryTargetBreakdown.wearableRawScore,
+        wearableTarget: recoveryTargetBreakdown.wearableTarget,
+        wearableConfidence: recoveryTargetBreakdown.wearableConfidence,
+        wearableWeight: recoveryTargetBreakdown.wearableWeight,
+        wearableContribution: recoveryTargetBreakdown.wearableContribution,
+        wearableUpdatedAt: wearableSnapshot?.updated_at ?? null,
+        wearableSource: wearableSnapshot?.source ?? null,
       };
     }
     
@@ -238,6 +278,18 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         rriValue: null,
         hasRecoveryData: true,
         recoveryTarget: combinedRecoveryTarget,
+        phoneHealthTarget: recoveryTargetBreakdown.phoneHealthTarget,
+        phoneHealthConfidence: phoneHealthTarget?.confidence ?? 0,
+        phoneHealthAvailableSources: phoneHealthTarget?.availableSources ?? [],
+        phoneHealthUpdatedAt: phoneHealthTarget?.updatedAt ?? null,
+        phoneHealthSource: phoneHealthTarget?.source ?? null,
+        wearableRawScore: recoveryTargetBreakdown.wearableRawScore,
+        wearableTarget: recoveryTargetBreakdown.wearableTarget,
+        wearableConfidence: recoveryTargetBreakdown.wearableConfidence,
+        wearableWeight: recoveryTargetBreakdown.wearableWeight,
+        wearableContribution: recoveryTargetBreakdown.wearableContribution,
+        wearableUpdatedAt: wearableSnapshot?.updated_at ?? null,
+        wearableSource: wearableSnapshot?.source ?? null,
       };
     }
 
@@ -251,8 +303,27 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       rriValue: null,
       hasRecoveryData: false,
       recoveryTarget: combinedRecoveryTarget,
+      phoneHealthTarget: recoveryTargetBreakdown.phoneHealthTarget,
+      phoneHealthConfidence: phoneHealthTarget?.confidence ?? 0,
+      phoneHealthAvailableSources: phoneHealthTarget?.availableSources ?? [],
+      phoneHealthUpdatedAt: phoneHealthTarget?.updatedAt ?? null,
+      phoneHealthSource: phoneHealthTarget?.source ?? null,
+      wearableRawScore: recoveryTargetBreakdown.wearableRawScore,
+      wearableTarget: recoveryTargetBreakdown.wearableTarget,
+      wearableConfidence: recoveryTargetBreakdown.wearableConfidence,
+      wearableWeight: recoveryTargetBreakdown.wearableWeight,
+      wearableContribution: recoveryTargetBreakdown.wearableContribution,
+      wearableUpdatedAt: wearableSnapshot?.updated_at ?? null,
+      wearableSource: wearableSnapshot?.source ?? null,
     };
-  }, [v2State, combinedRecoveryTarget, hasPassiveRecoveryTarget]);
+  }, [
+    v2State,
+    combinedRecoveryTarget,
+    hasPassiveRecoveryTarget,
+    phoneHealthTarget,
+    recoveryTargetBreakdown,
+    wearableSnapshot,
+  ]);
   
   return {
     ...result,

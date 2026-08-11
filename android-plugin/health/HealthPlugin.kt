@@ -91,6 +91,8 @@ class HealthPlugin : Plugin() {
                     .put("sleep", stateFor(granted, HealthPermission.getReadPermission(SleepSessionRecord::class)))
                     .put("hrv", stateFor(granted, HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class)))
                     .put("restingHr", stateFor(granted, HealthPermission.getReadPermission(RestingHeartRateRecord::class)))
+                    .put("steps", stateFor(granted, HealthPermission.getReadPermission(StepsRecord::class)))
+                    .put("activeMinutes", stateFor(granted, HealthPermission.getReadPermission(ExerciseSessionRecord::class)))
                 call.resolve(JSObject().put("permissions", result))
             } catch (error: Exception) {
                 call.reject("Could not inspect Health Connect permissions", error)
@@ -151,15 +153,13 @@ class HealthPlugin : Plugin() {
         pluginScope.launch {
             try {
                 val granted = client.permissionController.getGrantedPermissions()
-                val coreGranted = setOf(
-                    HealthPermission.getReadPermission(SleepSessionRecord::class),
-                    HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
-                    HealthPermission.getReadPermission(RestingHeartRateRecord::class),
-                ).any(granted::contains)
+                val coreGranted = permissions.any(granted::contains)
                 val resultPayload = JSObject()
                     .put("sleep", stateFor(granted, HealthPermission.getReadPermission(SleepSessionRecord::class)))
                     .put("hrv", stateFor(granted, HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class)))
                     .put("restingHr", stateFor(granted, HealthPermission.getReadPermission(RestingHeartRateRecord::class)))
+                    .put("steps", stateFor(granted, HealthPermission.getReadPermission(StepsRecord::class)))
+                    .put("activeMinutes", stateFor(granted, HealthPermission.getReadPermission(ExerciseSessionRecord::class)))
                 call.resolve(
                     JSObject()
                         .put("granted", coreGranted)
@@ -447,6 +447,8 @@ class HealthPlugin : Plugin() {
             .put("sleep", state)
             .put("hrv", state)
             .put("restingHr", state)
+            .put("steps", state)
+            .put("activeMinutes", state)
     }
 
     private fun openHealthConnectPlayStore(pluginContext: Context) {

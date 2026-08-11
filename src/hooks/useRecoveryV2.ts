@@ -139,6 +139,8 @@ export function useRecoveryV2(): UseRecoveryV2Result {
         .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
         .eq("user_id", userId)
         .eq("date", today)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return data;

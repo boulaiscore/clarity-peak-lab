@@ -26,6 +26,8 @@ export class HealthPluginWeb implements HealthPluginInterface {
         sleep: "not_determined",
         hrv: "not_determined",
         restingHr: "not_determined",
+        steps: "not_determined",
+        activeMinutes: "not_determined",
       },
     };
   }
@@ -33,7 +35,13 @@ export class HealthPluginWeb implements HealthPluginInterface {
   async requestPermissions(): Promise<{ granted: boolean; permissions: HealthPermissionStatus }> {
     return {
       granted: false,
-      permissions: { sleep: "denied", hrv: "denied", restingHr: "denied" },
+      permissions: {
+        sleep: "denied",
+        hrv: "denied",
+        restingHr: "denied",
+        steps: "denied",
+        activeMinutes: "denied",
+      },
     };
   }
 

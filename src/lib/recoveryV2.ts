@@ -45,6 +45,80 @@ export interface RecoveryWearableEstimate {
   confidence: number;
 }
 
+export interface DailyRecoveryTargetBreakdown {
+  /** Confidence-blended target produced by Phone Health, when available. */
+  phoneHealthTarget: number | null;
+  /** Raw 0-100 physiological estimate before it is mapped to REC's 35-65 range. */
+  wearableRawScore: number | null;
+  /** Wearable estimate mapped to REC's deliberately bounded 35-65 target range. */
+  wearableTarget: number | null;
+  /** Fraction of the available wearable signal set observed today. */
+  wearableConfidence: number;
+  /** Effective weight of wearable physiology in today's combined target. */
+  wearableWeight: number;
+  /** Signed change produced by wearable physiology versus the available base target. */
+  wearableContribution: number;
+  /** Final target consumed by Home, Monitor, gating, actions and history. */
+  combinedTarget: number;
+}
+
+const roundRecovery = (value: number): number =>
+  Math.round(Math.max(0, Math.min(100, value)) * 10) / 10;
+const roundSigned = (value: number): number => Math.round(value * 10) / 10;
+
+/**
+ * Canonical, explainable breakdown for today's passive Recovery target.
+ * UI surfaces consume this result instead of recreating coefficients.
+ */
+export function calculateDailyRecoveryTargetBreakdown(
+  phoneHealthTarget: number | null | undefined,
+  wearable: RecoveryWearableEstimate | null | undefined,
+): DailyRecoveryTargetBreakdown {
+  const phoneTarget = phoneHealthTarget != null && Number.isFinite(phoneHealthTarget)
+    ? Math.max(0, Math.min(100, phoneHealthTarget))
+    : null;
+  const wearableConfidence = wearable
+    ? Math.max(0, Math.min(1, wearable.confidence))
+    : 0;
+  const wearableRawScore = wearable
+    ? Math.max(0, Math.min(100, wearable.rawScore))
+    : null;
+  const wearableTarget = wearableRawScore == null
+    ? null
+    : 35 + 0.30 * wearableRawScore;
+
+  if (phoneTarget === null) {
+    const baseTarget = 50;
+    const wearableWeight = wearableTarget == null ? 0 : wearableConfidence;
+    const wearableContribution = wearableTarget == null
+      ? 0
+      : wearableWeight * (wearableTarget - baseTarget);
+    return {
+      phoneHealthTarget: null,
+      wearableRawScore,
+      wearableTarget: wearableTarget == null ? null : roundRecovery(wearableTarget),
+      wearableConfidence,
+      wearableWeight,
+      wearableContribution: roundSigned(wearableContribution),
+      combinedTarget: roundRecovery(baseTarget + wearableContribution),
+    };
+  }
+
+  const wearableWeight = wearableTarget == null ? 0 : 0.50 * wearableConfidence;
+  const wearableContribution = wearableTarget == null
+    ? 0
+    : wearableWeight * (wearableTarget - phoneTarget);
+  return {
+    phoneHealthTarget: roundRecovery(phoneTarget),
+    wearableRawScore,
+    wearableTarget: wearableTarget == null ? null : roundRecovery(wearableTarget),
+    wearableConfidence,
+    wearableWeight,
+    wearableContribution: roundSigned(wearableContribution),
+    combinedTarget: roundRecovery(phoneTarget + wearableContribution),
+  };
+}
+
 /**
  * Combines the confidence-blended Phone Health target with today's wearable
  * physiology. Wearable confidence controls its influence, so a partial record
@@ -54,24 +128,7 @@ export function calculateDailyRecoveryTarget(
   phoneHealthTarget: number | null | undefined,
   wearable: RecoveryWearableEstimate | null | undefined,
 ): number {
-  const phoneTarget = phoneHealthTarget != null && Number.isFinite(phoneHealthTarget)
-    ? Math.max(0, Math.min(100, phoneHealthTarget))
-    : null;
-  const wearableConfidence = wearable
-    ? Math.max(0, Math.min(1, wearable.confidence))
-    : 0;
-  const wearableTarget = wearable
-    ? 35 + 0.30 * Math.max(0, Math.min(100, wearable.rawScore))
-    : 50;
-
-  if (phoneTarget === null) {
-    return Math.round((50 + wearableConfidence * (wearableTarget - 50)) * 10) / 10;
-  }
-  if (wearableConfidence <= 0) return Math.round(phoneTarget * 10) / 10;
-
-  const wearableWeight = 0.50 * wearableConfidence;
-  const combined = phoneTarget * (1 - wearableWeight) + wearableTarget * wearableWeight;
-  return Math.round(Math.max(0, Math.min(100, combined)) * 10) / 10;
+  return calculateDailyRecoveryTargetBreakdown(phoneHealthTarget, wearable).combinedTarget;
 }
 
 // ============================================

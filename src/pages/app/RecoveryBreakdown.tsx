@@ -143,7 +143,16 @@ function confidenceLabel(c: number): string {
 
 export default function RecoveryBreakdown() {
   const navigate = useNavigate();
-  const { recoveryEffective: recovery, recoveryTarget } = useRecoveryEffective();
+  const {
+    recoveryEffective: recovery,
+    recoveryTarget,
+    phoneHealthTarget,
+    wearableRawScore,
+    wearableConfidence,
+    wearableWeight,
+    wearableContribution,
+    wearableSource,
+  } = useRecoveryEffective();
   const { data: snapshot } = useTodayPhoneHealthSnapshot();
   const { data: activities } = useTodayActivities();
   const detoxMinutes = (activities ?? [])
@@ -167,8 +176,8 @@ export default function RecoveryBreakdown() {
   const walkBoost = Math.round(0.06 * (walkingMinutes ?? 0) * 10) / 10;
 
   const coachLine = (() => {
-    if (!result.hasData) {
-      return "Connect Apple Health or Health Connect to unlock a personalized recovery target.";
+    if (!result.hasData && wearableRawScore == null) {
+      return "Connect Health data to replace the neutral estimate with signals from your day.";
     }
     if (result.confidence < 0.5) {
       return "Partial data today — target blended with baseline. Grant more Health permissions for full precision.";
@@ -274,7 +283,7 @@ export default function RecoveryBreakdown() {
         <div className="rounded-xl bg-card/40 border border-border/40 p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[12px] text-muted-foreground">
-              Phone Health Index
+              Health context index
             </span>
             <span className="text-[14px] font-semibold tabular-nums text-foreground">
               {result.hasData ? result.phi.toFixed(0) : "—"}
@@ -282,7 +291,25 @@ export default function RecoveryBreakdown() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[12px] text-muted-foreground">
-              Health target today
+              Health target
+            </span>
+            <span className="text-[14px] font-semibold tabular-nums text-foreground">
+              {phoneHealthTarget?.toFixed(0) ?? "—"}
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between border-t border-border/30 pt-2">
+            <span className="text-[12px] text-muted-foreground">
+              {wearableSource === "health_connect" ? "Health Connect physiology" : wearableSource === "healthkit" ? "Apple Health physiology" : "Wearable physiology"}
+            </span>
+            <span className="text-right text-[12px] tabular-nums text-foreground/75">
+              {wearableRawScore == null
+                ? "Not received"
+                : `${wearableRawScore.toFixed(0)} · ${Math.round(wearableWeight * 100)}% weight · ${wearableContribution >= 0 ? "+" : ""}${wearableContribution.toFixed(1)}`}
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between border-t border-border/30 pt-2">
+            <span className="text-[12px] font-medium text-foreground/85">
+              Combined daily target
             </span>
             <span className="text-[14px] font-semibold tabular-nums text-recovery">
               {recoveryTarget.toFixed(0)}
@@ -292,7 +319,12 @@ export default function RecoveryBreakdown() {
             <div className="mt-2 pt-2 border-t border-border/30 text-[10.5px] text-foreground/50 leading-relaxed">
               Phone Health is blended with baseline 50 at{" "}
               {Math.round((1 - result.confidence) * 100)}% due to missing
-              sources. Wearable physiology is added when available.
+              sources. Wearable physiology is then blended with its own observed coverage.
+            </div>
+          )}
+          {wearableRawScore != null && wearableConfidence < 1 && (
+            <div className="mt-2 text-[10.5px] leading-relaxed text-foreground/50">
+              Wearable coverage today: {Math.round(wearableConfidence * 100)}%. Missing signals do not count as zero.
             </div>
           )}
         </div>
@@ -329,7 +361,7 @@ export default function RecoveryBreakdown() {
           {coachLine}
         </p>
 
-        {result.confidence < 0.5 && (
+        {(result.confidence < 0.5 || wearableRawScore == null) && (
           <button
             onClick={() => navigate("/app/wearable")}
             className="mt-6 w-full py-3 rounded-xl bg-recovery/15 border border-recovery/30 text-recovery text-[13px] font-medium hover:bg-recovery/20 transition-colors"

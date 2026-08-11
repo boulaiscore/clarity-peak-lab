@@ -24,6 +24,17 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
     recoveryTarget,
     isV2Initialized,
     hasRecoveryData,
+    phoneHealthTarget,
+    phoneHealthConfidence,
+    phoneHealthAvailableSources,
+    phoneHealthUpdatedAt,
+    phoneHealthSource,
+    wearableRawScore,
+    wearableConfidence,
+    wearableWeight,
+    wearableContribution,
+    wearableUpdatedAt,
+    wearableSource,
     weeklyDetoxMinutes,
     weeklyWalkMinutes,
     isLoading,
@@ -42,6 +53,19 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         : recovery >= 50
           ? "Steady reserve. Deep focus is available with pacing."
           : "Today favors restoration before demanding work.";
+  const healthLabel = phoneHealthSource === "health_connect"
+    ? "Health Connect target"
+    : phoneHealthSource === "healthkit"
+      ? "Apple Health target"
+      : "Neutral baseline";
+  const healthValue = phoneHealthTarget ?? 50;
+  const healthWeight = `${Math.round((1 - wearableWeight) * 100)}%`;
+  const healthFreshness = phoneHealthUpdatedAt
+    ? `Today · ${new Date(phoneHealthUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+    : "No Health snapshot today";
+  const wearableFreshness = wearableUpdatedAt
+    ? `Today · ${new Date(wearableUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+    : "No wearable snapshot today";
 
   return (
     <div className="space-y-6 pb-8">
@@ -62,11 +86,37 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
 
       <MetricInterpretationNote changeDrivers="rest, screen-free time, walking and daily conditions" />
 
-      <MetricFactorsSection title="What moves Recovery">
+      <MetricFactorsSection title="Inputs used today">
+        <MetricFactorCard
+          code="HLT"
+          name={healthLabel}
+          description={phoneHealthTarget == null
+            ? "No Health data was stored today, so the formula starts from the neutral value."
+            : `${phoneHealthAvailableSources.length} Health signal groups observed at ${Math.round(phoneHealthConfidence * 100)}% coverage.`}
+          value={healthValue}
+          weight={healthWeight}
+          contribution={phoneHealthTarget == null ? "Neutral base" : `Base ${Math.round(phoneHealthTarget)}`}
+          contributionTone="muted"
+          window={healthFreshness}
+          estimated={phoneHealthTarget == null}
+        />
+        <MetricFactorCard
+          code="PHY"
+          name={wearableSource === "health_connect" ? "Wearable physiology · Health Connect" : wearableSource === "healthkit" ? "Wearable physiology · Apple Health" : "Wearable physiology"}
+          description={wearableRawScore == null
+            ? "No HRV, resting-heart-rate or distinct sleep signal was stored today."
+            : `Observed physiology coverage is ${Math.round(wearableConfidence * 100)}%; missing signals stay neutral.`}
+          value={wearableRawScore}
+          weight={`${Math.round(wearableWeight * 100)}%`}
+          contribution={wearableRawScore == null ? "Not used" : wearableContribution}
+          contributionTone={wearableContribution < 0 ? "negative" : wearableContribution === 0 ? "muted" : "default"}
+          window={wearableFreshness}
+          estimated={wearableRawScore == null}
+        />
         <MetricFactorCard
           code="RECₜ"
-          name="Daily Recovery Target"
-          description="Health and wearable target, confidence-blended toward the neutral baseline of 50."
+          name="Combined daily target"
+          description="The single target shared by Home, Monitor, Lab gating and metric history."
           value={recoveryTarget}
           weight="65% of gap/day"
           contribution={`Toward ${Math.round(recoveryTarget)}`}
@@ -74,6 +124,9 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
           window="Today"
           estimated
         />
+      </MetricFactorsSection>
+
+      <MetricFactorsSection title="Recovery actions">
         <MetricFactorCard
           code="DET"
           name="Digital Detox"
@@ -93,6 +146,15 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
           window="Rolling 7 days"
         />
       </MetricFactorsSection>
+
+      {(!phoneHealthTarget || wearableRawScore == null) && (
+        <Link
+          to="/app/wearable"
+          className="block rounded-xl border border-border/35 bg-card/30 px-4 py-3 text-center text-xs font-medium text-foreground/80 transition-colors hover:bg-card/55"
+        >
+          Review Health & wearable data
+        </Link>
+      )}
 
       <div className="grid grid-cols-2 gap-3 pt-1">
         <Link to="/neuro-lab?tab=detox">

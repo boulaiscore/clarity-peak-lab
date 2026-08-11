@@ -57,6 +57,8 @@ export interface HealthPermissionStatus {
   sleep: "granted" | "denied" | "not_determined";
   hrv: "granted" | "denied" | "not_determined";
   restingHr: "granted" | "denied" | "not_determined";
+  steps: "granted" | "denied" | "not_determined";
+  activeMinutes: "granted" | "denied" | "not_determined";
 }
 
 export interface StepsRecord {
