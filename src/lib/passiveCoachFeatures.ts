@@ -452,14 +452,14 @@ function buildAdaptiveContextPoints(input: PassiveFeatureInput): AdaptiveContext
         .filter((session) => session.startedAt.slice(0, 10) === date && session.isValidForRq);
       const attentionGameScores = dailyGames
         .filter((session) => session.skillRouted === "AE" || session.skillRouted === "RA")
-        .map((session) => clamp(session.score));
+        .map((session) => clamp(session.score, 0, 100));
       const executiveGameScores = dailyGames
         .filter((session) => session.skillRouted === "CT" || session.skillRouted === "IN")
-        .map((session) => clamp(session.score));
+        .map((session) => clamp(session.score, 0, 100));
       const focusScores = dailyReasons
         .map((session) => clamp(
           50 + Math.min(18, session.durationSeconds / 120) - session.backgroundInterrupts * 8,
-        ));
+        , 0, 100));
       const earliestOutcomeAt = [
         ...dailyGames.map((session) => {
           const completedAt = dateValue(session.completedAt);
