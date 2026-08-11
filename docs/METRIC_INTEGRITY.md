@@ -71,8 +71,8 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
 
 ## Daily state and recommendation contract
 
-- The Home state card and the Lab recommendation both use
-  `deriveDailyCognitiveState`; neither tab may recreate its own thresholds.
+- The Lab recommendation uses `deriveDailyCognitiveState`; other surfaces must
+  not recreate a conflicting recommendation from the same inputs.
 - The recommendation can read canonical Readiness, Recovery, Sharpness and RQ,
   plus privacy-safe Health, attention-load and schedule-load aggregates.
 - Attention and schedule loads are ratios against the user's own rolling
@@ -80,7 +80,9 @@ are applied. SCI does not calculate a second weekly Recovery approximation.
 - Recommendation priority is conservative: limited recovery first, then high
   attention or schedule load, then demanding-work readiness, trainable
   Sharpness/RQ opportunities, and finally the steady default.
-- These rules choose explanatory copy and navigation only. They never mutate a
+- Home keeps its canonical metric rings and Recovery presentation unchanged;
+  passive data collection and shadow evaluation run independently of its UI.
+- The recommendation rules choose explanatory copy and navigation only. They never mutate a
   metric, training gate, protocol, difficulty or Adaptive Coach forecast.
 - The Adaptive Coach remains in shadow mode. It may replace these active rules
   only after its documented evidence gates pass and a separate product release

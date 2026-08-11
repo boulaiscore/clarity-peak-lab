@@ -58,10 +58,6 @@ export function TodayActivitiesCard({ activeQualityTime }: TodayActivitiesCardPr
   const navigate = useNavigate();
   const { data: activities = [], isLoading } = useTodayActivities();
 
-  if (!isLoading && activities.length === 0 && !activeQualityTime) {
-    return null;
-  }
-
   return (
     <motion.section
       initial={{ opacity: 0, y: 10 }}
