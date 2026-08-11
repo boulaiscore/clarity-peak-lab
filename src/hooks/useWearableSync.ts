@@ -45,6 +45,7 @@ const DAYS_TO_SYNC = 2;
 
 export interface WearableSyncState {
   isAvailable: boolean;
+  isCheckingAvailability: boolean;
   isConnected: boolean;
   permissions: HealthPermissionStatus | null;
   lastSyncAt: Date | null;
@@ -74,6 +75,7 @@ export function useWearableSync() {
 
   const [state, setState] = useState<WearableSyncState>({
     isAvailable: false,
+    isCheckingAvailability: true,
     isConnected: false,
     permissions: null,
     lastSyncAt: null,
@@ -87,7 +89,11 @@ export function useWearableSync() {
   useEffect(() => {
     const checkAvailability = async () => {
       const available = await isHealthAvailable();
-      setState((prev) => ({ ...prev, isAvailable: available }));
+      setState((prev) => ({
+        ...prev,
+        isAvailable: available,
+        isCheckingAvailability: available,
+      }));
 
       if (available) {
         const permResult = await checkPermissions();
@@ -105,9 +111,13 @@ export function useWearableSync() {
             ...prev,
             permissions: perms,
             isConnected,
+            isCheckingAvailability: false,
           }));
+          return;
         }
       }
+
+      setState((prev) => ({ ...prev, isCheckingAvailability: false }));
     };
 
     checkAvailability();

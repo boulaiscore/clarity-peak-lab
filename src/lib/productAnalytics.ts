@@ -39,7 +39,10 @@ export type ProductEventName =
   | "work_outcome_logged"
   | "daily_outlook_shown"
   | "daily_outlook_opened"
-  | "daily_outlook_action_started";
+  | "daily_outlook_action_started"
+  | "health_permission_prompt_viewed"
+  | "health_permission_prompt_connected"
+  | "health_permission_prompt_deferred";
 
 type EventProperties = Record<string, string | number | boolean | null>;
 

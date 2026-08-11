@@ -30,7 +30,7 @@ const navItems = [
 
 const menuItems = [
   { to: "/app/profile", icon: User, label: "Profile" },
-  { to: "/app/wearable", icon: ({ className }: { className?: string }) => <GarminIcon className={className} size={20} />, label: "Wearable" },
+  { to: "/app/wearable", icon: ({ className }: { className?: string }) => <GarminIcon className={className} size={20} />, label: "Health & wearables" },
   { to: "/app/settings", icon: Settings, label: "Settings" },
   { to: "/app/subscription", icon: CreditCard, label: "Subscription" },
 ];

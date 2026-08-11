@@ -32,6 +32,8 @@ import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
 import { DailyOutlookCard } from "@/components/home/DailyOutlookCard";
+import { FirstRunHealthAccess } from "@/components/onboarding/FirstRunHealthAccess";
+import { isNativePlatform } from "@/lib/capacitor/health";
 
 interface RingProps {
   value: number;
@@ -93,6 +95,9 @@ const ProgressRing = ({
 
 const Home = () => {
   const navigate = useNavigate();
+  const [healthAccessBlockingTutorial, setHealthAccessBlockingTutorial] = useState(
+    () => isNativePlatform(),
+  );
   const {
     user
   } = useAuth();
@@ -390,7 +395,11 @@ const Home = () => {
 
       
       {/* Onboarding Tutorial - appears once after first login post-onboarding */}
-      <OnboardingTutorial show={showTutorial} onComplete={markTutorialComplete} />
+      <OnboardingTutorial
+        show={!healthAccessBlockingTutorial && showTutorial}
+        onComplete={markTutorialComplete}
+      />
+      <FirstRunHealthAccess onVisibilityChange={setHealthAccessBlockingTutorial} />
     </>}
     </AppShell>;
 };
