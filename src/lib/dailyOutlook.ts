@@ -320,34 +320,50 @@ function confidenceLabel(confidence: number): DailyOutlook["confidenceLabel"] {
   return "Baseline";
 }
 
+function dayDelta(current: number, previous: number | null | undefined): number | null {
+  const prior = finite(previous ?? null);
+  if (prior === null) return null;
+  const delta = roundedScore(current) - roundedScore(prior);
+  return Number.isFinite(delta) ? delta : null;
+}
+
+function metricDetail(current: number, previous: number | null | undefined): string {
+  const delta = dayDelta(current, previous);
+  if (delta === null) return `${roundedScore(current)} today`;
+  if (delta === 0) return `${roundedScore(current)} today · flat vs yesterday`;
+  return `${roundedScore(current)} today · ${delta > 0 ? "+" : ""}${delta} vs yesterday`;
+}
+
 function buildEvidence(input: DailyOutlookInput): DailyOutlookEvidence[] {
   const healthSignals = normalizeHealthSignals(input.healthSignals);
+  const previous = input.previousMetrics ?? null;
   const evidence: DailyOutlookEvidence[] = [
     {
       code: "REC",
       label: "Recovery",
-      detail: `${roundedScore(input.recovery)} today`,
+      detail: metricDetail(input.recovery, previous?.recovery),
       tone: metricTone(input.recovery, 60, 45),
     },
     {
       code: "RDY",
       label: "Readiness",
-      detail: `${roundedScore(input.readiness)} today`,
+      detail: metricDetail(input.readiness, previous?.readiness),
       tone: metricTone(input.readiness, 65, 45),
     },
     {
       code: "SHP",
       label: "Sharpness",
-      detail: `${roundedScore(input.sharpness)} today`,
+      detail: metricDetail(input.sharpness, previous?.sharpness),
       tone: metricTone(input.sharpness, 65, 45),
     },
     {
       code: "RQ",
       label: "Reasoning",
-      detail: `${roundedScore(input.reasoningQuality)} today`,
+      detail: metricDetail(input.reasoningQuality, previous?.reasoningQuality),
       tone: metricTone(input.reasoningQuality, 65, 45),
     },
   ];
+
 
   const healthScore = finite(input.healthScore);
   if (healthScore !== null) {
