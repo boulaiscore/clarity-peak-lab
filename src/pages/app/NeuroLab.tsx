@@ -101,16 +101,8 @@ export default function NeuroLab() {
   const weeklyLoadXP = cappedTotalXP;
 
   // Recovery for dynamic guidance
-  const {
-    recoveryEffective,
-    isLoading: recoveryLoading
-  } = useRecoveryEffective();
-  const {
-    sharpness,
-    readiness,
-    isLoading: metricsLoading,
-  } = useTodayMetrics();
-  const { rq, isLoading: reasoningLoading } = useReasoningQuality();
+  const { recoveryEffective } = useRecoveryEffective();
+  const { rq } = useReasoningQuality();
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit" | "three-day-streak">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
