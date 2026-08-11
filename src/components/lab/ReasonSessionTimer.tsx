@@ -202,7 +202,7 @@ export function ReasonSessionTimer({ session, onComplete, onAbort }: ReasonSessi
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
           <div className="flex items-center gap-2">
-            <Icon className={cn("h-3.5 w-3.5", isReading ? "text-amber-200/75" : "text-violet-200/75")} strokeWidth={1.5} />
+            <Icon className="h-3.5 w-3.5 text-white/65" strokeWidth={1.5} />
             <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/75">{session.session_type}</span>
           </div>
           <div className="w-9" /> {/* Spacer for centering */}
@@ -230,7 +230,7 @@ export function ReasonSessionTimer({ session, onComplete, onAbort }: ReasonSessi
                 cy="124"
                 r={TIMER_RING_RADIUS}
                 fill="none"
-                stroke={isReading ? "rgba(253,230,138,0.82)" : "rgba(221,214,254,0.82)"}
+                stroke="rgba(255,255,255,0.72)"
                 strokeWidth="8"
                 strokeLinecap="round"
                 strokeDasharray={TIMER_RING_CIRCUMFERENCE}
@@ -257,7 +257,7 @@ export function ReasonSessionTimer({ session, onComplete, onAbort }: ReasonSessi
           {/* Status indicators */}
           <div className="mb-6 flex min-h-5 items-center gap-3">
             {isPaused && (
-              <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-200/75">
+              <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/65">
                 <Pause className="h-3 w-3" /> Paused
               </span>
             )}

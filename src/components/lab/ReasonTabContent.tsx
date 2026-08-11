@@ -40,13 +40,13 @@ function QualityModeVisual({ type }: { type: SessionType }) {
         {[78, 100, 86, 62].map((width, index) => (
           <motion.span
             key={width}
-            className="block h-px origin-left bg-gradient-to-r from-amber-200/75 to-amber-300/10"
+            className="block h-px origin-left bg-gradient-to-r from-white/70 to-white/[0.08]"
             style={{ width: `${width}%` }}
             animate={reduceMotion ? undefined : { opacity: [0.28, 0.9, 0.28], scaleX: [0.86, 1, 0.86] }}
             transition={reduceMotion ? undefined : { duration: 3.8, repeat: Infinity, delay: index * 0.38, ease: "easeInOut" }}
           />
         ))}
-        <div className="absolute -left-2 inset-y-1 w-px bg-amber-300/45" />
+        <div className="absolute -left-2 inset-y-1 w-px bg-white/35" />
       </div>
     );
   }
@@ -57,7 +57,7 @@ function QualityModeVisual({ type }: { type: SessionType }) {
       {bars.map((height, index) => (
         <motion.span
           key={`${height}-${index}`}
-          className="w-1 rounded-full bg-gradient-to-t from-violet-400/25 to-violet-200/85"
+          className="w-1 rounded-full bg-gradient-to-t from-white/[0.14] to-white/75"
           style={{ height }}
           animate={reduceMotion ? undefined : { scaleY: [0.68, 1.08, 0.68], opacity: [0.35, 0.95, 0.35] }}
           transition={reduceMotion ? undefined : { duration: 2.8, repeat: Infinity, delay: index * 0.18, ease: "easeInOut" }}
@@ -145,12 +145,12 @@ export function ReasonTabContent() {
         {/* Read Card */}
         <button
           onClick={() => setShowBooks(true)}
-          className="group relative min-h-[168px] w-full overflow-hidden rounded-[18px] border border-amber-300/[0.16] bg-[#0b0d10] p-4 text-left transition-all hover:border-amber-300/35"
+          className="group relative min-h-[168px] w-full overflow-hidden rounded-[18px] border border-white/[0.09] bg-[#0b0d10] p-4 text-left transition-all hover:border-white/[0.2]"
         >
-          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_32%_35%,rgba(251,191,36,0.13),transparent_62%)]" />
+          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_32%_35%,rgba(255,255,255,0.07),transparent_62%)]" />
           <div className="relative flex items-start justify-between">
-            <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-amber-200/70">Read</span>
-            <BookOpen className="h-3.5 w-3.5 text-amber-200/65" strokeWidth={1.4} />
+            <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-white/60">Read</span>
+            <BookOpen className="h-3.5 w-3.5 text-white/55" strokeWidth={1.4} />
           </div>
           <div className="relative mt-1 flex h-[68px] items-center justify-center">
             <QualityModeVisual type="reading" />
@@ -163,7 +163,7 @@ export function ReasonTabContent() {
                   {activeBooks.length > 0 ? `${activeBooks.length} in progress` : "Books · articles"}
                 </p>
               </div>
-              <span className="text-[11px] font-semibold tabular-nums text-amber-200/85">
+              <span className="text-[11px] font-semibold tabular-nums text-white/75">
                 {LOOMA_ITEM_WEIGHTS.book.toFixed(1)}× <span className="text-[8px] tracking-[0.1em] text-white/35">RQ</span>
               </span>
             </div>
@@ -173,12 +173,12 @@ export function ReasonTabContent() {
         {/* Listen Card */}
         <button
           onClick={() => { setSelectorMode("listening"); setShowSelector(true); }}
-          className="group relative min-h-[168px] w-full overflow-hidden rounded-[18px] border border-violet-300/[0.16] bg-[#0b0d10] p-4 text-left transition-all hover:border-violet-300/35"
+          className="group relative min-h-[168px] w-full overflow-hidden rounded-[18px] border border-white/[0.09] bg-[#0b0d10] p-4 text-left transition-all hover:border-white/[0.2]"
         >
-          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_50%_35%,rgba(139,92,246,0.16),transparent_62%)]" />
+          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.055),transparent_62%)]" />
           <div className="relative flex items-start justify-between">
-            <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-violet-200/70">Listen</span>
-            <Headphones className="h-3.5 w-3.5 text-violet-200/65" strokeWidth={1.4} />
+            <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-white/60">Listen</span>
+            <Headphones className="h-3.5 w-3.5 text-white/55" strokeWidth={1.4} />
           </div>
           <div className="relative mt-1 flex h-[68px] items-center justify-center">
             <QualityModeVisual type="listening" />
@@ -189,7 +189,7 @@ export function ReasonTabContent() {
                 <p className="text-[13px] font-semibold tracking-tight text-white">Focused listening</p>
                 <p className="mt-0.5 text-[9px] text-white/50">Podcasts · audiobooks</p>
               </div>
-              <span className="text-[11px] font-semibold tabular-nums text-violet-200/85">
+              <span className="text-[11px] font-semibold tabular-nums text-white/75">
                 {LOOMA_ITEM_WEIGHTS.podcast.toFixed(1)}× <span className="text-[8px] tracking-[0.1em] text-white/35">RQ</span>
               </span>
             </div>
@@ -202,7 +202,7 @@ export function ReasonTabContent() {
           onClick={() => setShowContinue(true)}
           className="flex w-full items-center gap-3 rounded-[14px] border border-white/[0.055] bg-white/[0.018] px-4 py-3 text-left transition-colors hover:bg-white/[0.035]"
         >
-          <Bookmark className="h-3.5 w-3.5 text-amber-200/65" strokeWidth={1.5} />
+          <Bookmark className="h-3.5 w-3.5 text-white/55" strokeWidth={1.5} />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-medium text-foreground/85">Continue reading</p>
             <p className="truncate text-[9px] text-muted-foreground/55">

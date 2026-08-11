@@ -155,7 +155,7 @@ export function ActiveBooksView() {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-[16px] border border-white/[0.065] bg-white/[0.018] p-6 text-center"
         >
-          <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-[11px] border border-amber-300/15 bg-amber-400/[0.05] text-[8px] font-semibold tracking-[0.1em] text-amber-200/65">READ</span>
+          <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-[11px] border border-white/[0.09] bg-white/[0.03] text-[8px] font-semibold tracking-[0.1em] text-white/60">READ</span>
           <p className="mb-1 text-[13px] font-semibold text-foreground/85">No books in progress</p>
           <p className="mb-4 text-[10px] leading-relaxed text-muted-foreground/55">
             Pick from the curated LOOMA library or add your own title
@@ -185,8 +185,8 @@ export function ActiveBooksView() {
                       className="w-10 h-14 object-cover rounded-md shrink-0 bg-muted"
                     />
                   ) : (
-                    <div className="w-10 h-14 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
-                      <BookOpen className="w-5 h-5 text-amber-500" />
+                    <div className="w-10 h-14 rounded-md border border-white/[0.08] bg-white/[0.03] flex items-center justify-center shrink-0">
+                      <BookOpen className="w-5 h-5 text-white/60" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">

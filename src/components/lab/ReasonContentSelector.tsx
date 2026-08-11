@@ -184,7 +184,7 @@ export function ReasonContentSelector({
                 onClick={() => setMode("looma")}
                 className="group flex w-full items-center gap-3 rounded-[14px] border border-white/[0.07] bg-white/[0.022] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.04]"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-violet-300/20 bg-violet-400/[0.06] text-[9px] font-semibold tracking-[0.12em] text-violet-200/75">01</span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.1] bg-white/[0.035] text-[9px] font-semibold tracking-[0.12em] text-white/65">01</span>
                 <div className="flex-1 text-left">
                   <p className="text-[13px] font-semibold text-foreground/95">Curated by LOOMA</p>
                   <p className="mt-0.5 text-[10px] text-muted-foreground/60">
@@ -244,9 +244,9 @@ export function ReasonContentSelector({
                         <div className="flex items-center gap-3 mb-2">
                           <span className={cn(
                             "flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border text-[8px] font-semibold tracking-[0.1em]",
-                            item.format === "podcast" && "border-violet-300/20 bg-violet-400/[0.06] text-violet-200/75",
+                            item.format === "podcast" && "border-white/[0.1] bg-white/[0.035] text-white/65",
                             item.format === "reading" && "border-white/[0.08] bg-white/[0.025] text-white/55",
-                            item.format === "book" && "border-amber-300/20 bg-amber-400/[0.06] text-amber-200/75",
+                            item.format === "book" && "border-white/[0.1] bg-white/[0.035] text-white/65",
                           )}>
                             {item.format === "podcast" ? "POD" : item.format === "book" ? "BOOK" : "READ"}
                           </span>
@@ -263,7 +263,7 @@ export function ReasonContentSelector({
                             <span>•</span>
                             <span>{item.durationMinutes} min</span>
                             <span>•</span>
-                            <span className={cn("font-semibold", item.format === "podcast" ? "text-violet-200/75" : "text-amber-200/75")}>
+                            <span className="font-semibold text-white/65">
                               {LOOMA_ITEM_WEIGHTS[item.format]?.toFixed(1) || "1.0"}×
                             </span>
                           </div>
@@ -360,7 +360,7 @@ export function ReasonContentSelector({
                   className={cn(
                     "flex flex-1 items-center justify-center gap-2 rounded-[12px] border py-2.5 transition-all",
                     sessionType === "listening" 
-                      ? "border-violet-300/30 bg-violet-400/[0.07] text-violet-100"
+                      ? "border-white/[0.2] bg-white/[0.075] text-foreground"
                       : "border-white/[0.065] bg-white/[0.018] text-muted-foreground hover:border-white/[0.13]"
                   )}
                 >
@@ -484,12 +484,12 @@ export function ReasonContentSelector({
               
               {/* Podcast info */}
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-violet-300/20 bg-violet-400/[0.06]">
-                  <Headphones className="h-4 w-4 text-violet-200/80" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-white/[0.1] bg-white/[0.035]">
+                  <Headphones className="h-4 w-4 text-white/65" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">{previewItem.author}</p>
-                  <p className="text-sm font-medium text-violet-200/80">
+                  <p className="text-sm font-medium text-white/70">
                     {LOOMA_ITEM_WEIGHTS[previewItem.format]?.toFixed(1) || "1.0"}× weight
                   </p>
                 </div>

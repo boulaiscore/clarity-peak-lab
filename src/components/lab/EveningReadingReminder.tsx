@@ -109,7 +109,7 @@ export function EveningReadingReminder() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-20 left-4 right-4 z-50 p-4 rounded-2xl border border-amber-500/30 bg-card shadow-lg shadow-black/20"
+          className="fixed bottom-20 left-4 right-4 z-50 p-4 rounded-2xl border border-white/[0.1] bg-card shadow-lg shadow-black/20"
         >
           <button
             onClick={handleDismiss}
@@ -119,8 +119,8 @@ export function EveningReadingReminder() {
           </button>
 
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
-              <BookOpen className="w-5 h-5 text-amber-500" />
+            <div className="w-10 h-10 rounded-xl border border-white/[0.08] bg-white/[0.035] flex items-center justify-center shrink-0">
+              <BookOpen className="w-5 h-5 text-white/60" />
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-semibold mb-0.5">

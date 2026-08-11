@@ -213,7 +213,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                 onClick={() => setMode("looma")}
                 className="group flex w-full items-center gap-3 rounded-[14px] border border-white/[0.07] bg-white/[0.022] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.04]"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-amber-300/20 bg-amber-400/[0.06] text-[9px] font-semibold tracking-[0.12em] text-amber-200/75">01</span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.1] bg-white/[0.035] text-[9px] font-semibold tracking-[0.12em] text-white/65">01</span>
                 <div className="flex-1 text-left">
                   <p className="text-[13px] font-semibold text-foreground/95">Curated by LOOMA</p>
                   <p className="mt-0.5 text-[10px] text-muted-foreground/60">
@@ -275,10 +275,10 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                         key={item.id}
                         onClick={() => handlePickLooma(item)}
                         disabled={addBook.isPending}
-                        className="w-full rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3 text-left transition-colors hover:border-amber-300/25 hover:bg-white/[0.035]"
+                        className="w-full rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3 text-left transition-colors hover:border-white/[0.16] hover:bg-white/[0.035]"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-amber-300/20 bg-amber-400/[0.06] text-[8px] font-semibold tracking-[0.08em] text-amber-200/75">BOOK</span>
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-white/[0.1] bg-white/[0.035] text-[8px] font-semibold tracking-[0.08em] text-white/65">BOOK</span>
                           <div className="flex-1 min-w-0">
                             <p className="line-clamp-1 text-[12px] font-semibold text-foreground/90">{item.title}</p>
                             {item.author && (
@@ -289,7 +289,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                                 {item.difficulty} · {item.pages} pp
                               </span>
                               {estHours && (
-                                <span className="flex items-center gap-0.5 text-[10px] text-amber-200/70">
+                                <span className="flex items-center gap-0.5 text-[10px] text-white/60">
                                   <Clock className="w-2.5 h-2.5" />
                                   ~{estHours}h
                                 </span>
@@ -359,7 +359,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                   {searchResults.map((item) => (
                     <div
                       key={item.id}
-                      className="flex gap-3 rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3 transition-colors hover:border-amber-300/25"
+                      className="flex gap-3 rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3 transition-colors hover:border-white/[0.16]"
                     >
                       {item.cover ? (
                         <img
@@ -400,7 +400,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                               href={item.infoLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] text-amber-200/70 transition-colors hover:text-amber-100"
+                              className="inline-flex items-center gap-1 text-[10px] text-white/60 transition-colors hover:text-white/85"
                             >
                               View / Buy
                               <ExternalLink className="w-2.5 h-2.5" />
@@ -482,7 +482,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
               </div>
 
               {customEstimate !== null && customEstimate > 0 && (
-                <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-500/5 rounded-lg px-3 py-2 border border-amber-500/10">
+                <div className="flex items-center gap-2 text-xs text-white/65 bg-white/[0.025] rounded-lg px-3 py-2 border border-white/[0.08]">
                   <Clock className="w-3.5 h-3.5" />
                   Estimated ~{customEstimate}h to complete
                 </div>
