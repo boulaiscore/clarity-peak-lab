@@ -28,7 +28,6 @@ import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
-import { deriveDailyCognitiveState } from "@/lib/dailyCognitiveState";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -102,16 +101,8 @@ export default function NeuroLab() {
   const weeklyLoadXP = cappedTotalXP;
 
   // Recovery for dynamic guidance
-  const {
-    recoveryEffective,
-    isLoading: recoveryLoading
-  } = useRecoveryEffective();
-  const {
-    sharpness,
-    readiness,
-    isLoading: metricsLoading,
-  } = useTodayMetrics();
-  const { rq, isLoading: reasoningLoading } = useReasoningQuality();
+  const { recoveryEffective } = useRecoveryEffective();
+  const { rq } = useReasoningQuality();
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit" | "three-day-streak">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
@@ -237,77 +228,12 @@ export default function NeuroLab() {
       </AppShell>;
   }
   return <AppShell>
-      {({ passiveFeatures, isLoading: passiveLoading }) => <>
+      {({ passiveFeatures }) => <>
       <div className="mx-auto max-w-md px-4 pb-5 pt-4">
         <header className="mb-4 flex items-center justify-between px-0.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Lab</p>
           <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
         </header>
-        {/* Today's recommended action — single dominant CTA */}
-        {(() => {
-          const guidance = deriveDailyCognitiveState({
-            readiness,
-            recovery: recoveryEffective,
-            sharpness,
-            reasoningQuality: rq,
-            healthScore: passiveFeatures?.coachContext.healthScore,
-            attentionLoadRatio: passiveFeatures?.coachContext.attentionLoadRatio,
-            scheduleLoadRatio: passiveFeatures?.coachContext.scheduleLoadRatio,
-          });
-          const isGuidanceLoading = recoveryLoading || metricsLoading || reasoningLoading || passiveLoading;
-          const handleGuidanceAction = () => {
-            if (guidance.actionRoute.includes("tab=detox")) setActiveTab("detox");
-            else if (guidance.actionRoute.includes("tab=tasks")) setActiveTab("tasks");
-            else if (guidance.actionRoute.includes("tab=games")) setActiveTab("games");
-            else navigate(guidance.actionRoute);
-          };
-          const isRecoveryAction = guidance.actionRoute.includes("tab=detox");
-          const isQualityTimeAction = guidance.actionRoute.includes("tab=tasks");
-          const isTrainingAction = guidance.actionRoute.includes("tab=games");
-          const GuidanceIcon = isRecoveryAction
-            ? RefreshCw
-            : isQualityTimeAction
-              ? BookMarked
-              : isTrainingAction
-                ? Dumbbell
-                : Zap;
-          return (
-            <div className="mb-2 rounded-[20px] border border-white/[0.065] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
-              <div className="flex items-start gap-3">
-                <GuidanceIcon
-                  className={cn(
-                    "mt-0.5 h-4 w-4 shrink-0",
-                    isRecoveryAction && "text-teal-300/85",
-                    isQualityTimeAction && "text-amber-300/80",
-                    isTrainingAction && "text-emerald-300/85",
-                    !isRecoveryAction && !isQualityTimeAction && !isTrainingAction && "text-foreground/55",
-                  )}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/58">
-                    Today&apos;s recommended action
-                  </p>
-                  <p className="mt-2 text-[14px] font-semibold leading-tight text-foreground/95">
-                    {isGuidanceLoading ? "Updating your state" : guidance.headline}
-                  </p>
-                  <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground/72">
-                    {isGuidanceLoading ? "Syncing passive signals." : guidance.summary}
-                  </p>
-                </div>
-              </div>
-              {!isGuidanceLoading && (
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={handleGuidanceAction}
-                    className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-foreground/72 transition-colors hover:text-foreground"
-                  >
-                    {guidance.actionLabel} <span aria-hidden>→</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })()}
 
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && <motion.div initial={{
