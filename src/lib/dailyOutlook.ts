@@ -87,6 +87,7 @@ export interface DailyOutlookInput {
   primaryOutcome?: "decide" | "focus" | "reason" | null;
   workType?: string | null;
   behaviorContext?: Partial<DailyOutlookBehaviorContext> | null;
+  previousMetrics?: Partial<DailyOutlookPreviousMetrics> | null;
   canPersonalize: boolean;
   rhythm?: {
     status: "learning" | "emerging" | "reliable";
