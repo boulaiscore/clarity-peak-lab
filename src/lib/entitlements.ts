@@ -112,7 +112,7 @@ export function shouldShowPaywall(subject: EntitlementSubject, attemptedAction: 
     return planId === "free";
   }
   if (attemptedAction === "pro_module" || attemptedAction === "adaptive_coach" || attemptedAction === "advanced_analytics") {
-    return planId !== "pro" && planId !== "founding_pro";
+    return true;
   }
   return planId === "free";
 }
