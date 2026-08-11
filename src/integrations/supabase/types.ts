@@ -456,6 +456,90 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_outlooks: {
+        Row: {
+          action_elapsed_at: string | null
+          action_started_at: string | null
+          confidence: number
+          copy_source: string
+          created_at: string
+          evaluated_at: string | null
+          evidence: Json
+          headline: string
+          id: string
+          intensity: string
+          model_version: string | null
+          opened_at: string | null
+          outcome_snapshot: Json | null
+          outcome_status: string
+          outlook_date: string
+          plan_id: string
+          policy_version: string
+          primary_action: Json
+          shown_at: string
+          state_snapshot: Json
+          status: string
+          summary: string
+          updated_at: string
+          user_id: string
+          window_label: string | null
+        }
+        Insert: {
+          action_elapsed_at?: string | null
+          action_started_at?: string | null
+          confidence?: number
+          copy_source?: string
+          created_at?: string
+          evaluated_at?: string | null
+          evidence?: Json
+          headline: string
+          id?: string
+          intensity: string
+          model_version?: string | null
+          opened_at?: string | null
+          outcome_snapshot?: Json | null
+          outcome_status?: string
+          outlook_date: string
+          plan_id?: string
+          policy_version: string
+          primary_action: Json
+          shown_at?: string
+          state_snapshot?: Json
+          status?: string
+          summary: string
+          updated_at?: string
+          user_id: string
+          window_label?: string | null
+        }
+        Update: {
+          action_elapsed_at?: string | null
+          action_started_at?: string | null
+          confidence?: number
+          copy_source?: string
+          created_at?: string
+          evaluated_at?: string | null
+          evidence?: Json
+          headline?: string
+          id?: string
+          intensity?: string
+          model_version?: string | null
+          opened_at?: string | null
+          outcome_snapshot?: Json | null
+          outcome_status?: string
+          outlook_date?: string
+          plan_id?: string
+          policy_version?: string
+          primary_action?: Json
+          shown_at?: string
+          state_snapshot?: Json
+          status?: string
+          summary?: string
+          updated_at?: string
+          user_id?: string
+          window_label?: string | null
+        }
+        Relationships: []
+      }
       daily_work_recommendations: {
         Row: {
           action_key: string
