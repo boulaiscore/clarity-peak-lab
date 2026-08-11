@@ -84,19 +84,20 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
           "absolute inset-0 h-full w-full object-cover",
           isFast
             ? "opacity-75 saturate-125 contrast-110"
-            : "opacity-70 grayscale contrast-125 brightness-110",
+            : "opacity-75 saturate-125 contrast-110",
         )}
         animate={reduceMotion
           ? undefined
           : isFast
             ? { scale: [1, 1.045, 1], filter: ["brightness(0.92) saturate(1.1)", "brightness(1.25) saturate(1.4)", "brightness(0.92) saturate(1.1)"] }
-            : { scale: [1, 1.012, 1] }}
+            : { scale: [1, 1.025, 1], filter: ["brightness(0.82) saturate(1.05)", "brightness(1.16) saturate(1.3)", "brightness(0.82) saturate(1.05)"] }}
         transition={reduceMotion
           ? undefined
           : isFast
             ? { duration: 1.15, repeat: Infinity, ease: "easeInOut" }
-            : { duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+            : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
       />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0b0d10] via-black/20 to-transparent" />
 
       {isFast ? (
         <>
@@ -129,25 +130,75 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
         </>
       ) : (
         <>
+          <motion.div
+            className="absolute left-[24%] top-[16%] h-14 w-24 rounded-full bg-violet-400/20 blur-xl"
+            animate={reduceMotion ? undefined : { opacity: [0.18, 0.58, 0.18], scale: [0.9, 1.12, 0.9] }}
+            transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
+          />
           {[0, 1, 2].map((ring) => (
             <motion.span
               key={ring}
-              className="absolute left-1/2 top-[46%] -ml-5 -mt-5 h-10 w-10 rounded-full border border-white/20"
-              initial={{ opacity: reduceMotion ? 0.18 : 0.42, scale: reduceMotion ? 1 + ring * 0.32 : 0.72 }}
-              animate={reduceMotion ? undefined : { opacity: [0.42, 0.08, 0.42], scale: [0.72, 1.75, 0.72] }}
-              transition={reduceMotion ? undefined : { duration: 4.8, repeat: Infinity, delay: ring * 1.1, ease: "easeInOut" }}
+              className="absolute left-1/2 top-[46%] -ml-5 -mt-5 h-10 w-10 rounded-full border border-violet-200/35"
+              initial={{ opacity: reduceMotion ? 0.28 : 0.5, scale: reduceMotion ? 1 + ring * 0.32 : 0.72 }}
+              animate={reduceMotion ? undefined : { opacity: [0.5, 0.1, 0.5], scale: [0.72, 1.85, 0.72] }}
+              transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, delay: ring * 1.15, ease: "easeInOut" }}
             />
           ))}
+
+          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 180 102" fill="none">
+            <motion.path
+              d="M24 65 L55 31 L91 51 L127 24 L157 49"
+              stroke="rgba(216,201,255,0.78)"
+              strokeWidth="0.9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.45 : 0 }}
+              animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0.12, 0.82, 0.28] }}
+              transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            {[
+              { cx: 24, cy: 65, delay: 0 },
+              { cx: 91, cy: 51, delay: 1.65 },
+              { cx: 157, cy: 49, delay: 3.3 },
+            ].map((node) => (
+              <motion.circle
+                key={`${node.cx}-${node.cy}`}
+                cx={node.cx}
+                cy={node.cy}
+                r="2"
+                fill="rgba(233,225,255,0.95)"
+                animate={reduceMotion ? undefined : { opacity: [0.28, 1, 0.28], r: [1.6, 2.8, 1.6] }}
+                transition={reduceMotion ? undefined : { duration: 2.2, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
+              />
+            ))}
+          </svg>
+
+          {[
+            { label: "01", className: "left-[14%] top-[49%]", delay: 0 },
+            { label: "02", className: "left-[48%] top-[23%]", delay: 1.65 },
+            { label: "03", className: "right-[10%] top-[42%]", delay: 3.3 },
+          ].map((step) => (
+            <motion.span
+              key={step.label}
+              className={cn(
+                "absolute rounded border border-violet-200/25 bg-black/55 px-1.5 py-0.5 font-mono text-[7px] font-medium tracking-[0.08em] text-violet-100/85 backdrop-blur-sm",
+                step.className,
+              )}
+              animate={reduceMotion ? undefined : { opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+              transition={reduceMotion ? undefined : { duration: 2.2, repeat: Infinity, delay: step.delay, ease: "easeInOut" }}
+            >
+              {step.label}
+            </motion.span>
+          ))}
+
           <motion.div
-            className="absolute inset-y-2 w-px bg-gradient-to-b from-transparent via-white/65 to-transparent shadow-[0_0_14px_rgba(255,255,255,0.28)]"
-            initial={{ x: reduceMotion ? 90 : 18, opacity: reduceMotion ? 0.35 : 0 }}
-            animate={reduceMotion ? undefined : { x: [18, 160, 18], opacity: [0.08, 0.5, 0.08] }}
+            className="absolute inset-y-2 w-px bg-gradient-to-b from-transparent via-violet-100/75 to-transparent shadow-[0_0_16px_rgba(167,139,250,0.38)]"
+            initial={{ x: reduceMotion ? 90 : 18, opacity: reduceMotion ? 0.42 : 0 }}
+            animate={reduceMotion ? undefined : { x: [18, 160, 18], opacity: [0.1, 0.68, 0.1] }}
             transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
           />
         </>
       )}
-
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0b0d10] via-black/20 to-transparent" />
     </div>
   );
 }
@@ -262,7 +313,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 isOpen
                   ? isFast
                     ? "border-amber-300/45 shadow-[0_0_22px_rgba(245,184,52,0.08)]"
-                    : "border-white/30 shadow-[0_0_22px_rgba(255,255,255,0.045)]"
+                    : "border-violet-300/45 shadow-[0_0_22px_rgba(139,92,246,0.1)]"
                   : "border-border/30 hover:border-border/60"
               )}
             >
@@ -271,7 +322,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               <div className="absolute left-3 top-3 z-10">
                 <Icon
                   className="h-4 w-4"
-                  color={isFast ? "rgba(255,211,94,0.95)" : "rgba(255,255,255,0.82)"}
+                  color={isFast ? "rgba(255,211,94,0.95)" : "rgba(216,201,255,0.92)"}
                   strokeWidth={1.4}
                 />
               </div>
@@ -290,9 +341,9 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 </p>
                 <p className={cn(
                   "mt-1.5 text-[8px] font-semibold uppercase tracking-[0.18em]",
-                  isFast ? "text-amber-300/80" : "text-white/48",
+                  isFast ? "text-amber-300/80" : "text-violet-200/75",
                 )}>
-                  {isFast ? "Pattern · react" : "Weigh · reason"}
+                  {isFast ? "Pattern · react" : "Analyze · reason"}
                 </p>
               </div>
             </button>
