@@ -40,9 +40,8 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
     copySource,
     isLoading,
     isGeneratingCopy,
-    actionStartedAt,
     markOpened,
-    startAction,
+    activateAction,
   } = useDailyOutlook(props);
 
   const openOutlook = () => {
@@ -50,18 +49,18 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
     markOpened();
   };
 
-  const handlePrimaryAction = async () => {
-    await startAction();
+  const handlePrimaryAction = () => {
+    activateAction();
     if (outlook.action.route) {
       setOpen(false);
       navigate(outlook.action.route);
     }
   };
 
-  const actionStarted = Boolean(actionStartedAt);
   const sourceLine = props.activeSourceCount > 0
     ? `${props.activeSourceCount} signals · ${outlook.confidenceLabel} confidence`
     : "Personal baseline · learning";
+  const coachLabel = copySource === "ai" ? "AI Coach" : "Looma Coach";
 
   return (
     <motion.section
@@ -93,7 +92,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
           <>
             <div className="flex items-center justify-between gap-4">
               <span className="text-[9px] font-semibold uppercase tracking-[0.19em] text-muted-foreground/65">
-                Daily Outlook
+                {coachLabel}
               </span>
               <span className="text-[9px] font-medium tabular-nums text-muted-foreground/55">
                 {sourceLine}
@@ -105,7 +104,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                 <p className="text-[15px] font-semibold leading-tight text-foreground/95">
                   {outlook.headline}
                 </p>
-                <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground/78">
+                <p className="mt-1.5 line-clamp-3 text-[11px] leading-relaxed text-muted-foreground/78">
                   {outlook.summary}
                 </p>
               </div>
@@ -113,13 +112,11 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
             </div>
 
             <div className="mt-4 flex items-center justify-between border-t border-white/[0.055] pt-3">
-              <span className="text-[10px] font-medium text-foreground/80">
-                {actionStarted
-                  ? "Action started"
-                  : outlook.windowLabel ?? `Next · ${outlook.action.durationMinutes} min`}
+              <span className="text-[9px] font-medium tabular-nums text-muted-foreground/70">
+                {outlook.action.metricCode} · {outlook.action.metricDetail}
               </span>
-              <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-primary/85">
-                {outlook.action.shortLabel}
+              <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/75">
+                Read outlook
               </span>
             </div>
           </>
@@ -134,7 +131,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
           <div className="mx-auto mb-5 h-1 w-9 rounded-full bg-muted-foreground/25" />
           <SheetHeader className="pr-8 text-left">
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
-              Daily Outlook
+              {copySource === "ai" ? "AI Daily Outlook" : "Daily Outlook"}
             </p>
             <SheetTitle className="text-[24px] leading-tight tracking-tight">
               {outlook.headline}
@@ -144,15 +141,9 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 grid grid-cols-2 gap-3 border-y border-white/[0.055] py-4">
-            <OutlookDatum
-              label="Best window"
-              value={outlook.windowLabel ?? "No fixed window"}
-            />
-            <OutlookDatum
-              label="Confidence"
-              value={`${outlook.confidenceLabel} · ${Math.round(outlook.confidence * 100)}%`}
-            />
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[9px] uppercase tracking-[0.14em] text-muted-foreground/55">
+            <span>{outlook.confidenceLabel} confidence · {Math.round(outlook.confidence * 100)}%</span>
+            {outlook.windowLabel && <span>Observed window · {outlook.windowLabel}</span>}
           </div>
 
           <section className="mt-6" aria-labelledby="outlook-evidence-title">
@@ -161,10 +152,10 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                 id="outlook-evidence-title"
                 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/65"
               >
-                Why today
+                Key signals
               </h3>
               <span className="text-[9px] text-muted-foreground/45">
-                {copySource === "ai" ? "Adaptive wording" : "Explainable policy"}
+                Your baseline
               </span>
             </div>
 
@@ -185,50 +176,41 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-primary/20 bg-primary/[0.065] p-4">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary/80">
-              Next action
+          <section className="mt-6 border-t border-white/[0.07] pt-5">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+              Coach recommendation
             </p>
-            <p className="mt-2 text-[15px] font-semibold text-foreground/95">
-              {outlook.action.label}
-            </p>
-            <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/70">
-              {outlook.action.kind === "work"
-                ? "Later passive state is linked to this recommendation automatically."
-                : "The completed session and later passive state are linked automatically."}
-            </p>
-            <Button
-              type="button"
-              variant="premium"
-              className="mt-4 h-11 w-full text-sm"
-              onClick={() => void handlePrimaryAction()}
-              disabled={actionStarted && outlook.action.kind === "work"}
-            >
-              {actionStarted && outlook.action.kind === "work"
-                ? "Block started"
-                : outlook.action.label}
-            </Button>
+            <div className="mt-3 flex items-start gap-3">
+              <span className="shrink-0 rounded-md border border-border/45 bg-card/45 px-2 py-1 text-[9px] font-semibold tracking-[0.12em] text-foreground/75">
+                {outlook.action.metricCode}
+              </span>
+              <div>
+                <p className="text-[15px] font-semibold leading-snug text-foreground/95">
+                  {outlook.action.label}
+                </p>
+                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/65">
+                  Linked to {outlook.action.metricLabel}: {outlook.action.metricDetail}.
+                </p>
+              </div>
+            </div>
+            {outlook.action.kind === "lab" && (
+              <Button
+                type="button"
+                variant="premium"
+                className="mt-4 h-11 w-full text-sm"
+                onClick={handlePrimaryAction}
+              >
+                Open Lab
+              </Button>
+            )}
           </section>
 
           <p className="mt-5 text-center text-[9px] leading-relaxed text-muted-foreground/45">
-            Generated from your own baseline. Missing signals remain neutral and never count against you.
-            {isGeneratingCopy ? " Updating wording…" : ""}
+            Based on today’s metrics and your own baseline. Missing signals remain neutral.
+            {isGeneratingCopy ? " Updating coach briefing…" : ""}
           </p>
         </SheetContent>
       </Sheet>
     </motion.section>
-  );
-}
-
-function OutlookDatum({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/50">
-        {label}
-      </p>
-      <p className="mt-1.5 text-[13px] font-medium text-foreground/90 tabular-nums">
-        {value}
-      </p>
-    </div>
   );
 }

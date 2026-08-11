@@ -209,7 +209,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       if (!user?.id) return null;
       const { data, error } = await looseSupabase
         .from("daily_outlooks")
-        .select("id, status, action_started_at")
+        .select("id, status")
         .eq("user_id", user.id)
         .eq("outlook_date", today)
         .eq("policy_version", outlook.policyVersion)
@@ -278,39 +278,21 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     void updateLifecycle({ status: "opened", opened_at: new Date().toISOString() });
   }, [copySource, outlook.action.key, outlook.confidence, updateLifecycle]);
 
-  const startAction = useCallback(async () => {
-    const startedAt = new Date().toISOString();
+  const activateAction = useCallback(() => {
     trackProductEvent("daily_outlook_action_started", {
       actionKey: outlook.action.key,
-      durationMinutes: outlook.action.durationMinutes,
+      actionKind: outlook.action.kind,
+      metricCode: outlook.action.metricCode,
       copySource,
     });
-    await updateLifecycle({ status: "action_started", action_started_at: startedAt });
-  }, [copySource, outlook.action.durationMinutes, outlook.action.key, updateLifecycle]);
-
-  const recordData = recordQuery.data;
-  const actionStartedAt = typeof recordData?.action_started_at === "string"
-    ? recordData.action_started_at
-    : null;
-
-  useEffect(() => {
-    if (!actionStartedAt || recordData?.status !== "action_started") return;
-    const elapsedAt = new Date(actionStartedAt).getTime() + outlook.action.durationMinutes * 60_000;
-    if (Date.now() >= elapsedAt) {
-      void updateLifecycle({
-        status: "action_elapsed",
-        action_elapsed_at: new Date(elapsedAt).toISOString(),
-      });
-    }
-  }, [actionStartedAt, outlook.action.durationMinutes, recordData?.status, updateLifecycle]);
+  }, [copySource, outlook.action.key, outlook.action.kind, outlook.action.metricCode]);
 
   return {
     outlook,
     copySource,
     isLoading: input.isLoading || subscription.loading || personalizationLoading,
     isGeneratingCopy: generatedCopyQuery.isLoading,
-    actionStartedAt,
     markOpened,
-    startAction,
+    activateAction,
   };
 }

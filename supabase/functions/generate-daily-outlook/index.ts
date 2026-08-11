@@ -8,15 +8,15 @@ const corsHeaders = {
 };
 
 const MODEL = "google/gemini-2.5-flash";
-const MODEL_VERSION = "daily-outlook-copy-gemini-2.5-flash-v1";
+const MODEL_VERSION = "daily-outlook-copy-gemini-2.5-flash-v2";
 const ACTION_KEYS = new Set([
   "recover",
   "protect_attention",
-  "focus_block",
-  "decision_block",
-  "analysis_block",
+  "protect_capacity",
+  "use_capacity",
   "train_focus",
   "train_reasoning",
+  "normal_plan",
 ]);
 
 interface SafeEvidence {
@@ -30,9 +30,12 @@ interface SafeAction {
   key: string;
   label: string;
   shortLabel: string;
-  durationMinutes: number;
-  kind: "work" | "lab";
+  durationMinutes: number | null;
+  kind: "guidance" | "lab";
   route: string | null;
+  metricCode: string;
+  metricLabel: string;
+  metricDetail: string;
 }
 
 interface SafeOutlook {
@@ -68,21 +71,25 @@ function parseOutlook(value: unknown): SafeOutlook | null {
   const actionKey = safeText(action.key, 40);
   const actionLabel = safeText(action.label, 160);
   const actionShortLabel = safeText(action.shortLabel, 80);
-  const durationMinutes = Number(action.durationMinutes);
+  const durationMinutes = action.durationMinutes == null ? null : Number(action.durationMinutes);
   const kind = action.kind;
+  const metricCode = safeText(action.metricCode, 8);
+  const metricLabel = safeText(action.metricLabel, 80);
+  const metricDetail = safeText(action.metricDetail, 180);
 
   if (
     !policyVersion || !headline || !summary ||
     !["protective", "steady", "strong"].includes(String(intensity)) ||
     !Number.isFinite(confidence) || confidence < 0 || confidence > 1 ||
     !actionKey || !ACTION_KEYS.has(actionKey) || !actionLabel || !actionShortLabel ||
-    !Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 120 ||
-    (kind !== "work" && kind !== "lab")
+    (durationMinutes !== null && (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 120)) ||
+    (kind !== "guidance" && kind !== "lab") ||
+    !metricCode || !metricLabel || !metricDetail
   ) {
     return null;
   }
 
-  const evidence = value.evidence.slice(0, 4).flatMap((entry): SafeEvidence[] => {
+  const evidence = value.evidence.slice(0, 5).flatMap((entry): SafeEvidence[] => {
     if (!isRecord(entry)) return [];
     const code = safeText(entry.code, 8);
     const label = safeText(entry.label, 80);
@@ -103,9 +110,12 @@ function parseOutlook(value: unknown): SafeOutlook | null {
       key: actionKey,
       label: actionLabel,
       shortLabel: actionShortLabel,
-      durationMinutes: Math.round(durationMinutes),
+      durationMinutes: durationMinutes === null ? null : Math.round(durationMinutes),
       kind,
       route: typeof action.route === "string" ? action.route.slice(0, 160) : null,
+      metricCode,
+      metricLabel,
+      metricDetail,
     },
     evidence,
     confidence,
@@ -203,7 +213,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You write concise Daily Outlook copy for LOOMA, a non-medical cognitive performance app. Rephrase only the supplied facts. Never add metrics, numbers, causes, diagnoses, guarantees or health claims. Never imply intelligence or fixed ability. Keep the headline under 8 words and the summary under 24 words. The action is selected by a separate explainable policy and must not be changed.`,
+            content: `You are the LOOMA Daily Coach for a non-medical cognitive performance app. Write a calm, direct briefing using only the supplied facts. The summary must be 2–3 short sentences: describe today's state, identify the strongest or limiting signal, then explain the practical implication. Never add metrics, numbers, causes, diagnoses, guarantees or health claims. Never imply intelligence or fixed ability. Do not invent a work block, duration, task or protocol. Keep the headline under 7 words and the summary under 70 words. The action is selected by a separate explainable policy and must not be changed.`,
           },
           { role: "user", content: factualSource },
         ],
@@ -216,7 +226,7 @@ serve(async (req) => {
               type: "object",
               properties: {
                 headline: { type: "string", maxLength: 80 },
-                summary: { type: "string", maxLength: 240 },
+                summary: { type: "string", maxLength: 500 },
               },
               required: ["headline", "summary"],
               additionalProperties: false,
@@ -232,7 +242,7 @@ serve(async (req) => {
     const rawArguments = responseBody.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     const generated = typeof rawArguments === "string" ? JSON.parse(rawArguments) : null;
     const headline = safeText(generated?.headline, 80);
-    const summary = safeText(generated?.summary, 240);
+    const summary = safeText(generated?.summary, 500);
     const safeGeneratedCopy = headline && summary &&
       containsOnlyKnownNumbers(`${headline} ${summary}`, factualSource);
     const finalHeadline = safeGeneratedCopy ? headline : outlook.headline;

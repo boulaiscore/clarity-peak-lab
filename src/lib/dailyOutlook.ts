@@ -1,15 +1,15 @@
 import { clamp } from "@/lib/cognitiveEngine";
 
-export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v1-explainable";
+export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v2-metric-coach";
 
 export type DailyOutlookActionKey =
   | "recover"
   | "protect_attention"
-  | "focus_block"
-  | "decision_block"
-  | "analysis_block"
+  | "protect_capacity"
+  | "use_capacity"
   | "train_focus"
-  | "train_reasoning";
+  | "train_reasoning"
+  | "normal_plan";
 
 export type DailyOutlookTone = "support" | "limit" | "neutral";
 export type DailyOutlookIntensity = "protective" | "steady" | "strong";
@@ -25,9 +25,12 @@ export interface DailyOutlookAction {
   key: DailyOutlookActionKey;
   label: string;
   shortLabel: string;
-  durationMinutes: number;
-  kind: "work" | "lab";
+  durationMinutes: number | null;
+  kind: "guidance" | "lab";
   route: string | null;
+  metricCode: DailyOutlookEvidence["code"];
+  metricLabel: string;
+  metricDetail: string;
 }
 
 export interface DailyOutlook {
@@ -106,40 +109,6 @@ function ratioEvidence(
   return { code, label, detail: "Near your baseline", tone: "neutral" };
 }
 
-function workAction(
-  outcome: DailyOutlookInput["primaryOutcome"],
-  durationMinutes: number,
-): DailyOutlookAction {
-  if (outcome === "decide") {
-    return {
-      key: "decision_block",
-      label: `Start a ${durationMinutes}-minute decision block`,
-      shortLabel: "Decision block",
-      durationMinutes,
-      kind: "work",
-      route: null,
-    };
-  }
-  if (outcome === "reason") {
-    return {
-      key: "analysis_block",
-      label: `Start a ${durationMinutes}-minute analysis block`,
-      shortLabel: "Analysis block",
-      durationMinutes,
-      kind: "work",
-      route: null,
-    };
-  }
-  return {
-    key: "focus_block",
-    label: `Start a ${durationMinutes}-minute focus block`,
-    shortLabel: "Focus block",
-    durationMinutes,
-    kind: "work",
-    route: null,
-  };
-}
-
 function calculateConfidence(input: DailyOutlookInput): number {
   const sourceCoverage = clamp(input.signalCoverage, 0, 1);
   if (!input.canPersonalize) return sourceCoverage * 0.65;
@@ -168,6 +137,18 @@ function buildEvidence(input: DailyOutlookInput): DailyOutlookEvidence[] {
       label: "Readiness",
       detail: `${roundedScore(input.readiness)} today`,
       tone: metricTone(input.readiness, 65, 45),
+    },
+    {
+      code: "SHP",
+      label: "Sharpness",
+      detail: `${roundedScore(input.sharpness)} today`,
+      tone: metricTone(input.sharpness, 65, 45),
+    },
+    {
+      code: "RQ",
+      label: "Reasoning",
+      detail: `${roundedScore(input.reasoningQuality)} today`,
+      tone: metricTone(input.reasoningQuality, 65, 45),
     },
   ];
 
@@ -205,7 +186,13 @@ function buildEvidence(input: DailyOutlookInput): DailyOutlookEvidence[] {
       const priority = { limit: 2, support: 1, neutral: 0 };
       return priority[b.tone] - priority[a.tone];
     })
-    .slice(0, 4);
+    .slice(0, 5);
+}
+
+function action(
+  value: Omit<DailyOutlookAction, "durationMinutes"> & { durationMinutes?: number | null },
+): DailyOutlookAction {
+  return { ...value, durationMinutes: value.durationMinutes ?? null };
 }
 
 /**
@@ -227,52 +214,70 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   };
 
   if (input.recovery < 35 || input.readiness < 40 || (healthScore !== null && healthScore < 40)) {
+    const limitingHealth = healthScore !== null && healthScore < 40;
+    const limitingReadiness = !limitingHealth && input.readiness < 40;
+    const metricCode = limitingHealth ? "HLT" : limitingReadiness ? "RDY" : "REC";
+    const metricLabel = limitingHealth ? "Health context" : limitingReadiness ? "Readiness" : "Recovery";
+    const metricValue = limitingHealth ? healthScore : limitingReadiness ? input.readiness : input.recovery;
     return {
       ...shared,
-      headline: "Restore before demanding work",
-      summary: "Available reserve is limited. Keep the next block light and rebuild capacity first.",
+      headline: "Recovery is the priority today",
+      summary: `${metricLabel} is ${roundedScore(metricValue ?? 0)}, the clearest limiting signal today. Avoid adding cognitive load before restoring reserve.`,
       intensity: "protective",
       windowLabel: null,
       windowSource: null,
-      action: {
+      action: action({
         key: "recover",
-        label: "Start a 10-minute recovery",
-        shortLabel: "Recovery first",
-        durationMinutes: 10,
+        label: "Choose a recovery protocol in Lab",
+        shortLabel: "Recovery protocol",
         kind: "lab",
         route: "/neuro-lab?tab=detox",
-      },
+        metricCode,
+        metricLabel,
+        metricDetail: `${roundedScore(metricValue ?? 0)} today`,
+      }),
     };
   }
 
   if (attentionLoadRatio !== null && attentionLoadRatio >= 1.35) {
     return {
       ...shared,
-      headline: "Protect your attention",
-      summary: "Digital load is above your personal baseline. Reset before stacking more demanding work.",
+      headline: "Digital load is the constraint",
+      summary: `Attention load is ${Math.round((attentionLoadRatio - 1) * 100)}% above your baseline. A reset is more relevant than adding another cognitive demand.`,
       intensity: "protective",
       windowLabel: null,
       windowSource: null,
-      action: {
+      action: action({
         key: "protect_attention",
-        label: "Start a 15-minute detox",
-        shortLabel: "Reduce digital load",
-        durationMinutes: 15,
+        label: "Open an attention reset in Lab",
+        shortLabel: "Attention reset",
         kind: "lab",
         route: "/neuro-lab?tab=detox",
-      },
+        metricCode: "ATT",
+        metricLabel: "Attention load",
+        metricDetail: `${Math.round((attentionLoadRatio - 1) * 100)}% above baseline`,
+      }),
     };
   }
 
   if (scheduleLoadRatio !== null && scheduleLoadRatio >= 1.35 && input.readiness < 65) {
     return {
       ...shared,
-      headline: "Use a shorter work block",
-      summary: "Schedule demand is high relative to your baseline, while sustained capacity is moderate.",
+      headline: "Protect capacity from schedule load",
+      summary: `Schedule load is ${Math.round((scheduleLoadRatio - 1) * 100)}% above baseline while Readiness is ${roundedScore(input.readiness)}. No extra training is recommended.`,
       intensity: "protective",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
-      action: workAction(input.primaryOutcome, 25),
+      action: action({
+        key: "protect_capacity",
+        label: "Keep cognitive demand below your usual peak",
+        shortLabel: "Protect capacity",
+        kind: "guidance",
+        route: null,
+        metricCode: "RDY",
+        metricLabel: "Readiness",
+        metricDetail: `${roundedScore(input.readiness)} today`,
+      }),
     };
   }
 
@@ -284,72 +289,103 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   ) {
     return {
       ...shared,
-      headline: "Use your strongest window",
-      summary: "Recovery, sharpness and sustained capacity are aligned for demanding work.",
+      headline: "Your signals are aligned",
+      summary: `Readiness ${roundedScore(input.readiness)}, Sharpness ${roundedScore(input.sharpness)} and Recovery ${roundedScore(input.recovery)} support demanding cognitive work today.`,
       intensity: "strong",
-      windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? "Next available block" : null,
-      windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : input.canPersonalize ? "next_available" : null,
-      action: workAction(input.primaryOutcome, 75),
+      windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
+      windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
+      action: action({
+        key: "use_capacity",
+        label: "Use this state for your highest-priority cognitive work",
+        shortLabel: "Use capacity",
+        kind: "guidance",
+        route: null,
+        metricCode: "RDY",
+        metricLabel: "Readiness",
+        metricDetail: `${roundedScore(input.readiness)} today`,
+      }),
     };
   }
 
   if (input.recovery >= 55 && input.sharpness < 50) {
     return {
       ...shared,
-      headline: "Sharpness is today's opportunity",
-      summary: "Recovery can support a brief focus stimulus before your next work block.",
+      headline: "Sharpness is today’s opportunity",
+      summary: `Recovery is ${roundedScore(input.recovery)}, while Sharpness is ${roundedScore(input.sharpness)}. A focus drill is the most directly connected intervention.`,
       intensity: "steady",
       windowLabel: null,
       windowSource: null,
-      action: {
+      action: action({
         key: "train_focus",
-        label: "Train focus for 7 minutes",
+        label: "Open an attentional-control drill in Lab",
         shortLabel: "Train sharpness",
-        durationMinutes: 7,
         kind: "lab",
-        route: "/neuro-lab?tab=games",
-      },
+        route: "/neuro-lab?tab=games&system=fast",
+        metricCode: "SHP",
+        metricLabel: "Sharpness",
+        metricDetail: `${roundedScore(input.sharpness)} today`,
+      }),
     };
   }
 
   if (input.recovery >= 55 && input.reasoningQuality < 45) {
     return {
       ...shared,
-      headline: "Reasoning is today's opportunity",
-      summary: "A short deliberate-thinking stimulus fits your current reserve.",
+      headline: "Reasoning is today’s opportunity",
+      summary: `Recovery is ${roundedScore(input.recovery)}, while Reasoning is ${roundedScore(input.reasoningQuality)}. A deliberate-reasoning drill is the most relevant training action.`,
       intensity: "steady",
       windowLabel: null,
       windowSource: null,
-      action: {
+      action: action({
         key: "train_reasoning",
-        label: "Train reasoning for 7 minutes",
+        label: "Open a deliberate-reasoning drill in Lab",
         shortLabel: "Train reasoning",
-        durationMinutes: 7,
         kind: "lab",
-        route: "/neuro-lab?tab=games",
-      },
+        route: "/neuro-lab?tab=games&system=slow",
+        metricCode: "RQ",
+        metricLabel: "Reasoning",
+        metricDetail: `${roundedScore(input.reasoningQuality)} today`,
+      }),
     };
   }
 
   if (input.readiness < 55) {
     return {
       ...shared,
-      headline: "Keep effort measured",
-      summary: "Sustained capacity is moderate. Use a short block and stop before quality falls.",
+      headline: "Sustained capacity is limited",
+      summary: `Readiness is ${roundedScore(input.readiness)}, below the range used for demanding sustained work. Keep cognitive demand below your usual peak.`,
       intensity: "protective",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
-      action: workAction(input.primaryOutcome, 25),
+      action: action({
+        key: "protect_capacity",
+        label: "Protect capacity; skip additional training today",
+        shortLabel: "Protect capacity",
+        kind: "guidance",
+        route: null,
+        metricCode: "RDY",
+        metricLabel: "Readiness",
+        metricDetail: `${roundedScore(input.readiness)} today`,
+      }),
     };
   }
 
   return {
     ...shared,
-    headline: "Steady capacity",
-    summary: "Conditions support normal work with a deliberate break after the next block.",
+    headline: "Your state is steady",
+    summary: `Readiness is ${roundedScore(input.readiness)} and Recovery is ${roundedScore(input.recovery)}, with no dominant limiting signal. Follow your normal plan today.`,
     intensity: "steady",
-    windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? "Next available block" : null,
-    windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : input.canPersonalize ? "next_available" : null,
-    action: workAction(input.primaryOutcome, 50),
+    windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
+    windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
+    action: action({
+      key: "normal_plan",
+      label: "Follow your normal plan; no added protocol is needed",
+      shortLabel: "Normal plan",
+      kind: "guidance",
+      route: null,
+      metricCode: "RDY",
+      metricLabel: "Readiness",
+      metricDetail: `${roundedScore(input.readiness)} today`,
+    }),
   };
 }

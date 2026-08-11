@@ -160,6 +160,11 @@ Cognitive Age.
   plus privacy-safe Health, attention-load and schedule-load aggregates.
 - Attention and schedule loads are ratios against the user's own rolling
   baseline. Raw app names, event titles and content never enter the rule.
+- Daily Outlook is a textual metric briefing, not a timer generator. Every
+  recommendation exposes the exact source metric and value; generic work-block
+  durations are forbidden. Only a metric-linked Lab intervention can present a
+  navigation CTA, while steady/strong states remain guidance rather than a new
+  task to complete.
 - Recommendation priority is conservative: limited recovery first, then high
   attention or schedule load, then demanding-work readiness, trainable
   Sharpness/RQ opportunities, and finally the steady default.
