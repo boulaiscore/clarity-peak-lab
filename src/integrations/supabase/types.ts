@@ -1357,11 +1357,14 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           environment: string
+          external_subscription_id: string | null
           id: string
-          paddle_customer_id: string
-          paddle_subscription_id: string
+          paddle_customer_id: string | null
+          paddle_subscription_id: string | null
+          plan_id: string | null
           price_id: string
           product_id: string
+          provider: string
           status: string
           updated_at: string | null
           user_id: string
@@ -1372,11 +1375,14 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          external_subscription_id?: string | null
           id?: string
-          paddle_customer_id: string
-          paddle_subscription_id: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          plan_id?: string | null
           price_id: string
           product_id: string
+          provider?: string
           status?: string
           updated_at?: string | null
           user_id: string
@@ -1387,14 +1393,44 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          external_subscription_id?: string | null
           id?: string
-          paddle_customer_id?: string
-          paddle_subscription_id?: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          plan_id?: string | null
           price_id?: string
           product_id?: string
+          provider?: string
           status?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      team_waitlist: {
+        Row: {
+          company_or_group: string | null
+          created_at: string
+          email: string
+          id: string
+          seats: number
+          user_id: string | null
+        }
+        Insert: {
+          company_or_group?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          seats: number
+          user_id?: string | null
+        }
+        Update: {
+          company_or_group?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          seats?: number
+          user_id?: string | null
         }
         Relationships: []
       }
