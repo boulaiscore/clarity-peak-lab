@@ -13,4 +13,8 @@ CAP_PLUGIN(HealthPlugin, "HealthPlugin",
     CAP_PLUGIN_METHOD(readSleep, CAPPluginReturnPromise);
     CAP_PLUGIN_METHOD(readHRV, CAPPluginReturnPromise);
     CAP_PLUGIN_METHOD(readRestingHR, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(readSteps, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(readActiveMinutes, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(readBedtimeHistory, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(openHealthSettings, CAPPluginReturnPromise);
 )

@@ -39,7 +39,7 @@ class AppBlockerPlugin : Plugin() {
         "com.pinterest",
         "com.reddit.frontpage",
         "com.discord",
-        "com.youtube"
+        "com.google.android.youtube"
     )
 
     private var violationReceiver: BroadcastReceiver? = null

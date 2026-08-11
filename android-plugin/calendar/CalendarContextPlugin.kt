@@ -50,11 +50,19 @@ class CalendarContextPlugin : Plugin() {
             call.resolve(JSObject().put("state", permissionState()).put("days", JSArray()))
             return
         }
-        val startText = call.getString("startDate")
-        val endText = call.getString("endDate")
-        val startDate = startText?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-        val endDate = endText?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-        if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
+        val startDate = call.getString("startDate")
+            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            ?: run {
+                call.reject("startDate and endDate must use yyyy-MM-dd")
+                return
+            }
+        val endDate = call.getString("endDate")
+            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            ?: run {
+                call.reject("startDate and endDate must use yyyy-MM-dd")
+                return
+            }
+        if (startDate.isAfter(endDate)) {
             call.reject("startDate and endDate must use yyyy-MM-dd")
             return
         }

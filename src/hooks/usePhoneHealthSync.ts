@@ -3,8 +3,8 @@
  * LOOMA – PHONE HEALTH SYNC HOOK
  * ============================================
  *
- * Once per calendar day (in the morning window 04:00–11:00 local),
- * reads base health data from HealthKit / Health Connect and writes
+ * Once per calendar day, on launch or foreground resume, reads base health
+ * data from HealthKit / Health Connect and writes
  * a row to `phone_health_snapshots`. Used by the Recovery engine to
  * compute a dynamic daily target REC instead of a fixed baseline 50.
  *
@@ -12,8 +12,9 @@
  * Free for all users (HRV / RHR remain wearable-premium).
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { App as CapacitorApp } from "@capacitor/app";
 import { format, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,9 +30,6 @@ import {
   getPlatform,
 } from "@/lib/capacitor/health";
 import { computePHI, type PhoneHealthInputs } from "@/lib/phoneHealth";
-
-const SYNC_START_HOUR = 4;
-const SYNC_END_HOUR = 11;
 
 export interface PhoneHealthSnapshot {
   id: string;
@@ -84,28 +82,46 @@ export function usePhoneHealthSync() {
   const userId = user?.id;
   const queryClient = useQueryClient();
   const ranTodayRef = useRef<string | null>(null);
+  const [resumeTick, setResumeTick] = useState(0);
+
+  useEffect(() => {
+    if (!isNativePlatform()) return;
+    let disposed = false;
+    let removeListener: (() => Promise<void>) | undefined;
+
+    void CapacitorApp.addListener("appStateChange", ({ isActive }) => {
+      if (isActive && !disposed) setResumeTick((value) => value + 1);
+    }).then((handle) => {
+      removeListener = () => handle.remove();
+    });
+
+    return () => {
+      disposed = true;
+      void removeListener?.();
+    };
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
     if (!isNativePlatform()) return;
 
     const now = new Date();
-    const hour = now.getHours();
-    if (hour < SYNC_START_HOUR || hour > SYNC_END_HOUR) return;
-
     const today = format(now, "yyyy-MM-dd");
     if (ranTodayRef.current === today) return;
     ranTodayRef.current = today;
 
-    void runSync(userId, today, queryClient);
-  }, [userId, queryClient]);
+    void runSync(userId, today, queryClient).then((synced) => {
+      // Retry after a later permission grant or when new Health data arrives.
+      if (!synced && ranTodayRef.current === today) ranTodayRef.current = null;
+    });
+  }, [userId, queryClient, resumeTick]);
 }
 
 async function runSync(
   userId: string,
   today: string,
   queryClient: ReturnType<typeof useQueryClient>
-) {
+): Promise<boolean> {
   try {
     // Skip if already synced today
     const { data: existing } = await supabase
@@ -114,10 +130,10 @@ async function runSync(
       .eq("user_id", userId)
       .eq("date", today)
       .maybeSingle();
-    if (existing?.phi != null) return;
+    if (existing?.phi != null) return true;
 
     const available = await isHealthAvailable();
-    if (!available) return;
+    if (!available) return false;
 
     // We no longer require sleep to be granted: PHI degrades gracefully
     // and we still want to capture steps / active minutes when available.
@@ -131,14 +147,15 @@ async function runSync(
     const sleepEnd = new Date(dayStart);
     sleepEnd.setHours(11, 0, 0, 0);
 
-    const stepsStart = new Date(dayStart);
-    stepsStart.setDate(stepsStart.getDate() - 1);
-    const stepsEnd = new Date();
+    // Use the last complete calendar day for movement. This avoids mixing a
+    // full previous day with a partial current day when the app opens late.
+    const movementStart = subDays(dayStart, 1);
+    const movementEnd = dayStart;
 
     const [sleepRes, stepsRes, activeRes, bedtimeRes] = await Promise.all([
       readSleep(sleepStart.toISOString(), sleepEnd.toISOString()),
-      readSteps(stepsStart.toISOString(), stepsEnd.toISOString()),
-      readActiveMinutes(stepsStart.toISOString(), stepsEnd.toISOString()),
+      readSteps(movementStart.toISOString(), movementEnd.toISOString()),
+      readActiveMinutes(movementStart.toISOString(), movementEnd.toISOString()),
       readBedtimeHistory(7),
     ]);
 
@@ -165,7 +182,7 @@ async function runSync(
     };
 
     const result = computePHI(inputs);
-    if (!result.hasData) return;
+    if (!result.hasData) return false;
 
     const source = getPlatform() === "ios" ? "healthkit" : "health_connect";
 
@@ -191,7 +208,7 @@ async function runSync(
 
     if (error) {
       console.error("[usePhoneHealth] upsert error:", error);
-      return;
+      return false;
     }
 
     console.log("[usePhoneHealth] ✅ snapshot stored", {
@@ -201,7 +218,9 @@ async function runSync(
 
     queryClient.invalidateQueries({ queryKey: ["phone-health-snapshot", userId] });
     queryClient.invalidateQueries({ queryKey: ["recovery-v2-state", userId] });
+    return true;
   } catch (err) {
     console.error("[usePhoneHealth] sync error:", err);
+    return false;
   }
 }

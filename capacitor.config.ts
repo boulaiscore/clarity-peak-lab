@@ -1,13 +1,21 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+const liveReloadUrl = process.env.CAPACITOR_LIVE_RELOAD_URL;
+
 const config: CapacitorConfig = {
   appId: "com.looma",
   appName: "LOOMA",
   webDir: "dist",
-  server: {
-    url: "https://clarity-peak-lab.vercel.app",
-    cleartext: false,
-  },
+  // Native release builds use the bundled web app. A remote URL is allowed
+  // only when a developer explicitly opts into live reload.
+  ...(liveReloadUrl
+    ? {
+        server: {
+          url: liveReloadUrl,
+          cleartext: liveReloadUrl.startsWith("http://"),
+        },
+      }
+    : {}),
   plugins: {
     App: {
       // Deep link handling

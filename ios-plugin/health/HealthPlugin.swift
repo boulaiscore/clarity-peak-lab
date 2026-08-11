@@ -1,351 +1,391 @@
-/**
- * NeuroLoop Pro - HealthKit Plugin for iOS
- * 
- * Reads health data from Apple HealthKit:
- * - Sleep Analysis (stages if available)
- * - HRV SDNN (Heart Rate Variability)
- * - Resting Heart Rate
- * 
- * Data Types:
- * - HKCategoryTypeIdentifier.sleepAnalysis
- * - HKQuantityTypeIdentifier.heartRateVariabilitySDNN
- * - HKQuantityTypeIdentifier.restingHeartRate
- */
-
 import Foundation
 import Capacitor
 import HealthKit
+import UIKit
 
+/**
+ * Privacy-minimal HealthKit bridge for LOOMA.
+ *
+ * HealthKit deliberately does not reveal whether read access was denied. The
+ * permission state exposed here therefore means that the system authorization
+ * flow has been completed; empty queries remain a valid, privacy-preserving
+ * outcome and are handled by the web layer as missing data.
+ */
 @objc(HealthPlugin)
 public class HealthPlugin: CAPPlugin {
-    
     private let healthStore = HKHealthStore()
-    
-    // Data types we want to read
+
+    private var sleepType: HKCategoryType? {
+        HKObjectType.categoryType(forIdentifier: .sleepAnalysis)
+    }
+
+    private var hrvType: HKQuantityType? {
+        HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)
+    }
+
+    private var restingHeartRateType: HKQuantityType? {
+        HKObjectType.quantityType(forIdentifier: .restingHeartRate)
+    }
+
+    private var stepType: HKQuantityType? {
+        HKObjectType.quantityType(forIdentifier: .stepCount)
+    }
+
+    private var exerciseTimeType: HKQuantityType? {
+        HKObjectType.quantityType(forIdentifier: .appleExerciseTime)
+    }
+
     private var readTypes: Set<HKObjectType> {
-        var types = Set<HKObjectType>()
-        
-        if let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
-            types.insert(sleepType)
-        }
-        if let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) {
-            types.insert(hrvType)
-        }
-        if let rhrType = HKObjectType.quantityType(forIdentifier: .restingHeartRate) {
-            types.insert(rhrType)
-        }
-        
-        return types
+        Set([sleepType, hrvType, restingHeartRateType, stepType, exerciseTimeType].compactMap { $0 })
     }
-    
-    // MARK: - Plugin Methods
-    
+
     @objc func isAvailable(_ call: CAPPluginCall) {
-        let available = HKHealthStore.isHealthDataAvailable()
-        call.resolve(["available": available])
+        call.resolve(["available": HKHealthStore.isHealthDataAvailable()])
     }
-    
-    @objc func checkPermissions(_ call: CAPPluginCall) {
+
+    @objc public override func checkPermissions(_ call: CAPPluginCall) {
         guard HKHealthStore.isHealthDataAvailable() else {
-            call.resolve([
-                "permissions": [
-                    "sleep": "denied",
-                    "hrv": "denied",
-                    "restingHr": "denied"
-                ]
-            ])
+            call.resolve(["permissions": permissionPayload(state: "denied")])
             return
         }
-        
-        var permissions: [String: String] = [:]
-        
-        // Check sleep permission
-        if let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
-            permissions["sleep"] = statusToString(healthStore.authorizationStatus(for: sleepType))
-        } else {
-            permissions["sleep"] = "denied"
+
+        healthStore.getRequestStatusForAuthorization(
+            toShare: Set<HKSampleType>(),
+            read: readTypes
+        ) { status, error in
+            if let error = error {
+                call.reject("Could not inspect HealthKit authorization: \(error.localizedDescription)")
+                return
+            }
+
+            // Apple intentionally makes denied and granted read access
+            // indistinguishable. `unnecessary` means the prompt was handled.
+            let state = status == .shouldRequest ? "not_determined" : "granted"
+            call.resolve(["permissions": self.permissionPayload(state: state)])
         }
-        
-        // Check HRV permission
-        if let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) {
-            permissions["hrv"] = statusToString(healthStore.authorizationStatus(for: hrvType))
-        } else {
-            permissions["hrv"] = "denied"
-        }
-        
-        // Check RHR permission
-        if let rhrType = HKObjectType.quantityType(forIdentifier: .restingHeartRate) {
-            permissions["restingHr"] = statusToString(healthStore.authorizationStatus(for: rhrType))
-        } else {
-            permissions["restingHr"] = "denied"
-        }
-        
-        call.resolve(["permissions": permissions])
     }
-    
-    @objc func requestPermissions(_ call: CAPPluginCall) {
+
+    @objc public override func requestPermissions(_ call: CAPPluginCall) {
         guard HKHealthStore.isHealthDataAvailable() else {
             call.reject("HealthKit is not available on this device")
             return
         }
-        
-        healthStore.requestAuthorization(toShare: nil, read: readTypes) { success, error in
+
+        healthStore.requestAuthorization(
+            toShare: Set<HKSampleType>(),
+            read: readTypes
+        ) { success, error in
             if let error = error {
-                call.reject("Failed to request permissions: \(error.localizedDescription)")
+                call.reject("Failed to request HealthKit access: \(error.localizedDescription)")
                 return
             }
-            
-            // Re-check permissions after request
-            var permissions: [String: String] = [:]
-            
-            if let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
-                permissions["sleep"] = self.statusToString(self.healthStore.authorizationStatus(for: sleepType))
-            }
-            if let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) {
-                permissions["hrv"] = self.statusToString(self.healthStore.authorizationStatus(for: hrvType))
-            }
-            if let rhrType = HKObjectType.quantityType(forIdentifier: .restingHeartRate) {
-                permissions["restingHr"] = self.statusToString(self.healthStore.authorizationStatus(for: rhrType))
-            }
-            
-            let granted = permissions.values.contains("granted")
+
+            let state = success ? "granted" : "denied"
             call.resolve([
-                "granted": granted,
-                "permissions": permissions
+                "granted": success,
+                "permissions": self.permissionPayload(state: state),
             ])
         }
     }
-    
+
     @objc func readSleep(_ call: CAPPluginCall) {
-        guard let startDateStr = call.getString("startDate"),
-              let endDateStr = call.getString("endDate") else {
-            call.reject("startDate and endDate are required")
-            return
-        }
-        
-        guard let startDate = ISO8601DateFormatter().date(from: startDateStr),
-              let endDate = ISO8601DateFormatter().date(from: endDateStr) else {
-            call.reject("Invalid date format. Use ISO8601.")
-            return
-        }
-        
-        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+        guard let range = dateRange(from: call) else { return }
+        guard let type = sleepType else {
             call.resolve(["records": []])
             return
         }
-        
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        
-        let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
-            if let error = error {
-                call.reject("Failed to read sleep data: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let samples = samples as? [HKCategorySample] else {
-                call.resolve(["records": []])
-                return
-            }
-            
-            let records = self.aggregateSleepSamples(samples)
-            call.resolve(["records": records])
+
+        querySamples(type: type, range: range, call: call) { samples in
+            let sleepSamples = (samples as? [HKCategorySample]) ?? []
+            call.resolve(["records": self.aggregateSleepSamples(sleepSamples)])
         }
-        
-        healthStore.execute(query)
     }
-    
+
     @objc func readHRV(_ call: CAPPluginCall) {
-        guard let startDateStr = call.getString("startDate"),
-              let endDateStr = call.getString("endDate") else {
-            call.reject("startDate and endDate are required")
-            return
-        }
-        
-        guard let startDate = ISO8601DateFormatter().date(from: startDateStr),
-              let endDate = ISO8601DateFormatter().date(from: endDateStr) else {
-            call.reject("Invalid date format. Use ISO8601.")
-            return
-        }
-        
-        guard let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
+        guard let range = dateRange(from: call) else { return }
+        guard let type = hrvType else {
             call.resolve(["records": []])
             return
         }
-        
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        
-        let query = HKSampleQuery(sampleType: hrvType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
-            if let error = error {
-                call.reject("Failed to read HRV data: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let samples = samples as? [HKQuantitySample] else {
-                call.resolve(["records": []])
-                return
-            }
-            
-            let formatter = ISO8601DateFormatter()
-            let records = samples.map { sample -> [String: Any] in
-                return [
+
+        querySamples(type: type, range: range, call: call) { samples in
+            let formatter = self.isoFormatter()
+            let records = ((samples as? [HKQuantitySample]) ?? []).map { sample in
+                [
                     "timestamp": formatter.string(from: sample.startDate),
                     "value": sample.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)),
-                    "metric": "sdnn"
-                ]
+                    "metric": "sdnn",
+                ] as [String: Any]
             }
-            
             call.resolve(["records": records])
         }
-        
-        healthStore.execute(query)
     }
-    
+
     @objc func readRestingHR(_ call: CAPPluginCall) {
-        guard let startDateStr = call.getString("startDate"),
-              let endDateStr = call.getString("endDate") else {
-            call.reject("startDate and endDate are required")
-            return
-        }
-        
-        guard let startDate = ISO8601DateFormatter().date(from: startDateStr),
-              let endDate = ISO8601DateFormatter().date(from: endDateStr) else {
-            call.reject("Invalid date format. Use ISO8601.")
-            return
-        }
-        
-        guard let rhrType = HKObjectType.quantityType(forIdentifier: .restingHeartRate) else {
+        guard let range = dateRange(from: call) else { return }
+        guard let type = restingHeartRateType else {
             call.resolve(["records": []])
             return
         }
-        
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        
-        let query = HKSampleQuery(sampleType: rhrType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
-            if let error = error {
-                call.reject("Failed to read resting HR data: \(error.localizedDescription)")
-                return
+
+        querySamples(type: type, range: range, call: call) { samples in
+            let formatter = self.isoFormatter()
+            let bpmUnit = HKUnit.count().unitDivided(by: .minute())
+            let records = ((samples as? [HKQuantitySample]) ?? []).map { sample in
+                [
+                    "timestamp": formatter.string(from: sample.startDate),
+                    "bpm": sample.quantity.doubleValue(for: bpmUnit),
+                ] as [String: Any]
             }
-            
-            guard let samples = samples as? [HKQuantitySample] else {
+            call.resolve(["records": records])
+        }
+    }
+
+    @objc func readSteps(_ call: CAPPluginCall) {
+        guard let range = dateRange(from: call) else { return }
+        guard let type = stepType else {
+            call.resolve(["records": []])
+            return
+        }
+
+        cumulativeSum(type: type, unit: .count(), range: range, call: call) { value in
+            let day = self.dayFormatter().string(from: range.end)
+            call.resolve(["records": [["date": day, "steps": Int(value.rounded())]]])
+        }
+    }
+
+    @objc func readActiveMinutes(_ call: CAPPluginCall) {
+        guard let range = dateRange(from: call) else { return }
+        guard let type = exerciseTimeType else {
+            call.resolve(["records": []])
+            return
+        }
+
+        cumulativeSum(type: type, unit: .minute(), range: range, call: call) { value in
+            let day = self.dayFormatter().string(from: range.end)
+            call.resolve(["records": [["date": day, "minutes": Int(value.rounded())]]])
+        }
+    }
+
+    @objc func readBedtimeHistory(_ call: CAPPluginCall) {
+        let days = max(2, min(call.getInt("days") ?? 7, 30))
+        guard let type = sleepType else {
+            call.resolve(["records": []])
+            return
+        }
+
+        let end = Date()
+        guard let start = Calendar.current.date(byAdding: .day, value: -(days + 1), to: end) else {
+            call.resolve(["records": []])
+            return
+        }
+
+        let range = (start: start, end: end)
+        querySamples(type: type, range: range, call: call) { samples in
+            let sessions = self.groupSleepSamples((samples as? [HKCategorySample]) ?? [])
+                .filter { !$0.isEmpty }
+                .suffix(days + 1)
+            let bedtimes = sessions.compactMap { session -> Int? in
+                guard let bedtime = session
+                    .filter({ self.isAsleepSample($0) })
+                    .map(\.startDate)
+                    .min() else { return nil }
+                let components = Calendar.current.dateComponents([.hour, .minute], from: bedtime)
+                guard let hour = components.hour, let minute = components.minute else { return nil }
+                let minuteOfDay = hour * 60 + minute
+                return minuteOfDay < 12 * 60 ? minuteOfDay + 24 * 60 : minuteOfDay
+            }
+
+            guard bedtimes.count >= 2, let latest = bedtimes.last else {
                 call.resolve(["records": []])
                 return
             }
-            
-            let formatter = ISO8601DateFormatter()
-            let records = samples.map { sample -> [String: Any] in
-                return [
-                    "timestamp": formatter.string(from: sample.startDate),
-                    "bpm": Int(sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))
-                ]
-            }
-            
-            call.resolve(["records": records])
+            let historical = Array(bedtimes.dropLast()).sorted()
+            let median = historical[historical.count / 2]
+            call.resolve(["records": [["deviationMin": abs(latest - median)]]])
         }
-        
+    }
+
+    @objc func openHealthSettings(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard let url = URL(string: UIApplication.openSettingsURLString) else {
+                call.reject("Settings are unavailable")
+                return
+            }
+            UIApplication.shared.open(url) { opened in
+                opened ? call.resolve() : call.reject("Could not open Settings")
+            }
+        }
+    }
+
+    private func permissionPayload(state: String) -> [String: String] {
+        ["sleep": state, "hrv": state, "restingHr": state]
+    }
+
+    private func dateRange(from call: CAPPluginCall) -> (start: Date, end: Date)? {
+        guard let startText = call.getString("startDate"),
+              let endText = call.getString("endDate"),
+              let start = parseISODate(startText),
+              let end = parseISODate(endText),
+              start < end else {
+            call.reject("startDate and endDate must be valid ISO-8601 values")
+            return nil
+        }
+        return (start, end)
+    }
+
+    private func parseISODate(_ value: String) -> Date? {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = fractional.date(from: value) { return date }
+        return ISO8601DateFormatter().date(from: value)
+    }
+
+    private func isoFormatter() -> ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }
+
+    private func dayFormatter() -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }
+
+    private func querySamples(
+        type: HKSampleType,
+        range: (start: Date, end: Date),
+        call: CAPPluginCall,
+        completion: @escaping ([HKSample]) -> Void
+    ) {
+        let predicate = HKQuery.predicateForSamples(
+            withStart: range.start,
+            end: range.end,
+            options: .strictStartDate
+        )
+        let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        let query = HKSampleQuery(
+            sampleType: type,
+            predicate: predicate,
+            limit: HKObjectQueryNoLimit,
+            sortDescriptors: [sort]
+        ) { _, samples, error in
+            if let error = error {
+                call.reject("HealthKit query failed: \(error.localizedDescription)")
+                return
+            }
+            completion(samples ?? [])
+        }
         healthStore.execute(query)
     }
-    
-    // MARK: - Helper Methods
-    
-    private func statusToString(_ status: HKAuthorizationStatus) -> String {
-        switch status {
-        case .notDetermined:
-            return "not_determined"
-        case .sharingDenied:
-            return "denied"
-        case .sharingAuthorized:
-            return "granted"
-        @unknown default:
-            return "not_determined"
-        }
-    }
-    
-    private func aggregateSleepSamples(_ samples: [HKCategorySample]) -> [[String: Any]] {
-        // Group samples by sleep session (samples within 30 min of each other are same session)
-        var sessions: [[HKCategorySample]] = []
-        var currentSession: [HKCategorySample] = []
-        var lastEndDate: Date?
-        
-        // Sort by start date
-        let sortedSamples = samples.sorted { $0.startDate < $1.startDate }
-        
-        for sample in sortedSamples {
-            if let lastEnd = lastEndDate {
-                // If gap is more than 30 minutes, start new session
-                if sample.startDate.timeIntervalSince(lastEnd) > 1800 {
-                    if !currentSession.isEmpty {
-                        sessions.append(currentSession)
-                    }
-                    currentSession = [sample]
-                } else {
-                    currentSession.append(sample)
-                }
-            } else {
-                currentSession.append(sample)
+
+    private func cumulativeSum(
+        type: HKQuantityType,
+        unit: HKUnit,
+        range: (start: Date, end: Date),
+        call: CAPPluginCall,
+        completion: @escaping (Double) -> Void
+    ) {
+        let predicate = HKQuery.predicateForSamples(
+            withStart: range.start,
+            end: range.end,
+            options: .strictStartDate
+        )
+        let query = HKStatisticsQuery(
+            quantityType: type,
+            quantitySamplePredicate: predicate,
+            options: .cumulativeSum
+        ) { _, statistics, error in
+            if let error = error {
+                call.reject("HealthKit aggregate failed: \(error.localizedDescription)")
+                return
             }
-            lastEndDate = sample.endDate
+            completion(statistics?.sumQuantity()?.doubleValue(for: unit) ?? 0)
         }
-        
-        if !currentSession.isEmpty {
-            sessions.append(currentSession)
+        healthStore.execute(query)
+    }
+
+    private func isInBedSample(_ sample: HKCategorySample) -> Bool {
+        sample.value == HKCategoryValueSleepAnalysis.inBed.rawValue
+    }
+
+    private func isAsleepSample(_ sample: HKCategorySample) -> Bool {
+        if #available(iOS 16.0, *) {
+            return [
+                HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue,
+                HKCategoryValueSleepAnalysis.asleepCore.rawValue,
+                HKCategoryValueSleepAnalysis.asleepDeep.rawValue,
+                HKCategoryValueSleepAnalysis.asleepREM.rawValue,
+            ].contains(sample.value)
         }
-        
-        // Convert sessions to records
-        let formatter = ISO8601DateFormatter()
-        return sessions.map { session -> [String: Any] in
-            let startDate = session.first?.startDate ?? Date()
-            let endDate = session.last?.endDate ?? Date()
-            let durationMin = endDate.timeIntervalSince(startDate) / 60
-            
-            // Calculate stages
-            var stages: [String: Int] = ["rem": 0, "deep": 0, "core": 0, "awake": 0]
-            
+        return sample.value == HKCategoryValueSleepAnalysis.asleep.rawValue
+    }
+
+    private func groupSleepSamples(_ samples: [HKCategorySample]) -> [[HKCategorySample]] {
+        let filtered = samples.filter { !isInBedSample($0) }.sorted { $0.startDate < $1.startDate }
+        var sessions: [[HKCategorySample]] = []
+        var current: [HKCategorySample] = []
+        var latestEnd: Date?
+
+        for sample in filtered {
+            if let latestEnd, sample.startDate.timeIntervalSince(latestEnd) > 90 * 60 {
+                if !current.isEmpty { sessions.append(current) }
+                current = []
+            }
+            current.append(sample)
+            latestEnd = max(latestEnd ?? sample.endDate, sample.endDate)
+        }
+        if !current.isEmpty { sessions.append(current) }
+        return sessions
+    }
+
+    private func aggregateSleepSamples(_ samples: [HKCategorySample]) -> [[String: Any]] {
+        let formatter = isoFormatter()
+        return groupSleepSamples(samples).compactMap { session in
+            guard let start = session.map(\.startDate).min(),
+                  let end = session.map(\.endDate).max() else { return nil }
+
+            var stages = ["rem": 0, "deep": 0, "core": 0, "awake": 0]
             for sample in session {
-                let duration = Int(sample.endDate.timeIntervalSince(sample.startDate) / 60)
-                
+                let minutes = max(0, Int(sample.endDate.timeIntervalSince(sample.startDate) / 60))
                 if #available(iOS 16.0, *) {
                     switch sample.value {
-                    case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
-                        stages["rem"]! += duration
-                    case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
-                        stages["deep"]! += duration
-                    case HKCategoryValueSleepAnalysis.asleepCore.rawValue:
-                        stages["core"]! += duration
-                    case HKCategoryValueSleepAnalysis.awake.rawValue:
-                        stages["awake"]! += duration
-                    case HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
-                        // Distribute unspecified to core (light sleep)
-                        stages["core"]! += duration
-                    default:
-                        break
+                    case HKCategoryValueSleepAnalysis.asleepREM.rawValue: stages["rem", default: 0] += minutes
+                    case HKCategoryValueSleepAnalysis.asleepDeep.rawValue: stages["deep", default: 0] += minutes
+                    case HKCategoryValueSleepAnalysis.asleepCore.rawValue,
+                         HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
+                        stages["core", default: 0] += minutes
+                    case HKCategoryValueSleepAnalysis.awake.rawValue: stages["awake", default: 0] += minutes
+                    default: break
                     }
                 } else {
-                    // iOS 15 and earlier - no stages available
                     switch sample.value {
-                    case HKCategoryValueSleepAnalysis.asleep.rawValue:
-                        stages["core"]! += duration
-                    case HKCategoryValueSleepAnalysis.awake.rawValue:
-                        stages["awake"]! += duration
-                    default:
-                        break
+                    case HKCategoryValueSleepAnalysis.asleep.rawValue: stages["core", default: 0] += minutes
+                    case HKCategoryValueSleepAnalysis.awake.rawValue: stages["awake", default: 0] += minutes
+                    default: break
                     }
                 }
             }
-            
-            let totalSleep = stages["rem"]! + stages["deep"]! + stages["core"]!
-            let totalTime = totalSleep + stages["awake"]!
-            let efficiency = totalTime > 0 ? Double(totalSleep) / Double(totalTime) : 0.85
-            
+
+            let wallMinutes = max(0, Int(end.timeIntervalSince(start) / 60))
+            let stagedSleep = stages["rem", default: 0] + stages["deep", default: 0] + stages["core", default: 0]
+            let duration = min(wallMinutes, stagedSleep > 0 ? stagedSleep : wallMinutes)
+            let awake = stages["awake", default: 0]
+            let efficiency = duration + awake > 0
+                ? min(1, Double(duration) / Double(duration + awake))
+                : 0
+
             return [
-                "startDate": formatter.string(from: startDate),
-                "endDate": formatter.string(from: endDate),
-                "durationMin": Int(durationMin),
+                "startDate": formatter.string(from: start),
+                "endDate": formatter.string(from: end),
+                "durationMin": duration,
                 "efficiency": efficiency,
-                "stages": stages
-            ]
+                "stages": stages,
+            ] as [String: Any]
         }
     }
 }

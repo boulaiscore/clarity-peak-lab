@@ -9,35 +9,24 @@ This folder contains the native Android code for the NeuroLoop Pro Health Connec
 | **Sleep** | `SleepSessionRecord` | Sessions with stages |
 | **HRV** | `HeartRateVariabilityRmssdRecord` | ms (**RMSSD**, not SDNN) |
 | **Resting HR** | `RestingHeartRateRecord` | bpm |
+| **Steps** | `StepsRecord` | count |
+| **Active minutes** | `ExerciseSessionRecord` | minutes |
 
 > ⚠️ **Important**: Android Health Connect provides HRV as **RMSSD**, not SDNN (which iOS uses). These are related but different metrics. The app's `HRVRecord.metric` field will be `\"rmssd\"` on Android.
 
 ## Setup Instructions
 
-After running `npx cap add android`, follow these steps:
+The generated Android project is already wired to compile this canonical source
+folder directly. It uses AndroidX Health Connect `1.1.0` and `minSdk 26`.
 
-### 1. Copy Plugin Files
+After changing the web or native bridge, run:
 
 ```bash
-# From your project root
-mkdir -p android/app/src/main/java/com/looma/plugins
-cp android-plugin/health/HealthPlugin.kt android/app/src/main/java/com/looma/plugins/
+npm run build
+npx cap sync android
 ```
 
-### 2. Add Health Connect Dependency
-
-Add to `android/app/build.gradle`:
-
-```gradle
-dependencies {
-    // ... existing dependencies
-    
-    // Health Connect
-    implementation "androidx.health.connect:connect-client:1.1.0-alpha07"
-}
-```
-
-### 3. Update AndroidManifest.xml
+## Manifest and release setup
 
 Add these entries to `android/app/src/main/AndroidManifest.xml`:
 
@@ -47,6 +36,8 @@ Inside the `<manifest>` tag:
 <uses-permission android:name="android.permission.health.READ_SLEEP" />
 <uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />
 <uses-permission android:name="android.permission.health.READ_RESTING_HEART_RATE" />
+<uses-permission android:name="android.permission.health.READ_STEPS" />
+<uses-permission android:name="android.permission.health.READ_EXERCISE" />
 
 <!-- Query Health Connect package -->
 <queries>
@@ -68,26 +59,7 @@ Inside the `<application>` tag, add an intent filter for the permission rational
 </activity-alias>
 ```
 
-### 4. Register the Plugin
-
-In `android/app/src/main/java/com/looma/MainActivity.kt`:
-
-```kotlin
-package com.looma
-
-import android.os.Bundle
-import com.getcapacitor.BridgeActivity
-import com.looma.plugins.HealthPlugin
-
-class MainActivity : BridgeActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        registerPlugin(HealthPlugin::class.java)
-        super.onCreate(savedInstanceState)
-    }
-}
-```
-
-### 5. Build and Run
+## Build and run
 
 ```bash
 # Sync the project

@@ -12,6 +12,7 @@ import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
 import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { usePhoneHealthSync } from "@/hooks/usePhoneHealthSync";
+import { useWearableSync } from "@/hooks/useWearableSync";
 import { useDeviceUsageSync } from "@/hooks/useDeviceUsageSync";
 import { useCalendarContextSync } from "@/hooks/useCalendarContextSync";
 import Auth from "./pages/Auth";
@@ -67,6 +68,7 @@ function AppInitProvider({ children }: { children: React.ReactNode }) {
   useAutoSeedExercises();
   useNotificationInit();
   usePhoneHealthSync();
+  useWearableSync();
   useDeviceUsageSync();
   useCalendarContextSync();
   return <>{children}</>;

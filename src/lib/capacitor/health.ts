@@ -85,6 +85,7 @@ export interface HealthPluginInterface {
   readActiveMinutes?(options: { startDate: string; endDate: string }): Promise<{ records: ActiveMinutesRecord[] }>;
   readBedtimeHistory?(options: { days: number }): Promise<{ records: BedtimeDeviationRecord[] }>;
   openHealthConnectSettings?(): Promise<void>; // Android only
+  openHealthSettings?(): Promise<void>; // iOS only
 }
 
 // ============================================================================
@@ -417,7 +418,6 @@ export async function openHealthSettings(): Promise<void> {
     } else {
       // iOS: Try to open via native plugin, fallback to Settings URL scheme
       // The native plugin should implement this method
-      // @ts-ignore - Native plugin may have this method
       await HealthPlugin.openHealthSettings?.();
     }
   } catch (error) {

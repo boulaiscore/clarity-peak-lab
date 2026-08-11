@@ -89,7 +89,7 @@ export const SOCIAL_APP_PACKAGES = [
   'com.pinterest',
   'com.reddit.frontpage',
   'com.discord',
-  'com.youtube',
+  'com.google.android.youtube',
 ];
 
 // Register the plugin - will be implemented natively on Android

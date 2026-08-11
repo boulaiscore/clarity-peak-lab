@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LOOMA</string>
+    <string name="title_activity_main">LOOMA</string>
+    <string name="package_name">com.looma</string>
+    <string name="custom_url_scheme">com.looma</string>
+</resources>
