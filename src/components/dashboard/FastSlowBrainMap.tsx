@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { useReducedMotion } from "framer-motion";
 import { DualProcessTrendChart } from "./DualProcessTrendChart";
 
 interface FastSlowBrainMapProps {
@@ -80,15 +81,23 @@ function NetworkHalf({
   gradientId,
   glowId,
   score,
+  reduceMotion,
 }: {
   nodes: NetworkNode[];
   gradientId: string;
   glowId: string;
   score: number;
+  reduceMotion: boolean;
 }) {
-  const opacity = 0.5 + clampScore(score) / 250;
-  const scale = 0.92 + clampScore(score) / 1250;
+  const normalizedScore = clampScore(score);
+  const opacity = 0.5 + normalizedScore / 250;
+  const scale = 0.92 + normalizedScore / 1250;
   const centerX = nodes === LEFT_NODES ? 82 : 218;
+  const activeNodeCount = Math.round(7 + normalizedScore * 0.17);
+  const activity = 0.22 + normalizedScore / 140;
+  const pulseDuration = Math.max(2.6, 5.9 - normalizedScore * 0.034);
+  const animatedNodeStride = normalizedScore >= 75 ? 2 : normalizedScore >= 50 ? 3 : 5;
+  const signalStride = normalizedScore >= 75 ? 11 : normalizedScore >= 50 ? 17 : 27;
 
   return (
     <g
@@ -96,40 +105,123 @@ function NetworkHalf({
       filter={`url(#${glowId})`}
       transform={`translate(${centerX} 84) scale(${scale}) translate(${-centerX} -84)`}
     >
-      {CONNECTIONS.map(([from, to], index) => (
-        <line
-          key={`${from}-${to}-${index}`}
-          x1={nodes[from].x}
-          y1={nodes[from].y}
-          x2={nodes[to].x}
-          y2={nodes[to].y}
-          stroke={`url(#${gradientId})`}
-          strokeWidth={index % 5 === 0 ? 1 : 0.65}
-          opacity={0.2 + (index % 4) * 0.07}
-        />
-      ))}
-      {nodes.map((node, index) => (
-        <g key={`${node.x}-${node.y}`}>
-          {index % 7 === 0 && (
+      {CONNECTIONS.map(([from, to], index) => {
+        const active = from < activeNodeCount && to < activeNodeCount;
+        const baseOpacity = active ? 0.18 + (index % 4) * 0.065 : 0.055;
+        return (
+          <line
+            key={`${from}-${to}-${index}`}
+            x1={nodes[from].x}
+            y1={nodes[from].y}
+            x2={nodes[to].x}
+            y2={nodes[to].y}
+            stroke={`url(#${gradientId})`}
+            strokeWidth={index % 5 === 0 ? 1 : 0.65}
+            opacity={baseOpacity}
+          >
+            {!reduceMotion && active && index % 7 === 0 && (
+              <animate
+                attributeName="opacity"
+                values={`${(baseOpacity * 0.55).toFixed(3)};${Math.min(0.62, baseOpacity * (1 + activity)).toFixed(3)};${(baseOpacity * 0.55).toFixed(3)}`}
+                dur={`${(pulseDuration + (index % 3) * 0.38).toFixed(2)}s`}
+                begin={`${((index % 6) * 0.21).toFixed(2)}s`}
+                repeatCount="indefinite"
+              />
+            )}
+          </line>
+        );
+      })}
+      {!reduceMotion && CONNECTIONS.map(([from, to], index) => {
+        const active = from < activeNodeCount && to < activeNodeCount;
+        if (!active || index % signalStride !== 0) return null;
+        const start = nodes[from];
+        const end = nodes[to];
+        const duration = pulseDuration * 0.82 + (index % 4) * 0.25;
+        return (
+          <circle
+            key={`signal-${from}-${to}-${index}`}
+            r={0.5 + normalizedScore / 280}
+            fill={`url(#${gradientId})`}
+          >
+            <animateMotion
+              path={`M ${start.x} ${start.y} L ${end.x} ${end.y}`}
+              dur={`${duration.toFixed(2)}s`}
+              begin={`${((index % 7) * 0.27).toFixed(2)}s`}
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="opacity"
+              values="0;0.8;0"
+              dur={`${duration.toFixed(2)}s`}
+              begin={`${((index % 7) * 0.27).toFixed(2)}s`}
+              repeatCount="indefinite"
+            />
+          </circle>
+        );
+      })}
+      {nodes.map((node, index) => {
+        const active = index < activeNodeCount;
+        return (
+          <g key={`${node.x}-${node.y}`}>
+            {active && index % 7 === 0 && (
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r={node.radius * 2.7}
+                fill="none"
+                stroke={`url(#${gradientId})`}
+                strokeWidth="0.45"
+                opacity="0.28"
+              >
+                {!reduceMotion && (
+                  <>
+                    <animate
+                      attributeName="r"
+                      values={`${(node.radius * 2.15).toFixed(2)};${(node.radius * (2.75 + activity * 0.9)).toFixed(2)};${(node.radius * 2.15).toFixed(2)}`}
+                      dur={`${(pulseDuration + (index % 4) * 0.31).toFixed(2)}s`}
+                      begin={`${((index % 5) * 0.25).toFixed(2)}s`}
+                      repeatCount="indefinite"
+                    />
+                    <animate
+                      attributeName="opacity"
+                      values="0.07;0.3;0.07"
+                      dur={`${(pulseDuration + (index % 4) * 0.31).toFixed(2)}s`}
+                      begin={`${((index % 5) * 0.25).toFixed(2)}s`}
+                      repeatCount="indefinite"
+                    />
+                  </>
+                )}
+              </circle>
+            )}
             <circle
               cx={node.x}
               cy={node.y}
-              r={node.radius * 2.7}
-              fill="none"
-              stroke={`url(#${gradientId})`}
-              strokeWidth="0.45"
-              opacity="0.28"
-            />
-          )}
-          <circle
-            cx={node.x}
-            cy={node.y}
-            r={node.radius}
-            fill={`url(#${gradientId})`}
-            opacity={0.72 + (index % 3) * 0.1}
-          />
-        </g>
-      ))}
+              r={active ? node.radius : node.radius * 0.72}
+              fill={`url(#${gradientId})`}
+              opacity={active ? 0.68 + (index % 3) * 0.1 : 0.12}
+            >
+              {!reduceMotion && active && index % animatedNodeStride === 0 && (
+                <>
+                  <animate
+                    attributeName="r"
+                    values={`${node.radius};${(node.radius * (1.08 + activity * 0.12)).toFixed(2)};${node.radius}`}
+                    dur={`${(pulseDuration + (index % 5) * 0.22).toFixed(2)}s`}
+                    begin={`${((index % 8) * 0.18).toFixed(2)}s`}
+                    repeatCount="indefinite"
+                  />
+                  <animate
+                    attributeName="opacity"
+                    values={`${(0.56 + activity * 0.1).toFixed(2)};${Math.min(1, 0.72 + activity * 0.27).toFixed(2)};${(0.56 + activity * 0.1).toFixed(2)}`}
+                    dur={`${(pulseDuration + (index % 5) * 0.22).toFixed(2)}s`}
+                    begin={`${((index % 8) * 0.18).toFixed(2)}s`}
+                    repeatCount="indefinite"
+                  />
+                </>
+              )}
+            </circle>
+          </g>
+        );
+      })}
     </g>
   );
 }
@@ -142,6 +234,7 @@ export function FastSlowBrainMap({
   slowBaseline,
   slowDelta,
 }: FastSlowBrainMapProps) {
+  const reduceMotion = useReducedMotion();
   const id = useId().replace(/:/g, "");
   const fastGradientId = `${id}-fast-gradient`;
   const slowGradientId = `${id}-slow-gradient`;
@@ -157,6 +250,8 @@ export function FastSlowBrainMap({
     : difference > 0
       ? "Fast processing currently leads."
       : "Deliberate processing currently leads.";
+  const balanceActivity = Math.max(0.15, 1 - absoluteDifference / 70);
+  const bridgeDuration = Math.max(2.7, 5.8 - ((fast + slow) / 2) * 0.032);
 
   return (
     <div className="py-1">
@@ -208,18 +303,30 @@ export function FastSlowBrainMap({
               gradientId={fastGradientId}
               glowId={fastGlowId}
               score={fast}
+              reduceMotion={Boolean(reduceMotion)}
             />
             <NetworkHalf
               nodes={RIGHT_NODES}
               gradientId={slowGradientId}
               glowId={slowGlowId}
               score={slow}
+              reduceMotion={Boolean(reduceMotion)}
             />
 
-            <g opacity="0.16" stroke="hsl(var(--foreground))" strokeWidth="0.45">
-              <line x1="128" y1="63" x2="172" y2="63" />
-              <line x1="121" y1="82" x2="179" y2="82" />
-              <line x1="128" y1="108" x2="172" y2="108" />
+            <g opacity={0.07 + balanceActivity * 0.13} stroke="hsl(var(--foreground))" strokeWidth="0.45">
+              {[{ x1: 128, y: 63, x2: 172 }, { x1: 121, y: 82, x2: 179 }, { x1: 128, y: 108, x2: 172 }].map((bridge, index) => (
+                <line key={bridge.y} x1={bridge.x1} y1={bridge.y} x2={bridge.x2} y2={bridge.y}>
+                  {!reduceMotion && (
+                    <animate
+                      attributeName="opacity"
+                      values={`${(0.2 + balanceActivity * 0.15).toFixed(2)};${(0.45 + balanceActivity * 0.45).toFixed(2)};${(0.2 + balanceActivity * 0.15).toFixed(2)}`}
+                      dur={`${(bridgeDuration + index * 0.42).toFixed(2)}s`}
+                      begin={`${(index * 0.31).toFixed(2)}s`}
+                      repeatCount="indefinite"
+                    />
+                  )}
+                </line>
+              ))}
             </g>
           </svg>
 

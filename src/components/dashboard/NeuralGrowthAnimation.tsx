@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { useNavigate } from "react-router-dom";
+import { useReducedMotion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -100,11 +101,16 @@ export function NeuralGrowthAnimation({
   bottleneck,
 }: NeuralGrowthAnimationProps) {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const id = useId().replace(/:/g, "");
   const networkGradientId = `${id}-network-gradient`;
   const networkGlowId = `${id}-network-glow`;
   const score = Math.max(0, Math.min(100, overallCognitiveScore));
   const activeNodeCount = Math.round(14 + score * 0.26);
+  const activity = 0.25 + score / 135;
+  const pulseDuration = Math.max(2.5, 5.7 - score * 0.032);
+  const animatedNodeStride = score >= 75 ? 2 : score >= 50 ? 3 : 5;
+  const signalStride = score >= 75 ? 13 : score >= 50 ? 19 : 29;
   const actionRoute = bottleneck?.variable === "recovery" ? "/detox-session" : "/neuro-lab";
 
   return (
@@ -136,11 +142,21 @@ export function NeuralGrowthAnimation({
               stroke="hsl(var(--recovery))"
               strokeWidth="1.1"
               strokeOpacity="0.2"
-            />
+            >
+              {!reduceMotion && (
+                <animate
+                  attributeName="fill-opacity"
+                  values={`0.025;${(0.035 + activity * 0.025).toFixed(3)};0.025`}
+                  dur={`${(pulseDuration * 1.45).toFixed(2)}s`}
+                  repeatCount="indefinite"
+                />
+              )}
+            </path>
 
             <g filter={`url(#${networkGlowId})`}>
               {NETWORK_CONNECTIONS.map(([from, to], index) => {
                 const active = from < activeNodeCount && to < activeNodeCount;
+                const baseOpacity = active ? 0.18 + (index % 4) * 0.055 : 0.045;
                 return (
                   <line
                     key={`${from}-${to}`}
@@ -150,8 +166,47 @@ export function NeuralGrowthAnimation({
                     y2={NETWORK_NODES[to].y}
                     stroke={`url(#${networkGradientId})`}
                     strokeWidth={index % 7 === 0 ? 0.9 : 0.55}
-                    opacity={active ? 0.18 + (index % 4) * 0.055 : 0.045}
-                  />
+                    opacity={baseOpacity}
+                  >
+                    {!reduceMotion && active && index % 8 === 0 && (
+                      <animate
+                        attributeName="opacity"
+                        values={`${(baseOpacity * 0.55).toFixed(3)};${Math.min(0.58, baseOpacity * (1 + activity)).toFixed(3)};${(baseOpacity * 0.55).toFixed(3)}`}
+                        dur={`${(pulseDuration + (index % 3) * 0.45).toFixed(2)}s`}
+                        begin={`${((index % 7) * 0.19).toFixed(2)}s`}
+                        repeatCount="indefinite"
+                      />
+                    )}
+                  </line>
+                );
+              })}
+
+              {!reduceMotion && NETWORK_CONNECTIONS.map(([from, to], index) => {
+                const active = from < activeNodeCount && to < activeNodeCount;
+                if (!active || index % signalStride !== 0) return null;
+                const start = NETWORK_NODES[from];
+                const end = NETWORK_NODES[to];
+                return (
+                  <circle
+                    key={`signal-${from}-${to}`}
+                    r={0.55 + score / 260}
+                    fill={`url(#${networkGradientId})`}
+                    opacity={Math.min(0.82, 0.28 + activity * 0.46)}
+                  >
+                    <animateMotion
+                      path={`M ${start.x} ${start.y} L ${end.x} ${end.y}`}
+                      dur={`${(pulseDuration * 0.8 + (index % 4) * 0.28).toFixed(2)}s`}
+                      begin={`${((index % 6) * 0.31).toFixed(2)}s`}
+                      repeatCount="indefinite"
+                    />
+                    <animate
+                      attributeName="opacity"
+                      values="0;0.78;0"
+                      dur={`${(pulseDuration * 0.8 + (index % 4) * 0.28).toFixed(2)}s`}
+                      begin={`${((index % 6) * 0.31).toFixed(2)}s`}
+                      repeatCount="indefinite"
+                    />
+                  </circle>
                 );
               })}
 
@@ -168,7 +223,26 @@ export function NeuralGrowthAnimation({
                         stroke={`url(#${networkGradientId})`}
                         strokeWidth="0.5"
                         opacity="0.22"
-                      />
+                      >
+                        {!reduceMotion && (
+                          <>
+                            <animate
+                              attributeName="r"
+                              values={`${(node.radius * 2.25).toFixed(2)};${(node.radius * (3.05 + activity * 0.8)).toFixed(2)};${(node.radius * 2.25).toFixed(2)}`}
+                              dur={`${(pulseDuration + (index % 4) * 0.35).toFixed(2)}s`}
+                              begin={`${((index % 5) * 0.28).toFixed(2)}s`}
+                              repeatCount="indefinite"
+                            />
+                            <animate
+                              attributeName="opacity"
+                              values="0.08;0.3;0.08"
+                              dur={`${(pulseDuration + (index % 4) * 0.35).toFixed(2)}s`}
+                              begin={`${((index % 5) * 0.28).toFixed(2)}s`}
+                              repeatCount="indefinite"
+                            />
+                          </>
+                        )}
+                      </circle>
                     )}
                     <circle
                       cx={node.x}
@@ -176,7 +250,26 @@ export function NeuralGrowthAnimation({
                       r={active ? node.radius : node.radius * 0.72}
                       fill={`url(#${networkGradientId})`}
                       opacity={active ? 0.68 + (index % 3) * 0.11 : 0.12}
-                    />
+                    >
+                      {!reduceMotion && active && index % animatedNodeStride === 0 && (
+                        <>
+                          <animate
+                            attributeName="r"
+                            values={`${node.radius};${(node.radius * (1.08 + activity * 0.12)).toFixed(2)};${node.radius}`}
+                            dur={`${(pulseDuration + (index % 5) * 0.24).toFixed(2)}s`}
+                            begin={`${((index % 8) * 0.17).toFixed(2)}s`}
+                            repeatCount="indefinite"
+                          />
+                          <animate
+                            attributeName="opacity"
+                            values={`${(0.56 + activity * 0.1).toFixed(2)};${Math.min(1, 0.7 + activity * 0.28).toFixed(2)};${(0.56 + activity * 0.1).toFixed(2)}`}
+                            dur={`${(pulseDuration + (index % 5) * 0.24).toFixed(2)}s`}
+                            begin={`${((index % 8) * 0.17).toFixed(2)}s`}
+                            repeatCount="indefinite"
+                          />
+                        </>
+                      )}
+                    </circle>
                   </g>
                 );
               })}
