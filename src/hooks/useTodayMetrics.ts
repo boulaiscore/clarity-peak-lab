@@ -50,6 +50,7 @@ import {
 import {
   calculateDailyRecoveryTarget,
   getCurrentRecovery,
+  resolveRecoveryForMetrics,
   RecoveryState,
 } from "@/lib/recoveryV2";
 import { format, subDays } from "date-fns";
@@ -66,6 +67,8 @@ export interface UseTodayMetricsResult {
   recovery: number;
   /** Raw recovery value - null if not initialized (for snapshots) */
   recoveryRaw: number | null;
+  /** True when the displayed REC input is predicted from today's target. */
+  recoveryEstimated: boolean;
   
   // Decay adjustments
   readinessDecay: number;
@@ -284,7 +287,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     const recoveryRawValue = recoveryV2State
       ? getCurrentRecovery(recoveryV2State, recoveryTarget)
       : null;
-    const recovery = recoveryRawValue ?? 0;
+    const recovery = resolveRecoveryForMetrics(recoveryRawValue, recoveryTarget);
+    const recoveryEstimated = recoveryRawValue === null;
     const isRecoveryInitialized = recoveryV2State?.hasRecoveryBaseline ?? false;
 
     const deviceRows = passiveContext?.deviceRows ?? [];
@@ -390,6 +394,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       readiness,
       recovery,
       recoveryRaw: recoveryRawValue,
+      recoveryEstimated,
       readinessDecay,
       consecutiveLowRecDays,
       hasWearableData: physioEstimate !== null,

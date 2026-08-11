@@ -74,7 +74,7 @@ const CustomDot = ({ cx, cy, payload, dataKey }: { cx?: number; cy?: number; pay
 /**
  * Calculate cognitive age from daily snapshot performance.
  * perf = avg(AE, RA, CT, IN) for available values
- * During calibration: baseline = 50 (population average)
+ * During calibration: Cognitive Age remains anchored to chronological age.
  * Each 10 pts improvement = -1 year
  */
 function calcCognitiveAgeFromSnapshot(
@@ -90,10 +90,10 @@ function calcCognitiveAgeFromSnapshot(
   if (skills.length < 2) return null;
   
   const perf = skills.reduce((a, b) => a + b, 0) / skills.length;
-  const baseline = baselineScore !== null ? baselineScore : 50;
+  if (baselineScore === null) return realAge;
   return calculateCognitiveAgeFromPerformance({
     performance: perf,
-    baselinePerformance: baseline,
+    baselinePerformance: baselineScore,
     chronologicalAge: realAge,
     inactiveDays,
   });
@@ -161,7 +161,7 @@ export function CognitiveAgeTrendChart() {
       fallbackAge: baseline?.chrono_age_at_onboarding ? Number(baseline.chrono_age_at_onboarding) : 30,
     });
 
-    const baselineScore = baseline?.baseline_score_90d
+    const baselineScore = baseline?.is_baseline_calibrated && baseline.baseline_score_90d != null
       ? Number(baseline.baseline_score_90d)
       : null;
 
@@ -195,17 +195,17 @@ export function CognitiveAgeTrendChart() {
     // First pass: compute true cognitiveAge from sources where available
     for (const point of skeletonDays) {
       const w = weeklyMap.get(point.date);
-      if (w?.cognitive_age) {
+      if (baseline?.is_baseline_calibrated && w?.cognitive_age != null) {
         point.cognitiveAge = Math.round(Number(w.cognitive_age) * 10) / 10;
         continue;
       }
       const d = dailyMap.get(point.date);
       if (d) {
         point.cognitiveAge = calcCognitiveAgeFromSnapshot(
-          d.ae ? Number(d.ae) : null,
-          d.ra ? Number(d.ra) : null,
-          d.ct ? Number(d.ct) : null,
-          d.in_score ? Number(d.in_score) : null,
+          d.ae != null ? Number(d.ae) : null,
+          d.ra != null ? Number(d.ra) : null,
+          d.ct != null ? Number(d.ct) : null,
+          d.in_score != null ? Number(d.in_score) : null,
           point.realAge,
           baselineScore,
           null

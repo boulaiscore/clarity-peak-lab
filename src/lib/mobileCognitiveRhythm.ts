@@ -123,9 +123,13 @@ export function deriveMobileCognitiveRhythm(
     { key: "attentionUsageMinutes" as const, label: "Attention" as const },
     { key: "busyMinutes" as const, label: "Schedule" as const },
   ].flatMap((candidate) => {
-    const pairs = days.flatMap((day) => {
+    // Use a one-day lag: same-day Sharpness/Readiness already include passive
+    // context, so correlating a source with that same score is mechanically
+    // circular. Yesterday's context versus today's state is still associative,
+    // but is a materially cleaner signal for a future predictive model.
+    const pairs = days.slice(0, -1).flatMap((day, index) => {
       const x = day[candidate.key];
-      const y = cognitiveState(day);
+      const y = cognitiveState(days[index + 1]);
       return x === null || y === null ? [] : [{ x, y }];
     });
     const correlation = pearson(pairs);

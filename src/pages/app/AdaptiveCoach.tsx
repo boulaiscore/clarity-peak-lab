@@ -54,6 +54,7 @@ export default function AdaptiveCoach() {
     error,
   } = useAdaptiveFocusValidation();
   const availability = featureStatus.availability;
+  const adaptiveEstimate = featureStatus.adaptiveEstimate;
   const coverage = availability?.coverage ?? 0;
   const setupRequired = isStorageSetupError(error);
 
@@ -120,6 +121,37 @@ export default function AdaptiveCoach() {
               Updated {format(parseISO(featureStatus.featureDate), "MMM d")}
             </p>
           )}
+        </section>
+
+        <section className="mt-4 rounded-2xl border border-border/30 bg-card/45 p-5">
+          <div className="flex items-start justify-between gap-4 border-b border-border/25 pb-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60">Daily state model</p>
+              <h2 className="mt-1 text-[17px] font-medium">Personal estimate</h2>
+            </div>
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[9px] uppercase tracking-[0.12em] text-primary/80">
+              {adaptiveEstimate?.status ?? "learning"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-5 py-5">
+            <MiniStat
+              label="Estimate"
+              value={adaptiveEstimate ? `${Math.round(adaptiveEstimate.predictedDailyState)} ±${Math.round(adaptiveEstimate.uncertainty)}` : "—"}
+            />
+            <MiniStat
+              label="Confidence"
+              value={adaptiveEstimate ? percent(adaptiveEstimate.confidence) : "—"}
+            />
+            <MiniStat
+              label="Outcomes"
+              value={adaptiveEstimate ? String(adaptiveEstimate.outcomeSampleCount) : "—"}
+            />
+          </div>
+
+          <p className="border-t border-border/25 pt-4 text-[10px] leading-relaxed text-muted-foreground/65">
+            Shadow only. Home stays on the validated formula while this estimate is checked against later performance.
+          </p>
         </section>
 
         <section className="mt-4 rounded-2xl border border-border/30 bg-card/45 p-5">

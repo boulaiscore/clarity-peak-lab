@@ -12,6 +12,7 @@ import type { Json } from "@/integrations/supabase/types";
 import {
   calculateDailyRecoveryTarget,
   getCurrentRecovery,
+  resolveRecoveryForMetrics,
   type RecoveryState,
 } from "@/lib/recoveryV2";
 import {
@@ -49,7 +50,7 @@ export function useRecordIntradayOnAction() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const [gamesResult, tasksResult, customResult] = await Promise.all([
+    const [gamesResult, tasksResult, sessionResult] = await Promise.all([
       supabase
         .from("game_sessions")
         .select("score, completed_at")
@@ -67,13 +68,12 @@ export function useRecordIntradayOnAction() {
         .from("reason_sessions")
         .select("duration_seconds, weight")
         .eq("user_id", userId)
-        .eq("source", "custom")
         .eq("is_valid_for_rq", true)
         .gte("started_at", sevenDaysAgo.toISOString())
         .not("ended_at", "is", null),
     ]);
 
-    const firstError = gamesResult.error || tasksResult.error || customResult.error;
+    const firstError = gamesResult.error || tasksResult.error || sessionResult.error;
     if (firstError) throw firstError;
 
     const s2GameScores = (gamesResult.data ?? [])
@@ -89,7 +89,7 @@ export function useRecordIntradayOnAction() {
       };
     });
 
-    const customWeightedMinutes = (customResult.data ?? []).reduce((total, reasonSession) => {
+    const sessionWeightedMinutes = (sessionResult.data ?? []).reduce((total, reasonSession) => {
       return total + ((reasonSession.duration_seconds ?? 0) / 60) * (reasonSession.weight ?? 1);
     }, 0);
 
@@ -97,7 +97,7 @@ export function useRecordIntradayOnAction() {
       S2,
       s2GameScores,
       taskCompletions,
-      customWeightedMinutes,
+      sessionWeightedMinutes,
       lastS2GameAt: lastS2GameAt ? parseISO(lastS2GameAt) : null,
       lastTaskAt: lastTaskAt ? parseISO(lastTaskAt) : null,
     }).rq;
@@ -178,7 +178,7 @@ export function useRecordIntradayOnAction() {
         physioEstimate,
       );
       const recovery = getCurrentRecovery(recoveryState, recoveryTarget);
-      const recoveryForFormula = recovery ?? 0;
+      const recoveryForFormula = resolveRecoveryForMetrics(recovery, recoveryTarget);
 
       const deviceRows = deviceResult.data ?? [];
       const currentDevice = deviceRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");

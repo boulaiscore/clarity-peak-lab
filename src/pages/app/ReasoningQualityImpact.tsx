@@ -104,7 +104,7 @@ export default function ReasoningQualityImpact() {
         window: "Rolling 7 days",
         description: "Recent deliberate reading, listening and timed reasoning sessions.",
         tone: taskPriming === 0 ? "muted" : "default",
-        note: `${taskCount} curated item(s): ${taskBreakdown.podcastCount} podcast, ${taskBreakdown.articleCount} article, ${taskBreakdown.bookCount} book. Fresh base weights are ${TASK_TYPE_WEIGHTS.podcast}/${TASK_TYPE_WEIGHTS.article}/${TASK_TYPE_WEIGHTS.book}; custom sessions are duration-weighted.`,
+          note: `${taskCount} curated item(s): ${taskBreakdown.podcastCount} podcast, ${taskBreakdown.articleCount} article, ${taskBreakdown.bookCount} book. Fresh base weights are ${TASK_TYPE_WEIGHTS.podcast}/${TASK_TYPE_WEIGHTS.article}/${TASK_TYPE_WEIGHTS.book}; timer sessions are duration-weighted. The stronger valid capture path is used, so one method is never required to unlock the other half.`,
       },
     ];
 

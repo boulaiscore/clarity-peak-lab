@@ -44,7 +44,7 @@
  * 
  * SCI FORMULA (v1.3):
  * - CP = clamp(0, 100, PerformanceAvg)
- * - PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+ * - PerformanceAvg = (AE + RA + CT + IN) / 4
  * - BE = min(100, (weekly_games_xp / xp_target_week) × 100)
  * - SCI = 0.50×CP + 0.30×BE + 0.20×REC
  * 
@@ -302,7 +302,7 @@ export function getDualProcessLevel(score: number): "elite" | "good" | "unbalanc
 // COGNITIVE NETWORK (SCI) - v1.3 Formula
 // 
 // CP = clamp(0, 100, PerformanceAvg)
-// PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+// PerformanceAvg = (AE + RA + CT + IN) / 4
 // BE = min(100, (weekly_games_xp / xp_target_week) × 100)
 // SCI = 0.50×CP + 0.30×BE + 0.20×REC
 // 
@@ -319,9 +319,9 @@ export function calculateSCI(
   // Dual Process Balance
   const dualProcessBalance = calculateDualProcessBalance(S1, S2);
   
-  // Cognitive Performance (CP) = PerformanceAvg
-  // PerformanceAvg = (AE + RA + CT + IN + S2) / 5
-  const performanceAvg = (states.AE + states.RA + states.CT + states.IN + S2) / 5;
+  // Cognitive Performance uses each canonical skill exactly once. S2 remains
+  // a presentation aggregate and must not double-weight CT and IN.
+  const performanceAvg = (states.AE + states.RA + states.CT + states.IN) / 4;
   const CP = clamp(performanceAvg, 0, 100);
   
   // Behavioral Engagement (BE) = based on games XP only
@@ -363,8 +363,8 @@ export function getSCIStatusText(score: number): string {
 
 // ============================================
 // COGNITIVE AGE
-// Formula (v1.4 with RQ modulation):
-//   PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+// Formula (v2 with RQ modulation):
+//   PerformanceAvg = (AE + RA + CT + IN) / 4
 //   Improvement = PerformanceAvg − BaselinePerformanceAvg
 //   RQ_Multiplier = 0.85 + 0.15 × (RQ / 100)  // Range: [0.85, 1.00]
 //   CognitiveAge = BaselineCognitiveAge − (Improvement / 10) × RQ_Multiplier
@@ -409,20 +409,14 @@ export function calculateCognitiveAge(
   baseline: CognitiveAgeBaseline,
   rq?: number | null
 ): CognitiveAgeResult {
-  const { S2 } = calculateSystemScores(states);
-  
-  // Current performance average
-  const performanceAvg = (states.AE + states.RA + states.CT + states.IN + S2) / 5;
-  
-  // Baseline performance average
-  const baselineS2 = (baseline.baselineCT + baseline.baselineIN) / 2;
+  // Current and baseline performance use the four canonical skills once each.
+  const performanceAvg = (states.AE + states.RA + states.CT + states.IN) / 4;
   const baselinePerformanceAvg = (
     baseline.baselineAE + 
     baseline.baselineRA + 
     baseline.baselineCT + 
-    baseline.baselineIN + 
-    baselineS2
-  ) / 5;
+    baseline.baselineIN
+  ) / 4;
   
   // Improvement
   const improvement = performanceAvg - baselinePerformanceAvg;

@@ -28,10 +28,15 @@ baseline. The single derivation is `deriveEffectiveCognitiveStates`.
 - `Readiness context = 0.60 × DailyState + 0.40 × Cognitive`
 - `Readiness = (1 − coverage) × Readiness app + coverage × Readiness context − decay`
 - `RQ = 0.50 × S2 Core + 0.30 × S2 Consistency + 0.20 × Task Priming`
+  where Task Priming uses the stronger of curated completions and valid timer
+  sessions; these are alternative capture paths, not two mandatory halves.
+  Valid timer sessions include both curated and custom content.
+- `Cognitive Performance = (AE + RA + CT + IN) / 4`; S2 is not counted again.
 - `SCI = 0.50 × Cognitive Performance + 0.30 × Behavioral Engagement + 0.20 × REC`
 - Cognitive Age performance uses the average of AE, RA, CT, and IN only. S2 is
   not counted a second time. The long window is 180 days and the short window
-  is 30 days.
+  is 30 calendar days; missing days do not silently extend either window.
+- `Cognitive Age = chronological age − ((Performance180d − personal baseline) / 10) × RQ multiplier + regression/inactivity overlays`, capped to ±15 years. It remains equal to chronological age until the personal baseline is calibrated. The daily edge function is the only server calculator; the legacy weekly endpoint delegates to it.
 
 `REC` is Recovery v2 everywhere: the persisted value closes 65% of the gap
 toward the current Health target once per calendar day, then Detox/Walking
@@ -39,6 +44,11 @@ gains are applied. The target uses confidence-blended Phone Health and adds up
 to 50% wearable physiology influence as wearable coverage becomes complete;
 without either source it is 50. SCI does not calculate a second weekly Recovery
 approximation.
+
+When Recovery is not initialized, Sharpness and Readiness use the current
+confidence-aware Recovery target (neutral 50 without passive evidence). Missing
+Recovery is never converted to zero. Historical projections use the same daily
+recalibration and the historical Health/wearable target when available.
 
 ## Passive daily state
 
@@ -79,6 +89,32 @@ Cognitive Age.
 - Adaptive Coach forecasts and their matched outcomes are stored separately in
   `adaptive_coach_predictions`. Shadow predictions may read canonical metrics,
   but they must never write metric values or alter active training behavior.
+- `adaptive_daily_feature_snapshots.metrics.adaptiveStateEstimate` stores the
+  shadow adaptive estimator: prediction, uncertainty, coverage, coefficients,
+  objective-outcome count and projected headline metrics. It is never active
+  until time-forward validation approves a separate product release.
+
+## Adaptive estimator contract
+
+- The first estimator is an explainable ridge model with conservative
+  population priors, not a generative-AI score.
+- It learns only from prior-day objective outcomes: drill scores and valid
+  focus-session integrity. Today's outcome cannot enter today's prediction.
+- Historical aggregate attention is used for training only when its latest
+  captured use precedes that day's first outcome; otherwise it is treated as
+  missing to prevent within-day future leakage.
+- Health, wearable physiology, aggregate attention load and aggregate schedule
+  load are the contextual features. Wearable features switch from safe generic
+  ranges to robust within-person baselines after at least five prior readings.
+- Missing sources are neutral-imputed and reduce coverage/confidence; they never
+  become zero performance. Uncertainty grows as source coverage or outcome
+  history falls.
+- Status is `learning` below 7 evaluable outcomes, `emerging` from 7 to 20 and
+  `personalized` from 21. These describe model maturity, not accuracy.
+- Synthetic data may test invariants, missingness and calibration plumbing but
+  must not be used as evidence that production predictions are accurate.
+- The Coach is a separate decision layer. It may consume validated state
+  estimates later, but it must not be used to define or self-confirm them.
 
 ## Display contract
 

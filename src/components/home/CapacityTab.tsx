@@ -22,7 +22,6 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
   const {
     recoveryEffective: recovery,
     recoveryTarget,
-    isUsingRRI,
     isV2Initialized,
     hasRecoveryData,
     weeklyDetoxMinutes,
@@ -31,11 +30,11 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
   } = useRecoveryEffective();
   const [infoOpen, setInfoOpen] = useState(false);
 
-  const showNoData = !isLoading && !isV2Initialized && !hasRecoveryData;
-  const score = showNoData ? null : recovery;
-  const status = showNoData ? "Not initialized" : getRecoveryStatus(recovery).label;
-  const subtitle = showNoData
-    ? "Complete a Recovery action to establish your first estimate."
+  const isNeutralEstimate = !isLoading && !isV2Initialized && !hasRecoveryData;
+  const score = recovery;
+  const status = isNeutralEstimate ? "Estimating" : getRecoveryStatus(recovery).label;
+  const subtitle = isNeutralEstimate
+    ? "Connect Health or a wearable to make Recovery responsive to your day."
     : recovery >= 80
       ? "Strong cognitive reserve is available today."
       : recovery >= 65
@@ -59,7 +58,7 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         status={status}
         color="hsl(172, 66%, 50%)"
         isLoading={isLoading}
-        note={isUsingRRI ? "Initial estimate from onboarding" : undefined}
+        note={isNeutralEstimate ? "Neutral estimate" : undefined}
       />
 
       <MetricInterpretationNote changeDrivers="rest, screen-free time, walking and daily conditions" />

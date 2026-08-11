@@ -5,7 +5,7 @@ export function ReportMethodology() {
   return (
     <section className="report-page methodology-page">
       <h2 className="report-section-title">Methodology & Scientific Framework</h2>
-      <p className="report-subtitle">Evidence-based foundations of the NeuroLoop cognitive assessment system</p>
+      <p className="report-subtitle">Transparent formulas and data sources used by LOOMA</p>
 
       <div className="methodology-grid">
         <div className="methodology-card">
@@ -14,7 +14,7 @@ export function ReportMethodology() {
           </div>
           <h4>Theoretical Framework</h4>
           <p>
-            NeuroLoop assessments are grounded in <strong>Kahneman's Dual-Process Theory</strong> (2011), 
+            LOOMA's interpretation layer is informed by <strong>dual-process theory</strong>,
             distinguishing between System 1 (fast, intuitive) and System 2 (slow, analytical) cognitive processing. 
             This framework is complemented by <strong>Posner's Attention Network Theory</strong> and 
             <strong> Baddeley's Working Memory Model</strong>.
@@ -27,7 +27,7 @@ export function ReportMethodology() {
           </div>
           <h4>Data Sources</h4>
           <ul>
-            <li><strong>NeuroLab Training Sessions</strong> — Performance on validated cognitive exercises</li>
+            <li><strong>Lab sessions</strong> — Performance on LOOMA cognitive drills</li>
             <li><strong>Baseline Assessment</strong> — Initial cognitive profiling during onboarding</li>
             <li><strong>Wearable Biomarkers</strong> — HRV, sleep, and activity data from connected devices</li>
             <li><strong>Longitudinal Tracking</strong> — Progress monitoring across training sessions</li>
@@ -41,28 +41,23 @@ export function ReportMethodology() {
           <h4>Synthesized Cognitive Index (SCI) Calculation</h4>
           <p>The SCI is a composite metric calculated using the following weighted formula:</p>
           <div className="formula-box">
-            <code>SCI = (0.40 × DualProcess) + (0.35 × Domains) + (0.15 × Training) + (0.10 × Physio)</code>
+            <code>SCI = (0.50 × Cognitive Performance) + (0.30 × Training Engagement) + (0.20 × Recovery)</code>
           </div>
           <div className="formula-breakdown">
             <div className="formula-component">
-              <span className="component-weight">40%</span>
-              <span className="component-name">Dual-Process Score</span>
-              <span className="component-desc">Weighted average of System 1 and System 2 performance</span>
+              <span className="component-weight">50%</span>
+              <span className="component-name">Cognitive Performance</span>
+              <span className="component-desc">Equal average of AE, RA, CT and IN</span>
             </div>
             <div className="formula-component">
-              <span className="component-weight">35%</span>
-              <span className="component-name">Domain Performance</span>
-              <span className="component-desc">Average across Focus, Reasoning, and Creativity domains</span>
+              <span className="component-weight">30%</span>
+              <span className="component-name">Training Engagement</span>
+              <span className="component-desc">Weekly Lab XP relative to the selected protocol</span>
             </div>
             <div className="formula-component">
-              <span className="component-weight">15%</span>
-              <span className="component-name">Training Consistency</span>
-              <span className="component-desc">Session frequency, accuracy rate, and progression</span>
-            </div>
-            <div className="formula-component">
-              <span className="component-weight">10%</span>
-              <span className="component-name">Physiological Readiness</span>
-              <span className="component-desc">HRV, sleep quality, and activity indicators</span>
+              <span className="component-weight">20%</span>
+              <span className="component-name">Recovery</span>
+              <span className="component-desc">The same Recovery value used in Home</span>
             </div>
           </div>
         </div>
@@ -74,20 +69,20 @@ export function ReportMethodology() {
           <h4>Sub-Metric Calculations</h4>
           <div className="sub-formula-list">
             <div className="sub-formula">
-              <strong>Focus Stability:</strong>
-              <code>Σ(attention_scores) / n × accuracy_modifier</code>
+              <strong>System 1:</strong>
+              <code>(AE + RA) / 2</code>
             </div>
             <div className="sub-formula">
-              <strong>Reasoning Accuracy:</strong>
-              <code>(correct_answers / total_questions) × 100 × difficulty_weight</code>
+              <strong>System 2:</strong>
+              <code>(CT + IN) / 2</code>
             </div>
             <div className="sub-formula">
-              <strong>Creativity Score:</strong>
-              <code>divergent_thinking × 0.5 + insight_tasks × 0.3 + flexibility × 0.2</code>
+              <strong>Sharpness:</strong>
+              <code>capacity modulated by Recovery and observed daily context</code>
             </div>
             <div className="sub-formula">
-              <strong>Cognitive Readiness:</strong>
-              <code>(SCI × 0.6) + (physio_score × 0.4) when wearable connected</code>
+              <strong>Readiness:</strong>
+              <code>app state blended with daily context according to signal coverage</code>
             </div>
           </div>
         </div>
@@ -103,33 +98,28 @@ export function ReportMethodology() {
                 <th>Tier</th>
                 <th>Score Range</th>
                 <th>Classification</th>
-                <th>Percentile</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>A</td>
                 <td>85-100</td>
-                <td>Elite Performer</td>
-                <td>Top 5%</td>
+                <td>Strong state</td>
               </tr>
               <tr>
                 <td>B</td>
                 <td>70-84</td>
-                <td>High Performer</td>
-                <td>Top 25%</td>
+                <td>Ready state</td>
               </tr>
               <tr>
                 <td>C</td>
                 <td>55-69</td>
-                <td>Developing</td>
-                <td>Average</td>
+                <td>Steady state</td>
               </tr>
               <tr>
                 <td>D</td>
                 <td>0-54</td>
-                <td>Foundation</td>
-                <td>Below Avg</td>
+                <td>Building / starting point</td>
               </tr>
             </tbody>
           </table>
@@ -159,7 +149,7 @@ export function ReportMethodology() {
           <p>
             This cognitive assessment report is provided for <strong>educational and self-improvement purposes only</strong>. 
             It does not constitute a clinical neuropsychological evaluation, medical diagnosis, or professional health advice. 
-            The NeuroLoop platform is designed for cognitive training and self-monitoring, not clinical assessment.
+            LOOMA is designed for cognitive training and personal state monitoring, not clinical assessment.
             For concerns about cognitive health, please consult a qualified healthcare professional.
           </p>
         </div>
@@ -168,12 +158,12 @@ export function ReportMethodology() {
       <div className="report-footer">
         <div className="footer-brand">
           <Brain size={16} />
-          <span>NeuroLoop Pro</span>
+          <span>LOOMA</span>
         </div>
         <div className="footer-meta">
-          <span>Cognitive Performance Assessment v2.1</span>
+          <span>Personal cognitive-state report</span>
           <span>·</span>
-          <span>© {new Date().getFullYear()} SuperHuman Labs</span>
+          <span>© {new Date().getFullYear()} LOOMA</span>
         </div>
       </div>
     </section>

@@ -1,10 +1,19 @@
-import { clamp } from "@/lib/cognitiveEngine";
+import {
+  calculateReadiness,
+  calculateSharpness,
+  clamp,
+} from "@/lib/cognitiveEngine";
+import {
+  estimateAdaptiveDailyState,
+  type AdaptiveContextPoint,
+  type AdaptiveMetricEstimate,
+} from "@/lib/adaptiveMetricEstimator";
 import {
   buildFocusIntegrityObservation,
   type FocusIntegrityObservation,
 } from "@/lib/focusIntegrity";
 
-export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v4-mobile";
+export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v5-adaptive-state";
 
 type NullableNumber = number | null | undefined;
 
@@ -34,6 +43,8 @@ export interface PassiveCurrentMetrics {
   S1: number;
   S2: number;
   physioComponent: number | null;
+  dailyState?: number;
+  signalCoverage?: number;
 }
 
 export interface PassiveGameSession {
@@ -139,6 +150,14 @@ export interface PassiveFeaturePayload {
   availability: Record<string, unknown>;
   coachContext: PassiveCoachContext;
   focusIntegrity: FocusIntegrityObservation;
+  adaptiveEstimate: AdaptiveMetricEstimate & {
+    projectedMetrics: {
+      sharpness: number;
+      readiness: number;
+      recovery: number;
+      reasoningQuality: number;
+    };
+  };
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -213,6 +232,152 @@ function slopePerDay(
 
 function latestByDate<T extends { date: string }>(values: T[]): T | null {
   return [...values].sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
+}
+
+function genericWearableScore(point: PassiveWearablePoint): number | null {
+  const hrv = finite(point.hrvMs);
+  const restingHr = finite(point.restingHr);
+  const sleepDuration = finite(point.sleepDurationMin);
+  const rawEfficiency = finite(point.sleepEfficiency);
+  const efficiency = rawEfficiency !== null && rawEfficiency > 1
+    ? rawEfficiency / 100
+    : rawEfficiency;
+  const signals = [
+    { value: hrv === null ? null : ((clamp(hrv, 20, 120) - 20) / 100) * 100, weight: 0.40 },
+    { value: restingHr === null ? null : (1 - (clamp(restingHr, 45, 90) - 45) / 45) * 100, weight: 0.20 },
+    { value: sleepDuration === null ? null : ((clamp(sleepDuration, 300, 540) - 300) / 240) * 100, weight: 0.24 },
+    { value: efficiency === null ? null : ((clamp(efficiency, 0.70, 0.98) - 0.70) / 0.28) * 100, weight: 0.16 },
+  ];
+  const available = signals.filter(
+    (signal): signal is { value: number; weight: number } => signal.value !== null,
+  );
+  const totalWeight = available.reduce((sum, signal) => sum + signal.weight, 0);
+  if (totalWeight === 0) return null;
+  return clamp(available.reduce(
+    (sum, signal) => sum + signal.value * signal.weight,
+    0,
+  ) / totalWeight);
+}
+
+function medianAbsoluteDeviation(values: number[], center: number): number {
+  return median(values.map((value) => Math.abs(value - center))) ?? 0;
+}
+
+function personalSignalScore(
+  value: NullableNumber,
+  history: NullableNumber[],
+  direction: 1 | -1,
+): number | null {
+  const current = finite(value);
+  const prior = history.map(finite).filter((item): item is number => item !== null);
+  if (current === null || prior.length < 5) return null;
+  const center = median(prior);
+  if (center === null) return null;
+  const robustSpread = Math.max(
+    medianAbsoluteDeviation(prior, center) * 1.4826,
+    Math.abs(center) * 0.08,
+    1,
+  );
+  const z = clamp((current - center) / robustSpread, -2, 2);
+  return clamp(50 + direction * z * 12.5);
+}
+
+function wearableScoreForDate(
+  point: PassiveWearablePoint,
+  prior: PassiveWearablePoint[],
+): number | null {
+  const personal = [
+    { value: personalSignalScore(point.hrvMs, prior.map((row) => row.hrvMs), 1), weight: 0.40 },
+    { value: personalSignalScore(point.restingHr, prior.map((row) => row.restingHr), -1), weight: 0.20 },
+    { value: personalSignalScore(point.sleepDurationMin, prior.map((row) => row.sleepDurationMin), 1), weight: 0.24 },
+    { value: personalSignalScore(point.sleepEfficiency, prior.map((row) => row.sleepEfficiency), 1), weight: 0.16 },
+  ].filter((signal): signal is { value: number; weight: number } => signal.value !== null);
+  const personalWeight = personal.reduce((sum, signal) => sum + signal.weight, 0);
+  if (personalWeight < 0.40) return genericWearableScore(point);
+  return clamp(personal.reduce(
+    (sum, signal) => sum + signal.value * signal.weight,
+    0,
+  ) / personalWeight);
+}
+
+function overloadState(current: NullableNumber, prior: NullableNumber[], minimum: number): number | null {
+  const value = finite(current);
+  const baseline = median(prior.map(finite).filter((item): item is number => item !== null));
+  if (value === null) return null;
+  if (baseline === null) return 50;
+  const ratio = value / Math.max(baseline, minimum);
+  return clamp(50 - Math.min(30, Math.max(0, ratio - 1) * 24));
+}
+
+function buildAdaptiveContextPoints(input: PassiveFeatureInput): AdaptiveContextPoint[] {
+  const dates = new Set<string>([
+    input.featureDate,
+    ...input.metricHistory.map((point) => point.date),
+    ...input.phoneHealth.map((point) => point.date),
+    ...input.wearable.map((point) => point.date),
+    ...input.deviceUsage.map((point) => point.date),
+    ...input.calendarContext.map((point) => point.date),
+    ...input.games.map((session) => session.completedAt.slice(0, 10)),
+    ...input.reasonSessions.map((session) => session.startedAt.slice(0, 10)),
+  ]);
+
+  return [...dates]
+    .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= input.featureDate)
+    .sort()
+    .map((date) => {
+      const phone = input.phoneHealth.find((point) => point.date === date);
+      const wearable = input.wearable.find((point) => point.date === date);
+      const priorWearable = input.wearable.filter((point) => point.date < date);
+      const device = input.deviceUsage.find((point) => point.date === date);
+      const calendar = input.calendarContext.find((point) => point.date === date);
+      const priorDevice = input.deviceUsage.filter((point) => point.date < date);
+      const priorCalendar = input.calendarContext.filter((point) => point.date < date);
+      const dailyGames = input.games
+        .filter((session) => session.completedAt.slice(0, 10) === date);
+      const dailyReasons = input.reasonSessions
+        .filter((session) => session.startedAt.slice(0, 10) === date && session.isValidForRq);
+      const gameScores = dailyGames
+        .map((session) => clamp(session.score));
+      const focusScores = dailyReasons
+        .map((session) => clamp(
+          50 + Math.min(18, session.durationSeconds / 120) - session.backgroundInterrupts * 8,
+        ));
+      const earliestOutcomeAt = [
+        ...dailyGames.map((session) => {
+          const completedAt = dateValue(session.completedAt);
+          return completedAt === null ? null : completedAt - session.durationSeconds * 1000;
+        }),
+        ...dailyReasons.map((session) => dateValue(session.startedAt)),
+      ].filter((value): value is number => value !== null)
+        .sort((a, b) => a - b)[0] ?? null;
+      const lastAttentionUseAt = device?.lastAttentionUseAt
+        ? dateValue(device.lastAttentionUseAt)
+        : null;
+      // A final daily usage aggregate can include activity after a drill and
+      // would leak the outcome's future into model training. Historical
+      // attention is eligible only when its last captured use predates the
+      // first outcome. Today's unevaluated estimate can use current usage.
+      const attentionObservedBeforeOutcome = date === input.featureDate || earliestOutcomeAt === null
+        ? true
+        : lastAttentionUseAt !== null && lastAttentionUseAt <= earliestOutcomeAt;
+
+      return {
+        date,
+        health: finite(phone?.phi),
+        wearable: wearable ? wearableScoreForDate(wearable, priorWearable) : null,
+        attention: overloadState(
+          attentionObservedBeforeOutcome ? device?.attentionUsageMin : null,
+          priorDevice.map((point) => point.attentionUsageMin),
+          30,
+        ),
+        schedule: overloadState(
+          calendar?.busyMinutes,
+          priorCalendar.map((point) => point.busyMinutes),
+          60,
+        ),
+        outcome: mean([...gameScores, ...focusScores]),
+      };
+    });
 }
 
 /**
@@ -318,6 +483,44 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       0.2 * calendarCoverage,
     4,
   );
+  const fixedDailyState = input.currentMetrics.dailyState ?? 50;
+  const adaptiveBase = estimateAdaptiveDailyState({
+    points: buildAdaptiveContextPoints(input),
+    currentDate: input.featureDate,
+    fixedDailyState,
+  });
+  const states = {
+    AE: input.currentMetrics.AE,
+    RA: input.currentMetrics.RA,
+    CT: input.currentMetrics.CT,
+    IN: input.currentMetrics.IN,
+  };
+  const fixedCoverage = clamp(input.currentMetrics.signalCoverage ?? dataCoverage, 0, 1);
+  // Shadow projections earn influence only as both source coverage and
+  // time-forward outcome evidence increase.
+  const adaptiveCoverage = Math.min(fixedCoverage, adaptiveBase.confidence);
+  const fixedReadiness = calculateReadiness(states, input.currentMetrics.recovery, {
+    score: fixedDailyState,
+    coverage: fixedCoverage,
+  });
+  const adaptiveReadiness = calculateReadiness(states, input.currentMetrics.recovery, {
+    score: adaptiveBase.predictedDailyState,
+    coverage: adaptiveCoverage,
+  });
+  const adaptiveEstimate: PassiveFeaturePayload["adaptiveEstimate"] = {
+    ...adaptiveBase,
+    projectedMetrics: {
+      sharpness: calculateSharpness(states, input.currentMetrics.recovery, {
+        score: adaptiveBase.predictedDailyState,
+        coverage: adaptiveCoverage,
+      }),
+      readiness: round(clamp(
+        input.currentMetrics.readiness + adaptiveReadiness - fixedReadiness,
+      ), 1),
+      recovery: round(input.currentMetrics.recovery, 1),
+      reasoningQuality: round(input.currentMetrics.reasoningQuality, 1),
+    },
+  };
 
   return {
     schemaVersion: PASSIVE_FEATURE_SCHEMA_VERSION,
@@ -325,6 +528,7 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       current: input.currentMetrics,
       trendPerDay14d: metricTrend,
       historyDays14d: new Set(history14d.map((point) => point.date)).size,
+      adaptiveStateEstimate: adaptiveEstimate,
     },
     behavior: {
       primaryOutcome: input.primaryOutcome,
@@ -419,5 +623,6 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       dataCoverage,
     },
     focusIntegrity,
+    adaptiveEstimate,
   };
 }

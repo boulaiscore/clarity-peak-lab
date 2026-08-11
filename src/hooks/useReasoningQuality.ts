@@ -154,9 +154,10 @@ export function useReasoningQuality(): UseReasoningQualityResult {
     staleTime: 5 * 60_000,
   });
   
-  // Fetch custom session weighted minutes (new timer-based system)
-  const { data: customWeightedMinutes, isLoading: customLoading } = useQuery({
-    queryKey: ["custom-weighted-minutes-7d", userId],
+  // Curated and custom items are equivalent evidence once a valid timer
+  // session has measured their duration.
+  const { data: sessionWeightedMinutes, isLoading: sessionsLoading } = useQuery({
+    queryKey: ["reason-session-weighted-minutes-7d", userId],
     queryFn: async () => {
       if (!userId) return 0;
       
@@ -167,7 +168,6 @@ export function useReasoningQuality(): UseReasoningQualityResult {
         .from("reason_sessions")
         .select("duration_seconds, weight")
         .eq("user_id", userId)
-        .eq("source", "custom")
         .eq("is_valid_for_rq", true)
         .gte("started_at", sevenDaysAgo.toISOString())
         .not("ended_at", "is", null);
@@ -275,7 +275,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
   }, [taskCompletions]);
   
   const result = useMemo(() => {
-    const isLoadingState = statesLoading || persistedLoading || scoresLoading || tasksLoading || customLoading;
+    const isLoadingState = statesLoading || persistedLoading || scoresLoading || tasksLoading || sessionsLoading;
     
     if (isLoadingState && !cachedResultRef.current) {
       return {
@@ -303,14 +303,14 @@ export function useReasoningQuality(): UseReasoningQualityResult {
       S2,
       s2GameScores: s2GameScores || [],
       taskCompletions: taskCompletions || [],
-      customWeightedMinutes: customWeightedMinutes || 0,
+      sessionWeightedMinutes: sessionWeightedMinutes || 0,
       lastS2GameAt,
       lastTaskAt,
     });
     
     cachedResultRef.current = computed;
     return computed;
-  }, [S2, s2GameScores, taskCompletions, customWeightedMinutes, persistedData, statesLoading, persistedLoading, scoresLoading, tasksLoading, customLoading]);
+  }, [S2, s2GameScores, taskCompletions, sessionWeightedMinutes, persistedData, statesLoading, persistedLoading, scoresLoading, tasksLoading, sessionsLoading]);
   
   // Check if today's RQ is already persisted
   const isPersisted = useMemo(() => {
@@ -335,7 +335,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
     lastUpdatedAt: persistedData?.rq_last_updated_at 
       ? parseISO(persistedData.rq_last_updated_at) 
       : null,
-    isLoading: statesLoading || persistedLoading || scoresLoading || tasksLoading || customLoading,
+    isLoading: statesLoading || persistedLoading || scoresLoading || tasksLoading || sessionsLoading,
     persistRQ,
   };
 }

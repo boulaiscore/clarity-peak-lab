@@ -7,7 +7,7 @@
  * 
  * v2.0 CHANGES:
  * - Uses Recovery v2 daily recalibration (rec_value, rec_last_ts)
- * - Falls back to RRI for new users without baseline
+ * - Falls back to today's Health/wearable target, or neutral 50
  * - Applies decay automatically on each read
  * 
  * REC_effective is used ONLY for:
@@ -15,9 +15,9 @@
  * - Difficulty suggestion
  * - UX feedback (locks, hints, warnings)
  * 
+ * The canonical formula hooks independently resolve the same raw value and
+ * daily target; this hook is the gating/detail adapter only.
  * REC_effective MUST NOT be used for:
- * - Sharpness base calculation (uses raw rec_value)
- * - SCI (Cognitive Network Score)
  * - Cognitive Age
  * - Skill values (AE, RA, CT, IN)
  * - Any decay logic
@@ -34,7 +34,6 @@ import {
   RecoveryState,
 } from "@/lib/recoveryV2";
 import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
-import { isRRIValid } from "@/lib/recoveryReadinessInit";
 import { getMediumPeriodStart } from "@/lib/temporalWindows";
 import { format } from "date-fns";
 
@@ -42,7 +41,7 @@ export interface UseRecoveryEffectiveResult {
   /** The effective recovery value for gating (0-100) */
   recoveryEffective: number;
   
-  /** True if using RRI (initial estimate), false if using real recovery data */
+  /** Retained for compatibility; daily metrics no longer use onboarding RRI. */
   isUsingRRI: boolean;
   
   /** True if Recovery v2.0 is initialized (has_recovery_baseline) */
@@ -51,7 +50,7 @@ export interface UseRecoveryEffectiveResult {
   /** The raw recovery value from v2 decay model (may be null) */
   recoveryV2: number | null;
   
-  /** The RRI value from onboarding (if set) */
+  /** Retained for compatibility; always null in the canonical daily path. */
   rriValue: number | null;
 
   /** Today's combined Health + wearable recovery target, or neutral 50. */
@@ -139,36 +138,17 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     staleTime: 5 * 60_000,
   });
 
-  const combinedRecoveryTarget = useMemo(() => {
-    const physio = wearableSnapshot ? calculatePhysioEstimate({
+  const wearablePhysioEstimate = useMemo(() => wearableSnapshot ? calculatePhysioEstimate({
       hrvMs: wearableSnapshot.hrv_ms,
       restingHr: wearableSnapshot.resting_hr,
       sleepDurationMin: wearableSnapshot.sleep_duration_min,
       sleepEfficiency: wearableSnapshot.sleep_efficiency,
-    }) : null;
-    return calculateDailyRecoveryTarget(phoneHealthTarget, physio);
-  }, [phoneHealthTarget, wearableSnapshot]);
-  
-  // Fetch RRI data from profile (fallback)
-  const { data: rriData, isLoading: rriLoading } = useQuery({
-    queryKey: ["rri-data", userId],
-    queryFn: async () => {
-      if (!userId) return null;
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("rri_value, rri_set_at")
-        .eq("user_id", userId)
-        .maybeSingle();
-      
-      if (error) return null;
-      return data as { rri_value: number | null; rri_set_at: string | null } | null;
-    },
-    enabled: hasUser,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
+    }) : null, [wearableSnapshot]);
+  const combinedRecoveryTarget = useMemo(() => calculateDailyRecoveryTarget(
+    phoneHealthTarget,
+    wearablePhysioEstimate,
+  ), [phoneHealthTarget, wearablePhysioEstimate]);
+  const hasPassiveRecoveryTarget = phoneHealthTarget !== null || wearablePhysioEstimate !== null;
   
   // Fetch weekly breakdown for UI display (v2.0: still useful for breakdown)
   const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
@@ -213,16 +193,12 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   // IMPORTANT: when userId is not resolved yet, React Query marks queries as not loading
   // (because they're disabled). We still want the UI to stay in a loading state instead
   // of falling back to 0%.
-  const isLoading = !hasUser || v2Loading || phoneTargetLoading || wearableLoading || rriLoading || weeklyLoading;
+  const isLoading = !hasUser || v2Loading || phoneTargetLoading || wearableLoading || weeklyLoading;
   const weeklyDetoxMinutes = weeklyData?.detoxMinutes ?? 0;
   const weeklyWalkMinutes = weeklyData?.walkMinutes ?? 0;
   
   // Compute effective recovery
   const result = useMemo((): Omit<UseRecoveryEffectiveResult, 'isLoading' | 'weeklyDetoxMinutes' | 'weeklyWalkMinutes'> => {
-    const rriValue = rriData?.rri_value ?? null;
-    const rriSetAt = rriData?.rri_set_at ?? null;
-    const rriValid = rriValue !== null && isRRIValid(rriSetAt);
-    
     // Check v2 state
     const isV2Initialized = v2State ? hasValidRecoveryData(v2State) : false;
     const recoveryV2 = v2State ? getCurrentRecovery(v2State, combinedRecoveryTarget) : null;
@@ -230,8 +206,6 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     console.log("[useRecoveryEffective v2] Computing:", {
       isV2Initialized,
       recoveryV2,
-      rriValue,
-      rriValid,
     });
     
     // PRIORITY 1: Use v2 recovery if initialized
@@ -242,30 +216,30 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         isUsingRRI: false,
         isV2Initialized: true,
         recoveryV2,
-        rriValue,
+        rriValue: null,
         hasRecoveryData: true,
         recoveryTarget: combinedRecoveryTarget,
       };
     }
     
-    // PRIORITY 2: Use RRI if valid (new user without baseline)
-    if (rriValid && rriValue !== null) {
-      console.log("[useRecoveryEffective v2] Using RRI:", rriValue);
+    // PRIORITY 2: use observed Health/wearable context. This keeps gating and
+    // Recovery detail on the same daily input as Home.
+    if (hasPassiveRecoveryTarget) {
       return {
-        recoveryEffective: rriValue,
-        isUsingRRI: true,
+        recoveryEffective: combinedRecoveryTarget,
+        isUsingRRI: false,
         isV2Initialized: false,
         recoveryV2: null,
-        rriValue,
-        hasRecoveryData: false,
+        rriValue: null,
+        hasRecoveryData: true,
         recoveryTarget: combinedRecoveryTarget,
       };
     }
-    
-    // PRIORITY 3: No data - return 0 (UI will show fallback)
-    console.log("[useRecoveryEffective v2] No recovery data");
+
+    // PRIORITY 3: missing evidence is neutral, never zero capacity.
+    console.log("[useRecoveryEffective v2] No recovery data; using neutral target");
     return {
-      recoveryEffective: 0,
+      recoveryEffective: combinedRecoveryTarget,
       isUsingRRI: false,
       isV2Initialized: false,
       recoveryV2: null,
@@ -273,7 +247,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       hasRecoveryData: false,
       recoveryTarget: combinedRecoveryTarget,
     };
-  }, [v2State, rriData, combinedRecoveryTarget]);
+  }, [v2State, combinedRecoveryTarget, hasPassiveRecoveryTarget]);
   
   return {
     ...result,

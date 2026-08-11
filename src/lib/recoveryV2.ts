@@ -196,6 +196,39 @@ const REC_DAILY_BASELINE = 50;
 const REC_DAILY_MEAN_REVERSION = 0.65;
 
 /**
+ * Recalibrate one daily Recovery step toward the best target available for
+ * that day. This is shared by the live engine and historical projections so
+ * Monitor cannot apply a different decay model from Home.
+ */
+export function recalibrateRecoveryForNewDay(
+  currentRec: number,
+  targetOverride: number = REC_DAILY_BASELINE,
+): number {
+  const current = Math.max(0, Math.min(100, currentRec));
+  const target = Math.max(0, Math.min(100, targetOverride));
+  const retainedShare = 1 - REC_DAILY_MEAN_REVERSION;
+  return Math.round((target + (current - target) * retainedShare) * 10) / 10;
+}
+
+/**
+ * A missing Recovery baseline is uncertainty, not depletion. Until a real
+ * REC value exists, headline metrics use the confidence-aware daily target
+ * (which itself falls back to the neutral value of 50).
+ */
+export function resolveRecoveryForMetrics(
+  recoveryValue: number | null | undefined,
+  dailyTarget: number | null | undefined,
+): number {
+  if (recoveryValue != null && Number.isFinite(recoveryValue)) {
+    return Math.max(0, Math.min(100, recoveryValue));
+  }
+  if (dailyTarget != null && Number.isFinite(dailyTarget)) {
+    return Math.max(0, Math.min(100, dailyTarget));
+  }
+  return REC_DAILY_BASELINE;
+}
+
+/**
  * Number of full calendar days between two ISO timestamps (local time).
  * Same day = 0; next calendar day = 1; etc.
  */
@@ -240,11 +273,10 @@ export function applyRecoveryDecay(
       ? Math.max(0, Math.min(100, targetOverride))
       : REC_DAILY_BASELINE;
 
-  // Apply mean reversion toward target once per missed calendar day
+  // Apply the canonical daily recalibration once per missed calendar day.
   let rec = currentRec;
-  const k = 1 - REC_DAILY_MEAN_REVERSION;
   for (let i = 0; i < days; i++) {
-    rec = target + (rec - target) * k;
+    rec = recalibrateRecoveryForNewDay(rec, target);
   }
 
   return Math.max(0, Math.min(100, Math.round(rec * 10) / 10));

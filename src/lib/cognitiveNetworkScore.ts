@@ -9,7 +9,7 @@
  * 
  * Where:
  * - CP = clamp(0, 100, PerformanceAvg)
- * - PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+ * - PerformanceAvg = (AE + RA + CT + IN) / 4
  * - BE = min(100, (weekly_games_xp / xp_target_week) × 100)
  * - REC = the same effective Recovery value shown in Today
  * 
@@ -153,7 +153,7 @@ export interface SCIBreakdown {
 
 /**
  * Calculate Cognitive Performance (CP) v1.3
- * CP = PerformanceAvg = (AE + RA + CT + IN + S2) / 5
+ * CP = PerformanceAvg = (AE + RA + CT + IN) / 4
  */
 function calculateCognitivePerformance(metrics: CognitiveMetricsInput): {
   score: number;
@@ -165,7 +165,7 @@ function calculateCognitivePerformance(metrics: CognitiveMetricsInput): {
   const IN = metrics.slow_thinking;
   const S2 = (CT + IN) / 2;
   
-  const performanceAvg = (AE + RA + CT + IN + S2) / 5;
+  const performanceAvg = (AE + RA + CT + IN) / 4;
   const score = Math.max(0, Math.min(100, performanceAvg));
 
   return {

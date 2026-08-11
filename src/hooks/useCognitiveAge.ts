@@ -254,7 +254,11 @@ export function useCognitiveAge() {
     }
 
     // Fallback to calculating from snapshots
-    if (!recentSnapshots || baseline?.baseline_score_90d == null) {
+    if (
+      !recentSnapshots ||
+      baseline?.is_baseline_calibrated !== true ||
+      baseline.baseline_score_90d == null
+    ) {
       return { risk: "low" as const, streak: 0 };
     }
 
@@ -373,20 +377,25 @@ export function useCognitiveAge() {
         : null;
     }
 
-    // Use baseline if available, otherwise use 50 as neutral baseline
-    // During calibration, use 50 (population average) as reference point
-    // This allows showing improvement even from the first session
-    const calibrationBaseline = baseline?.baseline_score_90d != null
+    // A population value of 50 is not an age-normed baseline. During
+    // calibration we keep Cognitive Age anchored to chronological age while
+    // still collecting the internal performance series needed for a personal
+    // baseline.
+    const hasPersonalBaseline = baseline?.is_baseline_calibrated === true &&
+      baseline.baseline_score_90d != null;
+    const calibrationBaseline = hasPersonalBaseline
       ? Number(baseline.baseline_score_90d)
-      : 50; // Always use 50 as neutral baseline during calibration
+      : currentPerf;
 
     const improvementPoints = currentPerf - calibrationBaseline;
-    const cognitiveAge = calculateCognitiveAgeFromPerformance({
-      performance: currentPerf,
-      baselinePerformance: calibrationBaseline,
-      chronologicalAge: currentRealAge,
-      inactiveDays,
-    }) ?? currentRealAge;
+    const cognitiveAge = hasPersonalBaseline
+      ? calculateCognitiveAgeFromPerformance({
+          performance: currentPerf,
+          baselinePerformance: calibrationBaseline,
+          chronologicalAge: currentRealAge,
+          inactiveDays,
+        }) ?? currentRealAge
+      : currentRealAge;
 
     return { 
       cognitiveAge, 

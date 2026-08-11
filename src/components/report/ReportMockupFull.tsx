@@ -563,7 +563,7 @@ export function ReportMockupFull() {
             <p>
               The participant's cognitive age of <strong>{cognitiveAge} years</strong> compared to chronological age 
               of <strong>{actualAge} years</strong> indicates effective cognitive maintenance. The {ageDiff}-year 
-              differential places the participant in the <strong>top 15th percentile</strong> for age-matched peers.
+              differential is shown against the participant's own starting baseline, not an age-matched population percentile.
             </p>
 
             <p>

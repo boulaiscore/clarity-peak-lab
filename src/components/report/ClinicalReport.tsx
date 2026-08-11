@@ -81,6 +81,18 @@ interface ClinicalReportProps {
   generatedAt: Date;
   isPreview?: boolean;
   liveSci?: SCIBreakdown | null;
+  liveDaily?: {
+    sharpness: number;
+    readiness: number;
+    recovery: number;
+    reasoningQuality: number;
+    AE: number;
+    RA: number;
+    CT: number;
+    IN: number;
+  };
+  canonicalCognitiveAge?: number | null;
+  cognitiveAgeCalibrating?: boolean;
   metricSnapshots?: ReportMetricSnapshot[];
 }
 
@@ -106,22 +118,6 @@ function avg(values: Array<number | null | undefined>, fallback = 50): number {
   const valid = values.filter((value): value is number => value !== null && value !== undefined);
   if (!valid.length) return fallback;
   return valid.reduce((sum, value) => sum + value, 0) / valid.length;
-}
-
-function getPercentile(score: number): number {
-  if (score >= 90) return 98;
-  if (score >= 85) return 95;
-  if (score >= 80) return 90;
-  if (score >= 75) return 85;
-  if (score >= 70) return 80;
-  if (score >= 65) return 70;
-  if (score >= 60) return 60;
-  if (score >= 55) return 55;
-  if (score >= 50) return 50;
-  if (score >= 45) return 40;
-  if (score >= 40) return 30;
-  if (score >= 35) return 20;
-  return 15;
 }
 
 function classifyScore(score: number): { label: string; tone: ScoreTone } {
@@ -356,7 +352,7 @@ function getLatest<T>(items: T[]): T | null {
 function PageFooter({ reportId, page }: { reportId: string; page: number }) {
   return (
     <footer className="clinical-page-footer">
-      <span>NeuroLoop Labs</span>
+      <span>LOOMA</span>
       <span>{reportId}</span>
       <span>Page {page}</span>
     </footer>
@@ -566,20 +562,23 @@ export function ClinicalReport({
   generatedAt,
   isPreview = false,
   liveSci,
+  liveDaily,
+  canonicalCognitiveAge,
+  cognitiveAgeCalibrating,
   metricSnapshots = [],
 }: ClinicalReportProps) {
   const reportId = `NL-${generatedAt.getTime().toString(36).toUpperCase()}`;
   const participantAge = profile.birth_date ? calculateAge(profile.birth_date) : null;
 
-  const AE = metrics.focus_stability ?? 50;
-  const RA = metrics.fast_thinking ?? 50;
-  const CT = metrics.reasoning_accuracy ?? 50;
-  const IN = metrics.slow_thinking ?? 50;
+  const AE = liveDaily?.AE ?? metrics.focus_stability ?? 50;
+  const RA = liveDaily?.RA ?? metrics.fast_thinking ?? 50;
+  const CT = liveDaily?.CT ?? metrics.reasoning_accuracy ?? 50;
+  const IN = liveDaily?.IN ?? metrics.slow_thinking ?? 50;
   const creativity = metrics.creativity ?? avg([AE, RA, CT, IN]);
   const s1Score = round((AE + RA) / 2);
   const s2Score = round((CT + IN) / 2);
   const corePerformance = round(avg([AE, RA, CT, IN]), 1);
-  const readiness = round(metrics.cognitive_readiness_score ?? corePerformance);
+  const readiness = round(liveDaily?.readiness ?? metrics.cognitive_readiness_score ?? corePerformance);
   const totalSessions = metrics.total_sessions ?? 0;
   const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
   const accuracy = round(aggregates.accuracyRatePct ?? 0, 1);
@@ -589,11 +588,10 @@ export function ClinicalReport({
   const sciComponents = {
     cognitive: liveSci?.cognitivePerformance.score ?? round(corePerformance),
     engagement: liveSci?.behavioralEngagement.score ?? round(Math.min(100, (sessionsLast7d / 7) * 100)),
-    recovery: liveSci?.recoveryFactor.score ?? readiness,
+    recovery: liveSci?.recoveryFactor.score ?? liveDaily?.recovery ?? readiness,
   };
   const sci = liveSci?.total ?? round(metrics.cognitive_performance_score ?? corePerformance);
   const sciClass = classifyScore(sci);
-  const sciPercentile = getPercentile(sci);
 
   const baselineForAge = avg([
     metrics.baseline_focus,
@@ -609,7 +607,7 @@ export function ClinicalReport({
     metrics.baseline_slow_thinking,
   ].some((value) => value !== null && value !== undefined);
   const performanceForAge = avg([AE, RA, CT, IN]);
-  const cognitiveAge = hasBaselineSignal
+  const legacyCognitiveAge = hasBaselineSignal
     ? calculateCognitiveAgeFromPerformance({
         performance: performanceForAge,
         baselinePerformance: baselineForAge,
@@ -617,12 +615,22 @@ export function ClinicalReport({
         rq: metrics.reasoning_quality,
       })
     : null;
+  const hasCanonicalCognitiveAge = canonicalCognitiveAge !== undefined || cognitiveAgeCalibrating !== undefined;
+  const cognitiveAge = hasCanonicalCognitiveAge
+    ? cognitiveAgeCalibrating ? null : canonicalCognitiveAge ?? null
+    : legacyCognitiveAge;
   const cognitiveAgeDelta = participantAge && cognitiveAge !== null ? round(cognitiveAge - participantAge, 1) : null;
   const cognitiveAgeLabel = cognitiveAge === null ? "Calibrating" : `${cognitiveAge.toFixed(1)}y`;
 
-  const fallbackRecovery = sciComponents.recovery;
-  const fallbackSharpness = calculateSharpness({ AE, RA, CT, IN }, fallbackRecovery);
-  const fallbackReasoningQuality = round(avg([metrics.reasoning_quality, CT, IN, metrics.decision_quality, metrics.bias_resistance]));
+  const fallbackRecovery = round(liveDaily?.recovery ?? sciComponents.recovery);
+  const fallbackSharpness = round(
+    liveDaily?.sharpness ?? calculateSharpness({ AE, RA, CT, IN }, fallbackRecovery),
+  );
+  // If an RQ snapshot is unavailable, S2 core is the only canonical proxy.
+  // Legacy report fields must not invent a different Reasoning Quality formula.
+  const fallbackReasoningQuality = round(
+    liveDaily?.reasoningQuality ?? metrics.reasoning_quality ?? s2Score,
+  );
   const fallbackCoherence = round(avg([fallbackReasoningQuality, 100 - Math.min(45, Math.abs(s1Score - s2Score) * 2.2)]));
   const fallbackSnapshot = useMemo<ReportMetricSnapshot>(() => ({
     snapshot_date: generatedAt.toISOString().slice(0, 10),
@@ -641,9 +649,9 @@ export function ClinicalReport({
 
   const history = useMemo(() => {
     const sorted = [...metricSnapshots]
-      .filter((snapshot) => Boolean(snapshot.snapshot_date))
+      .filter((snapshot) => Boolean(snapshot.snapshot_date) && snapshot.snapshot_date !== fallbackSnapshot.snapshot_date)
       .sort((a, b) => a.snapshot_date.localeCompare(b.snapshot_date));
-    return sorted.length ? sorted.slice(-90) : [fallbackSnapshot];
+    return [...sorted, fallbackSnapshot].slice(-90);
   }, [metricSnapshots, fallbackSnapshot]);
 
   const lastSnapshot = getLatest(history) ?? fallbackSnapshot;
@@ -833,7 +841,7 @@ export function ClinicalReport({
           <div className="clinical-brand">
             <Brain size={24} />
             <div>
-              <strong>NeuroLoop Labs</strong>
+              <strong>LOOMA</strong>
               <span>Cognitive Performance Record</span>
             </div>
           </div>
@@ -955,8 +963,8 @@ export function ClinicalReport({
           <div className="clinical-panel clinical-summary-panel">
             <h3>Performance read</h3>
             <p>
-              Current SCI is <strong>{sci}/100</strong> ({sciClass.label.toLowerCase()}, approx.
-              {sciPercentile}th percentile in the internal model). The practical question is not only
+              Current SCI is <strong>{sci}/100</strong> ({sciClass.label.toLowerCase()} on the personal-state scale).
+              The practical question is not only
               score level, but whether sharpness, readiness, recovery, and reasoning quality move together.
             </p>
           </div>
@@ -1079,7 +1087,7 @@ export function ClinicalReport({
         </header>
 
         <div className="clinical-metric-row">
-          <MetricTile label="SCI" value={sci} sublabel={`${sciPercentile}th percentile`} tone="accent" />
+          <MetricTile label="SCI" value={sci} sublabel="Personal-state index" tone="accent" />
           <MetricTile label="Recovery" value={currentRecovery} sublabel={`Trend ${formatDelta(metricTrends[2].stats.delta)}`} tone={currentRecovery >= 55 ? "success" : "warning"} />
           <MetricTile label="Training" value={sessionsLast7d} sublabel="Sessions last 7d" />
           <MetricTile label="Level" value={`L${level}`} sublabel={`${xp.toLocaleString()} XP`} />
@@ -1198,7 +1206,7 @@ export function ClinicalReport({
           <div className="clinical-brand small">
             <Brain size={18} />
             <div>
-              <strong>NeuroLoop Labs</strong>
+              <strong>LOOMA</strong>
               <span>Cognitive performance intelligence</span>
             </div>
           </div>

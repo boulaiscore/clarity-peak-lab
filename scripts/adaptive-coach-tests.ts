@@ -14,6 +14,7 @@ import {
   deriveMobileCognitiveRhythm,
 } from "../src/lib/mobileCognitiveRhythm";
 import { deriveDailyCognitiveState } from "../src/lib/dailyCognitiveState";
+import { estimateAdaptiveDailyState } from "../src/lib/adaptiveMetricEstimator";
 
 const now = new Date("2026-08-08T12:00:00.000Z");
 const context = {
@@ -106,6 +107,10 @@ const passivePayload = buildPassiveFeaturePayload({
   ],
   primaryOutcome: "focus",
 });
+assert.equal(passivePayload.adaptiveEstimate.mode, "shadow");
+assert.equal(passivePayload.adaptiveEstimate.status, "learning");
+assert.ok(passivePayload.adaptiveEstimate.uncertainty > 0);
+assert.equal(passivePayload.adaptiveEstimate.projectedMetrics.recovery, 64);
 assert.equal(passivePayload.coachContext.healthScore, 72);
 assert.equal(passivePayload.coachContext.attentionUsageBaselineMinutes, 45);
 assert.equal(passivePayload.coachContext.attentionLoadRatio, 2);
@@ -187,6 +192,37 @@ assert.equal(mobileRhythm.openWindow, "10:00–12:00");
 assert.equal(mobileRhythm.attentionLoad, "High");
 assert.equal(mobileRhythm.scheduleLoad, "Packed");
 assert.ok(mobileRhythm.topDriver);
+
+const adaptiveSeries = Array.from({ length: 25 }, (_, index) => ({
+  date: `2026-07-${String(index + 1).padStart(2, "0")}`,
+  health: 40 + index * 1.5,
+  wearable: 42 + index * 1.4,
+  attention: 45 + index * 0.8,
+  schedule: 48,
+  outcome: index === 24 ? null : 42 + index * 1.3,
+}));
+const learnedState = estimateAdaptiveDailyState({
+  points: adaptiveSeries,
+  currentDate: "2026-07-25",
+  fixedDailyState: 58,
+});
+assert.equal(learnedState.status, "personalized");
+assert.equal(learnedState.outcomeSampleCount, 24);
+assert.ok(learnedState.predictedDailyState > 50);
+assert.ok(learnedState.confidence > 0.25);
+
+const noLeakageState = estimateAdaptiveDailyState({
+  points: adaptiveSeries.map((point) => point.date === "2026-07-25"
+    ? { ...point, outcome: 100 }
+    : point),
+  currentDate: "2026-07-25",
+  fixedDailyState: 58,
+});
+assert.equal(
+  noLeakageState.predictedDailyState,
+  learnedState.predictedDailyState,
+  "Today's outcome must not leak into today's shadow prediction",
+);
 
 const demandingWorkState = deriveDailyCognitiveState({
   readiness: 82,

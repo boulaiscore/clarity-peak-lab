@@ -146,7 +146,7 @@ export function useCompleteReasonSession() {
       queryClient.invalidateQueries({ queryKey: ["active-reason-session"] });
       queryClient.invalidateQueries({ queryKey: ["reason-session-stats"] });
       queryClient.invalidateQueries({ queryKey: ["hybrid-rq-data"] });
-      queryClient.invalidateQueries({ queryKey: ["custom-weighted-minutes-7d", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["reason-session-weighted-minutes-7d", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
 
       await recordMetricsSnapshot("task", {
@@ -361,7 +361,7 @@ export function useHybridRQData() {
   return useQuery({
     queryKey: ["hybrid-rq-data", user?.id],
     queryFn: async () => {
-      if (!user?.id) return { loomaCompletions: 0, customWeightedMinutes: 0 };
+      if (!user?.id) return { loomaCompletions: 0, sessionWeightedMinutes: 0 };
       
       const sevenDaysAgo = subDays(new Date(), 7);
       
@@ -375,12 +375,12 @@ export function useHybridRQData() {
       
       if (completionsError) throw completionsError;
       
-      // Get custom reason sessions
+      // Get every valid timer session. Content source does not change the
+      // meaning of observed duration and weight.
       const { data: sessions, error: sessionsError } = await supabase
         .from("reason_sessions")
         .select("*")
         .eq("user_id", user.id)
-        .eq("source", "custom")
         .eq("is_valid_for_rq", true)
         .gte("started_at", sevenDaysAgo.toISOString())
         .not("ended_at", "is", null);
@@ -390,16 +390,16 @@ export function useHybridRQData() {
       // Calculate LOOMA completions score (existing logic)
       const loomaCompletions = (completions || []).length;
       
-      // Calculate custom weighted minutes
-      let customWeightedMinutes = 0;
+      // Calculate timer-session weighted minutes
+      let sessionWeightedMinutes = 0;
       for (const session of (sessions || []) as ReasonSession[]) {
         const minutes = session.duration_seconds / 60;
-        customWeightedMinutes += minutes * session.weight;
+        sessionWeightedMinutes += minutes * session.weight;
       }
       
       return {
         loomaCompletions,
-        customWeightedMinutes,
+        sessionWeightedMinutes,
       };
     },
     enabled: !!user?.id,

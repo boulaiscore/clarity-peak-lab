@@ -118,7 +118,8 @@ export function useGamesGating(): UseGamesGatingResult {
   // Get today's cognitive metrics (sharpness, readiness use REC_raw internally)
   const { sharpness, readiness, isLoading: metricsLoading } = useTodayMetrics();
   
-  // Get effective recovery for gating (uses RRI until first real recovery data)
+  // Get effective recovery for gating (Health/wearable target or neutral 50
+  // until the persisted Recovery baseline is available).
   const { 
     recoveryEffective, 
     isUsingRRI, 

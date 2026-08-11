@@ -7,6 +7,8 @@ import { startOfWeek, format, subDays, parseISO } from "date-fns";
 import { Dumbbell, Zap, Brain, Target, Lightbulb, CheckCircle2, TrendingUp, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
 import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { useCognitiveStates } from "@/hooks/useCognitiveStates";
+import { calculateDualProcessBalance } from "@/lib/cognitiveEngine";
 
 // System colors - muted premium tones
 const SYSTEM_COLORS = {
@@ -268,6 +270,7 @@ function AreaIcon({ area }: { area: string }) {
 
 export function GamesStats() {
   const { user } = useAuth();
+  const { S1, S2 } = useCognitiveStates();
   
   const stableUserId = user?.id ?? (() => {
     try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
@@ -632,14 +635,9 @@ export function GamesStats() {
               const gamesEngagement = gamesXPTarget > 0 ? Math.min(100, (totalGamesXP / gamesXPTarget) * 100) : 0;
               const sciContribution = Math.round(0.30 * gamesEngagement);
               
-              // Dual Process Balance = 100 - |S1% - S2%| where S1%,S2% are portion of total
-              // Perfect balance when S1 ≈ S2
-              let dualProcessBalance = 0;
-              if (totalGamesXP > 0) {
-                const s1Percent = (stats.s1XP / totalGamesXP) * 100;
-                const s2Percent = (stats.s2XP / totalGamesXP) * 100;
-                dualProcessBalance = Math.round(100 - Math.abs(s1Percent - s2Percent));
-              }
+              // Use the same canonical state balance shown everywhere else.
+              // Weekly XP mix is training behavior, not a second S1/S2 score.
+              const dualProcessBalance = Math.round(calculateDualProcessBalance(S1, S2));
               
               // Cognitive Age is NOT directly calculated from games XP
               // It's calculated from CPS (Cognitive Performance Score) which uses raw cognitive metrics
@@ -681,7 +679,7 @@ export function GamesStats() {
                         ? "Excellent S1/S2 integration" 
                         : dualProcessBalance >= 50 
                           ? "Good balance, keep diversifying" 
-                          : stats.s1XP > stats.s2XP 
+                          : S1 > S2
                             ? "Add more S2 (Slow) drills"
                             : "Add more S1 (Fast) drills"}
                     </p>
@@ -690,9 +688,8 @@ export function GamesStats() {
                   <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
                     <p className="text-[8px] text-muted-foreground mb-1">How Games Improve Cognitive Age</p>
                     <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
-                      Games train Focus Stability, Reasoning Accuracy, and Creativity metrics. 
-                      These feed into your Cognitive Performance Score (CPS), which determines Cognitive Age. 
-                      Consistent training over weeks shows measurable improvements.
+                      Lab XP updates one canonical skill at a time. After calibration, the long-term
+                      AE, RA, CT and IN trend can move Cognitive Age; a single session cannot.
                     </p>
                   </div>
                 </div>

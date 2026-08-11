@@ -55,7 +55,14 @@ interface UserBaseline {
   chrono_age_at_onboarding: number;
   baseline_score_90d: number | null;
   baseline_rq_90d: number | null;
+  baseline_start_date: string | null;
+  created_at: string;
   is_baseline_calibrated: boolean;
+}
+
+interface UserProfile {
+  birth_date: string | null;
+  created_at: string | null;
 }
 
 interface DailySnapshot {
@@ -102,10 +109,45 @@ function calcDailyPerf(ae: number | null, ra: number | null, ct: number | null, 
 /**
  * Calculate rolling average from an array of values
  */
-function rollingAvg(values: (number | null)[], days: number): number | null {
-  const validValues = values.slice(0, days).filter((v): v is number => v !== null);
+function daysBefore(date: Date, days: number): string {
+  const cutoff = new Date(date);
+  cutoff.setUTCDate(cutoff.getUTCDate() - (days - 1));
+  return cutoff.toISOString().split("T")[0];
+}
+
+function rollingAvg(
+  values: Array<{ date: string; value: number | null }>,
+  days: number,
+  targetDate: Date,
+): number | null {
+  const cutoff = daysBefore(targetDate, days);
+  const validValues = values
+    .filter((point) => point.date >= cutoff)
+    .map((point) => point.value)
+    .filter((value): value is number => value !== null);
   if (validValues.length < Math.min(10, days / 3)) return null; // Need minimum data
   return avg(validValues);
+}
+
+function chronologicalAgeAtDate(
+  baseline: UserBaseline,
+  profile: UserProfile | null,
+  targetDate: Date,
+): number {
+  const millisecondsPerYear = 365.25 * 24 * 60 * 60 * 1000;
+  if (profile?.birth_date) {
+    const birthTime = new Date(`${profile.birth_date}T00:00:00.000Z`).getTime();
+    if (Number.isFinite(birthTime)) {
+      return Math.max(0, (targetDate.getTime() - birthTime) / millisecondsPerYear);
+    }
+  }
+
+  const anchor = baseline.baseline_start_date ?? profile?.created_at ?? baseline.created_at;
+  const anchorTime = anchor ? new Date(anchor).getTime() : Number.NaN;
+  const elapsedYears = Number.isFinite(anchorTime)
+    ? Math.max(0, (targetDate.getTime() - anchorTime) / millisecondsPerYear)
+    : 0;
+  return (Number(baseline.chrono_age_at_onboarding) || 30) + elapsedYears;
 }
 
 // ==========================================
@@ -163,20 +205,35 @@ Deno.serve(async (req) => {
     for (const baseline of baselines as UserBaseline[]) {
       try {
         const userId = baseline.user_id;
-        const chronoAge = Number(baseline.chrono_age_at_onboarding) || 30;
-        const baselinePerf = baseline.baseline_score_90d ? Number(baseline.baseline_score_90d) : null;
+        const baselinePerf = baseline.baseline_score_90d != null
+          ? Number(baseline.baseline_score_90d)
+          : null;
 
         // 2) Fetch last 180 days of snapshots
         const windowStart = new Date(today);
         windowStart.setUTCDate(today.getUTCDate() - CFG.longWindowDays);
         const windowStartStr = windowStart.toISOString().split("T")[0];
 
-        const { data: snapshots, error: snapError } = await supabase
-          .from("daily_metric_snapshots")
-          .select("snapshot_date, ae, ra, ct, in_score, reasoning_quality")
-          .eq("user_id", userId)
-          .gte("snapshot_date", windowStartStr)
-          .order("snapshot_date", { ascending: false });
+        const [snapshotResult, profileResult] = await Promise.all([
+          supabase
+            .from("daily_metric_snapshots")
+            .select("snapshot_date, ae, ra, ct, in_score, reasoning_quality")
+            .eq("user_id", userId)
+            .gte("snapshot_date", windowStartStr)
+            .order("snapshot_date", { ascending: false }),
+          supabase
+            .from("profiles")
+            .select("birth_date, created_at")
+            .eq("user_id", userId)
+            .maybeSingle(),
+        ]);
+
+        const { data: snapshots, error: snapError } = snapshotResult;
+        const profile = (profileResult.data as UserProfile | null) ?? null;
+        if (profileResult.error) {
+          console.warn(`User ${userId}: profile age anchor unavailable; using onboarding anchor.`);
+        }
+        const chronoAge = chronologicalAgeAtDate(baseline, profile, today);
 
         if (snapError) {
           console.error(`Error fetching snapshots for ${userId}:`, snapError);
@@ -190,21 +247,24 @@ Deno.serve(async (req) => {
         }
 
         // 3) Calculate daily performance values (no S2 double-counting)
-        const perfValues: (number | null)[] = [];
-        const rqValues: (number | null)[] = [];
+        const perfValues: Array<{ date: string; value: number | null }> = [];
+        const rqValues: Array<{ date: string; value: number | null }> = [];
         
         for (const snap of snapshots as DailySnapshot[]) {
           const perf = calcDailyPerf(snap.ae, snap.ra, snap.ct, snap.in_score);
-          perfValues.push(perf);
-          rqValues.push(snap.reasoning_quality != null ? Number(snap.reasoning_quality) : null);
+          perfValues.push({ date: snap.snapshot_date, value: perf });
+          rqValues.push({
+            date: snap.snapshot_date,
+            value: snap.reasoning_quality != null ? Number(snap.reasoning_quality) : null,
+          });
         }
 
         // 4) Calculate rolling averages
-        const perfDaily = perfValues[0];
-        const perf21d = rollingAvg(perfValues, CFG.regressionWindowDays);
-        const perf30d = rollingAvg(perfValues, CFG.shortWindowDays);
-        const perf180d = rollingAvg(perfValues, CFG.longWindowDays);
-        const rqToday = rqValues[0] ?? 50;
+        const perfDaily = perfValues[0]?.value ?? null;
+        const perf21d = rollingAvg(perfValues, CFG.regressionWindowDays, today);
+        const perf30d = rollingAvg(perfValues, CFG.shortWindowDays, today);
+        const perf180d = rollingAvg(perfValues, CFG.longWindowDays, today);
+        const rqToday = rqValues[0]?.value ?? 50;
 
         // 5) Get previous day's streak
         const { data: previousDaily } = await supabase
@@ -219,7 +279,7 @@ Deno.serve(async (req) => {
         const prevStreak = (previousDaily as PreviousDailyRecord | null)?.regression_streak_days ?? 0;
 
         // 6) Check if below regression threshold
-        const belowThreshold = baselinePerf !== null && perf21d !== null 
+        const belowThreshold = baseline.is_baseline_calibrated && baselinePerf !== null && perf21d !== null
           ? perf21d <= (baselinePerf - CFG.regressionThresholdPoints)
           : false;
         
@@ -258,7 +318,7 @@ Deno.serve(async (req) => {
         let improvementLong: number | null = null;
         let rqMultiplier = 1.0;
 
-        if (perf180d !== null && baselinePerf !== null) {
+        if (baseline.is_baseline_calibrated && perf180d !== null && baselinePerf !== null) {
           improvementLong = perf180d - baselinePerf;
           rqMultiplier = CFG.rqMin + (CFG.rqMax - CFG.rqMin) * (rqToday / 100);
           ageDeltaFromPerformance = -(improvementLong / CFG.pointsPerYear) * rqMultiplier;

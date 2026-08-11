@@ -72,7 +72,7 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<ExerciseResult[]>([]);
 
-  const defaultResults: AssessmentResults = {
+  const defaultResults = useMemo<AssessmentResults>(() => ({
     AE: 50,
     RA: 50,
     CT: 50,
@@ -80,7 +80,7 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
     S1: 50,
     S2: 50,
     cognitiveAge: userAge,
-  };
+  }), [userAge]);
 
   const handleSkip = () => {
     if (onSkip) {
@@ -152,11 +152,10 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
     const S1 = Math.round((AE + RA) / 2);  // System 1 (Intuition/Fast)
     const S2 = Math.round((CT + IN) / 2);  // System 2 (Reasoning/Slow)
 
-    // ===== COGNITIVE AGE =====
-    // PerformanceAvg = (AE + RA + CT + IN + S2) / 5
-    const performanceAvg = (AE + RA + CT + IN + S2) / 5;
-    const performanceDelta = (performanceAvg - 50) / 10; // -5 .. +5
-    const cognitiveAge = Math.max(18, Math.round(userAge - performanceDelta));
+    // Cognitive Age remains anchored to chronological age until a personal
+    // longitudinal baseline has been calibrated. One onboarding assessment is
+    // not an age-normed population comparison.
+    const cognitiveAge = userAge;
 
     return {
       AE,
@@ -167,7 +166,7 @@ export function InitialAssessment({ userAge, onComplete, onSkip }: InitialAssess
       S2,
       cognitiveAge,
     };
-  }, [results, userAge]);
+  }, [defaultResults, results, userAge]);
 
   const handleComplete = () => {
     onComplete(calculateResults);

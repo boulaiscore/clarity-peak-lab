@@ -10,8 +10,13 @@ import {
   deriveEffectiveCognitiveStates,
 } from "../src/lib/cognitiveEngine";
 import { calculateSCI, getTargetsForPlan } from "../src/lib/cognitiveNetworkScore";
-import { applyRecoveryDecay, calculateDailyRecoveryTarget } from "../src/lib/recoveryV2";
-import { calculateRQ } from "../src/lib/reasoningQuality";
+import {
+  applyRecoveryDecay,
+  calculateDailyRecoveryTarget,
+  recalibrateRecoveryForNewDay,
+  resolveRecoveryForMetrics,
+} from "../src/lib/recoveryV2";
+import { calculateRQ, calculateTaskPriming } from "../src/lib/reasoningQuality";
 import { TRAINING_PLANS } from "../src/lib/trainingPlans";
 import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
 import { buildDualProcessSeries, resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
@@ -109,6 +114,11 @@ closeTo(breakdownSCI.total, canonicalSCI.total, "SCI total uses canonical engine
 closeTo(breakdownSCI.cognitivePerformance.score, canonicalSCI.cognitivePerformance, "SCI CP");
 closeTo(breakdownSCI.behavioralEngagement.score, canonicalSCI.behavioralEngagement, "SCI BE");
 closeTo(breakdownSCI.recoveryFactor.score, canonicalSCI.recoveryFactor, "SCI Recovery");
+closeTo(
+  breakdownSCI.cognitivePerformance.score,
+  (states.AE + states.RA + states.CT + states.IN) / 4,
+  "SCI cognitive performance counts each canonical skill once",
+);
 
 for (const planId of ["light", "expert", "superhuman"] as const) {
   const targets = getTargetsForPlan(planId);
@@ -136,16 +146,36 @@ closeTo(
   57.5,
   "Partial wearable recovery target shrinks toward neutral without Phone Health",
 );
+closeTo(
+  resolveRecoveryForMetrics(null, 62),
+  62,
+  "Missing Recovery uses the daily estimate rather than zero",
+);
+closeTo(
+  resolveRecoveryForMetrics(null, null),
+  50,
+  "Missing Recovery without passive context remains neutral",
+);
+closeTo(
+  recalibrateRecoveryForNewDay(80),
+  60.5,
+  "Historical Recovery uses the live daily recalibration step",
+);
 
 const rq = calculateRQ({
   S2: 60,
   s2GameScores: [60, 60, 60, 60, 60],
   taskCompletions: [],
-  customWeightedMinutes: 0,
+  sessionWeightedMinutes: 0,
   lastS2GameAt: null,
   lastTaskAt: null,
 });
 closeTo(rq.rq, 60, "RQ canonical weighting");
+closeTo(
+  calculateTaskPriming([], new Date("2026-08-08T12:00:00.000Z"), 60),
+  100,
+  "A valid timer-only priming path is not capped at half score",
+);
 
 assert.deepEqual(
   [80, 65, 50, 35, 34].map((value) => getStandardMetricStatus(value).label),

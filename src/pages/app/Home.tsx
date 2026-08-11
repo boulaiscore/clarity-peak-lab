@@ -9,7 +9,6 @@ import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } fro
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
-import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
@@ -118,6 +117,7 @@ const Home = () => {
   const {
     sharpness,
     readiness,
+    recovery,
     recoveryRaw,
     signalCoverage,
     signalCoverageLevel,
@@ -125,13 +125,6 @@ const Home = () => {
     signalSources,
     isLoading: metricsLoading
   } = useTodayMetrics();
-
-  // REC_effective for UI display (uses RRI until first real recovery activity)
-  const {
-    recoveryEffective,
-    isUsingRRI,
-    isLoading: recoveryEffectiveLoading
-  } = useRecoveryEffective();
 
   // Acute Recovery Boost — display-layer only, transient state shift
   const acuteBoost = useAcuteRecoveryBoost();
@@ -220,17 +213,17 @@ const Home = () => {
   const displaySharpness = isViewingToday ? sharpness : historicalMetrics?.sharpness ?? 0;
   const displayReadiness = isViewingToday ? readiness : historicalMetrics?.readiness ?? 0;
   const recoveryWithBoost = isViewingToday
-    ? applyBoostToRec(recoveryEffective, acuteBoost.activeBoost)
-    : recoveryEffective;
+    ? applyBoostToRec(recovery, acuteBoost.activeBoost)
+    : recovery;
   const displayRecovery = isViewingToday ? recoveryWithBoost : historicalMetrics?.recovery ?? 0;
   const displayRQ = isViewingToday ? rq : historicalMetrics?.reasoningQuality ?? 0;
-  const isDisplayLoading = isViewingToday ? metricsLoading || recoveryEffectiveLoading : historicalLoading;
+  const isDisplayLoading = isViewingToday ? metricsLoading : historicalLoading;
   const hasHistoricalData = !isViewingToday && historicalMetrics !== null;
 
   // Calculate deltas vs yesterday (only show for today view)
   const sharpnessDelta = isViewingToday ? formatDeltaPercent(sharpness, yesterdayMetrics?.sharpness ?? null) : null;
   const readinessDelta = isViewingToday ? formatDeltaPercent(readiness, yesterdayMetrics?.readiness ?? null) : null;
-  const recoveryDelta = isViewingToday ? formatDeltaPercent(recoveryEffective, yesterdayMetrics?.recovery ?? null) : null;
+  const recoveryDelta = isViewingToday ? formatDeltaPercent(recovery, yesterdayMetrics?.recovery ?? null) : null;
   const rqDelta = isViewingToday ? formatDeltaPercent(rq, yesterdayMetrics?.reasoningQuality ?? null) : null;
 
   // Tutorial state - shows after first onboarding completion
@@ -358,7 +351,7 @@ const Home = () => {
                   </p>
                 </div>}
 
-              <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
+              <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
             </motion.section>
 
 
