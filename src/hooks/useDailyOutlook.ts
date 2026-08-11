@@ -261,6 +261,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     },
     enabled: Boolean(
       user?.id &&
+      subscription.isPro &&
       !subscription.loading &&
       !input.isLoading &&
       !personalizationLoading,

@@ -282,11 +282,16 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
     const tier = String(profile?.subscription_status ?? "free").toLowerCase();
+    const isElite = tier === "pro" || tier === "founding_pro" || tier === "elite";
+    if (!isElite) {
+      return new Response(JSON.stringify({ error: "Elite entitlement required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const storedPlanId = tier === "founding_pro"
       ? "founding_pro"
-      : tier === "pro" || tier === "elite"
-        ? "pro"
-        : tier === "core" || tier === "premium" ? "core" : "free";
+      : "pro";
 
     const { data: existing } = await supabase
       .from("daily_outlooks")
