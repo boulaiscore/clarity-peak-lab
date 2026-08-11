@@ -216,14 +216,29 @@ export default function SubscriptionPage() {
             const current = isCurrent(planId);
             const founding = option.id === "founding_pro_annual";
             const highlighted = planId === recommendation;
+            const isSelected = (selectedPlan ?? recommendation) === planId;
             return (
               <article
                 key={planId}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                onClick={() => {
+                  setSelectedPlan(planId);
+                  trackProductEvent("plan_card_clicked", { planId, billingInterval: interval });
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedPlan(planId);
+                  }
+                }}
                 className={cn(
-                  "relative flex min-h-[420px] flex-col overflow-hidden rounded-[28px] border p-6 sm:p-7",
+                  "relative flex min-h-[420px] cursor-pointer flex-col overflow-hidden rounded-[28px] border p-6 transition-all sm:p-7",
                   planId === "pro"
                     ? "border-primary/35 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--primary)/0.09))]"
                     : "border-border/50 bg-card/45",
+                  isSelected ? "ring-1 ring-primary/50" : "opacity-90 hover:opacity-100",
                 )}
               >
                 <div className="flex min-h-7 items-start justify-between gap-3">
@@ -271,7 +286,11 @@ export default function SubscriptionPage() {
                 <Button
                   type="button"
                   disabled={current || checkout.loading}
-                  onClick={() => void selectPlan(option.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedPlan(planId);
+                    void selectPlan(option.id);
+                  }}
                   className="mt-7 h-12 w-full rounded-full text-[11px] font-semibold uppercase tracking-[0.16em]"
                   variant={planId === "pro" ? "hero" : "outline"}
                 >
