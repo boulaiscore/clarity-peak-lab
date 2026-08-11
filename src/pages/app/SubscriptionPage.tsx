@@ -283,7 +283,6 @@ export default function SubscriptionPage() {
                   ))}
                 </ul>
 
-
                 <Button
                   type="button"
                   disabled={current || checkout.loading}
@@ -292,7 +291,7 @@ export default function SubscriptionPage() {
                     setSelectedPlan(planId);
                     void selectPlan(option.id);
                   }}
-                  className="mt-7 h-12 w-full rounded-full text-[11px] font-semibold uppercase tracking-[0.16em]"
+                  className="mt-5 h-12 w-full rounded-full text-[11px] font-semibold uppercase tracking-[0.16em] sm:mt-7"
                   variant={planId === "pro" ? "hero" : "outline"}
                 >
                   {current ? "Current plan" : option.ctaLabel}
