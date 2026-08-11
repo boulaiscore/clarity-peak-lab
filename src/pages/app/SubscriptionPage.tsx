@@ -234,7 +234,7 @@ export default function SubscriptionPage() {
                   }
                 }}
                 className={cn(
-                  "relative flex min-h-[420px] cursor-pointer flex-col overflow-hidden rounded-[28px] border p-6 transition-all sm:p-7",
+                  "relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border p-5 transition-all sm:min-h-[420px] sm:rounded-[28px] sm:p-7",
                   planId === "pro"
                     ? "border-primary/35 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--primary)/0.09))]"
                     : "border-border/50 bg-card/45",
@@ -253,16 +253,16 @@ export default function SubscriptionPage() {
                 </div>
 
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight">{plan.name}</h2>
-                <p className="mt-2 min-h-10 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:min-h-10">{plan.description}</p>
 
-                <div className="mt-7">
+                <div className="mt-5 sm:mt-7">
                   {founding && (
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                       Founding offer · first 100
                     </p>
                   )}
                   <div className="flex items-end gap-2">
-                    <span className="text-4xl font-medium tabular-nums tracking-tight">{displayPrice(option)}</span>
+                    <span className="text-3xl font-medium tabular-nums tracking-tight sm:text-4xl">{displayPrice(option)}</span>
                     <span className="pb-1 text-xs text-muted-foreground">/{interval === "annual" ? "year" : "month"}</span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
@@ -274,7 +274,7 @@ export default function SubscriptionPage() {
                   </p>
                 </div>
 
-                <ul className="mt-7 flex-1 space-y-3">
+                <ul className="mt-5 flex-1 space-y-2.5 sm:mt-7 sm:space-y-3">
                   {CARD_FEATURES[planId].map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm text-foreground/85">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={2} />
@@ -291,7 +291,7 @@ export default function SubscriptionPage() {
                     setSelectedPlan(planId);
                     void selectPlan(option.id);
                   }}
-                  className="mt-7 h-12 w-full rounded-full text-[11px] font-semibold uppercase tracking-[0.16em]"
+                  className="mt-5 h-12 w-full rounded-full text-[11px] font-semibold uppercase tracking-[0.16em] sm:mt-7"
                   variant={planId === "pro" ? "hero" : "outline"}
                 >
                   {current ? "Current plan" : option.ctaLabel}
@@ -326,8 +326,39 @@ export default function SubscriptionPage() {
             Compare plans
             <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
           </summary>
-          <div className="overflow-x-auto border-t border-border/35 px-5 pb-5 pt-3">
-            <table className="w-full min-w-[540px] text-left text-xs">
+          <div className="border-t border-border/35 px-5 pb-5 pt-3">
+            {/* Mobile: stacked, no horizontal scrolling */}
+            <div className="divide-y divide-border/25 md:hidden">
+              {COMPARISON_FEATURES.map((feature) => (
+                <div key={feature} className="py-3">
+                  <p className="text-xs font-medium text-foreground/85">{FEATURE_LABELS[feature]}</p>
+                  <div className="mt-2 grid grid-cols-4 gap-1.5">
+                    {(["free", "core", "pro", "founding_pro"] as PlanId[]).map((id) => {
+                      const included = PLAN_CATALOG[id].features[feature];
+                      return (
+                        <div
+                          key={id}
+                          className={cn(
+                            "flex flex-col items-center gap-1 rounded-xl border px-1 py-1.5",
+                            included ? "border-primary/25 bg-primary/5" : "border-border/30 bg-transparent",
+                          )}
+                        >
+                          <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                            {PLAN_CATALOG[id].shortName}
+                          </span>
+                          {included
+                            ? <Check className="h-3.5 w-3.5 text-primary" />
+                            : <span className="text-[11px] leading-none text-muted-foreground/40">—</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: full table */}
+            <table className="hidden w-full text-left text-xs md:table">
               <thead className="text-muted-foreground">
                 <tr>
                   <th className="py-2 font-medium">Feature</th>
