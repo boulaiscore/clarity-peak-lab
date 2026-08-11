@@ -179,10 +179,10 @@ export const PLAN_CATALOG: Record<PlanId, PlanDefinition> = {
   },
   team_waitlist: {
     id: "team_waitlist",
-    name: "Team / Cohort",
+    name: "Team / Cohort Pilot",
     shortName: "Team",
-    promise: "Train a group, not just an individual",
-    description: "Private cohorts and aggregate consistency, currently in waitlist.",
+    promise: "A shared performance rhythm without exposing personal scores",
+    description: "Members train individually. Organizers set a weekly protocol and see participation and progress only at group level.",
     features: { ...proFeatures, teamDashboard: true },
     limits: {
       maxProtocolsPerDay: null,

@@ -396,14 +396,22 @@ export default function SubscriptionPage() {
         </details>
 
         <section className="mt-5 rounded-3xl border border-border/40 bg-card/25 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <p className="text-sm font-medium">Team / Cohort</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Private group protocols and aggregate consistency. From €799/year for 5 seats.
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2.5">
+              <p className="text-sm font-medium">Team / Cohort Pilot</p>
+              <span className="rounded-full border border-border/50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                From €799/year · 5 seats
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-foreground/80">
+              Members train individually. The organizer sets a weekly protocol and sees group participation and progress.
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              Personal scores and cognitive data always remain private.
             </p>
           </div>
           <Button type="button" variant="outline" className="mt-4 rounded-full sm:mt-0" onClick={() => setTeamOpen(true)}>
-            Join waitlist
+            Join pilot waitlist
           </Button>
         </section>
 
@@ -420,8 +428,10 @@ export default function SubscriptionPage() {
       <Dialog open={teamOpen} onOpenChange={setTeamOpen}>
         <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-3xl border-border/50">
           <DialogHeader>
-            <DialogTitle>Team / Cohort waitlist</DialogTitle>
-            <DialogDescription>Tell us only what is needed to plan capacity.</DialogDescription>
+            <DialogTitle>Team / Cohort pilot</DialogTitle>
+            <DialogDescription>
+              Join the pilot for shared weekly protocols and a privacy-safe group dashboard.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitTeamWaitlist} className="space-y-3">
             <Input type="email" required value={teamEmail} onChange={(event) => setTeamEmail(event.target.value)} placeholder="Work email" />
