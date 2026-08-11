@@ -162,24 +162,24 @@ export function DualProcessTrendChart({
   }
 
   return (
-    <div className="p-3 rounded-xl bg-muted/30 border border-border/30 mt-3">
+    <div className="mt-4 border-t border-white/[0.055] pt-4">
       {/* Header with toggle */}
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+        <h4 className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/55">
           System Trends
         </h4>
 
         {/* Time range toggle */}
-        <div className="flex items-center gap-0.5 bg-muted/50 rounded-md p-0.5">
+        <div className="flex items-center gap-0.5 rounded-[7px] bg-black/20 p-0.5">
           {([7, 30, 90] as const).map((range) => (
             <button
               key={range}
               onClick={() => setTimeRange(range)}
               className={cn(
-                "px-2 py-0.5 text-[9px] font-medium rounded transition-colors",
+                "rounded-[5px] px-2 py-0.5 text-[9px] font-medium transition-colors",
                 timeRange === range
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-white/[0.075] text-foreground"
+                  : "text-muted-foreground/55 hover:text-foreground"
               )}
             >
               {range}d
@@ -245,9 +245,9 @@ export function DualProcessTrendChart({
                 type="linear"
                 dataKey="s1"
                 name="s1"
-                stroke="#f59e0b"
+                stroke="hsl(var(--area-fast))"
                 strokeWidth={2}
-                dot={{ r: 2, fill: "#f59e0b", strokeWidth: 0 }}
+                dot={{ r: 2, fill: "hsl(var(--area-fast))", strokeWidth: 0 }}
                 activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }}
                 connectNulls
                 isAnimationActive={false}
@@ -260,9 +260,9 @@ export function DualProcessTrendChart({
                 type="linear"
                 dataKey="s2"
                 name="s2"
-                stroke="#8b5cf6"
+                stroke="hsl(var(--area-slow))"
                 strokeWidth={2}
-                dot={{ r: 2, fill: "#8b5cf6", strokeWidth: 0 }}
+                dot={{ r: 2, fill: "hsl(var(--area-slow))", strokeWidth: 0 }}
                 activeDot={{ r: 4, strokeWidth: 2, stroke: "hsl(var(--background))" }}
                 connectNulls
                 isAnimationActive={false}

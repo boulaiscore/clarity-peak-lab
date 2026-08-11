@@ -310,9 +310,9 @@ export function WeeklyGoalCard({
 
   // Compact version for NeuroLab - Ultra-simplified
   if (compact) {
-    // WHOOP/Strava-inspired ring percentage
+    // Circular load signal: the same weekly XP, presented as one primary datum.
     const ringPercent = Math.min(100, progressPercent);
-    const ringRadius = 38;
+    const ringRadius = 70;
     const ringCircumference = 2 * Math.PI * ringRadius;
     const ringOffset = ringCircumference - (ringPercent / 100) * ringCircumference;
     
@@ -343,184 +343,83 @@ export function WeeklyGoalCard({
     return <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <motion.div initial={{
         opacity: 0,
-        y: 10
+        y: 6
       }} animate={{
         opacity: 1,
         y: 0
       }} transition={{
-        duration: 0.3
+        duration: 0.22
       }} aria-busy={isSyncing} className="space-y-3">
-          
-          {/* MAIN CARD — Gauge Arc + Status */}
-          <CollapsibleTrigger className="w-full">
-            <div className="rounded-2xl bg-gradient-to-br from-[hsl(var(--muted)/0.12)] to-[hsl(var(--muted)/0.04)] border border-border/20 px-5 pt-5 pb-4">
-              {/* Centered Gauge */}
-              <div className="flex flex-col items-center">
-                {/* Arc Gauge SVG with info inside */}
-                <div className="relative w-[240px] h-[140px]">
-                  <svg viewBox="0 0 240 140" className="w-full h-full">
-                    <defs>
-                      {(() => {
-                        // Distance from optimal zone (0 = inside optimal, 1 = far away)
-                        const optMid = (optimalRangePercent.min + optimalRangePercent.max) / 2;
-                        const optHalf = (optimalRangePercent.max - optimalRangePercent.min) / 2;
-                        const distFromOpt = Math.max(0, Math.abs(ringPercent - optMid) - optHalf);
-                        // Normalize: max distance is from optMid to 0 or 100
-                        const maxDist = Math.max(optMid, 100 - optMid) - optHalf;
-                        const t = Math.min(1, distFromOpt / Math.max(1, maxDist));
-                        // Interpolate green → amber → red
-                        const lerp = (a: number, b: number, k: number) => Math.round(a + (b - a) * k);
-                        const toHex = (n: number) => n.toString(16).padStart(2, "0");
-                        let r: number, g: number, b: number;
-                        if (t < 0.5) {
-                          const k = t / 0.5;
-                          r = lerp(0x22, 0xfb, k); g = lerp(0xff, 0xbf, k); b = lerp(0x66, 0x24, k);
-                        } else {
-                          const k = (t - 0.5) / 0.5;
-                          r = lerp(0xfb, 0xef, k); g = lerp(0xbf, 0x44, k); b = lerp(0x24, 0x44, k);
-                        }
-                        const color = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-                        return (
-                          <linearGradient id="gaugeProgressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor={color} />
-                            <stop offset="100%" stopColor={color} />
-                          </linearGradient>
-                        );
-                      })()}
-                    </defs>
-                    {/* Background arc track — thin */}
-                    <path
-                      d="M 25 125 A 95 95 0 0 1 215 125"
-                      fill="none"
-                      strokeWidth="7"
-                      strokeLinecap="round"
-                      className="stroke-white/[0.08]"
-                    />
-                    {/* Optimal zone arc segment */}
-                    {!goalReached && (() => {
-                      const cx = 120, cy = 125, r = 95;
-                      const optStartAngle = Math.PI + (optimalRangePercent.min / 100) * Math.PI;
-                      const optEndAngle = Math.PI + (optimalRangePercent.max / 100) * Math.PI;
-                      return (
-                        <path
-                          d={`M ${cx + r * Math.cos(optStartAngle)} ${cy + r * Math.sin(optStartAngle)} A ${r} ${r} 0 0 1 ${cx + r * Math.cos(optEndAngle)} ${cy + r * Math.sin(optEndAngle)}`}
-                          fill="none"
-                          strokeWidth="7"
-                          strokeLinecap="round"
-                          stroke="#22ff66"
-                          opacity={0.35}
-                        />
-                      );
-                    })()}
-                    {/* Progress arc — gradient */}
-                    {(() => {
-                      const totalArcLength = Math.PI * 95;
-                      const progressArc = (ringPercent / 100) * totalArcLength;
-                      return (
-                        <motion.path
-                          d="M 25 125 A 95 95 0 0 1 215 125"
-                          fill="none"
-                          strokeWidth="7"
-                          strokeLinecap="round"
-                          stroke="url(#gaugeProgressGrad)"
-                          strokeDasharray={totalArcLength}
-                          initial={false}
-                          animate={{ strokeDashoffset: totalArcLength - progressArc }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                        />
-                      );
-                    })()}
-                    {/* Current value marker — white dot */}
-                    {(() => {
-                      const cx = 120, cy = 125, r = 95;
-                      const angle = Math.PI + (ringPercent / 100) * Math.PI;
-                      const mx = cx + r * Math.cos(angle);
-                      const my = cy + r * Math.sin(angle);
-                      return (
-                        <motion.circle
-                          r="5"
-                          fill="white"
-                          initial={false}
-                          animate={{ cx: mx, cy: my }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                        />
-                      );
-                    })()}
-                    {/* Tick marks at optimal boundaries */}
-                    {!goalReached && [optimalRangePercent.min, optimalRangePercent.max].map((pct, i) => {
-                      const cx = 120, cy = 125;
-                      const angle = Math.PI + (pct / 100) * Math.PI;
-                      const innerR = 87;
-                      const outerR = 103;
-                      return (
-                        <line
-                          key={i}
-                          x1={cx + innerR * Math.cos(angle)}
-                          y1={cy + innerR * Math.sin(angle)}
-                          x2={cx + outerR * Math.cos(angle)}
-                          y2={cy + outerR * Math.sin(angle)}
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          className="stroke-white/40"
-                        />
-                      );
-                    })}
-                  </svg>
-                  {/* Info overlay inside the arc */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-end pb-2">
-                    <span className="text-[9px] text-muted-foreground/50 font-semibold uppercase tracking-[0.14em] mb-0.5">
-                      Weekly Load
-                    </span>
-                    <div className="flex items-baseline gap-0.5">
-                      <span className="text-[32px] font-bold text-foreground tabular-nums leading-none tracking-tight">
-                        {Math.round(rawGamesXP)}
-                      </span>
-                      <span className="text-[13px] text-muted-foreground/40 font-semibold">
-                        /{weeklyXPTarget}
-                      </span>
-                    </div>
-                    <p className={`text-[11px] font-bold mt-0.5 ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
-                      {goalReached ? "Target Reached" : adaptiveStatus.copy.label}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Optimal range pill below gauge */}
+          <CollapsibleTrigger className="w-full">
+            <div className="rounded-[18px] border border-white/[0.06] bg-gradient-to-b from-white/[0.048] to-white/[0.018] px-5 pb-4 pt-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">Weekly load</span>
+                <span className="text-[9px] font-medium tabular-nums text-muted-foreground/50">{Math.round(ringPercent)}%</span>
+              </div>
+
+              <div className="relative mx-auto my-2 h-[176px] w-[176px]">
+                <svg viewBox="0 0 176 176" className="h-full w-full -rotate-90" aria-hidden="true">
+                  <circle cx="88" cy="88" r={ringRadius} fill="none" strokeWidth="9" className="stroke-white/[0.055]" />
+                  <motion.circle
+                    cx="88"
+                    cy="88"
+                    r={ringRadius}
+                    fill="none"
+                    strokeWidth="9"
+                    strokeLinecap="round"
+                    strokeDasharray={ringCircumference}
+                    className={getRingColor()}
+                    initial={false}
+                    animate={{ strokeDashoffset: ringOffset }}
+                    transition={{ duration: 0.7, ease: "easeOut" }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[42px] font-semibold leading-none tabular-nums tracking-[-0.05em] text-foreground">
+                      {Math.round(rawGamesXP)}
+                    </span>
+                    <span className="text-[12px] font-medium tabular-nums text-muted-foreground/45">/{weeklyXPTarget}</span>
+                  </div>
+                  <span className="mt-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/55">XP</span>
+                  <p className={`mt-1.5 text-[10px] font-semibold ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
+                    {goalReached ? "Target reached" : adaptiveStatus.copy.label}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 border-t border-white/[0.055] pt-3 text-left">
                 <TooltipProvider delayDuration={150}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border mt-2 cursor-help border-slate-600"
-                      >
-                        <span className="text-[10px] text-muted-foreground/50">Optimal Zone</span>
-                        <span className="text-[12px] font-bold text-foreground/80 tabular-nums">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
-                        <Info className="w-3 h-3 text-muted-foreground/40" />
+                      <div role="button" tabIndex={0} onClick={(event) => event.stopPropagation()} className="border-r border-white/[0.055] pr-4">
+                        <span className="flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/50">
+                          Optimal zone <Info className="h-2.5 w-2.5" />
+                        </span>
+                        <span className="mt-1 block text-[13px] font-semibold tabular-nums text-foreground/90">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="max-w-[260px] text-[11px] leading-relaxed">
-                      Based on your current <span className="font-semibold">Capacity</span> (~{Math.round(trainingCapacity)} XP): 60–85% of your sustainable level. It grows with consistent training and drops if you stop.
+                      Based on your current capacity. It adapts with consistent training and recovery.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-
-                {/* Overtraining disclaimer — shift focus to recovery activities */}
-                {adaptiveStatus.status === "above" && (
-                  <div className="mt-3 flex items-center gap-2.5">
-                    <span className="w-1 h-1 rounded-full bg-amber-300/70 shrink-0" />
-                    <p className="text-[10px] tracking-[0.02em] text-muted-foreground/80 leading-snug">
-                      Above optimal load — shift focus to <span className="text-foreground/85">Quality Time</span> &amp; <span className="text-foreground/85">Recover</span>.
-                    </p>
-                  </div>
-                )}
+                <div className="pl-4">
+                  <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/50">Capacity</span>
+                  <span className="mt-1 block text-[13px] font-semibold tabular-nums text-foreground/90">{Math.round(trainingCapacity)} XP</span>
+                </div>
               </div>
 
-              {/* Expand chevron */}
-              <div className="flex justify-center mt-3">
-                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground/30" />
+              {adaptiveStatus.status === "above" && (
+                <p className="mt-3 border-t border-white/[0.055] pt-3 text-left text-[9px] leading-relaxed text-amber-300/75">
+                  Above your current range. Favor Quality Time or Recovery.
+                </p>
+              )}
+
+              <div className="mt-3 flex justify-center">
+                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.18 }}>
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/35" />
                 </motion.div>
               </div>
             </div>
@@ -528,7 +427,7 @@ export function WeeklyGoalCard({
 
 
           <CollapsibleContent>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-2xl bg-gradient-to-br from-[hsl(var(--muted)/0.10)] to-[hsl(var(--muted)/0.03)] border border-border/15 overflow-hidden">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-hidden rounded-[16px] border border-white/[0.055] bg-white/[0.018]">
 
               {/* SYSTEM 1 */}
               <div className="px-5 pt-5 pb-4">

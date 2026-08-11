@@ -361,11 +361,11 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
   ];
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/30 bg-card/35">
+    <div className="overflow-hidden rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018]">
       {/* Header with metric name and toggle */}
-      <div className="px-4 pt-3 pb-0 flex items-center justify-between">
+      <div className="flex items-center justify-between px-4 pb-0 pt-3.5">
         <span 
-          className="text-[12px] font-medium text-foreground"
+          className="text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground/80"
         >
           {metric.label}
         </span>
@@ -384,8 +384,8 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
             className={`
               relative w-9 h-5 rounded-full transition-all duration-200
               ${viewMode === 'today' 
-                ? 'bg-primary/80' 
-                : 'bg-muted/40'
+                ? 'bg-primary/75'
+                : 'bg-white/[0.08]'
               }
             `}
             aria-label="Toggle view mode"

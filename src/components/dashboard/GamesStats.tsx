@@ -382,7 +382,7 @@ export function GamesStats() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border/30 bg-card/35 p-6">
+      <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           Loading...
@@ -397,7 +397,7 @@ export function GamesStats() {
   return (
     <div className="space-y-4">
       {/* Challenges Progress */}
-      <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
+      <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-4 w-4 text-muted-foreground" />
@@ -434,7 +434,7 @@ export function GamesStats() {
       </div>
 
       {/* 14-Day Trend Chart with System1/System2 breakdown */}
-      <div className="rounded-2xl border border-border/30 bg-card/35 p-3">
+      <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-3">
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-[11px] font-medium text-foreground">14-Day Trend</span>
@@ -508,7 +508,7 @@ export function GamesStats() {
       {sessions.length > 0 && (
         <>
           {/* System 1 - Fast */}
-          <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
+          <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
                 <Zap className="h-4 w-4 text-amber-400" />
@@ -566,7 +566,7 @@ export function GamesStats() {
           </div>
 
           {/* System 2 - Slow */}
-          <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
+          <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
                 <Brain className="h-4 w-4 text-violet-400" />
@@ -623,7 +623,7 @@ export function GamesStats() {
           </div>
           
           {/* Cognitive Metrics Impact Summary - ACCURATE FORMULAS */}
-          <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
+          <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
             
             {(() => {
@@ -701,7 +701,7 @@ export function GamesStats() {
 
       {/* Recent Games List */}
       {sessions.length > 0 && (
-        <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
+        <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Recent Games</p>
           
           <div className="space-y-2 max-h-60 overflow-y-auto">

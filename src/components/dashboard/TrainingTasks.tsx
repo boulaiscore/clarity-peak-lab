@@ -642,7 +642,7 @@ export function TrainingTasks() {
     
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
+      <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           Loading tasks...
@@ -657,7 +657,7 @@ export function TrainingTasks() {
 
 
       {/* Reading Time Chart */}
-      <div className="rounded-2xl border border-border/30 bg-card/35 p-3">
+      <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-3">
         <div className="flex items-center gap-2 mb-3">
           <BookOpen className="w-3.5 h-3.5 text-amber-500" />
           <span className="text-[11px] font-medium text-foreground">Reading Time</span>
@@ -714,7 +714,7 @@ export function TrainingTasks() {
       </div>
 
       {/* Listening Time Chart */}
-      <div className="rounded-2xl border border-border/30 bg-card/35 p-3">
+      <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-3">
         <div className="flex items-center gap-2 mb-3">
           <Headphones className="w-3.5 h-3.5 text-violet-500" />
           <span className="text-[11px] font-medium text-foreground">Listening Time</span>
@@ -790,7 +790,7 @@ export function TrainingTasks() {
 
       {/* v1.3: Cognitive Input Impact (tasks don't give XP) */}
       {completedCount > 0 && (
-        <div className="rounded-2xl border border-border/30 bg-card/35 p-4">
+        <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Cognitive Input Impact</p>
           
           {(() => {

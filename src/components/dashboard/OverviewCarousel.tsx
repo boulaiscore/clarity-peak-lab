@@ -3,7 +3,6 @@ import { CognitiveAgeCard } from "./CognitiveAgeCard";
 import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
 import {
-  MonitorPanel,
   MonitorSectionHeader,
   MonitorSegmentedControl,
 } from "./MonitorUI";
@@ -42,15 +41,15 @@ const CARD_OPTIONS: { value: CardType; label: string }[] = [
 const CARD_COPY: Record<CardType, { title: string; description: string }> = {
   "cognitive-age": {
     title: "Cognitive Age",
-    description: "A rolling estimate derived from your own task-performance trend.",
+    description: "30-day task-performance estimate",
   },
   "cognitive-network": {
     title: "Performance Network",
-    description: "How performance, activity and recovery combine in your current signal.",
+    description: "Performance, training and recovery",
   },
   "dual-process": {
     title: "Dual-Process Profile",
-    description: "Your balance between fast-response and deliberate-reasoning tasks.",
+    description: "Fast and deliberate task performance",
   },
 };
 
@@ -84,7 +83,7 @@ export function OverviewCarousel({
   const copy = CARD_COPY[currentCard];
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-3">
       <MonitorSectionHeader
         eyebrow="Overview"
         title={copy.title}
@@ -94,7 +93,7 @@ export function OverviewCarousel({
             <DialogTrigger asChild>
               <button
                 type="button"
-                className="rounded-lg border border-border/30 bg-muted/20 px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+                className="rounded-[7px] border border-white/[0.055] bg-white/[0.025] px-2.5 py-1.5 text-[9px] font-medium text-muted-foreground/65 transition-colors hover:bg-white/[0.05] hover:text-foreground"
               >
                 Method
               </button>
@@ -105,7 +104,7 @@ export function OverviewCarousel({
               </DialogHeader>
               <div className="space-y-3 text-sm">
                 {METHOD_ITEMS.map((item) => (
-                  <div key={item.mark} className="rounded-xl border border-border/30 bg-muted/25 p-3">
+                  <div key={item.mark} className="rounded-[12px] border border-white/[0.055] bg-white/[0.025] p-3">
                     <div className="mb-2 flex items-center gap-2">
                       <span className="min-w-9 rounded-md border border-border/40 bg-background/60 px-1.5 py-1 text-center text-[9px] font-semibold tracking-wider text-muted-foreground">
                         {item.mark}
@@ -133,7 +132,7 @@ export function OverviewCarousel({
         onChange={setCurrentCard}
       />
 
-      <MonitorPanel className="min-w-0 overflow-hidden p-4">
+      <div className="min-w-0 overflow-hidden pt-1">
         {currentCard === "cognitive-age" && <CognitiveAgeCard />}
 
         {currentCard === "cognitive-network" && (
@@ -156,7 +155,7 @@ export function OverviewCarousel({
             slowDelta={thinkingScores.slowDelta}
           />
         )}
-      </MonitorPanel>
+      </div>
     </section>
   );
 }

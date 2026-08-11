@@ -117,7 +117,12 @@ const Dashboard = () => {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-md space-y-6 px-5 py-5">
+      <div className="mx-auto max-w-md px-4 pb-6 pt-4">
+        <header className="mb-4 flex items-center justify-between px-0.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Monitor</p>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45">Today</p>
+        </header>
+
         <MonitorSegmentedControl
           ariaLabel="Monitor view"
           value={activeTab}
@@ -126,10 +131,10 @@ const Dashboard = () => {
         />
 
         {/* Baseline Status - shows only when calibration is needed */}
-        <BaselineStatusCard />
+        <div className="mt-3"><BaselineStatusCard /></div>
 
         {activeTab === "insights" ? (
-          <div className="space-y-8">
+          <div className="mt-6 space-y-7">
             <OverviewCarousel
               sci={sci}
               sciStatusText={sciStatusText}
@@ -139,11 +144,10 @@ const Dashboard = () => {
 
             <CognitiveRhythmPanel />
 
-            <section className="space-y-4">
+            <section className="space-y-3">
               <MonitorSectionHeader
                 eyebrow="History"
                 title="Signals over time"
-                description="Compare metric direction with the activity that may be shaping it."
               />
 
               <MonitorSegmentedControl
@@ -176,11 +180,11 @@ const Dashboard = () => {
             </section>
           </div>
         ) : (
-          <section className="space-y-4">
+          <section className="mt-6 space-y-4">
             <MonitorSectionHeader
               eyebrow="Report"
               title="Personal performance report"
-              description="A longer view of your observed task, recovery and consistency patterns."
+              description="Multi-week direction, context and next actions."
             />
 
             <MonitorPanel className="p-5">

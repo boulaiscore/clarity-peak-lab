@@ -26,7 +26,7 @@ export function MonitorSegmentedControl<T extends string>({
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        "grid gap-1 rounded-xl border border-border/30 bg-muted/25 p-1",
+        "grid gap-0.5 rounded-[11px] border border-white/[0.055] bg-black/20 p-[3px]",
         className,
       )}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
@@ -42,11 +42,11 @@ export function MonitorSegmentedControl<T extends string>({
             aria-selected={isActive}
             onClick={() => onChange(option.value)}
             className={cn(
-              "min-h-9 rounded-lg px-2 text-[11px] font-medium transition-colors",
+              "min-h-8 rounded-[8px] px-2 text-[10px] font-semibold uppercase tracking-[0.11em] transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
               isActive
-                ? "bg-background text-foreground shadow-sm ring-1 ring-border/30"
-                : "text-muted-foreground hover:bg-background/40 hover:text-foreground",
+                ? "bg-white/[0.075] text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.035)]"
+                : "text-muted-foreground/65 hover:bg-white/[0.035] hover:text-foreground/85",
             )}
           >
             {option.label}
@@ -84,13 +84,13 @@ export function MonitorSectionHeader({
     >
       <div className={cn("min-w-0", align === "center" && "mx-auto")}>
         {eyebrow && (
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/65">
+          <p className="mb-1.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/55">
             {eyebrow}
           </p>
         )}
-        <h2 className="text-[17px] font-semibold tracking-tight text-foreground">{title}</h2>
+        <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-foreground">{title}</h2>
         {description && (
-          <p className="mt-1 max-w-sm text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mt-1 max-w-sm text-[10px] leading-relaxed text-muted-foreground/75">
             {description}
           </p>
         )}
@@ -107,7 +107,12 @@ interface MonitorPanelProps {
 
 export function MonitorPanel({ children, className }: MonitorPanelProps) {
   return (
-    <div className={cn("rounded-2xl border border-border/30 bg-card/35", className)}>
+    <div
+      className={cn(
+        "rounded-[18px] border border-white/[0.055] bg-gradient-to-b from-white/[0.045] to-white/[0.018] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]",
+        className,
+      )}
+    >
       {children}
     </div>
   );
