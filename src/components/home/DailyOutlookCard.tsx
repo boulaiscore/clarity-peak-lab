@@ -11,7 +11,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
-import type { DailyOutlookTone } from "@/lib/dailyOutlook";
+import type { DailyOutlookEvidence, DailyOutlookTone } from "@/lib/dailyOutlook";
 import { useDailyOutlook } from "@/hooks/useDailyOutlook";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +37,24 @@ const toneExplanation: Record<DailyOutlookTone, string> = {
   limit: "This is the clearest constraint to account for today.",
   neutral: "This is close to your current baseline.",
 };
+
+const healthEvidenceCodes = new Set(["SLP", "HRV", "RHR", "ACT"]);
+
+function explanationForEvidence(item: DailyOutlookEvidence): string {
+  if (healthEvidenceCodes.has(item.code) && item.tone === "neutral") {
+    return "LOOMA uses this as context without treating one observation as good or bad on its own.";
+  }
+  return toneExplanation[item.tone];
+}
+
+function selectHighlights(evidence: DailyOutlookEvidence[]): DailyOutlookEvidence[] {
+  const firstHealthSignal = evidence.find((item) => healthEvidenceCodes.has(item.code));
+  if (!firstHealthSignal) return evidence.slice(0, 3);
+  const remaining = evidence.filter((item) => item !== firstHealthSignal);
+  return [remaining[0], firstHealthSignal, ...remaining.slice(1)]
+    .filter((item): item is DailyOutlookEvidence => Boolean(item))
+    .slice(0, 3);
+}
 
 function greetingForNow(): string {
   const hour = new Date().getHours();
@@ -70,7 +88,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
     }
   };
 
-  const highlights = outlook.evidence.slice(0, 3);
+  const highlights = selectHighlights(outlook.evidence);
   const sourceLine = props.activeSourceCount > 0
     ? `${props.activeSourceCount} connected · ${outlook.confidenceLabel} confidence`
     : "Personal baseline · learning";
@@ -195,7 +213,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                       <strong className="font-semibold text-foreground/95">
                         {item.label}: {item.detail}.
                       </strong>{" "}
-                      {toneExplanation[item.tone]}
+                      {explanationForEvidence(item)}
                     </p>
                   </div>
                 ))}

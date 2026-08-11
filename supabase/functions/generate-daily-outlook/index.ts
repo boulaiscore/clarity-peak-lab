@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const MODEL = "google/gemini-2.5-flash";
-const MODEL_VERSION = "daily-outlook-copy-gemini-2.5-flash-v2";
+const MODEL_VERSION = "daily-outlook-copy-gemini-2.5-flash-v3-conversational-health";
 const ACTION_KEYS = new Set([
   "recover",
   "protect_attention",
@@ -38,6 +38,17 @@ interface SafeAction {
   metricDetail: string;
 }
 
+interface SafeHealthSignals {
+  sleepDurationMin: number | null;
+  sleepEfficiency: number | null;
+  hrvMs: number | null;
+  restingHr: number | null;
+  steps: number | null;
+  activeMinutes: number | null;
+  observedDate: string | null;
+  sources: string[];
+}
+
 interface SafeOutlook {
   policyVersion: string;
   headline: string;
@@ -47,6 +58,7 @@ interface SafeOutlook {
   action: SafeAction;
   evidence: SafeEvidence[];
   confidence: number;
+  healthSignals: SafeHealthSignals | null;
   stateSnapshot: Record<string, unknown>;
 }
 
@@ -60,11 +72,53 @@ function safeText(value: unknown, maxLength: number): string | null {
   return trimmed.length > 0 && trimmed.length <= maxLength ? trimmed : null;
 }
 
+function boundedNumber(value: unknown, minimum: number, maximum: number): number | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= minimum && parsed <= maximum ? parsed : null;
+}
+
+function parseHealthSignals(value: unknown): SafeHealthSignals | null {
+  if (!isRecord(value)) return null;
+  const healthSignals: SafeHealthSignals = {
+    sleepDurationMin: boundedNumber(value.sleepDurationMin, 0, 24 * 60),
+    sleepEfficiency: boundedNumber(value.sleepEfficiency, 0, 100),
+    hrvMs: boundedNumber(value.hrvMs, 0, 500),
+    restingHr: boundedNumber(value.restingHr, 20, 250),
+    steps: boundedNumber(value.steps, 0, 100_000),
+    activeMinutes: boundedNumber(value.activeMinutes, 0, 24 * 60),
+    observedDate: typeof value.observedDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.observedDate)
+      ? value.observedDate
+      : null,
+    sources: Array.isArray(value.sources)
+      ? value.sources.flatMap((source) => {
+        const parsed = safeText(source, 40);
+        return parsed ? [parsed] : [];
+      }).slice(0, 3)
+      : [],
+  };
+  return [
+    healthSignals.sleepDurationMin,
+    healthSignals.sleepEfficiency,
+    healthSignals.hrvMs,
+    healthSignals.restingHr,
+    healthSignals.steps,
+    healthSignals.activeMinutes,
+  ].some((item) => item !== null) ? healthSignals : null;
+}
+
+function healthSignalsFromStateSnapshot(value: unknown): SafeHealthSignals | null {
+  if (!isRecord(value)) return null;
+  const passive = isRecord(value.passive) ? value.passive : null;
+  return parseHealthSignals(passive?.healthSignals);
+}
+
 function parseOutlook(value: unknown): SafeOutlook | null {
   if (!isRecord(value) || !isRecord(value.action) || !Array.isArray(value.evidence)) return null;
   const policyVersion = safeText(value.policyVersion, 80);
   const headline = safeText(value.headline, 160);
-  const summary = safeText(value.summary, 500);
+  const summary = safeText(value.summary, 1200);
   const intensity = value.intensity;
   const confidence = Number(value.confidence);
   const action = value.action;
@@ -119,6 +173,7 @@ function parseOutlook(value: unknown): SafeOutlook | null {
     },
     evidence,
     confidence,
+    healthSignals: parseHealthSignals(value.healthSignals),
     stateSnapshot: isRecord(value.stateSnapshot) ? value.stateSnapshot : {},
   };
 }
@@ -171,7 +226,7 @@ serve(async (req) => {
 
     const { data: existing } = await supabase
       .from("daily_outlooks")
-      .select("headline, summary, copy_source, model_version, intensity, window_label, primary_action, evidence")
+      .select("headline, summary, copy_source, model_version, intensity, window_label, primary_action, evidence, state_snapshot")
       .eq("user_id", user.id)
       .eq("outlook_date", outlookDate)
       .eq("policy_version", outlook.policyVersion)
@@ -180,7 +235,8 @@ serve(async (req) => {
       existing.intensity === outlook.intensity &&
       existing.window_label === outlook.windowLabel &&
       JSON.stringify(existing.primary_action) === JSON.stringify(outlook.action) &&
-      JSON.stringify(existing.evidence) === JSON.stringify(outlook.evidence);
+      JSON.stringify(existing.evidence) === JSON.stringify(outlook.evidence) &&
+      JSON.stringify(healthSignalsFromStateSnapshot(existing.state_snapshot)) === JSON.stringify(outlook.healthSignals);
     if (existing?.copy_source === "ai" && existing.model_version === MODEL_VERSION && sameCopyBasis) {
       return new Response(JSON.stringify({
         headline: existing.headline,
@@ -201,6 +257,7 @@ serve(async (req) => {
       window: outlook.windowLabel,
       action: outlook.action,
       evidence: outlook.evidence,
+      healthSignals: outlook.healthSignals,
     });
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -213,7 +270,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are the LOOMA Daily Coach for a non-medical cognitive performance app. Write a calm, direct briefing using only the supplied facts. The summary must be 2–3 short sentences: describe today's state, identify the strongest or limiting signal, then explain the practical implication. Never add metrics, numbers, causes, diagnoses, guarantees or health claims. Never imply intelligence or fixed ability. Do not invent a work block, duration, task or protocol. Keep the headline under 7 words and the summary under 70 words. The action is selected by a separate explainable policy and must not be changed.`,
+            content: `You are the LOOMA Daily Coach for a non-medical cognitive performance app. Write a warm, conversational and premium daily briefing using only the supplied facts. Address the user naturally in second person, as a thoughtful coach who knows their recent context—not as a dashboard listing values. Write one cohesive paragraph of 80–120 words and 4–5 sentences. Begin with today's cognitive state, weave in the most relevant 2–3 signals, and finish by naturally introducing the exact action selected by the explainable policy. If granular healthSignals are supplied, mention at least one relevant observation such as sleep, HRV, resting heart rate or movement. A raw health observation is context only: never call it good, poor, high or low and never infer a cause unless that comparison or relationship is explicitly present in evidence. Never add metrics, numbers, causes, diagnoses, guarantees, health claims, baseline comparisons or recommendations that are not supplied. Never imply intelligence or fixed ability. Do not invent a work block, duration, task or protocol. Use no bullets or markdown. Keep the headline under 7 words. The action is selected by a separate explainable policy and must not be changed.`,
           },
           { role: "user", content: factualSource },
         ],
@@ -226,7 +283,7 @@ serve(async (req) => {
               type: "object",
               properties: {
                 headline: { type: "string", maxLength: 80 },
-                summary: { type: "string", maxLength: 500 },
+                summary: { type: "string", maxLength: 1200 },
               },
               required: ["headline", "summary"],
               additionalProperties: false,
@@ -242,7 +299,7 @@ serve(async (req) => {
     const rawArguments = responseBody.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     const generated = typeof rawArguments === "string" ? JSON.parse(rawArguments) : null;
     const headline = safeText(generated?.headline, 80);
-    const summary = safeText(generated?.summary, 500);
+    const summary = safeText(generated?.summary, 1200);
     const safeGeneratedCopy = headline && summary &&
       containsOnlyKnownNumbers(`${headline} ${summary}`, factualSource);
     const finalHeadline = safeGeneratedCopy ? headline : outlook.headline;

@@ -8,6 +8,7 @@ import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
 import {
   deriveDailyOutlook,
   type DailyOutlook,
+  type DailyOutlookHealthSignals,
   type DailyOutlookInput,
 } from "@/lib/dailyOutlook";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +56,54 @@ function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function finiteNumber(value: unknown): number | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function nonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function healthSignalsFromPayload(
+  payload: PassiveFeaturePayload | null,
+): DailyOutlookHealthSignals | null {
+  const health = record(payload?.health);
+  const phone = record(health?.phone);
+  const wearable = record(health?.wearable);
+  const sleepDurationMin = finiteNumber(wearable?.sleepDurationMin) ?? finiteNumber(phone?.sleepMin);
+  const sleepEfficiency = finiteNumber(wearable?.sleepEfficiency);
+  const hrvMs = finiteNumber(wearable?.hrvMs);
+  const restingHr = finiteNumber(wearable?.restingHr);
+  const steps = finiteNumber(phone?.steps);
+  const activeMinutes = finiteNumber(phone?.activeMinutes);
+  const observedDates = [nonEmptyString(phone?.date), nonEmptyString(wearable?.date)]
+    .filter((value): value is string => value !== null)
+    .sort();
+  const sources = [...new Set([
+    nonEmptyString(wearable?.source),
+    nonEmptyString(phone?.source),
+  ].filter((value): value is string => value !== null))];
+
+  if ([sleepDurationMin, sleepEfficiency, hrvMs, restingHr, steps, activeMinutes]
+    .every((value) => value === null)) {
+    return null;
+  }
+
+  return {
+    sleepDurationMin,
+    sleepEfficiency,
+    hrvMs,
+    restingHr,
+    steps,
+    activeMinutes,
+    observedDate: observedDates.at(-1)?.slice(0, 10) ?? null,
+    sources,
+  };
+}
+
 function isStorageUnavailable(error: LooseResult["error"]): boolean {
   return Boolean(error && /daily_outlooks|PGRST205|42P01|schema cache/i.test(error.message ?? ""));
 }
@@ -68,6 +117,10 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   const shownRef = useRef<string | null>(null);
   const canPersonalize = subscription.tier !== "free";
   const personalizationLoading = canPersonalize && rhythmLoading;
+  const healthSignals = useMemo(
+    () => healthSignalsFromPayload(input.passiveFeatures),
+    [input.passiveFeatures],
+  );
 
   const policyInput = useMemo<DailyOutlookInput>(() => ({
     sharpness: input.sharpness,
@@ -75,6 +128,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     recovery: input.recovery,
     reasoningQuality: input.reasoningQuality,
     healthScore: input.passiveFeatures?.coachContext.healthScore ?? null,
+    healthSignals,
     attentionLoadRatio: input.passiveFeatures?.coachContext.attentionLoadRatio ?? null,
     scheduleLoadRatio: input.passiveFeatures?.coachContext.scheduleLoadRatio ?? null,
     signalCoverage: input.signalCoverage,
@@ -89,6 +143,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     input.recovery,
     input.sharpness,
     input.signalCoverage,
+    healthSignals,
     rhythm,
     user?.primaryOutcome,
   ]);
@@ -107,6 +162,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     },
     passive: {
       healthScore: policyInput.healthScore ?? null,
+      healthSignals,
       attentionLoadRatio: policyInput.attentionLoadRatio ?? null,
       scheduleLoadRatio: policyInput.scheduleLoadRatio ?? null,
       signalCoverage: input.signalCoverage,
@@ -124,6 +180,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     input.recovery,
     input.sharpness,
     input.signalCoverage,
+    healthSignals,
     policyInput.attentionLoadRatio,
     policyInput.healthScore,
     policyInput.scheduleLoadRatio,
@@ -139,6 +196,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       deterministicOutlook.policyVersion,
       deterministicOutlook.action.key,
       deterministicOutlook.headline,
+      deterministicOutlook.healthSignals,
     ],
     queryFn: async (): Promise<GeneratedCopy | null> => {
       const { data, error } = await supabase.functions.invoke("generate-daily-outlook", {
