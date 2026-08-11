@@ -2,9 +2,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Lock, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
+import s1Bg from "@/assets/s1-bg.webp";
+import s2Bg from "@/assets/s2-bg.webp";
 
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
@@ -162,31 +165,47 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       </div>
 
 
-      {/* System selector */}
+      {/* System selector — original S1 / S2 brain imagery */}
       <div className="grid grid-cols-2 gap-3">
         {SYSTEMS.map((system) => {
+          const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
           const isOpen = openSystem === system.id;
+          const background = system.id === "fast" ? s1Bg : s2Bg;
           return (
             <button
               key={system.id}
               onClick={() => handleSystemToggle(system.id)}
               className={cn(
-                "group relative min-h-[94px] w-full overflow-hidden rounded-[14px] border p-4 text-left transition-colors",
+                "group relative flex min-h-[138px] w-full flex-col items-center justify-end overflow-hidden rounded-2xl border p-4 text-center transition-all",
                 isOpen
-                  ? "border-white/[0.12] bg-white/[0.06]"
-                  : "border-white/[0.055] bg-white/[0.022] hover:bg-white/[0.04]"
+                  ? "border-foreground/30"
+                  : "border-border/30 hover:border-border/60"
               )}
             >
-              <span className="absolute inset-x-4 top-0 h-px" style={{ backgroundColor: system.accentColor }} />
-              <div className="flex items-start justify-between">
-                <span className="text-[24px] font-semibold tabular-nums tracking-[-0.04em] text-foreground/95">
-                  {system.id === "fast" ? "S1" : "S2"}
-                </span>
-                <ChevronDown className={cn("mt-1 h-3.5 w-3.5 text-muted-foreground/45 transition-transform", isOpen && "rotate-180")} />
+              <img
+                src={background}
+                alt={`${system.label} brain`}
+                className="absolute inset-0 h-full w-full object-cover opacity-65 transition-all duration-300 group-hover:scale-105 group-hover:opacity-80"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/5" />
+
+              <div className="absolute left-3 top-3 z-10">
+                <Icon className="h-4 w-4" color="rgba(255,255,255,0.9)" strokeWidth={1.4} />
               </div>
-              <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
-                {system.id === "fast" ? "Fast · intuitive" : "Slow · analytical"}
-              </p>
+
+              <ChevronDown
+                className={cn(
+                  "absolute right-3 top-3 z-10 h-3.5 w-3.5 text-white/60 transition-transform",
+                  isOpen && "rotate-180",
+                )}
+              />
+
+              <div className="relative z-10">
+                <p className="text-sm font-semibold tracking-tight text-white">{system.label}</p>
+                <p className="mt-0.5 text-[10px] text-white/70">
+                  {system.id === "fast" ? "Fast · intuitive" : "Slow · analytical"}
+                </p>
+              </div>
             </button>
           );
         })}
