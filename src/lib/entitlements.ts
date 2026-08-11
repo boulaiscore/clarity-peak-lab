@@ -49,7 +49,7 @@ export function normalizePlanId(value: string | null | undefined): PlanId {
   }
 }
 
-/** Legacy profile values pre-date Core/Pro and require a different mapping. */
+/** Legacy profile values pre-date the Pro/Elite display names and require a different mapping. */
 export function normalizeLegacyProfileTier(value: string | null | undefined): PlanId {
   if (value === "elite") return "pro";
   if (value === "pro" || value === "premium" || value === "trialing") return "core";
@@ -97,10 +97,10 @@ export const canExportReports = (subject: EntitlementSubject): boolean =>
 export const canCreateCustomProtocol = (subject: EntitlementSubject): boolean =>
   hasFeature(subject, "protocolBuilder");
 
-export function requiredPlanForFeature(featureName: FeatureName): "Core" | "Pro" | null {
+export function requiredPlanForFeature(featureName: FeatureName): "Pro" | "Elite" | null {
   if (PLAN_CATALOG.free.features[featureName]) return null;
-  if (PLAN_CATALOG.core.features[featureName]) return "Core";
-  return "Pro";
+  if (PLAN_CATALOG.core.features[featureName]) return "Pro";
+  return "Elite";
 }
 
 export function shouldShowPaywall(subject: EntitlementSubject, attemptedAction: PaywallAction): boolean {
@@ -123,9 +123,9 @@ export function resolvePlanFromProductId(productId: string | null | undefined): 
   if (normalized.includes("founding")) return "founding_pro";
   if (normalized.includes("elite")) return "pro";
   if (normalized.includes("core") || normalized.includes("premium")) return "core";
-  // Legacy Paddle Pro was the €199 tier and maps to the new Core plan.
+  // Legacy Paddle Pro was the €199 tier and maps to internal `core` (displayed as Pro).
   if (normalized === "looma_pro_monthly" || normalized === "looma_pro_yearly") return "core";
-  // Native RevenueCat Pro is the upper tier.
+  // Native RevenueCat Pro is internal `pro` (displayed as Elite).
   if (normalized === "looma_pro_annual") return "pro";
   return "free";
 }

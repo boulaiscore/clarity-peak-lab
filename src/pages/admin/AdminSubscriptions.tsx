@@ -34,14 +34,14 @@ export default function AdminSubscriptions() {
         return (
           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
             <Crown className="w-3 h-3 mr-1" />
-            Pro
+            Elite
           </Badge>
         );
       case "founding_pro":
         return (
           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
             <Crown className="w-3 h-3 mr-1" />
-            Founding Pro
+            Founding Elite
           </Badge>
         );
       case "core":
@@ -49,7 +49,7 @@ export default function AdminSubscriptions() {
         return (
           <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white">
             <Zap className="w-3 h-3 mr-1" />
-            Core
+            Pro
           </Badge>
         );
       default:
@@ -78,13 +78,13 @@ export default function AdminSubscriptions() {
           <Card>
             <CardContent className="pt-4 text-center">
               <p className="text-2xl font-bold text-amber-500">{stats.proUsers}</p>
-              <p className="text-xs text-muted-foreground">Pro</p>
+              <p className="text-xs text-muted-foreground">Elite</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 text-center">
               <p className="text-2xl font-bold text-violet-500">{stats.coreUsers}</p>
-              <p className="text-xs text-muted-foreground">Core</p>
+              <p className="text-xs text-muted-foreground">Pro</p>
             </CardContent>
           </Card>
           <Card>

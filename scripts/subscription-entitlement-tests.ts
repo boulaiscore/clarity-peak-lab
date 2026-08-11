@@ -19,6 +19,9 @@ import {
 
 assert.equal(DEFAULT_BILLING_INTERVAL, "annual");
 assert.equal(PLAN_CATALOG.pro.highlighted, true);
+assert.equal(PLAN_CATALOG.core.name, "LOOMA Pro");
+assert.equal(PLAN_CATALOG.pro.name, "LOOMA Elite");
+assert.equal(PLAN_CATALOG.founding_pro.name, "Founding Elite");
 assert.equal(PLAN_CATALOG.founding_pro.limitedQuantity, true);
 assert.equal(PLAN_CATALOG.founding_pro.maxQuantity, 100);
 assert.equal(PLAN_CATALOG.team_waitlist.waitlistOnly, true);
@@ -43,8 +46,8 @@ assert.deepEqual(PLAN_CATALOG.founding_pro.features, {
   foundingBadge: true,
 });
 
-assert.equal(requiredPlanForFeature("unlimitedProtocols"), "Core");
-assert.equal(requiredPlanForFeature("advancedAnalytics"), "Pro");
+assert.equal(requiredPlanForFeature("unlimitedProtocols"), "Pro");
+assert.equal(requiredPlanForFeature("advancedAnalytics"), "Elite");
 assert.equal(shouldShowPaywall("free", "first_protocol_completed"), true);
 assert.equal(shouldShowPaywall("core", "advanced_analytics"), true);
 assert.equal(shouldShowPaywall("pro", "advanced_analytics"), false);

@@ -228,7 +228,7 @@ export default function CognitiveReport() {
     if (!printRef.current) return;
     setDownloading(true);
     
-    // Use a credit if we have credits (not Pro user, not test mode)
+    // Use a credit if we have credits (not Elite user, not test mode)
     if (!isTestMode && !isPro && (reportCredits > 0 || monthlyCredits > 0)) {
       try {
         await useCredit.mutateAsync();
@@ -351,9 +351,9 @@ export default function CognitiveReport() {
         {/* Premium Option */}
         <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary">Pro</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary">Elite</span>
             <div>
-              <h4 className="text-sm font-semibold">Upgrade to Pro</h4>
+              <h4 className="text-sm font-semibold">Upgrade to Elite</h4>
               <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
             </div>
           </div>
@@ -521,7 +521,7 @@ export default function CognitiveReport() {
 
             {isPro ? (
               <div className="px-2 py-1 rounded-full border border-primary/20 bg-primary/5 text-[10px]">
-                <span className="font-semibold uppercase tracking-[0.12em] text-primary">Pro</span>
+                <span className="font-semibold uppercase tracking-[0.12em] text-primary">Elite</span>
               </div>
             ) : totalCredits > 0 ? (
               <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-[10px]">

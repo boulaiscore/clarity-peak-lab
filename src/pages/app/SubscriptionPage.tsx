@@ -43,7 +43,7 @@ const CARD_FEATURES: Record<PaidCardId, string[]> = {
     "90-day trends and weekly review",
   ],
   pro: [
-    "Everything in Core",
+    "Everything in Pro",
     "Explainable Adaptive Coach insights",
     "Advanced personal-pattern analytics",
     "Formatted reports and early access",
@@ -263,7 +263,7 @@ export default function SubscriptionPage() {
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
                     {founding
-                      ? `First year · standard Pro ${displayPrice(pricingConfig.pro_annual)}`
+                      ? `First year · standard Elite ${displayPrice(pricingConfig.pro_annual)}`
                       : interval === "annual"
                         ? `Save ${displayedAnnualSavings(planId)}% vs monthly`
                         : `Annual option ${displayPrice(optionFor(planId, "annual"))}`}

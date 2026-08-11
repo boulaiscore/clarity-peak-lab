@@ -75,13 +75,13 @@ export default function AdaptiveCoach() {
             ← Settings
           </Link>
           <section className="mt-8 rounded-3xl border border-border/40 bg-card/45 p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">LOOMA Pro</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">LOOMA Elite</p>
             <h1 className="mt-3 text-2xl font-semibold tracking-tight">Adaptive Coach</h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Looma is already learning privately in shadow mode. Pro reveals its explainable forecasts, coverage and validation.
+              Looma is already learning privately in shadow mode. Elite reveals its explainable forecasts, coverage and validation.
             </p>
             <Button type="button" variant="hero" className="mt-6 h-11 w-full rounded-full" onClick={() => setShowPaywall(true)}>
-              Explore Pro
+              Explore Elite
             </Button>
           </section>
         </div>
