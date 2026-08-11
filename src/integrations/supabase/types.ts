@@ -291,6 +291,60 @@ export type Database = {
           },
         ]
       }
+      calendar_context_snapshots: {
+        Row: {
+          busy_minutes: number
+          confidence: number
+          created_at: string
+          first_event_minute: number | null
+          id: string
+          last_event_minute: number | null
+          longest_meeting_minutes: number
+          longest_open_minutes: number
+          longest_open_start_minute: number | null
+          meeting_count: number
+          permission_state: string
+          snapshot_date: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          busy_minutes?: number
+          confidence?: number
+          created_at?: string
+          first_event_minute?: number | null
+          id?: string
+          last_event_minute?: number | null
+          longest_meeting_minutes?: number
+          longest_open_minutes?: number
+          longest_open_start_minute?: number | null
+          meeting_count?: number
+          permission_state?: string
+          snapshot_date: string
+          source: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          busy_minutes?: number
+          confidence?: number
+          created_at?: string
+          first_event_minute?: number | null
+          id?: string
+          last_event_minute?: number | null
+          longest_meeting_minutes?: number
+          longest_open_minutes?: number
+          longest_open_start_minute?: number | null
+          meeting_count?: number
+          permission_state?: string
+          snapshot_date?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]
