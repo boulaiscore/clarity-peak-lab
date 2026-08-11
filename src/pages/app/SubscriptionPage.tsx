@@ -234,7 +234,7 @@ export default function SubscriptionPage() {
                   }
                 }}
                 className={cn(
-                  "relative flex min-h-[420px] cursor-pointer flex-col overflow-hidden rounded-[28px] border p-6 transition-all sm:p-7",
+                  "relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border p-5 transition-all sm:min-h-[420px] sm:rounded-[28px] sm:p-7",
                   planId === "pro"
                     ? "border-primary/35 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--primary)/0.09))]"
                     : "border-border/50 bg-card/45",
