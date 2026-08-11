@@ -1,8 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import recoveryDetoxImg from "@/assets/recovery-detox.jpg";
-import recoveryWalkImg from "@/assets/recovery-walk.jpg";
-import recoveryDetoxMaleImg from "@/assets/recovery-detox-male.jpg";
-import recoveryWalkMaleImg from "@/assets/recovery-walk-male.jpg";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -24,7 +20,6 @@ import { useDetoxSession } from "@/hooks/useDetoxSession";
 import { useAppBlocker } from "@/hooks/useAppBlocker";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
 import { scheduleDetoxReminder, cancelDetoxReminder, getNotificationState, requestNotificationPermission } from "@/lib/notifications";
 import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
@@ -54,23 +49,26 @@ const RECOVERY_MODES = {
   detox: {
     id: "detox" as RecoveryMode,
     label: "Detox (Digital Off)",
+    displayLabel: "Digital Detox",
+    code: "OFF",
     description: "Complete stop from digital input. Rest, sit, or disengage.",
     impact: "High recovery impact",
-    icon: Leaf,
+    rate: "1.0×",
   },
   walk: {
     id: "walk" as RecoveryMode,
     label: "Walk (Active Recovery)",
+    displayLabel: "Active Walk",
+    code: "MOVE",
     description: "Light walking with minimal stimulation.",
     constraints: "No podcasts, no calls, no scrolling.",
     impact: "Moderate recovery impact",
-    icon: Footprints,
+    rate: "0.5×",
   },
 };
 
 export function DetoxChallengeTab() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [selectedAppsToBlock, setSelectedAppsToBlock] = useState<string[]>([]);
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [selectedMode, setSelectedMode] = useState<RecoveryMode>("detox");
@@ -256,14 +254,8 @@ export function DetoxChallengeTab() {
     );
   }
 
-  const currentModeConfig = RECOVERY_MODES[selectedMode];
-
-  const isMale = user?.gender === "male";
-  const detoxImg = isMale ? recoveryDetoxMaleImg : recoveryDetoxImg;
-  const walkImg = isMale ? recoveryWalkMaleImg : recoveryWalkImg;
-
   return (
-    <div className="space-y-5 -mx-4 px-4 py-4 bg-teal-500/5 rounded-xl">
+    <div className="space-y-5">
       {/* XP Explanation — collapsed, expands on info tap */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
         <p className="flex-1 text-[11px] text-muted-foreground leading-snug">
@@ -387,59 +379,61 @@ export function DetoxChallengeTab() {
         <>
 
 
-          {/* Recovery Mode Selector - Minimal Side-by-Side */}
+          {/* Recovery Mode Selector — compact metric-led cards */}
           <div className="grid grid-cols-2 gap-3">
             {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
-              const Icon = mode.icon;
               const isSelected = selectedMode === mode.id;
+              const projectedRecovery = getRecoveryImpact(selectedDuration, mode.id);
               
               return (
                 <button
                   key={mode.id}
                   onClick={() => setSelectedMode(mode.id)}
+                  aria-pressed={isSelected}
                   className={cn(
-                    "relative rounded-xl text-left transition-all duration-200 overflow-hidden",
+                    "group relative min-h-[148px] overflow-hidden rounded-[16px] border p-4 text-left transition-all duration-200",
                     isSelected
-                      ? "border-2 border-foreground/20"
-                      : "border border-border/40 hover:border-border"
+                      ? "border-white/[0.16] bg-white/[0.055] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)]"
+                      : "border-white/[0.06] bg-white/[0.022] hover:border-white/[0.11] hover:bg-white/[0.035]"
                   )}
                 >
-                  {/* Image header */}
-                  <div className="relative h-20 w-full">
-                    <img
-                      src={mode.id === "detox" ? detoxImg : walkImg}
-                      alt={mode.id === "detox" ? "Digital Detox" : "Active Walk"}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-background" />
-                      </div>
-                    )}
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="rounded-md border border-white/[0.08] px-2 py-1 text-[9px] font-semibold tracking-[0.14em] text-foreground/60">
+                      {mode.code}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "mt-1 flex h-4 w-4 items-center justify-center rounded-full border",
+                        isSelected ? "border-foreground/70" : "border-white/[0.16]",
+                      )}
+                    >
+                      {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-foreground" />}
+                    </span>
                   </div>
-                  <div className="p-3 pt-0 -mt-2 relative z-10 bg-card">
-                  
-                  <h4 className={cn(
-                    "text-sm font-semibold mb-1",
-                    isSelected ? "text-foreground" : "text-foreground/80"
-                  )}>
-                    {mode.id === "detox" ? "Digital Detox" : "Active Walk"}
-                  </h4>
-                  
-                  <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">
-                    {mode.id === "detox" 
-                      ? "Full digital pause" 
-                      : "Light movement, no devices"
-                    }
-                  </p>
-                  
-                  <div className={cn(
-                    "mt-2 text-[10px] font-medium",
-                    isSelected ? "text-foreground/70" : "text-muted-foreground/80"
-                  )}>
-                    {mode.id === "detox" ? "100% impact" : "50% impact"}
+
+                  <div className="mt-4">
+                    <h4 className="text-[13px] font-semibold tracking-tight text-foreground/95">
+                      {mode.displayLabel}
+                    </h4>
+                    <p className="mt-1 text-[10px] leading-snug text-muted-foreground/65">
+                      {mode.id === "detox" ? "No digital input" : "Light movement · no media"}
+                    </p>
                   </div>
+
+                  <div className="mt-4 flex items-end justify-between border-t border-white/[0.055] pt-3">
+                    <div>
+                      <span className="text-[22px] font-semibold leading-none tabular-nums text-foreground">
+                        +{projectedRecovery}
+                      </span>
+                      <span className="ml-1 text-[9px] font-semibold uppercase tracking-[0.13em] text-muted-foreground/55">
+                        REC
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-medium tabular-nums text-foreground/65">{mode.rate}</p>
+                      <p className="mt-0.5 text-[8px] uppercase tracking-[0.12em] text-muted-foreground/45">rate</p>
+                    </div>
                   </div>
                 </button>
               );
