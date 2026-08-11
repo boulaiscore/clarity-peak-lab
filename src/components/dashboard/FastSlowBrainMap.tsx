@@ -94,10 +94,10 @@ function NetworkHalf({
   const scale = 0.92 + normalizedScore / 1250;
   const centerX = nodes === LEFT_NODES ? 82 : 218;
   const activeNodeCount = Math.round(7 + normalizedScore * 0.17);
-  const activity = 0.22 + normalizedScore / 140;
-  const pulseDuration = Math.max(2.6, 5.9 - normalizedScore * 0.034);
-  const animatedNodeStride = normalizedScore >= 75 ? 2 : normalizedScore >= 50 ? 3 : 5;
-  const signalStride = normalizedScore >= 75 ? 11 : normalizedScore >= 50 ? 17 : 27;
+  const activity = 0.38 + normalizedScore / 110;
+  const pulseDuration = Math.max(2, 4.6 - normalizedScore * 0.026);
+  const animatedNodeStride = normalizedScore >= 75 ? 1 : normalizedScore >= 50 ? 2 : 3;
+  const signalStride = normalizedScore >= 75 ? 7 : normalizedScore >= 50 ? 10 : 14;
 
   return (
     <g
@@ -107,7 +107,7 @@ function NetworkHalf({
     >
       {CONNECTIONS.map(([from, to], index) => {
         const active = from < activeNodeCount && to < activeNodeCount;
-        const baseOpacity = active ? 0.18 + (index % 4) * 0.065 : 0.055;
+        const baseOpacity = active ? 0.25 + (index % 4) * 0.075 : 0.06;
         return (
           <line
             key={`${from}-${to}-${index}`}
@@ -122,7 +122,7 @@ function NetworkHalf({
             {!reduceMotion && active && index % 7 === 0 && (
               <animate
                 attributeName="opacity"
-                values={`${(baseOpacity * 0.55).toFixed(3)};${Math.min(0.62, baseOpacity * (1 + activity)).toFixed(3)};${(baseOpacity * 0.55).toFixed(3)}`}
+                values={`${(baseOpacity * 0.44).toFixed(3)};${Math.min(0.84, baseOpacity * (1.25 + activity)).toFixed(3)};${(baseOpacity * 0.44).toFixed(3)}`}
                 dur={`${(pulseDuration + (index % 3) * 0.38).toFixed(2)}s`}
                 begin={`${((index % 6) * 0.21).toFixed(2)}s`}
                 repeatCount="indefinite"
@@ -140,7 +140,7 @@ function NetworkHalf({
         return (
           <circle
             key={`signal-${from}-${to}-${index}`}
-            r={0.5 + normalizedScore / 280}
+            r={0.9 + normalizedScore / 225}
             fill={`url(#${gradientId})`}
           >
             <animateMotion
@@ -151,7 +151,7 @@ function NetworkHalf({
             />
             <animate
               attributeName="opacity"
-              values="0;0.8;0"
+              values="0;0.98;0"
               dur={`${duration.toFixed(2)}s`}
               begin={`${((index % 7) * 0.27).toFixed(2)}s`}
               repeatCount="indefinite"
@@ -170,21 +170,21 @@ function NetworkHalf({
                 r={node.radius * 2.7}
                 fill="none"
                 stroke={`url(#${gradientId})`}
-                strokeWidth="0.45"
-                opacity="0.28"
+                strokeWidth="0.7"
+                opacity="0.36"
               >
                 {!reduceMotion && (
                   <>
                     <animate
                       attributeName="r"
-                      values={`${(node.radius * 2.15).toFixed(2)};${(node.radius * (2.75 + activity * 0.9)).toFixed(2)};${(node.radius * 2.15).toFixed(2)}`}
+                      values={`${(node.radius * 1.85).toFixed(2)};${(node.radius * (3.35 + activity * 1.15)).toFixed(2)};${(node.radius * 1.85).toFixed(2)}`}
                       dur={`${(pulseDuration + (index % 4) * 0.31).toFixed(2)}s`}
                       begin={`${((index % 5) * 0.25).toFixed(2)}s`}
                       repeatCount="indefinite"
                     />
                     <animate
                       attributeName="opacity"
-                      values="0.07;0.3;0.07"
+                      values="0.07;0.62;0.07"
                       dur={`${(pulseDuration + (index % 4) * 0.31).toFixed(2)}s`}
                       begin={`${((index % 5) * 0.25).toFixed(2)}s`}
                       repeatCount="indefinite"
@@ -204,14 +204,14 @@ function NetworkHalf({
                 <>
                   <animate
                     attributeName="r"
-                    values={`${node.radius};${(node.radius * (1.08 + activity * 0.12)).toFixed(2)};${node.radius}`}
+                    values={`${(node.radius * 0.92).toFixed(2)};${(node.radius * (1.2 + activity * 0.2)).toFixed(2)};${(node.radius * 0.92).toFixed(2)}`}
                     dur={`${(pulseDuration + (index % 5) * 0.22).toFixed(2)}s`}
                     begin={`${((index % 8) * 0.18).toFixed(2)}s`}
                     repeatCount="indefinite"
                   />
                   <animate
                     attributeName="opacity"
-                    values={`${(0.56 + activity * 0.1).toFixed(2)};${Math.min(1, 0.72 + activity * 0.27).toFixed(2)};${(0.56 + activity * 0.1).toFixed(2)}`}
+                    values={`${(0.42 + activity * 0.08).toFixed(2)};${Math.min(1, 0.82 + activity * 0.24).toFixed(2)};${(0.42 + activity * 0.08).toFixed(2)}`}
                     dur={`${(pulseDuration + (index % 5) * 0.22).toFixed(2)}s`}
                     begin={`${((index % 8) * 0.18).toFixed(2)}s`}
                     repeatCount="indefinite"
@@ -251,7 +251,7 @@ export function FastSlowBrainMap({
       ? "Fast processing currently leads."
       : "Deliberate processing currently leads.";
   const balanceActivity = Math.max(0.15, 1 - absoluteDifference / 70);
-  const bridgeDuration = Math.max(2.7, 5.8 - ((fast + slow) / 2) * 0.032);
+  const bridgeDuration = Math.max(2, 4.5 - ((fast + slow) / 2) * 0.026);
 
   return (
     <div className="py-1">
@@ -273,11 +273,11 @@ export function FastSlowBrainMap({
                 <stop offset="100%" stopColor="hsl(var(--area-slow))" />
               </linearGradient>
               <filter id={fastGlowId} x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="1.5" result="blur" />
+                <feGaussianBlur stdDeviation="2" result="blur" />
                 <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
               </filter>
               <filter id={slowGlowId} x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="1.8" result="blur" />
+                <feGaussianBlur stdDeviation="2.25" result="blur" />
                 <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
               </filter>
             </defs>
@@ -313,13 +313,13 @@ export function FastSlowBrainMap({
               reduceMotion={Boolean(reduceMotion)}
             />
 
-            <g opacity={0.07 + balanceActivity * 0.13} stroke="hsl(var(--foreground))" strokeWidth="0.45">
+            <g opacity={0.12 + balanceActivity * 0.25} stroke="hsl(var(--foreground))" strokeWidth="0.65">
               {[{ x1: 128, y: 63, x2: 172 }, { x1: 121, y: 82, x2: 179 }, { x1: 128, y: 108, x2: 172 }].map((bridge, index) => (
                 <line key={bridge.y} x1={bridge.x1} y1={bridge.y} x2={bridge.x2} y2={bridge.y}>
                   {!reduceMotion && (
                     <animate
                       attributeName="opacity"
-                      values={`${(0.2 + balanceActivity * 0.15).toFixed(2)};${(0.45 + balanceActivity * 0.45).toFixed(2)};${(0.2 + balanceActivity * 0.15).toFixed(2)}`}
+                      values={`${(0.18 + balanceActivity * 0.12).toFixed(2)};${Math.min(1, 0.62 + balanceActivity * 0.38).toFixed(2)};${(0.18 + balanceActivity * 0.12).toFixed(2)}`}
                       dur={`${(bridgeDuration + index * 0.42).toFixed(2)}s`}
                       begin={`${(index * 0.31).toFixed(2)}s`}
                       repeatCount="indefinite"
