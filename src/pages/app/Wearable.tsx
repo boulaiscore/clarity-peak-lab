@@ -10,6 +10,7 @@ import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { useDeviceUsagePermission } from "@/hooks/useDeviceUsagePermission";
+import { useCalendarContextPermission } from "@/hooks/useCalendarContextPermission";
 
 // Wearable brands that sync via system health platforms
 interface WearableItem {
@@ -66,6 +67,7 @@ const Health = () => {
   // Wearable sync hook for native platforms
   const wearableSync = useWearableSync();
   const deviceUsage = useDeviceUsagePermission();
+  const calendarContext = useCalendarContextPermission();
   const platform = getPlatform();
   const isNative = isNativePlatform();
 
@@ -285,31 +287,56 @@ const Health = () => {
             })}
           </div>
 
-          {deviceUsage.supported && (
+          {(deviceUsage.supported || calendarContext.supported) && (
             <div className="mb-8 rounded-xl border border-border/40 bg-card/30 p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-sm font-semibold">Digital behavior context</h2>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    LOOMA can learn from daily aggregate time in attention-heavy apps.
-                    App names, messages, content and social identities never leave this device.
-                  </p>
-                </div>
-                {deviceUsage.granted && (
-                  <span className="shrink-0 rounded-md bg-green-500/10 px-2 py-1 text-[10px] font-medium text-green-500">
-                    Connected
-                  </span>
+              <div>
+                <h2 className="text-sm font-semibold">Passive context</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Daily totals only. No event or app content.
+                </p>
+              </div>
+
+              <div className="mt-4 divide-y divide-border/25 border-y border-border/25">
+                {calendarContext.supported && (
+                  <div className="flex min-h-12 items-center justify-between gap-4 py-3">
+                    <div>
+                      <p className="text-xs font-medium">Schedule</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">Meeting load and open windows</p>
+                    </div>
+                    {calendarContext.granted ? (
+                      <span className="text-[10px] font-medium text-green-500">Connected</span>
+                    ) : !calendarContext.isLoading ? (
+                      <button
+                        type="button"
+                        onClick={() => void calendarContext.request()}
+                        className="rounded-lg border border-primary/30 px-3 py-1.5 text-[10px] font-medium text-primary"
+                      >
+                        Connect
+                      </button>
+                    ) : null}
+                  </div>
+                )}
+
+                {deviceUsage.supported && (
+                  <div className="flex min-h-12 items-center justify-between gap-4 py-3">
+                    <div>
+                      <p className="text-xs font-medium">Attention</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">Aggregate attention-app time</p>
+                    </div>
+                    {deviceUsage.granted ? (
+                      <span className="text-[10px] font-medium text-green-500">Connected</span>
+                    ) : !deviceUsage.isLoading ? (
+                      <button
+                        type="button"
+                        onClick={() => void deviceUsage.request()}
+                        className="rounded-lg border border-primary/30 px-3 py-1.5 text-[10px] font-medium text-primary"
+                      >
+                        Connect
+                      </button>
+                    ) : null}
+                  </div>
                 )}
               </div>
-              {!deviceUsage.granted && !deviceUsage.isLoading && (
-                <button
-                  type="button"
-                  onClick={() => void deviceUsage.request()}
-                  className="mt-4 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
-                >
-                  Enable aggregate usage
-                </button>
-              )}
             </div>
           )}
 

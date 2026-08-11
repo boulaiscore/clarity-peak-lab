@@ -42,6 +42,7 @@ export interface CoachCandidateFeatures {
   metricTrendPerDay: number;
   healthScore: number | null;
   attentionLoadRatio: number | null;
+  scheduleLoadRatio: number | null;
   activeDays7d: number;
   passiveDataCoverage: number;
   passiveContextAdjustment: number;
@@ -73,6 +74,7 @@ export interface CoachContext {
     skillTrendPerDay: Partial<Record<CoachSkill, number>>;
     healthScore: number | null;
     attentionLoadRatio: number | null;
+    scheduleLoadRatio: number | null;
     activeDays7d: number;
     dataCoverage: number;
   };
@@ -179,8 +181,15 @@ function calculatePassiveContextAdjustment(
   const attentionAdjustment = context.passive.attentionLoadRatio === null
     ? 0
     : clamp((1 - context.passive.attentionLoadRatio) * 0.6, -0.8, 0.4);
+  const scheduleAdjustment = context.passive.scheduleLoadRatio === null
+    ? 0
+    : clamp((1 - context.passive.scheduleLoadRatio) * 0.3, -0.4, 0.25);
   const trendAdjustment = clamp(skillTrend * 0.35, -1.2, 1.2);
-  return clamp(trendAdjustment + healthAdjustment + attentionAdjustment, -2, 2);
+  return clamp(
+    trendAdjustment + healthAdjustment + attentionAdjustment + scheduleAdjustment,
+    -2,
+    2,
+  );
 }
 
 function selectReasons(features: CoachCandidateFeatures): CoachReason[] {
@@ -229,7 +238,7 @@ function selectReasons(features: CoachCandidateFeatures): CoachReason[] {
     reasons.push({
       code: "passive_context",
       label: "Personal context",
-      evidence: `Forecast context includes the user's metric trend, health availability and aggregate attention load (${Math.round(features.passiveDataCoverage * 100)}% coverage).`,
+      evidence: `Forecast context includes the user's metric trend, health, aggregate attention and schedule load (${Math.round(features.passiveDataCoverage * 100)}% coverage).`,
       strength: features.passiveDataCoverage * 70,
     });
   }
@@ -294,6 +303,7 @@ export function generateCoachShadowPredictions(
       metricTrendPerDay: round(passiveSkillTrend, 3),
       healthScore: context.passive?.healthScore ?? null,
       attentionLoadRatio: context.passive?.attentionLoadRatio ?? null,
+      scheduleLoadRatio: context.passive?.scheduleLoadRatio ?? null,
       activeDays7d: context.passive?.activeDays7d ?? 0,
       passiveDataCoverage: context.passive?.dataCoverage ?? 0,
       passiveContextAdjustment: round(passiveContextAdjustment),

@@ -12,7 +12,7 @@
  * - RestingHeartRateRecord
  */
 
-package app.lovable.f84e62a560cb4db59ded2b07c99a786f.plugins
+package com.looma.plugins
 
 import android.content.Context
 import android.content.Intent

@@ -4,6 +4,7 @@ import { App as CapacitorApp } from "@capacitor/app";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import AppBlocker, { isNativeAndroid } from "@/lib/capacitor/appBlocker";
+import IosDeviceUsage, { isNativeIos } from "@/lib/capacitor/iosDeviceUsage";
 import { aggregateAttentionUsage } from "@/lib/deviceUsageAggregation";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,9 +27,8 @@ const looseSupabase = supabase as unknown as {
 };
 
 /**
- * Syncs an Android-only daily aggregate after the user has explicitly granted
- * Usage Access. Native app identities are reduced on-device and never sent to
- * Supabase. Web and iOS are safe no-ops.
+ * Syncs a daily mobile aggregate after the user has granted the platform's
+ * protected usage permission. Native app identities never enter this layer.
  */
 export function useDeviceUsageSync(): void {
   const { user } = useAuth();
@@ -38,7 +38,7 @@ export function useDeviceUsageSync(): void {
   const [resumeTick, setResumeTick] = useState(0);
 
   useEffect(() => {
-    if (!isNativeAndroid()) return;
+    if (!isNativeAndroid() && !isNativeIos()) return;
     let disposed = false;
     let removeListener: (() => Promise<void>) | undefined;
 
@@ -55,7 +55,7 @@ export function useDeviceUsageSync(): void {
   }, []);
 
   useEffect(() => {
-    if (!userId || !isNativeAndroid()) return;
+    if (!userId || (!isNativeAndroid() && !isNativeIos())) return;
 
     const snapshotDate = format(new Date(), "yyyy-MM-dd");
     const attemptKey = `${userId}:${snapshotDate}:${resumeTick}`;
@@ -64,40 +64,61 @@ export function useDeviceUsageSync(): void {
 
     void (async () => {
       try {
-        const permission = await AppBlocker.hasUsageAccessPermission();
-        if (!permission.granted) {
+        const permissionGranted = isNativeAndroid()
+          ? (await AppBlocker.hasUsageAccessPermission()).granted
+          : await IosDeviceUsage.getPermissionStatus().then(
+              (result) => result.state === "granted" && result.selectionReady,
+            );
+        if (!permissionGranted) {
           attemptedRef.current = null;
           return;
         }
 
-        let aggregate;
-        try {
-          const nativeAggregate = await AppBlocker.getUsageAggregate();
+        let aggregate: {
+          attentionUsageMin: number;
+          activeAppCount: number;
+          lastAttentionUseAt: string | null;
+          confidence: number;
+        };
+        if (isNativeIos()) {
+          const nativeAggregate = await IosDeviceUsage.getUsageAggregate();
           aggregate = {
             attentionUsageMin: nativeAggregate.attentionUsageMin,
             activeAppCount: nativeAggregate.activeAppCount,
             lastAttentionUseAt: nativeAggregate.lastAttentionUseAt
               ? new Date(nativeAggregate.lastAttentionUseAt).toISOString()
               : null,
+            confidence: nativeAggregate.confidence,
           };
-        } catch {
-          // Backward-compatible fallback for native shells built before the
-          // aggregate-only plugin method was added.
-          const { stats } = await AppBlocker.getUsageStats();
-          aggregate = aggregateAttentionUsage(stats);
+        } else {
+          try {
+            const nativeAggregate = await AppBlocker.getUsageAggregate();
+            aggregate = {
+              attentionUsageMin: nativeAggregate.attentionUsageMin,
+              activeAppCount: nativeAggregate.activeAppCount,
+              lastAttentionUseAt: nativeAggregate.lastAttentionUseAt
+                ? new Date(nativeAggregate.lastAttentionUseAt).toISOString()
+                : null,
+              confidence: 0.85,
+            };
+          } catch {
+            const fallback = aggregateAttentionUsage((await AppBlocker.getUsageStats()).stats);
+            aggregate = { ...fallback, confidence: 0.75 };
+          }
         }
+        const ios = isNativeIos();
         const { error } = await looseSupabase
           .from("device_usage_snapshots")
           .upsert({
             user_id: userId,
             snapshot_date: snapshotDate,
-            source: "android_usage_stats",
-            coverage: "attention_apps",
+            source: ios ? "ios_device_activity" : "android_usage_stats",
+            coverage: ios ? "screen_time_categories" : "attention_apps",
             attention_usage_min: aggregate.attentionUsageMin,
             active_app_count: aggregate.activeAppCount,
             last_attention_use_at: aggregate.lastAttentionUseAt,
             permission_state: "granted",
-            confidence: 0.85,
+            confidence: aggregate.confidence,
           }, { onConflict: "user_id,snapshot_date,source" });
 
         if (error) {

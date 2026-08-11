@@ -2,111 +2,84 @@
 
 ## Release state
 
-Version 4 is an explainable shadow system. It collects passive outcomes and
-tests forecasts, but has no code path that can change a plan, game order,
-gating, difficulty or active CTA.
+Version 5 is mobile-first and remains in explainable shadow mode. It collects
+passive context, stores forecasts and evaluates later outcomes, but has no code
+path that can change a plan, drill order, gating, difficulty or active CTA.
 
-No questionnaires, ratings or manual outcome logging are required. The Coach
-page exposes signal coverage and validation quality, not a verbose daily advice
-feed. Current hidden forecasts are not shown, so they cannot influence the
-behavior being observed.
+No questionnaires, ratings or manual outcome logging are required. The only
+user actions are the operating-system permission grants needed for health,
+calendar and device-use data.
 
-## Primary target: Focus Integrity
+## Mobile signal contract
 
-The primary target is next-observed-day **Focus Integrity**: a within-person
-proxy for sustained attention. It can use only available aggregate signals:
+The app can learn from these privacy-safe sources:
 
-- automatically detected desktop work blocks, continuity and switching;
-- attention-app time relative to the user's own recent median;
-- background interruptions during an existing Quality Time session;
-- automatic session validity/completion.
+- HealthKit and Apple Watch data on iPhone;
+- Health Connect and compatible wearables on Android;
+- daily calendar density and open windows from EventKit or Calendar Provider;
+- aggregate attention-app use from Android UsageStats;
+- LOOMA metric trajectories and automatically recorded in-app outcomes.
 
-Desktop work integrity has 65% of the outcome contract. Available components
-are normalized by their declared weights. A daily outcome is evaluable only
-when coverage is at least 60% and source confidence is at least 45%. Phone
-attention or an isolated in-app session cannot qualify as a professional-work
-outcome by themselves.
+Calendar data is reduced on-device to busy minutes, meeting count, longest
+meeting and longest open window. Event titles, notes, attendees, locations,
+URLs and calendar identities are never queried or uploaded.
 
-Focus Integrity does **not** measure intelligence, productivity, decision
-quality or the semantic quality of work. It measures observable continuity and
-attention leakage only.
+Android app identities are reduced on-device to aggregate attention minutes,
+active-app count and recency. Package names, app names, content, contacts and
+social identities never reach Supabase.
 
-## Shadow forecast
+iOS device-use data is not treated as available until the production app has
+Apple's Family Controls entitlement and a privacy-preserving DeviceActivity
+extension. Health and calendar context still work without it. The model must
+never fabricate missing Screen Time data.
 
-Once per local day, `focus-integrity-shadow-v2-desktop` stores a forecast for the next
-observed day. The bounded interpretable prior uses:
+## Cognitive rhythm
 
-- current Sharpness, Readiness and Recovery;
-- permitted health/wearable context;
-- aggregate attention load versus the personal baseline;
-- up to 14 prior evaluable Focus Integrity observations;
-- the personal trend and regression toward the personal rolling mean.
+Monitor exposes one lean `Cognitive rhythm` panel. It reports:
 
-The first five observed days are cold-start data. The forecast is stored but is
-excluded from validation until a personal baseline exists.
+- today's next open calendar window, capped to a two-hour display;
+- attention load against the person's own recent median when available;
+- schedule load from daily busy minutes and meeting count;
+- the strongest within-person association with cognitive state after at least
+  six paired days.
 
-When an evaluable observation arrives for the target date, a database trigger
-records the observed score and delta automatically. Repeated same-day aggregate
-syncs update the matched shadow outcome; active product behavior remains
-unchanged.
+Status is `learning` below 7 passive days, `emerging` from 7 days and
+`reliable` after 21 days. These are personal associations, not causal claims.
+The card does not claim to observe desktop work, task quality or productivity.
 
-## Secondary calibration target
+## Focus Integrity shadow outcome
 
-The earlier drill model remains in the background as a secondary calibration
-sensor. It forecasts the next same-skill drill delta for AE, RA, CT and IN. Its
-results are not the Coach's primary product outcome and must not be presented as
-evidence of professional performance.
+Focus Integrity remains a secondary within-person proxy based on aggregate
+attention load and automatically recorded continuity/completion of existing
+LOOMA Quality Time sessions. It does not measure intelligence, productivity,
+decision quality or the semantic quality of work.
 
-## Validation gate
+The `focus-integrity-shadow-v2-mobile` forecast uses current Sharpness,
+Readiness and Recovery, permitted health context, aggregate attention load and
+up to 14 prior evaluable observations. The first five observations remain
+cold-start data.
 
-Focus-based personalization requires all personal evidence gates:
-
-- at least 21 evaluable forecast/outcome pairs;
-- at least 60% directional accuracy;
-- at least 10% lower mean absolute error than predicting no change.
-
-Passing the gates permits manual review only. It never activates suggestions by
-itself. A later active release still needs controlled exposure, rollback and a
-separate product decision.
-
-## Passive feature contract
+## Passive feature bundle
 
 `adaptive_daily_feature_snapshots` stores one versioned daily feature bundle:
 
 - current cognitive signals and 14-day within-person slopes;
 - first-party behavior aggregated over seven days;
 - latest permitted phone-health and wearable inputs;
-- aggregate attention time relative to a personal median;
-- desktop block counts, focused minutes and integrity aggregates;
-- explicit availability and coverage.
+- aggregate attention load against a personal median;
+- aggregate schedule load against a personal median;
+- explicit availability and data coverage.
 
-`passive_focus_observations` stores only the normalized daily score, component
-scores, coverage, confidence and aggregate evidence counts.
-`adaptive_focus_forecasts` stores the immutable shadow prior and its automatic
-outcome check.
+`device_usage_snapshots` and `calendar_context_snapshots` contain only daily
+aggregates. All rows are user-owned and protected by Row Level Security.
 
-The existing `device_usage_snapshots` table contains only daily aggregate
-minutes, active app count and recency. Package names, app names, domains,
-content, contacts and social identities are removed on-device before upload.
+## Validation gate
 
-`desktop_work_blocks` stores only timestamps, local time bucket, durations,
-interruption/switch counts, attention minutes, continuity, confidence and the
-derived integrity score. The extension holds the current hostname only in
-`chrome.storage.session` to detect a switch. URLs, hostnames, titles and page
-content never enter its completed-block queue or Supabase.
+Personalization still requires all evidence gates:
 
-Monitor exposes a single `Focus patterns` panel. Best window and sustainable
-duration remain blank until enough work blocks exist. Pattern status is
-`learning` below 7 blocks, `emerging` from 7 blocks and `reliable` only after 30
-blocks across at least 7 days.
+- at least 21 evaluable forecast/outcome pairs;
+- at least 60% directional accuracy;
+- at least 10% lower mean absolute error than predicting no change.
 
-## Privacy boundary
-
-All rows are user-owned in Supabase and protected by Row Level Security. Model
-inputs exclude name, email, demographics, free text, app identities and social
-content. The system learns predictive associations inside one person's history;
-it does not claim causality or compare people.
-
-Calendar context is not yet connected. The desktop sensor detects browser work
-continuity, not work performed entirely in native desktop applications. Those
-limits must remain visible in product and validation decisions.
+Passing the gates permits manual review only. A later active release requires
+controlled exposure, rollback and a separate product decision.

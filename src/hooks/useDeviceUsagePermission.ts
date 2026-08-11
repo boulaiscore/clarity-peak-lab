@@ -1,32 +1,48 @@
 import { useCallback, useEffect, useState } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import AppBlocker, { isNativeAndroid } from "@/lib/capacitor/appBlocker";
+import IosDeviceUsage, { isNativeIos } from "@/lib/capacitor/iosDeviceUsage";
 
 export function useDeviceUsagePermission() {
-  const supported = isNativeAndroid();
+  const platformSupported = isNativeAndroid() || isNativeIos();
+  const [available, setAvailable] = useState(isNativeAndroid());
   const [granted, setGranted] = useState(false);
-  const [isLoading, setIsLoading] = useState(supported);
+  const [isLoading, setIsLoading] = useState(platformSupported);
 
   const refresh = useCallback(async () => {
-    if (!supported) {
+    if (!platformSupported) {
+      setAvailable(false);
       setGranted(false);
       setIsLoading(false);
       return;
     }
     try {
-      const result = await AppBlocker.hasUsageAccessPermission();
-      setGranted(result.granted);
+      if (isNativeAndroid()) {
+        setAvailable(true);
+        const result = await AppBlocker.hasUsageAccessPermission();
+        setGranted(result.granted);
+      } else {
+        const availability = await IosDeviceUsage.isAvailable();
+        setAvailable(availability.available);
+        if (!availability.available) {
+          setGranted(false);
+          return;
+        }
+        const result = await IosDeviceUsage.getPermissionStatus();
+        setGranted(result.state === "granted" && result.selectionReady);
+      }
     } catch (error) {
       console.error("[DeviceUsage] Permission check failed:", error);
+      setAvailable(false);
       setGranted(false);
     } finally {
       setIsLoading(false);
     }
-  }, [supported]);
+  }, [platformSupported]);
 
   useEffect(() => {
     void refresh();
-    if (!supported) return;
+    if (!platformSupported) return;
 
     let disposed = false;
     let removeListener: (() => Promise<void>) | undefined;
@@ -40,12 +56,24 @@ export function useDeviceUsagePermission() {
       disposed = true;
       void removeListener?.();
     };
-  }, [refresh, supported]);
+  }, [platformSupported, refresh]);
 
   const request = useCallback(async () => {
-    if (!supported) return;
-    await AppBlocker.requestUsageAccessPermission();
-  }, [supported]);
+    if (!platformSupported || !available) return;
+    try {
+      if (isNativeAndroid()) {
+        await AppBlocker.requestUsageAccessPermission();
+        return;
+      }
+      const permission = await IosDeviceUsage.requestPermission();
+      if (permission.state === "granted") {
+        await IosDeviceUsage.selectAttentionApps();
+        await refresh();
+      }
+    } catch (error) {
+      console.warn("[DeviceUsage] Permission setup unavailable:", error);
+    }
+  }, [available, platformSupported, refresh]);
 
-  return { supported, granted, isLoading, request, refresh };
+  return { supported: platformSupported && available, granted, isLoading, request, refresh };
 }

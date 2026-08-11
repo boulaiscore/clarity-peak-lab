@@ -12,13 +12,13 @@ Copy the Kotlin files to your Android project:
 
 ```bash
 # From your project root
-cp android-plugin/app-blocker/*.kt android/app/src/main/java/app/lovable/f84e62a560cb4db59ded2b07c99a786f/plugins/
+cp android-plugin/app-blocker/*.kt android/app/src/main/java/com/looma/plugins/
 ```
 
 Create the plugins directory if it doesn't exist:
 
 ```bash
-mkdir -p android/app/src/main/java/app/lovable/f84e62a560cb4db59ded2b07c99a786f/plugins
+mkdir -p android/app/src/main/java/com/looma/plugins
 ```
 
 ### 2. Update AndroidManifest.xml
@@ -63,14 +63,14 @@ Register the service inside the `<application>` tag:
 
 ### 3. Register the Plugin
 
-In `android/app/src/main/java/app/lovable/f84e62a560cb4db59ded2b07c99a786f/MainActivity.kt`, register the plugin:
+In `android/app/src/main/java/com/looma/MainActivity.kt`, register the plugin:
 
 ```kotlin
-package app.lovable.f84e62a560cb4db59ded2b07c99a786f
+package com.looma
 
 import android.os.Bundle
 import com.getcapacitor.BridgeActivity
-import app.lovable.f84e62a560cb4db59ded2b07c99a786f.plugins.AppBlockerPlugin
+import com.looma.plugins.AppBlockerPlugin
 
 class MainActivity : BridgeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

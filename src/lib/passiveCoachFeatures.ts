@@ -4,7 +4,7 @@ import {
   type FocusIntegrityObservation,
 } from "@/lib/focusIntegrity";
 
-export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v3-desktop";
+export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v4-mobile";
 
 type NullableNumber = number | null | undefined;
 
@@ -91,11 +91,15 @@ export interface PassiveDeviceUsagePoint {
   coverage: "attention_apps" | "screen_time_categories";
 }
 
-export interface PassiveDesktopWorkBlock {
-  localDate: string;
-  integrityScore: number;
+export interface PassiveCalendarPoint {
+  date: string;
+  busyMinutes: NullableNumber;
+  meetingCount: NullableNumber;
+  longestOpenStartMinute: NullableNumber;
+  longestOpenMinutes: NullableNumber;
+  permissionState: "granted" | "limited" | "denied" | "unavailable";
   confidence: number;
-  focusedMinutes: number;
+  source: "ios_eventkit" | "android_calendar";
 }
 
 export interface PassiveFeatureInput {
@@ -109,7 +113,7 @@ export interface PassiveFeatureInput {
   phoneHealth: PassivePhoneHealthPoint[];
   wearable: PassiveWearablePoint[];
   deviceUsage: PassiveDeviceUsagePoint[];
-  desktopWorkBlocks: PassiveDesktopWorkBlock[];
+  calendarContext: PassiveCalendarPoint[];
   primaryOutcome: string | null;
 }
 
@@ -120,6 +124,8 @@ export interface PassiveCoachContext {
   attentionUsageMinutes: number | null;
   attentionUsageBaselineMinutes: number | null;
   attentionLoadRatio: number | null;
+  scheduleBusyMinutes: number | null;
+  scheduleLoadRatio: number | null;
   activeDays7d: number;
   dataCoverage: number;
 }
@@ -271,17 +277,25 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       : attentionUsageMinutes === 0 ? 1 : null
     : null;
 
+  const currentCalendar = input.calendarContext.find((point) => point.date === input.featureDate)
+    ?? latestByDate(input.calendarContext);
+  const priorBusyMinutes = input.calendarContext.flatMap((point) => {
+    const value = finite(point.busyMinutes);
+    if (point.date === input.featureDate || value === null) return [];
+    return isWithinDays(point.date, input.featureDate, 14) ? [value] : [];
+  });
+  const scheduleBusyMinutes = finite(currentCalendar?.busyMinutes);
+  const scheduleBusyBaselineMinutes = median(priorBusyMinutes);
+  const scheduleLoadRatio = scheduleBusyMinutes !== null && scheduleBusyBaselineMinutes !== null
+    ? scheduleBusyBaselineMinutes > 0
+      ? round(clamp(scheduleBusyMinutes / scheduleBusyBaselineMinutes, 0, 4), 3)
+      : scheduleBusyMinutes === 0 ? 1 : null
+    : null;
+
   const focusIntegrity = buildFocusIntegrityObservation({
     attentionLoadRatio,
     attentionBaselineDays: priorAttentionMinutes.length,
     attentionConfidence: finite(currentDevice?.confidence),
-    desktopBlocks: input.desktopWorkBlocks
-      .filter((block) => block.localDate === input.featureDate)
-      .map((block) => ({
-        score: block.integrityScore,
-        confidence: block.confidence,
-        focusedMinutes: block.focusedMinutes,
-      })),
     sessions: reason7d
       .filter((session) => session.startedAt.slice(0, 10) === input.featureDate)
       .map((session) => ({
@@ -293,22 +307,15 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
 
   const metricsCoverage = clamp(history14d.length / 7, 0, 1);
   const behaviorCoverage = clamp(activeDays7d / 4, 0, 1);
-  const desktopDays7d = activeDays(
-    input.desktopWorkBlocks
-      .filter((block) => isWithinDays(block.localDate, input.featureDate, 7))
-      .map((block) => block.localDate),
-    input.featureDate,
-    7,
-  );
-  const desktopCoverage = clamp(desktopDays7d / 3, 0, 1);
   const healthCoverage = healthScore === null ? 0 : 1;
   const deviceCoverage = attentionUsageMinutes === null ? 0 : 1;
+  const calendarCoverage = scheduleBusyMinutes === null ? 0 : 1;
   const dataCoverage = round(
     0.3 * metricsCoverage +
       0.1 * behaviorCoverage +
-      0.25 * desktopCoverage +
-      0.2 * healthCoverage +
-      0.15 * deviceCoverage,
+      0.25 * healthCoverage +
+      0.15 * deviceCoverage +
+      0.2 * calendarCoverage,
     4,
   );
 
@@ -331,15 +338,6 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       productEvents7d: product7d.length,
       productActiveDays7d: activeDays(product7d.map((event) => event.occurredAt), input.featureDate, 7),
       cognitiveActivityDays7d: activeDays7d,
-      desktopWorkBlocks7d: input.desktopWorkBlocks.filter((block) =>
-        isWithinDays(block.localDate, input.featureDate, 7),
-      ).length,
-      desktopFocusedMinutes7d: round(
-        input.desktopWorkBlocks
-          .filter((block) => isWithinDays(block.localDate, input.featureDate, 7))
-          .reduce((sum, block) => sum + block.focusedMinutes, 0),
-        1,
-      ),
     },
     health: {
       phone: latestPhone ? {
@@ -377,6 +375,19 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       source: currentDevice?.source ?? null,
       coverage: currentDevice?.coverage ?? null,
       privacyLevel: "aggregate_only_no_app_names_or_content",
+      calendar: currentCalendar ? {
+        date: currentCalendar.date,
+        busyMinutes: scheduleBusyMinutes,
+        personalMedian14d: scheduleBusyBaselineMinutes,
+        relativeToPersonalBaseline: scheduleLoadRatio,
+        meetingCount: finite(currentCalendar.meetingCount),
+        longestOpenStartMinute: finite(currentCalendar.longestOpenStartMinute),
+        longestOpenMinutes: finite(currentCalendar.longestOpenMinutes),
+        permissionState: currentCalendar.permissionState,
+        confidence: finite(currentCalendar.confidence),
+        source: currentCalendar.source,
+        privacyLevel: "aggregate_only_no_event_content",
+      } : null,
     },
     availability: {
       metricsHistory: history14d.length >= 2,
@@ -384,7 +395,7 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       phoneHealth: latestPhone !== null,
       wearable: latestWearable !== null,
       deviceUsage: attentionUsageMinutes !== null,
-      desktopWork: input.desktopWorkBlocks.length > 0,
+      calendar: currentCalendar !== null,
       focusIntegrity: focusIntegrity.isEvaluable,
       coverage: dataCoverage,
     },
@@ -402,6 +413,8 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
         ? null
         : round(attentionUsageBaselineMinutes, 1),
       attentionLoadRatio,
+      scheduleBusyMinutes,
+      scheduleLoadRatio,
       activeDays7d,
       dataCoverage,
     },

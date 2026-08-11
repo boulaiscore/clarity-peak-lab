@@ -1,4 +1,4 @@
-package app.lovable.f84e62a560cb4db59ded2b07c99a786f.plugins
+package com.looma.plugins
 
 import android.app.*
 import android.app.usage.UsageEvents
@@ -27,7 +27,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 class AppBlockerService : Service() {
 
     companion object {
-        const val ACTION_VIOLATION_DETECTED = "app.lovable.DETOX_VIOLATION"
+        const val ACTION_VIOLATION_DETECTED = "com.looma.DETOX_VIOLATION"
         const val EXTRA_BLOCKED_PACKAGE = "blocked_package"
         const val EXTRA_BLOCKED_APP_NAME = "blocked_app_name"
         const val EXTRA_VIOLATION_COUNT = "violation_count"

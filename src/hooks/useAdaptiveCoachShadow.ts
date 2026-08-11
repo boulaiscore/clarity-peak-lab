@@ -424,7 +424,7 @@ interface AdaptiveCoachFeatureAvailability {
   phoneHealth: boolean;
   wearable: boolean;
   deviceUsage: boolean;
-  desktopWork: boolean;
+  calendar: boolean;
   focusIntegrity: boolean;
   coverage: number;
 }
@@ -467,7 +467,7 @@ export function useAdaptiveCoachFeatureStatus() {
       phoneHealth: bool("phoneHealth"),
       wearable: bool("wearable"),
       deviceUsage: bool("deviceUsage"),
-      desktopWork: bool("desktopWork"),
+      calendar: bool("calendar"),
       focusIntegrity: bool("focusIntegrity"),
       coverage: Number.isFinite(coverage) ? Math.max(0, Math.min(1, coverage)) : 0,
     };

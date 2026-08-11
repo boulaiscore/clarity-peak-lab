@@ -20,8 +20,8 @@ After running `npx cap add android`, follow these steps:
 
 ```bash
 # From your project root
-mkdir -p android/app/src/main/java/app/lovable/f84e62a560cb4db59ded2b07c99a786f/plugins
-cp android-plugin/health/HealthPlugin.kt android/app/src/main/java/app/lovable/f84e62a560cb4db59ded2b07c99a786f/plugins/
+mkdir -p android/app/src/main/java/com/looma/plugins
+cp android-plugin/health/HealthPlugin.kt android/app/src/main/java/com/looma/plugins/
 ```
 
 ### 2. Add Health Connect Dependency
@@ -70,14 +70,14 @@ Inside the `<application>` tag, add an intent filter for the permission rational
 
 ### 4. Register the Plugin
 
-In `android/app/src/main/java/app/lovable/f84e62a560cb4db59ded2b07c99a786f/MainActivity.kt`:
+In `android/app/src/main/java/com/looma/MainActivity.kt`:
 
 ```kotlin
-package app.lovable.f84e62a560cb4db59ded2b07c99a786f
+package com.looma
 
 import android.os.Bundle
 import com.getcapacitor.BridgeActivity
-import app.lovable.f84e62a560cb4db59ded2b07c99a786f.plugins.HealthPlugin
+import com.looma.plugins.HealthPlugin
 
 class MainActivity : BridgeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
