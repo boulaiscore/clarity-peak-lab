@@ -25,6 +25,13 @@ export interface DailyOutlookHealthSignals {
   sources: string[];
 }
 
+export interface DailyOutlookPreviousMetrics {
+  sharpness: number | null;
+  readiness: number | null;
+  recovery: number | null;
+  reasoningQuality: number | null;
+}
+
 export interface DailyOutlookBehaviorContext {
   metricTrendPerDay: number | null;
   cognitiveActivityDays7d: number | null;
