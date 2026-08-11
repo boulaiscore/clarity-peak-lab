@@ -65,7 +65,7 @@ export function ReportOverview({ profile, generatedAt }: ReportOverviewProps) {
           <div className="part-content">
             <div className="part-icon"><Brain size={20} /></div>
             <h4>Cognitive Profile</h4>
-            <p>Detailed analysis of dual-process thinking, domain scores, and meta-cognitive indicators with percentile comparisons.</p>
+            <p>Detailed analysis of dual-process thinking, domain scores, and changes against the user's own baseline.</p>
           </div>
         </div>
         <div className="overview-part">

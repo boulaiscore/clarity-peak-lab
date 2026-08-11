@@ -11,6 +11,8 @@
     "test:metrics": "node scripts/run-metric-formula-tests.mjs",
     "test:coach": "node scripts/run-adaptive-coach-tests.mjs",
     "test:drills": "node scripts/run-drill-integrity-tests.mjs",
+    "test:subscriptions": "node scripts/run-subscription-entitlement-tests.mjs",
+    "test:outlook": "node scripts/run-daily-outlook-tests.mjs",
     "preview": "vite preview",
     "cap:sync": "npm run build && npx cap sync",
     "cap:ios": "npm run build && npx cap sync ios && npx cap open ios",

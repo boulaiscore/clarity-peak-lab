@@ -4,14 +4,14 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { ReasonTabContent } from "@/components/lab";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Smartphone, Ban, Zap, Settings2, RefreshCw } from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, Settings2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { DailyTrainingConfirmDialog } from "@/components/app/DailyTrainingConfirmDialog";
-import { useDailyTraining } from "@/hooks/useDailyTraining";
+import { useDailyTraining, useDailyTrainingStreak } from "@/hooks/useDailyTraining";
 import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
@@ -54,12 +54,10 @@ function ProtocolLink({
   onOpen: () => void;
   planName: string;
 }) {
-  return <button onClick={onOpen} className="w-full flex items-center justify-center gap-2 py-2.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors">
-      <Settings2 className="w-3.5 h-3.5" />
-      <span>
-        Protocol: <span className="font-medium text-foreground/80">{planName}</span>
-      </span>
-      <ChevronRight className="w-3 h-3 opacity-50" />
+  return <button onClick={onOpen} className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60 transition-colors hover:text-foreground">
+      <Settings2 className="h-3 w-3" />
+      <span>{planName}</span>
+      <ChevronRight className="h-3 w-3 opacity-45" />
     </button>;
 }
 export default function NeuroLab() {
@@ -88,6 +86,7 @@ export default function NeuroLab() {
     isInReminderWindow,
     reminderTime
   } = useDailyTraining();
+  const { data: streakData } = useDailyTrainingStreak(user?.id);
   const {
     getNextSession,
     completedSessionTypes,
@@ -114,11 +113,21 @@ export default function NeuroLab() {
   } = useTodayMetrics();
   const { rq, isLoading: reasoningLoading } = useReasoningQuality();
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit">("area");
+  const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit" | "three-day-streak">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
   const [showProtocolSheet, setShowProtocolSheet] = useState(false);
+
+  useEffect(() => {
+    if (isPremium || streakData?.streak !== 3 || !user?.id) return;
+    const key = `looma_three_day_streak_paywall:${user.id}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "shown");
+    setPaywallFeature("three-day-streak");
+    setPaywallFeatureName("");
+    setShowPaywall(true);
+  }, [isPremium, streakData?.streak, user?.id]);
 
   // Current training plan for display
   const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
@@ -219,7 +228,7 @@ export default function NeuroLab() {
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
               Complete your baseline calibration before accessing training and tasks.
             </p>
-            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
+            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-5 py-3 text-sm font-semibold text-background transition-all hover:bg-foreground/90 active:scale-[0.98]">
               Begin Calibration
               <ChevronRight className="w-4 h-4 ml-2" />
             </button>
@@ -229,9 +238,11 @@ export default function NeuroLab() {
   }
   return <AppShell>
       {({ passiveFeatures, isLoading: passiveLoading }) => <>
-      <div className="px-4 py-5 max-w-md mx-auto space-y-0">
-
-
+      <div className="mx-auto max-w-md px-4 pb-5 pt-4">
+        <header className="mb-4 flex items-center justify-between px-0.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Lab</p>
+          <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
+        </header>
         {/* Today's recommended action — single dominant CTA */}
         {(() => {
           const guidance = deriveDailyCognitiveState({
@@ -251,33 +262,28 @@ export default function NeuroLab() {
             else navigate(guidance.actionRoute);
           };
           return (
-            <div className="p-4 rounded-2xl bg-muted/15 border border-border/20 mb-1">
-              <div className="flex items-start gap-3 mb-3">
-                <span className="mt-0.5 rounded-full border border-border/35 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  Next
+            <div className="mb-4 border-y border-white/[0.055] py-3.5">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 min-w-9 text-[9px] font-semibold uppercase tracking-[0.16em] text-primary">
+                  Today
                 </span>
-                <div className="flex-1 space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
-                    Recommended today
-                  </p>
-                  <p className="text-[13px] font-semibold text-foreground/90 leading-tight">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold leading-tight text-foreground/95">
                     {isGuidanceLoading ? "Updating your state" : guidance.headline}
                   </p>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/75">
                     {isGuidanceLoading ? "Syncing passive signals." : guidance.summary}
                   </p>
+                  {!isGuidanceLoading && (
+                    <button
+                      onClick={handleGuidanceAction}
+                      className="mt-2 inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground/70 transition-colors hover:text-foreground"
+                    >
+                      {guidance.actionLabel} <span aria-hidden>→</span>
+                    </button>
+                  )}
                 </div>
               </div>
-              {!isGuidanceLoading && (
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleGuidanceAction}
-                    className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
-                  >
-                    {guidance.actionLabel} <span aria-hidden>→</span>
-                  </button>
-                </div>
-              )}
             </div>
           );
         })()}
@@ -310,33 +316,22 @@ export default function NeuroLab() {
           </motion.div>}
 
         {/* Weekly Goal - Compact */}
-        <div className="mt-5">
+        <div>
           <WeeklyGoalCard compact />
         </div>
-        
-        {/* Protocol Change - Discrete Link */}
-        <div className="mt-1 mb-2">
-          <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
-        </div>
 
-        {/* Training Section - Distinct Background */}
-        <div className="bg-muted/10 -mx-4 px-4 py-5 mt-5 rounded-t-2xl border-t border-border/15">
+        {/* Training Section */}
+        <div className="mt-6 border-t border-white/[0.055] pt-4">
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-3 h-10 mb-3 bg-background/60">
-              <TabsTrigger value="games" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-                <Dumbbell className="w-3.5 h-3.5" />
+            <TabsList className="mb-4 grid h-9 w-full grid-cols-3 rounded-[11px] border border-white/[0.055] bg-black/20 p-[3px]">
+              <TabsTrigger value="games" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Train
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-                <BookMarked className="w-3.5 h-3.5" />
+              <TabsTrigger value="tasks" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Quality Time
               </TabsTrigger>
-              <TabsTrigger value="detox" className="flex items-center gap-1.5 text-[11px] data-[state=active]:bg-background">
-                <div className="relative w-3.5 h-3.5">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <Ban className="w-3.5 h-3.5 absolute inset-0" />
-                </div>
+              <TabsTrigger value="detox" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Recover
               </TabsTrigger>
             </TabsList>
@@ -360,11 +355,11 @@ export default function NeuroLab() {
 
         {/* How LOOMA Lab Works — moved to bottom */}
         <Collapsible className="mt-5">
-          <div className="border border-border/20 bg-muted/10 rounded-xl overflow-hidden">
-            <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors">
+          <div className="overflow-hidden border-y border-white/[0.055]">
+            <CollapsibleTrigger className="flex w-full items-center justify-between py-3 transition-colors hover:text-foreground">
               <div className="flex items-center gap-3">
-                <LoomaLogo size={18} className="text-foreground/70" />
-                <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+                <LoomaLogo size={15} className="text-foreground/65" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
                   How LOOMA Lab Works
                 </span>
               </div>

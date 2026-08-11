@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
+import { pricingConfig } from "@/config/pricing";
+import { isNative } from "@/lib/platformUtils";
 
 /**
  * Fetches localized prices from Paddle.PricePreview() based on visitor IP.
@@ -10,8 +12,8 @@ import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
  * raw amount + currency for deriving per-month from yearly in the same
  * currency.
  *
- * Fallback (no Paddle / network error): hardcoded USD values matching the
- * base price set on each Price entity.
+ * Fallback (native app, no Paddle or network error): the central EUR pricing
+ * strategy. Storefronts still display the final localized price at checkout.
  */
 
 export interface LocalizedPrice {
@@ -22,15 +24,34 @@ export interface LocalizedPrice {
 
 export type LocalizedPricesMap = Record<string, LocalizedPrice>;
 
-// Fallback amounts in USD — must match Paddle base `unit_price` for each priceId.
-const FALLBACK_USD: LocalizedPricesMap = {
-  looma_pro_monthly:   { formatted: "$19.90", amount: 19.90, currencyCode: "USD" },
-  looma_pro_yearly:    { formatted: "$199",   amount: 199,   currencyCode: "USD" },
-  looma_elite_monthly: { formatted: "$29.90", amount: 29.90, currencyCode: "USD" },
-  looma_elite_yearly:  { formatted: "$299",   amount: 299,   currencyCode: "USD" },
-};
+interface PaddlePreviewLineItem {
+  price?: { id?: string };
+  totals?: { total?: string; subtotal?: string };
+  unitTotals?: { total?: string; subtotal?: string };
+}
 
-const ALL_PRICE_IDS = Object.keys(FALLBACK_USD);
+interface PaddlePreviewResult {
+  data?: {
+    currencyCode?: string;
+    details?: { lineItems?: PaddlePreviewLineItem[] };
+  };
+}
+
+const FALLBACK_PRICES = Object.values(pricingConfig).reduce<LocalizedPricesMap>((map, option) => {
+  if (!option.webPriceId) return map;
+  map[option.webPriceId] = {
+    formatted: new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: option.amountEur % 1 === 0 ? 0 : 2,
+    }).format(option.amountEur),
+    amount: option.amountEur,
+    currencyCode: "EUR",
+  };
+  return map;
+}, {});
+
+const ALL_PRICE_IDS = Object.keys(FALLBACK_PRICES);
 
 // Module-level cache: PricePreview is identical for all callers on the same IP.
 let cachedPrices: LocalizedPricesMap | null = null;
@@ -67,18 +88,23 @@ async function fetchLocalizedPrices(): Promise<LocalizedPricesMap> {
       );
 
       // Single PricePreview call for all 4 prices (IP-based geolocation).
-      const result = await (window as any).Paddle.PricePreview({
+      const paddle = window.Paddle as unknown as {
+        PricePreview(input: { items: Array<{ priceId: string; quantity: number }> }): Promise<PaddlePreviewResult>;
+      };
+      const result = await paddle.PricePreview({
         items: paddleIds.map((p) => ({ priceId: p.paddleId, quantity: 1 })),
       });
 
-      const lineItems: any[] = result?.data?.details?.lineItems ?? [];
-      const map: LocalizedPricesMap = { ...FALLBACK_USD };
+      const lineItems = result?.data?.details?.lineItems ?? [];
+      const map: LocalizedPricesMap = { ...FALLBACK_PRICES };
 
       for (const item of lineItems) {
         const paddleId: string = item?.price?.id;
         const match = paddleIds.find((p) => p.paddleId === paddleId);
         if (!match) continue;
-        const minor: string = item?.totals?.subtotal ?? item?.unitTotals?.subtotal;
+        // Consumer pricing must include tax where Paddle applies inclusive VAT;
+        // `subtotal` would otherwise show €163.11 for a €199 Italian price.
+        const minor: string = item?.totals?.total ?? item?.totals?.subtotal ?? item?.unitTotals?.total ?? item?.unitTotals?.subtotal;
         const currency: string = result?.data?.currencyCode;
         if (minor == null || !currency) continue;
         const { formatted, amount } = formatAmount(minor, currency);
@@ -88,9 +114,9 @@ async function fetchLocalizedPrices(): Promise<LocalizedPricesMap> {
       cachedPrices = map;
       return map;
     } catch (e) {
-      console.warn("[useLocalizedPrices] PricePreview failed, falling back to USD", e);
-      cachedPrices = FALLBACK_USD;
-      return FALLBACK_USD;
+      console.warn("[useLocalizedPrices] PricePreview failed, using configured prices", e);
+      cachedPrices = FALLBACK_PRICES;
+      return FALLBACK_PRICES;
     } finally {
       inflight = null;
     }
@@ -108,10 +134,15 @@ export function useLocalizedPrices(): {
   ready: boolean;
   formatInCurrency: (amount: number, currencyCode: string) => string;
 } {
-  const [prices, setPrices] = useState<LocalizedPricesMap>(cachedPrices ?? FALLBACK_USD);
-  const [ready, setReady] = useState<boolean>(!!cachedPrices);
+  const [prices, setPrices] = useState<LocalizedPricesMap>(cachedPrices ?? FALLBACK_PRICES);
+  const [ready, setReady] = useState<boolean>(isNative() || !!cachedPrices);
 
   useEffect(() => {
+    if (isNative()) {
+      setPrices(FALLBACK_PRICES);
+      setReady(true);
+      return;
+    }
     if (cachedPrices) {
       setPrices(cachedPrices);
       setReady(true);
@@ -146,9 +177,10 @@ export function useLocalizedPrices(): {
  */
 export function useCurrencySymbol(): string {
   const { prices } = useLocalizedPrices();
-  const code = prices.looma_pro_monthly?.currencyCode ?? "USD";
+  const coreMonthlyId = pricingConfig.core_monthly.webPriceId ?? "looma_pro_monthly";
+  const code = prices[coreMonthlyId]?.currencyCode ?? "EUR";
   // Best-effort symbol extraction from a formatted price.
-  const sample = prices.looma_pro_monthly?.formatted ?? "$0";
+  const sample = prices[coreMonthlyId]?.formatted ?? "€0";
   const match = sample.match(/^[^\d\s.,-]+/);
-  return match?.[0] ?? (code === "USD" ? "$" : code + " ");
+  return match?.[0] ?? (code === "EUR" ? "€" : code + " ");
 }

@@ -11,6 +11,8 @@ import { ChevronRight } from "lucide-react";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { formatRemainingMinutes } from "@/lib/recovery/acuteBoost";
+import { getRecoveryColor } from "@/lib/recovery/display";
+import { RecoveryScale } from "@/components/metrics/RecoveryScale";
 
 interface RecoveryBatteryCardProps {
   recovery: number;
@@ -21,22 +23,6 @@ interface RecoveryBatteryCardProps {
   acuteBoost?: number;
   /** Minutes remaining until acute boost decays to 0 */
   acuteBoostRemainingMinutes?: number;
-}
-
-const SEGMENTS = 20;
-
-// Adaptive color: red → orange → yellow-green → bright green
-function getRecoveryColor(value: number): string {
-  if (value <= 35) {
-    const hue = 0 + (value / 35) * 30;
-    return `hsl(${hue}, 85%, 50%)`;
-  }
-  if (value <= 65) {
-    const hue = 30 + ((value - 35) / 30) * 40;
-    return `hsl(${hue}, 80%, 52%)`;
-  }
-  const hue = 70 + ((value - 65) / 35) * 70;
-  return `hsl(${hue}, 88%, 52%)`;
 }
 
 export function RecoveryBatteryCard({
@@ -58,7 +44,6 @@ export function RecoveryBatteryCard({
   }
 
   const value = Math.max(0, Math.min(100, recovery));
-  const filled = Math.round((value / 100) * SEGMENTS);
   const color = getRecoveryColor(value);
   const status = getRecoveryStatus(value);
   const displayInfo = getMetricDisplayInfo(status.label, status.level, null, null);
@@ -127,34 +112,7 @@ export function RecoveryBatteryCard({
         </div>
       </div>
 
-      {/* Precision segmented bar */}
-      <div className="space-y-1">
-        <div className="flex items-end h-2.5 gap-[1px]">
-          {Array.from({ length: SEGMENTS }).map((_, i) => {
-            const active = i < filled;
-            return (
-              <motion.div
-                key={i}
-                initial={{ scaleY: 0.4, opacity: 0 }}
-                animate={{ scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.35, delay: 0.05 + i * 0.018, ease: "easeOut" }}
-                className="flex-1 rounded-[1px] origin-bottom"
-                style={{
-                  height: active ? "100%" : "50%",
-                  backgroundColor: active ? color : "hsl(var(--muted) / 0.35)",
-                  boxShadow: active ? `0 0 6px ${color}40` : "none",
-                }}
-              />
-            );
-          })}
-        </div>
-
-        <div className="flex justify-between text-[8px] font-medium tracking-[0.15em] text-muted-foreground/50 uppercase">
-          <span>Depleted</span>
-          <span>Partial</span>
-          <span>Optimal</span>
-        </div>
-      </div>
+      <RecoveryScale value={value} />
     </motion.button>
   );
 }

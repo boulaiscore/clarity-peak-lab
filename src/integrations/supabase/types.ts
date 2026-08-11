@@ -456,6 +456,90 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_outlooks: {
+        Row: {
+          action_elapsed_at: string | null
+          action_started_at: string | null
+          confidence: number
+          copy_source: string
+          created_at: string
+          evaluated_at: string | null
+          evidence: Json
+          headline: string
+          id: string
+          intensity: string
+          model_version: string | null
+          opened_at: string | null
+          outcome_snapshot: Json | null
+          outcome_status: string
+          outlook_date: string
+          plan_id: string
+          policy_version: string
+          primary_action: Json
+          shown_at: string
+          state_snapshot: Json
+          status: string
+          summary: string
+          updated_at: string
+          user_id: string
+          window_label: string | null
+        }
+        Insert: {
+          action_elapsed_at?: string | null
+          action_started_at?: string | null
+          confidence?: number
+          copy_source?: string
+          created_at?: string
+          evaluated_at?: string | null
+          evidence?: Json
+          headline: string
+          id?: string
+          intensity: string
+          model_version?: string | null
+          opened_at?: string | null
+          outcome_snapshot?: Json | null
+          outcome_status?: string
+          outlook_date: string
+          plan_id?: string
+          policy_version: string
+          primary_action: Json
+          shown_at?: string
+          state_snapshot?: Json
+          status?: string
+          summary: string
+          updated_at?: string
+          user_id: string
+          window_label?: string | null
+        }
+        Update: {
+          action_elapsed_at?: string | null
+          action_started_at?: string | null
+          confidence?: number
+          copy_source?: string
+          created_at?: string
+          evaluated_at?: string | null
+          evidence?: Json
+          headline?: string
+          id?: string
+          intensity?: string
+          model_version?: string | null
+          opened_at?: string | null
+          outcome_snapshot?: Json | null
+          outcome_status?: string
+          outlook_date?: string
+          plan_id?: string
+          policy_version?: string
+          primary_action?: Json
+          shown_at?: string
+          state_snapshot?: Json
+          status?: string
+          summary?: string
+          updated_at?: string
+          user_id?: string
+          window_label?: string | null
+        }
+        Relationships: []
+      }
       daily_work_recommendations: {
         Row: {
           action_key: string
@@ -1357,11 +1441,14 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           environment: string
+          external_subscription_id: string | null
           id: string
-          paddle_customer_id: string
-          paddle_subscription_id: string
+          paddle_customer_id: string | null
+          paddle_subscription_id: string | null
+          plan_id: string | null
           price_id: string
           product_id: string
+          provider: string
           status: string
           updated_at: string | null
           user_id: string
@@ -1372,11 +1459,14 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          external_subscription_id?: string | null
           id?: string
-          paddle_customer_id: string
-          paddle_subscription_id: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          plan_id?: string | null
           price_id: string
           product_id: string
+          provider?: string
           status?: string
           updated_at?: string | null
           user_id: string
@@ -1387,14 +1477,44 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          external_subscription_id?: string | null
           id?: string
-          paddle_customer_id?: string
-          paddle_subscription_id?: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
+          plan_id?: string | null
           price_id?: string
           product_id?: string
+          provider?: string
           status?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      team_waitlist: {
+        Row: {
+          company_or_group: string | null
+          created_at: string
+          email: string
+          id: string
+          seats: number
+          user_id: string | null
+        }
+        Insert: {
+          company_or_group?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          seats: number
+          user_id?: string | null
+        }
+        Update: {
+          company_or_group?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          seats?: number
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -166,6 +166,30 @@ export function calculateScoredDrillXP(
   return Math.min(45, performanceBase + (isPerfect ? config.perfectBonus : 0));
 }
 
+/**
+ * Update a persistent cognitive skill from an objective 0–100 drill outcome.
+ *
+ * XP is a training reward and must not double as a measurement model. A small
+ * exponential update lets repeated objective outcomes refine the skill in
+ * either direction, while the user's calibrated baseline remains the floor.
+ * The deliberately conservative weight prevents one unusually good or bad
+ * session from moving Home and Monitor abruptly.
+ */
+export const GAME_SKILL_OBSERVATION_WEIGHT = 0.12;
+
+export function calculateGameSkillUpdate(
+  currentValue: number,
+  score: number,
+  baselineValue = 0,
+): number {
+  const current = Math.min(100, Math.max(0, Number.isFinite(currentValue) ? currentValue : 50));
+  const observation = Math.min(100, Math.max(0, Number.isFinite(score) ? score : 50));
+  const baseline = Math.min(100, Math.max(0, Number.isFinite(baselineValue) ? baselineValue : 0));
+  const updated = current + GAME_SKILL_OBSERVATION_WEIGHT * (observation - current);
+
+  return Math.round(Math.max(baseline, Math.min(100, updated)) * 10) / 10;
+}
+
 // Helper to get XP for exercise difficulty
 export function getExerciseXP(difficulty: "easy" | "medium" | "hard"): number {
   switch (difficulty) {

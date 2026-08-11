@@ -34,11 +34,11 @@ interface ContinueReadingSheetProps {
 
 export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingSheetProps) {
   const navigate = useNavigate();
-  const { isPro, isElite, loading: subLoading } = useSubscription();
+  const { isActive, loading: subLoading } = useSubscription();
   const { data: activeBooks = [], isLoading } = useActiveBooks();
   const startSession = useStartReasonSession();
 
-  const hasAccess = isPro || isElite;
+  const hasAccess = isActive;
 
   // Sort by most recently read first (fall back to started_at)
   const sorted = [...activeBooks].sort((a, b) => {

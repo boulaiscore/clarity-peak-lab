@@ -98,9 +98,24 @@ const persistence = read("src/hooks/useGamesGating.ts");
 assert.ok(persistence.includes("Math.min(45, Math.max(9"), "XP must be clamped to 9–45");
 assert.ok(persistence.includes("Math.min(100, Math.max(0"), "score must be clamped to 0–100");
 assert.ok(persistence.includes("s2MaxPerWeek"), "weekly S2 cap must be enforced at persistence boundary");
+assert.ok(persistence.includes("calculateGameSkillUpdate"), "cognitive skill updates must use the objective drill score rather than XP");
+
+const orbitLock = read("src/components/games/orbit-lock/OrbitLockDrill.tsx");
+assert.ok(orbitLock.includes("actCompletionLockedRef"), "Orbit Lock must guard each act completion");
+assert.doesNotMatch(
+  orbitLock,
+  /setActTimeRemaining\(prev\s*=>[\s\S]{0,500}handleActComplete\(/,
+  "Orbit Lock must not trigger transitions from a React state updater",
+);
 
 const focusSwitch = read("src/components/games/focus-switch/FocusSwitchDrill.tsx");
 assert.ok(focusSwitch.includes("0.6 * hitRate + 0.4 * precision"), "Focus Switch must combine hit rate and precision");
+assert.ok(focusSwitch.includes("blockCompletionLockedRef"), "Focus Switch must guard each block completion");
+assert.doesNotMatch(
+  focusSwitch,
+  /setBlockTimeRemaining\(prev\s*=>[\s\S]{0,500}setPhase\(/,
+  "Focus Switch must not trigger transitions from a React state updater",
+);
 const signalVsNoise = read("src/components/games/signal-vs-noise/SignalVsNoiseDrill.tsx");
 assert.ok(signalVsNoise.includes("onComplete(completedResults, metrics"), "Signal vs Noise must include the final case");
 

@@ -2,149 +2,149 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// RevenueCat webhook secret for verification
-const REVENUECAT_WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET');
+const REVENUECAT_WEBHOOK_SECRET = Deno.env.get("REVENUECAT_WEBHOOK_SECRET");
+
+type PaidPlan = "core" | "pro" | "founding_pro";
+
+function planFromEvent(event: Record<string, unknown>): PaidPlan {
+  const entitlementIds = Array.isArray(event.entitlement_ids)
+    ? event.entitlement_ids.map((value) => String(value).toLowerCase())
+    : [];
+  const productId = String(event.product_id || "").toLowerCase();
+
+  if (entitlementIds.some((value) => value.includes("founding")) || productId.includes("founding")) {
+    return "founding_pro";
+  }
+  if (entitlementIds.includes("pro") || productId === "looma_pro_annual" || productId.includes("elite")) {
+    return "pro";
+  }
+  return "core";
+}
+
+function eventDate(milliseconds: unknown): string | null {
+  return typeof milliseconds === "number" && Number.isFinite(milliseconds)
+    ? new Date(milliseconds).toISOString()
+    : null;
+}
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Always require auth when secret is configured. If not configured, reject all calls.
     if (!REVENUECAT_WEBHOOK_SECRET) {
-      console.error('REVENUECAT_WEBHOOK_SECRET is not configured — rejecting webhook');
-      return new Response(JSON.stringify({ error: 'Webhook not configured' }), {
+      return new Response(JSON.stringify({ error: "Webhook not configured" }), {
         status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || authHeader !== `Bearer ${REVENUECAT_WEBHOOK_SECRET}`) {
-      console.error('Invalid or missing webhook signature');
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+
+    if (req.headers.get("Authorization") !== `Bearer ${REVENUECAT_WEBHOOK_SECRET}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const body = await req.json();
-    console.log('RevenueCat webhook received:', JSON.stringify(body, null, 2));
+    const event = body?.event as Record<string, unknown> | undefined;
+    const appUserId = typeof event?.app_user_id === "string" ? event.app_user_id : null;
 
-    const { event, app_user_id } = body;
-
-    if (!app_user_id) {
-      console.error('No app_user_id in webhook');
-      return new Response(JSON.stringify({ error: 'Missing app_user_id' }), {
+    if (!event || !appUserId || !event.type) {
+      return new Response(JSON.stringify({ error: "Invalid RevenueCat payload" }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Map RevenueCat events to subscription status changes
-    let newStatus: string | null = null;
-    let creditsToAdd = 0;
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const type = String(event.type);
+    const planId = planFromEvent(event);
+    const productId = String(event.product_id || "unknown");
+    const transactionId = String(event.original_transaction_id || event.transaction_id || event.id);
+    const environment = event.environment === "SANDBOX" ? "sandbox" : "live";
+    const periodEnd = eventDate(event.expiration_at_ms);
+    const periodStart = eventDate(event.purchased_at_ms);
 
-    switch (event.type) {
-      case 'INITIAL_PURCHASE':
-      case 'RENEWAL':
-      case 'PRODUCT_CHANGE':
-        // Check which entitlement is active
-        const entitlements = event.subscriber_attributes?.entitlements || {};
-        if (entitlements.pro?.is_active) {
-          newStatus = 'pro';
-        } else if (entitlements.premium?.is_active) {
-          newStatus = 'premium';
-        }
-        break;
+    const activeEvents = new Set([
+      "INITIAL_PURCHASE",
+      "RENEWAL",
+      "UNCANCELLATION",
+      "PRODUCT_CHANGE",
+      "TEMPORARY_ENTITLEMENT_GRANT",
+    ]);
 
-      case 'CANCELLATION':
-      case 'EXPIRATION':
-        newStatus = 'free';
-        break;
+    if (activeEvents.has(type) || type === "CANCELLATION" || type === "EXPIRATION") {
+      const status = type === "EXPIRATION" ? "expired" : type === "CANCELLATION" ? "canceled" : "active";
+      const externalId = `revenuecat:${transactionId}`;
+      const { error: subscriptionError } = await supabase.from("subscriptions").upsert({
+        user_id: appUserId,
+        paddle_subscription_id: null,
+        paddle_customer_id: null,
+        product_id: productId,
+        price_id: productId,
+        status,
+        current_period_start: periodStart,
+        current_period_end: periodEnd,
+        cancel_at_period_end: type === "CANCELLATION",
+        environment,
+        provider: "revenuecat",
+        external_subscription_id: externalId,
+        plan_id: planId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "provider,external_subscription_id" });
 
-      case 'NON_RENEWING_PURCHASE':
-        // One-time purchase (report credits)
-        const productId = event.product_id;
-        if (productId?.includes('report_single')) {
-          creditsToAdd = 1;
-        } else if (productId?.includes('report_pack_5')) {
-          creditsToAdd = 5;
-        } else if (productId?.includes('report_pack_10')) {
-          creditsToAdd = 10;
-        }
-        break;
+      if (subscriptionError) throw subscriptionError;
 
-      default:
-        console.log('Unhandled event type:', event.type);
+      await supabase
+        .from("profiles")
+        .update({ subscription_status: status === "expired" ? "free" : planId })
+        .eq("user_id", appUserId);
     }
 
-    // Update user profile if subscription status changed
-    if (newStatus) {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ subscription_status: newStatus })
-        .eq('user_id', app_user_id);
+    if (type === "NON_RENEWING_PURCHASE") {
+      let creditsToAdd = 0;
+      if (productId.includes("report_single")) creditsToAdd = 1;
+      else if (productId.includes("report_pack_5")) creditsToAdd = 5;
+      else if (productId.includes("report_pack_10")) creditsToAdd = 10;
 
-      if (updateError) {
-        console.error('Failed to update subscription status:', updateError);
-        return new Response(JSON.stringify({ error: 'Failed to update user' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      if (creditsToAdd > 0) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("report_credits")
+          .eq("user_id", appUserId)
+          .single();
+        await supabase
+          .from("profiles")
+          .update({ report_credits: (profile?.report_credits || 0) + creditsToAdd })
+          .eq("user_id", appUserId);
+        await supabase.from("report_purchases").insert({
+          user_id: appUserId,
+          credits_purchased: creditsToAdd,
+          payment_provider: String(event.store || "app_store").toLowerCase(),
+          payment_id: String(event.transaction_id || event.id),
+          amount_cents: typeof event.price_in_purchased_currency === "number"
+            ? Math.round(event.price_in_purchased_currency * 100)
+            : 0,
+          currency: String(event.currency || "USD"),
         });
       }
-
-      console.log(`Updated user ${app_user_id} to ${newStatus}`);
-    }
-
-    // Add credits if purchased
-    if (creditsToAdd > 0) {
-      const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('report_credits')
-        .eq('user_id', app_user_id)
-        .single();
-
-      const currentCredits = currentProfile?.report_credits || 0;
-
-      const { error: creditsError } = await supabase
-        .from('profiles')
-        .update({ report_credits: currentCredits + creditsToAdd })
-        .eq('user_id', app_user_id);
-
-      if (creditsError) {
-        console.error('Failed to add credits:', creditsError);
-      } else {
-        console.log(`Added ${creditsToAdd} credits to user ${app_user_id}`);
-      }
-
-      // Record the purchase
-      await supabase.from('report_purchases').insert({
-        user_id: app_user_id,
-        credits_purchased: creditsToAdd,
-        payment_provider: 'apple',
-        payment_id: event.transaction_id,
-        amount_cents: event.price_in_purchased_currency ? Math.round(event.price_in_purchased_currency * 100) : 0,
-        currency: event.currency || 'USD',
-      });
     }
 
     return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error('Webhook error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("RevenueCat webhook error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

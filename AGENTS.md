@@ -65,6 +65,8 @@ Only run iOS/Android commands when the local machine has the required native too
 npm run lint
 npm run test:metrics
 npm run test:coach
+npm run test:subscriptions
+npm run test:outlook
 npm run build
 ```
 

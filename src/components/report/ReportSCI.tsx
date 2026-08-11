@@ -180,7 +180,7 @@ export function ReportSCI({ metrics }: ReportSCIProps) {
       {/* Cognitive Indicators Table */}
       <h3 className="report-subsection-title">Cognitive Indicators Assessment</h3>
       <p className="table-intro">
-        Performance metrics derived from validated cognitive exercises, with baseline comparisons where available:
+        Performance metrics derived from LOOMA drills, with personal-baseline comparisons where available:
       </p>
       
       <table className="medical-table">
@@ -252,21 +252,21 @@ export function ReportSCI({ metrics }: ReportSCIProps) {
           <Lightbulb size={24} />
         </div>
         <div className="interpretation-content">
-          <h4>CLINICAL INTERPRETATION</h4>
+          <h4>PERSONAL-STATE INTERPRETATION</h4>
           <ul>
             <li>
               {sci >= 70 
-                ? "The participant demonstrates above-average cognitive performance across measured domains. Evidence suggests that maintaining consistent training frequency optimizes neuroplastic gains and supports long-term cognitive health (Lövdén et al., 2010)."
-                : "The participant's cognitive profile indicates significant potential for enhancement through targeted training. Research supports that deliberate practice and structured cognitive exercises can significantly improve cognitive function across all age groups (Jaeggi et al., 2008)."}
+                ? "The current personal-state index is strong across the measured LOOMA domains. Continue tracking whether that level is stable across future sessions."
+                : "The current personal-state index leaves room for improvement in one or more measured LOOMA domains. Use the trend, not one session, to judge change."}
             </li>
             <li>
-              The LOOMA assessment protocol utilizes adaptive difficulty algorithms to maintain optimal challenge levels 
-              (Zone of Proximal Development), maximizing training transfer to real-world cognitive demands.
+              LOOMA adapts drill difficulty to the user's recent in-app performance. Transfer to real-world work is
+              treated as a hypothesis to validate from longitudinal outcomes, not as an established claim.
             </li>
             <li>
               <strong>Recommendation:</strong> {sci >= 70 
                 ? "Continue current training regimen with emphasis on maintaining System 1/System 2 balance."
-                : "Prioritize training in domains scoring below 50, with at least 3-4 sessions per week for optimal neuroplastic adaptation."}
+                : "Prioritize the weakest measured domain and reassess after enough comparable sessions."}
             </li>
           </ul>
         </div>
@@ -280,11 +280,11 @@ export function ReportSCI({ metrics }: ReportSCIProps) {
         </div>
         <div className="formula-content">
           <code>
-            SCI = (0.40 × DualProcess) + (0.35 × DomainScores) + (0.15 × TrainingConsistency) + (0.10 × PhysioReadiness)
+            SCI = (0.50 × CognitivePerformance) + (0.30 × TrainingEngagement) + (0.20 × Recovery)
           </code>
           <p>
-            The Synthesized Cognitive Index is a weighted composite score integrating dual-process thinking balance, 
-            domain-specific performance, training engagement patterns, and physiological readiness indicators.
+            Cognitive Performance is the equal average of AE, RA, CT and IN. Training Engagement is weekly
+            Lab XP relative to the selected protocol; Recovery is the same value used in Home.
           </p>
         </div>
       </div>

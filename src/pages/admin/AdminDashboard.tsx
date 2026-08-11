@@ -18,8 +18,8 @@ export default function AdminDashboard() {
       bgColor: "bg-blue-500/10",
     },
     {
-      title: "Premium",
-      value: stats.premiumUsers,
+      title: "Core",
+      value: stats.coreUsers,
       icon: Zap,
       color: "text-violet-500",
       bgColor: "bg-violet-500/10",

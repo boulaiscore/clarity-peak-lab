@@ -125,12 +125,44 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit, onStart }: Orbi
   const [distractionTotalTime, setDistractionTotalTime] = useState(0);
   const [persistedXP, setPersistedXP] = useState<number | null>(null);
   const saveStartedRef = useRef(false);
+  const actTimeRemainingRef = useRef(ACT_CONFIGS[0].duration);
+  const actCompletionLockedRef = useRef(false);
 
   const prevDialValue = useRef(0.5);
   const lastUpdateTime = useRef(Date.now());
   const driftDirection = useRef(1);
   const driftVelocity = useRef(0);
   const directionChangeTimer = useRef(0);
+
+  // The completion guard is essential because React may invoke state updater
+  // functions more than once in development and consecutive animation frames
+  // can otherwise observe the timer at zero before the phase commit lands.
+  const handleActComplete = useCallback(() => {
+    setPhase("act_complete");
+
+    scheduleTimeout(() => {
+      if (currentAct < 2) {
+        const nextAct = currentAct + 1;
+        setPhase("transition");
+        scheduleTimeout(() => {
+          const nextDuration = ACT_CONFIGS[nextAct]?.duration ?? 0;
+          setCurrentAct(nextAct);
+          actTimeRemainingRef.current = nextDuration;
+          setActTimeRemaining(nextDuration);
+          signalPosRef.current = 0.5;
+          setSignalOffset(0.5);
+          setDialValue(0.5);
+          driftVelocity.current = 0;
+          directionChangeTimer.current = 0;
+          actCompletionLockedRef.current = false;
+          setPhase("playing");
+          lastUpdateTime.current = Date.now();
+        }, 1500);
+      } else {
+        setPhase("results");
+      }
+    }, 300);
+  }, [currentAct, scheduleTimeout, setDialValue]);
 
   // ============================================
   // GAME LOOP — driven by requestAnimationFrame, refs only
@@ -198,20 +230,24 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit, onStart }: Orbi
         if (isInBand) distractionTimeInBandRef.current += dt;
       }
 
-      // 8) Countdown
-      setActTimeRemaining(prev => {
-        const next = prev - dt;
-        if (next <= 0) {
+      // 8) Countdown. Keep completion outside a React state updater: updater
+      // functions must be pure and can be replayed by React Strict Mode.
+      const nextTime = Math.max(0, actTimeRemainingRef.current - dt);
+      actTimeRemainingRef.current = nextTime;
+      setActTimeRemaining(nextTime);
+
+      if (nextTime <= 0) {
+        if (!actCompletionLockedRef.current) {
+          actCompletionLockedRef.current = true;
           setTimeInBandPerAct([...timeInBandPerActRef.current]);
           setTotalTimePerAct([...totalTimePerActRef.current]);
           setDialChanges([...dialChangesRef.current]);
           setDistractionTimeInBand(distractionTimeInBandRef.current);
           setDistractionTotalTime(distractionTotalTimeRef.current);
           handleActComplete();
-          return 0;
         }
-        return next;
-      });
+        return;
+      }
 
       raf = requestAnimationFrame(tick);
     };
@@ -219,9 +255,7 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit, onStart }: Orbi
     lastUpdateTime.current = Date.now();
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-    // Intentionally narrow deps — loop reads dial/signal via refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, currentAct, showPulse, showGlint]);
+  }, [phase, currentAct, showPulse, showGlint, config.baseDrift, config.bandWidth, config.distractionIntensity, handleActComplete]);
   
   // ============================================
   // DISTRACTION TRIGGERS
@@ -263,37 +297,24 @@ export function OrbitLockDrill({ difficulty, onComplete, onExit, onStart }: Orbi
     }
   }, [phase, currentAct, config.distractionIntensity, scheduleTimeout]);
   
-  // ============================================
-  // ACT TRANSITIONS
-  // ============================================
-  
-  const handleActComplete = useCallback(() => {
-    setPhase("act_complete");
-
-    scheduleTimeout(() => {
-      if (currentAct < 2) {
-        setPhase("transition");
-        scheduleTimeout(() => {
-          setCurrentAct(prev => prev + 1);
-          setActTimeRemaining(ACT_CONFIGS[currentAct + 1]?.duration || 0);
-          signalPosRef.current = 0.5;
-          setSignalOffset(0.5);
-          setDialValue(0.5);
-          driftVelocity.current = 0;
-          directionChangeTimer.current = 0;
-          setPhase("playing");
-          lastUpdateTime.current = Date.now();
-        }, 1500);
-      } else {
-        setPhase("results");
-      }
-    }, 300);
-  }, [currentAct, scheduleTimeout, setDialValue]);
-
   const handleStart = useCallback(() => {
     onStart?.();
+    timeInBandPerActRef.current = [0, 0, 0];
+    totalTimePerActRef.current = [0, 0, 0];
+    dialChangesRef.current = [];
+    distractionTimeInBandRef.current = 0;
+    distractionTotalTimeRef.current = 0;
+    setTimeInBandPerAct([0, 0, 0]);
+    setTotalTimePerAct([0, 0, 0]);
+    setDialChanges([]);
+    setDistractionTimeInBand(0);
+    setDistractionTotalTime(0);
+    setPersistedXP(null);
+    saveStartedRef.current = false;
+    actCompletionLockedRef.current = false;
     setPhase("playing");
     setCurrentAct(0);
+    actTimeRemainingRef.current = ACT_CONFIGS[0].duration;
     setActTimeRemaining(ACT_CONFIGS[0].duration);
     signalPosRef.current = 0.5;
     setSignalOffset(0.5);

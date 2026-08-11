@@ -9,14 +9,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/85 active:scale-[0.98]",
+        default: "border border-foreground/10 bg-foreground text-background shadow-[0_10px_28px_-18px_rgba(0,0,0,0.9)] hover:bg-foreground/90 focus-visible:ring-foreground/30 active:scale-[0.98]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-border/60 bg-transparent text-foreground hover:bg-card hover:border-border",
         secondary: "bg-card text-foreground hover:bg-muted border border-border/40",
         ghost: "text-muted-foreground hover:bg-card hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline font-normal",
-        // WHOOP-style primary button - subtle glow
-        premium: "bg-primary text-primary-foreground shadow-button hover:shadow-glow active:scale-[0.98]",
+        // Premium CTA: neutral metal/ivory. Brand blue stays reserved for data and active states.
+        premium: "border border-foreground/15 bg-gradient-to-b from-foreground to-foreground/85 text-background shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_14px_30px_-20px_rgba(0,0,0,0.95)] hover:to-foreground/75 focus-visible:ring-foreground/30 active:scale-[0.98]",
         // Subtle outline for secondary actions
         subtle: "border border-border/40 bg-card/50 text-foreground hover:bg-card hover:border-border/60 backdrop-blur-sm",
         // Ghost with teal accent
@@ -24,9 +24,9 @@ const buttonVariants = cva(
         // Dark solid button
         dark: "bg-card border border-border/40 text-foreground hover:bg-muted active:scale-[0.98]",
         // Legacy variants for compatibility
-        hero: "bg-primary text-primary-foreground shadow-button hover:shadow-glow hover:bg-primary/90 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] active:translate-y-0 transition-all duration-300 ease-out",
+        hero: "border border-foreground/15 bg-gradient-to-b from-foreground to-foreground/85 text-background shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_14px_30px_-20px_rgba(0,0,0,0.95)] hover:to-foreground/75 hover:-translate-y-0.5 focus-visible:ring-foreground/30 active:scale-[0.98] active:translate-y-0 transition-all duration-300 ease-out",
         "hero-outline": "border border-border/60 bg-card/50 text-foreground hover:bg-card hover:border-primary/30 backdrop-blur-sm",
-        glow: "bg-primary text-primary-foreground shadow-glow hover:shadow-button active:scale-[0.98]",
+        glow: "border border-foreground/15 bg-foreground text-background shadow-[0_14px_30px_-20px_rgba(0,0,0,0.95)] hover:bg-foreground/90 focus-visible:ring-foreground/30 active:scale-[0.98]",
         control: "bg-card border border-border/40 text-foreground hover:bg-muted hover:border-border/60",
       },
       size: {

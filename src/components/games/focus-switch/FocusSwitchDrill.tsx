@@ -145,6 +145,8 @@ export function FocusSwitchDrill({ difficulty, onComplete, onExit, onStart }: Fo
   const targetIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const targetHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeLaneRef = useRef(0);
+  const blockTimeRemainingRef = useRef(BLOCK_CONFIGS[0].duration);
+  const blockCompletionLockedRef = useRef(false);
   useEffect(() => { activeLaneRef.current = activeLane; }, [activeLane]);
   
   // ============================================
@@ -196,20 +198,13 @@ export function FocusSwitchDrill({ difficulty, onComplete, onExit, onStart }: Fo
       const dt = (now - lastUpdateTime.current) / 1000;
       lastUpdateTime.current = now;
       
-      setBlockTimeRemaining(prev => {
-        const newTime = prev - dt;
-        if (newTime <= 0) {
-          // Block complete
-          if (currentBlock < 2) {
-            setPhase("block_complete");
-          } else {
-            // Game complete
-            setPhase("results");
-          }
-          return 0;
-        }
-        return newTime;
-      });
+      const newTime = Math.max(0, blockTimeRemainingRef.current - dt);
+      blockTimeRemainingRef.current = newTime;
+      setBlockTimeRemaining(newTime);
+      if (newTime <= 0 && !blockCompletionLockedRef.current) {
+        blockCompletionLockedRef.current = true;
+        setPhase(currentBlock < 2 ? "block_complete" : "results");
+      }
     }, 50);
     
     return () => clearInterval(interval);
@@ -287,6 +282,9 @@ export function FocusSwitchDrill({ difficulty, onComplete, onExit, onStart }: Fo
   
   const handleStart = () => {
     onStart?.();
+    blockTimeRemainingRef.current = BLOCK_CONFIGS[0].duration;
+    blockCompletionLockedRef.current = false;
+    setBlockTimeRemaining(BLOCK_CONFIGS[0].duration);
     setPhase("countdown");
     setCountdown(3);
   };
@@ -353,8 +351,12 @@ export function FocusSwitchDrill({ difficulty, onComplete, onExit, onStart }: Fo
   };
 
   const handleNextBlock = () => {
-    setCurrentBlock(prev => prev + 1);
-    setBlockTimeRemaining(BLOCK_CONFIGS[currentBlock + 1].duration);
+    const nextBlock = currentBlock + 1;
+    const nextDuration = BLOCK_CONFIGS[nextBlock].duration;
+    setCurrentBlock(nextBlock);
+    blockTimeRemainingRef.current = nextDuration;
+    blockCompletionLockedRef.current = false;
+    setBlockTimeRemaining(nextDuration);
     setPhase("playing");
     lastUpdateTime.current = Date.now();
     nextSwitchTime.current = Date.now() + getNextSwitchInterval();

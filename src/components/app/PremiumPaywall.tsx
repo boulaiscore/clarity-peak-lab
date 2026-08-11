@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -8,103 +9,85 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Check, Lock, ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Lock } from "lucide-react";
+import { trackProductEvent } from "@/lib/productAnalytics";
+
+type PaywallFeature =
+  | "area"
+  | "duration"
+  | "neuro-activation"
+  | "session-limit"
+  | "first-protocol"
+  | "three-day-streak"
+  | "report"
+  | "training"
+  | "advanced-analytics"
+  | "coach";
 
 interface PremiumPaywallProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  feature?: "area" | "duration" | "neuro-activation" | "session-limit" | "report" | "training";
+  feature?: PaywallFeature;
   featureName?: string;
 }
 
-const FEATURES = [
-  "All training areas (S1 + S2)",
-  "Extended sessions (5 min, 7 min)",
-  "Neuro Activation warm-up",
-  "Unlimited daily sessions",
-  "Cognitive Intelligence Report",
-  "Advanced cognitive training",
-];
-
-const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {
-  area: {
-    title: "Pro Training Area",
-    description: "Unlock all cognitive training domains to develop complete mental fitness.",
-  },
-  duration: {
-    title: "Extended Sessions",
-    description: "Access longer, deeper training sessions for maximum cognitive gains.",
-  },
-  "neuro-activation": {
-    title: "Neuro Activation™",
-    description: "Prime your brain for peak performance with our cognitive warm-up protocol.",
-  },
-  "session-limit": {
-    title: "Daily Limit Reached",
-    description: "You've completed your 3 free sessions today. Upgrade for unlimited training.",
-  },
-  report: {
-    title: "Cognitive Intelligence Report",
-    description: "Get a comprehensive analysis of your cognitive performance with personalized insights.",
-  },
-  training: {
-    title: "Advanced Training",
-    description: "Advanced cognitive training modules designed for deep performance optimization.",
-  },
+const COPY: Record<PaywallFeature, { plan: "Core" | "Pro"; title: string; description: string; benefits: string[] }> = {
+  area: { plan: "Core", title: "Full training library", description: "Unlock every cognitive mode and build a complete daily routine.", benefits: ["All training areas", "Unlimited protocols", "Personalized daily recommendation"] },
+  duration: { plan: "Core", title: "Extended protocols", description: "Choose the protocol length that fits your day.", benefits: ["All session lengths", "Unlimited protocols", "Full history"] },
+  "neuro-activation": { plan: "Core", title: "Pre-performance activation", description: "Prime attention before a demanding work block.", benefits: ["Activation protocols", "Full library", "Personalized recommendation"] },
+  "session-limit": { plan: "Core", title: "Today's free protocol is complete", description: "Core removes the daily limit and keeps your full training loop available.", benefits: ["Unlimited protocols", "All cognitive modes", "90-day trends"] },
+  "first-protocol": { plan: "Core", title: "Keep your daily loop going", description: "You completed the diagnostic loop. Core adds the full routine and history.", benefits: ["Unlimited protocols", "Full library", "Weekly review"] },
+  "three-day-streak": { plan: "Core", title: "Your routine is taking shape", description: "Three consistent days are enough to start seeing a pattern. Core keeps the loop open.", benefits: ["Unlimited protocols", "90-day trends", "Weekly consistency review"] },
+  report: { plan: "Pro", title: "Advanced report", description: "Pro turns longer-term patterns into an exportable performance brief.", benefits: ["Advanced pattern analytics", "Formatted reports", "Adaptive Coach insights"] },
+  training: { plan: "Core", title: "Advanced training", description: "Unlock the full protocol library and every cognitive mode.", benefits: ["Full library", "Unlimited protocols", "Daily recommendation"] },
+  "advanced-analytics": { plan: "Pro", title: "Advanced patterns", description: "See the personal patterns shaping focus, load and recovery over time.", benefits: ["Long-range analytics", "Pattern detection", "Adaptive Coach insights"] },
+  coach: { plan: "Pro", title: "Adaptive Coach insights", description: "See what Looma is learning from your history and how its forecasts perform.", benefits: ["Explainable forecasts", "Pattern detection", "Personalized insights"] },
 };
 
 export function PremiumPaywall({ open, onOpenChange, feature = "area", featureName }: PremiumPaywallProps) {
   const navigate = useNavigate();
-  const message = FEATURE_MESSAGES[feature];
+  const copy = COPY[feature];
 
-  const handleUpgrade = () => {
+  useEffect(() => {
+    if (open) {
+      trackProductEvent("locked_feature_clicked", { triggerAction: feature, requiredPlan: copy.plan.toLowerCase() });
+      trackProductEvent("paywall_viewed", { triggerAction: feature, requiredPlan: copy.plan.toLowerCase() });
+    }
+  }, [copy.plan, feature, open]);
+
+  const upgrade = () => {
+    trackProductEvent("paywall_cta_clicked", { triggerAction: feature, requiredPlan: copy.plan.toLowerCase() });
     onOpenChange(false);
-    navigate("/app/subscription");
+    navigate(`/app/subscription?source=paywall&trigger=${feature}`);
   };
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm mx-auto">
-        <AlertDialogHeader className="text-center">
-          {feature === "session-limit" ? (
-            <Lock className="w-5 h-5 text-muted-foreground mx-auto mb-3" />
-          ) : (
-            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">LOOMA Pro</p>
-          )}
-          <AlertDialogTitle className="text-lg">
-            {message.title}
-            {featureName && (
-              <span className="block text-sm font-normal text-muted-foreground mt-1">
-                {featureName}
-              </span>
-            )}
+      <AlertDialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-3xl border-border/50 bg-card">
+        <AlertDialogHeader className="text-left">
+          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full border border-border/50 bg-background/40">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">LOOMA {copy.plan}</p>
+          <AlertDialogTitle className="text-xl tracking-tight">
+            {copy.title}
+            {featureName && <span className="mt-1 block text-sm font-normal text-muted-foreground">{featureName}</span>}
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-center text-sm">
-            {message.description}
-          </AlertDialogDescription>
+          <AlertDialogDescription className="text-left text-sm leading-relaxed">{copy.description}</AlertDialogDescription>
         </AlertDialogHeader>
-
-        <div className="py-3 space-y-2.5">
-          {FEATURES.map((text) => (
-            <div key={text} className="flex items-center gap-3">
-              <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span className="text-sm text-muted-foreground">{text}</span>
+        <div className="space-y-2 py-2">
+          {copy.benefits.map((benefit) => (
+            <div key={benefit} className="flex items-center gap-3 text-sm text-foreground/80">
+              <Check className="h-3.5 w-3.5 text-primary" />
+              {benefit}
             </div>
           ))}
         </div>
-
-        <AlertDialogFooter className="flex-col gap-2 sm:flex-col pt-1">
-          <Button onClick={handleUpgrade} variant="hero" className="w-full">
-            View Plans
-            <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+        <AlertDialogFooter className="flex-col gap-2 pt-1 sm:flex-col">
+          <Button onClick={upgrade} variant="hero" className="h-11 w-full rounded-full">
+            Explore {copy.plan} <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
           </Button>
-          <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="w-full text-muted-foreground"
-          >
-            Maybe Later
-          </Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full text-muted-foreground">Not now</Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

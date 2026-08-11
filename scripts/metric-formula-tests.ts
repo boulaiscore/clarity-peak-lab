@@ -10,9 +10,14 @@ import {
   deriveEffectiveCognitiveStates,
 } from "../src/lib/cognitiveEngine";
 import { calculateSCI, getTargetsForPlan } from "../src/lib/cognitiveNetworkScore";
-import { applyRecoveryDecay, calculateDailyRecoveryTarget } from "../src/lib/recoveryV2";
-import { calculateRQ } from "../src/lib/reasoningQuality";
-import { TRAINING_PLANS } from "../src/lib/trainingPlans";
+import {
+  applyRecoveryDecay,
+  calculateDailyRecoveryTarget,
+  recalibrateRecoveryForNewDay,
+  resolveRecoveryForMetrics,
+} from "../src/lib/recoveryV2";
+import { calculateRQ, calculateTaskPriming } from "../src/lib/reasoningQuality";
+import { calculateGameSkillUpdate, TRAINING_PLANS } from "../src/lib/trainingPlans";
 import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
 import { buildDualProcessSeries, resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
 import { metricSnapshotNeedsSave } from "../src/lib/metricSnapshotIntegrity";
@@ -24,6 +29,11 @@ const closeTo = (actual: number, expected: number, message: string) => {
 
 const states = { AE: 80, RA: 60, CT: 70, IN: 50 };
 assert.deepEqual(calculateSystemScores(states), { S1: 70, S2: 60 });
+
+closeTo(calculateGameSkillUpdate(50, 100, 50), 56, "Strong drill performance raises the routed skill gradually");
+closeTo(calculateGameSkillUpdate(80, 20, 50), 72.8, "Weak drill performance lowers an elevated skill gradually");
+closeTo(calculateGameSkillUpdate(50, 0, 50), 50, "Drill performance never pushes a skill below its baseline");
+closeTo(calculateGameSkillUpdate(64, 64, 50), 64, "Matching performance leaves the skill stable");
 
 closeTo(calculateSharpness(states, 0), 49.5, "Sharpness at zero Recovery");
 closeTo(calculateSharpness(states, 50), 57.8, "Sharpness at mid Recovery");
@@ -53,6 +63,14 @@ const partialPhysio = calculatePhysioEstimate({
 assert.ok(partialPhysio, "A partial wearable snapshot remains usable");
 closeTo(partialPhysio.confidence, 0.84, "Partial wearable confidence");
 closeTo(partialPhysio.score, 56.3, "Partial wearable score is shrunk toward neutral");
+const deduplicatedPhysio = calculatePhysioEstimate({
+  hrvMs: 70,
+  restingHr: 60,
+  sleepDurationMin: 450,
+  sleepEfficiency: null,
+}, { includeSleepDuration: false });
+assert.ok(deduplicatedPhysio, "Wearable context remains usable after duplicate sleep duration is excluded");
+closeTo(deduplicatedPhysio.confidence, 0.6, "Duplicate sleep duration does not count toward wearable context coverage");
 closeTo(
   calculatePhysioComponent({
     hrvMs: 70,
@@ -109,6 +127,11 @@ closeTo(breakdownSCI.total, canonicalSCI.total, "SCI total uses canonical engine
 closeTo(breakdownSCI.cognitivePerformance.score, canonicalSCI.cognitivePerformance, "SCI CP");
 closeTo(breakdownSCI.behavioralEngagement.score, canonicalSCI.behavioralEngagement, "SCI BE");
 closeTo(breakdownSCI.recoveryFactor.score, canonicalSCI.recoveryFactor, "SCI Recovery");
+closeTo(
+  breakdownSCI.cognitivePerformance.score,
+  (states.AE + states.RA + states.CT + states.IN) / 4,
+  "SCI cognitive performance counts each canonical skill once",
+);
 
 for (const planId of ["light", "expert", "superhuman"] as const) {
   const targets = getTargetsForPlan(planId);
@@ -136,16 +159,36 @@ closeTo(
   57.5,
   "Partial wearable recovery target shrinks toward neutral without Phone Health",
 );
+closeTo(
+  resolveRecoveryForMetrics(null, 62),
+  62,
+  "Missing Recovery uses the daily estimate rather than zero",
+);
+closeTo(
+  resolveRecoveryForMetrics(null, null),
+  50,
+  "Missing Recovery without passive context remains neutral",
+);
+closeTo(
+  recalibrateRecoveryForNewDay(80),
+  60.5,
+  "Historical Recovery uses the live daily recalibration step",
+);
 
 const rq = calculateRQ({
   S2: 60,
   s2GameScores: [60, 60, 60, 60, 60],
   taskCompletions: [],
-  customWeightedMinutes: 0,
+  sessionWeightedMinutes: 0,
   lastS2GameAt: null,
   lastTaskAt: null,
 });
 closeTo(rq.rq, 60, "RQ canonical weighting");
+closeTo(
+  calculateTaskPriming([], new Date("2026-08-08T12:00:00.000Z"), 60),
+  100,
+  "A valid timer-only priming path is not capped at half score",
+);
 
 assert.deepEqual(
   [80, 65, 50, 35, 34].map((value) => getStandardMetricStatus(value).label),

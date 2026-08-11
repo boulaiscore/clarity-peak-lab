@@ -40,11 +40,12 @@ import {
   BrainCircuit,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getPaddleEnvironment } from "@/lib/paddle";
+import { useCheckout } from "@/hooks/useCheckout";
 import { TrainingPlanSelector } from "@/components/settings/TrainingPlanSelector";
 import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const DEVICE_LABELS: Record<string, string> = {
   apple_health: "Apple Health",
@@ -131,6 +132,8 @@ function Row({
 
 const SettingsPage = () => {
   const { user, updateUser } = useAuth();
+  const { isPro: hasCoachInsights } = useSubscription();
+  const checkout = useCheckout();
   const navigate = useNavigate();
   const { permission, isSupported, requestPermission, setDailyReminder } = useNotifications();
   const { theme, toggleTheme } = useTheme();
@@ -150,19 +153,7 @@ const SettingsPage = () => {
     }
     setBillingLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("paddle-customer-portal", {
-        body: { environment: getPaddleEnvironment() },
-      });
-      if (error) throw error;
-      const portal = data as { code?: string; url?: string } | null;
-      if (portal?.code === "NO_CUSTOMER" || !portal?.url) {
-        toast({
-          title: "No billing account yet",
-          description: "Subscribe to a plan to access invoices and payment methods.",
-        });
-        return;
-      }
-      window.open(portal.url, "_blank");
+      await checkout.manageSubscription();
     } catch (e) {
       console.error(e);
       toast({ title: "Could not open billing portal", variant: "destructive" });
@@ -263,7 +254,7 @@ const SettingsPage = () => {
           <Row
             icon={BrainCircuit}
             label="Adaptive Cognitive Coach"
-            value="Shadow mode"
+            value={hasCoachInsights ? "Shadow mode" : "Pro"}
             onClick={() => navigate("/app/adaptive-coach")}
           />
           {isSupported && (

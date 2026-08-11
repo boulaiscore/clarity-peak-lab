@@ -258,7 +258,7 @@ export function useLogManualReading() {
       queryClient.invalidateQueries({ queryKey: ["has-read-today"] });
       queryClient.invalidateQueries({ queryKey: ["reason-session-stats"] });
       queryClient.invalidateQueries({ queryKey: ["hybrid-rq-data"] });
-      queryClient.invalidateQueries({ queryKey: ["custom-weighted-minutes-7d", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["reason-session-weighted-minutes-7d", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user?.id] });
       await recordMetricsSnapshot("task", {
         source: "manual_reading",

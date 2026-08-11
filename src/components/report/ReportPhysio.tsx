@@ -67,7 +67,7 @@ export function ReportPhysio({ metrics, wearable }: ReportPhysioProps) {
 
           <h3 className="report-subsection-title">Biomarker Analysis</h3>
           <p className="physio-intro">
-            The following physiological indicators are scientifically validated predictors of cognitive performance and mental readiness:
+            These physiological indicators provide contextual signals for the personal state estimate; they are not direct measurements of cognitive ability:
           </p>
 
           <div className="physio-grid">

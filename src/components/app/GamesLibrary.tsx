@@ -2,22 +2,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Lock, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
-import {
-  AttentionalEfficiencyMark,
-  RapidAssociationMark,
-  CriticalThinkingMark,
-  InsightMark,
-} from "@/components/icons/SubSkillIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useState } from "react";
-import gameAeBg from "@/assets/game-ae-bg.jpg";
-import gameRaBg from "@/assets/game-ra-bg.jpg";
-import gameCtBg from "@/assets/game-ct-bg.jpg";
-import gameInBg from "@/assets/game-in-bg.jpg";
-import s1Bg from "@/assets/s1-bg.jpg";
-import s2Bg from "@/assets/s2-bg.jpg";
 
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
@@ -64,8 +51,8 @@ const SYSTEMS = [
     description: "Speed, pattern recognition, automaticity",
     accentColor: "hsl(var(--area-fast))",
     areas: [
-      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, bgImage: gameAeBg, Icon: AttentionalEfficiencyMark, subLabel: "Sustained attention · inhibitory control" },
-      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, bgImage: gameRaBg, Icon: RapidAssociationMark, subLabel: "Semantic retrieval · associative fluency" },
+      { areaId: "focus" as NeuroLabArea, name: "Attentional Efficiency", code: "AE", gameType: "S1-AE" as GameType, subLabel: "Sustained attention · inhibitory control" },
+      { areaId: "creativity" as NeuroLabArea, name: "Rapid Association", code: "RA", gameType: "S1-RA" as GameType, subLabel: "Semantic retrieval · associative fluency" },
     ],
   },
   {
@@ -75,13 +62,13 @@ const SYSTEMS = [
     description: "Logic, analysis, structured reasoning",
     accentColor: "hsl(var(--area-slow))",
     areas: [
-      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, bgImage: gameCtBg, Icon: CriticalThinkingMark, subLabel: "Causal inference · evidence calibration" },
-      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, bgImage: gameInBg, Icon: InsightMark, subLabel: "Hypothesis testing · pattern abstraction" },
+      { areaId: "reasoning" as NeuroLabArea, name: "Critical Thinking", code: "CT", gameType: "S2-CT" as GameType, subLabel: "Causal inference · evidence calibration" },
+      { areaId: "creativity" as NeuroLabArea, name: "Insight", code: "IN", gameType: "S2-IN" as GameType, subLabel: "Hypothesis testing · pattern abstraction" },
     ],
   },
 ];
 
-export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibraryProps) {
+export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const systemFromUrl = searchParams.get("system");
@@ -143,17 +130,17 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* XP Explanation — collapsed, expands on info tap */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
-        <p className="flex-1 text-[11px] text-muted-foreground leading-snug">
-          <span className="font-medium text-foreground">System 1</span> & <span className="font-medium text-foreground">System 2</span> drills award <span className="font-medium text-foreground">Cognitive XP</span>.
+      <div className="flex items-center gap-2 border-b border-white/[0.055] px-0.5 pb-3">
+        <p className="flex-1 text-[10px] leading-snug text-muted-foreground/70">
+          Choose a system. Training adds Cognitive XP to this week's load.
         </p>
         <Popover>
           <PopoverTrigger asChild>
             <button
               aria-label="How training XP works"
-              className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-muted-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors"
+              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground/55 transition-colors hover:bg-white/[0.05] hover:text-foreground"
             >
               <Info className="w-3.5 h-3.5" />
             </button>
@@ -175,40 +162,31 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
       </div>
 
 
-      {/* System selector — two horizontal AI-art cards (matches Quality Time / Recover) */}
+      {/* System selector */}
       <div className="grid grid-cols-2 gap-3">
         {SYSTEMS.map((system) => {
-          const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
           const isOpen = openSystem === system.id;
-          const bg = system.id === "fast" ? s1Bg : s2Bg;
           return (
             <button
               key={system.id}
               onClick={() => handleSystemToggle(system.id)}
               className={cn(
-                "group relative w-full flex flex-col items-center justify-end gap-2 p-4 pt-20 rounded-2xl border transition-all overflow-hidden text-center",
+                "group relative min-h-[94px] w-full overflow-hidden rounded-[14px] border p-4 text-left transition-colors",
                 isOpen
-                  ? "border-foreground/30"
-                  : "border-border/30 hover:border-border/60"
+                  ? "border-white/[0.12] bg-white/[0.06]"
+                  : "border-white/[0.055] bg-white/[0.022] hover:bg-white/[0.04]"
               )}
             >
-              <img
-                src={bg}
-                alt={system.label}
-                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
-
-              <div className="absolute top-3 left-3 z-10">
-                <Icon className="w-4 h-4" color="rgba(255,255,255,0.9)" strokeWidth={1.4} />
+              <span className="absolute inset-x-4 top-0 h-px" style={{ backgroundColor: system.accentColor }} />
+              <div className="flex items-start justify-between">
+                <span className="text-[24px] font-semibold tabular-nums tracking-[-0.04em] text-foreground/95">
+                  {system.id === "fast" ? "S1" : "S2"}
+                </span>
+                <ChevronDown className={cn("mt-1 h-3.5 w-3.5 text-muted-foreground/45 transition-transform", isOpen && "rotate-180")} />
               </div>
-
-              <div className="relative z-10">
-                <p className="font-semibold text-sm text-white tracking-tight">{system.label}</p>
-                <p className="text-[10px] text-white/70 mt-0.5">
-                  {system.id === "fast" ? "Fast · intuitive" : "Slow · analytical"}
-                </p>
-              </div>
+              <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+                {system.id === "fast" ? "Fast · intuitive" : "Slow · analytical"}
+              </p>
             </button>
           );
         })}
@@ -222,7 +200,6 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
 
               <div className="space-y-2 pt-1">
                 {system.areas.map((area) => {
-                  const gating = games[area.gameType];
                   const isLocked = false;
                   const lockLabel = "";
                   const isPicked = pickedGameType === area.gameType;
@@ -235,37 +212,36 @@ export function GamesLibrary({ onStartGame, recoveryEffective = 100 }: GamesLibr
                       }}
                       disabled={isLocked}
                       className={cn(
-                        "group relative w-full flex items-center gap-3.5 p-2.5 pr-4 rounded-2xl border text-left transition-all overflow-hidden",
-                        "bg-card/40 backdrop-blur-sm",
+                        "group relative flex w-full items-center gap-3 overflow-hidden rounded-[12px] border p-3 pr-3.5 text-left transition-colors",
+                        "bg-white/[0.02]",
                         isLocked
-                          ? "border-border/20 cursor-not-allowed"
-                          : "border-border/40 hover:border-border/70 active:scale-[0.99]",
+                          ? "cursor-not-allowed border-white/[0.035]"
+                          : "border-white/[0.055] hover:bg-white/[0.04]",
                         isPicked && !isLocked && "border-transparent"
                       )}
-                      style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px ${system.accentColor}` } : undefined}
+                      style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${system.accentColor} 55%, transparent)` } : undefined}
                     >
-                      {/* WHOOP-style vertical color rail */}
                       <div
                         className={cn(
-                          "flex-shrink-0 self-stretch w-[3px] rounded-full my-1",
+                          "my-1 w-[2px] flex-shrink-0 self-stretch rounded-full",
                           isLocked && "opacity-40"
                         )}
                         style={{
                           background: system.accentColor,
-                          boxShadow: !isLocked ? `0 0 12px -2px ${system.accentColor}` : undefined,
                         }}
                       />
 
-                      <div className={cn("flex-1 min-w-0 py-1.5 pl-1", isLocked && "opacity-55")}>
+                      <div className={cn("min-w-0 flex-1 py-0.5 pl-1", isLocked && "opacity-55")}>
                         <div className="flex items-center gap-1.5">
-                          <p className="text-[14px] font-semibold text-foreground tracking-tight truncate">
+                          <span className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground/45">{area.code}</span>
+                          <p className="truncate text-[13px] font-semibold tracking-tight text-foreground/95">
                             {area.name}
                           </p>
                           {isPicked && !isLocked && (
                             <span className="text-[9px] font-semibold uppercase tracking-[0.12em]" style={{ color: system.accentColor }}>Today</span>
                           )}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug truncate">
+                        <p className="mt-1 truncate text-[10px] leading-snug text-muted-foreground/65">
                           {isLocked ? lockLabel : area.subLabel}
                         </p>
                       </div>

@@ -11,35 +11,12 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { subDays, format, parseISO } from "date-fns";
+import { subDays, format } from "date-fns";
 import {
-  REC_HALF_LIFE_HOURS,
-  SKILL_DECAY_THRESHOLD_DAYS,
-  SKILL_DECAY_INTERVAL_DAYS,
-  SKILL_DECAY_BASE_POINTS,
-  SKILL_DECAY_INTERVAL_POINTS,
-  SKILL_DECAY_MAX_POINTS,
-} from "@/lib/decayConstants";
-
-// Per-day Recovery decay multiplier from continuous half-life model.
-const REC_DAILY_DECAY_MULTIPLIER = Math.pow(0.5, 24 / REC_HALF_LIFE_HOURS);
-
-/**
- * Skill-style inactivity decay (Sharpness / Readiness / RQ).
- * No decay for the first SKILL_DECAY_THRESHOLD_DAYS of inactivity, then
- * SKILL_DECAY_BASE_POINTS at the threshold and SKILL_DECAY_INTERVAL_POINTS
- * every SKILL_DECAY_INTERVAL_DAYS thereafter, capped at SKILL_DECAY_MAX_POINTS.
- */
-function skillInactivityDecayPoints(daysInactive: number): number {
-  if (daysInactive < SKILL_DECAY_THRESHOLD_DAYS) return 0;
-  const intervals = Math.floor(
-    (daysInactive - SKILL_DECAY_THRESHOLD_DAYS) / SKILL_DECAY_INTERVAL_DAYS
-  );
-  return Math.min(
-    SKILL_DECAY_MAX_POINTS,
-    SKILL_DECAY_BASE_POINTS + intervals * SKILL_DECAY_INTERVAL_POINTS
-  );
-}
+  calculateDailyRecoveryTarget,
+  recalibrateRecoveryForNewDay,
+} from "@/lib/recoveryV2";
+import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
 
 export interface MetricDataPoint {
   date: string;
@@ -66,19 +43,41 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
   const { data: rawData, isLoading, error } = useQuery({
     queryKey: ["metric-history", user?.id, days, forwardFill, lookbackDays],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) return { metrics: [], phone: [], wearable: [] };
 
       const startDate = format(subDays(new Date(), fetchDays), "yyyy-MM-dd");
 
-      const { data, error } = await supabase
-        .from("daily_metric_snapshots")
-        .select("snapshot_date, readiness, sharpness, recovery, reasoning_quality, s1, s2")
-        .eq("user_id", user.id)
-        .gte("snapshot_date", startDate)
-        .order("snapshot_date", { ascending: true });
+      const [metricResult, phoneResult, wearableResult] = await Promise.all([
+        supabase
+          .from("daily_metric_snapshots")
+          .select("snapshot_date, readiness, sharpness, recovery, reasoning_quality, s1, s2")
+          .eq("user_id", user.id)
+          .gte("snapshot_date", startDate)
+          .order("snapshot_date", { ascending: true }),
+        supabase
+          .from("phone_health_snapshots")
+          .select("date, target_rec, sleep_min")
+          .eq("user_id", user.id)
+          .gte("date", startDate)
+          .order("date", { ascending: true }),
+        supabase
+          .from("wearable_snapshots")
+          .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency")
+          .eq("user_id", user.id)
+          .gte("date", startDate)
+          .order("date", { ascending: true }),
+      ]);
 
-      if (error) throw error;
-      return data || [];
+      if (metricResult.error) throw metricResult.error;
+      // Passive history is an enhancement. A connector/table outage must not
+      // make the canonical metric chart unavailable.
+      if (phoneResult.error) console.warn("[MetricHistory] Phone Health history unavailable", phoneResult.error);
+      if (wearableResult.error) console.warn("[MetricHistory] Wearable history unavailable", wearableResult.error);
+      return {
+        metrics: metricResult.data || [],
+        phone: phoneResult.data || [],
+        wearable: wearableResult.data || [],
+      };
     },
     enabled: !!user?.id,
     staleTime: 5 * 60_000,
@@ -90,13 +89,28 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
   const history: MetricDataPoint[] = useMemo(() => {
     if (!rawData) return [];
 
-    const byDate = new Map<string, typeof rawData[number]>();
-    rawData.forEach((row) => byDate.set(row.snapshot_date, row));
+    const byDate = new Map<string, typeof rawData.metrics[number]>();
+    rawData.metrics.forEach((row) => byDate.set(row.snapshot_date, row));
+    const phoneByDate = new Map(rawData.phone.map((row) => [row.date, row]));
+    const wearableByDate = new Map(rawData.wearable.map((row) => [row.date, row]));
+    const recoveryTargetForDate = (date: string): number => {
+      const phone = phoneByDate.get(date);
+      const wearable = wearableByDate.get(date);
+      const estimate = calculatePhysioEstimate(wearable ? {
+        hrvMs: wearable.hrv_ms,
+        restingHr: wearable.resting_hr,
+        sleepDurationMin: wearable.sleep_duration_min,
+        sleepEfficiency: wearable.sleep_efficiency,
+      } : null, {
+        includeSleepDuration: phone?.sleep_min == null,
+      });
+      return calculateDailyRecoveryTarget(phone?.target_rec, estimate);
+    };
 
     const windowStart = format(subDays(new Date(), days - 1), "yyyy-MM-dd");
 
     if (!forwardFill) {
-      return rawData
+      return rawData.metrics
         .filter((r) => r.snapshot_date >= windowStart)
         .map((row) => ({
           date: row.snapshot_date,
@@ -110,11 +124,10 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
     }
 
     // Walk full fetched range, carrying forward last seen value per metric.
-    // While carrying forward, apply LOOMA decay rules so flat plateaus don't
-    // misrepresent inactivity:
-    //   - Recovery: continuous exponential decay (half-life REC_HALF_LIFE_HOURS).
-    //   - Sharpness / Readiness / RQ: skill inactivity decay after
-    //     SKILL_DECAY_THRESHOLD_DAYS, capped at SKILL_DECAY_MAX_POINTS.
+    // Missing days are projections, not observations. Recovery uses the same
+    // daily mean-reversion model as Home. Other derived metrics remain at the
+    // last observed value: applying a second headline-level decay here would
+    // duplicate the skill decay already owned by the canonical state engine.
     let last: MetricDataPoint = {
       date: "",
       readiness: null,
@@ -125,64 +138,39 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
       s2: null,
     };
 
-    // Track baseline value at the start of each inactivity streak so the
-    // skill decay subtracts from the *real* last recorded value rather than
-    // compounding from already-decayed carry-forward values.
-    const streakBase: Record<"readiness" | "sharpness" | "reasoningQuality", number | null> = {
-      readiness: null,
-      sharpness: null,
-      reasoningQuality: null,
-    };
-    let inactiveDays = 0;
-
     const filled: MetricDataPoint[] = [];
     for (let i = fetchDays - 1; i >= 0; i--) {
       const dateStr = format(subDays(new Date(), i), "yyyy-MM-dd");
       const row = byDate.get(dateStr);
 
       if (row) {
-        // Real snapshot: reset inactivity streak and re-anchor baselines.
+        // Real snapshot: replace each available metric independently.
         last = {
           date: dateStr,
           readiness: row.readiness != null ? Number(row.readiness) : last.readiness,
           sharpness: row.sharpness != null ? Number(row.sharpness) : last.sharpness,
-          recovery: row.recovery != null ? Number(row.recovery) : last.recovery,
+          recovery: row.recovery != null
+            ? Number(row.recovery)
+            : last.recovery != null
+              ? recalibrateRecoveryForNewDay(last.recovery, recoveryTargetForDate(dateStr))
+              : null,
           reasoningQuality:
             row.reasoning_quality != null ? Number(row.reasoning_quality) : last.reasoningQuality,
           s1: row.s1 != null ? Number(row.s1) : last.s1,
           s2: row.s2 != null ? Number(row.s2) : last.s2,
         };
-        inactiveDays = 0;
-        streakBase.readiness = last.readiness;
-        streakBase.sharpness = last.sharpness;
-        streakBase.reasoningQuality = last.reasoningQuality;
       } else if (last.date) {
-        // Gap day — apply decay to the carried-forward state.
-        inactiveDays += 1;
-
-        // Recovery: continuous exponential decay toward 0.
+        // Gap day: project Recovery toward neutral when no historical daily
+        // Health target is available. Never collapse missing data toward 0.
         if (last.recovery != null) {
-          last = { ...last, recovery: Math.max(0, last.recovery * REC_DAILY_DECAY_MULTIPLIER) };
+          last = {
+            ...last,
+            recovery: recalibrateRecoveryForNewDay(
+              last.recovery,
+              recoveryTargetForDate(dateStr),
+            ),
+          };
         }
-
-        // Skill-style decay (Sharpness / Readiness / RQ): subtract from the
-        // streak baseline so the curve drops in clean steps rather than
-        // compounding exponentially.
-        const skillDrop = skillInactivityDecayPoints(inactiveDays);
-        const applySkillDrop = (
-          base: number | null,
-          current: number | null
-        ): number | null => {
-          if (base == null) return current;
-          return Math.max(0, base - skillDrop);
-        };
-
-        last = {
-          ...last,
-          sharpness: applySkillDrop(streakBase.sharpness, last.sharpness),
-          readiness: applySkillDrop(streakBase.readiness, last.readiness),
-          reasoningQuality: applySkillDrop(streakBase.reasoningQuality, last.reasoningQuality),
-        };
       }
 
       if (dateStr >= windowStart) {

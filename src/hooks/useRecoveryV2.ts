@@ -111,16 +111,19 @@ export function useRecoveryV2(): UseRecoveryV2Result {
   // Fetch today's phone health snapshot for dynamic REC target
   const { data: phoneHealthTarget, isLoading: phoneHealthLoading } = useQuery({
     queryKey: ["phone-health-target", userId, format(new Date(), "yyyy-MM-dd")],
-    queryFn: async (): Promise<number | null> => {
+    queryFn: async (): Promise<{ targetRec: number | null; sleepMin: number | null } | null> => {
       if (!userId) return null;
       const today = format(new Date(), "yyyy-MM-dd");
       const { data } = await supabase
         .from("phone_health_snapshots")
-        .select("target_rec")
+        .select("target_rec, sleep_min")
         .eq("user_id", userId)
         .eq("date", today)
         .maybeSingle();
-      return (data?.target_rec as number | null) ?? null;
+      return data ? {
+        targetRec: data.target_rec ?? null,
+        sleepMin: data.sleep_min ?? null,
+      } : null;
     },
     enabled: !!userId,
     staleTime: 5 * 60_000,
@@ -150,8 +153,10 @@ export function useRecoveryV2(): UseRecoveryV2Result {
       restingHr: wearableSnapshot.resting_hr,
       sleepDurationMin: wearableSnapshot.sleep_duration_min,
       sleepEfficiency: wearableSnapshot.sleep_efficiency,
+    }, {
+      includeSleepDuration: phoneHealthTarget?.sleepMin == null,
     }) : null;
-    return calculateDailyRecoveryTarget(phoneHealthTarget, physio);
+    return calculateDailyRecoveryTarget(phoneHealthTarget?.targetRec, physio);
   }, [phoneHealthTarget, wearableSnapshot]);
 
   // Compute current recovery with decay applied (using phone-health target if available)

@@ -43,7 +43,6 @@ function getBalanceInterpretation(fastPct: number) {
 }
 
 interface ReportDualProcessProps {
-  profile: any;
   metrics: {
     fast_thinking?: number;
     slow_thinking?: number;
@@ -58,7 +57,7 @@ interface ReportDualProcessProps {
   };
 }
 
-export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) {
+export function ReportDualProcess({ metrics }: ReportDualProcessProps) {
   const fast = metrics.fast_thinking ?? 50;
   const slow = metrics.slow_thinking ?? 50;
   const baselineFast = metrics.baseline_fast_thinking ?? null;
@@ -258,7 +257,7 @@ export function ReportDualProcess({ profile, metrics }: ReportDualProcessProps) 
       {/* Reference */}
       <div className="scientific-note">
         <strong>Key Reference:</strong> Kahneman, D. (2011). <em>Thinking, Fast and Slow</em>. Farrar, Straus and Giroux. 
-        This framework has been validated across diverse cognitive assessment contexts and forms the theoretical 
+        This framework is used as an interpretation layer for the app's measured tasks and forms the theoretical
         foundation for the LOOMA dual-process training protocol.
       </div>
     </section>

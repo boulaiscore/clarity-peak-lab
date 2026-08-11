@@ -50,6 +50,7 @@ import {
 import {
   calculateDailyRecoveryTarget,
   getCurrentRecovery,
+  resolveRecoveryForMetrics,
   RecoveryState,
 } from "@/lib/recoveryV2";
 import { format, subDays } from "date-fns";
@@ -66,6 +67,8 @@ export interface UseTodayMetricsResult {
   recovery: number;
   /** Raw recovery value - null if not initialized (for snapshots) */
   recoveryRaw: number | null;
+  /** True when the displayed REC input is predicted from today's target. */
+  recoveryEstimated: boolean;
   
   // Decay adjustments
   readinessDecay: number;
@@ -148,7 +151,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       if (!userId) return null;
       const { data, error } = await supabase
         .from("phone_health_snapshots")
-        .select("target_rec, phi, confidence, updated_at")
+        .select("target_rec, phi, confidence, sleep_min, updated_at")
         .eq("user_id", userId)
         .eq("date", today)
         .maybeSingle();
@@ -275,16 +278,23 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     } : null;
     const physioEstimate = calculatePhysioEstimate(physioInput);
     const physioComponent = calculatePhysioComponent(physioInput);
+    // Phone Health and wearable snapshots can expose the same sleep-duration
+    // observation. Keep the standalone wearable score intact for display, but
+    // exclude duplicate duration from the context used by Recovery/Daily State.
+    const contextPhysioEstimate = calculatePhysioEstimate(physioInput, {
+      includeSleepDuration: phoneHealthSnapshot?.sleep_min == null,
+    });
     const readinessCognitiveComponent = calculateReadinessCognitiveComponent(states);
     const recoveryTarget = calculateDailyRecoveryTarget(
       phoneHealthSnapshot?.target_rec,
-      physioEstimate,
+      contextPhysioEstimate,
     );
     // Recovery uses the same combined Health + wearable target as actions and gating.
     const recoveryRawValue = recoveryV2State
       ? getCurrentRecovery(recoveryV2State, recoveryTarget)
       : null;
-    const recovery = recoveryRawValue ?? 0;
+    const recovery = resolveRecoveryForMetrics(recoveryRawValue, recoveryTarget);
+    const recoveryEstimated = recoveryRawValue === null;
     const isRecoveryInitialized = recoveryV2State?.hasRecoveryBaseline ?? false;
 
     const deviceRows = passiveContext?.deviceRows ?? [];
@@ -338,8 +348,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       {
         id: "wearable",
         label: "Wearable",
-        score: physioEstimate?.rawScore ?? null,
-        confidence: physioEstimate?.confidence ?? 0,
+        score: contextPhysioEstimate?.rawScore ?? null,
+        confidence: contextPhysioEstimate?.confidence ?? 0,
         updatedAt: wearableSnapshot?.updated_at ?? null,
       },
       {
@@ -390,6 +400,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       readiness,
       recovery,
       recoveryRaw: recoveryRawValue,
+      recoveryEstimated,
       readinessDecay,
       consecutiveLowRecDays,
       hasWearableData: physioEstimate !== null,

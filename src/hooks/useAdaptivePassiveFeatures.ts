@@ -118,6 +118,8 @@ export interface AdaptivePassiveFeatureState {
   S1: number;
   S2: number;
   physioComponent: number | null;
+  dailyState: number;
+  signalCoverage: number;
   isLoading: boolean;
 }
 
@@ -134,8 +136,12 @@ export function useAdaptivePassiveFeatures(
   const { user } = useAuth();
   const userId = user?.id;
   const featureDate = format(new Date(), "yyyy-MM-dd");
-  const sinceDate = format(subDays(new Date(), 14), "yyyy-MM-dd");
-  const sinceTimestamp = subDays(new Date(), 14).toISOString();
+  // Ninety days gives the shadow estimator enough time-forward outcomes to
+  // personalize. Product/recovery activity is still summarized over 7/14 days
+  // inside the feature builder.
+  const sinceDate = format(subDays(new Date(), 90), "yyyy-MM-dd");
+  const sinceTimestamp = subDays(new Date(), 90).toISOString();
+  const recentTimestamp = subDays(new Date(), 14).toISOString();
   const persistedHashRef = useRef<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -164,24 +170,24 @@ export function useAdaptivePassiveFeatures(
           .order("snapshot_date", { ascending: true }),
         supabase
           .from("game_sessions")
-          .select("completed_at, duration_seconds, score")
+          .select("completed_at, duration_seconds, score, skill_routed")
           .eq("user_id", userId)
           .eq("status", "completed")
           .gte("completed_at", sinceTimestamp)
           .order("completed_at", { ascending: true })
-          .limit(300),
+          .limit(1200),
         supabase
           .from("reason_sessions")
           .select("started_at, duration_seconds, background_interrupts, is_valid_for_rq")
           .eq("user_id", userId)
           .gte("started_at", sinceTimestamp)
           .order("started_at", { ascending: true })
-          .limit(300),
+          .limit(1200),
         supabase
           .from("detox_completions")
           .select("completed_at, duration_minutes")
           .eq("user_id", userId)
-          .gte("completed_at", sinceTimestamp)
+          .gte("completed_at", recentTimestamp)
           .order("completed_at", { ascending: true })
           .limit(200),
         supabase
@@ -189,7 +195,7 @@ export function useAdaptivePassiveFeatures(
           .select("completed_at, started_at, duration_minutes, status")
           .eq("user_id", userId)
           .eq("status", "completed")
-          .gte("started_at", sinceTimestamp)
+          .gte("started_at", recentTimestamp)
           .order("started_at", { ascending: true })
           .limit(200),
         supabase
@@ -208,7 +214,7 @@ export function useAdaptivePassiveFeatures(
           .from("product_usage_events")
           .select("occurred_at")
           .eq("user_id", userId)
-          .gte("occurred_at", sinceTimestamp)
+          .gte("occurred_at", recentTimestamp)
           .order("occurred_at", { ascending: true })
           .limit(1500),
         looseSupabase
@@ -217,14 +223,14 @@ export function useAdaptivePassiveFeatures(
           .eq("user_id", userId)
           .gte("snapshot_date", sinceDate)
           .order("snapshot_date", { ascending: true })
-          .limit(30),
+          .limit(120),
         looseSupabase
           .from("calendar_context_snapshots")
           .select("snapshot_date, source, busy_minutes, meeting_count, longest_open_start_minute, longest_open_minutes, permission_state, confidence")
           .eq("user_id", userId)
           .gte("snapshot_date", sinceDate)
           .order("snapshot_date", { ascending: true })
-          .limit(30),
+          .limit(120),
       ]);
 
       const errors = [
@@ -308,12 +314,18 @@ export function useAdaptivePassiveFeatures(
         S1: current.S1,
         S2: current.S2,
         physioComponent: current.physioComponent,
+        dailyState: current.dailyState,
+        signalCoverage: current.signalCoverage,
       },
       metricHistory,
       games: source.gameRows.map((row) => ({
         completedAt: row.completed_at,
         durationSeconds: Number(row.duration_seconds),
         score: Number(row.score),
+        skillRouted: row.skill_routed === "AE" || row.skill_routed === "RA" ||
+          row.skill_routed === "CT" || row.skill_routed === "IN"
+          ? row.skill_routed
+          : null,
       })),
       reasonSessions: source.reasonRows.map((row) => ({
         startedAt: row.started_at,

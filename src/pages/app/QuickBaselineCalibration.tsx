@@ -190,7 +190,11 @@ export default function QuickBaselineCalibration() {
 
       toast.success("Calibration complete");
       trackProductEvent("calibration_completed");
-      navigate("/app");
+      trackProductEvent("onboarding_completed", {
+        cognitiveRole: user.workType ?? null,
+        primaryBottleneck: user.primaryOutcome ?? null,
+      });
+      navigate("/app/subscription?source=onboarding");
       
     } catch (error) {
       console.error("Error saving calibration:", error);
@@ -261,8 +265,11 @@ export default function QuickBaselineCalibration() {
                 // Invalidate caches
                 await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
                 await queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
-                
-                navigate("/app");
+                trackProductEvent("onboarding_completed", {
+                  cognitiveRole: user.workType ?? null,
+                  primaryBottleneck: user.primaryOutcome ?? null,
+                });
+                navigate("/app/subscription?source=onboarding");
               }}
             />
           </motion.div>

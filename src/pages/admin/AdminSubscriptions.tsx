@@ -22,7 +22,7 @@ export default function AdminSubscriptions() {
 
   // Filter to show only paid users first, then free
   const sortedUsers = [...users].sort((a, b) => {
-    const order = { pro: 0, premium: 1, free: 2 };
+    const order = { founding_pro: 0, pro: 1, core: 2, premium: 2, free: 3 };
     const aOrder = order[a.subscription_status as keyof typeof order] ?? 2;
     const bOrder = order[b.subscription_status as keyof typeof order] ?? 2;
     return aOrder - bOrder;
@@ -37,11 +37,19 @@ export default function AdminSubscriptions() {
             Pro
           </Badge>
         );
+      case "founding_pro":
+        return (
+          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+            <Crown className="w-3 h-3 mr-1" />
+            Founding Pro
+          </Badge>
+        );
+      case "core":
       case "premium":
         return (
           <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white">
             <Zap className="w-3 h-3 mr-1" />
-            Premium
+            Core
           </Badge>
         );
       default:
@@ -66,7 +74,7 @@ export default function AdminSubscriptions() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Card>
             <CardContent className="pt-4 text-center">
               <p className="text-2xl font-bold text-amber-500">{stats.proUsers}</p>
@@ -75,8 +83,14 @@ export default function AdminSubscriptions() {
           </Card>
           <Card>
             <CardContent className="pt-4 text-center">
-              <p className="text-2xl font-bold text-violet-500">{stats.premiumUsers}</p>
-              <p className="text-xs text-muted-foreground">Premium</p>
+              <p className="text-2xl font-bold text-violet-500">{stats.coreUsers}</p>
+              <p className="text-xs text-muted-foreground">Core</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold text-orange-500">{stats.foundingUsers}</p>
+              <p className="text-xs text-muted-foreground">Founding</p>
             </CardContent>
           </Card>
           <Card>

@@ -28,8 +28,9 @@ export interface AdminUserOverview {
 
 export interface AdminStats {
   totalUsers: number;
-  premiumUsers: number;
+  coreUsers: number;
   proUsers: number;
+  foundingUsers: number;
   freeUsers: number;
   onboardedUsers: number;
 }
@@ -38,8 +39,9 @@ export function useAdminUsers() {
   const [users, setUsers] = useState<AdminUserOverview[]>([]);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
-    premiumUsers: 0,
+    coreUsers: 0,
     proUsers: 0,
+    foundingUsers: 0,
     freeUsers: 0,
     onboardedUsers: 0,
   });
@@ -68,8 +70,9 @@ export function useAdminUsers() {
       // Calculate stats
       setStats({
         totalUsers: typedData.length,
-        premiumUsers: typedData.filter(u => u.subscription_status === "premium").length,
+        coreUsers: typedData.filter(u => u.subscription_status === "core" || u.subscription_status === "premium").length,
         proUsers: typedData.filter(u => u.subscription_status === "pro").length,
+        foundingUsers: typedData.filter(u => u.subscription_status === "founding_pro").length,
         freeUsers: typedData.filter(u => u.subscription_status === "free" || !u.subscription_status).length,
         onboardedUsers: typedData.filter(u => u.onboarding_completed).length,
       });

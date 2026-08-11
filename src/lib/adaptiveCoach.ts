@@ -1,6 +1,6 @@
 import { clamp, type CognitiveStates } from "@/lib/cognitiveEngine";
 
-export const ADAPTIVE_COACH_MODEL_VERSION = "interpretable-shadow-v2-passive";
+export const ADAPTIVE_COACH_MODEL_VERSION = "interpretable-shadow-v3-state-aware";
 export const ADAPTIVE_COACH_OUTCOME_WINDOW_DAYS = 7;
 export const ADAPTIVE_COACH_MIN_BASELINE_SESSIONS = 3;
 
@@ -175,20 +175,15 @@ function calculatePassiveContextAdjustment(
 ): number {
   if (!context.passive) return 0;
   const skillTrend = context.passive.skillTrendPerDay[skill] ?? 0;
-  const healthAdjustment = context.passive.healthScore === null
-    ? 0
-    : clamp((context.passive.healthScore - 50) * 0.01, -0.5, 0.5);
-  const attentionAdjustment = context.passive.attentionLoadRatio === null
-    ? 0
-    : clamp((1 - context.passive.attentionLoadRatio) * 0.6, -0.8, 0.4);
-  const scheduleAdjustment = context.passive.scheduleLoadRatio === null
-    ? 0
-    : clamp((1 - context.passive.scheduleLoadRatio) * 0.3, -0.4, 0.25);
+  // Current Health, attention and schedule already enter Sharpness/Readiness,
+  // which are part of stateFit. Adding them again here double-counted the same
+  // evidence. Passive context contributes only longitudinal residual trends.
   const trendAdjustment = clamp(skillTrend * 0.35, -1.2, 1.2);
+  const metricTrendAdjustment = clamp(context.passive.metricTrendPerDay * 0.12, -0.4, 0.4);
   return clamp(
-    trendAdjustment + healthAdjustment + attentionAdjustment + scheduleAdjustment,
-    -2,
-    2,
+    trendAdjustment + metricTrendAdjustment,
+    -1.5,
+    1.5,
   );
 }
 

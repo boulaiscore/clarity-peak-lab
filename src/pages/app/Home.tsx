@@ -9,7 +9,6 @@ import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } fro
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
-import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useDailyRecoverySnapshot } from "@/hooks/useDailyRecoverySnapshot";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
@@ -27,12 +26,12 @@ import { CapacityTab } from "@/components/home/CapacityTab";
 import { RecoveryBatteryCard } from "@/components/dashboard/RecoveryBatteryCard";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 
-import { FastChargeSwipeCard } from "@/components/home/FastChargeSwipeCard";
 import { useAcuteRecoveryBoost } from "@/hooks/useAcuteRecoveryBoost";
 import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
+import { DailyOutlookCard } from "@/components/home/DailyOutlookCard";
 
 interface RingProps {
   value: number;
@@ -118,6 +117,7 @@ const Home = () => {
   const {
     sharpness,
     readiness,
+    recovery,
     recoveryRaw,
     signalCoverage,
     signalCoverageLevel,
@@ -125,13 +125,6 @@ const Home = () => {
     signalSources,
     isLoading: metricsLoading
   } = useTodayMetrics();
-
-  // REC_effective for UI display (uses RRI until first real recovery activity)
-  const {
-    recoveryEffective,
-    isUsingRRI,
-    isLoading: recoveryEffectiveLoading
-  } = useRecoveryEffective();
 
   // Acute Recovery Boost — display-layer only, transient state shift
   const acuteBoost = useAcuteRecoveryBoost();
@@ -220,18 +213,19 @@ const Home = () => {
   const displaySharpness = isViewingToday ? sharpness : historicalMetrics?.sharpness ?? 0;
   const displayReadiness = isViewingToday ? readiness : historicalMetrics?.readiness ?? 0;
   const recoveryWithBoost = isViewingToday
-    ? applyBoostToRec(recoveryEffective, acuteBoost.activeBoost)
-    : recoveryEffective;
+    ? applyBoostToRec(recovery, acuteBoost.activeBoost)
+    : recovery;
   const displayRecovery = isViewingToday ? recoveryWithBoost : historicalMetrics?.recovery ?? 0;
   const displayRQ = isViewingToday ? rq : historicalMetrics?.reasoningQuality ?? 0;
-  const isDisplayLoading = isViewingToday ? metricsLoading || recoveryEffectiveLoading : historicalLoading;
+  const isDisplayLoading = isViewingToday ? metricsLoading : historicalLoading;
   const hasHistoricalData = !isViewingToday && historicalMetrics !== null;
 
   // Calculate deltas vs yesterday (only show for today view)
   const sharpnessDelta = isViewingToday ? formatDeltaPercent(sharpness, yesterdayMetrics?.sharpness ?? null) : null;
   const readinessDelta = isViewingToday ? formatDeltaPercent(readiness, yesterdayMetrics?.readiness ?? null) : null;
-  const recoveryDelta = isViewingToday ? formatDeltaPercent(recoveryEffective, yesterdayMetrics?.recovery ?? null) : null;
+  const recoveryDelta = isViewingToday ? formatDeltaPercent(recovery, yesterdayMetrics?.recovery ?? null) : null;
   const rqDelta = isViewingToday ? formatDeltaPercent(rq, yesterdayMetrics?.reasoningQuality ?? null) : null;
+  const activeSourceCount = signalSources.filter((source) => source.status !== "off").length;
 
   // Tutorial state - shows after first onboarding completion
   const {
@@ -263,7 +257,7 @@ const Home = () => {
               A 2-minute cognitive baseline is required before Train begins. 
               This establishes your personalized skill references.
             </p>
-            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center px-6 py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-lg hover:shadow-xl transition-all active:scale-[0.98]">
+            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-6 py-3.5 text-sm font-semibold text-background shadow-[0_12px_28px_-18px_rgba(0,0,0,0.9)] transition-all hover:bg-foreground/90 active:scale-[0.98]">
               Begin Calibration
               <ChevronRight className="w-4 h-4 ml-2" />
             </button>
@@ -287,7 +281,7 @@ const Home = () => {
             <p className="text-sm text-muted-foreground/60 mb-8">
               Assessment required before training
             </p>
-            <button onClick={() => navigate("/onboarding")} className="inline-flex items-center px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+            <button onClick={() => navigate("/onboarding")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-6 py-3 text-sm font-medium text-background transition-all hover:bg-foreground/90 active:scale-[0.98]">
               Begin Assessment
             </button>
           </motion.div>
@@ -295,6 +289,7 @@ const Home = () => {
       </AppShell>;
   }
   return <AppShell>
+    {({ passiveFeatures, isLoading: passiveLoading }) => <>
       <main className="flex flex-col min-h-[calc(100dvh-theme(spacing.14))] px-5 pt-8 pb-4 max-w-md mx-auto">
 
         {/* Tab Content */}
@@ -358,31 +353,34 @@ const Home = () => {
                   </p>
                 </div>}
 
-              <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading || recoveryEffectiveLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
+              <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
             </motion.section>
 
 
-        {/* My Day — Daily Outlook + Today's Activities */}
+        {/* My Day — one outlook, then observed activity */}
         {isViewingToday && (
-          <TodayActivitiesCard
-            activeQualityTime={
-              activeReasonSession
-                ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
-                : activeBooks.length > 0
-                ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
-                : null
-            }
-          />
+          <>
+            <DailyOutlookCard
+              sharpness={sharpness}
+              readiness={readiness}
+              recovery={recoveryWithBoost}
+              reasoningQuality={rq}
+              signalCoverage={signalCoverage}
+              activeSourceCount={activeSourceCount}
+              passiveFeatures={passiveFeatures}
+              isLoading={isDisplayLoading || passiveLoading}
+            />
+            <TodayActivitiesCard
+              activeQualityTime={
+                activeReasonSession
+                  ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
+                  : activeBooks.length > 0
+                  ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
+                  : null
+              }
+            />
+          </>
         )}
-
-        {/* Single priority — Whoop-style focus, secondary suggestions removed for calm */}
-
-
-
-
-        <motion.div initial={false} className="mb-8">
-          <FastChargeSwipeCard />
-        </motion.div>
           </>}
 
         {activeTab === "intuition" && <IntuitionTab onBackToOverview={() => setActiveTab("overview")} />}
@@ -393,6 +391,7 @@ const Home = () => {
       
       {/* Onboarding Tutorial - appears once after first login post-onboarding */}
       <OnboardingTutorial show={showTutorial} onComplete={markTutorialComplete} />
+    </>}
     </AppShell>;
 };
 export default Home;

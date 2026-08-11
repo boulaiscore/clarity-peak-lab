@@ -4,6 +4,9 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Play, Download, Lock, FileText, Check, Package, Eye, ZoomIn, ZoomOut, FolderOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { useReportData } from "@/hooks/useReportData";
 import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
+import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 import { useReportAccess } from "@/hooks/useReportAccess";
 import { useReportHistory } from "@/hooks/useReportHistory";
 import { useUserMetrics } from "@/hooks/useExercises"; // v3.3: Use same source as Dashboard
@@ -55,6 +58,18 @@ export default function CognitiveReport() {
   
   // Use the same SCI calculation as Dashboard for consistency
   const { sci: liveSci, isLoading: sciLoading } = useCognitiveNetworkScore();
+  const {
+    sharpness: liveSharpness,
+    readiness: liveReadiness,
+    recovery: liveRecovery,
+    AE: liveAE,
+    RA: liveRA,
+    CT: liveCT,
+    IN: liveIN,
+    isLoading: todayMetricsLoading,
+  } = useTodayMetrics();
+  const { rq: liveReasoningQuality, isLoading: reasoningQualityLoading } = useReasoningQuality();
+  const { data: liveCognitiveAge, isLoading: cognitiveAgeLoading } = useCognitiveAge();
   const { 
     canViewReport, 
     canDownloadPDF: canDownloadPDFReal, 
@@ -185,8 +200,8 @@ export default function CognitiveReport() {
       // Save report to history after successful print
       try {
         await saveReport.mutateAsync({
-          cognitiveAge: metrics?.baseline_cognitive_age ?? undefined,
-          sciScore: metrics?.cognitive_performance_score ?? undefined,
+          cognitiveAge: liveCognitiveAge.cognitiveAge ?? undefined,
+          sciScore: liveSci?.total ?? undefined,
           fastThinking: metrics?.fast_thinking ?? undefined,
           slowThinking: metrics?.slow_thinking ?? undefined,
           totalSessions: metrics?.total_sessions ?? undefined,
@@ -419,7 +434,14 @@ export default function CognitiveReport() {
 
   }
 
-  if (loading) return <div className="p-6">Generating report data…</div>;
+  if (
+    loading ||
+    metricsLoading ||
+    sciLoading ||
+    todayMetricsLoading ||
+    reasoningQualityLoading ||
+    cognitiveAgeLoading
+  ) return <div className="p-6">Generating report data…</div>;
   
   if (error) return <div className="p-6">Error: {error}</div>;
 
@@ -674,6 +696,18 @@ export default function CognitiveReport() {
             generatedAt={generatedAt}
             isPreview={!weeklyPlanCompleted}
             liveSci={liveSci}
+            liveDaily={{
+              sharpness: liveSharpness,
+              readiness: liveReadiness,
+              recovery: liveRecovery,
+              reasoningQuality: liveReasoningQuality,
+              AE: liveAE,
+              RA: liveRA,
+              CT: liveCT,
+              IN: liveIN,
+            }}
+            canonicalCognitiveAge={liveCognitiveAge.cognitiveAge}
+            cognitiveAgeCalibrating={liveCognitiveAge.isCalibrating}
             metricSnapshots={metricSnapshots}
           />
         </div>

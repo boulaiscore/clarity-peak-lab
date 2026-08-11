@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
+import { Button } from "@/components/ui/button";
 import { useAdaptiveCoachFeatureStatus } from "@/hooks/useAdaptiveCoachShadow";
 import { useAdaptiveFocusValidation } from "@/hooks/useAdaptiveFocusCoach";
+import { useSubscription } from "@/hooks/useSubscription";
 import { FOCUS_INTEGRITY_VALIDATION_DAYS } from "@/lib/focusIntegrity";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +48,8 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 }
 
 export default function AdaptiveCoach() {
+  const subscription = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
   const featureStatus = useAdaptiveCoachFeatureStatus();
   const {
     validation,
@@ -54,8 +60,35 @@ export default function AdaptiveCoach() {
     error,
   } = useAdaptiveFocusValidation();
   const availability = featureStatus.availability;
+  const adaptiveEstimate = featureStatus.adaptiveEstimate;
   const coverage = availability?.coverage ?? 0;
   const setupRequired = isStorageSetupError(error);
+
+  if (!subscription.loading && !subscription.isPro) {
+    return (
+      <AppShell>
+        <div className="mx-auto max-w-lg px-5 pb-12 pt-5">
+          <Link
+            to="/app/settings"
+            className="inline-flex rounded-full bg-muted/35 px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/75"
+          >
+            ← Settings
+          </Link>
+          <section className="mt-8 rounded-3xl border border-border/40 bg-card/45 p-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">LOOMA Pro</p>
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight">Adaptive Coach</h1>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Looma is already learning privately in shadow mode. Pro reveals its explainable forecasts, coverage and validation.
+            </p>
+            <Button type="button" variant="hero" className="mt-6 h-11 w-full rounded-full" onClick={() => setShowPaywall(true)}>
+              Explore Pro
+            </Button>
+          </section>
+        </div>
+        <PremiumPaywall open={showPaywall} onOpenChange={setShowPaywall} feature="coach" />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -123,6 +156,48 @@ export default function AdaptiveCoach() {
         </section>
 
         <section className="mt-4 rounded-2xl border border-border/30 bg-card/45 p-5">
+          <div className="flex items-start justify-between gap-4 border-b border-border/25 pb-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60">Daily state model</p>
+              <h2 className="mt-1 text-[17px] font-medium">Personal estimate</h2>
+            </div>
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[9px] uppercase tracking-[0.12em] text-primary/80">
+              {adaptiveEstimate?.status ?? "learning"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-5 py-5">
+            <MiniStat
+              label="Estimate"
+              value={adaptiveEstimate ? `${Math.round(adaptiveEstimate.predictedDailyState)} ±${Math.round(adaptiveEstimate.uncertainty)}` : "—"}
+            />
+            <MiniStat
+              label="Confidence"
+              value={adaptiveEstimate ? percent(adaptiveEstimate.confidence) : "—"}
+            />
+            <MiniStat
+              label="Outcomes"
+              value={adaptiveEstimate ? String(adaptiveEstimate.outcomeSampleCount) : "—"}
+            />
+          </div>
+
+          {adaptiveEstimate?.domains && (
+            <div className="flex items-center justify-between border-t border-border/25 py-3 text-[10px] text-muted-foreground/70">
+              <span>
+                Attention <span className="tabular-nums text-foreground/80">{Math.round(adaptiveEstimate.domains.attention.predictedScore)}</span>
+              </span>
+              <span>
+                Executive <span className="tabular-nums text-foreground/80">{Math.round(adaptiveEstimate.domains.executive.predictedScore)}</span>
+              </span>
+            </div>
+          )}
+
+          <p className="border-t border-border/25 pt-4 text-[10px] leading-relaxed text-muted-foreground/65">
+            Shadow only. Home stays on the validated formula while this estimate is checked against later performance.
+          </p>
+        </section>
+
+        <section className="mt-4 rounded-2xl border border-border/30 bg-card/45 p-5">
           <div className="flex items-center justify-between gap-3 border-b border-border/25 pb-4">
             <div>
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60">Forecast target</p>
@@ -183,7 +258,7 @@ export default function AdaptiveCoach() {
           </summary>
           <div className="mt-4 space-y-3 border-t border-border/20 pt-4 text-[10px] leading-relaxed text-muted-foreground">
             <p>
-              Focus Integrity estimates sustained attention from aggregate usage, interruptions and session continuity. It does not rate intelligence or work quality.
+              Literature priors are updated only by later attention and executive outcomes. This is not an intelligence score.
             </p>
             <p>
               No app names, messages, domains or content are stored. Shadow forecasts cannot change your training.

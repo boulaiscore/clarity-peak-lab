@@ -116,6 +116,8 @@ export function useAdaptiveCoachShadowRecorder(): AdaptiveCoachPassiveState {
     readiness,
     recovery,
     physioComponent,
+    dailyState,
+    signalCoverage,
     isRecoveryInitialized,
     isLoading: metricsLoading,
   } = useTodayMetrics();
@@ -132,6 +134,8 @@ export function useAdaptiveCoachShadowRecorder(): AdaptiveCoachPassiveState {
     S1,
     S2,
     physioComponent,
+    dailyState,
+    signalCoverage,
     isLoading: metricsLoading || reasoningLoading,
   });
 
@@ -275,7 +279,7 @@ export function useAdaptiveCoachShadowRecorder(): AdaptiveCoachPassiveState {
           forecast_target: "next_same_skill_game_score_delta",
           outcome_window_days: ADAPTIVE_COACH_OUTCOME_WINDOW_DAYS,
           reasons: prediction.reasons as unknown as Json,
-          formula: "rolling baseline + skill trend + state fit + personal health/attention context + regression + shrunk personal residual",
+          formula: "rolling baseline + longitudinal trend + canonical state fit + regression + shrunk personal residual",
           passive_feature_schema: passiveFeatures?.schemaVersion ?? null,
           limitation: "Predictive association only; not a causal training-effect estimate.",
         } as Json,
@@ -429,8 +433,10 @@ interface AdaptiveCoachFeatureAvailability {
   coverage: number;
 }
 
-function jsonRecord(value: Json): Record<string, Json | undefined> {
-  return value && !Array.isArray(value) && typeof value === "object" ? value : {};
+function jsonRecord(value: unknown): Record<string, unknown> {
+  return value && !Array.isArray(value) && typeof value === "object"
+    ? value as Record<string, unknown>
+    : {};
 }
 
 export function useAdaptiveCoachFeatureStatus() {
@@ -443,7 +449,7 @@ export function useAdaptiveCoachFeatureStatus() {
       if (!userId) return null;
       const { data, error } = await supabase
         .from("adaptive_daily_feature_snapshots")
-        .select("feature_date, schema_version, availability, updated_at")
+        .select("feature_date, schema_version, availability, metrics, updated_at")
         .eq("user_id", userId)
         .eq("schema_version", PASSIVE_FEATURE_SCHEMA_VERSION)
         .order("feature_date", { ascending: false })
@@ -473,8 +479,65 @@ export function useAdaptiveCoachFeatureStatus() {
     };
   }, [query.data]);
 
+  const adaptiveEstimate = useMemo(() => {
+    if (!query.data) return null;
+    const metrics = jsonRecord(query.data.metrics);
+    const estimate = jsonRecord(metrics.adaptiveStateEstimate);
+    const predictedDailyState = Number(estimate.predictedDailyState);
+    const fixedDailyState = Number(estimate.fixedDailyState);
+    const confidence = Number(estimate.confidence);
+    const uncertainty = Number(estimate.uncertainty);
+    const outcomeSampleCount = Number(estimate.outcomeSampleCount);
+    const status = estimate.status;
+    const domains = jsonRecord(estimate.domains);
+    const parseDomain = (key: "attention" | "executive") => {
+      const domain = jsonRecord(domains[key]);
+      const predictedScore = Number(domain.predictedScore);
+      const domainUncertainty = Number(domain.uncertainty);
+      const domainConfidence = Number(domain.confidence);
+      const domainOutcomeCount = Number(domain.outcomeSampleCount);
+      if (
+        !Number.isFinite(predictedScore) ||
+        !Number.isFinite(domainUncertainty) ||
+        !Number.isFinite(domainConfidence) ||
+        !Number.isFinite(domainOutcomeCount)
+      ) return null;
+      return {
+        predictedScore,
+        uncertainty: Math.max(0, domainUncertainty),
+        confidence: Math.max(0, Math.min(1, domainConfidence)),
+        outcomeSampleCount: Math.max(0, Math.round(domainOutcomeCount)),
+      };
+    };
+    const attention = parseDomain("attention");
+    const executive = parseDomain("executive");
+    if (
+      !Number.isFinite(predictedDailyState) ||
+      !Number.isFinite(fixedDailyState) ||
+      !Number.isFinite(confidence) ||
+      !Number.isFinite(uncertainty) ||
+      !Number.isFinite(outcomeSampleCount) ||
+      (status !== "learning" && status !== "emerging" && status !== "personalized")
+    ) {
+      return null;
+    }
+    return {
+      predictedDailyState,
+      fixedDailyState,
+      confidence: Math.max(0, Math.min(1, confidence)),
+      uncertainty: Math.max(0, uncertainty),
+      outcomeSampleCount: Math.max(0, Math.round(outcomeSampleCount)),
+      status,
+      evidenceVersion: typeof estimate.evidenceVersion === "string"
+        ? estimate.evidenceVersion
+        : null,
+      domains: attention && executive ? { attention, executive } : null,
+    };
+  }, [query.data]);
+
   return {
     availability,
+    adaptiveEstimate,
     featureDate: query.data?.feature_date ?? null,
     schemaVersion: query.data?.schema_version ?? null,
     isLoading: query.isLoading,

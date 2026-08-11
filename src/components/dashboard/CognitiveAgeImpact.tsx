@@ -138,7 +138,7 @@ function ImpactBars({ contributions, totalImprovementPoints, isCalibrated }: Imp
                   Current: {c.currentValue.toFixed(0)} • Baseline: {c.baselineValue.toFixed(0)}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  Δ {c.delta >= 0 ? "+" : ""}{c.delta.toFixed(1)} pts × 20% = {c.contribution >= 0 ? "+" : ""}{c.contribution.toFixed(2)}
+                  Δ {c.delta >= 0 ? "+" : ""}{c.delta.toFixed(1)} pts × 25% = {c.contribution >= 0 ? "+" : ""}{c.contribution.toFixed(2)}
                 </p>
               </TooltipContent>
             </UITooltip>

@@ -14,6 +14,9 @@ import { trackProductEvent } from "@/lib/productAnalytics";
 import { useAdaptiveCoachShadowRecorder } from "@/hooks/useAdaptiveCoachShadow";
 import type { AdaptiveCoachPassiveState } from "@/hooks/useAdaptiveCoachShadow";
 import { useAdaptiveFocusShadowRecorder } from "@/hooks/useAdaptiveFocusCoach";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PremiumPaywall } from "@/components/app/PremiumPaywall";
+import { FIRST_PROTOCOL_PAYWALL_PENDING_KEY } from "@/lib/productAnalytics";
 
 interface AppShellProps {
   children: ReactNode | ((coachState: AdaptiveCoachPassiveState) => ReactNode);
@@ -36,7 +39,9 @@ export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
   const { permission, checkReminders } = useNotifications();
   const { logout } = useAuth();
+  const subscription = useSubscription();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showFirstProtocolPaywall, setShowFirstProtocolPaywall] = useState(false);
   
   // Initialize decay notifications on app load
   useDecayNotificationInit();
@@ -54,6 +59,19 @@ export function AppShell({ children }: AppShellProps) {
       route: `${location.pathname}${location.search}`,
     });
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (subscription.loading) return;
+    if (subscription.tier !== "free") {
+      localStorage.removeItem(FIRST_PROTOCOL_PAYWALL_PENDING_KEY);
+      return;
+    }
+    if (location.pathname === "/app/subscription") return;
+    if (localStorage.getItem(FIRST_PROTOCOL_PAYWALL_PENDING_KEY) === "true") {
+      localStorage.removeItem(FIRST_PROTOCOL_PAYWALL_PENDING_KEY);
+      setShowFirstProtocolPaywall(true);
+    }
+  }, [location.pathname, subscription.loading, subscription.tier]);
   
   // Check for reminders on mount
   useEffect(() => {
@@ -79,11 +97,12 @@ export function AppShell({ children }: AppShellProps) {
               <Link
                 key={item.to}
                 to={item.to}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[52px]",
+                  "flex min-w-[52px] flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30",
                   isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-foreground"
+                    : "text-muted-foreground/65 hover:text-foreground/85"
                 )}
               >
                 <item.icon className="w-5 h-5" />
@@ -95,11 +114,12 @@ export function AppShell({ children }: AppShellProps) {
           {/* Menu button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-expanded={menuOpen}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[52px]",
+              "flex min-w-[52px] flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30",
               menuOpen || menuItems.some(item => location.pathname === item.to || (item.to === "/brain-science" && location.pathname === "/brain-science"))
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
+                ? "text-foreground"
+                : "text-muted-foreground/65 hover:text-foreground/85"
             )}
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -124,12 +144,13 @@ export function AppShell({ children }: AppShellProps) {
                     <Link
                       key={item.to}
                       to={item.to}
+                      aria-current={isActive ? "page" : undefined}
                       onClick={() => setMenuOpen(false)}
                       className={cn(
                         "flex items-center gap-3 px-4 py-3.5 transition-colors border-b border-border/30",
                         isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-muted/50"
+                          ? "bg-white/[0.06] text-foreground"
+                          : "text-muted-foreground hover:bg-white/[0.035] hover:text-foreground"
                       )}
                     >
                       <item.icon className="w-5 h-5" />
@@ -154,6 +175,12 @@ export function AppShell({ children }: AppShellProps) {
           )}
         </AnimatePresence>
       </nav>
+
+      <PremiumPaywall
+        open={showFirstProtocolPaywall}
+        onOpenChange={setShowFirstProtocolPaywall}
+        feature="first-protocol"
+      />
     </div>
   );
 }

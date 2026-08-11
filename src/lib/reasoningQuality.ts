@@ -49,7 +49,7 @@ export interface RQInput {
   S2: number; // (CT + IN) / 2, from CognitiveStates
   s2GameScores: number[]; // Last N S2 game scores (0-100 each)
   taskCompletions: TaskCompletion[]; // Last 7 days of LOOMA tasks (legacy)
-  customWeightedMinutes?: number; // Custom session weighted minutes (new system)
+  sessionWeightedMinutes?: number; // All valid timer-session weighted minutes
   lastS2GameAt: Date | null;
   lastTaskAt: Date | null;
   today?: Date;
@@ -184,11 +184,11 @@ export function getS2ConsistencyDelta(sessionQuality: number): number {
 /**
  * Task_Priming measures conceptual priming from cognitive Tasks.
  * 
- * HYBRID FORMULA (v2.0):
- * Task_Priming = 0.5 × LOOMA_completions_score + 0.5 × custom_session_score
+ * UNIFIED EVIDENCE FORMULA (v2.1):
+ * Task_Priming = max(LOOMA_completions_score, timer_session_score)
  * 
  * - LOOMA completions: Instant-complete items from curated library (legacy system)
- * - Custom sessions: Duration-weighted reading/listening tracked via timer (new system)
+ * - Timer sessions: Duration-weighted reading/listening from curated or custom content
  * 
  * Both components are normalized to [0, 100] before combining.
  */
@@ -270,25 +270,24 @@ export function calculateCustomSessionScore(weightedMinutes: number): number {
 }
 
 /**
- * Calculate Task Priming using HYBRID formula
+ * Calculate Task Priming across two alternative capture paths.
  * 
- * Task_Priming = 0.5 × LOOMA_score + 0.5 × Custom_score
+ * Curated completions and timer sessions are alternative ways to record
+ * deliberate learning, not two mandatory halves. Taking the stronger path
+ * prevents users of one valid capture method from being capped at 50.
  */
 export function calculateTaskPriming(
   tasks: TaskCompletion[],
   today: Date = new Date(),
-  customWeightedMinutes: number = 0
+  sessionWeightedMinutes: number = 0
 ): number {
   // Component 1: LOOMA completions (legacy instant-complete)
   const loomaScore = calculateLoomaCompletionsScore(tasks, today);
   
-  // Component 2: Custom sessions (timer-tracked)
-  const customScore = calculateCustomSessionScore(customWeightedMinutes);
+  // Component 2: all valid timer sessions, regardless of content source.
+  const customScore = calculateCustomSessionScore(sessionWeightedMinutes);
   
-  // Hybrid formula: 50% each
-  const hybridScore = 0.5 * loomaScore + 0.5 * customScore;
-  
-  return clamp(hybridScore, 0, 100);
+  return clamp(Math.max(loomaScore, customScore), 0, 100);
 }
 
 // ============================================
@@ -356,8 +355,8 @@ export function calculateRQ(input: RQInput): RQResult {
   // 2. S2_Consistency
   const s2Consistency = calculateS2Consistency(input.s2GameScores);
   
-  // 3. Task_Priming (hybrid: LOOMA completions + custom weighted minutes)
-  const taskPriming = calculateTaskPriming(input.taskCompletions, today, input.customWeightedMinutes || 0);
+  // 3. Task_Priming (strongest observed deliberate-learning capture path)
+  const taskPriming = calculateTaskPriming(input.taskCompletions, today, input.sessionWeightedMinutes || 0);
   
   // 4. Calculate contributions (raw, for display consistency)
   const s2CoreContribution = s2Core * 0.50;
