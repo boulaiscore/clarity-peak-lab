@@ -163,7 +163,7 @@ export const PLAN_CATALOG: Record<PlanId, PlanDefinition> = {
     name: "Founding Elite",
     shortName: "Founding",
     promise: "Elite access at launch pricing",
-    description: "First-year Elite access for the first 100 members.",
+    description: "First-year Elite access reserved for early adopters.",
     features: { ...proFeatures, foundingBadge: true },
     limits: {
       maxProtocolsPerDay: null,

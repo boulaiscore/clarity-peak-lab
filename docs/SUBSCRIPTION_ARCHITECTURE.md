@@ -10,7 +10,7 @@ web checkout, native purchases, paywalls and entitlement checks.
 | Free | €0 | Automatic daily state, connections, one protocol/day, 7-day history |
 | Pro (`core`) | €24.99/month or €199/year | Unlimited structured daily loop and 90-day trends |
 | Elite (`pro`) | €39.99/month or €299/year | Adaptive Coach insights, advanced patterns and formatted reports |
-| Founding Elite (`founding_pro`) | €199 first year | Elite entitlements for the first 100 members |
+| Founding Elite (`founding_pro`) | €199 first year | Elite entitlements for the early-adopter launch cohort |
 | Team / Cohort | Waitlist | Future private group product |
 
 Health, wearable, calendar and aggregate device-usage connections are not paid

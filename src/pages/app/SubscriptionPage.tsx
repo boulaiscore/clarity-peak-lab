@@ -252,8 +252,13 @@ export default function SubscriptionPage() {
                     {plan.promise}
                   </p>
                   {founding ? (
-                    <span className="rounded-full border border-foreground/15 bg-foreground/5 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
-                      First 100
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      <span className="rounded-full border border-foreground/15 bg-foreground/5 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-foreground/75">
+                        New
+                      </span>
+                      <span className="rounded-full border border-foreground/20 bg-foreground/[0.07] px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.12em] text-foreground/85">
+                        Early adopters
+                      </span>
                     </span>
                   ) : highlighted && (
                     <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-primary">
@@ -268,7 +273,7 @@ export default function SubscriptionPage() {
                 <div className="mt-5 sm:mt-7">
                   {founding && (
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/75">
-                      Launch offer · annual only
+                      Early adopter offer · annual only
                     </p>
                   )}
                   <div className="flex items-end gap-2">
