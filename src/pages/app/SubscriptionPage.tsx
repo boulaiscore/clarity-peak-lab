@@ -253,16 +253,16 @@ export default function SubscriptionPage() {
                 </div>
 
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight">{plan.name}</h2>
-                <p className="mt-2 min-h-10 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:min-h-10">{plan.description}</p>
 
-                <div className="mt-7">
+                <div className="mt-5 sm:mt-7">
                   {founding && (
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                       Founding offer · first 100
                     </p>
                   )}
                   <div className="flex items-end gap-2">
-                    <span className="text-4xl font-medium tabular-nums tracking-tight">{displayPrice(option)}</span>
+                    <span className="text-3xl font-medium tabular-nums tracking-tight sm:text-4xl">{displayPrice(option)}</span>
                     <span className="pb-1 text-xs text-muted-foreground">/{interval === "annual" ? "year" : "month"}</span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
@@ -274,7 +274,7 @@ export default function SubscriptionPage() {
                   </p>
                 </div>
 
-                <ul className="mt-7 flex-1 space-y-3">
+                <ul className="mt-5 flex-1 space-y-2.5 sm:mt-7 sm:space-y-3">
                   {CARD_FEATURES[planId].map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm text-foreground/85">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={2} />
@@ -282,6 +282,7 @@ export default function SubscriptionPage() {
                     </li>
                   ))}
                 </ul>
+
 
                 <Button
                   type="button"
