@@ -228,7 +228,7 @@ export default function NeuroLab() {
       </AppShell>;
   }
   return <AppShell>
-      {({ passiveFeatures, isLoading: passiveLoading }) => <>
+      {({ passiveFeatures }) => <>
       <div className="mx-auto max-w-md px-4 pb-5 pt-4">
         <header className="mb-4 flex items-center justify-between px-0.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Lab</p>
