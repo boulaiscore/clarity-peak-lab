@@ -117,6 +117,13 @@ export default function SubscriptionPage() {
     return localized?.formatted ?? formatInCurrency(option.amountEur, "EUR");
   };
 
+  const perMonthLabel = (option: PricingOption) => {
+    const localized = option.webPriceId ? prices[option.webPriceId] : null;
+    const amount = (localized?.amount ?? option.amountEur) / 12;
+    return formatInCurrency(Math.round(amount * 100) / 100, localized?.currencyCode ?? "EUR");
+  };
+
+
   const activeOption = (planId: PaidCardId): PricingOption => {
     if (planId === "pro" && interval === "annual" && subscription.tier === "free") {
       return pricingConfig.founding_pro_annual;
