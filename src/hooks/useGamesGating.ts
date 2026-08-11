@@ -32,7 +32,11 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import {
+  calculateGameSkillUpdate,
+  TRAINING_PLANS,
+  TrainingPlanId,
+} from "@/lib/trainingPlans";
 import { 
   GameType, 
   GameAvailability, 
@@ -381,8 +385,10 @@ function determineReasonCode(
 /**
  * Hook to record a game session completion.
  * 
- * v1.7 MANUAL-COMPLIANCE UPDATE:
- * - Skill delta = XP × 0.5 (NO score scaling)
+ * v2.0 PERFORMANCE MEASUREMENT UPDATE:
+ * - XP remains the reward/cap currency.
+ * - The routed cognitive skill is updated from the objective 0–100 score via
+ *   a conservative online estimate, not from XP.
  * - Updates only if status='completed' AND xpAwarded > 0
  * - Tracks session duration via startedAt + durationSeconds
  * - Aborted sessions recorded for analytics but don't affect metrics
@@ -392,7 +398,7 @@ function determineReasonCode(
  * - last_{skill}_xp_at - updated for the routed skill only when xpAwarded > 0
  * - last_session_at - updated for any completed session
  * 
- * Also updates the routed skill value using Δskill = XP × 0.5 (Manual-compliant)
+ * Also updates the routed skill from the session performance observation.
  * 
  * This prevents skill decay for 30 days after training that skill.
  */
@@ -627,6 +633,12 @@ export function useRecordGameSession() {
           CT: "reasoning_accuracy",
           IN: "slow_thinking",
         } as const;
+        const SKILL_TO_BASELINE_COLUMNS = {
+          AE: ["baseline_eff_focus", "baseline_focus"],
+          RA: ["baseline_eff_fast_thinking", "baseline_fast_thinking"],
+          CT: ["baseline_eff_reasoning", "baseline_reasoning"],
+          IN: ["baseline_eff_slow_thinking", "baseline_slow_thinking"],
+        } as const;
         const targetColumn = SKILL_TO_COLUMN[skillRouted];
         
         const { data: currentMetrics } = await supabase
@@ -645,19 +657,32 @@ export function useRecordGameSession() {
             last_session_at: nowUtc,
           };
           
-          // v1.7: MANUAL-COMPLIANT: Only update skills/XP timestamps if xpAwarded > 0
+          // Only one cap-eligible observation updates the long-term skill.
+          // XP and performance are deliberately separate: low performance no
+          // longer raises a skill merely because the drill was completed.
           if (effectiveXP > 0) {
-            // v1.7 BUGFIX: Remove score scaling! Delta = XP × 0.5 only (Manual-compliant)
-            const delta = effectiveXP * 0.5;
-            const newValue = Math.min(100, currentValue + delta);
+            const [effectiveBaselineColumn, fallbackBaselineColumn] = SKILL_TO_BASELINE_COLUMNS[skillRouted];
+            const baselineValue = Number(
+              currentMetrics[effectiveBaselineColumn] ??
+              currentMetrics[fallbackBaselineColumn] ??
+              50,
+            );
+            const newValue = calculateGameSkillUpdate(
+              currentValue,
+              normalizedScore,
+              baselineValue,
+            );
             
             metricsUpdate.last_xp_at = nowUtc;
             metricsUpdate[skillXpColumn] = nowUtc;
-            metricsUpdate[targetColumn] = Math.round(newValue * 10) / 10;
+            metricsUpdate[targetColumn] = newValue;
             // v1.7: Only increment total_sessions for XP-awarding sessions
             metricsUpdate.total_sessions = currentTotalSessions + 1;
             
-            console.log(`[GameSession] Skill update: ${targetColumn} ${currentValue} → ${newValue} (delta: ${delta})`);
+            console.log(
+              `[GameSession] Skill observation: ${targetColumn} ${currentValue} → ${newValue} ` +
+              `(score: ${normalizedScore}, weight: 0.12)`,
+            );
           } else {
             console.log("[GameSession] xpAwarded=0, only updating last_session_at");
           }
@@ -673,9 +698,7 @@ export function useRecordGameSession() {
             console.log(`[GameSession] Metrics updated:`, Object.keys(metricsUpdate).join(", "));
           }
         } else if (effectiveXP > 0) {
-          // v1.7 BUGFIX: Remove score scaling for initial insert too!
-          const delta = effectiveXP * 0.5;
-          const initialValue = 50 + delta;
+          const initialValue = calculateGameSkillUpdate(50, normalizedScore, 50);
           
           await supabase
             .from("user_cognitive_metrics")

@@ -7,7 +7,7 @@ Scope: the eight canonical Train drills only. Internal `game*` identifiers, rout
 
 - Every scored drill now uses one performance-sensitive XP curve: `max(9, difficultyBase × (0.30 + 0.70 × score/100))`, followed by the verified perfect bonus and the category quality bonus. The persistence boundary clamps the final award to 9–45 XP. A zero-score completion therefore earns 9 XP rather than the old full difficulty base ([trainingPlans.ts:157](../src/lib/trainingPlans.ts#L157), [useGamesGating.ts:458](../src/hooks/useGamesGating.ts#L458)).
 - Score is persisted on a 0–100 scale. The shared save boundary enforces plan, daily S1/S2 and rolling S2/IN caps before updating any cognitive skill ([useGamesGating.ts:460](../src/hooks/useGamesGating.ts#L460)).
-- Routing is singular and canonical: AE → `focus_stability`, RA → `fast_thinking`, CT → `reasoning_accuracy`, IN → `slow_thinking`; an XP-awarding session applies `delta = XP × 0.5` only to that column ([useGamesGating.ts:623](../src/hooks/useGamesGating.ts#L623)).
+- Routing is singular and canonical: AE → `focus_stability`, RA → `fast_thinking`, CT → `reasoning_accuracy`, IN → `slow_thinking`. For a cap-eligible session, the routed skill is refined from the objective score with `new = max(baseline, old + 0.12 × (score − old))`; XP remains a separate reward and load currency ([useGamesGating.ts](../src/hooks/useGamesGating.ts), [trainingPlans.ts](../src/lib/trainingPlans.ts)).
 - Content-based drills use the shared anti-repetition generator. Procedural continuous drills (Orbit Lock and Focus Switch) generate stochastic streams instead of reusable content packs.
 - All results use `UnifiedGameResults`: Session Summary, up to three KPIs, skill impact, saved XP and review. Discrete-choice drills reconstruct missed choices; the two continuous-control drills review observed performance gaps against explicit reference bands.
 - Delayed UI callbacks are cancelled on unmount through [useSafeTimeout.ts:4](../src/hooks/useSafeTimeout.ts#L4), and submission locks prevent double recording from rapid taps.
@@ -15,7 +15,7 @@ Scope: the eight canonical Train drills only. Internal `game*` identifiers, rout
 ## 1. Orbit Lock — S1 / AE
 
 1. **Status:** OK after fixes.
-2. **Logic:** Three progressively harder acts of 25/30/35 seconds; band width narrows by difficulty while drift and distraction intensity rise. Physics, act transitions and delayed effects are unmount-safe ([OrbitLockDrill.tsx:61](../src/components/games/orbit-lock/OrbitLockDrill.tsx#L61)).
+2. **Logic:** Three progressively harder acts of 25/30/35 seconds; band width narrows by difficulty while drift and distraction intensity rise. Physics, act transitions and delayed effects are unmount-safe. Act completion is guarded outside React state updaters, so Strict Mode or adjacent animation frames cannot schedule duplicate transitions ([OrbitLockDrill.tsx](../src/components/games/orbit-lock/OrbitLockDrill.tsx)).
 3. **Scoring:** `60% time-in-band + 25% smooth control + 15% distraction resistance`, bounded by normalized inputs. XP is now performance-sensitive before the AE quality bonus ([OrbitLockDrill.tsx:344](../src/components/games/orbit-lock/OrbitLockDrill.tsx#L344)).
 4. **Metrics:** Persists as S1-AE / focus / fast, including time-in-band and degradation ([OrbitLockRunner.tsx:47](../src/pages/app/OrbitLockRunner.tsx#L47)). Caps and the 9–45 clamp are applied centrally.
 5. **UI/UX:** Standard results and performance-gap review by act; no fabricated multiple-choice errors ([OrbitLockResults.tsx:75](../src/components/games/orbit-lock/OrbitLockResults.tsx#L75)).
@@ -25,7 +25,7 @@ Scope: the eight canonical Train drills only. Internal `game*` identifiers, rout
 ## 2. Focus Switch — S1 / AE
 
 1. **Status:** OK after fixes.
-2. **Logic:** Three distinct blocks (lock, inhibit, invert), 20/25/25 seconds. Difficulty adds lanes, faster switches and hard-mode lure timing. A target can be consumed only once; omissions, false alarms and post-switch actions have correct denominators.
+2. **Logic:** Three distinct blocks (lock, inhibit, invert), 20/25/25 seconds. Difficulty adds lanes, faster switches and hard-mode lure timing. A target can be consumed only once; omissions, false alarms and post-switch actions have correct denominators. Block completion is idempotent and no longer runs as a side effect of a React state updater.
 3. **Scoring:** `60% hit rate + 40% precision`, explicitly clamped to 0–100. This replaces the prior unbounded point total; perfect status additionally requires low perseveration, fast switching and no major decline ([FocusSwitchDrill.tsx:400](../src/components/games/focus-switch/FocusSwitchDrill.tsx#L400)).
 4. **Metrics:** Persists as S1-AE / focus / fast with switch latency, perseveration, post-switch error, hit rate, false-alarm rate and RT variability ([FocusSwitchRunner.tsx:47](../src/pages/app/FocusSwitchRunner.tsx#L47)).
 5. **UI/UX:** Standard results plus review of target capture, false alarms, latency and rule carry-over against transparent reference bands ([FocusSwitchResults.tsx:86](../src/components/games/focus-switch/FocusSwitchResults.tsx#L86)).

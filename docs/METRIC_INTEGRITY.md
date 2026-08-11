@@ -15,6 +15,13 @@ must consume these engines/hooks instead of recreating formulas locally.
 Effective states include inactivity decay and never fall below their effective
 baseline. The single derivation is `deriveEffectiveCognitiveStates`.
 
+For a completed, cap-eligible Train drill, the routed state is refined from the
+objective 0–100 session score with a conservative online update:
+`state_new = max(baseline, state_old + 0.12 × (score − state_old))`.
+XP remains a reward/load currency and does not directly define cognitive
+performance. Aborted drills and practice sessions beyond the XP cap are stored
+for history and Coach outcomes but do not move the persistent state.
+
 ## Formulas
 
 - `S1 = (AE + RA) / 2`

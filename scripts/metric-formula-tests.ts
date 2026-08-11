@@ -17,7 +17,7 @@ import {
   resolveRecoveryForMetrics,
 } from "../src/lib/recoveryV2";
 import { calculateRQ, calculateTaskPriming } from "../src/lib/reasoningQuality";
-import { TRAINING_PLANS } from "../src/lib/trainingPlans";
+import { calculateGameSkillUpdate, TRAINING_PLANS } from "../src/lib/trainingPlans";
 import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
 import { buildDualProcessSeries, resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
 import { metricSnapshotNeedsSave } from "../src/lib/metricSnapshotIntegrity";
@@ -29,6 +29,11 @@ const closeTo = (actual: number, expected: number, message: string) => {
 
 const states = { AE: 80, RA: 60, CT: 70, IN: 50 };
 assert.deepEqual(calculateSystemScores(states), { S1: 70, S2: 60 });
+
+closeTo(calculateGameSkillUpdate(50, 100, 50), 56, "Strong drill performance raises the routed skill gradually");
+closeTo(calculateGameSkillUpdate(80, 20, 50), 72.8, "Weak drill performance lowers an elevated skill gradually");
+closeTo(calculateGameSkillUpdate(50, 0, 50), 50, "Drill performance never pushes a skill below its baseline");
+closeTo(calculateGameSkillUpdate(64, 64, 50), 64, "Matching performance leaves the skill stable");
 
 closeTo(calculateSharpness(states, 0), 49.5, "Sharpness at zero Recovery");
 closeTo(calculateSharpness(states, 50), 57.8, "Sharpness at mid Recovery");
