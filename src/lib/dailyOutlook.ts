@@ -25,6 +25,13 @@ export interface DailyOutlookHealthSignals {
   sources: string[];
 }
 
+export interface DailyOutlookPreviousMetrics {
+  sharpness: number | null;
+  readiness: number | null;
+  recovery: number | null;
+  reasoningQuality: number | null;
+}
+
 export interface DailyOutlookBehaviorContext {
   metricTrendPerDay: number | null;
   cognitiveActivityDays7d: number | null;
@@ -87,6 +94,7 @@ export interface DailyOutlookInput {
   primaryOutcome?: "decide" | "focus" | "reason" | null;
   workType?: string | null;
   behaviorContext?: Partial<DailyOutlookBehaviorContext> | null;
+  previousMetrics?: Partial<DailyOutlookPreviousMetrics> | null;
   canPersonalize: boolean;
   rhythm?: {
     status: "learning" | "emerging" | "reliable";
@@ -250,6 +258,30 @@ function buildCoachBasis(
   };
 }
 
+function previousDaySentence(input: DailyOutlookInput): string {
+  const previous = input.previousMetrics;
+  if (!previous) return "";
+  const entries: Array<{ label: string; delta: number }> = [
+    { label: "Recovery", delta: dayDelta(input.recovery, previous.recovery) ?? Number.NaN },
+    { label: "Readiness", delta: dayDelta(input.readiness, previous.readiness) ?? Number.NaN },
+    { label: "Sharpness", delta: dayDelta(input.sharpness, previous.sharpness) ?? Number.NaN },
+    { label: "Reasoning", delta: dayDelta(input.reasoningQuality, previous.reasoningQuality) ?? Number.NaN },
+  ].filter((entry) => Number.isFinite(entry.delta));
+  if (entries.length === 0) return "";
+
+  const moved = entries
+    .filter((entry) => Math.abs(entry.delta) >= 2)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, 2);
+  if (moved.length === 0) {
+    return "Compared with yesterday your state is essentially unchanged, so today's guidance continues the same line.";
+  }
+  const described = moved
+    .map((entry) => `${entry.label} ${entry.delta > 0 ? "up" : "down"} ${Math.abs(entry.delta)}`)
+    .join(" and ");
+  return `Compared with yesterday, ${described}, and today's recommendation accounts for that shift.`;
+}
+
 function coachSummary(
   stateInterpretation: string,
   input: DailyOutlookInput,
@@ -259,12 +291,14 @@ function coachSummary(
   const basis = buildCoachBasis(input, intensity);
   return [
     stateInterpretation,
+    previousDaySentence(input),
     basis.goalGuidance,
     healthContextSentence(input.healthSignals),
     basis.patternInsight,
     nextMove,
   ].filter(Boolean).join(" ");
 }
+
 
 function metricTone(value: number, supportiveAt = 60, limitingBelow = 45): DailyOutlookTone {
   if (value >= supportiveAt) return "support";
@@ -312,34 +346,50 @@ function confidenceLabel(confidence: number): DailyOutlook["confidenceLabel"] {
   return "Baseline";
 }
 
+function dayDelta(current: number, previous: number | null | undefined): number | null {
+  const prior = finite(previous ?? null);
+  if (prior === null) return null;
+  const delta = roundedScore(current) - roundedScore(prior);
+  return Number.isFinite(delta) ? delta : null;
+}
+
+function metricDetail(current: number, previous: number | null | undefined): string {
+  const delta = dayDelta(current, previous);
+  if (delta === null) return `${roundedScore(current)} today`;
+  if (delta === 0) return `${roundedScore(current)} today · flat vs yesterday`;
+  return `${roundedScore(current)} today · ${delta > 0 ? "+" : ""}${delta} vs yesterday`;
+}
+
 function buildEvidence(input: DailyOutlookInput): DailyOutlookEvidence[] {
   const healthSignals = normalizeHealthSignals(input.healthSignals);
+  const previous = input.previousMetrics ?? null;
   const evidence: DailyOutlookEvidence[] = [
     {
       code: "REC",
       label: "Recovery",
-      detail: `${roundedScore(input.recovery)} today`,
+      detail: metricDetail(input.recovery, previous?.recovery),
       tone: metricTone(input.recovery, 60, 45),
     },
     {
       code: "RDY",
       label: "Readiness",
-      detail: `${roundedScore(input.readiness)} today`,
+      detail: metricDetail(input.readiness, previous?.readiness),
       tone: metricTone(input.readiness, 65, 45),
     },
     {
       code: "SHP",
       label: "Sharpness",
-      detail: `${roundedScore(input.sharpness)} today`,
+      detail: metricDetail(input.sharpness, previous?.sharpness),
       tone: metricTone(input.sharpness, 65, 45),
     },
     {
       code: "RQ",
       label: "Reasoning",
-      detail: `${roundedScore(input.reasoningQuality)} today`,
+      detail: metricDetail(input.reasoningQuality, previous?.reasoningQuality),
       tone: metricTone(input.reasoningQuality, 65, 45),
     },
   ];
+
 
   const healthScore = finite(input.healthScore);
   if (healthScore !== null) {
