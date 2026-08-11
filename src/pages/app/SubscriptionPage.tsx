@@ -170,10 +170,6 @@ export default function SubscriptionPage() {
       <div className="mx-auto w-full max-w-4xl px-5 pb-14 pt-8 sm:pt-12">
         <header className="mx-auto max-w-xl text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">LOOMA Membership</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Choose your cognitive system.</h1>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Automatic state tracking is free. Membership adds structure, depth and adaptation.
-          </p>
           <div className="mt-5 inline-flex rounded-full border border-border/50 bg-card/50 p-1">
             {(["annual", "monthly"] as SelectedInterval[]).map((value) => (
               <button
