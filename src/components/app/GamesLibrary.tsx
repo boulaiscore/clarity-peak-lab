@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, Lock, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
@@ -70,6 +70,87 @@ const SYSTEMS = [
     ],
   },
 ];
+
+function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
+  const reduceMotion = useReducedMotion();
+  const isFast = system === "fast";
+
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-0 h-[102px] overflow-hidden" aria-hidden="true">
+      <motion.img
+        src={isFast ? s1Bg : s2Bg}
+        alt=""
+        className={cn(
+          "absolute inset-0 h-full w-full object-cover",
+          isFast
+            ? "opacity-75 saturate-125 contrast-110"
+            : "opacity-70 grayscale contrast-125 brightness-110",
+        )}
+        animate={reduceMotion
+          ? undefined
+          : isFast
+            ? { scale: [1, 1.045, 1], filter: ["brightness(0.92) saturate(1.1)", "brightness(1.25) saturate(1.4)", "brightness(0.92) saturate(1.1)"] }
+            : { scale: [1, 1.012, 1] }}
+        transition={reduceMotion
+          ? undefined
+          : isFast
+            ? { duration: 1.15, repeat: Infinity, ease: "easeInOut" }
+            : { duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {isFast ? (
+        <>
+          <motion.div
+            className="absolute left-[20%] top-[18%] h-14 w-24 rounded-full bg-amber-300/25 blur-xl"
+            animate={reduceMotion ? undefined : { opacity: [0.22, 0.72, 0.22], scale: [0.86, 1.18, 0.86] }}
+            transition={reduceMotion ? undefined : { duration: 1.15, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 180 102" fill="none">
+            <motion.path
+              d="M10 67 L35 52 L53 57 L76 31 L95 48 L119 24 L145 35 L169 17"
+              stroke="rgba(255,211,94,0.9)"
+              strokeWidth="1.15"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.38 : 0 }}
+              animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0, 0.9, 0] }}
+              transition={reduceMotion ? undefined : { duration: 1.35, repeat: Infinity, ease: "easeOut" }}
+            />
+            <motion.path
+              d="M22 20 L47 34 L66 23 L87 39 L109 28 L134 45 L160 37"
+              stroke="rgba(255,244,190,0.65)"
+              strokeWidth="0.75"
+              strokeLinecap="round"
+              initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.28 : 0 }}
+              animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0, 0.65, 0] }}
+              transition={reduceMotion ? undefined : { duration: 1.65, repeat: Infinity, delay: 0.35, ease: "easeOut" }}
+            />
+          </svg>
+        </>
+      ) : (
+        <>
+          {[0, 1, 2].map((ring) => (
+            <motion.span
+              key={ring}
+              className="absolute left-1/2 top-[46%] -ml-5 -mt-5 h-10 w-10 rounded-full border border-white/20"
+              initial={{ opacity: reduceMotion ? 0.18 : 0.42, scale: reduceMotion ? 1 + ring * 0.32 : 0.72 }}
+              animate={reduceMotion ? undefined : { opacity: [0.42, 0.08, 0.42], scale: [0.72, 1.75, 0.72] }}
+              transition={reduceMotion ? undefined : { duration: 4.8, repeat: Infinity, delay: ring * 1.1, ease: "easeInOut" }}
+            />
+          ))}
+          <motion.div
+            className="absolute inset-y-2 w-px bg-gradient-to-b from-transparent via-white/65 to-transparent shadow-[0_0_14px_rgba(255,255,255,0.28)]"
+            initial={{ x: reduceMotion ? 90 : 18, opacity: reduceMotion ? 0.35 : 0 }}
+            animate={reduceMotion ? undefined : { x: [18, 160, 18], opacity: [0.08, 0.5, 0.08] }}
+            transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0b0d10] via-black/20 to-transparent" />
+    </div>
+  );
+}
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
@@ -165,32 +246,34 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       </div>
 
 
-      {/* System selector — original S1 / S2 brain imagery */}
+      {/* System selector — distinct motion languages for fast and deliberate processing */}
       <div className="grid grid-cols-2 gap-3">
         {SYSTEMS.map((system) => {
           const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
           const isOpen = openSystem === system.id;
-          const background = system.id === "fast" ? s1Bg : s2Bg;
+          const isFast = system.id === "fast";
           return (
             <button
               key={system.id}
               onClick={() => handleSystemToggle(system.id)}
+              aria-expanded={isOpen}
               className={cn(
-                "group relative flex min-h-[138px] w-full flex-col items-center justify-end overflow-hidden rounded-2xl border p-4 text-center transition-all",
+                "group relative flex min-h-[154px] w-full flex-col items-center justify-end overflow-hidden rounded-2xl border bg-[#0b0d10] p-4 text-center transition-all duration-300",
                 isOpen
-                  ? "border-foreground/30"
+                  ? isFast
+                    ? "border-amber-300/45 shadow-[0_0_22px_rgba(245,184,52,0.08)]"
+                    : "border-white/30 shadow-[0_0_22px_rgba(255,255,255,0.045)]"
                   : "border-border/30 hover:border-border/60"
               )}
             >
-              <img
-                src={background}
-                alt={`${system.label} brain`}
-                className="absolute inset-0 h-full w-full object-cover opacity-65 transition-all duration-300 group-hover:scale-105 group-hover:opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/5" />
+              <SystemBrainVisual system={system.id} />
 
               <div className="absolute left-3 top-3 z-10">
-                <Icon className="h-4 w-4" color="rgba(255,255,255,0.9)" strokeWidth={1.4} />
+                <Icon
+                  className="h-4 w-4"
+                  color={isFast ? "rgba(255,211,94,0.95)" : "rgba(255,255,255,0.82)"}
+                  strokeWidth={1.4}
+                />
               </div>
 
               <ChevronDown
@@ -203,7 +286,13 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               <div className="relative z-10">
                 <p className="text-sm font-semibold tracking-tight text-white">{system.label}</p>
                 <p className="mt-0.5 text-[10px] text-white/70">
-                  {system.id === "fast" ? "Fast · intuitive" : "Slow · analytical"}
+                  {isFast ? "Fast · intuitive" : "Slow · analytical"}
+                </p>
+                <p className={cn(
+                  "mt-1.5 text-[8px] font-semibold uppercase tracking-[0.18em]",
+                  isFast ? "text-amber-300/80" : "text-white/48",
+                )}>
+                  {isFast ? "Pattern · react" : "Weigh · reason"}
                 </p>
               </div>
             </button>
