@@ -76,33 +76,37 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
   const isFast = system === "fast";
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 h-[102px] overflow-hidden" aria-hidden="true">
+    <div className="pointer-events-none relative h-[64px] w-[116px] shrink-0 overflow-hidden" aria-hidden="true">
       <motion.img
         src={isFast ? s1Bg : s2Bg}
         alt=""
         className={cn(
-          "absolute inset-0 h-full w-full object-cover",
+          "absolute inset-0 h-full w-full object-cover object-center",
           isFast
-            ? "opacity-75 saturate-125 contrast-110"
-            : "opacity-75 saturate-125 contrast-110",
+            ? "opacity-[0.78] saturate-[1.18] contrast-110"
+            : "opacity-[0.72] saturate-[1.16] contrast-110",
         )}
+        style={{
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 42%, transparent 82%)",
+          maskImage: "radial-gradient(ellipse at center, black 42%, transparent 82%)",
+        }}
         animate={reduceMotion
           ? undefined
           : isFast
-            ? { scale: [1, 1.045, 1], filter: ["brightness(0.92) saturate(1.1)", "brightness(1.25) saturate(1.4)", "brightness(0.92) saturate(1.1)"] }
-            : { scale: [1, 1.025, 1], filter: ["brightness(0.82) saturate(1.05)", "brightness(1.16) saturate(1.3)", "brightness(0.82) saturate(1.05)"] }}
+            ? { scale: [0.96, 1.025, 0.96], filter: ["brightness(0.9) saturate(1.08)", "brightness(1.2) saturate(1.3)", "brightness(0.9) saturate(1.08)"] }
+            : { scale: [0.97, 1.015, 0.97], filter: ["brightness(0.86) saturate(1.06)", "brightness(1.12) saturate(1.22)", "brightness(0.86) saturate(1.06)"] }}
         transition={reduceMotion
           ? undefined
           : isFast
             ? { duration: 1.15, repeat: Infinity, ease: "easeInOut" }
             : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0b0d10] via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_38%,#0b0d10_92%)]" />
 
       {isFast ? (
         <>
           <motion.div
-            className="absolute left-[20%] top-[18%] h-14 w-24 rounded-full bg-amber-300/25 blur-xl"
+            className="absolute left-[24%] top-[22%] h-9 w-16 rounded-full bg-amber-300/20 blur-lg"
             animate={reduceMotion ? undefined : { opacity: [0.22, 0.72, 0.22], scale: [0.86, 1.18, 0.86] }}
             transition={reduceMotion ? undefined : { duration: 1.15, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -131,7 +135,7 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
       ) : (
         <>
           <motion.div
-            className="absolute left-[24%] top-[16%] h-14 w-24 rounded-full bg-violet-400/20 blur-xl"
+            className="absolute left-[27%] top-[20%] h-9 w-16 rounded-full bg-violet-400/18 blur-lg"
             animate={reduceMotion ? undefined : { opacity: [0.18, 0.58, 0.18], scale: [0.9, 1.12, 0.9] }}
             transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -309,42 +313,47 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               onClick={() => handleSystemToggle(system.id)}
               aria-expanded={isOpen}
               className={cn(
-                "group relative flex min-h-[154px] w-full flex-col items-center justify-end overflow-hidden rounded-2xl border bg-[#0b0d10] p-4 text-center transition-all duration-300",
+                "group relative h-[168px] w-full overflow-hidden rounded-[18px] border bg-[#0b0d10] p-4 text-left transition-all duration-200",
                 isOpen
-                  ? isFast
-                    ? "border-amber-300/45 shadow-[0_0_22px_rgba(245,184,52,0.08)]"
-                    : "border-violet-300/45 shadow-[0_0_22px_rgba(139,92,246,0.1)]"
-                  : "border-border/30 hover:border-border/60"
+                  ? "border-white/[0.22] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
+                  : "border-white/[0.09] hover:border-white/[0.2]"
               )}
             >
-              <SystemBrainVisual system={system.id} />
+              <div className="relative flex h-full flex-col">
+                <div className="flex h-4 shrink-0 items-start justify-between">
+                  <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-white/60">
+                    {system.label}
+                  </span>
+                  <Icon
+                    className="h-3.5 w-3.5 shrink-0"
+                    color={isFast ? "rgba(255,211,94,0.9)" : "rgba(216,201,255,0.88)"}
+                    strokeWidth={1.35}
+                  />
+                </div>
 
-              <div className="absolute left-3 top-3 z-10">
-                <Icon
-                  className="h-4 w-4"
-                  color={isFast ? "rgba(255,211,94,0.95)" : "rgba(216,201,255,0.92)"}
-                  strokeWidth={1.4}
-                />
-              </div>
+                <div className="flex min-h-0 flex-1 items-center justify-center">
+                  <SystemBrainVisual system={system.id} />
+                </div>
 
-              <ChevronDown
-                className={cn(
-                  "absolute right-3 top-3 z-10 h-3.5 w-3.5 text-white/60 transition-transform",
-                  isOpen && "rotate-180",
-                )}
-              />
-
-              <div className="relative z-10">
-                <p className="text-sm font-semibold tracking-tight text-white">{system.label}</p>
-                <p className="mt-0.5 text-[10px] text-white/70">
-                  {isFast ? "Fast · intuitive" : "Slow · analytical"}
-                </p>
-                <p className={cn(
-                  "mt-1.5 text-[8px] font-semibold uppercase tracking-[0.18em]",
-                  isFast ? "text-amber-300/80" : "text-violet-200/75",
-                )}>
-                  {isFast ? "Pattern · react" : "Analyze · reason"}
-                </p>
+                <div className="h-[52px] shrink-0 border-t border-white/[0.055] pt-2.5">
+                  <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-white">
+                    {isFast ? "Fast · intuitive" : "Slow · analytical"}
+                  </p>
+                  <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
+                    <p className={cn(
+                      "min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none",
+                      isFast ? "text-amber-300/75" : "text-violet-200/70",
+                    )}>
+                      {isFast ? "Pattern · react" : "Analyze · reason"}
+                    </p>
+                    <ChevronDown
+                      className={cn(
+                        "h-3.5 w-3.5 shrink-0 text-white/45 transition-transform",
+                        isOpen && "rotate-180",
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
             </button>
           );
