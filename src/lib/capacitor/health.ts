@@ -174,7 +174,7 @@ export async function checkPermissions(): Promise<HealthResult<HealthPermissionS
 /**
  * Request permissions to read health data
  */
-export async function requestPermissions(): Promise<HealthResult<boolean>> {
+export async function requestPermissions(): Promise<HealthResult<HealthPermissionStatus>> {
   if (!isNativePlatform()) {
     return {
       success: false,
@@ -187,7 +187,10 @@ export async function requestPermissions(): Promise<HealthResult<boolean>> {
     const result = await HealthPlugin.requestPermissions();
     return {
       success: true,
-      data: [result.granted],
+      // The native permission activity already resolves with the authoritative
+      // per-signal status. Preserve it instead of immediately polling Android
+      // again, which can briefly return the previous state on app resume.
+      data: [result.permissions],
     };
   } catch (error) {
     console.error("[Health] Error requesting permissions:", error);
