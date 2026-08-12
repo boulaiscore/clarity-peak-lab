@@ -335,15 +335,15 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               onClick={() => handleSystemToggle(system.id)}
               aria-expanded={isOpen}
               className={cn(
-                "group relative h-[168px] w-full overflow-hidden rounded-[20px] border bg-card/40 p-4 text-left transition-all duration-200",
+                "group relative h-[168px] w-full overflow-hidden rounded-2xl border bg-gradient-to-b from-card/90 to-card/55 p-4 text-left transition-all duration-200",
                 isOpen
-                  ? "border-foreground/20 bg-card/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                  : "border-border/40 hover:border-border/70 hover:bg-card/55"
+                  ? "border-foreground/25 from-card to-card/75 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  : "border-border/50 hover:border-border/75 hover:from-card hover:to-card/70"
               )}
             >
               <div className="relative flex h-full flex-col">
                 <div className="flex h-4 shrink-0 items-start justify-between">
-                  <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-white/60">
+                  <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">
                     {system.label}
                   </span>
                   <Icon
@@ -357,8 +357,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   <SystemBrainVisual system={system.id} />
                 </div>
 
-                <div className="h-[52px] shrink-0 border-t border-white/[0.055] pt-2.5">
-                  <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-white">
+                <div className="h-[52px] shrink-0 border-t border-border/35 pt-2.5">
+                  <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-foreground">
                     {isFast ? "Fast · intuitive" : "Slow · analytical"}
                   </p>
                   <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
@@ -370,7 +370,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                     </p>
                     <ChevronDown
                       className={cn(
-                        "h-3.5 w-3.5 shrink-0 text-white/45 transition-transform",
+                        "h-3.5 w-3.5 shrink-0 text-foreground/45 transition-transform",
                         isOpen && "rotate-180",
                       )}
                     />
