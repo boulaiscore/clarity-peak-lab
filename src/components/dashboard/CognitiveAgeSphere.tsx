@@ -96,8 +96,8 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
   return (
     <div
-      className="overflow-hidden rounded-[18px]"
-      style={{ background: `radial-gradient(ellipse at center, ${secondaryAccent.replace(")", "/ 0.09)")}, transparent 69%)` }}
+      className="overflow-hidden rounded-[18px] bg-[radial-gradient(ellipse_at_center,hsl(var(--sphere-secondary))_/_0.09,transparent_69%)]"
+      style={{ ["--sphere-accent" as string]: accent, ["--sphere-secondary" as string]: secondaryAccent }}
     >
       <div className="relative h-[252px] w-full">
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
