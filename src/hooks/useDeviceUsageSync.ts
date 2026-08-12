@@ -79,6 +79,9 @@ export function useDeviceUsageSync(): void {
           activeAppCount: number;
           lastAttentionUseAt: string | null;
           confidence: number;
+          attentionSessionCount: number | null;
+          attentionSwitchCount: number | null;
+          briefSessionCount: number | null;
         };
         if (isNativeIos()) {
           const nativeAggregate = await IosDeviceUsage.getUsageAggregate();
@@ -89,6 +92,9 @@ export function useDeviceUsageSync(): void {
               ? new Date(nativeAggregate.lastAttentionUseAt).toISOString()
               : null,
             confidence: nativeAggregate.confidence,
+            attentionSessionCount: nativeAggregate.attentionSessionCount,
+            attentionSwitchCount: nativeAggregate.attentionSwitchCount,
+            briefSessionCount: nativeAggregate.briefSessionCount,
           };
         } else {
           try {
@@ -100,6 +106,9 @@ export function useDeviceUsageSync(): void {
                 ? new Date(nativeAggregate.lastAttentionUseAt).toISOString()
                 : null,
               confidence: 0.85,
+              attentionSessionCount: nativeAggregate.attentionSessionCount,
+              attentionSwitchCount: nativeAggregate.attentionSwitchCount,
+              briefSessionCount: nativeAggregate.briefSessionCount,
             };
           } catch {
             const fallback = aggregateAttentionUsage((await AppBlocker.getUsageStats()).stats);
@@ -117,6 +126,9 @@ export function useDeviceUsageSync(): void {
             attention_usage_min: aggregate.attentionUsageMin,
             active_app_count: aggregate.activeAppCount,
             last_attention_use_at: aggregate.lastAttentionUseAt,
+            attention_session_count: aggregate.attentionSessionCount,
+            attention_switch_count: aggregate.attentionSwitchCount,
+            brief_session_count: aggregate.briefSessionCount,
             permission_state: "granted",
             confidence: aggregate.confidence,
           }, { onConflict: "user_id,snapshot_date,source" });

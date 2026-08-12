@@ -69,6 +69,9 @@ function parseDeviceUsage(value: unknown): PassiveDeviceUsagePoint[] {
       date,
       attentionUsageMin: numberValue(row.attention_usage_min),
       activeAppCount: numberValue(row.active_app_count),
+      attentionSessionCount: numberValue(row.attention_session_count),
+      attentionSwitchCount: numberValue(row.attention_switch_count),
+      briefSessionCount: numberValue(row.brief_session_count),
       lastAttentionUseAt: stringValue(row.last_attention_use_at),
       permissionState,
       confidence: numberValue(row.confidence),
@@ -219,7 +222,7 @@ export function useAdaptivePassiveFeatures(
           .limit(1500),
         looseSupabase
           .from("device_usage_snapshots")
-          .select("snapshot_date, source, coverage, attention_usage_min, active_app_count, last_attention_use_at, permission_state, confidence")
+          .select("snapshot_date, source, coverage, attention_usage_min, active_app_count, attention_session_count, attention_switch_count, brief_session_count, last_attention_use_at, permission_state, confidence")
           .eq("user_id", userId)
           .gte("snapshot_date", sinceDate)
           .order("snapshot_date", { ascending: true })

@@ -49,6 +49,8 @@ export interface UseReasoningQualityResult {
   s2CoreContribution: number;
   s2ConsistencyContribution: number;
   taskPrimingContribution: number;
+  decayAdjustment: number;
+  decayFloorApplied: boolean;
   
   // Task priming breakdown by type
   taskBreakdown: TaskBreakdown;
@@ -286,6 +288,8 @@ export function useReasoningQuality(): UseReasoningQualityResult {
         s2CoreContribution: 25,
         s2ConsistencyContribution: 15,
         taskPrimingContribution: 0,
+        decayAdjustment: 0,
+        decayFloorApplied: false,
         decay: 0,
         isDecaying: false,
       };

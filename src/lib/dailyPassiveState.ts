@@ -14,6 +14,10 @@ export interface PassiveSignalInput {
 export interface PassiveSignalSource extends PassiveSignalInput {
   weight: number;
   status: PassiveSignalStatus;
+  /** Observed share of the final Daily State after confidence renormalization. */
+  effectiveWeight: number;
+  /** Exact additive point contribution to Daily State. */
+  scoreContribution: number;
 }
 
 export interface DailyPassiveState {
@@ -72,7 +76,7 @@ function coverageLevel(coverage: number): SignalCoverageLevel {
  */
 export function buildDailyPassiveState(inputs: PassiveSignalInput[]): DailyPassiveState {
   const byId = new Map(inputs.map((input) => [input.id, input]));
-  const sources = (Object.keys(PASSIVE_SIGNAL_WEIGHTS) as PassiveSignalId[]).map((id) => {
+  const rawSources = (Object.keys(PASSIVE_SIGNAL_WEIGHTS) as PassiveSignalId[]).map((id) => {
     const input = byId.get(id);
     const score = finite(input?.score);
     const confidence = score === null ? 0 : clamp(input?.confidence ?? 0, 0, 1);
@@ -84,18 +88,28 @@ export function buildDailyPassiveState(inputs: PassiveSignalInput[]): DailyPassi
       updatedAt: input?.updatedAt ?? null,
       weight: PASSIVE_SIGNAL_WEIGHTS[id],
       status: sourceStatus(confidence),
-    } satisfies PassiveSignalSource;
+    };
   });
 
-  const coverage = sources.reduce(
+  const coverage = rawSources.reduce(
     (sum, source) => sum + source.weight * source.confidence,
     0,
   );
-  const weightedScore = sources.reduce(
+  const weightedScore = rawSources.reduce(
     (sum, source) => sum + source.weight * source.confidence * (source.score ?? 50),
     0,
   );
   const score = coverage > 0 ? weightedScore / coverage : 50;
+  const sources: PassiveSignalSource[] = rawSources.map((source) => {
+    const effectiveWeight = coverage > 0
+      ? source.weight * source.confidence / coverage
+      : 0;
+    return {
+      ...source,
+      effectiveWeight: Math.round(effectiveWeight * 10_000) / 10_000,
+      scoreContribution: Math.round(effectiveWeight * (source.score ?? 50) * 10) / 10,
+    };
+  });
   const timestamps = sources
     .map((source) => source.updatedAt)
     .filter((value): value is string => value !== null)

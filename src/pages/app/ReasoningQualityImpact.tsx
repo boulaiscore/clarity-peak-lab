@@ -38,6 +38,8 @@ export default function ReasoningQualityImpact() {
     taskPrimingContribution,
     s2SessionCount,
     decay,
+    decayAdjustment,
+    decayFloorApplied,
     isDecaying,
     taskBreakdown,
     isLoading,
@@ -113,13 +115,15 @@ export default function ReasoningQualityImpact() {
         id: "decay",
         code: "DECAY",
         name: "Inactivity Adjustment",
-        value: `${decay.toFixed(1)} pts`,
+        value: decayFloorApplied ? "Floor applied" : `${decay.toFixed(1)} pts`,
         weight: "−2/week",
-        contribution: -decay,
+        contribution: decayAdjustment,
         window: "After 14 inactive days",
         description: "Applied when neither S2 training nor deliberate tasks are recorded.",
-        tone: "negative",
-        note: "The adjustment begins after 14 days without relevant activity and cannot reduce RQ below S2 Core minus 10 points.",
+        tone: decayAdjustment < 0 ? "negative" : "muted",
+        note: decayFloorApplied
+          ? `The inactivity rule is ${decay.toFixed(1)} points, but the S2 Core protection floor limits today's exact adjustment to ${Math.abs(decayAdjustment).toFixed(1)} points.`
+          : `The adjustment begins after 14 days without relevant activity. Today's exact contribution is ${decayAdjustment.toFixed(1)} points.`,
       });
     }
 
@@ -129,6 +133,8 @@ export default function ReasoningQualityImpact() {
     IN,
     consistencyIsEstimated,
     decay,
+    decayAdjustment,
+    decayFloorApplied,
     isDecaying,
     s2Consistency,
     s2ConsistencyContribution,

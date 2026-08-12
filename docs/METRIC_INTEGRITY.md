@@ -44,6 +44,7 @@ for history and Coach outcomes but do not move the persistent state.
   not counted a second time. The long window is 180 days and the short window
   is 30 calendar days; missing days do not silently extend either window.
 - `Cognitive Age = chronological age − ((Performance180d − personal baseline) / 10) × RQ multiplier + regression/inactivity overlays`, capped to ±15 years. It remains equal to chronological age until the personal baseline is calibrated. The daily edge function is the only server calculator; the legacy weekly endpoint delegates to it.
+- The Reasoning Quality inactivity floor can limit a negative adjustment but can never raise the current base score. The UI displays the exact floor-limited adjustment, so its factor contributions sum to RQ.
 
 `REC` is Recovery v2 everywhere: the persisted value closes 65% of the gap
 toward the current Health target once per calendar day, then Detox/Walking
@@ -51,8 +52,10 @@ gains are applied. The target uses confidence-blended Phone Health and adds up
 to 50% wearable physiology influence as wearable coverage becomes complete.
 When Phone Health is absent, wearable physiology instead blends from neutral 50
 in direct proportion to its observed coverage; without either source it is 50.
-`calculateDailyRecoveryTargetBreakdown` is the single explainability source for
-the headline and both Recovery detail surfaces. SCI does not calculate a second weekly Recovery
+`calculateDailyRecoveryTargetBreakdown` and `calculateCurrentRecoveryBreakdown`
+are the single explainability sources for the target and displayed state. Detox
+and Walking history is already embedded in persisted REC and must never be
+added a second time by a detail screen. SCI does not calculate a second weekly Recovery
 approximation. When Phone Health already contains sleep duration, wearable
 context excludes that same duration observation; HRV, resting HR and sleep
 efficiency remain distinct inputs. Live, gating, intraday and historical paths
@@ -71,11 +74,16 @@ Cognitive Age.
 
 - Health contributes 30% of possible coverage (sleep, consistency and movement).
 - Wearable contributes 35% (HRV, resting heart rate, sleep duration and efficiency).
-- Attention contributes 20% (aggregate attention-app minutes and active-app count).
+- Digital context contributes 20%. New Android snapshots combine 50% aggregate
+  attention-app duration with 50% fragmentation. Fragmentation is the equal
+  mean of session frequency, transitions back after another app, and sessions
+  lasting at most two minutes. Every input is compared with the person’s own
+  prior-day median. Older/iOS snapshots fall back to 75% duration and 25%
+  aggregate active-app diversity until native fragmentation counts are present.
 - Schedule contributes 15% (busy minutes and meeting density).
 - Wearable inputs degrade partially: available signal weights are renormalized
   and missing weights reduce confidence instead of disabling wearable mode.
-- Attention and schedule are evaluated against the user's own rolling median.
+- Digital context and schedule are evaluated against the user's own rolling median.
   A partially elapsed day cannot create an artificial positive score; only
   load above baseline reduces their neutral state value of 50.
 - The Daily State score uses only observed sources. `coverage` is the weighted
@@ -83,8 +91,8 @@ Cognitive Age.
   State may replace the app-only formula.
 - Coverage labels are Basic below 35%, Enhanced from 35% to 74%, and High from
   75%. These labels describe input coverage, not medical or predictive accuracy.
-- App names, domains, content, calendar titles, attendees and locations are
-  never part of these inputs or stored in the cloud.
+- App names, transition sequences, domains, content, calendar titles, attendees
+  and locations are never stored in the cloud. Only daily counts and minutes leave the device.
 
 ## Update and cloud contract
 
@@ -123,7 +131,7 @@ Cognitive Age.
   captured use precedes that day's first outcome; otherwise it is treated as
   missing to prevent within-day future leakage.
 - Atomic sleep duration, sleep consistency, sleep efficiency, HRV, resting HR,
-  activity, aggregate attention load and aggregate schedule load are the
+  activity, aggregate attention load, digital fragmentation and aggregate schedule load are the
   contextual features. Sleep duration is selected once across Health and
   wearable sources. HRV and resting HR do not receive population-wide absolute
   scores and enter only after at least five prior readings establish a robust
@@ -144,7 +152,10 @@ Cognitive Age.
 - Every primary metric uses the same 0–100 ring, integer display, navigation,
   spacing, and factor-card structure.
 - Factor cards always expose canonical code, value, weight or rule, exact score
-  impact, and the data window behind the value.
+  impact, and the data window behind the value. Sharpness and Readiness cards
+  consume their canonical engine breakdowns; components must not reconstruct
+  modifiers. Daily State sources expose confidence-renormalized effective
+  weights and contributions that sum to the displayed Daily State.
 - Canonical labels are AE — Attentional Efficiency, RA — Rapid Association,
   CT — Critical Thinking, IN — Insight, S1 — Fast Processing, S2 — Deliberate
   Reasoning, REC — Recovery, and RQ — Reasoning Quality.
@@ -164,8 +175,8 @@ Cognitive Age.
 - The Lab recommendation uses `deriveDailyCognitiveState`; other surfaces must
   not recreate a conflicting recommendation from the same inputs.
 - The recommendation can read canonical Readiness, Recovery, Sharpness and RQ,
-  plus privacy-safe Health, attention-load and schedule-load aggregates.
-- Attention and schedule loads are ratios against the user's own rolling
+  plus privacy-safe Health, attention-load, fragmentation and schedule-load aggregates.
+- Digital and schedule loads are ratios against the user's own rolling
   baseline. Raw app names, event titles and content never enter the rule.
 - Daily Outlook is a textual metric briefing, not a timer generator. Every
   recommendation exposes the exact source metric and value; generic work-block
@@ -173,7 +184,7 @@ Cognitive Age.
   navigation CTA, while steady/strong states remain guidance rather than a new
   task to complete.
 - Recommendation priority is conservative: limited recovery first, then high
-  attention or schedule load, then demanding-work readiness, trainable
+  digital fragmentation, attention duration or schedule load, then demanding-work readiness, trainable
   Sharpness/RQ opportunities, and finally the steady default.
 - Home keeps its canonical metric rings and Recovery presentation unchanged.
   A single compact coverage row may disclose source status and freshness;

@@ -2,6 +2,7 @@ package com.neurolooplabs.looma.plugins
 
 import android.app.AppOpsManager
 import android.app.usage.UsageStats
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -235,6 +236,9 @@ class AppBlockerPlugin : Plugin() {
             result.put("attentionUsageMin", 0)
             result.put("activeAppCount", 0)
             result.put("lastAttentionUseAt", null)
+            result.put("attentionSessionCount", null)
+            result.put("attentionSwitchCount", null)
+            result.put("briefSessionCount", null)
             call.resolve(result)
             return
         }
@@ -270,10 +274,62 @@ class AppBlockerPlugin : Plugin() {
             }
         }
 
+        // UsageEvents stays entirely on-device. We persist only three daily
+        // counts: attention sessions, transitions back into an attention app,
+        // and sessions lasting at most two minutes. No package sequence leaves
+        // the plugin.
+        val usageEvents = usageStatsManager.queryEvents(startTime, endTime)
+        val event = UsageEvents.Event()
+        val activeStarts = mutableMapOf<String, Long>()
+        var foregroundPackage: String? = null
+        var lastForegroundPackage: String? = null
+        var hasSeenAttentionSession = false
+        var attentionSessionCount = 0
+        var attentionSwitchCount = 0
+        var briefSessionCount = 0
+
+        while (usageEvents.hasNextEvent()) {
+            usageEvents.getNextEvent(event)
+            val packageName = event.packageName ?: continue
+            val isForeground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                event.eventType == UsageEvents.Event.ACTIVITY_RESUMED
+            } else {
+                event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND
+            }
+            val isBackground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                event.eventType == UsageEvents.Event.ACTIVITY_PAUSED
+            } else {
+                event.eventType == UsageEvents.Event.MOVE_TO_BACKGROUND
+            }
+
+            if (isForeground) {
+                if (socialAppPackages.contains(packageName) && foregroundPackage != packageName) {
+                    attentionSessionCount += 1
+                    if (hasSeenAttentionSession && lastForegroundPackage != null && lastForegroundPackage != packageName) {
+                        attentionSwitchCount += 1
+                    }
+                    hasSeenAttentionSession = true
+                    activeStarts[packageName] = event.timeStamp
+                }
+                foregroundPackage = packageName
+                lastForegroundPackage = packageName
+            } else if (isBackground && socialAppPackages.contains(packageName)) {
+                val startedAt = activeStarts.remove(packageName)
+                if (startedAt != null) {
+                    val durationMs = event.timeStamp - startedAt
+                    if (durationMs in 1..120_000) briefSessionCount += 1
+                }
+                if (foregroundPackage == packageName) foregroundPackage = null
+            }
+        }
+
         val result = JSObject()
         result.put("attentionUsageMin", attentionUsageMin)
         result.put("activeAppCount", activeAppCount)
         result.put("lastAttentionUseAt", lastAttentionUseAt)
+        result.put("attentionSessionCount", attentionSessionCount)
+        result.put("attentionSwitchCount", attentionSwitchCount)
+        result.put("briefSessionCount", briefSessionCount)
         call.resolve(result)
     }
 

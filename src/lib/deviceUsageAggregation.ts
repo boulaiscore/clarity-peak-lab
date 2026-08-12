@@ -4,6 +4,9 @@ export interface AttentionUsageAggregate {
   attentionUsageMin: number;
   activeAppCount: number;
   lastAttentionUseAt: string | null;
+  attentionSessionCount: number | null;
+  attentionSwitchCount: number | null;
+  briefSessionCount: number | null;
 }
 
 /**
@@ -25,5 +28,10 @@ export function aggregateAttentionUsage(stats: AppUsageStat[]): AttentionUsageAg
     ),
     activeAppCount: valid.filter((stat) => stat.usageMinutes > 0).length,
     lastAttentionUseAt: lastUsed ? new Date(lastUsed).toISOString() : null,
+    // Per-app totals cannot reconstruct transitions. Null explicitly prevents
+    // the fallback from being mistaken for measured fragmentation.
+    attentionSessionCount: null,
+    attentionSwitchCount: null,
+    briefSessionCount: null,
   };
 }

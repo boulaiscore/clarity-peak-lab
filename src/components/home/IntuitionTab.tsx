@@ -11,12 +11,9 @@ import {
   MetricFactorsSection,
   MetricScoreRing,
 } from "@/components/metrics/MetricDetail";
+import { PassiveStateFactors } from "@/components/metrics/PassiveStateFactors";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
-import {
-  calculateSharpnessDailyModifier,
-  calculateSharpnessRecoveryModifier,
-} from "@/lib/cognitiveEngine";
 
 interface IntuitionTabProps {
   onBackToOverview?: () => void;
@@ -31,17 +28,14 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
     dailyState,
     signalCoverage,
     signalCoverageLevel,
+    signalSources,
+    digitalAttention,
+    sharpnessBreakdown,
     isLoading,
   } = useTodayMetrics();
   const [infoOpen, setInfoOpen] = useState(false);
 
-  const recoveryModifier = calculateSharpnessRecoveryModifier(recovery);
-  const dailyModifier = calculateSharpnessDailyModifier(dailyState);
-  const s1Contribution = 0.6 * S1;
-  const s2Contribution = 0.4 * S2;
-  const capacityBase = s1Contribution + s2Contribution;
-  const recoveryImpact = (1 - signalCoverage) * capacityBase * (recoveryModifier - 1);
-  const dailyStateImpact = signalCoverage * capacityBase * (dailyModifier - 1);
+  const recoveryModifier = sharpnessBreakdown.recoveryModifier;
 
   const subtitle = useMemo(() => {
     if (sharpness >= 80) return "Strong clarity for your most demanding work.";
@@ -96,7 +90,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
           description="Combined Attentional Efficiency and Rapid Association."
           value={S1}
           weight="60%"
-          contribution={s1Contribution}
+          contribution={sharpnessBreakdown.s1Contribution}
           window="Current skill state"
         />
         <MetricFactorCard
@@ -105,7 +99,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
           description="Combined Critical Thinking and Insight."
           value={S2}
           weight="40%"
-          contribution={s2Contribution}
+          contribution={sharpnessBreakdown.s2Contribution}
           window="Current skill state"
         />
         <MetricFactorCard
@@ -113,9 +107,9 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
           name="Recovery"
           description="Controls how much of the combined capacity is available today."
           value={recovery}
-          weight={`×${recoveryModifier.toFixed(2)}`}
-          contribution={recoveryImpact}
-          contributionTone={recoveryImpact < 0 ? "negative" : "default"}
+          weight={`${Math.round((1 - signalCoverage) * 100)}% share · ×${recoveryModifier.toFixed(2)}`}
+          contribution={sharpnessBreakdown.recoveryAdjustment}
+          contributionTone={sharpnessBreakdown.recoveryAdjustment < 0 ? "negative" : "default"}
           window="Today"
         />
         {signalCoverage > 0 && (
@@ -124,14 +118,18 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
             name="Daily State"
             description="Health, wearable, attention load and schedule context available today."
             value={dailyState}
-            weight={`${Math.round(signalCoverage * 100)}% coverage`}
-            contribution={dailyStateImpact}
-            contributionTone={dailyStateImpact < 0 ? "negative" : "default"}
+            weight={`${Math.round(signalCoverage * 100)}% share · ×${sharpnessBreakdown.dailyStateModifier.toFixed(2)}`}
+            contribution={sharpnessBreakdown.dailyStateAdjustment}
+            contributionTone={sharpnessBreakdown.dailyStateAdjustment < 0 ? "negative" : "default"}
             window="Today · passive"
             estimated
           />
         )}
       </MetricFactorsSection>
+
+      {signalCoverage > 0 && (
+        <PassiveStateFactors sources={signalSources} digitalAttention={digitalAttention} />
+      )}
 
       <Link to={cta.link} className="block pt-1">
         <Button variant="premium" className="w-full h-12 text-sm">

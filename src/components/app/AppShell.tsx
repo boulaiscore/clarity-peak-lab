@@ -81,7 +81,7 @@ export function AppShell({ children }: AppShellProps) {
   }, [permission, checkReminders]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="app-safe-frame min-h-[100dvh] flex flex-col">
       <PaymentTestModeBanner />
       <PastDueBanner />
       <main className="flex-1 pb-28">
@@ -89,7 +89,7 @@ export function AppShell({ children }: AppShellProps) {
       </main>
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/30 safe-area-pb">
+      <nav className="app-safe-bottom fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/30">
         <div className="flex items-center justify-around h-14 max-w-md mx-auto px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;

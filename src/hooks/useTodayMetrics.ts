@@ -39,13 +39,15 @@ import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import {
-  calculateSharpness,
-  calculateReadiness,
+  calculateSharpnessBreakdown,
+  calculateReadinessBreakdown,
   calculateReadinessCognitiveComponent,
   calculatePhysioComponent,
   calculatePhysioEstimate,
   calculateReadinessDecay,
   clamp,
+  type ReadinessBreakdown,
+  type SharpnessBreakdown,
 } from "@/lib/cognitiveEngine";
 import {
   calculateDailyRecoveryTarget,
@@ -59,6 +61,10 @@ import {
   calculateRelativeLoadEstimate,
   type DailyPassiveState,
 } from "@/lib/dailyPassiveState";
+import {
+  calculateDigitalAttentionEstimate,
+  type DigitalAttentionEstimate,
+} from "@/lib/digitalFragmentation";
 
 export interface UseTodayMetricsResult {
   // Today metrics (0-100)
@@ -91,6 +97,10 @@ export interface UseTodayMetricsResult {
   signalCoverageLevel: DailyPassiveState["level"];
   signalUpdatedAt: string | null;
   signalSources: DailyPassiveState["sources"];
+  /** Privacy-safe digital load and fragmentation measured against personal history. */
+  digitalAttention: DigitalAttentionEstimate;
+  sharpnessBreakdown: SharpnessBreakdown;
+  readinessBreakdown: ReadinessBreakdown;
   
   // Status
   hasWearableData: boolean;
@@ -197,7 +207,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       const [deviceResult, calendarResult] = await Promise.all([
         supabase
           .from("device_usage_snapshots")
-          .select("snapshot_date, attention_usage_min, active_app_count, permission_state, confidence, updated_at")
+          .select("snapshot_date, attention_usage_min, active_app_count, attention_session_count, attention_switch_count, brief_session_count, permission_state, confidence, updated_at")
           .eq("user_id", userId)
           .gte("snapshot_date", passiveHistoryStart)
           .order("snapshot_date", { ascending: true }),
@@ -302,22 +312,23 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     const deviceRows = passiveContext?.deviceRows ?? [];
     const currentDevice = deviceRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
     const previousDevice = deviceRows.filter((row) => row.snapshot_date !== today && row.permission_state === "granted");
-    const attentionMinutes = calculateRelativeLoadEstimate({
-      current: currentDevice?.attention_usage_min,
-      history: previousDevice.map((row) => row.attention_usage_min),
+    const digitalAttention = calculateDigitalAttentionEstimate({
+      current: currentDevice ? {
+        attentionUsageMin: currentDevice.attention_usage_min,
+        activeAppCount: currentDevice.active_app_count,
+        attentionSessionCount: currentDevice.attention_session_count,
+        attentionSwitchCount: currentDevice.attention_switch_count,
+        briefSessionCount: currentDevice.brief_session_count,
+      } : null,
+      history: previousDevice.map((row) => ({
+        attentionUsageMin: row.attention_usage_min,
+        activeAppCount: row.active_app_count,
+        attentionSessionCount: row.attention_session_count,
+        attentionSwitchCount: row.attention_switch_count,
+        briefSessionCount: row.brief_session_count,
+      })),
       sourceConfidence: currentDevice?.confidence ?? 0,
-      minimumBaseline: 30,
     });
-    const attentionApps = calculateRelativeLoadEstimate({
-      current: currentDevice?.active_app_count,
-      history: previousDevice.map((row) => row.active_app_count),
-      sourceConfidence: currentDevice?.confidence ?? 0,
-      minimumBaseline: 2,
-    });
-    const attentionScore = attentionMinutes.score === null && attentionApps.score === null
-      ? null
-      : 0.75 * (attentionMinutes.score ?? 50) + 0.25 * (attentionApps.score ?? 50);
-    const attentionConfidence = Math.max(attentionMinutes.confidence, attentionApps.confidence);
 
     const calendarRows = passiveContext?.calendarRows ?? [];
     const currentCalendar = calendarRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
@@ -356,9 +367,9 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       },
       {
         id: "attention",
-        label: "Attention",
-        score: attentionScore,
-        confidence: attentionConfidence,
+        label: "Digital attention",
+        score: digitalAttention.score,
+        confidence: digitalAttention.confidence,
         updatedAt: currentDevice?.updated_at ?? null,
       },
       {
@@ -375,10 +386,12 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     };
     
     // Calculate Sharpness
-    const sharpness = calculateSharpness(states, recovery, dailyStateContext);
+    const sharpnessBreakdown = calculateSharpnessBreakdown(states, recovery, dailyStateContext);
+    const sharpness = sharpnessBreakdown.total;
     
     // Calculate base Readiness
-    const baseReadiness = calculateReadiness(states, recovery, dailyStateContext);
+    const readinessBreakdown = calculateReadinessBreakdown(states, recovery, dailyStateContext);
+    const baseReadiness = readinessBreakdown.total;
     
     // Calculate Readiness decay (using low_rec_streak_days from daily snapshot)
     // v2.0: Compare against rolling period instead of calendar week
@@ -389,13 +402,16 @@ export function useTodayMetrics(): UseTodayMetricsResult {
         ? (decayData?.readiness_decay_applied ?? 0) 
         : 0;
     
-    const readinessDecay = calculateReadinessDecay({
+    const nominalReadinessDecay = calculateReadinessDecay({
       consecutiveLowRecDays,
       currentDecayApplied,
     });
     
     // Apply Readiness decay
-    const readiness = clamp(baseReadiness - readinessDecay, 0, 100);
+    const readiness = clamp(baseReadiness - nominalReadinessDecay, 0, 100);
+    // Expose the exact visible adjustment. This keeps the Home breakdown
+    // additive even if the 0-point floor limits the nominal rule.
+    const readinessDecay = baseReadiness - readiness;
     
     return {
       sharpness,
@@ -420,6 +436,9 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       signalCoverageLevel: passiveState.level,
       signalUpdatedAt: passiveState.updatedAt,
       signalSources: passiveState.sources,
+      digitalAttention,
+      sharpnessBreakdown,
+      readinessBreakdown,
       isLoading: !allLoaded,
     };
   }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, wearableSnapshot, passiveContext, today, decayData, rollingStart, allLoaded]);

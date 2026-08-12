@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { CognitiveAgeCard } from "./CognitiveAgeCard";
-import { NeuralGrowthAnimation } from "./NeuralGrowthAnimation";
 import { FastSlowBrainMap } from "./FastSlowBrainMap";
 import {
   MonitorSectionHeader,
@@ -13,11 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { SCIBreakdown, BottleneckResult } from "@/lib/cognitiveNetworkScore";
 
 interface OverviewCarouselProps {
-  sci: SCIBreakdown | null;
-  sciStatusText: string;
   thinkingScores: {
     fastScore: number;
     slowScore: number;
@@ -26,15 +22,13 @@ interface OverviewCarouselProps {
     baselineFast: number;
     baselineSlow: number;
   };
-  bottleneck?: BottleneckResult | null;
 }
 
-const CARDS = ["cognitive-age", "cognitive-network", "dual-process"] as const;
+const CARDS = ["cognitive-age", "dual-process"] as const;
 type CardType = (typeof CARDS)[number];
 
 const CARD_OPTIONS: { value: CardType; label: string }[] = [
   { value: "cognitive-age", label: "Age" },
-  { value: "cognitive-network", label: "Network" },
   { value: "dual-process", label: "Systems" },
 ];
 
@@ -42,10 +36,6 @@ const CARD_COPY: Record<CardType, { title: string; description: string }> = {
   "cognitive-age": {
     title: "Cognitive Age",
     description: "30-day task-performance estimate",
-  },
-  "cognitive-network": {
-    title: "Performance Network",
-    description: "Performance, training and recovery",
   },
   "dual-process": {
     title: "Dual-Process Profile",
@@ -61,12 +51,6 @@ const METHOD_ITEMS = [
     note: "It is not biological age, intelligence or a clinical measure.",
   },
   {
-    mark: "NET",
-    title: "Performance Network",
-    body: "A product score combining LOOMA task performance, consistency and recorded recovery inputs.",
-    note: "Use changes as a self-comparison signal, not as an intelligence or clinical measure.",
-  },
-  {
     mark: "S1/2",
     title: "Dual-Process Profile",
     body: "Your relative performance on fast-response and deliberate-reasoning tasks inside LOOMA.",
@@ -74,10 +58,7 @@ const METHOD_ITEMS = [
 ] as const;
 
 export function OverviewCarousel({
-  sci,
-  sciStatusText,
   thinkingScores,
-  bottleneck,
 }: OverviewCarouselProps) {
   const [currentCard, setCurrentCard] = useState<CardType>(CARDS[0]);
   const copy = CARD_COPY[currentCard];
@@ -134,16 +115,6 @@ export function OverviewCarousel({
 
       <div className="min-w-0 overflow-hidden pt-1">
         {currentCard === "cognitive-age" && <CognitiveAgeCard />}
-
-        {currentCard === "cognitive-network" && (
-          <NeuralGrowthAnimation
-            cognitiveAgeDelta={0}
-            overallCognitiveScore={sci?.total ?? 50}
-            sciBreakdown={sci}
-            statusText={sciStatusText}
-            bottleneck={bottleneck}
-          />
-        )}
 
         {currentCard === "dual-process" && (
           <FastSlowBrainMap

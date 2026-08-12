@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import {
   calculateReadiness,
+  calculateReadinessBreakdown,
   calculateReadinessCognitiveComponent,
   calculatePhysioComponent,
   calculatePhysioEstimate,
   calculateSCI as calculateCanonicalSCI,
   calculateSharpness,
+  calculateSharpnessBreakdown,
   calculateSystemScores,
   deriveEffectiveCognitiveStates,
 } from "../src/lib/cognitiveEngine";
@@ -14,6 +16,7 @@ import {
   applyRecoveryDecay,
   calculateDailyRecoveryTarget,
   calculateDailyRecoveryTargetBreakdown,
+  calculateCurrentRecoveryBreakdown,
   recalibrateRecoveryForNewDay,
   resolveRecoveryForMetrics,
 } from "../src/lib/recoveryV2";
@@ -23,6 +26,7 @@ import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
 import { buildDualProcessSeries, resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
 import { metricSnapshotNeedsSave } from "../src/lib/metricSnapshotIntegrity";
 import { buildDailyPassiveState, calculateRelativeLoadEstimate } from "../src/lib/dailyPassiveState";
+import { calculateDigitalAttentionEstimate } from "../src/lib/digitalFragmentation";
 import {
   calculateCalibrationOverall,
   rebaseSkillToMeasuredBaseline,
@@ -75,6 +79,20 @@ closeTo(
   60.5,
   "Sharpness uses daily state at full coverage",
 );
+const sharpnessBreakdown = calculateSharpnessBreakdown(states, 50, { score: 72, coverage: 0.68 });
+closeTo(
+  Math.round((sharpnessBreakdown.s1Contribution + sharpnessBreakdown.s2Contribution +
+    sharpnessBreakdown.recoveryAdjustment + sharpnessBreakdown.dailyStateAdjustment) * 10) / 10,
+  sharpnessBreakdown.total,
+  "Sharpness cards sum to the displayed score",
+);
+const readinessBreakdown = calculateReadinessBreakdown(states, 50, { score: 72, coverage: 0.68 });
+closeTo(
+  Math.round((readinessBreakdown.appContribution + readinessBreakdown.cognitiveContribution +
+    readinessBreakdown.dailyStateContribution) * 10) / 10,
+  readinessBreakdown.total,
+  "Readiness cards sum to the displayed score",
+);
 const partialPhysio = calculatePhysioEstimate({
     hrvMs: 70,
     restingHr: 60,
@@ -112,6 +130,16 @@ closeTo(passiveState.coverage, 0.68, "Passive coverage uses canonical source wei
 closeTo(passiveState.score, 65.9, "Missing passive sources do not count as zero");
 assert.equal(passiveState.level, "Enhanced");
 assert.equal(passiveState.updatedAt, "2026-08-09T10:00:00.000Z");
+closeTo(
+  passiveState.sources.reduce((sum, source) => sum + source.effectiveWeight, 0),
+  1,
+  "Observed Daily State weights renormalize to one",
+);
+closeTo(
+  passiveState.sources.reduce((sum, source) => sum + source.scoreContribution, 0),
+  passiveState.score,
+  "Daily State factor impacts sum to the displayed state",
+);
 
 const attentionLoad = calculateRelativeLoadEstimate({
   current: 100,
@@ -122,6 +150,29 @@ const attentionLoad = calculateRelativeLoadEstimate({
 closeTo(attentionLoad.ratio ?? 0, 2, "Attention load compares with personal baseline");
 closeTo(attentionLoad.score ?? 0, 26, "Above-baseline attention load lowers neutral daily state");
 closeTo(attentionLoad.confidence, 0.8, "Seven baseline days reach full source maturity");
+
+const digitalFragmentation = calculateDigitalAttentionEstimate({
+  current: {
+    attentionUsageMin: 90,
+    activeAppCount: 6,
+    attentionSessionCount: 30,
+    attentionSwitchCount: 18,
+    briefSessionCount: 12,
+  },
+  history: Array.from({ length: 7 }, () => ({
+    attentionUsageMin: 45,
+    activeAppCount: 3,
+    attentionSessionCount: 15,
+    attentionSwitchCount: 9,
+    briefSessionCount: 6,
+  })),
+  sourceConfidence: 0.85,
+});
+assert.equal(digitalFragmentation.mode, "fragmentation");
+closeTo(digitalFragmentation.usageRatio ?? 0, 2, "Digital duration uses a personal baseline");
+closeTo(digitalFragmentation.fragmentationRatio ?? 0, 2, "Fragmentation aggregates sessions, switches and brief returns");
+closeTo(digitalFragmentation.score ?? 0, 26, "Digital state balances duration and fragmentation equally");
+closeTo(digitalFragmentation.confidence, 0.85, "Mature fragmentation keeps source confidence");
 
 const derived = deriveEffectiveCognitiveStates({
   focus_stability: 80,
@@ -209,6 +260,13 @@ closeTo(
   60.5,
   "Historical Recovery uses the live daily recalibration step",
 );
+const currentRecoveryBreakdown = calculateCurrentRecoveryBreakdown({
+  recValue: 80,
+  recLastTs: "2026-08-08T08:00:00.000Z",
+  hasRecoveryBaseline: true,
+}, 60, "2026-08-09T08:00:00.000Z");
+closeTo(currentRecoveryBreakdown.currentValue, 67, "Recovery breakdown uses canonical daily recalibration");
+closeTo(currentRecoveryBreakdown.recalibrationAdjustment, -13, "Recovery breakdown exposes exact displayed-state change");
 
 const rq = calculateRQ({
   S2: 60,
@@ -219,6 +277,29 @@ const rq = calculateRQ({
   lastTaskAt: null,
 });
 closeTo(rq.rq, 60, "RQ canonical weighting");
+closeTo(
+  rq.s2CoreContribution + rq.s2ConsistencyContribution + rq.taskPrimingContribution + rq.decayAdjustment,
+  rq.rq,
+  "Reasoning Quality cards sum to the displayed score",
+);
+const decayedRq = calculateRQ({
+  S2: 60,
+  s2GameScores: [60, 60, 60, 60, 60],
+  taskCompletions: [],
+  sessionWeightedMinutes: 0,
+  lastS2GameAt: new Date("2026-01-01T12:00:00.000Z"),
+  lastTaskAt: new Date("2026-01-01T12:00:00.000Z"),
+  today: new Date("2026-08-08T12:00:00.000Z"),
+});
+closeTo(decayedRq.rq, 50, "RQ inactivity floor limits rather than hides the decay");
+closeTo(decayedRq.decayAdjustment, -10, "RQ exposes the exact floor-limited adjustment");
+assert.equal(decayedRq.decayFloorApplied, true);
+closeTo(
+  decayedRq.s2CoreContribution + decayedRq.s2ConsistencyContribution +
+    decayedRq.taskPrimingContribution + decayedRq.decayAdjustment,
+  decayedRq.rq,
+  "Floor-limited Reasoning Quality cards still sum to the displayed score",
+);
 closeTo(
   calculateTaskPriming([], new Date("2026-08-08T12:00:00.000Z"), 60),
   100,

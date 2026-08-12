@@ -16,6 +16,9 @@ interface IosDeviceUsagePlugin {
     activeAppCount: number;
     lastAttentionUseAt: number | null;
     confidence: number;
+    attentionSessionCount: number | null;
+    attentionSwitchCount: number | null;
+    briefSessionCount: number | null;
   }>;
 }
 
@@ -39,6 +42,9 @@ const IosDeviceUsage = registerPlugin<IosDeviceUsagePlugin>("DeviceUsage", {
         activeAppCount: 0,
         lastAttentionUseAt: null,
         confidence: 0,
+        attentionSessionCount: null,
+        attentionSwitchCount: null,
+        briefSessionCount: null,
       };
     },
   },

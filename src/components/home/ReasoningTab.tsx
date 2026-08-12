@@ -11,6 +11,7 @@ import {
   MetricFactorsSection,
   MetricScoreRing,
 } from "@/components/metrics/MetricDetail";
+import { PassiveStateFactors } from "@/components/metrics/PassiveStateFactors";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
 
@@ -28,6 +29,9 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
     dailyState,
     signalCoverage,
     signalCoverageLevel,
+    signalSources,
+    digitalAttention,
+    readinessBreakdown,
     readinessDecay,
     consecutiveLowRecDays,
     isLoading,
@@ -58,11 +62,6 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
     return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
   }, [AE, S2, dailyState, recovery, signalCoverage]);
 
-  const appReadiness = 0.35 * recovery + 0.35 * S2 + 0.30 * AE;
-  const appWeight = 1 - signalCoverage;
-  const cognitiveWeight = 0.40 * signalCoverage;
-  const dailyStateWeight = 0.60 * signalCoverage;
-
   return (
     <div className="space-y-6 pb-8">
       {onBackToOverview && <MetricDetailNavigation onBack={onBackToOverview} />}
@@ -87,9 +86,9 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
           code="APP"
           name="App State"
           description="Recovery, Deliberate Reasoning and Attentional Efficiency."
-          value={appReadiness}
-          weight={`${Math.round(appWeight * 100)}%`}
-          contribution={appWeight * appReadiness}
+          value={readinessBreakdown.appReadiness}
+          weight={`${Math.round((1 - signalCoverage) * 100)}%`}
+          contribution={readinessBreakdown.appContribution}
           window="Current + today"
         />
         {signalCoverage > 0 && (
@@ -99,8 +98,8 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
               name="Cognitive State"
               description="CT, AE, IN, S2 and S1 combined in the canonical cognitive component."
               value={readinessCognitiveComponent}
-              weight={`${Math.round(cognitiveWeight * 100)}%`}
-              contribution={cognitiveWeight * readinessCognitiveComponent}
+              weight={`${Math.round(0.40 * signalCoverage * 100)}%`}
+              contribution={readinessBreakdown.cognitiveContribution}
               window="Current skill state"
             />
             <MetricFactorCard
@@ -108,8 +107,8 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
               name="Daily State"
               description="Health, wearable, attention load and schedule context available today."
               value={dailyState}
-              weight={`${Math.round(dailyStateWeight * 100)}%`}
-              contribution={dailyStateWeight * dailyState}
+              weight={`${Math.round(0.60 * signalCoverage * 100)}%`}
+              contribution={readinessBreakdown.dailyStateContribution}
               window="Today · passive"
               estimated
             />
@@ -129,6 +128,10 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
           />
         )}
       </MetricFactorsSection>
+
+      {signalCoverage > 0 && (
+        <PassiveStateFactors sources={signalSources} digitalAttention={digitalAttention} />
+      )}
 
       <Link to={cta.link} className="block pt-1">
         <Button variant="premium" className="w-full h-12 text-sm">

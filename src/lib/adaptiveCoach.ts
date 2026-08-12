@@ -42,6 +42,7 @@ export interface CoachCandidateFeatures {
   metricTrendPerDay: number;
   healthScore: number | null;
   attentionLoadRatio: number | null;
+  digitalFragmentationRatio: number | null;
   scheduleLoadRatio: number | null;
   activeDays7d: number;
   passiveDataCoverage: number;
@@ -74,6 +75,7 @@ export interface CoachContext {
     skillTrendPerDay: Partial<Record<CoachSkill, number>>;
     healthScore: number | null;
     attentionLoadRatio: number | null;
+    digitalFragmentationRatio: number | null;
     scheduleLoadRatio: number | null;
     activeDays7d: number;
     dataCoverage: number;
@@ -298,6 +300,7 @@ export function generateCoachShadowPredictions(
       metricTrendPerDay: round(passiveSkillTrend, 3),
       healthScore: context.passive?.healthScore ?? null,
       attentionLoadRatio: context.passive?.attentionLoadRatio ?? null,
+      digitalFragmentationRatio: context.passive?.digitalFragmentationRatio ?? null,
       scheduleLoadRatio: context.passive?.scheduleLoadRatio ?? null,
       activeDays7d: context.passive?.activeDays7d ?? 0,
       passiveDataCoverage: context.passive?.dataCoverage ?? 0,

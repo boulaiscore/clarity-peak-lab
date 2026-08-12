@@ -10,6 +10,9 @@ export interface MobileRhythmDay {
   recovery: number | null;
   healthScore: number | null;
   attentionUsageMinutes: number | null;
+  attentionSessionCount?: number | null;
+  attentionSwitchCount?: number | null;
+  briefSessionCount?: number | null;
   busyMinutes: number | null;
   meetingCount: number | null;
   longestOpenStartMinute: number | null;
@@ -22,9 +25,10 @@ export interface MobileCognitiveRhythm {
   progress: number;
   openWindow: string | null;
   attentionLoad: "Low" | "Usual" | "High" | null;
+  digitalFragmentation: "Low" | "Usual" | "High" | null;
   scheduleLoad: "Light" | "Moderate" | "Packed" | null;
   topDriver: {
-    label: "Recovery" | "Health" | "Attention" | "Schedule";
+    label: "Recovery" | "Health" | "Attention" | "Fragmentation" | "Schedule";
     direction: "supports" | "limits";
     strength: number;
   } | null;
@@ -80,6 +84,9 @@ export function deriveMobileCognitiveRhythm(
   const observedDays = days.filter((day) =>
     day.healthScore !== null ||
     day.attentionUsageMinutes !== null ||
+    day.attentionSessionCount != null ||
+    day.attentionSwitchCount != null ||
+    day.briefSessionCount != null ||
     day.busyMinutes !== null,
   ).length;
   const status = observedDays >= MOBILE_RHYTHM_RELIABLE_DAYS
@@ -108,6 +115,26 @@ export function deriveMobileCognitiveRhythm(
   const attentionLoad = attentionRatio === null
     ? null
     : attentionRatio < 0.8 ? "Low" : attentionRatio > 1.2 ? "High" : "Usual";
+  const fragmentationFor = (day: MobileRhythmDay): number | null => {
+    const values = [
+      day.attentionSessionCount,
+      day.attentionSwitchCount,
+      day.briefSessionCount,
+    ].filter((value): value is number => value != null && Number.isFinite(value));
+    return values.length > 0 ? mean(values) : null;
+  };
+  const fragmentationHistory = days.slice(0, -1).flatMap((day) => {
+    const value = fragmentationFor(day);
+    return value === null ? [] : [value];
+  });
+  const fragmentationBaseline = median(fragmentationHistory.slice(-14));
+  const latestFragmentation = latest ? fragmentationFor(latest) : null;
+  const fragmentationRatio = latestFragmentation !== null && fragmentationBaseline !== null && fragmentationBaseline > 0
+    ? latestFragmentation / fragmentationBaseline
+    : null;
+  const digitalFragmentation = fragmentationRatio === null
+    ? null
+    : fragmentationRatio < 0.8 ? "Low" : fragmentationRatio > 1.2 ? "High" : "Usual";
 
   const scheduleLoad = latest?.busyMinutes === null || latest?.busyMinutes === undefined
     ? null
@@ -121,6 +148,7 @@ export function deriveMobileCognitiveRhythm(
     { key: "recovery" as const, label: "Recovery" as const },
     { key: "healthScore" as const, label: "Health" as const },
     { key: "attentionUsageMinutes" as const, label: "Attention" as const },
+    { key: "fragmentation" as const, label: "Fragmentation" as const },
     { key: "busyMinutes" as const, label: "Schedule" as const },
   ].flatMap((candidate) => {
     // Use a one-day lag: same-day Sharpness/Readiness already include passive
@@ -128,7 +156,7 @@ export function deriveMobileCognitiveRhythm(
     // circular. Yesterday's context versus today's state is still associative,
     // but is a materially cleaner signal for a future predictive model.
     const pairs = days.slice(0, -1).flatMap((day, index) => {
-      const x = day[candidate.key];
+      const x = candidate.key === "fragmentation" ? fragmentationFor(day) : day[candidate.key];
       const y = cognitiveState(days[index + 1]);
       return x === null || y === null ? [] : [{ x, y }];
     });
@@ -151,6 +179,7 @@ export function deriveMobileCognitiveRhythm(
     progress: Math.round(clamp(observedDays / MOBILE_RHYTHM_RELIABLE_DAYS, 0, 1) * 1000) / 1000,
     openWindow,
     attentionLoad,
+    digitalFragmentation,
     scheduleLoad,
     topDriver,
   };

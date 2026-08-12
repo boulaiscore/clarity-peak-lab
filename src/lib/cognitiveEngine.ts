@@ -88,6 +88,28 @@ export interface DailyStateMetricContext {
   coverage: number;
 }
 
+export interface SharpnessBreakdown {
+  total: number;
+  capacity: number;
+  s1Contribution: number;
+  s2Contribution: number;
+  recoveryModifier: number;
+  dailyStateModifier: number;
+  recoveryAdjustment: number;
+  dailyStateAdjustment: number;
+  signalCoverage: number;
+}
+
+export interface ReadinessBreakdown {
+  total: number;
+  appReadiness: number;
+  cognitiveComponent: number;
+  appContribution: number;
+  cognitiveContribution: number;
+  dailyStateContribution: number;
+  signalCoverage: number;
+}
+
 export interface TodayMetrics {
   sharpness: number;
   readiness: number;
@@ -154,17 +176,39 @@ export function calculateSharpness(
   recovery: number,
   dailyState?: DailyStateMetricContext | null,
 ): number {
+  return calculateSharpnessBreakdown(states, recovery, dailyState).total;
+}
+
+/** Single explainability source consumed by both the formula and Home detail. */
+export function calculateSharpnessBreakdown(
+  states: CognitiveStates,
+  recovery: number,
+  dailyState?: DailyStateMetricContext | null,
+): SharpnessBreakdown {
   const { S1, S2 } = calculateSystemScores(states);
-  const base = 0.6 * S1 + 0.4 * S2;
+  const s1Contribution = 0.6 * S1;
+  const s2Contribution = 0.4 * S2;
+  const capacity = s1Contribution + s2Contribution;
   const recoveryModifier = calculateSharpnessRecoveryModifier(recovery);
   const coverage = clamp(dailyState?.coverage ?? 0, 0, 1);
   const dailyModifier = dailyState
     ? calculateSharpnessDailyModifier(dailyState.score)
     : recoveryModifier;
-  const blendedModifier = (1 - coverage) * recoveryModifier + coverage * dailyModifier;
-  const modulated = base * blendedModifier;
-  
-  return clamp(Math.round(modulated * 10) / 10, 0, 100);
+  const recoveryAdjustment = (1 - coverage) * capacity * (recoveryModifier - 1);
+  const dailyStateAdjustment = coverage * capacity * (dailyModifier - 1);
+  const total = capacity + recoveryAdjustment + dailyStateAdjustment;
+
+  return {
+    total: clamp(Math.round(total * 10) / 10, 0, 100),
+    capacity,
+    s1Contribution,
+    s2Contribution,
+    recoveryModifier,
+    dailyStateModifier: dailyModifier,
+    recoveryAdjustment,
+    dailyStateAdjustment,
+    signalCoverage: coverage,
+  };
 }
 
 /** Canonical Recovery multiplier used by Sharpness and its UI explanations. */
@@ -193,18 +237,44 @@ export function calculateReadiness(
   recovery: number,
   dailyState?: DailyStateMetricContext | null,
 ): number {
+  return calculateReadinessBreakdown(states, recovery, dailyState).total;
+}
+
+/** Single explainability source consumed by both the formula and Home detail. */
+export function calculateReadinessBreakdown(
+  states: CognitiveStates,
+  recovery: number,
+  dailyState?: DailyStateMetricContext | null,
+): ReadinessBreakdown {
   const { S2 } = calculateSystemScores(states);
   const appReadiness = 0.35 * recovery + 0.35 * S2 + 0.30 * states.AE;
   const coverage = clamp(dailyState?.coverage ?? 0, 0, 1);
   if (!dailyState || coverage === 0) {
-    return clamp(Math.round(appReadiness * 10) / 10, 0, 100);
+    return {
+      total: clamp(Math.round(appReadiness * 10) / 10, 0, 100),
+      appReadiness,
+      cognitiveComponent: calculateReadinessCognitiveComponent(states),
+      appContribution: appReadiness,
+      cognitiveContribution: 0,
+      dailyStateContribution: 0,
+      signalCoverage: 0,
+    };
   }
 
   const cognitiveComponent = calculateReadinessCognitiveComponent(states);
-  const contextTarget =
-    0.60 * clamp(dailyState.score, 0, 100) + 0.40 * cognitiveComponent;
-  const readiness = (1 - coverage) * appReadiness + coverage * contextTarget;
-  return clamp(Math.round(readiness * 10) / 10, 0, 100);
+  const appContribution = (1 - coverage) * appReadiness;
+  const cognitiveContribution = coverage * 0.40 * cognitiveComponent;
+  const dailyStateContribution = coverage * 0.60 * clamp(dailyState.score, 0, 100);
+  const readiness = appContribution + cognitiveContribution + dailyStateContribution;
+  return {
+    total: clamp(Math.round(readiness * 10) / 10, 0, 100),
+    appReadiness,
+    cognitiveComponent,
+    appContribution,
+    cognitiveContribution,
+    dailyStateContribution,
+    signalCoverage: coverage,
+  };
 }
 
 /** Canonical cognitive component of context-aware Readiness. */

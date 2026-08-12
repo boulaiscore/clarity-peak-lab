@@ -16,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
-import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
 import { useInitializeCognitiveBaseline } from "@/hooks/useInitializeCognitiveBaseline";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -102,9 +101,6 @@ const Dashboard = () => {
     };
   }, [states, baseline, rawMetrics?.total_sessions]);
 
-  // Synthesized Cognitive Index (SCI) for neural animation
-  const { sci, statusText: sciStatusText, bottleneck } = useCognitiveNetworkScore();
-
   if (metricsLoading) {
     return (
       <AppShell>
@@ -136,10 +132,7 @@ const Dashboard = () => {
         {activeTab === "insights" ? (
           <div className="mt-6 space-y-7">
             <OverviewCarousel
-              sci={sci}
-              sciStatusText={sciStatusText}
               thinkingScores={thinkingScores}
-              bottleneck={bottleneck}
             />
 
             <CognitiveRhythmPanel />

@@ -149,45 +149,6 @@ export function DetoxStats() {
         )}
       </div>
 
-
-      {/* Metrics Impact */}
-      <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-4">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Metrics Impact</p>
-        
-        {(() => {
-          // Recovery Factor = min(100, weeklyDetoxMinutes / detoxTarget × 100)
-          // This contributes 20% to SCI
-          const recoveryProgress = weeklyMinutesTarget > 0 ? Math.min(100, (totalMinutes / weeklyMinutesTarget) * 100) : 0;
-          const sciContribution = Math.round(0.20 * recoveryProgress);
-          
-          return (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-2 rounded-lg bg-muted/20">
-                  <p className="text-[8px] text-muted-foreground mb-1">Recovery Factor</p>
-                  <p className="text-sm font-bold text-foreground">{Math.round(recoveryProgress)}%</p>
-                  <p className="text-[7px] text-muted-foreground">of weekly target</p>
-                </div>
-                <div className="p-2 rounded-lg bg-muted/20">
-                  <p className="text-[8px] text-muted-foreground mb-1">SCI Contribution</p>
-                  <p className="text-sm font-bold text-foreground">+{sciContribution}</p>
-                  <p className="text-[7px] text-muted-foreground">pts to Network Score</p>
-                </div>
-              </div>
-              
-              <div className="p-2 rounded-lg bg-muted/20 border border-border/20">
-                <p className="text-[8px] text-muted-foreground mb-1">How Recovery Improves Cognition</p>
-                <p className="text-[7px] text-muted-foreground/80 leading-relaxed">
-                  Digital detox restores attention capacity and reduces cognitive fatigue. 
-                  Based on Attention Restoration Theory (Kaplan 1995), regular breaks from 
-                  screens improve Focus Stability and Decision Quality.
-                </p>
-              </div>
-            </div>
-          );
-        })()}
-      </div>
-
       {/* Today's Progress */}
       {(todayMinutes || 0) > 0 && (
         <div className="rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018] p-3">

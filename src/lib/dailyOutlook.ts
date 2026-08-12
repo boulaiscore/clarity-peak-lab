@@ -1,6 +1,6 @@
 import { clamp } from "@/lib/cognitiveEngine";
 
-export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v3-personal-coach";
+export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v4-digital-fragmentation";
 
 export type DailyOutlookActionKey =
   | "recover"
@@ -47,7 +47,7 @@ export interface DailyOutlookCoachBasis {
 }
 
 export interface DailyOutlookEvidence {
-  code: "REC" | "RDY" | "SHP" | "RQ" | "HLT" | "SLP" | "HRV" | "RHR" | "ACT" | "ATT" | "CAL" | "PAT";
+  code: "REC" | "RDY" | "SHP" | "RQ" | "HLT" | "SLP" | "HRV" | "RHR" | "ACT" | "ATT" | "DFR" | "CAL" | "PAT";
   label: string;
   detail: string;
   tone: DailyOutlookTone;
@@ -89,6 +89,7 @@ export interface DailyOutlookInput {
   healthScore?: number | null;
   healthSignals?: Partial<DailyOutlookHealthSignals> | null;
   attentionLoadRatio?: number | null;
+  digitalFragmentationRatio?: number | null;
   scheduleLoadRatio?: number | null;
   signalCoverage: number;
   primaryOutcome?: "decide" | "focus" | "reason" | null;
@@ -101,7 +102,7 @@ export interface DailyOutlookInput {
     observedDays: number;
     openWindow: string | null;
     topDriver: {
-      label: "Recovery" | "Health" | "Attention" | "Schedule";
+      label: "Recovery" | "Health" | "Attention" | "Fragmentation" | "Schedule";
       direction: "supports" | "limits";
       strength: number;
     } | null;
@@ -307,7 +308,7 @@ function metricTone(value: number, supportiveAt = 60, limitingBelow = 45): Daily
 }
 
 function ratioEvidence(
-  code: "ATT" | "CAL",
+  code: "ATT" | "DFR" | "CAL",
   label: string,
   ratio: number,
 ): DailyOutlookEvidence {
@@ -452,6 +453,11 @@ function buildEvidence(input: DailyOutlookInput): DailyOutlookEvidence[] {
     evidence.push(ratioEvidence("ATT", "Attention load", attentionRatio));
   }
 
+  const fragmentationRatio = finite(input.digitalFragmentationRatio);
+  if (fragmentationRatio !== null) {
+    evidence.push(ratioEvidence("DFR", "Digital fragmentation", fragmentationRatio));
+  }
+
   const scheduleRatio = finite(input.scheduleLoadRatio);
   if (scheduleRatio !== null) {
     evidence.push(ratioEvidence("CAL", "Schedule load", scheduleRatio));
@@ -490,6 +496,7 @@ function action(
 export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   const healthScore = finite(input.healthScore);
   const attentionLoadRatio = finite(input.attentionLoadRatio);
+  const digitalFragmentationRatio = finite(input.digitalFragmentationRatio);
   const scheduleLoadRatio = finite(input.scheduleLoadRatio);
   const confidence = calculateConfidence(input);
   const hasHistoricalPersonalization = Boolean(
@@ -535,6 +542,33 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
         metricCode,
         metricLabel,
         metricDetail: `${roundedScore(metricValue ?? 0)} today`,
+      }),
+    };
+  }
+
+  if (digitalFragmentationRatio !== null && digitalFragmentationRatio >= 1.35) {
+    return {
+      ...shared,
+      coachBasis: buildCoachBasis(input, "protective"),
+      headline: "Digital fragmentation is the constraint",
+      summary: coachSummary(
+        "Short sessions and app returns are running above your usual pattern, which can make sustained attention harder to protect.",
+        input,
+        "protective",
+        "Use an attention reset in Lab before the next demanding block.",
+      ),
+      intensity: "protective",
+      windowLabel: null,
+      windowSource: null,
+      action: action({
+        key: "protect_attention",
+        label: "Open an attention reset in Lab",
+        shortLabel: "Attention reset",
+        kind: "lab",
+        route: "/neuro-lab?tab=detox",
+        metricCode: "DFR",
+        metricLabel: "Digital fragmentation",
+        metricDetail: `${Math.round((digitalFragmentationRatio - 1) * 100)}% above baseline`,
       }),
     };
   }

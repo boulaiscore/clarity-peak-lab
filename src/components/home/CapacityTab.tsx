@@ -24,6 +24,10 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
     recoveryTarget,
     isV2Initialized,
     hasRecoveryData,
+    storedRecoveryValue,
+    storedRecoveryUpdatedAt,
+    recalibrationDays,
+    recalibrationAdjustment,
     phoneHealthTarget,
     phoneHealthConfidence,
     phoneHealthAvailableSources,
@@ -66,6 +70,14 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
   const wearableFreshness = wearableUpdatedAt
     ? `Today · ${new Date(wearableUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
     : "No wearable snapshot today";
+  const storedFreshness = storedRecoveryUpdatedAt
+    ? new Date(storedRecoveryUpdatedAt).toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "No persisted state yet";
 
   return (
     <div className="space-y-6 pb-8">
@@ -86,7 +98,38 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
 
       <MetricInterpretationNote changeDrivers="rest, screen-free time, walking and daily conditions" />
 
-      <MetricFactorsSection title="Inputs used today">
+      <MetricFactorsSection title="Displayed Recovery">
+        <MetricFactorCard
+          code="REC"
+          name="Stored recovery state"
+          description={storedRecoveryValue == null
+            ? "Until a Recovery state exists, the displayed value is today's passive target."
+            : recalibrationDays > 0
+              ? `${recalibrationDays} daily recalibration ${recalibrationDays === 1 ? "step" : "steps"} toward today's target.`
+              : "No daily recalibration was required; completed actions are already inside this state."}
+          value={storedRecoveryValue}
+          weight="Starting state"
+          contribution={storedRecoveryValue == null ? `Estimate ${Math.round(recoveryTarget)}` : storedRecoveryValue}
+          contributionTone="muted"
+          window={storedFreshness}
+          estimated={storedRecoveryValue == null}
+        />
+        <MetricFactorCard
+          code="ΔDAY"
+          name="Daily recalibration"
+          description={recalibrationDays > 0
+            ? `${recalibrationDays} daily ${recalibrationDays === 1 ? "step" : "steps"} toward the combined target below.`
+            : "Recovery is fixed within the same calendar day; completed actions are already in the stored state."}
+          value={recoveryTarget}
+          weight={recalibrationDays > 0 ? "65% of gap/day" : "Same day · frozen"}
+          contribution={storedRecoveryValue == null ? "Target estimate" : recalibrationAdjustment}
+          contributionTone={recalibrationAdjustment < 0 ? "negative" : recalibrationAdjustment === 0 ? "muted" : "default"}
+          window="Today"
+          estimated={storedRecoveryValue == null}
+        />
+      </MetricFactorsSection>
+
+      <MetricFactorsSection title="Today's target inputs">
         <MetricFactorCard
           code="HLT"
           name={healthLabel}
@@ -118,36 +161,38 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
           name="Combined daily target"
           description="The single target shared by Home, Monitor, Lab gating and metric history."
           value={recoveryTarget}
-          weight="65% of gap/day"
-          contribution={`Toward ${Math.round(recoveryTarget)}`}
+          weight="Final target"
+          contribution="Reference"
           contributionTone="muted"
           window="Today"
           estimated
         />
       </MetricFactorsSection>
 
-      <MetricFactorsSection title="Recovery actions">
+      <MetricFactorsSection title="Recorded recovery actions">
         <MetricFactorCard
           code="DET"
           name="Digital Detox"
-          description="Completed screen-free time adds the full Recovery action rate."
+          description="Completed screen-free time updates the stored Recovery state immediately. It is not added again in this breakdown."
           value={`${Math.round(weeklyDetoxMinutes)} min`}
           weight="+0.12/min"
-          contribution={0.12 * weeklyDetoxMinutes}
+          contribution="Included in REC"
+          contributionTone="muted"
           window="Rolling 7 days"
         />
         <MetricFactorCard
           code="WALK"
           name="Walking"
-          description="Completed walking time adds half the Detox action rate."
+          description="Completed walking updates the same stored state at half the Detox rate. It is not added again here."
           value={`${Math.round(weeklyWalkMinutes)} min`}
           weight="+0.06/min"
-          contribution={0.06 * weeklyWalkMinutes}
+          contribution="Included in REC"
+          contributionTone="muted"
           window="Rolling 7 days"
         />
       </MetricFactorsSection>
 
-      {(!phoneHealthTarget || wearableRawScore == null) && (
+      {(phoneHealthTarget == null || wearableRawScore == null) && (
         <Link
           to="/app/wearable"
           className="block rounded-xl border border-border/35 bg-card/30 px-4 py-3 text-center text-xs font-medium text-foreground/80 transition-colors hover:bg-card/55"
@@ -178,7 +223,7 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
           <div className="rounded-xl border border-border/30 bg-card/35 p-4 text-xs leading-relaxed text-muted-foreground">
             Each new day, REC closes 65% of the gap toward its Health and wearable target (or 50 without data).
             Completed actions then add 0.12 × (Detox minutes + 0.5 × Walking minutes), capped at 100.
-            Action impacts above are gross rolling inputs; daily recalibration determines the current score.
+            The cards show the exact stored state and daily adjustment; rolling action history is never counted twice.
           </div>
         </CollapsibleContent>
       </Collapsible>

@@ -44,6 +44,9 @@ export interface AppBlockerPlugin {
     attentionUsageMin: number;
     activeAppCount: number;
     lastAttentionUseAt: number | null;
+    attentionSessionCount: number | null;
+    attentionSwitchCount: number | null;
+    briefSessionCount: number | null;
   }>;
 
   // Get current violation count
@@ -136,7 +139,14 @@ const AppBlocker = registerPlugin<AppBlockerPlugin>('AppBlocker', {
       return { stats: [] };
     },
     async getUsageAggregate() {
-      return { attentionUsageMin: 0, activeAppCount: 0, lastAttentionUseAt: null };
+      return {
+        attentionUsageMin: 0,
+        activeAppCount: 0,
+        lastAttentionUseAt: null,
+        attentionSessionCount: null,
+        attentionSwitchCount: null,
+        briefSessionCount: null,
+      };
     },
     async getViolationCount() {
       return { violationCount: 0 };

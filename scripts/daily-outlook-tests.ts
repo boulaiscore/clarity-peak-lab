@@ -18,6 +18,7 @@ const base = {
     sources: ["health_connect"],
   },
   attentionLoadRatio: 1,
+  digitalFragmentationRatio: 1,
   scheduleLoadRatio: 1,
   signalCoverage: 0.7,
   primaryOutcome: "focus" as const,
@@ -49,6 +50,11 @@ const attentionProtection = deriveDailyOutlook({ ...base, attentionLoadRatio: 1.
 assert.equal(attentionProtection.action.key, "protect_attention");
 assert.equal(attentionProtection.action.metricCode, "ATT");
 assert.ok(attentionProtection.evidence.some((item) => item.code === "ATT" && item.tone === "limit"));
+
+const fragmentationProtection = deriveDailyOutlook({ ...base, digitalFragmentationRatio: 1.6 });
+assert.equal(fragmentationProtection.action.key, "protect_attention");
+assert.equal(fragmentationProtection.action.metricCode, "DFR");
+assert.match(fragmentationProtection.summary, /short sessions and app returns/i);
 
 const strongDecisionDay = deriveDailyOutlook({
   ...base,
@@ -91,6 +97,7 @@ const missingSignals = deriveDailyOutlook({
   healthScore: null,
   healthSignals: null,
   attentionLoadRatio: null,
+  digitalFragmentationRatio: null,
   scheduleLoadRatio: null,
   signalCoverage: 0,
   canPersonalize: false,
@@ -98,11 +105,11 @@ const missingSignals = deriveDailyOutlook({
   rhythm: null,
 });
 assert.equal(missingSignals.confidenceLabel, "Baseline");
-assert.ok(missingSignals.evidence.every((item) => !["HLT", "SLP", "HRV", "RHR", "ACT", "ATT", "CAL"].includes(item.code)));
+assert.ok(missingSignals.evidence.every((item) => !["HLT", "SLP", "HRV", "RHR", "ACT", "ATT", "DFR", "CAL"].includes(item.code)));
 assert.match(missingSignals.summary, /still establishing/i);
 assert.doesNotMatch(missingSignals.summary, /Readiness is|Recovery is|Reasoning is|Sharpness is/i);
 
-for (const outlook of [recoveryFirst, attentionProtection, strongDecisionDay, scheduleProtection, focusTraining, steadyState, missingSignals]) {
+for (const outlook of [recoveryFirst, attentionProtection, fragmentationProtection, strongDecisionDay, scheduleProtection, focusTraining, steadyState, missingSignals]) {
   assert.ok(outlook.action.metricCode, "Every recommendation must identify its source metric");
   assert.ok(outlook.action.metricDetail, "Every recommendation must explain the linked metric value");
 }

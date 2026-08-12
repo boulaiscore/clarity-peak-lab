@@ -28,8 +28,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  calculateCurrentRecoveryBreakdown,
   calculateDailyRecoveryTargetBreakdown,
-  getCurrentRecovery,
   hasValidRecoveryData,
   RecoveryState,
 } from "@/lib/recoveryV2";
@@ -49,6 +49,12 @@ export interface UseRecoveryEffectiveResult {
   
   /** The raw recovery value from v2 decay model (may be null) */
   recoveryV2: number | null;
+
+  /** Persisted Recovery state and exact unpersisted daily transition. */
+  storedRecoveryValue: number | null;
+  storedRecoveryUpdatedAt: string | null;
+  recalibrationDays: number;
+  recalibrationAdjustment: number;
   
   /** Retained for compatibility; always null in the canonical daily path. */
   rriValue: number | null;
@@ -234,7 +240,8 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const result = useMemo((): Omit<UseRecoveryEffectiveResult, 'isLoading' | 'weeklyDetoxMinutes' | 'weeklyWalkMinutes'> => {
     // Check v2 state
     const isV2Initialized = v2State ? hasValidRecoveryData(v2State) : false;
-    const recoveryV2 = v2State ? getCurrentRecovery(v2State, combinedRecoveryTarget) : null;
+    const currentRecovery = calculateCurrentRecoveryBreakdown(v2State, combinedRecoveryTarget);
+    const recoveryV2 = isV2Initialized ? currentRecovery.currentValue : null;
     
     console.log("[useRecoveryEffective v2] Computing:", {
       isV2Initialized,
@@ -249,6 +256,10 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         isUsingRRI: false,
         isV2Initialized: true,
         recoveryV2,
+        storedRecoveryValue: currentRecovery.storedValue,
+        storedRecoveryUpdatedAt: currentRecovery.storedAt,
+        recalibrationDays: currentRecovery.elapsedDays,
+        recalibrationAdjustment: currentRecovery.recalibrationAdjustment,
         rriValue: null,
         hasRecoveryData: true,
         recoveryTarget: combinedRecoveryTarget,
@@ -275,6 +286,10 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         isUsingRRI: false,
         isV2Initialized: false,
         recoveryV2: null,
+        storedRecoveryValue: null,
+        storedRecoveryUpdatedAt: null,
+        recalibrationDays: 0,
+        recalibrationAdjustment: 0,
         rriValue: null,
         hasRecoveryData: true,
         recoveryTarget: combinedRecoveryTarget,
@@ -300,6 +315,10 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       isUsingRRI: false,
       isV2Initialized: false,
       recoveryV2: null,
+      storedRecoveryValue: null,
+      storedRecoveryUpdatedAt: null,
+      recalibrationDays: 0,
+      recalibrationAdjustment: 0,
       rriValue: null,
       hasRecoveryData: false,
       recoveryTarget: combinedRecoveryTarget,

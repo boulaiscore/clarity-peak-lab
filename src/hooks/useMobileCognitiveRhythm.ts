@@ -67,7 +67,7 @@ export function useMobileCognitiveRhythm() {
           .limit(120),
         looseSupabase
           .from("device_usage_snapshots")
-          .select("snapshot_date, attention_usage_min")
+          .select("snapshot_date, attention_usage_min, attention_session_count, attention_switch_count, brief_session_count")
           .eq("user_id", userId)
           .gte("snapshot_date", sinceDate)
           .order("snapshot_date", { ascending: true })
@@ -96,6 +96,9 @@ export function useMobileCognitiveRhythm() {
           recovery: null,
           healthScore: null,
           attentionUsageMinutes: null,
+          attentionSessionCount: null,
+          attentionSwitchCount: null,
+          briefSessionCount: null,
           busyMinutes: null,
           meetingCount: null,
           longestOpenStartMinute: null,
@@ -120,7 +123,13 @@ export function useMobileCognitiveRhythm() {
       });
       records(deviceResult.data).forEach((row) => {
         const date = stringValue(row.snapshot_date);
-        if (date) ensure(date).attentionUsageMinutes = numberValue(row.attention_usage_min);
+        if (!date) return;
+        Object.assign(ensure(date), {
+          attentionUsageMinutes: numberValue(row.attention_usage_min),
+          attentionSessionCount: numberValue(row.attention_session_count),
+          attentionSwitchCount: numberValue(row.attention_switch_count),
+          briefSessionCount: numberValue(row.brief_session_count),
+        });
       });
       records(calendarResult.data).forEach((row) => {
         const date = stringValue(row.snapshot_date);

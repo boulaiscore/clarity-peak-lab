@@ -35,6 +35,12 @@ const config: CapacitorConfig = {
       splashFullScreen: true,
       splashImmersive: true,
     },
+    SystemBars: {
+      insetsHandling: "css",
+      style: "DARK",
+      hidden: false,
+      animation: "NONE",
+    },
   },
   // iOS-specific configuration
   ios: {

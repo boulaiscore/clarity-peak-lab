@@ -72,6 +72,9 @@ export interface RQResult {
   s2CoreContribution: number;
   s2ConsistencyContribution: number;
   taskPrimingContribution: number;
+  /** Exact signed final-score change after inactivity and the S2 floor. */
+  decayAdjustment: number;
+  decayFloorApplied: boolean;
   decay: number;
   isDecaying: boolean;
 }
@@ -374,13 +377,15 @@ export function calculateRQ(input: RQInput): RQResult {
     today
   );
   
-  // 7. Final RQ - apply floor ONLY when there's actual decay
-  // The floor prevents RQ from dropping too far due to inactivity,
-  // but should NOT artificially raise RQ when baseRQ is naturally low
+  // 7. Final RQ - apply floor ONLY when there's actual decay.
+  // The effective floor can never be higher than today's base score:
+  // inactivity protection may limit a loss, but must never create a gain.
   const decayedRQ = baseRQ - decay;
+  const effectiveFloor = Math.min(baseRQ, floor);
   const finalRQ = decay > 0 
-    ? clamp(decayedRQ, floor, 100)
+    ? clamp(decayedRQ, effectiveFloor, 100)
     : clamp(decayedRQ, 0, 100);
+  const decayAdjustment = finalRQ - baseRQ;
   
   // Return full precision values - rounding happens only at display layer
   return {
@@ -391,6 +396,8 @@ export function calculateRQ(input: RQInput): RQResult {
     s2CoreContribution: s2CoreContribution,
     s2ConsistencyContribution: s2ConsistencyContribution,
     taskPrimingContribution: taskPrimingContribution,
+    decayAdjustment,
+    decayFloorApplied: decay > 0 && finalRQ > decayedRQ,
     decay: decay,
     isDecaying: decay > 0,
   };

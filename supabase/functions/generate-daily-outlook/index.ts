@@ -128,7 +128,7 @@ function sanitizeStateSnapshot(value: unknown): Record<string, unknown> {
   const patternStatus = ["locked", "learning", "emerging", "reliable"].includes(String(pattern.status))
     ? String(pattern.status)
     : "learning";
-  const driverLabel = topDriver && ["Recovery", "Health", "Attention", "Schedule"].includes(String(topDriver.label))
+  const driverLabel = topDriver && ["Recovery", "Health", "Attention", "Fragmentation", "Schedule"].includes(String(topDriver.label))
     ? String(topDriver.label)
     : null;
   const driverDirection = topDriver && ["supports", "limits"].includes(String(topDriver.direction))
@@ -146,6 +146,7 @@ function sanitizeStateSnapshot(value: unknown): Record<string, unknown> {
       healthScore: boundedNumber(passive.healthScore, 0, 100),
       healthSignals: parseHealthSignals(passive.healthSignals),
       attentionLoadRatio: boundedNumber(passive.attentionLoadRatio, 0, 10),
+      digitalFragmentationRatio: boundedNumber(passive.digitalFragmentationRatio, 0, 10),
       scheduleLoadRatio: boundedNumber(passive.scheduleLoadRatio, 0, 10),
       signalCoverage: boundedNumber(passive.signalCoverage, 0, 1),
       activeSourceCount: boundedNumber(passive.activeSourceCount, 0, 20),
@@ -167,6 +168,9 @@ function sanitizeStateSnapshot(value: unknown): Record<string, unknown> {
       openWindow: safeText(pattern.openWindow, 40),
       attentionLoad: ["Low", "Usual", "High"].includes(String(pattern.attentionLoad))
         ? String(pattern.attentionLoad)
+        : null,
+      digitalFragmentation: ["Low", "Usual", "High"].includes(String(pattern.digitalFragmentation))
+        ? String(pattern.digitalFragmentation)
         : null,
       scheduleLoad: ["Light", "Moderate", "Packed"].includes(String(pattern.scheduleLoad))
         ? String(pattern.scheduleLoad)

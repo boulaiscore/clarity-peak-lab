@@ -18,7 +18,7 @@ import {
   type FocusIntegrityObservation,
 } from "@/lib/focusIntegrity";
 
-export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v6-scientific-priors";
+export const PASSIVE_FEATURE_SCHEMA_VERSION = "passive-features-v7-digital-fragmentation";
 
 type NullableNumber = number | null | undefined;
 
@@ -101,6 +101,9 @@ export interface PassiveDeviceUsagePoint {
   date: string;
   attentionUsageMin: NullableNumber;
   activeAppCount: NullableNumber;
+  attentionSessionCount?: NullableNumber;
+  attentionSwitchCount?: NullableNumber;
+  briefSessionCount?: NullableNumber;
   lastAttentionUseAt: string | null;
   permissionState: "granted" | "limited" | "denied" | "unavailable";
   confidence: NullableNumber;
@@ -141,6 +144,7 @@ export interface PassiveCoachContext {
   attentionUsageMinutes: number | null;
   attentionUsageBaselineMinutes: number | null;
   attentionLoadRatio: number | null;
+  digitalFragmentationRatio: number | null;
   scheduleBusyMinutes: number | null;
   scheduleLoadRatio: number | null;
   activeDays7d: number;
@@ -300,6 +304,7 @@ interface RawAdaptiveSignals {
   activityStandardized: number | null;
   activityFromWearable: boolean;
   attentionLoadRatio: number | null;
+  digitalFragmentationRatio: number | null;
   scheduleLoadRatio: number | null;
   phoneConfidence: number;
   attentionConfidence: number;
@@ -318,6 +323,23 @@ function rawSignalsForDate(input: PassiveFeatureInput, date: string): RawAdaptiv
   const activeMinutes = finite(phone?.activeMinutes);
   const steps = finite(phone?.steps);
   const wearableActivity = finite(wearable?.activityScore);
+  const fragmentationRatios = [
+    relativeLoadRatio(
+      device?.attentionSessionCount,
+      priorDevice.map((point) => point.attentionSessionCount),
+      1,
+    ),
+    relativeLoadRatio(
+      device?.attentionSwitchCount,
+      priorDevice.map((point) => point.attentionSwitchCount),
+      1,
+    ),
+    relativeLoadRatio(
+      device?.briefSessionCount,
+      priorDevice.map((point) => point.briefSessionCount),
+      1,
+    ),
+  ].filter((value): value is number => value !== null);
   const activityStandardized = activeMinutes !== null
     ? clamp((Math.min(activeMinutes, 60) - 20) / 20, -2, 2)
     : steps !== null
@@ -341,6 +363,7 @@ function rawSignalsForDate(input: PassiveFeatureInput, date: string): RawAdaptiv
       priorDevice.map((point) => point.attentionUsageMin),
       30,
     ),
+    digitalFragmentationRatio: mean(fragmentationRatios),
     scheduleLoadRatio: relativeLoadRatio(
       calendar?.busyMinutes,
       priorCalendar.map((point) => point.busyMinutes),
@@ -404,6 +427,9 @@ function standardizedFeatures(
     attentionLoad: current.attentionLoadRatio === null
       ? null
       : clamp(-Math.max(0, current.attentionLoadRatio - 1) / 0.5, -2, 0),
+    digitalFragmentation: current.digitalFragmentationRatio === null
+      ? null
+      : clamp(-Math.max(0, current.digitalFragmentationRatio - 1) / 0.5, -2, 0),
     scheduleLoad: current.scheduleLoadRatio === null
       ? null
       : clamp(-Math.max(0, current.scheduleLoadRatio - 1) / 0.75, -2, 0),
@@ -418,6 +444,7 @@ function standardizedFeatures(
     activity: FEATURE_MEASUREMENT_RELIABILITY.activity *
       (current.activityFromWearable ? 1 : current.phoneConfidence),
     attentionLoad: FEATURE_MEASUREMENT_RELIABILITY.attentionLoad * current.attentionConfidence,
+    digitalFragmentation: FEATURE_MEASUREMENT_RELIABILITY.digitalFragmentation * current.attentionConfidence,
     scheduleLoad: FEATURE_MEASUREMENT_RELIABILITY.scheduleLoad * current.scheduleConfidence,
   };
   (Object.keys(reliability) as AdaptiveFeatureId[]).forEach((id) => {
@@ -483,6 +510,7 @@ function buildAdaptiveContextPoints(input: PassiveFeatureInput): AdaptiveContext
       const currentRaw = rawByDate.get(date) as RawAdaptiveSignals;
       if (!attentionObservedBeforeOutcome) {
         currentRaw.attentionLoadRatio = null;
+        currentRaw.digitalFragmentationRatio = null;
         currentRaw.attentionConfidence = 0;
       }
       const priorRaw = orderedDates
@@ -562,6 +590,29 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
       ? round(clamp(attentionUsageMinutes / attentionUsageBaselineMinutes, 0, 4), 3)
       : attentionUsageMinutes === 0 ? 1 : null
     : null;
+  const digitalFragmentationRatio = mean([
+    relativeLoadRatio(
+      currentDevice?.attentionSessionCount,
+      input.deviceUsage
+        .filter((point) => point.date !== input.featureDate && isWithinDays(point.date, input.featureDate, 14))
+        .map((point) => point.attentionSessionCount),
+      1,
+    ),
+    relativeLoadRatio(
+      currentDevice?.attentionSwitchCount,
+      input.deviceUsage
+        .filter((point) => point.date !== input.featureDate && isWithinDays(point.date, input.featureDate, 14))
+        .map((point) => point.attentionSwitchCount),
+      1,
+    ),
+    relativeLoadRatio(
+      currentDevice?.briefSessionCount,
+      input.deviceUsage
+        .filter((point) => point.date !== input.featureDate && isWithinDays(point.date, input.featureDate, 14))
+        .map((point) => point.briefSessionCount),
+      1,
+    ),
+  ].filter((value): value is number => value !== null));
 
   const currentCalendar = input.calendarContext.find((point) => point.date === input.featureDate)
     ?? latestByDate(input.calendarContext);
@@ -704,6 +755,12 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
         : round(attentionUsageBaselineMinutes, 1),
       relativeToPersonalBaseline: attentionLoadRatio,
       activeAppCount: finite(currentDevice?.activeAppCount),
+      attentionSessionCount: finite(currentDevice?.attentionSessionCount),
+      attentionSwitchCount: finite(currentDevice?.attentionSwitchCount),
+      briefSessionCount: finite(currentDevice?.briefSessionCount),
+      fragmentationRelativeToPersonalBaseline: digitalFragmentationRatio === null
+        ? null
+        : round(digitalFragmentationRatio, 3),
       lastAttentionUseAt: currentDevice?.lastAttentionUseAt ?? null,
       permissionState: currentDevice?.permissionState ?? "unavailable",
       confidence: finite(currentDevice?.confidence),
@@ -748,6 +805,9 @@ export function buildPassiveFeaturePayload(input: PassiveFeatureInput): PassiveF
         ? null
         : round(attentionUsageBaselineMinutes, 1),
       attentionLoadRatio,
+      digitalFragmentationRatio: digitalFragmentationRatio === null
+        ? null
+        : round(digitalFragmentationRatio, 3),
       scheduleBusyMinutes,
       scheduleLoadRatio,
       activeDays7d,

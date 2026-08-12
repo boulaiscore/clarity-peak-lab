@@ -24,6 +24,7 @@ import {
   deriveEffectiveCognitiveStates,
 } from "@/lib/cognitiveEngine";
 import { buildDailyPassiveState, calculateRelativeLoadEstimate } from "@/lib/dailyPassiveState";
+import { calculateDigitalAttentionEstimate } from "@/lib/digitalFragmentation";
 import { calculateRQ, type TaskCompletion } from "@/lib/reasoningQuality";
 import { getMediumPeriodStartDate } from "@/lib/temporalWindows";
 
@@ -139,7 +140,7 @@ export function useRecordIntradayOnAction() {
           .maybeSingle(),
         supabase
           .from("device_usage_snapshots")
-          .select("snapshot_date, attention_usage_min, active_app_count, permission_state, confidence, updated_at")
+          .select("snapshot_date, attention_usage_min, active_app_count, attention_session_count, attention_switch_count, brief_session_count, permission_state, confidence, updated_at")
           .eq("user_id", userId)
           .gte("snapshot_date", passiveHistoryStart)
           .order("snapshot_date", { ascending: true }),
@@ -187,21 +188,23 @@ export function useRecordIntradayOnAction() {
       const deviceRows = deviceResult.data ?? [];
       const currentDevice = deviceRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
       const previousDevice = deviceRows.filter((row) => row.snapshot_date !== today && row.permission_state === "granted");
-      const attentionMinutes = calculateRelativeLoadEstimate({
-        current: currentDevice?.attention_usage_min,
-        history: previousDevice.map((row) => row.attention_usage_min),
+      const digitalAttention = calculateDigitalAttentionEstimate({
+        current: currentDevice ? {
+          attentionUsageMin: currentDevice.attention_usage_min,
+          activeAppCount: currentDevice.active_app_count,
+          attentionSessionCount: currentDevice.attention_session_count,
+          attentionSwitchCount: currentDevice.attention_switch_count,
+          briefSessionCount: currentDevice.brief_session_count,
+        } : null,
+        history: previousDevice.map((row) => ({
+          attentionUsageMin: row.attention_usage_min,
+          activeAppCount: row.active_app_count,
+          attentionSessionCount: row.attention_session_count,
+          attentionSwitchCount: row.attention_switch_count,
+          briefSessionCount: row.brief_session_count,
+        })),
         sourceConfidence: currentDevice?.confidence ?? 0,
-        minimumBaseline: 30,
       });
-      const attentionApps = calculateRelativeLoadEstimate({
-        current: currentDevice?.active_app_count,
-        history: previousDevice.map((row) => row.active_app_count),
-        sourceConfidence: currentDevice?.confidence ?? 0,
-        minimumBaseline: 2,
-      });
-      const attentionScore = attentionMinutes.score === null && attentionApps.score === null
-        ? null
-        : 0.75 * (attentionMinutes.score ?? 50) + 0.25 * (attentionApps.score ?? 50);
 
       const calendarRows = calendarResult.data ?? [];
       const currentCalendar = calendarRows.find((row) => row.snapshot_date === today && row.permission_state === "granted");
@@ -239,9 +242,9 @@ export function useRecordIntradayOnAction() {
         },
         {
           id: "attention",
-          label: "Attention",
-          score: attentionScore,
-          confidence: Math.max(attentionMinutes.confidence, attentionApps.confidence),
+          label: "Digital attention",
+          score: digitalAttention.score,
+          confidence: digitalAttention.confidence,
           updatedAt: currentDevice?.updated_at ?? null,
         },
         {

@@ -8,7 +8,7 @@
  * experimental contrasts.
  */
 
-export const SCIENTIFIC_PRIOR_VERSION = "cognitive-priors-v1-2026-08";
+export const SCIENTIFIC_PRIOR_VERSION = "cognitive-priors-v2-2026-08";
 
 export const ADAPTIVE_FEATURE_IDS = [
   "sleepDuration",
@@ -18,6 +18,7 @@ export const ADAPTIVE_FEATURE_IDS = [
   "restingHr",
   "activity",
   "attentionLoad",
+  "digitalFragmentation",
   "scheduleLoad",
 ] as const;
 
@@ -63,6 +64,7 @@ export const SCIENTIFIC_DOMAIN_PRIORS: Record<AdaptiveDomain, ScientificDomainPr
       restingHr: prior(0.3, 32, "limited"),
       activity: prior(0.9, 22, "moderate"),
       attentionLoad: prior(1.2, 24, "moderate"),
+      digitalFragmentation: prior(1.0, 30, "limited"),
       scheduleLoad: prior(0.1, 40, "proxy"),
     },
   },
@@ -77,6 +79,7 @@ export const SCIENTIFIC_DOMAIN_PRIORS: Record<AdaptiveDomain, ScientificDomainPr
       restingHr: prior(0.3, 34, "limited"),
       activity: prior(0.8, 24, "moderate"),
       attentionLoad: prior(0.7, 28, "limited"),
+      digitalFragmentation: prior(0.4, 36, "proxy"),
       scheduleLoad: prior(0.0, 44, "proxy"),
     },
   },
@@ -94,6 +97,7 @@ export const FEATURE_MEASUREMENT_RELIABILITY: Record<AdaptiveFeatureId, number> 
   restingHr: 0.80,
   activity: 0.75,
   attentionLoad: 0.70,
+  digitalFragmentation: 0.65,
   scheduleLoad: 0.85,
 };
 
@@ -141,4 +145,3 @@ export const SCIENTIFIC_EVIDENCE_REFERENCES = [
     supports: ["sleepDuration", "sleepEfficiency", "measurement"] as const,
   },
 ] as const;
-

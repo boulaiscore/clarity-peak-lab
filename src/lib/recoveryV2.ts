@@ -62,6 +62,21 @@ export interface DailyRecoveryTargetBreakdown {
   combinedTarget: number;
 }
 
+export interface CurrentRecoveryBreakdown {
+  /** Persisted state before any unpersisted daily recalibration. */
+  storedValue: number | null;
+  storedAt: string | null;
+  /** Health/wearable target used for every elapsed daily step. */
+  target: number;
+  elapsedDays: number;
+  /** Exact signed difference between stored and displayed Recovery. */
+  recalibrationAdjustment: number;
+  /** Value shown consistently in Home, Monitor and Lab. */
+  currentValue: number;
+  /** True until a persisted Recovery baseline exists. */
+  estimated: boolean;
+}
+
 const roundRecovery = (value: number): number =>
   Math.round(Math.max(0, Math.min(100, value)) * 10) / 10;
 const roundSigned = (value: number): number => Math.round(value * 10) / 10;
@@ -414,14 +429,46 @@ export function getCurrentRecovery(
   state: RecoveryState,
   targetOverride?: number | null,
 ): number | null {
-  // No baseline yet
-  if (!state.hasRecoveryBaseline) return null;
-  
-  // Value not set
-  if (state.recValue === null || state.recLastTs === null) return null;
-  
-  // Apply decay to get current value
-  return applyRecoveryDecay(state.recValue, state.recLastTs, new Date().toISOString(), targetOverride);
+  if (!hasValidRecoveryData(state)) return null;
+  return calculateCurrentRecoveryBreakdown(state, targetOverride).currentValue;
+}
+
+/**
+ * Canonical explainability object for the displayed Recovery value. The UI
+ * receives the already-computed state transition and never adds action history
+ * or passive inputs a second time.
+ */
+export function calculateCurrentRecoveryBreakdown(
+  state: RecoveryState | null | undefined,
+  targetOverride?: number | null,
+  nowTs: string = new Date().toISOString(),
+): CurrentRecoveryBreakdown {
+  const target = resolveRecoveryForMetrics(null, targetOverride);
+  if (!state || !hasValidRecoveryData(state)) {
+    return {
+      storedValue: null,
+      storedAt: null,
+      target,
+      elapsedDays: 0,
+      recalibrationAdjustment: 0,
+      currentValue: target,
+      estimated: true,
+    };
+  }
+
+  const storedValue = Math.max(0, Math.min(100, state.recValue as number));
+  const storedAt = state.recLastTs as string;
+  const elapsedDays = calendarDaysBetween(storedAt, nowTs);
+  const currentValue = applyRecoveryDecay(storedValue, storedAt, nowTs, target);
+  return {
+    storedValue: roundRecovery(storedValue),
+    storedAt,
+    target,
+    elapsedDays,
+    recalibrationAdjustment: roundSigned(currentValue - storedValue),
+    currentValue: roundRecovery(currentValue),
+    estimated: false,
+  };
 }
 
 /**

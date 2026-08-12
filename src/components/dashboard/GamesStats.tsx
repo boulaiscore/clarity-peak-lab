@@ -615,10 +615,7 @@ export function GamesStats() {
               const totalGamesXP = stats.s1XP + stats.s2XP;
               
               // Games Engagement = min(100, weeklyGamesXP / gamesTarget × 100)
-              // This contributes to Behavioral Engagement (BE) which is 30% of SCI
-              // So Games → SCI contribution = 0.30 × GamesEngagement
               const gamesEngagement = gamesXPTarget > 0 ? Math.min(100, (totalGamesXP / gamesXPTarget) * 100) : 0;
-              const sciContribution = Math.round(0.30 * gamesEngagement);
               
               // Use the same canonical state balance shown everywhere else.
               // Weekly XP mix is training behavior, not a second S1/S2 score.
@@ -631,16 +628,11 @@ export function GamesStats() {
               
               return (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div>
                     <div className="p-2 rounded-lg bg-muted/20">
                       <p className="text-[8px] text-muted-foreground mb-1">Games Engagement</p>
                       <p className="text-sm font-bold text-blue-400">{Math.round(gamesEngagement)}%</p>
                       <p className="text-[7px] text-muted-foreground">of weekly target</p>
-                    </div>
-                    <div className="p-2 rounded-lg bg-muted/20">
-                      <p className="text-[8px] text-muted-foreground mb-1">SCI Contribution</p>
-                      <p className="text-sm font-bold text-emerald-400">+{sciContribution}</p>
-                      <p className="text-[7px] text-muted-foreground">pts to Network Score</p>
                     </div>
                   </div>
                   

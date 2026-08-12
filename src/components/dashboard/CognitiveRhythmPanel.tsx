@@ -57,8 +57,9 @@ export function CognitiveRhythmPanel() {
             </p>
           </div>
         ) : (
-          <div className="mt-4 grid grid-cols-3 gap-x-4 border-t border-white/[0.055] pt-4">
-            <RhythmValue label="Attention" value={rhythm.attentionLoad ?? "—"} />
+          <div className="mt-4 grid grid-cols-4 gap-x-3 border-t border-white/[0.055] pt-4">
+            <RhythmValue label="Use" value={rhythm.attentionLoad ?? "—"} />
+            <RhythmValue label="Fragmentation" value={rhythm.digitalFragmentation ?? "—"} />
             <RhythmValue label="Schedule" value={rhythm.scheduleLoad ?? "—"} />
             <RhythmValue label="Strongest link" value={driver} />
           </div>

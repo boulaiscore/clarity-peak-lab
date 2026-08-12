@@ -65,6 +65,9 @@ const attentionAggregate = aggregateAttentionUsage([
 assert.deepEqual(attentionAggregate, {
   attentionUsageMin: 45,
   activeAppCount: 2,
+  attentionSessionCount: null,
+  attentionSwitchCount: null,
+  briefSessionCount: null,
   lastAttentionUseAt: now.toISOString(),
 });
 assert.doesNotMatch(JSON.stringify(attentionAggregate), /private|packageName|appName/);
@@ -96,9 +99,9 @@ const passivePayload = buildPassiveFeaturePayload({
   phoneHealth: [{ date: "2026-08-08", sleepMin: 450, bedtimeDeviationMin: 12, steps: 7200, activeMinutes: 35, pickups: null, phi: 72, confidence: 0.8, source: "health_connect" }],
   wearable: [{ date: "2026-08-08", hrvMs: 48, restingHr: 58, sleepDurationMin: 450, sleepEfficiency: 88, activityScore: 62, source: "health_connect" }],
   deviceUsage: [
-    { date: "2026-08-06", attentionUsageMin: 40, activeAppCount: 3, lastAttentionUseAt: null, permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
-    { date: "2026-08-07", attentionUsageMin: 50, activeAppCount: 4, lastAttentionUseAt: null, permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
-    { date: "2026-08-08", attentionUsageMin: 90, activeAppCount: 5, lastAttentionUseAt: now.toISOString(), permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
+    { date: "2026-08-06", attentionUsageMin: 40, activeAppCount: 3, attentionSessionCount: 12, attentionSwitchCount: 7, briefSessionCount: 4, lastAttentionUseAt: null, permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
+    { date: "2026-08-07", attentionUsageMin: 50, activeAppCount: 4, attentionSessionCount: 18, attentionSwitchCount: 10, briefSessionCount: 6, lastAttentionUseAt: null, permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
+    { date: "2026-08-08", attentionUsageMin: 90, activeAppCount: 5, attentionSessionCount: 30, attentionSwitchCount: 18, briefSessionCount: 12, lastAttentionUseAt: now.toISOString(), permissionState: "granted", confidence: 0.85, source: "android_usage_stats", coverage: "attention_apps" },
   ],
   calendarContext: [
     { date: "2026-08-06", busyMinutes: 180, meetingCount: 3, longestOpenStartMinute: 780, longestOpenMinutes: 120, permissionState: "granted", confidence: 0.9, source: "android_calendar" },
@@ -110,13 +113,14 @@ const passivePayload = buildPassiveFeaturePayload({
 assert.equal(passivePayload.adaptiveEstimate.mode, "shadow");
 assert.equal(passivePayload.adaptiveEstimate.status, "learning");
 assert.ok(passivePayload.adaptiveEstimate.uncertainty > 0);
-assert.ok(passivePayload.adaptiveEstimate.evidenceVersion.startsWith("cognitive-priors-v1"));
+assert.ok(passivePayload.adaptiveEstimate.evidenceVersion.startsWith("cognitive-priors-v2"));
 assert.ok(passivePayload.adaptiveEstimate.domains.attention.predictedScore > 0);
 assert.ok(passivePayload.adaptiveEstimate.domains.executive.predictedScore > 0);
 assert.equal(passivePayload.adaptiveEstimate.projectedMetrics.recovery, 64);
 assert.equal(passivePayload.coachContext.healthScore, 72);
 assert.equal(passivePayload.coachContext.attentionUsageBaselineMinutes, 45);
 assert.equal(passivePayload.coachContext.attentionLoadRatio, 2);
+assert.ok((passivePayload.coachContext.digitalFragmentationRatio ?? 0) > 1);
 assert.equal(passivePayload.coachContext.scheduleLoadRatio, 1.429);
 assert.ok(passivePayload.coachContext.metricTrendPerDay > 0);
 assert.equal(passivePayload.deviceUsage.privacyLevel, "aggregate_only_no_app_names_or_content");
@@ -184,6 +188,9 @@ const mobileRhythm = deriveMobileCognitiveRhythm(
     recovery: 50 + index * 3,
     healthScore: 55 + index * 2,
     attentionUsageMinutes: index === 7 ? 90 : 45 - index,
+    attentionSessionCount: index === 7 ? 30 : 14 + index,
+    attentionSwitchCount: index === 7 ? 18 : 7 + index,
+    briefSessionCount: index === 7 ? 12 : 4 + index,
     busyMinutes: index === 7 ? 320 : 240 - index * 10,
     meetingCount: index === 7 ? 7 : 4,
     longestOpenStartMinute: index === 7 ? 600 : 780,
@@ -193,6 +200,7 @@ const mobileRhythm = deriveMobileCognitiveRhythm(
 assert.equal(mobileRhythm.status, "emerging");
 assert.equal(mobileRhythm.openWindow, "10:00–12:00");
 assert.equal(mobileRhythm.attentionLoad, "High");
+assert.equal(mobileRhythm.digitalFragmentation, "High");
 assert.equal(mobileRhythm.scheduleLoad, "Packed");
 assert.ok(mobileRhythm.topDriver);
 
@@ -206,6 +214,7 @@ const adaptiveSeries = Array.from({ length: 46 }, (_, index) => ({
     restingHr: -0.2 + index * 0.01,
     activity: -0.4 + index * 0.018,
     attentionLoad: -0.5 + index * 0.012,
+    digitalFragmentation: -0.4 + index * 0.01,
     scheduleLoad: 0,
   },
   reliability: {
@@ -216,6 +225,7 @@ const adaptiveSeries = Array.from({ length: 46 }, (_, index) => ({
     restingHr: 0.8,
     activity: 0.75,
     attentionLoad: 0.7,
+    digitalFragmentation: 0.65,
     scheduleLoad: 0.85,
   },
   outcomes: index === 45

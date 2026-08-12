@@ -18,7 +18,7 @@ const CENTER_X = 140;
 const CENTER_Y = 112;
 
 // A deterministic neural ring. Keeping the geometry stable makes the Age,
-// Network and Systems views feel like parts of the same instrument.
+// Age and Systems views feel like parts of the same instrument.
 const AGE_NODES: AgeNode[] = Array.from({ length: NODE_COUNT }, (_, index) => {
   const angle = (index / NODE_COUNT) * Math.PI * 2;
   const bandOffset = ((index * 17) % 29) - 14;
@@ -53,7 +53,6 @@ function getComparison(cognitiveAge: number, chronologicalAge?: number) {
   if (absoluteDifference < 0.05) {
     return {
       label: "Aligned with chronological age",
-      tone: "text-muted-foreground/75",
       direction: "neutral" as const,
     };
   }
@@ -61,14 +60,60 @@ function getComparison(cognitiveAge: number, chronologicalAge?: number) {
   return difference > 0
     ? {
         label: `${absoluteDifference.toFixed(1)} years younger`,
-        tone: "text-[hsl(var(--success))]",
         direction: "younger" as const,
       }
     : {
         label: `${absoluteDifference.toFixed(1)} years older`,
-        tone: "text-[hsl(var(--area-fast))]",
         direction: "older" as const,
       };
+}
+
+interface AgePalette {
+  accent: string;
+  secondary: string;
+  soft: string;
+}
+
+function interpolate(from: number, to: number, progress: number): number {
+  return from + (to - from) * Math.max(0, Math.min(1, progress));
+}
+
+/**
+ * Continuous, non-alarming age-comparison palette.
+ * Younger moves from sage to vivid green; older moves from warm yellow to a
+ * restrained coral rather than an alarm red. The visual encodes direction and
+ * magnitude, while the text remains the exact interpretation.
+ */
+function getAgePalette(ageDifference: number): AgePalette {
+  if (ageDifference < 0) {
+    const strength = Math.min(Math.abs(ageDifference) / 8, 1);
+    const hue = interpolate(164, 142, strength);
+    const saturation = interpolate(42, 82, strength);
+    const lightness = interpolate(59, 48, strength);
+    return {
+      accent: `hsl(${hue} ${saturation}% ${lightness}%)`,
+      secondary: `hsl(${interpolate(177, 151, strength)} ${interpolate(32, 68, strength)}% ${interpolate(62, 54, strength)}%)`,
+      soft: `hsl(${hue} ${saturation}% ${lightness}% / 0.24)`,
+    };
+  }
+
+  if (ageDifference > 0) {
+    const strength = Math.min(ageDifference / 10, 1);
+    const hue = interpolate(46, 12, strength);
+    const saturation = interpolate(58, 67, strength);
+    const lightness = interpolate(62, 60, strength);
+    return {
+      accent: `hsl(${hue} ${saturation}% ${lightness}%)`,
+      secondary: `hsl(${interpolate(52, 24, strength)} ${interpolate(38, 57, strength)}% ${interpolate(66, 63, strength)}%)`,
+      soft: `hsl(${hue} ${saturation}% ${lightness}% / 0.21)`,
+    };
+  }
+
+  return {
+    accent: "hsl(174 32% 61%)",
+    secondary: "hsl(205 24% 65%)",
+    soft: "hsl(174 32% 61% / 0.18)",
+  };
 }
 
 export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: CognitiveAgeSphereProps) {
@@ -81,17 +126,18 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const comparison = getComparison(cognitiveAge, chronologicalAge);
   const ageDifference = chronologicalAge ? cognitiveAge - chronologicalAge : delta;
   const direction = comparison?.direction ?? (ageDifference < -0.05 ? "younger" : ageDifference > 0.05 ? "older" : "neutral");
-  const accent = direction === "older" ? "hsl(var(--area-fast))" : "hsl(var(--success))";
-  const secondaryAccent = direction === "older" ? "hsl(var(--recovery))" : "hsl(var(--recovery))";
+  const palette = getAgePalette(Math.abs(ageDifference) < 0.05 ? 0 : ageDifference);
+  const accent = palette.accent;
+  const secondaryAccent = palette.secondary;
   const pulseDuration = direction === "neutral" ? 3.2 : 2.75;
   const signalStride = direction === "neutral" ? 12 : 9;
 
   return (
-    <div className="overflow-hidden rounded-[18px] border border-white/[0.06] bg-[radial-gradient(ellipse_at_center,hsl(var(--recovery)/0.09),transparent_69%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+    <div className="relative">
       <div className="relative h-[252px] w-full">
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
           <motion.div
-            className="h-[196px] w-[226px] rounded-[46%] bg-[radial-gradient(ellipse_at_center,transparent_35%,hsl(var(--recovery)/0.19)_53%,hsl(var(--success)/0.32)_67%,transparent_76%)] blur-[13px]"
+            className="h-[196px] w-[226px] rounded-[46%] blur-[13px]"
             animate={reduceMotion ? undefined : {
               opacity: [0.38, 0.9, 0.38],
               scale: [0.91, 1.08, 0.91],
@@ -101,13 +147,16 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
               ease: "easeInOut",
               repeat: Infinity,
             }}
-            style={reduceMotion ? { opacity: 0.62 } : undefined}
+            style={{
+              backgroundImage: `radial-gradient(ellipse at center, transparent 35%, ${palette.soft} 53%, ${accent} 67%, transparent 76%)`,
+              ...(reduceMotion ? { opacity: 0.62 } : {}),
+            }}
           />
         </div>
 
         <div className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center" aria-hidden="true">
           <motion.div
-            className="h-[192px] w-[222px] rounded-[47%] border border-[hsl(var(--recovery)/0.45)] shadow-[0_0_34px_hsl(var(--success)/0.2)]"
+            className="h-[192px] w-[222px] rounded-[47%] border"
             animate={reduceMotion ? undefined : {
               opacity: [0.16, 0.68, 0.16],
               scale: [0.92, 1.07, 0.92],
@@ -116,6 +165,10 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
               duration: pulseDuration,
               ease: "easeInOut",
               repeat: Infinity,
+            }}
+            style={{
+              borderColor: palette.soft,
+              boxShadow: `0 0 34px ${palette.soft}`,
             }}
           />
         </div>
@@ -323,20 +376,23 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           so no node, connection or glow can compete with the value.
         */}
         <div
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[5] h-[108px] w-[184px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.045] bg-background shadow-[0_0_26px_16px_hsl(var(--background)),inset_0_1px_0_rgba(255,255,255,0.025)]"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[5] h-[104px] w-[174px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-background shadow-[0_0_26px_16px_hsl(var(--background))]"
           aria-hidden="true"
         />
 
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center pb-1 text-center">
           <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/55">Cognitive Age</span>
           <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-[48px] font-semibold leading-none tabular-nums tracking-[-0.055em] text-foreground drop-shadow-[0_2px_14px_rgba(0,0,0,0.72)]">
+            <span className="text-[36px] font-semibold leading-none tabular-nums tracking-[-0.045em] text-foreground drop-shadow-[0_2px_14px_rgba(0,0,0,0.72)]">
               {cognitiveAge.toFixed(1)}
             </span>
             <span className="text-[11px] font-medium text-muted-foreground/65">years</span>
           </div>
           {comparison && (
-            <span className={`mt-2.5 rounded-full border border-white/[0.08] bg-background/55 px-2.5 py-1 text-[9px] font-semibold backdrop-blur-sm ${comparison.tone}`}>
+            <span
+              className="mt-2.5 rounded-full bg-background/55 px-2.5 py-1 text-[9px] font-semibold backdrop-blur-sm"
+              style={{ color: accent }}
+            >
               {comparison.label}
             </span>
           )}
