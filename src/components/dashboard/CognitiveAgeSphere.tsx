@@ -80,9 +80,9 @@ function interpolate(from: number, to: number, progress: number): number {
 
 /**
  * Continuous, non-alarming age-comparison palette.
- * Younger moves from sage to vivid green; older moves from warm yellow to a
- * restrained coral rather than an alarm red. The visual encodes direction and
- * magnitude, while the text remains the exact interpretation.
+ * Younger moves from sage to vivid green; older stays within a warm
+ * WHOOP-style amber range. The visual encodes direction and magnitude, while
+ * the text remains the exact interpretation.
  */
 function getAgePalette(ageDifference: number): AgePalette {
   if (ageDifference < 0) {
@@ -99,12 +99,12 @@ function getAgePalette(ageDifference: number): AgePalette {
 
   if (ageDifference > 0) {
     const strength = Math.min(ageDifference / 10, 1);
-    const hue = interpolate(46, 12, strength);
-    const saturation = interpolate(58, 67, strength);
-    const lightness = interpolate(62, 60, strength);
+    const hue = interpolate(42, 38, strength);
+    const saturation = interpolate(78, 74, strength);
+    const lightness = interpolate(54, 58, strength);
     return {
       accent: `hsl(${hue} ${saturation}% ${lightness}%)`,
-      secondary: `hsl(${interpolate(52, 24, strength)} ${interpolate(38, 57, strength)}% ${interpolate(66, 63, strength)}%)`,
+      secondary: `hsl(${interpolate(38, 42, strength)} ${interpolate(62, 68, strength)}% ${interpolate(54, 56, strength)}%)`,
       soft: `hsl(${hue} ${saturation}% ${lightness}% / 0.21)`,
     };
   }
