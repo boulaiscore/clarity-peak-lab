@@ -219,7 +219,13 @@ public class HealthPlugin: CAPPlugin {
     }
 
     private func permissionPayload(state: String) -> [String: String] {
-        ["sleep": state, "hrv": state, "restingHr": state]
+        [
+            "sleep": state,
+            "hrv": state,
+            "restingHr": state,
+            "steps": state,
+            "activeMinutes": state,
+        ]
     }
 
     private func dateRange(from call: CAPPluginCall) -> (start: Date, end: Date)? {

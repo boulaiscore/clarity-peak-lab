@@ -13,6 +13,7 @@ import { calculateSCI, getTargetsForPlan } from "../src/lib/cognitiveNetworkScor
 import {
   applyRecoveryDecay,
   calculateDailyRecoveryTarget,
+  calculateDailyRecoveryTargetBreakdown,
   recalibrateRecoveryForNewDay,
   resolveRecoveryForMetrics,
 } from "../src/lib/recoveryV2";
@@ -159,6 +160,20 @@ closeTo(
   57.5,
   "Partial wearable recovery target shrinks toward neutral without Phone Health",
 );
+const recoveryTargetBreakdown = calculateDailyRecoveryTargetBreakdown(
+  60,
+  { rawScore: 80, confidence: 1 },
+);
+closeTo(recoveryTargetBreakdown.wearableTarget ?? 0, 59, "Wearable physiology maps to the bounded REC target");
+closeTo(recoveryTargetBreakdown.wearableWeight, 0.5, "Complete wearable data receives its canonical maximum blend weight");
+closeTo(recoveryTargetBreakdown.wearableContribution, -0.5, "Breakdown exposes the exact signed wearable contribution");
+closeTo(recoveryTargetBreakdown.combinedTarget, 59.5, "Breakdown and headline Recovery share one target");
+const wearableOnlyBreakdown = calculateDailyRecoveryTargetBreakdown(
+  null,
+  { rawScore: 100, confidence: 0.5 },
+);
+closeTo(wearableOnlyBreakdown.wearableWeight, 0.5, "Wearable-only target blends against neutral by observed coverage");
+closeTo(wearableOnlyBreakdown.wearableContribution, 7.5, "Wearable-only contribution is measured against neutral 50");
 closeTo(
   resolveRecoveryForMetrics(null, 62),
   62,

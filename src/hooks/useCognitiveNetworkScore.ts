@@ -15,6 +15,7 @@ import {
   type RecoveryInput,
   type BottleneckResult,
 } from "@/lib/cognitiveNetworkScore";
+import { DEFAULT_TRAINING_PLAN_ID } from "@/lib/trainingPlans";
 
 interface UseCognitiveNetworkScoreResult {
   sci: SCIBreakdown | null;
@@ -57,8 +58,7 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     }
 
     // Get training plan targets
-    const trainingPlan = user?.trainingPlan || "light";
-    const targets = getTargetsForPlan(trainingPlan);
+    const targets = getTargetsForPlan(DEFAULT_TRAINING_PLAN_ID);
 
     // Prepare cognitive metrics input (v1.3 format)
     const cognitiveInput: CognitiveMetricsInput = {
@@ -86,7 +86,7 @@ export function useCognitiveNetworkScore(): UseCognitiveNetworkScoreResult {
     const bottleneck = identifyBottleneck(sci);
 
     return { sci, statusText, level, bottleneck };
-  }, [activeUser, states, weeklyGamesXP, recovery, user?.trainingPlan]);
+  }, [activeUser, states, weeklyGamesXP, recovery]);
 
   return {
     ...result,

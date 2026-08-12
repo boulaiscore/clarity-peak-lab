@@ -1,10 +1,10 @@
-package com.looma;
+package com.neurolooplabs.looma;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
-import com.looma.plugins.AppBlockerPlugin;
-import com.looma.plugins.CalendarContextPlugin;
-import com.looma.plugins.HealthPlugin;
+import com.neurolooplabs.looma.plugins.AppBlockerPlugin;
+import com.neurolooplabs.looma.plugins.CalendarContextPlugin;
+import com.neurolooplabs.looma.plugins.HealthPlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override

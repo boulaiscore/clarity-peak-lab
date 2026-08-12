@@ -45,6 +45,8 @@ export interface PhoneHealthSnapshot {
   confidence: number | null;
   available_sources: string[] | null;
   source: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export function useTodayPhoneHealthSnapshot() {
@@ -102,6 +104,16 @@ export function usePhoneHealthSync() {
   }, []);
 
   useEffect(() => {
+    if (!isNativePlatform()) return;
+    const refreshAfterPermissionChange = () => {
+      ranTodayRef.current = null;
+      setResumeTick((value) => value + 1);
+    };
+    window.addEventListener("looma:health-permissions-changed", refreshAfterPermissionChange);
+    return () => window.removeEventListener("looma:health-permissions-changed", refreshAfterPermissionChange);
+  }, []);
+
+  useEffect(() => {
     if (!userId) return;
     if (!isNativePlatform()) return;
 
@@ -123,15 +135,6 @@ async function runSync(
   queryClient: ReturnType<typeof useQueryClient>
 ): Promise<boolean> {
   try {
-    // Skip if already synced today
-    const { data: existing } = await supabase
-      .from("phone_health_snapshots")
-      .select("id, phi")
-      .eq("user_id", userId)
-      .eq("date", today)
-      .maybeSingle();
-    if (existing?.phi != null) return true;
-
     const available = await isHealthAvailable();
     if (!available) return false;
 

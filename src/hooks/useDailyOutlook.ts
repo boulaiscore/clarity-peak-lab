@@ -4,10 +4,13 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useMobileCognitiveRhythm } from "@/hooks/useMobileCognitiveRhythm";
+import { useYesterdayMetrics } from "@/hooks/useYesterdayMetrics";
 import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
 import {
   deriveDailyOutlook,
   type DailyOutlook,
+  type DailyOutlookBehaviorContext,
+  type DailyOutlookHealthSignals,
   type DailyOutlookInput,
 } from "@/lib/dailyOutlook";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +58,85 @@ function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function finiteNumber(value: unknown): number | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function nonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function healthSignalsFromPayload(
+  payload: PassiveFeaturePayload | null,
+): DailyOutlookHealthSignals | null {
+  const health = record(payload?.health);
+  const phone = record(health?.phone);
+  const wearable = record(health?.wearable);
+  const sleepDurationMin = finiteNumber(wearable?.sleepDurationMin) ?? finiteNumber(phone?.sleepMin);
+  const sleepEfficiency = finiteNumber(wearable?.sleepEfficiency);
+  const hrvMs = finiteNumber(wearable?.hrvMs);
+  const restingHr = finiteNumber(wearable?.restingHr);
+  const steps = finiteNumber(phone?.steps);
+  const activeMinutes = finiteNumber(phone?.activeMinutes);
+  const observedDates = [nonEmptyString(phone?.date), nonEmptyString(wearable?.date)]
+    .filter((value): value is string => value !== null)
+    .sort();
+  const sources = [...new Set([
+    nonEmptyString(wearable?.source),
+    nonEmptyString(phone?.source),
+  ].filter((value): value is string => value !== null))];
+
+  if ([sleepDurationMin, sleepEfficiency, hrvMs, restingHr, steps, activeMinutes]
+    .every((value) => value === null)) {
+    return null;
+  }
+
+  return {
+    sleepDurationMin,
+    sleepEfficiency,
+    hrvMs,
+    restingHr,
+    steps,
+    activeMinutes,
+    observedDate: observedDates.at(-1)?.slice(0, 10) ?? null,
+    sources,
+  };
+}
+
+function behaviorContextFromPayload(
+  payload: PassiveFeaturePayload | null,
+): DailyOutlookBehaviorContext | null {
+  if (!payload) return null;
+  const behavior = record(payload.behavior);
+  const values: DailyOutlookBehaviorContext = {
+    metricTrendPerDay: finiteNumber(payload.coachContext.metricTrendPerDay),
+    cognitiveActivityDays7d: finiteNumber(behavior?.cognitiveActivityDays7d),
+    gameSessions7d: finiteNumber(behavior?.gameSessions7d),
+    qualityTimeMinutes7d: finiteNumber(behavior?.qualityTimeMinutes7d),
+    recoveryMinutes7d: finiteNumber(behavior?.recoveryMinutes7d),
+  };
+  return Object.values(values).some((value) => value !== null) ? values : null;
+}
+
+/** Human first name for coach copy; never an email address or handle. */
+function displayFirstName(
+  name: string | null | undefined,
+  email: string | null | undefined,
+): string | null {
+  const raw = typeof name === "string" ? name.trim() : "";
+  const source = raw && !raw.includes("@")
+    ? raw
+    : (typeof email === "string" ? email.split("@")[0] : "");
+  const token = source.split(/[\s._-]+/).filter(Boolean)[0];
+  if (!token) return null;
+  const cleaned = token.replace(/[^\p{L}\p{M}'-]/gu, "");
+  if (!cleaned) return null;
+  return cleaned.charAt(0).toLocaleUpperCase() + cleaned.slice(1);
+}
+
 function isStorageUnavailable(error: LooseResult["error"]): boolean {
   return Boolean(error && /daily_outlooks|PGRST205|42P01|schema cache/i.test(error.message ?? ""));
 }
@@ -65,9 +147,18 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   const queryClient = useQueryClient();
   const { rhythm, isLoading: rhythmLoading } = useMobileCognitiveRhythm();
   const today = format(new Date(), "yyyy-MM-dd");
+  const { yesterdayMetrics } = useYesterdayMetrics(today);
   const shownRef = useRef<string | null>(null);
   const canPersonalize = subscription.tier !== "free";
   const personalizationLoading = canPersonalize && rhythmLoading;
+  const healthSignals = useMemo(
+    () => healthSignalsFromPayload(input.passiveFeatures),
+    [input.passiveFeatures],
+  );
+  const behaviorContext = useMemo(
+    () => behaviorContextFromPayload(input.passiveFeatures),
+    [input.passiveFeatures],
+  );
 
   const policyInput = useMemo<DailyOutlookInput>(() => ({
     sharpness: input.sharpness,
@@ -75,22 +166,30 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     recovery: input.recovery,
     reasoningQuality: input.reasoningQuality,
     healthScore: input.passiveFeatures?.coachContext.healthScore ?? null,
+    healthSignals,
     attentionLoadRatio: input.passiveFeatures?.coachContext.attentionLoadRatio ?? null,
     scheduleLoadRatio: input.passiveFeatures?.coachContext.scheduleLoadRatio ?? null,
     signalCoverage: input.signalCoverage,
     primaryOutcome: user?.primaryOutcome ?? "focus",
+    workType: user?.workType ?? null,
+    behaviorContext,
+    previousMetrics: yesterdayMetrics ?? null,
     canPersonalize,
     rhythm: canPersonalize ? rhythm : null,
   }), [
+    yesterdayMetrics,
     canPersonalize,
+    behaviorContext,
     input.passiveFeatures,
     input.readiness,
     input.reasoningQuality,
     input.recovery,
     input.sharpness,
     input.signalCoverage,
+    healthSignals,
     rhythm,
     user?.primaryOutcome,
+    user?.workType,
   ]);
 
   const deterministicOutlook = useMemo(
@@ -107,28 +206,48 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     },
     passive: {
       healthScore: policyInput.healthScore ?? null,
+      healthSignals,
       attentionLoadRatio: policyInput.attentionLoadRatio ?? null,
       scheduleLoadRatio: policyInput.scheduleLoadRatio ?? null,
       signalCoverage: input.signalCoverage,
       activeSourceCount: input.activeSourceCount,
     },
+    personal: {
+      workType: user?.workType ?? null,
+      primaryOutcome: user?.primaryOutcome ?? "focus",
+    },
+    behavior: behaviorContext,
+    previousDay: yesterdayMetrics ?? null,
     pattern: {
       status: canPersonalize ? rhythm.status : "locked",
       observedDays: canPersonalize ? rhythm.observedDays : 0,
+      openWindow: canPersonalize ? rhythm.openWindow : null,
+      topDriver: canPersonalize ? rhythm.topDriver : null,
+      attentionLoad: canPersonalize ? rhythm.attentionLoad : null,
+      scheduleLoad: canPersonalize ? rhythm.scheduleLoad : null,
     },
   }), [
     canPersonalize,
+    behaviorContext,
+    yesterdayMetrics,
     input.activeSourceCount,
     input.readiness,
     input.reasoningQuality,
     input.recovery,
     input.sharpness,
     input.signalCoverage,
+    healthSignals,
     policyInput.attentionLoadRatio,
     policyInput.healthScore,
     policyInput.scheduleLoadRatio,
     rhythm.observedDays,
+    rhythm.openWindow,
+    rhythm.topDriver,
+    rhythm.attentionLoad,
+    rhythm.scheduleLoad,
     rhythm.status,
+    user?.primaryOutcome,
+    user?.workType,
   ]);
 
   const generatedCopyQuery = useQuery({
@@ -139,6 +258,8 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       deterministicOutlook.policyVersion,
       deterministicOutlook.action.key,
       deterministicOutlook.headline,
+      deterministicOutlook.healthSignals,
+      stateSnapshot,
     ],
     queryFn: async (): Promise<GeneratedCopy | null> => {
       const { data, error } = await supabase.functions.invoke("generate-daily-outlook", {
@@ -290,6 +411,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   return {
     outlook,
     copySource,
+    coachName: displayFirstName(user?.name, user?.email),
     isLoading: input.isLoading || subscription.loading || personalizationLoading,
     isGeneratingCopy: generatedCopyQuery.isLoading,
     markOpened,

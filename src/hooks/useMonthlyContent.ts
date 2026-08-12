@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { startOfMonth, startOfWeek, format } from "date-fns";
-import { TrainingPlanId, TRAINING_PLANS, XP_VALUES } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN, DEFAULT_TRAINING_PLAN_ID, XP_VALUES } from "@/lib/trainingPlans";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -33,8 +33,8 @@ export function useMonthlyContent() {
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
 
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
-  const plan = TRAINING_PLANS[planId];
+  const planId = DEFAULT_TRAINING_PLAN_ID;
+  const plan = DEFAULT_TRAINING_PLAN;
 
   const { data: assignments, isLoading, refetch } = useQuery({
     queryKey: ["monthly-content", user?.id, monthStart],

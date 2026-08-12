@@ -9,12 +9,10 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Play, 
   Pause, 
-  Square, 
-  Clock, 
   BookOpen, 
   Headphones,
   AlertTriangle,
@@ -40,6 +38,7 @@ import {
   ProofLevel
 } from "@/hooks/useReasonSessions";
 import { toast } from "sonner";
+import { CONTENT_LIBRARY } from "@/lib/contentLibrary";
 
 interface ReasonSessionTimerProps {
   session: ReasonSession;
@@ -48,6 +47,9 @@ interface ReasonSessionTimerProps {
 }
 
 const BACKGROUND_WARNING_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes in background
+const RQ_MINIMUM_SECONDS = 5 * 60;
+const TIMER_RING_RADIUS = 108;
+const TIMER_RING_CIRCUMFERENCE = 2 * Math.PI * TIMER_RING_RADIUS;
 
 export function ReasonSessionTimer({ session, onComplete, onAbort }: ReasonSessionTimerProps) {
   const [isPaused, setIsPaused] = useState(false);
@@ -174,116 +176,133 @@ export function ReasonSessionTimer({ session, onComplete, onAbort }: ReasonSessi
   };
   
   const Icon = session.session_type === "reading" ? BookOpen : Headphones;
-  const title = session.source === "looma_list" 
-    ? session.item_id 
-    : session.custom_title || "Custom Session";
+  const isReading = session.session_type === "reading";
+  const libraryItem = session.item_id
+    ? CONTENT_LIBRARY.find((item) => item.id === session.item_id)
+    : null;
+  const title = session.source === "looma_list"
+    ? libraryItem?.title || "LOOMA selection"
+    : session.custom_title || "Custom session";
+  const author = session.custom_author || libraryItem?.author;
+  const validityProgress = Math.min(1, elapsedSeconds / RQ_MINIMUM_SECONDS);
   
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed inset-0 z-50 bg-background flex flex-col"
+        className="fixed inset-0 z-50 flex flex-col bg-[#090b0e]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border/30">
+        <div className="flex items-center justify-between border-b border-white/[0.055] px-4 py-3">
           <button 
             onClick={() => setShowStopConfirm(true)}
-            className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+            className="rounded-full p-2 transition-colors hover:bg-white/[0.05]"
           >
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
           <div className="flex items-center gap-2">
-            <Icon className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium capitalize">{session.session_type}</span>
+            <Icon className="h-3.5 w-3.5 text-white/65" strokeWidth={1.5} />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/75">{session.session_type}</span>
           </div>
           <div className="w-9" /> {/* Spacer for centering */}
         </div>
         
         {/* Main content */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-4">
           {/* Session info */}
-          <div className="text-center mb-8">
-            <p className="text-sm text-muted-foreground mb-1">
-              {session.source === "looma_list" ? "LOOMA Content" : "Custom"}
+          <div className="mb-5 max-w-xs text-center">
+            <p className="mb-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45">
+              {session.source === "looma_list" ? "LOOMA selection" : "Personal selection"}
             </p>
-            <h2 className="text-xl font-semibold line-clamp-2">{title}</h2>
-            {session.custom_author && (
-              <p className="text-sm text-muted-foreground mt-1">{session.custom_author}</p>
+            <h2 className="line-clamp-2 text-[18px] font-semibold tracking-tight text-foreground/95">{title}</h2>
+            {author && (
+              <p className="mt-1 text-[11px] text-muted-foreground/60">{author}</p>
             )}
           </div>
           
-          {/* Timer display */}
-          <motion.div 
-            className={cn(
-              "text-7xl font-mono font-bold mb-4 tabular-nums",
-              isPaused && "opacity-50"
-            )}
-            animate={{ scale: isPaused ? 0.95 : 1 }}
-          >
-            {formatTime(elapsedSeconds)}
-          </motion.div>
+          {/* Five-minute validity ring */}
+          <div className="relative mb-5 h-[248px] w-[248px]">
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 248 248" aria-hidden="true">
+              <circle cx="124" cy="124" r={TIMER_RING_RADIUS} fill="none" stroke="rgba(255,255,255,0.055)" strokeWidth="8" />
+              <motion.circle
+                cx="124"
+                cy="124"
+                r={TIMER_RING_RADIUS}
+                fill="none"
+                stroke="rgba(255,255,255,0.72)"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={TIMER_RING_CIRCUMFERENCE}
+                animate={{ strokeDashoffset: TIMER_RING_CIRCUMFERENCE * (1 - validityProgress) }}
+                transition={{ duration: 0.55, ease: "easeOut" }}
+              />
+            </svg>
+            <motion.div
+              className={cn("absolute inset-0 flex flex-col items-center justify-center", isPaused && "opacity-50")}
+              animate={{ scale: isPaused ? 0.96 : 1 }}
+            >
+              <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/45">
+                {isPaused ? "Paused" : validityProgress >= 1 ? "RQ active" : "Focused time"}
+              </span>
+              <span className="mt-2 font-mono text-[48px] font-semibold leading-none tabular-nums tracking-[-0.06em] text-foreground">
+                {formatTime(elapsedSeconds)}
+              </span>
+              <span className="mt-3 text-[9px] tabular-nums text-muted-foreground/45">
+                {session.weight.toFixed(1)}× RQ weight
+              </span>
+            </motion.div>
+          </div>
           
           {/* Status indicators */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="mb-6 flex min-h-5 items-center gap-3">
             {isPaused && (
-              <span className="text-xs text-amber-500 font-medium flex items-center gap-1">
-                <Pause className="w-3 h-3" /> PAUSED
+              <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/65">
+                <Pause className="h-3 w-3" /> Paused
               </span>
             )}
             {proofLevel === "timer_only" && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> Reduced proof
+              <span className="flex items-center gap-1 text-[9px] text-muted-foreground/60">
+                <AlertTriangle className="h-3 w-3" /> Reduced proof
               </span>
             )}
-            <span className="text-xs text-muted-foreground">
-              Weight: {session.weight.toFixed(1)}×
-            </span>
           </div>
           
           {/* Control buttons */}
-          <div className="flex items-center gap-4">
+          <div className="flex w-full max-w-[292px] items-center gap-3">
             {/* Pause/Resume */}
             <Button
-              variant="outline"
+              variant="subtle"
               size="lg"
-              className="w-16 h-16 rounded-full"
+              className="h-14 w-14 shrink-0 rounded-[14px] px-0"
               onClick={handlePause}
             >
               {isPaused ? (
-                <Play className="w-6 h-6 ml-0.5" />
+                <Play className="ml-0.5 h-5 w-5" />
               ) : (
-                <Pause className="w-6 h-6" />
+                <Pause className="h-5 w-5" />
               )}
             </Button>
             
             {/* Complete */}
             <Button
               size="lg"
-              className="w-20 h-20 rounded-full bg-primary"
+              variant="premium"
+              className="h-14 flex-1 rounded-[14px]"
               onClick={handleComplete}
               disabled={completeSession.isPending}
             >
-              <Check className="w-8 h-8" />
-            </Button>
-            
-            {/* Stop/Cancel */}
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-16 h-16 rounded-full"
-              onClick={() => setShowStopConfirm(true)}
-            >
-              <Square className="w-5 h-5" />
+              <Check className="h-4 w-4" />
+              Finish session
             </Button>
           </div>
         </div>
         
         {/* Footer info */}
         <div className="p-4 text-center">
-          <p className="text-xs text-muted-foreground">
-            {elapsedSeconds < 300 
-              ? `${Math.ceil((300 - elapsedSeconds) / 60)} min until this counts for RQ`
+          <p className="text-[10px] text-muted-foreground/50">
+            {elapsedSeconds < RQ_MINIMUM_SECONDS
+              ? `${Math.ceil((RQ_MINIMUM_SECONDS - elapsedSeconds) / 60)} min until this counts for RQ`
               : "✓ Valid for Reasoning Quality"
             }
           </p>

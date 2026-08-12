@@ -11,6 +11,7 @@ import { useEffect, useCallback, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
   isHealthAvailable,
   checkPermissions,
@@ -44,6 +45,7 @@ const DAYS_TO_SYNC = 2;
 
 export interface WearableSyncState {
   isAvailable: boolean;
+  isCheckingAvailability: boolean;
   isConnected: boolean;
   permissions: HealthPermissionStatus | null;
   lastSyncAt: Date | null;
@@ -69,9 +71,11 @@ export function useWearableSync() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const syncInProgress = useRef(false);
+  const permissionGrantedRef = useRef(false);
 
   const [state, setState] = useState<WearableSyncState>({
     isAvailable: false,
+    isCheckingAvailability: true,
     isConnected: false,
     permissions: null,
     lastSyncAt: null,
@@ -85,7 +89,11 @@ export function useWearableSync() {
   useEffect(() => {
     const checkAvailability = async () => {
       const available = await isHealthAvailable();
-      setState((prev) => ({ ...prev, isAvailable: available }));
+      setState((prev) => ({
+        ...prev,
+        isAvailable: available,
+        isCheckingAvailability: available,
+      }));
 
       if (available) {
         const permResult = await checkPermissions();
@@ -94,15 +102,22 @@ export function useWearableSync() {
           const isConnected =
             perms.sleep === "granted" ||
             perms.hrv === "granted" ||
-            perms.restingHr === "granted";
+            perms.restingHr === "granted" ||
+            perms.steps === "granted" ||
+            perms.activeMinutes === "granted";
+          permissionGrantedRef.current = isConnected;
 
           setState((prev) => ({
             ...prev,
             permissions: perms,
             isConnected,
+            isCheckingAvailability: false,
           }));
+          return;
         }
       }
+
+      setState((prev) => ({ ...prev, isCheckingAvailability: false }));
     };
 
     checkAvailability();
@@ -146,13 +161,20 @@ export function useWearableSync() {
       const isConnected =
         perms.sleep === "granted" ||
         perms.hrv === "granted" ||
-        perms.restingHr === "granted";
+        perms.restingHr === "granted" ||
+        perms.steps === "granted" ||
+        perms.activeMinutes === "granted";
+      permissionGrantedRef.current = isConnected;
 
       setState((prev) => ({
         ...prev,
         permissions: perms,
         isConnected,
       }));
+
+      if (isConnected) {
+        window.dispatchEvent(new Event("looma:health-permissions-changed"));
+      }
 
       return isConnected;
     }
@@ -169,7 +191,7 @@ export function useWearableSync() {
       return false;
     }
 
-    if (!state.isConnected) {
+    if (!state.isConnected && !permissionGrantedRef.current) {
       console.log("[WearableSync] Not connected, skipping sync");
       return false;
     }
@@ -298,7 +320,7 @@ function aggregateByDate(
   for (let i = 0; i < DAYS_TO_SYNC; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = format(date, "yyyy-MM-dd");
     
     dateMap.set(dateStr, {
       date: dateStr,
@@ -313,7 +335,7 @@ function aggregateByDate(
 
   // Aggregate sleep (use end date as the sleep date)
   for (const record of sleepRecords) {
-    const dateStr = record.endDate.split("T")[0];
+    const dateStr = format(new Date(record.endDate), "yyyy-MM-dd");
     const existing = dateMap.get(dateStr);
     if (existing) {
       // Take the longest sleep session for the day
@@ -327,7 +349,7 @@ function aggregateByDate(
   // Aggregate HRV (average for each day)
   const hrvByDate = new Map<string, HRVRecord[]>();
   for (const record of hrvRecords) {
-    const dateStr = record.timestamp.split("T")[0];
+    const dateStr = format(new Date(record.timestamp), "yyyy-MM-dd");
     if (!hrvByDate.has(dateStr)) {
       hrvByDate.set(dateStr, []);
     }
@@ -347,7 +369,7 @@ function aggregateByDate(
   // Aggregate RHR (average for each day)
   const rhrByDate = new Map<string, RHRRecord[]>();
   for (const record of rhrRecords) {
-    const dateStr = record.timestamp.split("T")[0];
+    const dateStr = format(new Date(record.timestamp), "yyyy-MM-dd");
     if (!rhrByDate.has(dateStr)) {
       rhrByDate.set(dateStr, []);
     }
@@ -388,7 +410,7 @@ async function upsertWearableSnapshot(
         updated_at: new Date().toISOString(),
       },
       {
-        onConflict: "user_id,date",
+        onConflict: "user_id,date,source",
       }
     );
 

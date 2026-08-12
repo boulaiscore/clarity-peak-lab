@@ -7,10 +7,28 @@ const base = {
   recovery: 60,
   reasoningQuality: 55,
   healthScore: 62,
+  healthSignals: {
+    sleepDurationMin: 435,
+    sleepEfficiency: 88,
+    hrvMs: 54,
+    restingHr: 61,
+    steps: 6_800,
+    activeMinutes: 42,
+    observedDate: "2026-08-11",
+    sources: ["health_connect"],
+  },
   attentionLoadRatio: 1,
   scheduleLoadRatio: 1,
   signalCoverage: 0.7,
   primaryOutcome: "focus" as const,
+  workType: "knowledge",
+  behaviorContext: {
+    metricTrendPerDay: 0.2,
+    cognitiveActivityDays7d: 4,
+    gameSessions7d: 3,
+    qualityTimeMinutes7d: 90,
+    recoveryMinutes7d: 35,
+  },
   canPersonalize: true,
   rhythm: {
     status: "reliable" as const,
@@ -24,7 +42,8 @@ const recoveryFirst = deriveDailyOutlook({ ...base, recovery: 30 });
 assert.equal(recoveryFirst.action.key, "recover");
 assert.equal(recoveryFirst.intensity, "protective");
 assert.equal(recoveryFirst.action.metricCode, "REC");
-assert.match(recoveryFirst.summary, /30/);
+assert.match(recoveryFirst.summary, /focus goal in your knowledge work/i);
+assert.match(recoveryFirst.summary, /moving upward/i);
 
 const attentionProtection = deriveDailyOutlook({ ...base, attentionLoadRatio: 1.5 });
 assert.equal(attentionProtection.action.key, "protect_attention");
@@ -47,7 +66,7 @@ assert.equal(strongDecisionDay.windowLabel, "09:30–10:45");
 const scheduleProtection = deriveDailyOutlook({ ...base, readiness: 60, scheduleLoadRatio: 1.5 });
 assert.equal(scheduleProtection.action.key, "protect_capacity");
 assert.equal(scheduleProtection.action.kind, "guidance");
-assert.match(scheduleProtection.summary, /50% above baseline/);
+assert.match(scheduleProtection.summary, /schedule is consuming more capacity than usual/i);
 
 const focusTraining = deriveDailyOutlook({ ...base, recovery: 65, sharpness: 42 });
 assert.equal(focusTraining.action.key, "train_focus");
@@ -58,6 +77,9 @@ const steadyState = deriveDailyOutlook(base);
 assert.equal(steadyState.action.key, "normal_plan");
 assert.equal(steadyState.action.durationMinutes, null);
 assert.doesNotMatch(`${steadyState.headline} ${steadyState.summary} ${steadyState.action.label}`, /\b50 min|50-minute|block\b/i);
+assert.equal(steadyState.healthSignals?.hrvMs, 54);
+assert.ok(steadyState.evidence.some((item) => ["SLP", "HRV", "RHR", "ACT"].includes(item.code)));
+assert.ok(steadyState.evidence.some((item) => item.code === "SLP" && /7h 15m/.test(item.detail)));
 
 const freeState = deriveDailyOutlook({ ...base, canPersonalize: false });
 assert.equal(freeState.personalization, "state");
@@ -67,14 +89,18 @@ assert.ok(freeState.confidence <= 0.65);
 const missingSignals = deriveDailyOutlook({
   ...base,
   healthScore: null,
+  healthSignals: null,
   attentionLoadRatio: null,
   scheduleLoadRatio: null,
   signalCoverage: 0,
   canPersonalize: false,
+  behaviorContext: null,
   rhythm: null,
 });
 assert.equal(missingSignals.confidenceLabel, "Baseline");
-assert.ok(missingSignals.evidence.every((item) => item.code !== "HLT" && item.code !== "ATT" && item.code !== "CAL"));
+assert.ok(missingSignals.evidence.every((item) => !["HLT", "SLP", "HRV", "RHR", "ACT", "ATT", "CAL"].includes(item.code)));
+assert.match(missingSignals.summary, /still establishing/i);
+assert.doesNotMatch(missingSignals.summary, /Readiness is|Recovery is|Reasoning is|Sharpness is/i);
 
 for (const outlook of [recoveryFirst, attentionProtection, strongDecisionDay, scheduleProtection, focusTraining, steadyState, missingSignals]) {
   assert.ok(outlook.action.metricCode, "Every recommendation must identify its source metric");

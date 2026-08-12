@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format, subDays, parseISO } from "date-fns";
 import { Dumbbell, Zap, Brain, Target, Lightbulb, CheckCircle2, TrendingUp, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { calculateDualProcessBalance } from "@/lib/cognitiveEngine";
 
@@ -276,22 +276,7 @@ export function GamesStats() {
     try { return localStorage.getItem("nl:lastUserId") || undefined; } catch { return undefined; }
   })();
   
-  const { data: profile } = useQuery({
-    queryKey: ["profile-games", stableUserId],
-    queryFn: async () => {
-      if (!stableUserId) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("training_plan")
-        .eq("user_id", stableUserId)
-        .single();
-      return data;
-    },
-    enabled: !!stableUserId,
-  });
-  
-  const userPlan = (profile?.training_plan as TrainingPlanId) || "light";
-  const plan = TRAINING_PLANS[userPlan];
+  const plan = DEFAULT_TRAINING_PLAN;
   
   // v1.3: All XP comes from games, so gamesXPTarget = plan.xpTargetWeek
   const gamesXPTarget = plan.xpTargetWeek;

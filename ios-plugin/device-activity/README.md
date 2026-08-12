@@ -9,15 +9,15 @@ aggregate threshold reached each day.
 
 The Capacitor iOS project already includes `DeviceUsagePlugin` in the app target,
 embeds a `DeviceActivityMonitorExtension` target, and shares only aggregate
-thresholds through `group.com.looma.shared`.
+thresholds through `group.com.neurolooplabs.looma.shared`.
 
 ## Required Apple Developer setup
 
 1. Request the Family Controls distribution entitlement in the Apple Developer portal.
-2. Enable Family Controls for both `com.looma` and
-   `com.looma.DeviceActivityMonitorExtension`.
+2. Enable Family Controls for both `com.neurolooplabs.looma` and
+   `com.neurolooplabs.looma.DeviceActivityMonitorExtension`.
 3. Register this App Group for both identifiers:
-   `group.com.looma.shared`.
+   `group.com.neurolooplabs.looma.shared`.
 4. Regenerate/download provisioning profiles before creating a signed archive.
 
 Until Apple grants the entitlement and it is present in a signed build, the app

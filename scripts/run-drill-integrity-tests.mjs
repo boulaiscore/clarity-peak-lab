@@ -10,6 +10,18 @@ const selectors = [
   "src/components/app/S2INGameSelector.tsx",
 ];
 const selectorSource = selectors.map(read).join("\n");
+const trainingPlansSource = read("src/lib/trainingPlans.ts");
+const labSource = read("src/pages/app/NeuroLab.tsx");
+const settingsSource = read("src/pages/app/SettingsPage.tsx");
+
+assert.match(
+  trainingPlansSource,
+  /DEFAULT_TRAINING_PLAN_ID:\s*TrainingPlanId\s*=\s*["']expert["']/,
+  "LOOMA must expose one canonical balanced training protocol",
+);
+assert.doesNotMatch(labSource, /ProtocolChangeSheet|ProtocolLink/, "Lab must not expose protocol selection");
+assert.doesNotMatch(settingsSource, /TrainingPlanSelector|showPlanSheet/, "Settings must not expose protocol selection");
+
 const canonicalIds = [
   "orbit_lock",
   "focus_switch",

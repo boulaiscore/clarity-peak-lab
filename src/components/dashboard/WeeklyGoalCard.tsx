@@ -6,8 +6,6 @@ import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { WeeklyCompleteCelebration } from "@/components/app/WeeklyCompleteCelebration";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuth } from "@/contexts/AuthContext";
-import { TrainingPlanId } from "@/lib/trainingPlans";
 
 // Adaptive range status types
 type AdaptiveStatus = "building" | "within" | "above";
@@ -171,11 +169,6 @@ interface WeeklyGoalCardProps {
 export function WeeklyGoalCard({
   compact = false
 }: WeeklyGoalCardProps) {
-  const {
-    user
-  } = useAuth();
-  const planId = (user?.trainingPlan || "expert") as TrainingPlanId;
-
   // Use dynamic Training Capacity hook
   const {
     trainingCapacity,
@@ -283,16 +276,16 @@ export function WeeklyGoalCard({
       case "building":
         return {
           trackBg: "bg-slate-600/40",
-          optimalZoneBg: "bg-emerald-500/40",
-          optimalZoneBorder: "border-emerald-400/60",
+          optimalZoneBg: "bg-white/[0.09]",
+          optimalZoneBorder: "border-white/[0.2]",
           markerBg: "bg-white",
           markerBorder: "border-white/50"
         };
       case "within":
         return {
           trackBg: "bg-slate-600/40",
-          optimalZoneBg: "bg-emerald-500/50",
-          optimalZoneBorder: "border-emerald-400/70",
+          optimalZoneBg: "bg-white/[0.09]",
+          optimalZoneBorder: "border-white/[0.2]",
           markerBg: "bg-emerald-400",
           markerBorder: "border-emerald-300/80"
         };
@@ -310,11 +303,8 @@ export function WeeklyGoalCard({
 
   // Compact version for NeuroLab - Ultra-simplified
   if (compact) {
-    // Circular load signal: the same weekly XP, presented as one primary datum.
+    // Semi-circular load signal: current weekly XP against the adaptive range.
     const ringPercent = Math.min(100, progressPercent);
-    const ringRadius = 70;
-    const ringCircumference = 2 * Math.PI * ringRadius;
-    const ringOffset = ringCircumference - (ringPercent / 100) * ringCircumference;
     
     // S1/S2 totals use RAW earned XP so they reconcile with Weekly Load.
     // Area bars remain capped, with +N shown when a sub-skill exceeds its cap.
@@ -332,14 +322,6 @@ export function WeeklyGoalCard({
     const labelFor = (area: string, system: "s1" | "s2") =>
       AREA_LABELS[area]?.[system] ?? area;
 
-    // Ring color based on status
-    const getRingColor = () => {
-      if (goalReached) return "stroke-emerald-400";
-      if (adaptiveStatus.status === "above") return "stroke-amber-400";
-      if (adaptiveStatus.status === "within") return "stroke-teal-400";
-      return "stroke-white/70";
-    };
-
     return <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <motion.div initial={{
         opacity: 0,
@@ -352,74 +334,174 @@ export function WeeklyGoalCard({
       }} aria-busy={isSyncing} className="space-y-3">
 
           <CollapsibleTrigger className="w-full">
-            <div className="rounded-[18px] border border-white/[0.06] bg-gradient-to-b from-white/[0.048] to-white/[0.018] px-5 pb-4 pt-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">Weekly load</span>
-                <span className="text-[9px] font-medium tabular-nums text-muted-foreground/50">{Math.round(ringPercent)}%</span>
-              </div>
+            <div className="px-1 pb-2 pt-2">
+              <div className="flex flex-col items-center">
+                <div className="relative h-[150px] w-[250px] max-w-full">
+                  <svg viewBox="0 0 240 140" className="h-full w-full" aria-hidden="true">
+                    <defs>
+                      {(() => {
+                        const optimalMid = (optimalRangePercent.min + optimalRangePercent.max) / 2;
+                        const optimalHalf = (optimalRangePercent.max - optimalRangePercent.min) / 2;
+                        const distance = Math.max(0, Math.abs(ringPercent - optimalMid) - optimalHalf);
+                        const maxDistance = Math.max(optimalMid, 100 - optimalMid) - optimalHalf;
+                        const normalized = Math.min(1, distance / Math.max(1, maxDistance));
+                        const interpolate = (from: number, to: number, amount: number) => Math.round(from + (to - from) * amount);
+                        const hex = (value: number) => value.toString(16).padStart(2, "0");
+                        let red: number;
+                        let green: number;
+                        let blue: number;
+                        if (normalized < 0.5) {
+                          const amount = normalized / 0.5;
+                          red = interpolate(0x22, 0xfb, amount);
+                          green = interpolate(0xff, 0xbf, amount);
+                          blue = interpolate(0x66, 0x24, amount);
+                        } else {
+                          const amount = (normalized - 0.5) / 0.5;
+                          red = interpolate(0xfb, 0xef, amount);
+                          green = interpolate(0xbf, 0x44, amount);
+                          blue = interpolate(0x24, 0x44, amount);
+                        }
+                        const color = goalReached
+                          ? "#34d399"
+                          : `#${hex(red)}${hex(green)}${hex(blue)}`;
+                        return (
+                          <linearGradient id="weeklyLoadProgress" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor={color} />
+                            <stop offset="100%" stopColor={color} />
+                          </linearGradient>
+                        );
+                      })()}
+                    </defs>
 
-              <div className="relative mx-auto my-2 h-[176px] w-[176px]">
-                <svg viewBox="0 0 176 176" className="h-full w-full -rotate-90" aria-hidden="true">
-                  <circle cx="88" cy="88" r={ringRadius} fill="none" strokeWidth="9" className="stroke-white/[0.055]" />
-                  <motion.circle
-                    cx="88"
-                    cy="88"
-                    r={ringRadius}
-                    fill="none"
-                    strokeWidth="9"
-                    strokeLinecap="round"
-                    strokeDasharray={ringCircumference}
-                    className={getRingColor()}
-                    initial={false}
-                    animate={{ strokeDashoffset: ringOffset }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[42px] font-semibold leading-none tabular-nums tracking-[-0.05em] text-foreground">
-                      {Math.round(rawGamesXP)}
+                    <path
+                      d="M 25 125 A 95 95 0 0 1 215 125"
+                      fill="none"
+                      strokeWidth="7"
+                      strokeLinecap="round"
+                      className="stroke-white/[0.085]"
+                    />
+
+                    {!goalReached && (() => {
+                      const centerX = 120;
+                      const centerY = 125;
+                      const radius = 95;
+                      const startAngle = Math.PI + (optimalRangePercent.min / 100) * Math.PI;
+                      const endAngle = Math.PI + (optimalRangePercent.max / 100) * Math.PI;
+                      return (
+                        <path
+                          d={`M ${centerX + radius * Math.cos(startAngle)} ${centerY + radius * Math.sin(startAngle)} A ${radius} ${radius} 0 0 1 ${centerX + radius * Math.cos(endAngle)} ${centerY + radius * Math.sin(endAngle)}`}
+                          fill="none"
+                          strokeWidth="7"
+                          strokeLinecap="round"
+                          stroke="rgba(255,255,255,0.3)"
+                        />
+                      );
+                    })()}
+
+                    {(() => {
+                      const totalLength = Math.PI * 95;
+                      const progressLength = (ringPercent / 100) * totalLength;
+                      return (
+                        <motion.path
+                          d="M 25 125 A 95 95 0 0 1 215 125"
+                          fill="none"
+                          strokeWidth="7"
+                          strokeLinecap="round"
+                          stroke="url(#weeklyLoadProgress)"
+                          strokeDasharray={totalLength}
+                          initial={false}
+                          animate={{ strokeDashoffset: totalLength - progressLength }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                        />
+                      );
+                    })()}
+
+                    {(() => {
+                      const centerX = 120;
+                      const centerY = 125;
+                      const radius = 95;
+                      const angle = Math.PI + (ringPercent / 100) * Math.PI;
+                      return (
+                        <motion.circle
+                          r="5"
+                          fill="white"
+                          initial={false}
+                          animate={{
+                            cx: centerX + radius * Math.cos(angle),
+                            cy: centerY + radius * Math.sin(angle),
+                          }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                        />
+                      );
+                    })()}
+
+                    {!goalReached && [optimalRangePercent.min, optimalRangePercent.max].map((percentage) => {
+                      const centerX = 120;
+                      const centerY = 125;
+                      const angle = Math.PI + (percentage / 100) * Math.PI;
+                      return (
+                        <line
+                          key={percentage}
+                          x1={centerX + 87 * Math.cos(angle)}
+                          y1={centerY + 87 * Math.sin(angle)}
+                          x2={centerX + 103 * Math.cos(angle)}
+                          y2={centerY + 103 * Math.sin(angle)}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          className="stroke-white/40"
+                        />
+                      );
+                    })}
+                  </svg>
+
+                  <div className="absolute inset-0 flex flex-col items-center justify-end pb-2">
+                    <span className="mb-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/52">
+                      Weekly load
                     </span>
-                    <span className="text-[12px] font-medium tabular-nums text-muted-foreground/45">/{weeklyXPTarget}</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[36px] font-semibold leading-none tabular-nums tracking-[-0.045em] text-foreground">
+                        {Math.round(rawGamesXP)}
+                      </span>
+                      <span className="text-[13px] font-semibold tabular-nums text-muted-foreground/42">
+                        /{weeklyXPTarget}
+                      </span>
+                    </div>
+                    <p className={`mt-1.5 text-[11px] font-semibold ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
+                      {goalReached ? "Target reached" : adaptiveStatus.copy.label}
+                    </p>
                   </div>
-                  <span className="mt-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/55">XP</span>
-                  <p className={`mt-1.5 text-[10px] font-semibold ${goalReached ? "text-emerald-400" : getStatusColor(adaptiveStatus.status)}`}>
-                    {goalReached ? "Target reached" : adaptiveStatus.copy.label}
-                  </p>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 border-t border-white/[0.055] pt-3 text-left">
                 <TooltipProvider delayDuration={150}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div role="button" tabIndex={0} onClick={(event) => event.stopPropagation()} className="border-r border-white/[0.055] pr-4">
-                        <span className="flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/50">
-                          Optimal zone <Info className="h-2.5 w-2.5" />
-                        </span>
-                        <span className="mt-1 block text-[13px] font-semibold tabular-nums text-foreground/90">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={(event) => event.stopPropagation()}
+                        className="mt-2 flex cursor-help items-center gap-2 rounded-full border border-white/[0.16] bg-white/[0.025] px-4 py-2"
+                      >
+                        <span className="text-[10px] text-muted-foreground/52">Optimal zone</span>
+                        <span className="text-[12px] font-semibold tabular-nums text-foreground/82">{optimalRangeXP.min}–{optimalRangeXP.max} XP</span>
+                        <Info className="h-3 w-3 text-muted-foreground/42" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="max-w-[260px] text-[11px] leading-relaxed">
-                      Based on your current capacity. It adapts with consistent training and recovery.
+                      Based on your current capacity of about {Math.round(trainingCapacity)} XP. It adapts with consistent training and recovery.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <div className="pl-4">
-                  <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/50">Capacity</span>
-                  <span className="mt-1 block text-[13px] font-semibold tabular-nums text-foreground/90">{Math.round(trainingCapacity)} XP</span>
-                </div>
-              </div>
 
-              {adaptiveStatus.status === "above" && (
-                <p className="mt-3 border-t border-white/[0.055] pt-3 text-left text-[9px] leading-relaxed text-amber-300/75">
-                  Above your current range. Favor Quality Time or Recovery.
-                </p>
-              )}
+                {adaptiveStatus.status === "above" && (
+                  <p className="mt-3 text-center text-[9px] leading-relaxed text-amber-300/75">
+                    Above your current range. Favor Quality Time or Recovery.
+                  </p>
+                )}
+              </div>
 
               <div className="mt-3 flex justify-center">
                 <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.18 }}>
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/35" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground/30" />
                 </motion.div>
               </div>
             </div>

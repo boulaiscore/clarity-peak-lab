@@ -102,9 +102,9 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
 
         <div
           className="flex items-center gap-2 rounded-lg px-3 py-2.5 min-w-[76px]"
-          style={{ background: "hsl(210 55% 30%)" }}>
+          style={{ background: "hsl(220 8% 22%)" }}>
 
-          <BookOpen className="w-4 h-4 shrink-0" style={{ color: "hsl(210 80% 72%)" }} />
+          <BookOpen className="w-4 h-4 shrink-0 text-white/65" />
           <span className="text-[16px] font-bold tabular-nums text-white leading-none">
             {readingDisplay}
           </span>
@@ -146,9 +146,9 @@ export function ReadingLoadDashboard({ className }: ReadingLoadDashboardProps) {
 
         <div
           className="flex items-center gap-2 rounded-lg px-3 py-2.5 min-w-[76px]"
-          style={{ background: "hsl(180 40% 26%)" }}>
+          style={{ background: "hsl(220 8% 22%)" }}>
 
-          <Headphones className="w-4 h-4 shrink-0" style={{ color: "hsl(180 65% 62%)" }} />
+          <Headphones className="w-4 h-4 shrink-0 text-white/65" />
           <span className="text-[16px] font-bold tabular-nums text-white leading-none">
             {listeningDisplay}
           </span>

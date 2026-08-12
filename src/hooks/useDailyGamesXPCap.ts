@@ -18,7 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 import { startOfDay, format } from "date-fns";
 import { isTestModeEnabled } from "@/hooks/useTestMode";
 
@@ -42,8 +42,7 @@ export function useDailyGamesXPCap(): DailyGamesXPCapResult {
   const userId = user?.id ?? session?.user?.id;
   
   // Get plan configuration
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
-  const plan = TRAINING_PLANS[planId];
+  const plan = DEFAULT_TRAINING_PLAN;
   const dailyMax = plan.gamesGating.dailyGamesWithXP;
   
   // Today's start timestamp

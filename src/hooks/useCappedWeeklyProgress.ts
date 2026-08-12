@@ -11,8 +11,7 @@ import { useWeeklyProgress } from "@/hooks/useWeeklyProgress";
 import { useWeeklyDetoxXP } from "@/hooks/useDetoxProgress";
 import { useGamesXPBreakdown } from "@/hooks/useGamesXPBreakdown";
 import { useWeeklyContentCount } from "@/hooks/useWeeklyContentCount";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
-import { useAuth } from "@/contexts/AuthContext";
+import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 
 export interface AreaModeSubTarget {
   area: "focus" | "reasoning" | "creativity";
@@ -107,9 +106,7 @@ function safeProgress(value: number, target: number): number {
 }
 
 export function useCappedWeeklyProgress(): CappedProgressData {
-  const { user } = useAuth();
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
-  const plan = TRAINING_PLANS[planId];
+  const plan = DEFAULT_TRAINING_PLAN;
   
   // v1.3: xpTargetWeek is the total (games only)
   const weeklyXPTarget = plan.xpTargetWeek;

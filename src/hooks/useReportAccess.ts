@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
-import { TRAINING_PLANS, TrainingPlanId } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 import { useSubscription } from "@/hooks/useSubscription";
 import { canExportReports } from "@/lib/entitlements";
 
@@ -13,8 +13,7 @@ export function useReportAccess() {
   const { tier, isCore, isPro, isActive } = useSubscription();
   const isPremium = isActive; // any paid plan
 
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
-  const plan = TRAINING_PLANS[planId];
+  const plan = DEFAULT_TRAINING_PLAN;
 
   const {
     allCategoriesComplete,

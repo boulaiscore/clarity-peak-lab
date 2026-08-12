@@ -21,7 +21,7 @@ export function usePremiumGating() {
   const queryClient = useQueryClient();
   // Single source of truth: provider-neutral subscription state.
   const { tier, isCore, isPro, isElite, isActive } = useSubscription();
-  const isPremium = isActive; // any paid tier (Core, Pro or Founding Pro)
+  const isPremium = isActive; // any paid tier (Pro, Elite or Founding Elite)
 
   // Fetch daily sessions info
   const { data: sessionInfo } = useQuery({

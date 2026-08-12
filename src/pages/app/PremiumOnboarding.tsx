@@ -24,7 +24,7 @@ export default function PremiumOnboarding() {
       <div className="container max-w-md mx-auto px-5 py-10">
         <div className="text-center mb-8">
           <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70 mb-2">
-            Welcome to {tier === "founding_pro" ? "Founding Pro" : tier === "pro" ? "LOOMA Pro" : "LOOMA Core"}
+            Welcome to {tier === "founding_pro" ? "Founding Elite" : tier === "pro" ? "LOOMA Elite" : "LOOMA Pro"}
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">You're in.</h1>
           <p className="text-sm text-muted-foreground mt-2">

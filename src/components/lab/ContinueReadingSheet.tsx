@@ -68,11 +68,11 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="rounded-t-3xl border-border/30 max-h-[80vh] flex flex-col"
+        className="flex max-h-[82dvh] flex-col rounded-t-[28px] border-white/[0.08] bg-[#0b0d10] shadow-[0_-24px_80px_rgba(0,0,0,0.58)]"
       >
         <SheetHeader className="text-left">
           <div className="flex items-center gap-2">
-            <Bookmark className="w-4 h-4 text-amber-400" />
+            <Bookmark className="w-4 h-4 text-white/65" />
             <SheetTitle className="text-base">Continue Reading</SheetTitle>
           </div>
           <SheetDescription className="text-[11px]">
@@ -85,8 +85,8 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
             <div className="py-10 text-center text-[11px] text-muted-foreground">Loading…</div>
           ) : !hasAccess ? (
             <div className="py-8 px-2 flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                <Lock className="w-5 h-5 text-amber-400" />
+              <div className="w-12 h-12 rounded-full bg-white/[0.035] border border-white/[0.09] flex items-center justify-center">
+                <Lock className="w-5 h-5 text-white/60" />
               </div>
               <div className="space-y-1 max-w-xs">
                 <p className="text-sm font-semibold text-foreground">Pro feature</p>
@@ -129,7 +129,7 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
                   <li
                     key={book.id}
                     className={cn(
-                      "p-3 rounded-xl border border-border/30 bg-muted/15",
+                      "rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3",
                       "flex items-center gap-3"
                     )}
                   >
@@ -141,8 +141,8 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
                         className="w-10 h-14 object-cover rounded-md shrink-0 bg-muted"
                       />
                     ) : (
-                      <div className="w-10 h-14 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
-                        <BookOpen className="w-5 h-5 text-amber-500" />
+                      <div className="w-10 h-14 rounded-md border border-white/[0.08] bg-white/[0.03] flex items-center justify-center shrink-0">
+                        <BookOpen className="w-5 h-5 text-white/60" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -164,8 +164,8 @@ export function ContinueReadingSheet({ open, onOpenChange }: ContinueReadingShee
                       disabled={startSession.isPending}
                       className={cn(
                         "shrink-0 inline-flex items-center gap-1.5 px-3 h-9 rounded-lg",
-                        "bg-amber-500/15 border border-amber-500/30 text-amber-300",
-                        "hover:bg-amber-500/25 active:scale-[0.98] transition-all",
+                        "border border-foreground/15 bg-foreground text-background",
+                        "hover:bg-foreground/90 active:scale-[0.98] transition-all",
                         "text-[11px] font-medium uppercase tracking-[0.14em]",
                         "disabled:opacity-50"
                       )}

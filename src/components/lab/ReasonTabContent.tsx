@@ -8,14 +8,12 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Play, BookOpen, Bookmark, Info } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import reasonReadingImg from "@/assets/reason-reading.jpg";
-import reasonListeningImg from "@/assets/reason-listening.jpg";
+import { motion, useReducedMotion } from "framer-motion";
+import { BookOpen, Bookmark, ChevronRight, Headphones } from "lucide-react";
 import {
   useActiveReasonSession,
   SessionType,
+  LOOMA_ITEM_WEIGHTS,
 } from "@/hooks/useReasonSessions";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { ReasonSessionTimer } from "./ReasonSessionTimer";
@@ -30,6 +28,43 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+
+function QualityModeVisual({ type }: { type: SessionType }) {
+  const reduceMotion = useReducedMotion();
+  const isReading = type === "reading";
+
+  if (isReading) {
+    return (
+      <div className="relative flex h-12 w-16 flex-col justify-center gap-1.5" aria-hidden="true">
+        {[78, 100, 86, 62].map((width, index) => (
+          <motion.span
+            key={width}
+            className="block h-px origin-left bg-gradient-to-r from-white/70 to-white/[0.08]"
+            style={{ width: `${width}%` }}
+            animate={reduceMotion ? undefined : { opacity: [0.28, 0.9, 0.28], scaleX: [0.86, 1, 0.86] }}
+            transition={reduceMotion ? undefined : { duration: 3.8, repeat: Infinity, delay: index * 0.38, ease: "easeInOut" }}
+          />
+        ))}
+        <div className="absolute -left-2 inset-y-1 w-px bg-white/35" />
+      </div>
+    );
+  }
+
+  const bars = [14, 25, 38, 22, 34, 18, 28];
+  return (
+    <div className="flex h-12 items-center gap-1" aria-hidden="true">
+      {bars.map((height, index) => (
+        <motion.span
+          key={`${height}-${index}`}
+          className="w-1 rounded-full bg-gradient-to-t from-white/[0.14] to-white/75"
+          style={{ height }}
+          animate={reduceMotion ? undefined : { scaleY: [0.68, 1.08, 0.68], opacity: [0.35, 0.95, 0.35] }}
+          transition={reduceMotion ? undefined : { duration: 2.8, repeat: Infinity, delay: index * 0.18, ease: "easeInOut" }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export function ReasonTabContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -70,47 +105,7 @@ export function ReasonTabContent() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* XP Explanation — collapsed, expands on info tap */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
-        <p className="flex-1 text-[11px] text-muted-foreground leading-snug">
-          No XP — boosts <span className="font-medium text-foreground">Reasoning Quality</span> via cognitive priming.
-        </p>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              aria-label="How Quality Time affects RQ"
-              className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-muted-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            align="end"
-            className="w-72 text-[11px] leading-relaxed text-muted-foreground"
-          >
-            <p className="font-medium text-foreground mb-1.5">Why no XP?</p>
-            <p>
-              Quality Time sessions don't award XP — they improve your{" "}
-              <span className="font-medium text-foreground">Reasoning Quality (RQ)</span>{" "}
-              through cognitive priming. Track reading and listening time for a weighted RQ contribution.
-            </p>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* Quick access: Continue Reading */}
-      <div className="flex items-center justify-end -mb-2">
-        <button
-          onClick={() => setShowContinue(true)}
-          className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-border/40 bg-muted/20 hover:bg-muted/30 hover:border-border/60 text-foreground/80 text-[10px] font-medium uppercase tracking-[0.14em] transition-all"
-        >
-          <Bookmark className="w-3 h-3 text-amber-400" />
-          Continue Reading
-        </button>
-      </div>
-
+    <div className="space-y-4">
       {/* Session Cards */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -120,67 +115,84 @@ export function ReasonTabContent() {
         {/* Read Card */}
         <button
           onClick={() => setShowBooks(true)}
-          className="w-full group relative flex flex-col items-center justify-end gap-2 p-4 pt-20 rounded-2xl border border-amber-500/20 hover:border-amber-500/40 transition-all overflow-hidden"
+          className="group relative h-[168px] w-full overflow-hidden rounded-[20px] border border-border/40 bg-card/40 p-4 text-left transition-all hover:border-border/70 hover:bg-card/55"
         >
-          <img
-            src={reasonReadingImg}
-            alt="Reading"
-            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
-          {/* Active books indicator on card */}
-          {activeBooks.length > 0 && (
-            <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm border border-amber-500/30">
-              <BookOpen className="w-3 h-3 text-amber-400" />
-              <span className="text-[10px] font-medium text-amber-300">
-                {activeBooks.length} in progress
-              </span>
+          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_32%_35%,rgba(255,255,255,0.07),transparent_62%)]" />
+          <div className="relative flex h-full flex-col">
+            <div className="flex h-4 shrink-0 items-start justify-between">
+              <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-white/60">Read</span>
+              <BookOpen className="h-3.5 w-3.5 shrink-0 text-white/55" strokeWidth={1.4} />
             </div>
-          )}
-
-          <div className="relative z-10 text-center">
-            <p className="font-semibold text-sm text-white">Read</p>
-            <p className="text-[10px] text-white/70">Books, articles, deep reading</p>
-          </div>
-          <div className="relative z-10 flex items-center gap-1 text-xs text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Play className="w-3 h-3" />
-            <span>Open</span>
+            <div className="flex min-h-0 flex-1 items-center justify-center">
+              <QualityModeVisual type="reading" />
+            </div>
+            <div className="h-[52px] shrink-0 border-t border-white/[0.055] pt-2.5">
+              <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-white">Deep reading</p>
+              <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
+                <p className="min-w-0 truncate whitespace-nowrap text-[9px] leading-none text-white/50">
+                  {activeBooks.length > 0 ? `${activeBooks.length} in progress` : "Books · articles"}
+                </p>
+                <span className="shrink-0 text-[10px] font-semibold leading-none tabular-nums text-white/75">
+                  {LOOMA_ITEM_WEIGHTS.book.toFixed(1)}× <span className="text-[8px] tracking-[0.1em] text-white/35">RQ</span>
+                </span>
+              </div>
+            </div>
           </div>
         </button>
 
         {/* Listen Card */}
         <button
           onClick={() => { setSelectorMode("listening"); setShowSelector(true); }}
-          className="w-full group relative flex flex-col items-center justify-end gap-2 p-4 pt-20 rounded-2xl border border-violet-500/20 hover:border-violet-500/40 transition-all overflow-hidden"
+          className="group relative h-[168px] w-full overflow-hidden rounded-[20px] border border-border/40 bg-card/40 p-4 text-left transition-all hover:border-border/70 hover:bg-card/55"
         >
-          <img
-            src={reasonListeningImg}
-            alt="Listening"
-            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          <div className="relative z-10 text-center">
-            <p className="font-semibold text-sm text-white">Listen</p>
-            <p className="text-[10px] text-white/70">Podcasts, audiobooks</p>
-          </div>
-          <div className="relative z-10 flex items-center gap-1 text-xs text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Play className="w-3 h-3" />
-            <span>Begin</span>
+          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.055),transparent_62%)]" />
+          <div className="relative flex h-full flex-col">
+            <div className="flex h-4 shrink-0 items-start justify-between">
+              <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-white/60">Listen</span>
+              <Headphones className="h-3.5 w-3.5 shrink-0 text-white/55" strokeWidth={1.4} />
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center">
+              <QualityModeVisual type="listening" />
+            </div>
+            <div className="h-[52px] shrink-0 border-t border-white/[0.055] pt-2.5">
+              <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-white">Focused listening</p>
+              <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
+                <p className="min-w-0 truncate whitespace-nowrap text-[9px] leading-none text-white/50">Podcasts · audiobooks</p>
+                <span className="shrink-0 text-[10px] font-semibold leading-none tabular-nums text-white/75">
+                  {LOOMA_ITEM_WEIGHTS.podcast.toFixed(1)}× <span className="text-[8px] tracking-[0.1em] text-white/35">RQ</span>
+                </span>
+              </div>
+            </div>
           </div>
         </button>
       </motion.div>
 
+      {activeBooks.length > 0 && (
+        <button
+          onClick={() => setShowContinue(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-border/40 bg-card/40 px-4 py-3 text-left transition-colors hover:border-border/60 hover:bg-card/60"
+        >
+          <Bookmark className="h-3.5 w-3.5 text-white/55" strokeWidth={1.5} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-medium text-foreground/85">Continue reading</p>
+            <p className="truncate text-[9px] text-muted-foreground/55">
+              {activeBooks.length === 1 ? activeBooks[0].title : `${activeBooks.length} active books`}
+            </p>
+          </div>
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/45" />
+        </button>
+      )}
+
       {/* Active Books Dialog (opens when Read card is tapped) */}
       <Dialog open={showBooks} onOpenChange={setShowBooks}>
-        <DialogContent className="max-w-sm max-h-[85vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Reading</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="flex max-h-[88dvh] w-[calc(100%_-_20px)] max-w-sm flex-col gap-0 overflow-hidden rounded-[24px] border-border/50 bg-card p-0 shadow-[0_30px_100px_rgba(0,0,0,0.72)]">
+          <DialogHeader className="border-b border-border/40 px-5 pb-4 pt-5 pr-11 text-left">
+            <DialogTitle className="text-[17px]">Reading</DialogTitle>
+            <DialogDescription className="text-[11px] leading-relaxed text-muted-foreground/65">
               Manage your active books, start a timer, or log reading time.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
             <ActiveBooksView />
           </div>
         </DialogContent>

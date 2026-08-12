@@ -48,8 +48,11 @@ for history and Coach outcomes but do not move the persistent state.
 `REC` is Recovery v2 everywhere: the persisted value closes 65% of the gap
 toward the current Health target once per calendar day, then Detox/Walking
 gains are applied. The target uses confidence-blended Phone Health and adds up
-to 50% wearable physiology influence as wearable coverage becomes complete;
-without either source it is 50. SCI does not calculate a second weekly Recovery
+to 50% wearable physiology influence as wearable coverage becomes complete.
+When Phone Health is absent, wearable physiology instead blends from neutral 50
+in direct proportion to its observed coverage; without either source it is 50.
+`calculateDailyRecoveryTargetBreakdown` is the single explainability source for
+the headline and both Recovery detail surfaces. SCI does not calculate a second weekly Recovery
 approximation. When Phone Health already contains sleep duration, wearable
 context excludes that same duration observation; HRV, resting HR and sleep
 efficiency remain distinct inputs. Live, gating, intraday and historical paths
@@ -88,6 +91,10 @@ Cognitive Age.
 - Live values come from `useTodayMetrics`, `useReasoningQuality`,
   `useCognitiveNetworkScore`, and `useCognitiveAge`.
 - Daily values are upserted to `daily_metric_snapshots` by local user date.
+- On Android, watches and rings feed LOOMA through their companion app and
+  Health Connect; on iOS the equivalent hub is Apple Health. A granted system
+  permission is distinct from a successfully stored daily cloud snapshot, and
+  the UI must expose both states. LOOMA does not claim a direct vendor pairing.
 - Post-action values are inserted into `intraday_metric_events` after games,
   content, reasoning sessions, Detox, and Walking.
 - RQ activity timestamps are maintained by database triggers so updates from

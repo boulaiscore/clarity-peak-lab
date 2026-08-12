@@ -13,9 +13,6 @@
  */
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useTrainingCapacity } from "@/hooks/useTrainingCapacity";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
@@ -27,41 +24,16 @@ import {
   Difficulty,
   DifficultyOption,
 } from "@/lib/s1DifficultyEngine";
+import { DEFAULT_TRAINING_PLAN_ID, type TrainingPlanId } from "@/lib/trainingPlans";
 
 export interface UseS1DifficultyResult extends S1DifficultyResult {
   isLoading: boolean;
   isError: boolean;
-  trainingPlan: "light" | "expert" | "superhuman";
+  trainingPlan: TrainingPlanId;
 }
 
 export function useS1Difficulty(): UseS1DifficultyResult {
-  const { user } = useAuth();
-  
-  // Fetch user's training plan from profile
-  const { data: profileData, isLoading: profileLoading } = useQuery({
-    queryKey: ['user-training-plan', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('training_plan')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching training plan:', error);
-        return null;
-      }
-      return data;
-    },
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    placeholderData: { training_plan: "expert" },
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
-  
-  const trainingPlan = (profileData?.training_plan as "light" | "expert" | "superhuman") || "expert";
+  const trainingPlan = DEFAULT_TRAINING_PLAN_ID;
   
   // Fetch metrics from existing hooks
   const { 
@@ -81,7 +53,7 @@ export function useS1Difficulty(): UseS1DifficultyResult {
     isLoading: progressLoading 
   } = useCappedWeeklyProgress();
   
-  const isLoading = metricsLoading || tcLoading || progressLoading || profileLoading;
+  const isLoading = metricsLoading || tcLoading || progressLoading;
   
   const isTestMode = isTestModeEnabled();
 

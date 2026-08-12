@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { ReasonTabContent } from "@/components/lab";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, Settings2, RefreshCw } from "lucide-react";
+import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
@@ -19,16 +19,13 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
 import { SessionPicker } from "@/components/app/SessionPicker";
 import { GamesLibrary } from "@/components/app/GamesLibrary";
 import { ContentDifficulty } from "@/lib/contentLibrary";
 import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
-import { ProtocolChangeSheet } from "@/components/app/ProtocolChangeSheet";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
-import { deriveDailyCognitiveState } from "@/lib/dailyCognitiveState";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -46,20 +43,6 @@ function TasksTabContent() {
   return <ReasonTabContent />;
 }
 
-// Discrete protocol change link - elegant and non-invasive
-function ProtocolLink({
-  onOpen,
-  planName
-}: {
-  onOpen: () => void;
-  planName: string;
-}) {
-  return <button onClick={onOpen} className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60 transition-colors hover:text-foreground">
-      <Settings2 className="h-3 w-3" />
-      <span>{planName}</span>
-      <ChevronRight className="h-3 w-3 opacity-45" />
-    </button>;
-}
 export default function NeuroLab() {
   // Scroll to top on mount
   useEffect(() => {
@@ -102,22 +85,13 @@ export default function NeuroLab() {
   const weeklyLoadXP = cappedTotalXP;
 
   // Recovery for dynamic guidance
-  const {
-    recoveryEffective,
-    isLoading: recoveryLoading
-  } = useRecoveryEffective();
-  const {
-    sharpness,
-    readiness,
-    isLoading: metricsLoading,
-  } = useTodayMetrics();
-  const { rq, isLoading: reasoningLoading } = useReasoningQuality();
+  const { recoveryEffective } = useRecoveryEffective();
+  const { rq } = useReasoningQuality();
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit" | "three-day-streak">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
   const [showDailyConfirm, setShowDailyConfirm] = useState(false);
   const [pendingAreaId, setPendingAreaId] = useState<NeuroLabArea | null>(null);
-  const [showProtocolSheet, setShowProtocolSheet] = useState(false);
 
   useEffect(() => {
     if (isPremium || streakData?.streak !== 3 || !user?.id) return;
@@ -128,9 +102,6 @@ export default function NeuroLab() {
     setPaywallFeatureName("");
     setShowPaywall(true);
   }, [isPremium, streakData?.streak, user?.id]);
-
-  // Current training plan for display
-  const currentPlan = (user?.trainingPlan || "light") as TrainingPlanId;
 
   // Read tab from URL query param, default to "games" (Training first)
   const tabFromUrl = searchParams.get("tab");
@@ -146,15 +117,9 @@ export default function NeuroLab() {
     }
   }, [tabFromUrl]);
 
-  // Scroll to top whenever the active sub-tab changes (parity with route changes)
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0 });
-  }, [activeTab]);
-
   // Auto-open session picker if continuing session
   const continueSession = searchParams.get("continueSession") === "true";
   const [showSessionPicker, setShowSessionPicker] = useState(continueSession);
-  const trainingPlan = (user?.trainingPlan || "light") as TrainingPlanId;
   const nextSession = getNextSession();
   const recommendedAreas = nextSession ? SESSION_TO_AREAS[nextSession.id] || [] : [];
   const isWeekComplete = sessionsCompleted >= sessionsRequired;
@@ -237,57 +202,8 @@ export default function NeuroLab() {
       </AppShell>;
   }
   return <AppShell>
-      {({ passiveFeatures, isLoading: passiveLoading }) => <>
-      <div className="mx-auto max-w-md px-4 pb-5 pt-4">
-        <header className="mb-4 flex items-center justify-between px-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Lab</p>
-          <ProtocolLink onOpen={() => setShowProtocolSheet(true)} planName={TRAINING_PLANS[currentPlan].name.replace(" Training", "")} />
-        </header>
-        {/* Today's recommended action — single dominant CTA */}
-        {(() => {
-          const guidance = deriveDailyCognitiveState({
-            readiness,
-            recovery: recoveryEffective,
-            sharpness,
-            reasoningQuality: rq,
-            healthScore: passiveFeatures?.coachContext.healthScore,
-            attentionLoadRatio: passiveFeatures?.coachContext.attentionLoadRatio,
-            scheduleLoadRatio: passiveFeatures?.coachContext.scheduleLoadRatio,
-          });
-          const isGuidanceLoading = recoveryLoading || metricsLoading || reasoningLoading || passiveLoading;
-          const handleGuidanceAction = () => {
-            if (guidance.actionRoute.includes("tab=detox")) setActiveTab("detox");
-            else if (guidance.actionRoute.includes("tab=tasks")) setActiveTab("tasks");
-            else if (guidance.actionRoute.includes("tab=games")) setActiveTab("games");
-            else navigate(guidance.actionRoute);
-          };
-          return (
-            <div className="mb-4 border-y border-white/[0.055] py-3.5">
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 min-w-9 text-[9px] font-semibold uppercase tracking-[0.16em] text-primary">
-                  Today
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold leading-tight text-foreground/95">
-                    {isGuidanceLoading ? "Updating your state" : guidance.headline}
-                  </p>
-                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/75">
-                    {isGuidanceLoading ? "Syncing passive signals." : guidance.summary}
-                  </p>
-                  {!isGuidanceLoading && (
-                    <button
-                      onClick={handleGuidanceAction}
-                      className="mt-2 inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-foreground/70 transition-colors hover:text-foreground"
-                    >
-                      {guidance.actionLabel} <span aria-hidden>→</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-
+      {({ passiveFeatures }) => <>
+      <div className="mx-auto max-w-md px-5 pb-4 pt-8">
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && <motion.div initial={{
         opacity: 0,
@@ -321,17 +237,17 @@ export default function NeuroLab() {
         </div>
 
         {/* Training Section */}
-        <div className="mt-6 border-t border-white/[0.055] pt-4">
+        <div className="mt-5 border-t border-border/40 pt-5">
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4 grid h-9 w-full grid-cols-3 rounded-[11px] border border-white/[0.055] bg-black/20 p-[3px]">
-              <TabsTrigger value="games" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+            <TabsList className="mb-4 grid h-10 w-full grid-cols-3 rounded-[14px] border border-border/40 bg-card/40 p-1">
+              <TabsTrigger value="games" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Train
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+              <TabsTrigger value="tasks" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Quality Time
               </TabsTrigger>
-              <TabsTrigger value="detox" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+              <TabsTrigger value="detox" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Recover
               </TabsTrigger>
             </TabsList>
@@ -347,7 +263,7 @@ export default function NeuroLab() {
             </TabsContent>
 
             {/* Detox Tab */}
-            <TabsContent value="detox" className="mt-0">
+            <TabsContent forceMount value="detox" className="mt-0 data-[state=inactive]:hidden">
               <DetoxChallengeTab />
             </TabsContent>
           </Tabs>
@@ -355,8 +271,8 @@ export default function NeuroLab() {
 
         {/* How LOOMA Lab Works — moved to bottom */}
         <Collapsible className="mt-5">
-          <div className="overflow-hidden border-y border-white/[0.055]">
-            <CollapsibleTrigger className="flex w-full items-center justify-between py-3 transition-colors hover:text-foreground">
+          <div className="overflow-hidden rounded-2xl border border-border/40 bg-card/30">
+            <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3.5 transition-colors hover:bg-card/45">
               <div className="flex items-center gap-3">
                 <LoomaLogo size={15} className="text-foreground/65" />
                 <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
@@ -366,12 +282,12 @@ export default function NeuroLab() {
               <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="px-4 pb-4 space-y-5 border-t border-border/20 pt-4">
+              <div className="space-y-5 border-t border-border/30 px-4 pb-4 pt-4">
                 <LoomaTrainingLoop />
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <RefreshCw className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">Train → Recover → Repeat</p>
@@ -381,8 +297,8 @@ export default function NeuroLab() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Zap className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <Zap className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">Cognitive Load & Optimal Zone</p>
@@ -392,8 +308,8 @@ export default function NeuroLab() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Dumbbell className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <Dumbbell className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">S1 & S2 Game Systems</p>
@@ -403,8 +319,8 @@ export default function NeuroLab() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <BookMarked className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <BookMarked className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">Quality Time → Reasoning Quality</p>
@@ -432,7 +348,6 @@ export default function NeuroLab() {
 
       <SessionPicker open={showSessionPicker} onOpenChange={setShowSessionPicker} sessionName={nextSession?.name || "Training Session"} sessionDescription={nextSession?.description || ""} sessionType={nextSession?.id || null} recommendedAreas={recommendedAreas} contentDifficulty={sessionDifficulty} weeklyXPTarget={weeklyXPTarget} weeklyXPEarned={weeklyLoadXP} />
 
-      <ProtocolChangeSheet open={showProtocolSheet} onOpenChange={setShowProtocolSheet} />
       </>}
     </AppShell>;
 }

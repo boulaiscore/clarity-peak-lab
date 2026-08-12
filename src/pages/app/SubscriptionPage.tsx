@@ -32,7 +32,8 @@ import {
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { cn } from "@/lib/utils";
 
-type PaidCardId = "core" | "pro";
+type StandardPaidCardId = "core" | "pro";
+type PaidCardId = StandardPaidCardId | "founding_pro";
 type SelectedInterval = Exclude<BillingInterval, "none">;
 
 const CARD_FEATURES: Record<PaidCardId, string[]> = {
@@ -43,20 +44,26 @@ const CARD_FEATURES: Record<PaidCardId, string[]> = {
     "90-day trends and weekly review",
   ],
   pro: [
-    "Everything in Core",
+    "Everything in Pro",
     "Explainable Adaptive Coach insights",
     "Advanced personal-pattern analytics",
     "Formatted reports and early access",
   ],
+  founding_pro: [
+    "Everything in Elite",
+    "First-year launch price",
+    "Founding Member badge",
+    "Early access to new protocols",
+  ],
 };
 
-function recommendedPlan(workType?: string, primaryOutcome?: string): PaidCardId {
+function recommendedPlan(workType?: string, primaryOutcome?: string): StandardPaidCardId {
   if (workType === "management") return "pro";
   if (workType === "knowledge" && (primaryOutcome === "decide" || primaryOutcome === "reason")) return "pro";
   return "core";
 }
 
-function optionFor(planId: PaidCardId, interval: SelectedInterval): PricingOption {
+function optionFor(planId: StandardPaidCardId, interval: SelectedInterval): PricingOption {
   return paidOptionFor(planId, interval);
 }
 
@@ -119,13 +126,12 @@ export default function SubscriptionPage() {
   };
 
   const activeOption = (planId: PaidCardId): PricingOption => {
-    if (planId === "pro" && interval === "annual" && subscription.tier === "free") {
-      return pricingConfig.founding_pro_annual;
-    }
-    return optionFor(planId, interval);
+    return planId === "founding_pro"
+      ? pricingConfig.founding_pro_annual
+      : optionFor(planId, interval);
   };
 
-  const displayedAnnualSavings = (planId: PaidCardId) => {
+  const displayedAnnualSavings = (planId: StandardPaidCardId) => {
     const monthly = optionFor(planId, "monthly");
     const annual = optionFor(planId, "annual");
     const localizedMonthly = monthly.webPriceId ? prices[monthly.webPriceId]?.amount : null;
@@ -136,8 +142,7 @@ export default function SubscriptionPage() {
   };
 
   const isCurrent = (planId: PaidCardId) => {
-    if (planId === "core") return subscription.tier === "core";
-    return subscription.tier === "pro" || subscription.tier === "founding_pro";
+    return subscription.tier === planId;
   };
 
   const selectPlan = async (optionId: PricingOptionId) => {
@@ -167,13 +172,9 @@ export default function SubscriptionPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-4xl px-5 pb-14 pt-8 sm:pt-12">
+      <div className="mx-auto w-full max-w-6xl px-5 pb-14 pt-8 sm:pt-12">
         <header className="mx-auto max-w-xl text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">LOOMA Membership</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Choose your cognitive system.</h1>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Automatic state tracking is free. Membership adds structure, depth and adaptation.
-          </p>
           <div className="mt-5 inline-flex rounded-full border border-border/50 bg-card/50 p-1">
             {(["annual", "monthly"] as SelectedInterval[]).map((value) => (
               <button
@@ -209,12 +210,12 @@ export default function SubscriptionPage() {
           </div>
         )}
 
-        <section className="mt-9 grid gap-4 md:grid-cols-2">
-          {(["core", "pro"] as PaidCardId[]).map((planId) => {
+        <section className="mt-9 grid gap-4 md:grid-cols-3">
+          {(["core", "pro", "founding_pro"] as PaidCardId[]).map((planId) => {
             const plan = PLAN_CATALOG[planId];
             const option = activeOption(planId);
             const current = isCurrent(planId);
-            const founding = option.id === "founding_pro_annual";
+            const founding = planId === "founding_pro";
             const highlighted = planId === recommendation;
             const isSelected = (selectedPlan ?? recommendation) === planId;
             return (
@@ -225,7 +226,10 @@ export default function SubscriptionPage() {
                 aria-pressed={isSelected}
                 onClick={() => {
                   setSelectedPlan(planId);
-                  trackProductEvent("plan_card_clicked", { planId, billingInterval: interval });
+                  trackProductEvent("plan_card_clicked", {
+                    planId,
+                    billingInterval: founding ? "annual" : interval,
+                  });
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
@@ -237,6 +241,8 @@ export default function SubscriptionPage() {
                   "relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border p-5 transition-all sm:min-h-[420px] sm:rounded-[28px] sm:p-7",
                   planId === "pro"
                     ? "border-primary/35 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--primary)/0.09))]"
+                    : founding
+                      ? "border-foreground/20 bg-[linear-gradient(150deg,hsl(var(--card)),hsl(var(--foreground)/0.04))]"
                     : "border-border/50 bg-card/45",
                   isSelected ? "ring-1 ring-primary/50" : "opacity-90 hover:opacity-100",
                 )}
@@ -245,7 +251,16 @@ export default function SubscriptionPage() {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     {plan.promise}
                   </p>
-                  {highlighted && (
+                  {founding ? (
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      <span className="rounded-full border border-foreground/15 bg-foreground/5 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-foreground/75">
+                        New
+                      </span>
+                      <span className="rounded-full border border-foreground/20 bg-foreground/[0.07] px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.12em] text-foreground/85">
+                        Early adopters
+                      </span>
+                    </span>
+                  ) : highlighted && (
                     <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-primary">
                       Recommended
                     </span>
@@ -257,20 +272,20 @@ export default function SubscriptionPage() {
 
                 <div className="mt-5 sm:mt-7">
                   {founding && (
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-                      Founding offer · first 100
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/75">
+                      Early adopter offer · annual only
                     </p>
                   )}
                   <div className="flex items-end gap-2">
                     <span className="text-3xl font-medium tabular-nums tracking-tight sm:text-4xl">{displayPrice(option)}</span>
-                    <span className="pb-1 text-xs text-muted-foreground">/{interval === "annual" ? "year" : "month"}</span>
+                    <span className="pb-1 text-xs text-muted-foreground">/{founding || interval === "annual" ? "year" : "month"}</span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
                     {founding
-                      ? `First year · standard Pro ${displayPrice(pricingConfig.pro_annual)}`
+                      ? `First year · then Elite ${displayPrice(pricingConfig.pro_annual)}/year`
                       : interval === "annual"
-                        ? `Save ${displayedAnnualSavings(planId)}% vs monthly`
-                        : `Annual option ${displayPrice(optionFor(planId, "annual"))}`}
+                        ? `Save ${displayedAnnualSavings(planId as StandardPaidCardId)}% vs monthly`
+                        : `Annual option ${displayPrice(optionFor(planId as StandardPaidCardId, "annual"))}`}
                   </p>
                 </div>
 
@@ -386,14 +401,22 @@ export default function SubscriptionPage() {
         </details>
 
         <section className="mt-5 rounded-3xl border border-border/40 bg-card/25 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <p className="text-sm font-medium">Team / Cohort</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Private group protocols and aggregate consistency. From €799/year for 5 seats.
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2.5">
+              <p className="text-sm font-medium">Team / Cohort Pilot</p>
+              <span className="rounded-full border border-border/50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                From €799/year · 5 seats
+              </span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-foreground/80">
+              Members train individually. The organizer sets a weekly protocol and sees group participation and progress.
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              Personal scores and cognitive data always remain private.
             </p>
           </div>
           <Button type="button" variant="outline" className="mt-4 rounded-full sm:mt-0" onClick={() => setTeamOpen(true)}>
-            Join waitlist
+            Join pilot waitlist
           </Button>
         </section>
 
@@ -410,8 +433,10 @@ export default function SubscriptionPage() {
       <Dialog open={teamOpen} onOpenChange={setTeamOpen}>
         <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-3xl border-border/50">
           <DialogHeader>
-            <DialogTitle>Team / Cohort waitlist</DialogTitle>
-            <DialogDescription>Tell us only what is needed to plan capacity.</DialogDescription>
+            <DialogTitle>Team / Cohort pilot</DialogTitle>
+            <DialogDescription>
+              Join the pilot for shared weekly protocols and a privacy-safe group dashboard.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitTeamWaitlist} className="space-y-3">
             <Input type="email" required value={teamEmail} onChange={(event) => setTeamEmail(event.target.value)} placeholder="Work email" />

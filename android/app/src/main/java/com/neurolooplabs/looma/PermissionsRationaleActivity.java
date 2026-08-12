@@ -1,4 +1,4 @@
-package com.looma;
+package com.neurolooplabs.looma;
 
 import android.app.Activity;
 import android.content.Intent;

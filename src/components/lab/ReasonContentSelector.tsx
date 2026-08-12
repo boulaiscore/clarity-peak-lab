@@ -11,13 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   BookOpen, 
   Headphones, 
-  FileText,
-  Plus,
   ChevronRight,
-  Library,
-  Sparkles,
   ExternalLink,
-  X,
   Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -153,15 +148,15 @@ export function ReasonContentSelector({
   
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-sm max-h-[85vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="flex max-h-[88dvh] w-[calc(100%_-_20px)] max-w-sm flex-col gap-0 overflow-hidden rounded-[24px] border-white/[0.08] bg-[#0b0d10] p-0 shadow-[0_30px_100px_rgba(0,0,0,0.72)]">
+        <DialogHeader className="border-b border-white/[0.06] px-5 pb-4 pt-5 pr-11 text-left">
+          <DialogTitle className="text-[17px]">
             {mode === "choose" && (initialSessionType === "listening" ? "Start Listening" : "Start Reading")}
             {mode === "looma" && "LOOMA Library"}
             {mode === "custom" && "Custom Content"}
             {mode === "preview" && previewItem?.title}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-[11px] leading-relaxed text-muted-foreground/65">
             {mode === "choose" && (initialSessionType === "listening" 
               ? "Choose a podcast to track your listening time."
               : "Choose content to track your reading time.")}
@@ -183,41 +178,34 @@ export function ReasonContentSelector({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="space-y-3 pt-2"
+              className="space-y-2 p-5"
             >
               <button
                 onClick={() => setMode("looma")}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all group"
+                className="group flex w-full items-center gap-3 rounded-[14px] border border-white/[0.07] bg-white/[0.022] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.04]"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Library className="w-6 h-6 text-primary" />
-                </div>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.1] bg-white/[0.035] text-[9px] font-semibold tracking-[0.12em] text-white/65">01</span>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold flex items-center gap-2">
-                    LOOMA Library
-                    <Sparkles className="w-3 h-3 text-primary" />
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Curated podcasts, books & articles
+                  <p className="text-[13px] font-semibold text-foreground/95">Curated by LOOMA</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                    {initialSessionType === "listening" ? "Podcasts selected for focused listening" : "Books and articles selected for depth"}
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/45 transition-colors group-hover:text-foreground" />
               </button>
               
               <button
                 onClick={() => setMode("custom")}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all group"
+                className="group flex w-full items-center gap-3 rounded-[14px] border border-white/[0.07] bg-white/[0.022] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.04]"
               >
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-                  <Plus className="w-6 h-6 text-foreground" />
-                </div>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.09] bg-white/[0.025] text-[9px] font-semibold tracking-[0.12em] text-white/60">02</span>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold">Custom Content</p>
-                  <p className="text-xs text-muted-foreground">
-                    Track your own book, podcast, or article
+                  <p className="text-[13px] font-semibold text-foreground/95">Your own content</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                    Add a podcast, audiobook or reading
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/45 transition-colors group-hover:text-foreground" />
               </button>
             </motion.div>
           )}
@@ -229,19 +217,19 @@ export function ReasonContentSelector({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="flex-1 min-h-0"
+              className="min-h-0 flex-1 p-5"
             >
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setMode("choose")}
-                className="mb-3 -ml-2"
+                className="mb-3 -ml-3 h-7 px-3 text-[10px]"
               >
                 ← Back
               </Button>
               
               <ScrollArea className="h-[50vh]">
-                <div className="space-y-2 pr-4">
+                <div className="space-y-2 pr-3">
                   {filteredLibrary.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">
                       No {initialSessionType === "listening" ? "podcasts" : "books or readings"} available yet.
@@ -250,33 +238,32 @@ export function ReasonContentSelector({
                     filteredLibrary.map((item) => (
                       <div
                         key={item.id}
-                        className="w-full p-3 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all"
+                        className="w-full rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3 transition-colors hover:border-white/[0.12] hover:bg-white/[0.035]"
                       >
                         {/* Top row: icon + title */}
                         <div className="flex items-center gap-3 mb-2">
-                          <div className={cn(
-                            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                            item.format === "podcast" && "bg-violet-500/10",
-                            item.format === "reading" && "bg-cyan-500/10",
-                            item.format === "book" && "bg-amber-500/10",
+                          <span className={cn(
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border text-[8px] font-semibold tracking-[0.1em]",
+                            item.format === "podcast" && "border-white/[0.1] bg-white/[0.035] text-white/65",
+                            item.format === "reading" && "border-white/[0.08] bg-white/[0.025] text-white/55",
+                            item.format === "book" && "border-white/[0.1] bg-white/[0.035] text-white/65",
                           )}>
-                            {item.format === "podcast" && <Headphones className="w-4 h-4 text-violet-500" />}
-                            {item.format === "reading" && <FileText className="w-4 h-4 text-cyan-500" />}
-                            {item.format === "book" && <BookOpen className="w-4 h-4 text-amber-500" />}
-                          </div>
+                            {item.format === "podcast" ? "POD" : item.format === "book" ? "BOOK" : "READ"}
+                          </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium line-clamp-2 leading-tight">{item.title}</p>
+                            <p className="line-clamp-2 text-[12px] font-semibold leading-tight text-foreground/90">{item.title}</p>
+                            {item.author && <p className="mt-1 truncate text-[9px] text-muted-foreground/55">{item.author}</p>}
                           </div>
                         </div>
                         
                         {/* Bottom row: metadata + actions */}
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground/55">
                             <span className="capitalize">{item.format}</span>
                             <span>•</span>
                             <span>{item.durationMinutes} min</span>
                             <span>•</span>
-                            <span className="font-medium text-primary">
+                            <span className="font-semibold text-white/65">
                               {LOOMA_ITEM_WEIGHTS[item.format]?.toFixed(1) || "1.0"}×
                             </span>
                           </div>
@@ -292,7 +279,7 @@ export function ReasonContentSelector({
                                   setPreviewItem(item);
                                   setMode("preview");
                                 }}
-                                className="h-7 px-2 text-[10px] font-medium"
+                                className="h-7 px-2 text-[9px] font-medium"
                                 title="Preview podcast"
                               >
                                 <Play className="w-3.5 h-3.5 mr-1" />
@@ -309,7 +296,7 @@ export function ReasonContentSelector({
                                   e.stopPropagation();
                                   window.open(item.url, "_blank", "noopener,noreferrer");
                                 }}
-                                className="h-7 px-2 text-[10px] font-medium"
+                                className="h-7 px-2 text-[9px] font-medium"
                                 title="Open content"
                               >
                                 <ExternalLink className="w-3.5 h-3.5 mr-1" />
@@ -319,10 +306,10 @@ export function ReasonContentSelector({
                             <Button
                               type="button"
                               size="sm"
-                              variant="default"
+                              variant="premium"
                               onClick={() => handleStartLoomaSession(item)}
                               disabled={startSession.isPending}
-                              className="h-7 px-3 text-[10px] font-medium"
+                              className="h-7 px-3 text-[9px] font-semibold"
                             >
                               Start
                             </Button>
@@ -343,13 +330,13 @@ export function ReasonContentSelector({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-4"
+              className="space-y-4 p-5"
             >
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setMode("choose")}
-                className="mb-1 -ml-2"
+                className="mb-1 -ml-3 h-7 px-3 text-[10px]"
               >
                 ← Back
               </Button>
@@ -359,10 +346,10 @@ export function ReasonContentSelector({
                 <button
                   onClick={() => setSessionType("reading")}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition-all",
+                    "flex flex-1 items-center justify-center gap-2 rounded-[12px] border py-2.5 transition-all",
                     sessionType === "reading" 
-                      ? "border-primary bg-primary/10 text-foreground" 
-                      : "border-border text-muted-foreground hover:border-primary/50"
+                      ? "border-white/[0.2] bg-white/[0.075] text-foreground"
+                      : "border-white/[0.065] bg-white/[0.018] text-muted-foreground hover:border-white/[0.13]"
                   )}
                 >
                   <BookOpen className="w-4 h-4" />
@@ -371,10 +358,10 @@ export function ReasonContentSelector({
                 <button
                   onClick={() => setSessionType("listening")}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition-all",
+                    "flex flex-1 items-center justify-center gap-2 rounded-[12px] border py-2.5 transition-all",
                     sessionType === "listening" 
-                      ? "border-primary bg-primary/10 text-foreground" 
-                      : "border-border text-muted-foreground hover:border-primary/50"
+                      ? "border-white/[0.2] bg-white/[0.075] text-foreground"
+                      : "border-white/[0.065] bg-white/[0.018] text-muted-foreground hover:border-white/[0.13]"
                   )}
                 >
                   <Headphones className="w-4 h-4" />
@@ -390,6 +377,7 @@ export function ReasonContentSelector({
                   placeholder="e.g., Thinking, Fast and Slow"
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
+                  className="h-11 border-white/[0.08] bg-white/[0.025] focus-visible:ring-white/20"
                 />
               </div>
               
@@ -401,6 +389,7 @@ export function ReasonContentSelector({
                   placeholder="e.g., Daniel Kahneman"
                   value={customAuthor}
                   onChange={(e) => setCustomAuthor(e.target.value)}
+                  className="h-11 border-white/[0.08] bg-white/[0.025] focus-visible:ring-white/20"
                 />
               </div>
               
@@ -422,6 +411,7 @@ export function ReasonContentSelector({
                   min={1}
                   max={5}
                   step={1}
+                  className="[&>span:first-child]:h-1 [&>span:first-child]:bg-white/[0.08] [&>span:first-child>span]:bg-white/80 [&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:border-white/70"
                 />
               </div>
               
@@ -443,14 +433,15 @@ export function ReasonContentSelector({
                   min={1}
                   max={5}
                   step={1}
+                  className="[&>span:first-child]:h-1 [&>span:first-child]:bg-white/[0.08] [&>span:first-child>span]:bg-white/80 [&_[role=slider]]:h-4 [&_[role=slider]]:w-4 [&_[role=slider]]:border-white/70"
                 />
               </div>
               
               {/* Weight preview */}
-              <div className="p-3 rounded-xl bg-muted/30 border border-border/50">
+              <div className="rounded-[14px] border border-white/[0.065] bg-white/[0.022] p-3.5">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Calculated Weight</span>
-                  <span className="text-lg font-bold text-primary">{customWeight.toFixed(2)}×</span>
+                  <span className="text-lg font-semibold tabular-nums text-foreground">{customWeight.toFixed(2)}×</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1">
                   Weight multiplies your reading time for RQ calculation
@@ -460,6 +451,7 @@ export function ReasonContentSelector({
               {/* Start button */}
               <Button
                 className="w-full"
+                variant="premium"
                 size="lg"
                 onClick={handleStartCustomSession}
                 disabled={!customTitle.trim() || startSession.isPending}
@@ -476,7 +468,7 @@ export function ReasonContentSelector({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-4"
+              className="space-y-4 p-5"
             >
               <Button 
                 variant="ghost" 
@@ -485,19 +477,19 @@ export function ReasonContentSelector({
                   setMode("looma");
                   setPreviewItem(null);
                 }}
-                className="mb-1 -ml-2"
+                className="mb-1 -ml-3 h-7 px-3 text-[10px]"
               >
                 ← Back to Library
               </Button>
               
               {/* Podcast info */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
-                  <Headphones className="w-5 h-5 text-violet-500" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-white/[0.1] bg-white/[0.035]">
+                  <Headphones className="h-4 w-4 text-white/65" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">{previewItem.author}</p>
-                  <p className="text-sm font-medium text-primary">
+                  <p className="text-sm font-medium text-white/70">
                     {LOOMA_ITEM_WEIGHTS[previewItem.format]?.toFixed(1) || "1.0"}× weight
                   </p>
                 </div>
@@ -518,6 +510,7 @@ export function ReasonContentSelector({
               {/* Start Session Button */}
               <Button
                 className="w-full"
+                variant="premium"
                 size="lg"
                 onClick={() => handleStartLoomaSession(previewItem)}
                 disabled={startSession.isPending}

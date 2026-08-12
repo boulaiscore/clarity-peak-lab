@@ -11,8 +11,6 @@ import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
 import { useStableCognitiveLoad } from "@/hooks/useStableCognitiveLoad";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
-import { useAuth } from "@/contexts/AuthContext";
-import { TrainingPlanId } from "@/lib/trainingPlans";
 import { 
   Dumbbell, 
   BookMarked, 
@@ -57,7 +55,6 @@ interface UsePrioritizedSuggestionsResult {
 const NEUTRAL_STYLE = "from-muted/30 to-transparent border-border/30 hover:border-border/50";
 
 export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
-  const { user } = useAuth();
   const { sharpness, readiness, recovery: recoveryRaw, isLoading: metricsLoading } = useTodayMetrics();
   const { recoveryEffective, isLoading: recoveryLoading } = useRecoveryEffective();
   const { 
@@ -73,8 +70,6 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
   } = useStableCognitiveLoad();
   const { isDecaying: rqIsDecaying, isLoading: rqLoading } = useReasoningQuality();
 
-  const planId = (user?.trainingPlan || "light") as TrainingPlanId;
-  
   const isLoading = metricsLoading || recoveryLoading || rqLoading;
 
   const suggestions = useMemo((): Suggestion[] => {
@@ -238,7 +233,6 @@ export function usePrioritizedSuggestions(): UsePrioritizedSuggestionsResult {
     detoxProgress,
     detoxComplete,
     rqIsDecaying,
-    planId,
   ]);
 
   return {

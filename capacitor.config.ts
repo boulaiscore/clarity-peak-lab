@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const liveReloadUrl = process.env.CAPACITOR_LIVE_RELOAD_URL;
 
 const config: CapacitorConfig = {
-  appId: "com.looma",
+  appId: "com.neurolooplabs.looma",
   appName: "LOOMA",
   webDir: "dist",
   // Native release builds use the bundled web app. A remote URL is allowed

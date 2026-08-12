@@ -26,7 +26,7 @@ import {
   TC_PLAN_CAPS,
   TC_UPGRADE_HINT_THRESHOLD,
 } from "@/lib/decayConstants";
-import { TrainingPlanId, TRAINING_PLANS } from "@/lib/trainingPlans";
+import { DEFAULT_TRAINING_PLAN_ID, TRAINING_PLANS } from "@/lib/trainingPlans";
 
 export type TCTrend = "up" | "down" | "stable";
 
@@ -50,7 +50,7 @@ function getRolling7DayStart(): { date: Date; str: string } {
 export function useTrainingCapacity(): UseTrainingCapacityResult {
   const { user, session } = useAuth();
   const userId = user?.id ?? session?.user?.id;
-  const planId = (user?.trainingPlan || "expert") as TrainingPlanId;
+  const planId = DEFAULT_TRAINING_PLAN_ID;
   const planCap = TC_PLAN_CAPS[planId] ?? 200;
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
@@ -283,7 +283,7 @@ export function useTrainingCapacity(): UseTrainingCapacityResult {
       tcTrend,
       tcDelta,
     };
-  }, [tcData, planCap, planId, weeklyXPTarget, tcLoading, statesLoading]);
+  }, [tcData, planCap, weeklyXPTarget, tcLoading, statesLoading]);
   
   return result;
 }

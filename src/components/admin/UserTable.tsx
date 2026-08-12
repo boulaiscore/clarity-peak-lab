@@ -27,14 +27,14 @@ export function UserTable({ users, isLoading }: UserTableProps) {
         return (
           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
             <Crown className="w-3 h-3 mr-1" />
-            Pro
+            Elite
           </Badge>
         );
       case "founding_pro":
         return (
           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
             <Crown className="w-3 h-3 mr-1" />
-            Founding Pro
+            Founding Elite
           </Badge>
         );
       case "core":
@@ -42,7 +42,7 @@ export function UserTable({ users, isLoading }: UserTableProps) {
         return (
           <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white">
             <Zap className="w-3 h-3 mr-1" />
-            Core
+            Pro
           </Badge>
         );
       default:

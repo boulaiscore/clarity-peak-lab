@@ -7,9 +7,6 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
-  Plus,
-  Library,
-  Sparkles,
   ChevronRight,
   Clock,
   Search,
@@ -52,6 +49,10 @@ function demandToDifficulty(demand: string): ContentDifficulty {
   if (demand === "LOW") return "light";
   if (demand === "HIGH" || demand === "VERY_HIGH") return "dense";
   return "medium";
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps) {
@@ -99,8 +100,8 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
       toast.success("Book added!", { description: item.title });
       handleClose();
       onBookAdded();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to add book");
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Failed to add book"));
     }
   };
 
@@ -121,8 +122,8 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
       toast.success("Book added!", { description: customTitle });
       handleClose();
       onBookAdded();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to add book");
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Failed to add book"));
     }
   };
 
@@ -146,8 +147,8 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
       try {
         const results = await searchGoogleBooks(q, ctrl.signal);
         if (!ctrl.signal.aborted) setSearchResults(results);
-      } catch (e: any) {
-        if (e?.name !== "AbortError") setSearchError("Search failed. Try again.");
+      } catch (error: unknown) {
+        if (!(error instanceof Error && error.name === "AbortError")) setSearchError("Search failed. Try again.");
       } finally {
         if (!ctrl.signal.aborted) setSearchLoading(false);
       }
@@ -172,8 +173,8 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
       toast.success("Book added!", { description: item.title });
       handleClose();
       onBookAdded();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to add book");
+    } catch (error: unknown) {
+      toast.error(errorMessage(error, "Failed to add book"));
     }
   };
 
@@ -183,15 +184,15 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-sm max-h-[85vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="flex max-h-[88dvh] w-[calc(100%_-_20px)] max-w-sm flex-col gap-0 overflow-hidden rounded-[24px] border-white/[0.08] bg-[#0b0d10] p-0 shadow-[0_30px_100px_rgba(0,0,0,0.72)]">
+        <DialogHeader className="border-b border-white/[0.06] px-5 pb-4 pt-5 pr-11 text-left">
+          <DialogTitle className="text-[17px]">
             {mode === "choose" && "Add a Book"}
             {mode === "looma" && "LOOMA Library"}
             {mode === "search" && "Search any book"}
             {mode === "custom" && "Custom Book"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-[11px] leading-relaxed text-muted-foreground/65">
             {mode === "choose" && "Pick from the curated list, search the web, or add your own."}
             {mode === "looma" && "Select a book to start reading."}
             {mode === "search" && "Search any title — covers and purchase links included."}
@@ -206,57 +207,48 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-3 pt-2"
+              className="space-y-2 p-5"
             >
               <button
                 onClick={() => setMode("looma")}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all group"
+                className="group flex w-full items-center gap-3 rounded-[14px] border border-white/[0.07] bg-white/[0.022] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.04]"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Library className="w-6 h-6 text-primary" />
-                </div>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.1] bg-white/[0.035] text-[9px] font-semibold tracking-[0.12em] text-white/65">01</span>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold flex items-center gap-2">
-                    LOOMA Library
-                    <Sparkles className="w-3 h-3 text-primary" />
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Curated cognitive performance books
+                  <p className="text-[13px] font-semibold text-foreground/95">Curated by LOOMA</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                    Selected for cognitive depth
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/45 transition-colors group-hover:text-foreground" />
               </button>
 
               <button
                 onClick={() => setMode("search")}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all group"
+                className="group flex w-full items-center gap-3 rounded-[14px] border border-white/[0.07] bg-white/[0.022] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.04]"
               >
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                  <Search className="w-6 h-6 text-amber-500" />
-                </div>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.09] bg-white/[0.025] text-[9px] font-semibold tracking-[0.12em] text-white/60">02</span>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold">Search any book</p>
-                  <p className="text-xs text-muted-foreground">
-                    Find covers & buy links
+                  <p className="text-[13px] font-semibold text-foreground/95">Search any book</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                    Title, author or ISBN
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/45 transition-colors group-hover:text-foreground" />
               </button>
 
               <button
                 onClick={() => setMode("custom")}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all group"
+                className="group flex w-full items-center gap-3 rounded-[14px] border border-white/[0.07] bg-white/[0.022] p-4 text-left transition-colors hover:border-white/[0.13] hover:bg-white/[0.04]"
               >
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-                  <Plus className="w-6 h-6 text-foreground" />
-                </div>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.09] bg-white/[0.025] text-[9px] font-semibold tracking-[0.12em] text-white/60">03</span>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold">Enter manually</p>
-                  <p className="text-xs text-muted-foreground">
-                    Type the title yourself
+                  <p className="text-[13px] font-semibold text-foreground/95">Enter manually</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                    Add only the details you know
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/45 transition-colors group-hover:text-foreground" />
               </button>
             </motion.div>
           )}
@@ -267,13 +259,13 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="flex-1 min-h-0"
+              className="min-h-0 flex-1 p-5"
             >
-              <Button variant="ghost" size="sm" onClick={() => setMode("choose")} className="mb-3 -ml-2">
+              <Button variant="ghost" size="sm" onClick={() => setMode("choose")} className="mb-3 -ml-3 h-7 px-3 text-[10px]">
                 ← Back
               </Button>
               <ScrollArea className="h-[50vh]">
-                <div className="space-y-2 pr-4">
+                <div className="space-y-2 pr-3">
                   {books.map((item) => {
                     const estHours = item.pages
                       ? estimateReadingHours(item.pages, item.difficulty)
@@ -283,14 +275,12 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                         key={item.id}
                         onClick={() => handlePickLooma(item)}
                         disabled={addBook.isPending}
-                        className="w-full p-3 rounded-xl border border-border hover:border-amber-500/50 hover:bg-amber-500/5 transition-all text-left"
+                        className="w-full rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3 text-left transition-colors hover:border-white/[0.16] hover:bg-white/[0.035]"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                            <BookOpen className="w-4 h-4 text-amber-500" />
-                          </div>
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-white/[0.1] bg-white/[0.035] text-[8px] font-semibold tracking-[0.08em] text-white/65">BOOK</span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                            <p className="line-clamp-1 text-[12px] font-semibold text-foreground/90">{item.title}</p>
                             {item.author && (
                               <p className="text-[10px] text-muted-foreground">{item.author}</p>
                             )}
@@ -299,7 +289,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                                 {item.difficulty} · {item.pages} pp
                               </span>
                               {estHours && (
-                                <span className="text-[10px] text-amber-500/80 flex items-center gap-0.5">
+                                <span className="flex items-center gap-0.5 text-[10px] text-white/60">
                                   <Clock className="w-2.5 h-2.5" />
                                   ~{estHours}h
                                 </span>
@@ -322,9 +312,9 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="flex-1 min-h-0 flex flex-col"
+              className="flex min-h-0 flex-1 flex-col p-5"
             >
-              <Button variant="ghost" size="sm" onClick={() => setMode("choose")} className="mb-3 -ml-2">
+              <Button variant="ghost" size="sm" onClick={() => setMode("choose")} className="mb-3 -ml-3 h-7 px-3 text-[10px]">
                 ← Back
               </Button>
 
@@ -335,13 +325,13 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Title, author, ISBN…"
-                  className="pl-9"
+                  className="h-11 border-white/[0.08] bg-white/[0.025] pl-9 focus-visible:ring-white/20"
                   maxLength={120}
                 />
               </div>
 
               <ScrollArea className="h-[50vh]">
-                <div className="space-y-2 pr-4">
+                <div className="space-y-2 pr-3">
                   {searchLoading && (
                     <div className="flex items-center justify-center py-8 text-muted-foreground gap-2 text-xs">
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -369,7 +359,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                   {searchResults.map((item) => (
                     <div
                       key={item.id}
-                      className="p-3 rounded-xl border border-border hover:border-amber-500/40 transition-all flex gap-3"
+                      className="flex gap-3 rounded-[14px] border border-white/[0.065] bg-white/[0.018] p-3 transition-colors hover:border-white/[0.16]"
                     >
                       {item.cover ? (
                         <img
@@ -398,7 +388,8 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                         <div className="flex items-center gap-2 mt-auto pt-2">
                           <Button
                             size="sm"
-                            className="h-7 text-[11px] px-2.5"
+                            className="h-7 px-2.5 text-[10px]"
+                            variant="premium"
                             disabled={addBook.isPending}
                             onClick={() => handlePickSearch(item)}
                           >
@@ -409,7 +400,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                               href={item.infoLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] text-amber-500 hover:text-amber-400 transition-colors"
+                              className="inline-flex items-center gap-1 text-[10px] text-white/60 transition-colors hover:text-white/85"
                             >
                               View / Buy
                               <ExternalLink className="w-2.5 h-2.5" />
@@ -431,9 +422,9 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-4"
+              className="space-y-4 p-5"
             >
-              <Button variant="ghost" size="sm" onClick={() => setMode("choose")} className="mb-1 -ml-2">
+              <Button variant="ghost" size="sm" onClick={() => setMode("choose")} className="mb-1 -ml-3 h-7 px-3 text-[10px]">
                 ← Back
               </Button>
 
@@ -445,6 +436,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
                   maxLength={200}
+                  className="h-11 border-white/[0.08] bg-white/[0.025] focus-visible:ring-white/20"
                 />
               </div>
 
@@ -456,6 +448,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                   value={customAuthor}
                   onChange={(e) => setCustomAuthor(e.target.value)}
                   maxLength={100}
+                  className="h-11 border-white/[0.08] bg-white/[0.025] focus-visible:ring-white/20"
                 />
               </div>
 
@@ -469,13 +462,14 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
                   onChange={(e) => setCustomPages(e.target.value)}
                   min={1}
                   max={5000}
+                  className="h-11 border-white/[0.08] bg-white/[0.025] focus-visible:ring-white/20"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>Cognitive Demand</Label>
                 <Select value={customDemand} onValueChange={setCustomDemand}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 border-white/[0.08] bg-white/[0.025] focus:ring-white/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -488,7 +482,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
               </div>
 
               {customEstimate !== null && customEstimate > 0 && (
-                <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-500/5 rounded-lg px-3 py-2 border border-amber-500/10">
+                <div className="flex items-center gap-2 text-xs text-white/65 bg-white/[0.025] rounded-lg px-3 py-2 border border-white/[0.08]">
                   <Clock className="w-3.5 h-3.5" />
                   Estimated ~{customEstimate}h to complete
                 </div>
@@ -496,6 +490,7 @@ export function AddBookDialog({ open, onClose, onBookAdded }: AddBookDialogProps
 
               <Button
                 className="w-full"
+                variant="premium"
                 size="lg"
                 onClick={handleAddCustom}
                 disabled={!customTitle.trim() || addBook.isPending}

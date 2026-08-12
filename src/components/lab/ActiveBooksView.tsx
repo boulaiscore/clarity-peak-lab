@@ -131,7 +131,7 @@ export function ActiveBooksView() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/15 border-t-white/80" />
       </div>
     );
   }
@@ -141,9 +141,9 @@ export function ActiveBooksView() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Currently Reading</h3>
-        <span className="text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between border-b border-white/[0.055] pb-3">
+        <h3 className="text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/75">Currently reading</h3>
+        <span className="text-[9px] tabular-nums text-muted-foreground/55">
           {activeBooks.length}/2 books
         </span>
       </div>
@@ -153,15 +153,14 @@ export function ActiveBooksView() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-2xl border border-dashed border-border/50 text-center"
+          className="rounded-[16px] border border-white/[0.065] bg-white/[0.018] p-6 text-center"
         >
-          <BookOpen className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground mb-1">No books in progress</p>
-          <p className="text-[10px] text-muted-foreground/60 mb-4">
+          <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-[11px] border border-white/[0.09] bg-white/[0.03] text-[8px] font-semibold tracking-[0.1em] text-white/60">READ</span>
+          <p className="mb-1 text-[13px] font-semibold text-foreground/85">No books in progress</p>
+          <p className="mb-4 text-[10px] leading-relaxed text-muted-foreground/55">
             Pick from the curated LOOMA library or add your own title
           </p>
-          <Button size="sm" onClick={() => setShowAddBook(true)} className="gap-1.5">
-            <BookOpen className="w-3.5 h-3.5" />
+          <Button size="sm" variant="premium" onClick={() => setShowAddBook(true)} className="gap-1.5">
             Browse library
           </Button>
         </motion.div>
@@ -174,7 +173,7 @@ export function ActiveBooksView() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="p-4 rounded-2xl border border-border/40 bg-card/60"
+                className="rounded-[16px] border border-white/[0.065] bg-white/[0.018] p-4"
               >
                 {/* Book info */}
                 <div className="flex items-start gap-3 mb-3">
@@ -186,8 +185,8 @@ export function ActiveBooksView() {
                       className="w-10 h-14 object-cover rounded-md shrink-0 bg-muted"
                     />
                   ) : (
-                    <div className="w-10 h-14 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
-                      <BookOpen className="w-5 h-5 text-amber-500" />
+                    <div className="w-10 h-14 rounded-md border border-white/[0.08] bg-white/[0.03] flex items-center justify-center shrink-0">
+                      <BookOpen className="w-5 h-5 text-white/60" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -249,7 +248,7 @@ export function ActiveBooksView() {
                 <div className="flex items-center gap-2">
                   <Button
                     size="sm"
-                    variant="default"
+                    variant="premium"
                     className="h-8 gap-1.5 flex-1"
                     onClick={() => handleStartTimer(book)}
                     disabled={startSession.isPending}
@@ -259,7 +258,7 @@ export function ActiveBooksView() {
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="subtle"
                     className="h-8 gap-1.5 flex-1"
                     onClick={() => setManualBookId(manualBookId === book.id ? null : book.id)}
                   >
@@ -293,9 +292,9 @@ export function ActiveBooksView() {
           {/* Add more button */}
           {canAddMore && (
             <Button
-              variant="outline"
+              variant="subtle"
               size="sm"
-              className="w-full gap-1.5 border-dashed"
+              className="w-full gap-1.5"
               onClick={() => setShowAddBook(true)}
             >
               <Plus className="w-3.5 h-3.5" />

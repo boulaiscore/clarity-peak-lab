@@ -1,15 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import recoveryDetoxImg from "@/assets/recovery-detox.jpg";
-import recoveryWalkImg from "@/assets/recovery-walk.jpg";
-import recoveryDetoxMaleImg from "@/assets/recovery-detox-male.jpg";
-import recoveryWalkMaleImg from "@/assets/recovery-walk-male.jpg";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
-  Clock, Play, Pause, Check, Sparkles, Info, Loader2, Bell, BellOff, 
+  Clock, Play, Pause, Check, Sparkles, Loader2, Bell, BellOff,
   Leaf, Footprints, ChevronDown, Zap, Brain, Target, Moon
 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
@@ -24,7 +19,6 @@ import { useDetoxSession } from "@/hooks/useDetoxSession";
 import { useAppBlocker } from "@/hooks/useAppBlocker";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
 import { scheduleDetoxReminder, cancelDetoxReminder, getNotificationState, requestNotificationPermission } from "@/lib/notifications";
 import { DETOX_COGNITIVE_MESSAGES } from "@/lib/cognitiveFeedback";
 import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
@@ -54,23 +48,60 @@ const RECOVERY_MODES = {
   detox: {
     id: "detox" as RecoveryMode,
     label: "Detox (Digital Off)",
+    displayLabel: "Digital Detox",
+    code: "OFF",
     description: "Complete stop from digital input. Rest, sit, or disengage.",
     impact: "High recovery impact",
-    icon: Leaf,
+    rate: "1.0×",
   },
   walk: {
     id: "walk" as RecoveryMode,
     label: "Walk (Active Recovery)",
+    displayLabel: "Active Walk",
+    code: "MOVE",
     description: "Light walking with minimal stimulation.",
     constraints: "No podcasts, no calls, no scrolling.",
     impact: "Moderate recovery impact",
-    icon: Footprints,
+    rate: "0.5×",
   },
 };
 
+function RecoveryModeVisual({ mode }: { mode: RecoveryMode }) {
+  const reduceMotion = useReducedMotion();
+
+  if (mode === "detox") {
+    return (
+      <div className="relative flex h-12 w-16 items-center justify-center" aria-hidden="true">
+        {[0, 1].map((ring) => (
+          <motion.span
+            key={ring}
+            className="absolute rounded-full border border-white/[0.14]"
+            style={{ width: 30 + ring * 14, height: 30 + ring * 14 }}
+            animate={reduceMotion ? undefined : { opacity: [0.12, 0.48, 0.12], scale: [0.88, 1.05, 0.88] }}
+            transition={reduceMotion ? undefined : { duration: 3.4, repeat: Infinity, delay: ring * 0.5, ease: "easeInOut" }}
+          />
+        ))}
+        <Leaf className="relative h-5 w-5 text-white/70" strokeWidth={1.35} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-12 w-16 items-center justify-center gap-1.5" aria-hidden="true">
+      {[0, 1, 2].map((step) => (
+        <motion.span
+          key={step}
+          className="block h-3.5 w-2 rotate-[24deg] rounded-full border border-white/55 bg-white/[0.08]"
+          animate={reduceMotion ? undefined : { opacity: [0.2, 0.85, 0.2], y: [3, -3, 3] }}
+          transition={reduceMotion ? undefined : { duration: 2.8, repeat: Infinity, delay: step * 0.36, ease: "easeInOut" }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function DetoxChallengeTab() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [selectedAppsToBlock, setSelectedAppsToBlock] = useState<string[]>([]);
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [selectedMode, setSelectedMode] = useState<RecoveryMode>("detox");
@@ -251,48 +282,13 @@ export function DetoxChallengeTab() {
   if (sessionLoading || settingsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-foreground/65" />
       </div>
     );
   }
 
-  const currentModeConfig = RECOVERY_MODES[selectedMode];
-
-  const isMale = user?.gender === "male";
-  const detoxImg = isMale ? recoveryDetoxMaleImg : recoveryDetoxImg;
-  const walkImg = isMale ? recoveryWalkMaleImg : recoveryWalkImg;
-
   return (
-    <div className="space-y-5 -mx-4 px-4 py-4 bg-teal-500/5 rounded-xl">
-      {/* XP Explanation — collapsed, expands on info tap */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
-        <p className="flex-1 text-[11px] text-muted-foreground leading-snug">
-          <span className="font-medium text-foreground">Detox & Walking</span> award XP and restore <span className="font-medium text-foreground">Recovery</span>.
-        </p>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              aria-label="How recover XP works"
-              className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-muted-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            align="end"
-            className="w-72 text-[11px] leading-relaxed text-muted-foreground"
-          >
-            <p className="font-medium text-foreground mb-1.5">How Recover works</p>
-            <p>
-              <span className="font-medium text-foreground">Detox & Walking award XP</span> (0.05 XP/min — e.g., 60 min = 3 XP) and restore <span className="font-medium text-foreground">Recovery</span>.
-              Walking 30+ min unlocks full XP; otherwise 50%. Higher recovery unlocks S2 drills.
-            </p>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-
+    <div className="space-y-4">
       {/* Active Session, Completed, or Start */}
       {isActive || justCompleted ? (
         <motion.div
@@ -345,10 +341,10 @@ export function DetoxChallengeTab() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="relative mb-2">
-                    <Leaf className="w-6 h-6 text-primary" />
+                    <Leaf className="h-6 w-6 text-foreground/70" />
                   </div>
                   <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
-                  <span className="text-xs text-primary font-medium">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
+                  <span className="text-xs font-medium text-foreground/75">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
                   {violationCount > 0 && (
                     <span className="text-[10px] text-amber-400 mt-1">
                       ⚠️ {violationCount} violation{violationCount === 1 ? '' : 's'}
@@ -387,59 +383,50 @@ export function DetoxChallengeTab() {
         <>
 
 
-          {/* Recovery Mode Selector - Minimal Side-by-Side */}
+          {/* Recovery modes use the same card system as Quality Time. */}
           <div className="grid grid-cols-2 gap-3">
             {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
-              const Icon = mode.icon;
               const isSelected = selectedMode === mode.id;
+              const projectedRecovery = getRecoveryImpact(selectedDuration, mode.id);
+              const ModeIcon = mode.id === "detox" ? Leaf : Footprints;
               
               return (
                 <button
                   key={mode.id}
                   onClick={() => setSelectedMode(mode.id)}
+                  aria-pressed={isSelected}
                   className={cn(
-                    "relative rounded-xl text-left transition-all duration-200 overflow-hidden",
+                    "group relative h-[168px] w-full overflow-hidden rounded-[20px] border bg-card/40 p-4 text-left transition-all duration-200",
                     isSelected
-                      ? "border-2 border-foreground/20"
-                      : "border border-border/40 hover:border-border"
+                      ? "border-foreground/20 bg-card/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                      : "border-border/40 hover:border-border/70 hover:bg-card/55"
                   )}
                 >
-                  {/* Image header */}
-                  <div className="relative h-20 w-full">
-                    <img
-                      src={mode.id === "detox" ? detoxImg : walkImg}
-                      alt={mode.id === "detox" ? "Digital Detox" : "Active Walk"}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-background" />
+                  <div className="relative flex h-full flex-col">
+                    <div className="flex h-4 shrink-0 items-start justify-between">
+                      <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-white/60">
+                        {mode.id === "detox" ? "Detox" : "Walk"}
+                      </span>
+                      <ModeIcon className="h-3.5 w-3.5 shrink-0 text-white/55" strokeWidth={1.4} />
+                    </div>
+
+                    <div className="flex min-h-0 flex-1 items-center justify-center">
+                      <RecoveryModeVisual mode={mode.id} />
+                    </div>
+
+                    <div className="h-[52px] shrink-0 border-t border-white/[0.055] pt-2.5">
+                      <h4 className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-white">
+                        {mode.displayLabel}
+                      </h4>
+                      <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
+                        <p className="min-w-0 truncate whitespace-nowrap text-[9px] leading-none text-white/50">
+                          {mode.id === "detox" ? "No digital input" : "Light movement · no media"}
+                        </p>
+                        <span className="shrink-0 text-[10px] font-semibold leading-none tabular-nums text-white/75">
+                          +{projectedRecovery} <span className="text-[8px] tracking-[0.1em] text-white/35">REC</span>
+                        </span>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-3 pt-0 -mt-2 relative z-10 bg-card">
-                  
-                  <h4 className={cn(
-                    "text-sm font-semibold mb-1",
-                    isSelected ? "text-foreground" : "text-foreground/80"
-                  )}>
-                    {mode.id === "detox" ? "Digital Detox" : "Active Walk"}
-                  </h4>
-                  
-                  <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">
-                    {mode.id === "detox" 
-                      ? "Full digital pause" 
-                      : "Light movement, no devices"
-                    }
-                  </p>
-                  
-                  <div className={cn(
-                    "mt-2 text-[10px] font-medium",
-                    isSelected ? "text-foreground/70" : "text-muted-foreground/80"
-                  )}>
-                    {mode.id === "detox" ? "100% impact" : "50% impact"}
-                  </div>
+                    </div>
                   </div>
                 </button>
               );
@@ -463,7 +450,7 @@ export function DetoxChallengeTab() {
                       "py-2 rounded-lg text-sm font-medium transition-all",
                       isSelected
                         ? "bg-foreground/10 text-foreground border border-foreground/20"
-                        : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
+                        : "border border-transparent bg-card/40 text-muted-foreground hover:border-border/40 hover:bg-card/60"
                     )}
                   >
                     {slot.label}
@@ -504,7 +491,7 @@ export function DetoxChallengeTab() {
           <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/80 pt-2">
             {dailySettings?.reminderEnabled ? (
               <>
-                <Bell className="w-3 h-3 text-primary/60" />
+                <Bell className="h-3 w-3 text-foreground/50" />
                 <span>Daily reminder at <span className="text-muted-foreground">{dailySettings.reminderTime}</span></span>
               </>
             ) : (
@@ -530,8 +517,8 @@ export function DetoxChallengeTab() {
         <AlertDialogContent className="max-w-sm">
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Moon className="w-5 h-5 text-primary" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground/[0.06]">
+                <Moon className="h-5 w-5 text-foreground/65" />
               </div>
               <AlertDialogTitle className="text-lg">Sleep Time</AlertDialogTitle>
             </div>
@@ -566,11 +553,11 @@ function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: num
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/20 border border-border/20"
+      className="flex items-center justify-between rounded-2xl border border-border/40 bg-card/40 px-4 py-3"
     >
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground">Recovery</span>
-        <span className="text-sm font-bold text-primary">+{recoveryImpact}%</span>
+        <span className="text-sm font-bold text-foreground/90">+{recoveryImpact}%</span>
       </div>
       <div className="flex items-center gap-4">
         <span className="text-[10px] text-muted-foreground/70">Sharpness ↑</span>
