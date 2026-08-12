@@ -71,6 +71,56 @@ function getComparison(cognitiveAge: number, chronologicalAge?: number) {
       };
 }
 
+function ageAccentColors(ageDifference: number, chronologicalAge?: number) {
+  // ageDifference = cognitiveAge - chronologicalAge
+  // negative = younger (green), positive = older (red), zero = neutral/yellow
+  const maxDiff = chronologicalAge ? Math.max(5, chronologicalAge * 0.3) : 10;
+  const ratio = Math.max(-1, Math.min(1, ageDifference / maxDiff));
+
+  const interpolateHue = (a: number, b: number, t: number) => {
+    let diff = b - a;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+    return a + diff * t;
+  };
+
+  const green = { h: 160, s: 30, l: 38 }; // --success
+  const yellow = { h: 42, s: 78, l: 54 }; // warm amber
+  const red = { h: 0, s: 55, l: 48 }; // --destructive
+
+  let primaryH: number;
+  let primaryS: number;
+  let primaryL: number;
+  let secondaryH: number;
+  let secondaryS: number;
+  let secondaryL: number;
+
+  if (ratio <= 0) {
+    // Younger / green side: blend from yellow (neutral) to green
+    const t = -ratio;
+    primaryH = interpolateHue(yellow.h, green.h, t);
+    primaryS = yellow.s + (green.s - yellow.s) * t;
+    primaryL = yellow.l + (green.l - yellow.l) * t;
+    secondaryH = interpolateHue(38, 155, t);
+    secondaryS = 62 + (32 - 62) * t;
+    secondaryL = 54 + (42 - 54) * t;
+  } else {
+    // Older / red side: blend from yellow (neutral) to red
+    const t = ratio;
+    primaryH = interpolateHue(yellow.h, red.h, t);
+    primaryS = yellow.s + (red.s - yellow.s) * t;
+    primaryL = yellow.l + (red.l - yellow.l) * t;
+    secondaryH = interpolateHue(38, 8, t);
+    secondaryS = 62 + (52 - 62) * t;
+    secondaryL = 54 + (46 - 54) * t;
+  }
+
+  const accent = `hsl(${primaryH.toFixed(1)}, ${primaryS.toFixed(1)}%, ${primaryL.toFixed(1)}%)`;
+  const secondaryAccent = `hsl(${secondaryH.toFixed(1)}, ${secondaryS.toFixed(1)}%, ${secondaryL.toFixed(1)}%)`;
+
+  return { accent, secondaryAccent };
+}
+
 export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: CognitiveAgeSphereProps) {
   const reduceMotion = useReducedMotion();
   const id = useId().replace(/:/g, "");
@@ -81,16 +131,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const comparison = getComparison(cognitiveAge, chronologicalAge);
   const ageDifference = chronologicalAge ? cognitiveAge - chronologicalAge : delta;
   const direction = comparison?.direction ?? (ageDifference < -0.05 ? "younger" : ageDifference > 0.05 ? "older" : "neutral");
-  const accent = direction === "older"
-    ? "hsl(var(--destructive))"
-    : direction === "younger"
-      ? "hsl(var(--success))"
-      : "hsl(var(--recovery))";
-  const secondaryAccent = direction === "older"
-    ? "hsl(var(--area-fast))"
-    : direction === "younger"
-      ? "hsl(var(--recovery))"
-      : "hsl(var(--success))";
+  const { accent, secondaryAccent } = ageAccentColors(ageDifference, chronologicalAge);
   const pulseDuration = direction === "neutral" ? 3.2 : 2.75;
   const signalStride = direction === "neutral" ? 12 : 9;
 
@@ -116,20 +157,6 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           />
         </div>
 
-        <div className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center" aria-hidden="true">
-          <motion.div
-            className="h-[192px] w-[222px] rounded-[47%] border border-[hsl(var(--sphere-secondary))_/_0.45] shadow-[0_0_34px_hsl(var(--sphere-accent))_/_0.2]"
-            animate={reduceMotion ? undefined : {
-              opacity: [0.16, 0.68, 0.16],
-              scale: [0.92, 1.07, 0.92],
-            }}
-            transition={reduceMotion ? undefined : {
-              duration: pulseDuration,
-              ease: "easeInOut",
-              repeat: Infinity,
-            }}
-          />
-        </div>
 
         <motion.svg
           viewBox="0 0 280 224"
