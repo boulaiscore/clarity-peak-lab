@@ -102,7 +102,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
       <div className="relative h-[252px] w-full">
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
           <motion.div
-            className="h-[196px] w-[226px] rounded-[46%] bg-[radial-gradient(ellipse_at_center,transparent_35%,hsl(var(--recovery)/0.19)_53%,hsl(var(--success)/0.32)_67%,transparent_76%)] blur-[13px]"
+            className="h-[196px] w-[226px] rounded-[46%] bg-[radial-gradient(ellipse_at_center,transparent_35%,hsl(var(--sphere-secondary))_/_0.19)_53%,hsl(var(--sphere-accent))_/_0.32)_67%,transparent_76%)] blur-[13px]"
             animate={reduceMotion ? undefined : {
               opacity: [0.38, 0.9, 0.38],
               scale: [0.91, 1.08, 0.91],
