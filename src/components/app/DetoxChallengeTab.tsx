@@ -34,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { LAB_MODE_CARD_AMBIENCE_CLASS, LAB_MODE_CARD_CLASS } from "@/components/lab/labModeCardStyles";
 
 // Recovery impact based on the same gain formula used by Recovery v2:
 // ΔREC = 0.12 × (detox_minutes + 0.5 × walk_minutes)
@@ -395,13 +396,9 @@ export function DetoxChallengeTab() {
                   key={mode.id}
                   onClick={() => setSelectedMode(mode.id)}
                   aria-pressed={isSelected}
-                  className={cn(
-                    "group relative h-[168px] w-full overflow-hidden rounded-2xl border bg-gradient-to-b from-card/90 to-card/55 p-4 text-left transition-all duration-200",
-                    isSelected
-                      ? "border-foreground/25 from-card to-card/75 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-                      : "border-border/50 hover:border-border/75 hover:from-card hover:to-card/70"
-                  )}
+                  className={LAB_MODE_CARD_CLASS}
                 >
+                  <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
                   <div className="relative flex h-full flex-col">
                     <div className="flex h-4 shrink-0 items-start justify-between">
                       <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">
