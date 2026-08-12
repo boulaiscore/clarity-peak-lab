@@ -13,6 +13,7 @@ import { format, subDays, startOfDay } from "date-fns";
 import { useMetricHistory } from "@/hooks/useMetricHistory";
 import { useIntradayMetricHistory } from "@/hooks/useIntradayMetricHistory";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ReferenceLine, Area, ComposedChart } from "recharts";
+import { MonitorSegmentedControl } from "@/components/dashboard/MonitorUI";
 
 type MetricKey = "readiness" | "sharpness" | "recovery" | "reasoningQuality";
 type ViewMode = "week" | "today";
@@ -36,6 +37,13 @@ const METRICS: MetricConfig[] = [
   { key: "readiness", label: "Readiness", color: METRIC_COLORS.readiness },
   { key: "recovery", label: "Recovery", color: METRIC_COLORS.recovery },
   { key: "reasoningQuality", label: "Reasoning Quality", color: METRIC_COLORS.reasoningQuality },
+];
+
+const METRIC_OPTIONS: { value: MetricKey; label: string }[] = [
+  { value: "sharpness", label: "Sharpness" },
+  { value: "readiness", label: "Readiness" },
+  { value: "recovery", label: "Recovery" },
+  { value: "reasoningQuality", label: "Reasoning" },
 ];
 
 // Grid and text colors
@@ -360,56 +368,65 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
     yMax,                       // Line 5 = top (always empty)
   ];
 
+  const observedValues = chartData
+    .map((point) => point.value)
+    .filter((value): value is number => value !== null);
+  const latestValue = observedValues.at(-1) ?? null;
+  const firstValue = observedValues[0] ?? null;
+  const change = latestValue !== null && firstValue !== null
+    ? latestValue - firstValue
+    : null;
+  const valueSuffix = metric.key === "recovery" ? "%" : "";
+  const rangeLabel = viewMode === "week" ? "7d" : "today";
+
   return (
-    <div className="overflow-hidden rounded-[16px] border border-white/[0.055] bg-gradient-to-b from-white/[0.04] to-white/[0.018]">
-      {/* Header with metric name and toggle */}
-      <div className="flex items-center justify-between px-4 pb-0 pt-3.5">
-        <span 
-          className="text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground/80"
+    <div className="overflow-hidden rounded-[18px] border border-white/[0.055] bg-gradient-to-b from-white/[0.045] to-white/[0.018] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+      <div className="flex items-start justify-between gap-4 px-4 pb-0 pt-4">
+        <div className="min-w-0">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
+            {metric.label}
+          </p>
+          <div className="mt-1.5 flex items-baseline gap-2">
+            <span className="text-[26px] font-medium leading-none tracking-[-0.035em] text-foreground">
+              {latestValue === null ? "—" : `${Math.round(latestValue)}${valueSuffix}`}
+            </span>
+            {change !== null && (
+              <span className="text-[9px] font-medium text-muted-foreground/65">
+                {change > 0 ? "+" : ""}{Math.round(change)} · {rangeLabel}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="Trend period"
+          className="flex shrink-0 rounded-[8px] border border-white/[0.055] bg-black/20 p-0.5"
         >
-          {metric.label}
-        </span>
-        
-        {/* Elegant On/Off style toggle */}
-        <div className="flex items-center gap-1.5">
-          <span 
-            className={`text-[10px] font-medium transition-colors ${
-              viewMode === 'week' ? 'text-foreground' : 'text-muted-foreground/50'
-            }`}
-          >
-            7d
-          </span>
-          <button
-            onClick={() => setViewMode(viewMode === 'week' ? 'today' : 'week')}
-            className={`
-              relative w-9 h-5 rounded-full transition-all duration-200
-              ${viewMode === 'today' 
-                ? 'bg-primary/75'
-                : 'bg-white/[0.08]'
-              }
-            `}
-            aria-label="Toggle view mode"
-          >
-            <span
-              className={`
-                absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm
-                transition-all duration-200 ease-out
-                ${viewMode === 'today' ? 'left-[18px]' : 'left-0.5'}
-              `}
-            />
-          </button>
-          <span 
-            className={`text-[10px] font-medium transition-colors ${
-              viewMode === 'today' ? 'text-foreground' : 'text-muted-foreground/50'
-            }`}
-          >
-            1d
-          </span>
+          {(["today", "week"] as const).map((period) => {
+            const isActive = viewMode === period;
+            return (
+              <button
+                key={period}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setViewMode(period)}
+                className={`min-h-7 min-w-9 rounded-[6px] px-2 text-[9px] font-semibold uppercase tracking-[0.1em] transition-colors ${
+                  isActive
+                    ? "bg-white/[0.09] text-foreground"
+                    : "text-muted-foreground/50 hover:text-foreground/80"
+                }`}
+              >
+                {period === "today" ? "1d" : "7d"}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {!hasAnyValue ? (
-        <div className="h-[130px] flex items-center justify-center">
+        <div className="flex h-[180px] items-center justify-center">
           <p className="text-[11px]" style={{ color: MUTED_TEXT }}>
             No data yet
           </p>
@@ -517,6 +534,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
 }
 
 export function MetricTrendCharts() {
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("sharpness");
   // forwardFill keeps the trend continuous on days the user didn't open the app
   // (the last known snapshot is carried forward until a fresher one exists).
   const { history: weeklyHistory, isLoading: weeklyLoading } = useMetricHistory({ days: 7, forwardFill: true, lookbackDays: 60 });
@@ -659,29 +677,27 @@ export function MetricTrendCharts() {
     return result;
   }, [intradayHistory]);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div 
-            key={i} 
-            className="h-[210px] rounded-xl animate-pulse bg-muted/20"
-          />
-        ))}
-      </div>
-    );
-  }
+  const activeMetric = METRICS.find((metric) => metric.key === selectedMetric) ?? METRICS[0];
 
   return (
     <div className="space-y-3">
-      {METRICS.map((metric) => (
+      <MonitorSegmentedControl
+        ariaLabel="Trend metric"
+        value={selectedMetric}
+        options={METRIC_OPTIONS}
+        onChange={setSelectedMetric}
+        className="[&_button]:px-1 [&_button]:text-[9px] [&_button]:tracking-[0.07em]"
+      />
+
+      {isLoading ? (
+        <div className="h-[284px] animate-pulse rounded-[18px] border border-white/[0.04] bg-muted/15" />
+      ) : (
         <SingleMetricChart
-          key={metric.key}
-          metric={metric}
-          weeklyData={weeklyChartData[metric.key]}
-          intradayData={intradayChartData[metric.key]}
+          metric={activeMetric}
+          weeklyData={weeklyChartData[selectedMetric]}
+          intradayData={intradayChartData[selectedMetric]}
         />
-      ))}
+      )}
     </div>
   );
 }
