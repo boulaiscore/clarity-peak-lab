@@ -267,7 +267,7 @@ export default function NeuroLab() {
             </TabsContent>
 
             {/* Detox Tab */}
-            <TabsContent value="detox" className="mt-0">
+            <TabsContent forceMount value="detox" className="mt-0 data-[state=inactive]:hidden">
               <DetoxChallengeTab />
             </TabsContent>
           </Tabs>
