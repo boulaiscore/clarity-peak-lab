@@ -335,7 +335,7 @@ export function CognitiveAgeTrendChart() {
       {/* Legend */}
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: legendColor }} />
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(0, 0%, 98%)" }} />
           <span className="text-[9px] text-muted-foreground">Cognitive Age</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -391,11 +391,11 @@ export function CognitiveAgeTrendChart() {
                 }}
               />
             </Line>
-            {/* Cognitive Age - solid line with dots */}
+            {/* Cognitive Age - white trend line with colored dots */}
             <Line
               type="linear"
               dataKey="cognitiveAge"
-              stroke={legendColor}
+              stroke="hsl(0, 0%, 98%)"
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -415,10 +415,8 @@ export function CognitiveAgeTrendChart() {
                     }
                   }
                   if (index !== lastValidIndex || value === null || value === undefined || x === undefined || y === undefined) return null;
-                  const realAge = displayData[lastValidIndex]?.realAge ?? 0;
-                  const color = value <= realAge ? COGNITIVE_AGE_GOOD_COLOR : COGNITIVE_AGE_BAD_COLOR;
                   return (
-                    <text x={x + 8} y={y + 3} fill={color} fontSize={10} fontWeight={600}>
+                    <text x={x + 8} y={y + 3} fill="hsl(0, 0%, 98%)" fontSize={10} fontWeight={600}>
                       {value.toFixed(1)}
                     </text>
                   );
