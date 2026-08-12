@@ -26,11 +26,13 @@ import { CalibrationResults } from "@/components/calibration/CalibrationResults"
 
 // Baseline engine
 import {
+  calculateCalibrationOverall,
   computeDemographicBaseline,
   computeEffectiveBaseline,
   mapDrillScoresToCalibration,
   prepareBaselineDbPayload,
   prepareInitialSkillsPayload,
+  rebaseSkillToMeasuredBaseline,
   type CalibrationBaseline,
   type DemographicInput,
 } from "@/lib/baselineEngine";
@@ -119,34 +121,36 @@ export default function QuickBaselineCalibration() {
       
       const baselinePayload = prepareBaselineDbPayload(baselineResult);
       
-      // CRITICAL FIX: Check current skill values first - preserve training progress
-      // Only set skills to baseline if they're currently BELOW the new baseline
+      // Read the previous baseline and current skills so calibration can replace
+      // the neutral prior without discarding genuine movement since that prior.
       const { data: currentMetrics } = await supabase
         .from("user_cognitive_metrics")
-        .select("focus_stability, fast_thinking, reasoning_accuracy, slow_thinking")
+        .select("focus_stability, fast_thinking, reasoning_accuracy, slow_thinking, baseline_eff_focus, baseline_eff_fast_thinking, baseline_eff_reasoning, baseline_eff_slow_thinking")
         .eq("user_id", user.id)
         .maybeSingle();
       
-      // Calculate skill updates - use MAX of current value and new effective baseline
-      // This preserves any training gains the user made while using estimated baseline
       const skillsPayload: Record<string, number> = {};
       
       if (currentMetrics) {
-        skillsPayload.focus_stability = Math.max(
-          currentMetrics.focus_stability ?? 50,
-          effective.AE
+        skillsPayload.focus_stability = rebaseSkillToMeasuredBaseline(
+          currentMetrics.focus_stability,
+          currentMetrics.baseline_eff_focus,
+          effective.AE,
         );
-        skillsPayload.fast_thinking = Math.max(
-          currentMetrics.fast_thinking ?? 50,
-          effective.RA
+        skillsPayload.fast_thinking = rebaseSkillToMeasuredBaseline(
+          currentMetrics.fast_thinking,
+          currentMetrics.baseline_eff_fast_thinking,
+          effective.RA,
         );
-        skillsPayload.reasoning_accuracy = Math.max(
-          currentMetrics.reasoning_accuracy ?? 50,
-          effective.CT
+        skillsPayload.reasoning_accuracy = rebaseSkillToMeasuredBaseline(
+          currentMetrics.reasoning_accuracy,
+          currentMetrics.baseline_eff_reasoning,
+          effective.CT,
         );
-        skillsPayload.slow_thinking = Math.max(
-          currentMetrics.slow_thinking ?? 50,
-          effective.IN
+        skillsPayload.slow_thinking = rebaseSkillToMeasuredBaseline(
+          currentMetrics.slow_thinking,
+          currentMetrics.baseline_eff_slow_thinking,
+          effective.IN,
         );
       } else {
         // No existing metrics, use effective baseline
@@ -157,16 +161,21 @@ export default function QuickBaselineCalibration() {
       }
       
       // Compute derived values
-      const S2_0 = (effective.CT + effective.IN) / 2;
-      const baselinePerformanceAvg = (effective.AE + effective.RA + effective.CT + effective.IN + S2_0) / 5;
+      // Canonical performance score: equal weight for AE, RA, CT and IN.
+      const baselinePerformanceAvg = calculateCalibrationOverall({
+        AE: skillsPayload.focus_stability,
+        RA: skillsPayload.fast_thinking,
+        CT: skillsPayload.reasoning_accuracy,
+        IN: skillsPayload.slow_thinking,
+      });
       const baselineCognitiveAge = user.age || 35;
 
       // Update user_cognitive_metrics with all baseline data
-      const { error: metricsError } = await supabase
+      const { data: savedMetrics, error: metricsError } = await supabase
         .from("user_cognitive_metrics")
         .upsert({
           user_id: user.id,
-          // Current skills = MAX of existing progress and new baseline (preserves training)
+          // Current skills rebased onto the measured baseline.
           ...skillsPayload,
           // All baseline columns
           ...baselinePayload,
@@ -176,17 +185,27 @@ export default function QuickBaselineCalibration() {
           updated_at: new Date().toISOString(),
         }, {
           onConflict: "user_id",
-        });
+        })
+        .select("*")
+        .single();
 
       if (metricsError) throw metricsError;
+
+      // Publish the committed row immediately. Home and Monitor derive every
+      // visible metric from this exact cache key.
+      queryClient.setQueryData(["user-metrics", user.id], savedMetrics);
 
       // CRITICAL: Update AuthContext state to mark onboarding complete
       await updateUser({ onboardingCompleted: true });
 
-      // Invalidate caches
-      await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"] });
-      await queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
+      // Refresh every view derived from the baseline. Inactive queries are
+      // included so returning from Subscription cannot revive the old values.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
+      ]);
 
       toast.success("Calibration complete");
       trackProductEvent("calibration_completed");
@@ -249,22 +268,32 @@ export default function QuickBaselineCalibration() {
                 const skillsPayload = prepareInitialSkillsPayload(effective);
                 
                 // Upsert with demographic-only baseline
-                await supabase
+                const { data: savedMetrics, error: metricsError } = await supabase
                   .from("user_cognitive_metrics")
                   .upsert({
                     user_id: user.id,
                     ...skillsPayload,
                     ...baselinePayload,
                     baseline_cognitive_age: user.age || 35,
+                    cognitive_performance_score: calculateCalibrationOverall(effective),
                     updated_at: new Date().toISOString(),
-                  }, { onConflict: "user_id" });
+                  }, { onConflict: "user_id" })
+                  .select("*")
+                  .single();
+
+                if (metricsError) throw metricsError;
+                queryClient.setQueryData(["user-metrics", user.id], savedMetrics);
                 
                 // Mark onboarding complete
                 await updateUser({ onboardingCompleted: true });
                 
-                // Invalidate caches
-                await queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id] });
-                await queryClient.invalidateQueries({ queryKey: ["user-metrics", user.id] });
+                // Invalidate dependent caches, including currently inactive views.
+                await Promise.all([
+                  queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
+                  queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
+                  queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
+                  queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
+                ]);
                 trackProductEvent("onboarding_completed", {
                   cognitiveRole: user.workType ?? null,
                   primaryBottleneck: user.primaryOutcome ?? null,
@@ -348,30 +377,6 @@ export default function QuickBaselineCalibration() {
         )}
       </AnimatePresence>
 
-      {/* Progress indicator */}
-      {step !== "intro" && step !== "results" && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-          {["AE", "RA", "CT", "IN"].map((s, i) => {
-            const stepOrder = ["AE", "RA", "CT", "IN"];
-            const currentIndex = stepOrder.indexOf(step);
-            const isComplete = i < currentIndex;
-            const isCurrent = s === step;
-            
-            return (
-              <div
-                key={s}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  isComplete 
-                    ? "bg-primary" 
-                    : isCurrent 
-                      ? "bg-primary/50 w-6" 
-                      : "bg-muted-foreground/20"
-                }`}
-              />
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

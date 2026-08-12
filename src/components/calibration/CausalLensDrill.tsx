@@ -131,44 +131,45 @@ export function CausalLensDrill({ onComplete }: CausalLensDrillProps) {
   const currentScenarioData = SCENARIOS[currentScenario];
 
   return (
-    <div className="h-full flex flex-col items-center justify-center px-6 overflow-y-auto py-20">
-      {/* Header */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-2 h-2 rounded-full bg-teal-500" />
-          <span className="text-xs uppercase tracking-widest text-muted-foreground/60">
-            Critical Thinking
-          </span>
-        </div>
-        <h2 className="text-lg font-semibold text-foreground">Causal Lens</h2>
-      </div>
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto flex min-h-full w-full max-w-lg flex-col px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(1.25rem+env(safe-area-inset-top))]">
+        {/* Keep the title in normal flow so it can never cover long prompts. */}
+        <header className="shrink-0 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-teal-500" />
+            <span className="text-xs uppercase tracking-widest text-muted-foreground/60">
+              Critical Thinking
+            </span>
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">Causal Lens</h2>
+        </header>
 
-      {/* Main area */}
-      <div className="relative flex flex-col items-center justify-center w-full max-w-lg">
-        {phase === "ready" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center"
-          >
-            <Brain className="w-16 h-16 text-teal-500/30 mx-auto mb-6" />
-            <p className="text-sm text-muted-foreground mb-2">
-              Evaluate <span className="text-teal-400 font-medium">causal claims</span>
-            </p>
-            <p className="text-xs text-muted-foreground/60 mb-8">
-              3 scenarios • Take your time
-            </p>
-            <button
-              onClick={handleStart}
-              className="px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm"
+        {/* Long questions scroll below the title on compact phone screens. */}
+        <div className={`flex w-full flex-1 flex-col items-center ${phase === "running" ? "pt-6" : "justify-center py-8"}`}>
+          {phase === "ready" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center"
             >
-              Start
-            </button>
-          </motion.div>
-        )}
+              <Brain className="w-16 h-16 text-teal-500/30 mx-auto mb-6" />
+              <p className="text-sm text-muted-foreground mb-2">
+                Evaluate <span className="text-teal-400 font-medium">causal claims</span>
+              </p>
+              <p className="text-xs text-muted-foreground/60 mb-8">
+                3 scenarios • Take your time
+              </p>
+              <button
+                onClick={handleStart}
+                className="px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm"
+              >
+                Start
+              </button>
+            </motion.div>
+          )}
 
-        {phase === "running" && (
-          <AnimatePresence mode="wait">
+          {phase === "running" && (
+            <AnimatePresence mode="wait">
             <motion.div
               key={currentScenario}
               initial={{ opacity: 0, y: 20 }}
@@ -177,6 +178,11 @@ export function CausalLensDrill({ onComplete }: CausalLensDrillProps) {
               transition={{ duration: 0.2 }}
               className="w-full"
             >
+              <div className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-muted-foreground/50">
+                <span>Scenario</span>
+                <span>{currentScenario + 1} / {SCENARIOS.length}</span>
+              </div>
+
               {/* Scenario */}
               <div className="mb-6 p-5 rounded-xl border border-border/30 bg-muted/5">
                 <p className="text-sm text-foreground/90 leading-relaxed">
@@ -245,31 +251,23 @@ export function CausalLensDrill({ onComplete }: CausalLensDrillProps) {
                 <ChevronRight className="w-4 h-4" />
               </button>
             </motion.div>
-          </AnimatePresence>
-        )}
+            </AnimatePresence>
+          )}
 
-        {phase === "complete" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center"
-          >
-            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-              <Brain className="w-6 h-6 text-emerald-500" />
-            </div>
-            <p className="text-sm text-muted-foreground">Complete</p>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Progress */}
-      {phase === "running" && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center">
-          <p className="text-xs text-muted-foreground/50">
-            {currentScenario + 1} / {SCENARIOS.length}
-          </p>
+          {phase === "complete" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                <Brain className="w-6 h-6 text-emerald-500" />
+              </div>
+              <p className="text-sm text-muted-foreground">Complete</p>
+            </motion.div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

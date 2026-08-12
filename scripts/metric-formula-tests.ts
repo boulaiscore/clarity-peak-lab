@@ -23,6 +23,10 @@ import { getStandardMetricStatus } from "../src/lib/metricStatusLabels";
 import { buildDualProcessSeries, resolveHistoricalSystemScores } from "../src/lib/dualProcessHistory";
 import { metricSnapshotNeedsSave } from "../src/lib/metricSnapshotIntegrity";
 import { buildDailyPassiveState, calculateRelativeLoadEstimate } from "../src/lib/dailyPassiveState";
+import {
+  calculateCalibrationOverall,
+  rebaseSkillToMeasuredBaseline,
+} from "../src/lib/baselineEngine";
 
 const closeTo = (actual: number, expected: number, message: string) => {
   assert.ok(Math.abs(actual - expected) < 0.0001, `${message}: expected ${expected}, got ${actual}`);
@@ -30,6 +34,22 @@ const closeTo = (actual: number, expected: number, message: string) => {
 
 const states = { AE: 80, RA: 60, CT: 70, IN: 50 };
 assert.deepEqual(calculateSystemScores(states), { S1: 70, S2: 60 });
+closeTo(calculateCalibrationOverall(states), 65, "Baseline overall counts every canonical skill once");
+closeTo(
+  rebaseSkillToMeasuredBaseline(55, 50, 60),
+  65,
+  "Measured baseline preserves gains accumulated from the neutral prior",
+);
+closeTo(
+  rebaseSkillToMeasuredBaseline(50, 50, 40),
+  40,
+  "Measured baseline can replace a higher neutral estimate",
+);
+closeTo(
+  rebaseSkillToMeasuredBaseline(98, 50, 70),
+  100,
+  "Rebased skills remain within the canonical scale",
+);
 
 closeTo(calculateGameSkillUpdate(50, 100, 50), 56, "Strong drill performance raises the routed skill gradually");
 closeTo(calculateGameSkillUpdate(80, 20, 50), 72.8, "Weak drill performance lowers an elevated skill gradually");

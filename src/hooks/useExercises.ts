@@ -173,7 +173,9 @@ export function useUserMetrics(userId: string | undefined) {
     enabled: !!userId,
     staleTime: 60_000, // 1 minute - prevent refetch on every mount
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    // A baseline or training write can happen while this query is inactive.
+    // Refetch stale data when Home/Monitor mounts again instead of retaining it indefinitely.
+    refetchOnMount: true,
     placeholderData: (prev) => prev ?? undefined, // Keep previous data during refetch
   });
 }
