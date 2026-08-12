@@ -426,36 +426,36 @@ export function DetoxChallengeTab() {
                   onClick={() => setSelectedMode(mode.id)}
                   aria-pressed={isSelected}
                   className={cn(
-                    "group relative min-h-[168px] w-full overflow-hidden rounded-[18px] border bg-[#0b0d10] p-4 text-left transition-all duration-200",
+                    "group relative h-[168px] w-full overflow-hidden rounded-[18px] border bg-[#0b0d10] p-4 text-left transition-all duration-200",
                     isSelected
                       ? "border-white/[0.22] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
                       : "border-white/[0.09] hover:border-white/[0.2]"
                   )}
                 >
-                  <div className="relative flex items-start justify-between">
-                    <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-white/60">
-                      {mode.id === "detox" ? "Detox" : "Walk"}
-                    </span>
-                    <ModeIcon className="h-3.5 w-3.5 text-white/55" strokeWidth={1.4} />
-                  </div>
+                  <div className="relative flex h-full flex-col">
+                    <div className="flex h-4 shrink-0 items-start justify-between">
+                      <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-white/60">
+                        {mode.id === "detox" ? "Detox" : "Walk"}
+                      </span>
+                      <ModeIcon className="h-3.5 w-3.5 shrink-0 text-white/55" strokeWidth={1.4} />
+                    </div>
 
-                  <div className="relative mt-1 flex h-[68px] items-center justify-center">
-                    <RecoveryModeVisual mode={mode.id} />
-                  </div>
+                    <div className="flex min-h-0 flex-1 items-center justify-center">
+                      <RecoveryModeVisual mode={mode.id} />
+                    </div>
 
-                  <div className="relative border-t border-white/[0.055] pt-3">
-                    <div className="flex items-end justify-between gap-2">
-                      <div>
-                        <h4 className="text-[13px] font-semibold tracking-tight text-white">
-                          {mode.displayLabel}
-                        </h4>
-                        <p className="mt-0.5 text-[9px] text-white/50">
+                    <div className="h-[52px] shrink-0 border-t border-white/[0.055] pt-2.5">
+                      <h4 className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-white">
+                        {mode.displayLabel}
+                      </h4>
+                      <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
+                        <p className="min-w-0 truncate whitespace-nowrap text-[9px] leading-none text-white/50">
                           {mode.id === "detox" ? "No digital input" : "Light movement · no media"}
                         </p>
+                        <span className="shrink-0 text-[10px] font-semibold leading-none tabular-nums text-white/75">
+                          +{projectedRecovery} <span className="text-[8px] tracking-[0.1em] text-white/35">REC</span>
+                        </span>
                       </div>
-                      <span className="text-[11px] font-semibold tabular-nums text-white/75">
-                        +{projectedRecovery} <span className="text-[8px] tracking-[0.1em] text-white/35">REC</span>
-                      </span>
                     </div>
                   </div>
                 </button>
