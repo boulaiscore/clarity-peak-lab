@@ -154,25 +154,6 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           />
         </div>
 
-        <div className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center" aria-hidden="true">
-          <motion.div
-            className="h-[192px] w-[222px] rounded-[47%] border"
-            animate={reduceMotion ? undefined : {
-              opacity: [0.16, 0.68, 0.16],
-              scale: [0.92, 1.07, 0.92],
-            }}
-            transition={reduceMotion ? undefined : {
-              duration: pulseDuration,
-              ease: "easeInOut",
-              repeat: Infinity,
-            }}
-            style={{
-              borderColor: palette.soft,
-              boxShadow: `0 0 34px ${palette.soft}`,
-            }}
-          />
-        </div>
-
         <motion.svg
           viewBox="0 0 280 224"
           className="relative z-[1] h-full w-full"
