@@ -276,16 +276,16 @@ export function WeeklyGoalCard({
       case "building":
         return {
           trackBg: "bg-slate-600/40",
-          optimalZoneBg: "bg-emerald-500/40",
-          optimalZoneBorder: "border-emerald-400/60",
+          optimalZoneBg: "bg-white/[0.09]",
+          optimalZoneBorder: "border-white/[0.2]",
           markerBg: "bg-white",
           markerBorder: "border-white/50"
         };
       case "within":
         return {
           trackBg: "bg-slate-600/40",
-          optimalZoneBg: "bg-emerald-500/50",
-          optimalZoneBorder: "border-emerald-400/70",
+          optimalZoneBg: "bg-white/[0.09]",
+          optimalZoneBorder: "border-white/[0.2]",
           markerBg: "bg-emerald-400",
           markerBorder: "border-emerald-300/80"
         };
@@ -393,8 +393,7 @@ export function WeeklyGoalCard({
                           fill="none"
                           strokeWidth="7"
                           strokeLinecap="round"
-                          stroke="#4ade80"
-                          opacity={0.42}
+                          stroke="rgba(255,255,255,0.3)"
                         />
                       );
                     })()}
