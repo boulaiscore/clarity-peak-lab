@@ -111,6 +111,16 @@ type WearableSnapshot = {
   activity_score?: number | null;
 };
 
+export type StoredDailyOutlook = {
+  headline: string;
+  summary: string;
+  confidence: number;
+  copy_source: string;
+  model_version: string | null;
+  outlook_date: string;
+  primary_action: unknown;
+};
+
 export type ReportMetricSnapshot = {
   snapshot_date: string;
   sharpness: number | null;
@@ -178,11 +188,20 @@ export function useReportData(userId: string) {
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [wearable, setWearable] = useState<WearableSnapshot | null>(null);
+  const [latestOutlook, setLatestOutlook] = useState<StoredDailyOutlook | null>(null);
   const [metricSnapshots, setMetricSnapshots] = useState<ReportMetricSnapshot[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!userId) {
+      setLoading(false);
+      setError(null);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     async function run() {
       setLoading(true);
@@ -192,7 +211,7 @@ export function useReportData(userId: string) {
         const snapshotStartDate = subDays(new Date(), 90).toISOString().slice(0, 10);
 
         // v2.0: Fetch from game_sessions instead of neuro_gym_sessions
-        const [mRes, pRes, sRes, bRes, wRes, dRes] = await Promise.all([
+        const [mRes, pRes, sRes, bRes, wRes, dRes, oRes] = await Promise.all([
           supabase.from("user_cognitive_metrics").select("*").eq("user_id", userId).maybeSingle(),
           supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
           supabase
@@ -215,6 +234,13 @@ export function useReportData(userId: string) {
             .eq("user_id", userId)
             .gte("snapshot_date", snapshotStartDate)
             .order("snapshot_date", { ascending: true }),
+          supabase
+            .from("daily_outlooks")
+            .select("headline, summary, confidence, copy_source, model_version, outlook_date, primary_action")
+            .eq("user_id", userId)
+            .order("outlook_date", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
         ]);
 
         if (mRes.error) throw mRes.error;
@@ -231,6 +257,7 @@ export function useReportData(userId: string) {
           setBadges(bRes.data ?? []);
           setWearable(wRes.data ?? null);
           setMetricSnapshots(dRes.data ?? []);
+          setLatestOutlook((oRes.data as StoredDailyOutlook | null) ?? null);
         }
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Unknown error";
@@ -352,5 +379,16 @@ export function useReportData(userId: string) {
     }
   }, [aggregates, metrics]);
 
-  return { loading, error, metrics, profile, sessions, badges, wearable, aggregates, metricSnapshots };
+  return {
+    loading,
+    error,
+    metrics,
+    profile,
+    sessions,
+    badges,
+    wearable,
+    latestOutlook,
+    aggregates,
+    metricSnapshots,
+  };
 }

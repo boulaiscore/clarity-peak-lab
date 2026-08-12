@@ -34,6 +34,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { LAB_MODE_CARD_AMBIENCE_CLASS, LAB_MODE_CARD_CLASS } from "@/components/lab/labModeCardStyles";
 
 // Recovery impact based on the same gain formula used by Recovery v2:
@@ -106,6 +113,7 @@ export function DetoxChallengeTab() {
   const [selectedAppsToBlock, setSelectedAppsToBlock] = useState<string[]>([]);
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [selectedMode, setSelectedMode] = useState<RecoveryMode>("detox");
+  const [recoverySetupOpen, setRecoverySetupOpen] = useState(false);
   const [displaySeconds, setDisplaySeconds] = useState(0);
   const [justCompleted, setJustCompleted] = useState(false);
   const [lastSessionSeconds, setLastSessionSeconds] = useState(0);
@@ -200,12 +208,14 @@ export function DetoxChallengeTab() {
   const handleStart = async () => {
     // Check if it's night time (11 PM - 7 AM)
     if (isNightTime()) {
+      setRecoverySetupOpen(false);
       setShowNightTimeDialog(true);
       return;
     }
     
     // Check if detox target is already reached
     if (detoxComplete) {
+      setRecoverySetupOpen(false);
       setShowTargetExceededDialog(true);
       return;
     }
@@ -215,6 +225,7 @@ export function DetoxChallengeTab() {
 
   const proceedWithStart = () => {
     setShowTargetExceededDialog(false);
+    setRecoverySetupOpen(false);
     // Navigate to full-screen detox session page with mode
     navigate("/detox-session", { 
       state: { 
@@ -387,15 +398,17 @@ export function DetoxChallengeTab() {
           {/* Recovery modes use the same card system as Quality Time. */}
           <div className="grid grid-cols-2 gap-3">
             {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
-              const isSelected = selectedMode === mode.id;
               const projectedRecovery = getRecoveryImpact(selectedDuration, mode.id);
               const ModeIcon = mode.id === "detox" ? Leaf : Footprints;
               
               return (
                 <button
                   key={mode.id}
-                  onClick={() => setSelectedMode(mode.id)}
-                  aria-pressed={isSelected}
+                  onClick={() => {
+                    setSelectedMode(mode.id);
+                    setRecoverySetupOpen(true);
+                  }}
+                  aria-haspopup="dialog"
                   className={LAB_MODE_CARD_CLASS}
                 >
                   <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
@@ -430,58 +443,89 @@ export function DetoxChallengeTab() {
             })}
           </div>
 
-          {/* Session Duration - Compact */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Duration</span>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {DETOX_SLOT_OPTIONS.map((slot) => {
-                const isSelected = selectedDuration === slot.value;
-                return (
-                  <button
-                    key={slot.value}
-                    onClick={() => setSelectedDuration(slot.value)}
-                    className={cn(
-                      "py-2 rounded-lg text-sm font-medium transition-all",
-                      isSelected
-                        ? "bg-foreground/10 text-foreground border border-foreground/20"
-                        : "border border-transparent bg-card/40 text-muted-foreground hover:border-border/40 hover:bg-card/60"
+          <Dialog open={recoverySetupOpen} onOpenChange={setRecoverySetupOpen}>
+            <DialogContent className="w-[calc(100%_-_24px)] max-w-sm gap-0 overflow-hidden rounded-[24px] border-white/[0.08] bg-[#0b0d10] p-0 text-foreground shadow-[0_30px_100px_rgba(0,0,0,0.72)]">
+              <DialogHeader className="border-b border-white/[0.06] px-5 pb-4 pt-5 pr-12 text-left">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.035]">
+                    {selectedMode === "detox" ? (
+                      <Leaf className="h-[18px] w-[18px] text-white/70" strokeWidth={1.35} />
+                    ) : (
+                      <Footprints className="h-[18px] w-[18px] text-white/70" strokeWidth={1.35} />
                     )}
-                  >
-                    {slot.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                      {RECOVERY_MODES[selectedMode].code} · Recover
+                    </span>
+                    <DialogTitle className="mt-1 text-[18px] font-semibold tracking-tight">
+                      {RECOVERY_MODES[selectedMode].displayLabel}
+                    </DialogTitle>
+                  </div>
+                </div>
+                <DialogDescription className="text-[12px] leading-5 text-white/48">
+                  {RECOVERY_MODES[selectedMode].description}
+                  {selectedMode === "walk" ? " No podcasts, calls or scrolling." : ""}
+                </DialogDescription>
+              </DialogHeader>
 
-          {/* CTA - Premium Style - Moved right after duration */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-center space-y-3"
-          >
-            <p className="text-xs text-muted-foreground">
-              {selectedMode === "detox" 
-                ? "Best before high-focus or deep reasoning sessions."
-                : "Best when recovery is low but movement feels manageable."
-              }
-            </p>
-            <button 
-              onClick={handleStart}
-              className="group w-full min-h-[52px] rounded-xl bg-card/40 border border-border/50 text-foreground text-[13px] font-medium tracking-[0.08em] uppercase flex items-center justify-center gap-2.5 transition-all duration-300 hover:bg-card/70 hover:border-border active:scale-[0.99] backdrop-blur-sm"
-            >
-              <Play className="w-3 h-3 fill-current opacity-60 group-hover:opacity-100 transition-opacity" />
-              <span>Start {selectedMode === "detox" ? "Detox" : "Walk"}</span>
-              <span className="text-muted-foreground/70 font-normal normal-case tracking-normal">· {selectedDuration} min</span>
-            </button>
-          </motion.div>
+              <div className="space-y-5 px-5 py-5">
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-white/40" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                      Duration
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DETOX_SLOT_OPTIONS.map((slot) => {
+                      const isSelected = selectedDuration === slot.value;
+                      return (
+                        <button
+                          key={slot.value}
+                          type="button"
+                          onClick={() => setSelectedDuration(slot.value)}
+                          aria-pressed={isSelected}
+                          className={cn(
+                            "h-10 rounded-xl border text-[12px] font-medium tabular-nums transition-colors",
+                            isSelected
+                              ? "border-white/30 bg-white text-black"
+                              : "border-white/[0.08] bg-white/[0.035] text-white/55 hover:border-white/15 hover:text-white/80",
+                          )}
+                        >
+                          {slot.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-          {/* Impact on Your System Block */}
-          <ImpactBlock mode={selectedMode} duration={selectedDuration} />
+                <div className="flex items-center justify-between border-y border-white/[0.06] py-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-white/35">Estimated impact</p>
+                    <p className="mt-1 text-[12px] text-white/55">
+                      {RECOVERY_MODES[selectedMode].impact}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl font-semibold tabular-nums text-white">
+                      +{getRecoveryImpact(selectedDuration, selectedMode)}
+                    </span>
+                    <span className="ml-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/35">REC</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleStart}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white text-[12px] font-semibold uppercase tracking-[0.12em] text-black transition-colors hover:bg-white/90 active:scale-[0.99]"
+                >
+                  <Play className="h-3.5 w-3.5 fill-current" />
+                  Start · {selectedDuration} min
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
 
           {/* Reminder Info - Subtle footer */}
@@ -538,29 +582,6 @@ export function DetoxChallengeTab() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-}
-
-// Impact Block Component - Subtle Blue Style
-function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: number }) {
-  const recoveryImpact = getRecoveryImpact(duration, mode);
-  
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.25 }}
-      className="flex items-center justify-between rounded-2xl border border-border/40 bg-card/40 px-4 py-3"
-    >
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-muted-foreground">Recovery</span>
-        <span className="text-sm font-bold text-foreground/90">+{recoveryImpact}%</span>
-      </div>
-      <div className="flex items-center gap-4">
-        <span className="text-[10px] text-muted-foreground/70">Sharpness ↑</span>
-        <span className="text-[10px] text-muted-foreground/70">Readiness ↑</span>
-      </div>
-    </motion.div>
   );
 }
 

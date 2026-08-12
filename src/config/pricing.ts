@@ -19,6 +19,7 @@ export type FeatureName =
   | "advancedPatternDetection"
   | "protocolBuilder"
   | "roleTracks"
+  | "performanceReport"
   | "formattedReportExport"
   | "earlyAccess"
   | "foundingBadge"
@@ -74,6 +75,7 @@ const allFeatures = (overrides: Partial<Record<FeatureName, boolean>> = {}): Rec
   advancedPatternDetection: false,
   protocolBuilder: false,
   roleTracks: false,
+  performanceReport: false,
   formattedReportExport: false,
   earlyAccess: false,
   foundingBadge: false,
@@ -96,6 +98,7 @@ const proFeatures = {
   advancedPatternDetection: true,
   protocolBuilder: true,
   roleTracks: true,
+  performanceReport: true,
   formattedReportExport: true,
   earlyAccess: true,
 };
@@ -301,7 +304,8 @@ export const FEATURE_LABELS: Record<FeatureName, string> = {
   advancedPatternDetection: "Bottleneck and pattern detection",
   protocolBuilder: "Pre-performance protocol builder",
   roleTracks: "Professional tracks",
-  formattedReportExport: "Formatted weekly reports",
+  performanceReport: "Personal performance report",
+  formattedReportExport: "Exportable performance report",
   earlyAccess: "Early access",
   foundingBadge: "Founding Member badge",
   teamDashboard: "Team dashboard",
@@ -319,6 +323,7 @@ export const COMPARISON_FEATURES: FeatureName[] = [
   "basicAnalytics",
   "advancedAnalytics",
   "adaptiveCoachInsights",
+  "performanceReport",
   "formattedReportExport",
   "earlyAccess",
 ];

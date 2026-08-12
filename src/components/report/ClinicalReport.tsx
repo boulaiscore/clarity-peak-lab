@@ -5,6 +5,8 @@ import { Brain } from "lucide-react";
 import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 import { calculateSharpness } from "@/lib/cognitiveEngine";
 import { calculateCognitiveAgeFromPerformance } from "@/lib/cognitiveAge";
+import type { PassiveSignalSource, SignalCoverageLevel } from "@/lib/dailyPassiveState";
+import type { StoredDailyOutlook } from "@/hooks/useReportData";
 
 type Area = "focus" | "reasoning" | "creativity";
 type ConfidenceLevel = "Low" | "Developing" | "Moderate" | "High";
@@ -91,6 +93,22 @@ interface ClinicalReportProps {
     CT: number;
     IN: number;
   };
+  signalContext?: {
+    coverage: number;
+    level: SignalCoverageLevel;
+    updatedAt: string | null;
+    sources: PassiveSignalSource[];
+    hasWearableData: boolean;
+  };
+  wearable?: {
+    created_at: string;
+    hrv_ms?: number | null;
+    sleep_efficiency?: number | null;
+    sleep_duration_min?: number | null;
+    resting_hr?: number | null;
+    activity_score?: number | null;
+  } | null;
+  latestOutlook?: StoredDailyOutlook | null;
   canonicalCognitiveAge?: number | null;
   cognitiveAgeCalibrating?: boolean;
   metricSnapshots?: ReportMetricSnapshot[];
@@ -161,16 +179,6 @@ function formatEducation(level: string | null | undefined, discipline: string | 
   const formattedLevel = levelMap[level || ""] || level || "Not specified";
   const formattedDiscipline = disciplineMap[discipline || ""] || discipline;
   return formattedDiscipline ? `${formattedLevel}, ${formattedDiscipline}` : formattedLevel;
-}
-
-function formatGameType(gameType: string): string {
-  const map: Record<string, string> = {
-    "S1-AE": "Attention efficiency",
-    "S1-RA": "Rapid association",
-    "S2-CT": "Critical reasoning",
-    "S2-IN": "Insight formation",
-  };
-  return map[gameType] || gameType.replace(/[-_]/g, " ");
 }
 
 function getDataConfidence(snapshotCount: number, sessionsLast7d: number, totalSessions: number): {
@@ -563,6 +571,9 @@ export function ClinicalReport({
   isPreview = false,
   liveSci,
   liveDaily,
+  signalContext,
+  wearable,
+  latestOutlook,
   canonicalCognitiveAge,
   cognitiveAgeCalibrating,
   metricSnapshots = [],
@@ -574,16 +585,12 @@ export function ClinicalReport({
   const RA = liveDaily?.RA ?? metrics.fast_thinking ?? 50;
   const CT = liveDaily?.CT ?? metrics.reasoning_accuracy ?? 50;
   const IN = liveDaily?.IN ?? metrics.slow_thinking ?? 50;
-  const creativity = metrics.creativity ?? avg([AE, RA, CT, IN]);
   const s1Score = round((AE + RA) / 2);
   const s2Score = round((CT + IN) / 2);
   const corePerformance = round(avg([AE, RA, CT, IN]), 1);
   const readiness = round(liveDaily?.readiness ?? metrics.cognitive_readiness_score ?? corePerformance);
   const totalSessions = metrics.total_sessions ?? 0;
   const sessionsLast7d = aggregates.sessionsLast7d ?? 0;
-  const accuracy = round(aggregates.accuracyRatePct ?? 0, 1);
-  const xp = metrics.experience_points ?? 0;
-  const level = metrics.cognitive_level ?? 1;
 
   const sciComponents = {
     cognitive: liveSci?.cognitivePerformance.score ?? round(corePerformance),
@@ -774,6 +781,16 @@ export function ClinicalReport({
   const maxTrainingSessions = Math.max(...trainingDistribution.map((item) => item.value), 1);
   const recommendedSessionLength = profile.session_duration || aggregates.preferredDuration || "10-15 minutes";
   const trainingDays = history.filter((snapshot) => snapshot.did_training).length;
+  const signalCoveragePct = round(clamp((signalContext?.coverage ?? 0) * 100));
+  const observedSignals = signalContext?.sources.filter((source) => source.status !== "off") ?? [];
+  const signalSummary = observedSignals.length
+    ? observedSignals.map((source) => source.label).join(", ")
+    : "No passive source is contributing yet";
+  const storedAction = latestOutlook?.primary_action && typeof latestOutlook.primary_action === "object"
+    ? latestOutlook.primary_action as { label?: unknown; metricLabel?: unknown }
+    : null;
+  const storedActionLabel = typeof storedAction?.label === "string" ? storedAction.label : null;
+  const storedActionMetric = typeof storedAction?.metricLabel === "string" ? storedAction.metricLabel : null;
 
   const operatingMode = currentReadiness >= 70 && currentSharpness >= 70 && currentRQ >= 60
     ? "Green zone: suitable for interviews, exams, strategic work, and complex output."
@@ -785,19 +802,31 @@ export function ClinicalReport({
 
   const protocolCards = [
     {
-      title: "For case interviews / exams",
-      value: currentRQ >= 60 ? "Push structured reasoning" : "Rebuild reasoning quality",
-      body: "Use timed cases, assumption logs, and post-answer error reviews. Do not train only speed.",
+      title: "Today's work",
+      value: storedActionLabel
+        ? `${storedActionLabel}${storedActionMetric ? ` · ${storedActionMetric}` : ""}`
+        : currentReadiness >= 70
+          ? "Use the strongest window"
+          : currentRecovery < 50
+            ? "Protect capacity"
+            : "Work at normal load",
+      body: latestOutlook?.summary ?? (currentReadiness >= 70
+        ? "Place the most demanding decision, analysis, or creation task in the next low-interruption window."
+        : currentRecovery < 50
+          ? "Prefer reversible decisions and lighter execution until recovery improves."
+          : "Use a normal work block and take a deliberate break before cognitive quality begins to drift."),
     },
     {
-      title: "For professional output",
-      value: currentSharpness >= 70 ? "Use peak blocks" : "Use lower-friction tasks",
-      body: "Schedule strategy, writing, coding, or analysis when sharpness and readiness are both green.",
+      title: "Lab response",
+      value: `Target ${weakest.key}`,
+      body: `${weakest.name} is the clearest trainable constraint. Use one ${recommendedSessionLength} session, then let later performance confirm whether it helped.`,
     },
     {
-      title: "For cognitive longevity",
+      title: "Recovery",
       value: currentRecovery >= 60 ? "Maintain dose" : "Prioritize recovery",
-      body: "Recovery is the multiplier: without it, training volume converts poorly into performance.",
+      body: currentRecovery >= 60
+        ? "Current reserve supports the plan. Avoid adding recovery work that is not justified by the signal."
+        : "Protect sleep opportunity and reduce avoidable attention load before adding more cognitive training.",
     },
   ];
   const ledgerRows = metricTrends.map((metric) => ({
@@ -842,18 +871,18 @@ export function ClinicalReport({
             <Brain size={24} />
             <div>
               <strong>LOOMA</strong>
-              <span>Cognitive Performance Record</span>
+            <span>Personal Performance Report</span>
             </div>
           </div>
           <div className="clinical-document-class">
             <span>Confidential</span>
-            <strong>Performance assessment</strong>
+            <strong>Elite longitudinal report</strong>
           </div>
         </div>
 
         <div className="clinical-record-title">
-          <span className="clinical-kicker">Longitudinal cognitive performance record</span>
-          <h1>Thinking Structure & Progress Report</h1>
+          <span className="clinical-kicker">Daily state · context · adaptation</span>
+          <h1>Cognitive Performance Report</h1>
           <p>{recordVerdict}</p>
         </div>
 
@@ -876,7 +905,7 @@ export function ClinicalReport({
           </div>
           <div>
             <span>Evidence base</span>
-            <strong>{trainingDays} active days / {history.length} snapshots</strong>
+            <strong>{history.length} daily snapshots · {signalCoveragePct}% context coverage</strong>
           </div>
           <div>
             <span>Report ID</span>
@@ -889,8 +918,8 @@ export function ClinicalReport({
             <span>Operating verdict</span>
             <strong>{operatingMode}</strong>
             <p>
-              The report reads cognitive performance as a system: state access, recovery buffer,
-              reasoning structure, and S1/S2 balance. Scores are useful only when interpreted as a trajectory.
+              The report reads cognitive performance as a changing system: current capacity, recovery,
+              passive context, reasoning structure, S1/S2 balance and response to training.
             </p>
           </div>
           <div className="clinical-index-strip">
@@ -920,9 +949,9 @@ export function ClinicalReport({
         <MetricLedger rows={ledgerRows} />
 
         <div className="clinical-record-note">
-          <strong>Purpose:</strong> help students, young professionals, and high-demand operators understand
-          how their thinking is structured, whether they are advancing, and when they should push or recover.
-          This is a performance record, not a medical diagnosis.
+          <strong>Purpose:</strong> turn LOOMA's daily metrics, connected Health context and observed behavior
+          into one personal operating record. It tracks change against the user's own baseline; it is not an
+          intelligence score, medical diagnosis or neuropsychological evaluation.
         </div>
         <PageFooter reportId={reportId} page={1} />
       </section>
@@ -931,8 +960,8 @@ export function ClinicalReport({
         <header className="clinical-page-header">
           <span>01</span>
           <div>
-            <h2>Longitudinal State</h2>
-            <p>How the core app metrics behaved over the reporting window.</p>
+            <h2>Daily State & Direction</h2>
+            <p>The same canonical metrics shown in Home and Monitor, viewed over time.</p>
           </div>
         </header>
 
@@ -969,12 +998,15 @@ export function ClinicalReport({
             </p>
           </div>
           <div className="clinical-panel">
-            <h3>Data confidence</h3>
+            <h3>Signal coverage</h3>
             <div className="clinical-confidence-ring">
-              <span>{dataConfidence.score}%</span>
-              <ScoreBar value={dataConfidence.score} />
+              <span>{signalCoveragePct}%</span>
+              <ScoreBar value={signalCoveragePct} />
             </div>
-            <p>{dataConfidence.description}</p>
+            <p>
+              {signalContext?.level ?? "Basic"} coverage from {signalSummary}. Missing sources stay neutral;
+              they reduce precision and never count as poor performance.
+            </p>
           </div>
         </div>
         <PageFooter reportId={reportId} page={2} />
@@ -1081,16 +1113,16 @@ export function ClinicalReport({
         <header className="clinical-page-header">
           <span>03</span>
           <div>
-            <h2>Evidence Profile</h2>
-            <p>What the app has actually measured: domains, sessions, and behavior.</p>
+            <h2>Evidence & Context</h2>
+            <p>What LOOMA observed directly, what it estimated, and which sources shaped the state.</p>
           </div>
         </header>
 
         <div className="clinical-metric-row">
           <MetricTile label="SCI" value={sci} sublabel="Personal-state index" tone="accent" />
           <MetricTile label="Recovery" value={currentRecovery} sublabel={`Trend ${formatDelta(metricTrends[2].stats.delta)}`} tone={currentRecovery >= 55 ? "success" : "warning"} />
-          <MetricTile label="Training" value={sessionsLast7d} sublabel="Sessions last 7d" />
-          <MetricTile label="Level" value={`L${level}`} sublabel={`${xp.toLocaleString()} XP`} />
+          <MetricTile label="Training" value={sessionsLast7d} sublabel={`${trainingDays} active days`} />
+          <MetricTile label="Coverage" value={`${signalCoveragePct}%`} sublabel={signalContext?.level ?? "Basic"} />
         </div>
 
         <div className="clinical-domain-table clinical-domain-table-compact">
@@ -1137,18 +1169,25 @@ export function ClinicalReport({
             </div>
           </div>
           <div className="clinical-panel">
-            <h3>Repeated drills</h3>
-            {aggregates.mostUsedExercises.length > 0 ? (
+            <h3>Health & passive context</h3>
+            {observedSignals.length > 0 ? (
               <ol className="clinical-ranked-list">
-                {aggregates.mostUsedExercises.slice(0, 4).map((exercise) => (
-                  <li key={exercise.exerciseId}>
-                    <span>{formatGameType(exercise.exerciseId)}</span>
-                    <strong>{exercise.count}x</strong>
+                {observedSignals.slice(0, 4).map((source) => (
+                  <li key={source.id}>
+                    <span>{source.label}</span>
+                    <strong>{source.status}</strong>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p>No repeated drill pattern is available yet.</p>
+              <p>Connect Health or a wearable to increase the precision of Recovery and Readiness.</p>
+            )}
+            {wearable && (
+              <p style={{ marginTop: "3mm" }}>
+                Latest wearable snapshot: {wearable.sleep_duration_min ? `${round(wearable.sleep_duration_min / 60, 1)}h sleep` : "sleep unavailable"}
+                {wearable.hrv_ms ? ` · HRV ${round(wearable.hrv_ms)} ms` : ""}
+                {wearable.resting_hr ? ` · RHR ${round(wearable.resting_hr)} bpm` : ""}.
+              </p>
             )}
           </div>
         </div>
@@ -1159,17 +1198,20 @@ export function ClinicalReport({
         <header className="clinical-page-header">
           <span>04</span>
           <div>
-            <h2>Performance Protocol</h2>
-            <p>What to do next if the goal is sharper professional thinking.</p>
+            <h2>Coach Outlook</h2>
+            <p>An explainable next step grounded in today's state and the personal trajectory.</p>
           </div>
         </header>
 
         <div className="clinical-panel clinical-prognosis">
-          <h3>Operating prescription</h3>
+          <h3>Today's operating read</h3>
           <p>
-            Primary lever: <strong>{weakest.name}</strong>. Preserve: <strong>{strongest.name}</strong>.
-            {" "}Recommended dose: <strong>5 sessions/week</strong> at <strong>{recommendedSessionLength}</strong>,
-            with recovery protected before high-stakes work. Mean accuracy is <strong>{accuracy}%</strong>.
+            {latestOutlook?.headline
+              ? <><strong>{latestOutlook.headline}</strong>{" "}</>
+              : <>{operatingMode}{" "}</>}
+            Primary trainable lever: <strong>{weakest.name}</strong>. Preserve:
+            {" "}<strong>{strongest.name}</strong>. This guidance should change only when the underlying metrics,
+            connected context or the user's own response pattern changes.
           </p>
         </div>
 
@@ -1188,16 +1230,17 @@ export function ClinicalReport({
           <div className="clinical-panel">
             <h3>Method notes</h3>
             <p>
-              Trends use daily snapshots from the app: sharpness, readiness, recovery, reasoning quality,
-              and S1/S2 component scores. Coherence is derived from reasoning quality plus S1/S2 balance
-              when no direct coherence metric is present.
+              Trends use the same daily snapshots and canonical formulas as Home and Monitor. Health,
+              wearable, attention and schedule signals influence estimates only in proportion to measured
+              confidence and coverage. Missing data stays neutral.
             </p>
           </div>
           <div className="clinical-panel">
             <h3>Limits</h3>
             <p>
               This is a performance report, not a medical diagnosis or neuropsychological evaluation.
-              Use it like a cognitive WHOOP/Oura: to time effort, improve training, and monitor adaptation.
+              The Coach summarizes associations in the user's own data. It does not claim causality,
+              diagnose a condition or replace professional medical advice.
             </p>
           </div>
         </div>
@@ -1207,12 +1250,12 @@ export function ClinicalReport({
             <Brain size={18} />
             <div>
               <strong>LOOMA</strong>
-              <span>Cognitive performance intelligence</span>
+              <span>Adaptive cognitive performance</span>
             </div>
           </div>
           <p>
-            Built for people whose work depends on clear thinking: students preparing for selective paths,
-            young professionals entering competitive roles, and operators who need sustained cognitive output.
+            State from Home. Direction from Monitor. Targeted response from Lab. Connected Health and behavior
+            make the estimate more personal as evidence accumulates.
           </p>
           <dl className="clinical-compact-list">
             <div><dt>Generated</dt><dd>{generatedAt.toISOString()}</dd></div>

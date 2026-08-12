@@ -23,6 +23,7 @@ import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
+import { useSubscription } from "@/hooks/useSubscription";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -55,6 +56,7 @@ export default function NeuroLab() {
     isAreaLocked,
     canStartSession
   } = usePremiumGating();
+  const { isElite } = useSubscription();
   const {
     isCalibrated,
     isLoading: baselineLoading
@@ -211,7 +213,7 @@ export default function NeuroLab() {
                 </div>
               </div>
               <button onClick={() => navigate("/app/report")} className="text-[10px] font-medium text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1">
-                View Report
+                {isElite ? "View Report" : "Elite Report"}
                 <ChevronRight className="w-3 h-3" />
               </button>
             </div>

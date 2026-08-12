@@ -20,6 +20,7 @@ export type PaywallAction =
   | "premium_protocol"
   | "advanced_analytics"
   | "adaptive_coach"
+  | "performance_report"
   | "weekly_review"
   | "three_day_streak"
   | "pro_module";
@@ -94,6 +95,9 @@ export const canUseAdaptiveCoachInsights = (subject: EntitlementSubject): boolea
 export const canExportReports = (subject: EntitlementSubject): boolean =>
   hasFeature(subject, "formattedReportExport");
 
+export const canViewPerformanceReport = (subject: EntitlementSubject): boolean =>
+  hasFeature(subject, "performanceReport");
+
 export const canCreateCustomProtocol = (subject: EntitlementSubject): boolean =>
   hasFeature(subject, "protocolBuilder");
 
@@ -111,7 +115,12 @@ export function shouldShowPaywall(subject: EntitlementSubject, attemptedAction: 
   if (attemptedAction === "onboarding_completed" || attemptedAction === "first_protocol_completed") {
     return planId === "free";
   }
-  if (attemptedAction === "pro_module" || attemptedAction === "adaptive_coach" || attemptedAction === "advanced_analytics") {
+  if (
+    attemptedAction === "pro_module" ||
+    attemptedAction === "adaptive_coach" ||
+    attemptedAction === "advanced_analytics" ||
+    attemptedAction === "performance_report"
+  ) {
     return true;
   }
   return planId === "free";

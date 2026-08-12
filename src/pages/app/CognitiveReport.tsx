@@ -1,62 +1,67 @@
-// src/pages/app/CognitiveReport.tsx
-import React, { useMemo, useRef, useState, useEffect } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Play, Download, Lock, FileText, Check, Package, Eye, ZoomIn, ZoomOut, FolderOpen, ChevronDown, ChevronUp } from "lucide-react";
-import { useReportData } from "@/hooks/useReportData";
-import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
-import { useTodayMetrics } from "@/hooks/useTodayMetrics";
-import { useReasoningQuality } from "@/hooks/useReasoningQuality";
-import { useCognitiveAge } from "@/hooks/useCognitiveAge";
-import { useReportAccess } from "@/hooks/useReportAccess";
-import { useReportHistory } from "@/hooks/useReportHistory";
-import { useUserMetrics } from "@/hooks/useExercises"; // v3.3: Use same source as Dashboard
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { getStripeRedirectUrls, isNative } from "@/lib/platformUtils";
-import { Browser } from "@capacitor/browser";
-import { useReactToPrint } from "react-to-print";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
-import { ReportPreviewReal } from "@/components/report/ReportPreviewReal";
-import { Progress } from "@/components/ui/progress";
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  FolderOpen,
+  Lock,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import { toast } from "sonner";
+
+import { ClinicalReport } from "@/components/report/ClinicalReport";
 import { ReportHistoryList } from "@/components/report/ReportHistoryList";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useTestMode } from "@/hooks/useTestMode";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCognitiveAge } from "@/hooks/useCognitiveAge";
+import { useCognitiveNetworkScore } from "@/hooks/useCognitiveNetworkScore";
+import { useUserMetrics } from "@/hooks/useExercises";
+import { useReasoningQuality } from "@/hooks/useReasoningQuality";
+import { useReportAccess } from "@/hooks/useReportAccess";
+import { useReportData } from "@/hooks/useReportData";
+import { useReportHistory } from "@/hooks/useReportHistory";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 
 import "@/styles/clinical-report.css";
 
-import { ClinicalReport } from "@/components/report/ClinicalReport";
-
-
-const CREDIT_PACKAGES = [
-  { id: 'single', credits: 1, price: '€4.99', pricePerReport: '€4.99', popular: false },
-  { id: 'pack5', credits: 5, price: '€19.99', pricePerReport: '€4.00', popular: true, savings: '20%' },
-  { id: 'pack10', credits: 10, price: '€34.99', pricePerReport: '€3.50', popular: false, savings: '30%' },
-];
+const REPORT_CONTENT = [
+  ["STATE", "Daily state, confidence and signal coverage"],
+  ["SYS", "Cognitive systems, network and Cognitive Age"],
+  ["HLT", "Recovery, Health and wearable context"],
+  ["PAT", "Personal trends and training response"],
+  ["COA", "Coach outlook and next useful action"],
+] as const;
 
 export default function CognitiveReport() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const userId = user?.id as string;
+  const userId = user?.id;
+  const { canViewReport, canDownloadPDF, isLoading: accessLoading } = useReportAccess();
 
-  const { loading, error, metrics: reportMetrics, profile, sessions, badges, wearable, aggregates, metricSnapshots } = useReportData(userId);
-  
-  // v3.3: Use LIVE metrics from useUserMetrics (same source as Dashboard) for S1/S2/Age consistency
-  // This ensures Report shows exactly what Dashboard shows
-  const { data: liveMetrics, isLoading: metricsLoading } = useUserMetrics(userId);
-  
-  // Use the same SCI calculation as Dashboard for consistency
+  const {
+    loading,
+    error,
+    metrics: reportMetrics,
+    profile,
+    badges,
+    wearable,
+    latestOutlook,
+    aggregates,
+    metricSnapshots,
+  } = useReportData(canViewReport && userId ? userId : "");
+  const { data: liveMetrics, isLoading: metricsLoading } = useUserMetrics(
+    canViewReport && userId ? userId : "",
+  );
   const { sci: liveSci, isLoading: sciLoading } = useCognitiveNetworkScore();
   const {
     sharpness: liveSharpness,
@@ -66,44 +71,21 @@ export default function CognitiveReport() {
     RA: liveRA,
     CT: liveCT,
     IN: liveIN,
+    signalCoverage,
+    signalCoverageLevel,
+    signalUpdatedAt,
+    signalSources,
+    hasWearableData,
     isLoading: todayMetricsLoading,
   } = useTodayMetrics();
   const { rq: liveReasoningQuality, isLoading: reasoningQualityLoading } = useReasoningQuality();
   const { data: liveCognitiveAge, isLoading: cognitiveAgeLoading } = useCognitiveAge();
-  const { 
-    canViewReport, 
-    canDownloadPDF: canDownloadPDFReal, 
-    reportCredits, 
-    monthlyCredits,
-    isPremium: isPremiumReal,
-    isPro,
-    refetchPurchase, 
-    useCredit,
-    weeklyPlanCompleted: weeklyPlanCompletedReal,
-    weeklyProgress,
-    xpRemaining,
-    hasCreditsOrPurchase,
-    planName,
-    planXPTarget,
-    currentXP,
-  } = useReportAccess();
-
-  // TEST MODE: bypass paywall, credits, and weekly plan gating
-  const { isTestMode } = useTestMode();
-  const isPremium = isTestMode || isPremiumReal;
-  const canDownloadPDF = isTestMode || canDownloadPDFReal;
-  const weeklyPlanCompleted = isTestMode || weeklyPlanCompletedReal;
-
-  
   const { reports, isLoading: historyLoading, saveReport } = useReportHistory(userId);
-  
-  // v3.3: Merge live metrics (from useUserMetrics, same as Dashboard) with report metrics
-  // Priority: liveMetrics for S1/S2/Age consistency, reportMetrics as fallback
+
   const metrics = useMemo(() => {
     if (!reportMetrics && !liveMetrics) return null;
     return {
       ...reportMetrics,
-      // Override with live values to match Dashboard exactly
       focus_stability: liveMetrics?.focus_stability ?? reportMetrics?.focus_stability,
       fast_thinking: liveMetrics?.fast_thinking ?? reportMetrics?.fast_thinking,
       reasoning_accuracy: liveMetrics?.reasoning_accuracy ?? reportMetrics?.reasoning_accuracy,
@@ -115,89 +97,22 @@ export default function CognitiveReport() {
       baseline_slow_thinking: liveMetrics?.baseline_slow_thinking ?? reportMetrics?.baseline_slow_thinking,
       baseline_creativity: liveMetrics?.baseline_creativity ?? reportMetrics?.baseline_creativity,
       baseline_cognitive_age: liveMetrics?.baseline_cognitive_age ?? reportMetrics?.baseline_cognitive_age,
-      cognitive_performance_score: liveMetrics?.cognitive_performance_score ?? reportMetrics?.cognitive_performance_score,
+      cognitive_performance_score:
+        liveMetrics?.cognitive_performance_score ?? reportMetrics?.cognitive_performance_score,
       total_sessions: liveMetrics?.total_sessions ?? reportMetrics?.total_sessions,
     };
   }, [liveMetrics, reportMetrics]);
-  
-  // Total credits available for display
-  const totalCredits = isPro ? Infinity : monthlyCredits + reportCredits;
 
   const printRef = useRef<HTMLDivElement>(null);
   const generatedAt = useMemo(() => new Date(), []);
   const [downloading, setDownloading] = useState(false);
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
-  const [scale, setScale] = useState(0.4); // Start zoomed out on mobile
   const [showHistory, setShowHistory] = useState(false);
-  
-  const zoomIn = () => setScale((s) => Math.min(s + 0.15, 1));
-  const zoomOut = () => setScale((s) => Math.max(s - 0.15, 0.25));
-  const [selectedPackage, setSelectedPackage] = useState('pack5');
+  const [scale, setScale] = useState(0.4);
 
-  // Handle payment return
-  useEffect(() => {
-    const payment = searchParams.get('payment');
-    if (payment === 'success') {
-      toast.success("Payment successful!", {
-        description: "Your credits have been added.",
-      });
-      refetchPurchase();
-      setSearchParams({});
-    } else if (payment === 'canceled') {
-      toast.info("Payment canceled", {
-        description: "You can try again anytime.",
-      });
-      setSearchParams({});
-    }
-  }, [searchParams, refetchPurchase, setSearchParams]);
-
-  const handleStripeCheckout = async () => {
-    if (!user?.id || !user?.email) {
-      toast.error("Please log in to purchase");
-      return;
-    }
-    
-    setProcessingPayment(true);
-    try {
-      const { successUrl, cancelUrl } = getStripeRedirectUrls(
-        '/app/report?payment=success',
-        '/app/report?payment=canceled'
-      );
-      
-      const { data, error } = await supabase.functions.invoke('create-report-credits-checkout', {
-        body: {
-          userId: user.id,
-          userEmail: user.email,
-          packageType: selectedPackage,
-          successUrl,
-          cancelUrl,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        // On native, use in-app browser for better UX
-        if (isNative()) {
-          await Browser.open({ url: data.url });
-        } else {
-          window.location.href = data.url;
-        }
-      }
-    } catch (err) {
-      console.error('Error creating checkout:', err);
-      toast.error("Failed to start checkout. Please try again.");
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
-
-  // Use react-to-print for secure PDF generation (replaces vulnerable html2pdf.js)
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: `NLOOP_Report_${generatedAt.toISOString().split('T')[0]}`,
+    documentTitle: `LOOMA_Performance_Report_${generatedAt.toISOString().slice(0, 10)}`,
     onAfterPrint: async () => {
-      // Save report to history after successful print
       try {
         await saveReport.mutateAsync({
           cognitiveAge: liveCognitiveAge.cognitiveAge ?? undefined,
@@ -206,232 +121,83 @@ export default function CognitiveReport() {
           slowThinking: metrics?.slow_thinking ?? undefined,
           totalSessions: metrics?.total_sessions ?? undefined,
         });
-        toast.success("Report saved! Use your browser's 'Save as PDF' option in the print dialog.");
-      } catch (err) {
-        console.error('Error saving report:', err);
+        toast.success("Report ready", {
+          description: "Choose Save as PDF in the print dialog to keep a copy.",
+        });
+      } catch (saveError) {
+        console.error("Error saving report history:", saveError);
+      } finally {
+        setDownloading(false);
       }
-      setDownloading(false);
     },
-    onPrintError: (error) => {
-      console.error('Print error:', error);
-      toast.error("Failed to generate PDF. Please try again.");
+    onPrintError: (printError) => {
+      console.error("Print error:", printError);
+      toast.error("The report could not be exported. Please try again.");
       setDownloading(false);
     },
   });
 
-  const handleDownloadPDF = async () => {
-    if (!canDownloadPDF) {
-      setShowPurchaseModal(true);
-      return;
-    }
-    
-    if (!printRef.current) return;
+  const handleDownloadPDF = () => {
+    if (!canDownloadPDF || !printRef.current) return;
     setDownloading(true);
-    
-    // Use a credit if we have credits (not Elite user, not test mode)
-    if (!isTestMode && !isPro && (reportCredits > 0 || monthlyCredits > 0)) {
-      try {
-        await useCredit.mutateAsync();
-      } catch (err) {
-        console.error('Error using credit:', err);
-        toast.error("Failed to use credit. Please try again.");
-        setDownloading(false);
-        return;
-      }
-    }
-
-    
-    // Trigger print dialog - user can save as PDF from browser
     handlePrint();
   };
 
-  // Show preview for non-premium users
-  if (!isPremium) {
+  if (accessLoading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  if (!canViewReport) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="p-4 max-w-md mx-auto space-y-8 pb-12">
-        {/* Header with Back Button */}
-        <div className="flex items-center gap-3 pt-2">
-          <button 
-            onClick={() => navigate('/app')} 
-            className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors"
+      <div className="min-h-screen bg-background text-foreground">
+        <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 pb-12 pt-5">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border/40 bg-card/35 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Go back"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft className="h-4 w-4" />
           </button>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
-            LOOMA · Intelligence Report
-          </div>
-        </div>
 
-        {/* Premium Editorial Hero */}
-        <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-b from-card via-card to-background">
-          {/* Subtle metallic sheen */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.08),transparent_60%)] pointer-events-none" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          
-          <div className="relative px-6 py-10 space-y-6">
-            <div className="space-y-3">
-              <div className="text-[10px] uppercase tracking-[0.3em] text-primary/80 font-medium">
-                Issue №{String(new Date().getFullYear()).slice(-2)}.{String(new Date().getMonth() + 1).padStart(2, '0')}
-              </div>
-              <h2 className="text-[2.25rem] leading-[1.05] font-extralight tracking-tight">
-                Cognitive
-                <br />
-                <span className="font-serif italic text-primary">Intelligence</span>
-                <br />
-                <span className="font-light">Report</span>
-              </h2>
-              <div className="h-px w-12 bg-foreground/30" />
-              <p className="text-[13px] leading-relaxed text-muted-foreground max-w-[28ch]">
-                A confidential, performance-grade analysis of your cognitive system — built from your training data.
-              </p>
+          <div className="mt-12">
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" />
+              Elite
             </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="w-full gap-2 h-10 border-foreground/15 hover:border-foreground/40 bg-transparent"
-              onClick={() => navigate("/app/report-preview")}
-            >
-              <Eye className="w-3.5 h-3.5" />
-              <span className="tracking-wide">View Sample Issue</span>
-            </Button>
+            <h1 className="mt-5 max-w-[10ch] text-[2.65rem] font-semibold leading-[0.98] tracking-[-0.04em]">
+              Your performance report.
+            </h1>
+            <p className="mt-5 max-w-sm text-[15px] leading-7 text-muted-foreground">
+              A private, longitudinal view of what is shaping your cognitive state — and what to do next.
+            </p>
           </div>
-        </div>
 
-
-        {/* Buy Report Credits - Primary Option */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-semibold">Buy Report Credits</h3>
-          </div>
-          
-          <div className="space-y-2">
-            {CREDIT_PACKAGES.map((pkg) => (
-              <button
-                key={pkg.id}
-                onClick={() => {
-                  setSelectedPackage(pkg.id);
-                  setShowPurchaseModal(true);
-                }}
-                className="w-full p-3 rounded-xl border border-border hover:border-primary/50 transition-all text-left relative bg-card/50"
+          <div className="mt-9 overflow-hidden rounded-[24px] border border-border/45 bg-card/45 px-5">
+            {REPORT_CONTENT.map(([code, label]) => (
+              <div
+                key={code}
+                className="grid grid-cols-[44px_1fr] items-center gap-3 border-b border-border/30 py-4 last:border-b-0"
               >
-                {pkg.popular && (
-                  <span className="absolute -top-2 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-primary text-primary-foreground">
-                    Best Value
-                  </span>
-                )}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{pkg.credits} Report{pkg.credits > 1 ? 's' : ''}</span>
-                      {pkg.savings && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-green-500/15 text-green-500">
-                          -{pkg.savings}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-muted-foreground">{pkg.pricePerReport}/report</span>
-                  </div>
-                  <span className="text-lg font-bold">{pkg.price}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">or</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-
-        {/* Premium Option */}
-        <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary">Elite</span>
-            <div>
-              <h4 className="text-sm font-semibold">Upgrade to Elite</h4>
-              <p className="text-[10px] text-muted-foreground">Unlimited reports + all features</p>
-            </div>
-          </div>
-          <Link to="/app/subscription">
-            <Button variant="outline" className="w-full gap-2 border-primary/30 hover:bg-primary/10">
-              View Plans
-            </Button>
-          </Link>
-        </div>
-
-        {/* What's included */}
-        <div className="space-y-3 pt-2">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">What's Included</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              "Cognitive Age Analysis",
-              "SCI Breakdown",
-              "Dual-Process Scores",
-              "Domain Analysis",
-              "Training Analytics",
-              "Meta-Cognitive Profile",
-              "Physio Integration",
-              "Personalized Actions",
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Check className="w-3 h-3 text-primary" />
-                <span>{item}</span>
+                <span className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/75">
+                  {code}
+                </span>
+                <span className="text-[13px] leading-5 text-foreground/90">{label}</span>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Purchase Modal */}
-        <AlertDialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
-          <AlertDialogContent className="max-w-sm">
-            <AlertDialogHeader className="text-center">
-              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
-                <FileText className="w-7 h-7 text-primary" />
-              </div>
-              <AlertDialogTitle className="text-xl">
-                {CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.credits} Report Credit{(CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.credits || 0) > 1 ? 's' : ''}
-              </AlertDialogTitle>
-              <div className="text-3xl font-bold text-primary mt-2">
-                {CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.price}
-              </div>
-            </AlertDialogHeader>
-            
-            <div className="space-y-2 py-4">
-              {[
-                "Professional A4 PDF format",
-                "All cognitive metrics & insights",
-                "Shareable with coaches",
-                "Credits never expire",
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-            
-            <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-              <Button 
-                variant="premium" 
-                className="w-full gap-2"
-                onClick={handleStripeCheckout}
-                disabled={processingPayment}
-              >
-                {processingPayment ? "Processing..." : "Purchase Now"}
-              </Button>
-              <AlertDialogCancel className="w-full mt-0">Cancel</AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        </div>
+          <div className="mt-auto pt-10">
+            <Button asChild className="h-12 w-full rounded-full bg-foreground text-background hover:bg-foreground/90">
+              <Link to="/app/subscription">View LOOMA Elite</Link>
+            </Button>
+            <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground/70">
+              Included with Elite and Founding Elite. No report credits or one-off purchases.
+            </p>
+          </div>
+        </main>
       </div>
     );
-
   }
 
   if (
@@ -441,260 +207,130 @@ export default function CognitiveReport() {
     todayMetricsLoading ||
     reasoningQualityLoading ||
     cognitiveAgeLoading
-  ) return <div className="p-6">Generating report data…</div>;
-  
-  if (error) return <div className="p-6">Error: {error}</div>;
+  ) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+        Preparing your report…
+      </div>
+    );
+  }
 
-  // Show empty state when user has no training data yet
+  if (error) {
+    return <div className="p-6 text-sm text-muted-foreground">Report unavailable: {error}</div>;
+  }
+
   if (!metrics || !profile || !aggregates) {
     return (
-      <div className="p-4 max-w-md mx-auto min-h-[60vh] flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 rounded-2xl bg-foreground flex items-center justify-center mb-4">
-          <LoomaLogo size={30} className="text-background" />
+      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-background px-6 text-center">
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-border/50 bg-card/50">
+          <LoomaLogo size={26} className="text-foreground" />
         </div>
-        <h1 className="text-lg font-semibold mb-2">No Data Available</h1>
-        <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-          Complete your initial assessment or a training session to generate your cognitive intelligence report.
+        <h1 className="text-xl font-semibold">Report calibrating</h1>
+        <p className="mt-3 max-w-xs text-sm leading-6 text-muted-foreground">
+          Complete your baseline and keep LOOMA connected. Daily state, Health context and behavior will fill this report automatically.
         </p>
-        <div className="flex flex-col gap-3 w-full max-w-xs">
-          <Link to="/neuro-lab">
-            <Button variant="premium" className="w-full gap-2">
-              <Play className="w-4 h-4" />
-              Start Training
-            </Button>
-          </Link>
-          <button 
-            onClick={() => navigate('/app')} 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
+        <Button onClick={() => navigate("/app")} className="mt-7 h-11 rounded-full px-7">
+          Back to Home
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b print:hidden">
-        <div className="flex items-center justify-between px-3 py-3">
+    <div className="min-h-screen bg-[#111315]">
+      <div className="sticky top-0 z-50 border-b border-white/8 bg-[#0d0f11]/95 backdrop-blur-xl print:hidden">
+        <div className="flex items-center justify-between px-3 py-3 text-white">
           <div className="flex items-center gap-2">
-            <button 
-              onClick={() => navigate('/app')} 
-              className="p-2 rounded-full hover:bg-muted transition-colors"
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-white/65 hover:bg-white/5 hover:text-white"
               aria-label="Go back"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft className="h-4 w-4" />
             </button>
             <div>
-              <h1 className="text-sm font-semibold">Cognitive Report</h1>
-              <div className="text-[10px] opacity-70">
-                {generatedAt.toLocaleDateString("en-GB")}
+              <div className="text-sm font-medium">Performance Report</div>
+              <div className="text-[9px] uppercase tracking-[0.16em] text-white/45">
+                Elite · {generatedAt.toLocaleDateString("en-GB")}
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            {/* Zoom Controls */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-7 w-7"
-                onClick={zoomOut}
+            <div className="flex items-center rounded-full border border-white/10 bg-white/5 p-0.5">
+              <button
+                type="button"
+                onClick={() => setScale((value) => Math.max(value - 0.15, 0.25))}
+                className="flex h-7 w-7 items-center justify-center text-white/55 hover:text-white"
+                aria-label="Zoom out"
               >
                 <ZoomOut className="h-3.5 w-3.5" />
-              </Button>
-              <span className="text-[10px] font-medium w-10 text-center">
-                {Math.round(scale * 100)}%
-              </span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-7 w-7"
-                onClick={zoomIn}
+              </button>
+              <span className="w-9 text-center text-[9px] text-white/65">{Math.round(scale * 100)}%</span>
+              <button
+                type="button"
+                onClick={() => setScale((value) => Math.min(value + 0.15, 1))}
+                className="flex h-7 w-7 items-center justify-center text-white/55 hover:text-white"
+                aria-label="Zoom in"
               >
                 <ZoomIn className="h-3.5 w-3.5" />
-              </Button>
+              </button>
             </div>
-
-            {isPro ? (
-              <div className="px-2 py-1 rounded-full border border-primary/20 bg-primary/5 text-[10px]">
-                <span className="font-semibold uppercase tracking-[0.12em] text-primary">Elite</span>
-              </div>
-            ) : totalCredits > 0 ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-[10px]">
-                <Package className="w-3 h-3 text-primary" />
-                <span className="font-medium">{totalCredits}</span>
-              </div>
-            ) : null}
-            
-            <Button 
+            <Button
               size="sm"
-              variant={canDownloadPDF ? "default" : "outline"}
-              className="gap-1.5 h-8 text-xs"
               onClick={handleDownloadPDF}
-              disabled={downloading || !weeklyPlanCompleted}
+              disabled={downloading}
+              className="h-8 gap-1.5 rounded-full bg-white px-3 text-[11px] text-black hover:bg-white/90"
             >
-              {canDownloadPDF ? (
-                <>
-                  <Download className="w-3 h-3" />
-                  {downloading ? "..." : "PDF"}
-                </>
-              ) : !weeklyPlanCompleted ? (
-                <>Plan</>
-              ) : (
-                <>
-                  <Lock className="w-3 h-3" />
-                  Buy
-                </>
-              )}
+              <Download className="h-3 w-3" />
+              {downloading ? "…" : "PDF"}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Weekly Plan Required Banner */}
-      {!weeklyPlanCompleted && (
-        <div className="mb-4 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 print:hidden">
-          <div className="flex items-start gap-3">
-            <div className="mt-1 h-2 w-2 rounded-full bg-amber-500 flex-shrink-0" aria-hidden />
-            <div className="flex-1 space-y-3">
-              <div>
-                <h3 className="text-sm font-semibold text-amber-500">Complete Your Weekly Plan</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Finish your weekly training to unlock PDF download. This is a <strong>preview only</strong>.
-                </p>
-              </div>
-              
-              {/* Plan info */}
-              <div className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                  {planName}
-                </span>
-                <span className="text-muted-foreground">
-                  Weekly target: {planXPTarget} XP
-                </span>
-              </div>
-              
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">{currentXP} / {planXPTarget} XP</span>
-                </div>
-                <Progress value={weeklyProgress} className="h-2" />
-                <p className="text-[10px] text-muted-foreground">
-                  {xpRemaining > 0 
-                    ? `${xpRemaining} XP remaining · Training resets every 7 days (rolling window)` 
-                    : 'Almost there!'}
-                </p>
-              </div>
-              <Link to="/neuro-lab">
-                <Button size="sm" variant="default" className="gap-2">
-                  <Play className="w-3.5 h-3.5" />
-                  Continue Training
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Download PDF Button - Prominent */}
-      {weeklyPlanCompleted && canDownloadPDF && (
-        <div className="px-4 mb-4 print:hidden">
-          <Button 
-            onClick={handleDownloadPDF}
-            disabled={downloading}
-            className="w-full gap-2 h-12"
-            variant="premium"
-          >
-            <Download className="w-5 h-5" />
-            {downloading ? "Generating PDF..." : "Download PDF Report"}
-          </Button>
-        </div>
-      )}
-
-      {/* Report History Section - Always visible */}
-      <div className="px-4 mb-4 print:hidden">
+      <div className="px-4 pt-4 print:hidden">
         <Collapsible open={showHistory} onOpenChange={setShowHistory}>
           <CollapsibleTrigger asChild>
-            <button className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-card/50 hover:bg-card transition-colors">
+            <button className="flex w-full items-center justify-between rounded-2xl border border-white/8 bg-white/[0.035] p-3 text-white">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <FolderOpen className="w-4 h-4 text-primary" />
-                </div>
-                <div className="text-left">
-                  <span className="text-sm font-medium">Report History</span>
-                  <span className="text-xs text-muted-foreground ml-2">
-                    {reports.length > 0 ? `${reports.length} report${reports.length > 1 ? 's' : ''}` : 'No reports yet'}
-                  </span>
-                </div>
+                <FolderOpen className="h-4 w-4 text-white/55" />
+                <span className="text-xs">Previous exports</span>
+                <span className="text-[10px] text-white/40">{reports.length}</span>
               </div>
-              {showHistory ? (
-                <ChevronUp className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              )}
+              {showHistory ? <ChevronUp className="h-4 w-4 text-white/45" /> : <ChevronDown className="h-4 w-4 text-white/45" />}
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-3">
             {reports.length > 0 ? (
-              <ReportHistoryList 
-                reports={reports} 
-                isLoading={historyLoading}
-              />
+              <ReportHistoryList reports={reports} isLoading={historyLoading} />
             ) : (
-              <div className="p-4 rounded-xl border border-border bg-card/30 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No reports generated yet.
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Complete your weekly plan and download your first report.
-                </p>
-              </div>
+              <p className="rounded-2xl border border-white/8 bg-white/[0.025] p-4 text-center text-xs text-white/45">
+                Your exported reports will appear here.
+              </p>
             )}
           </CollapsibleContent>
         </Collapsible>
       </div>
 
-      {/* Report Content - Fixed A4, scalable */}
-      <div className="overflow-auto p-4 print:p-0 print:overflow-visible relative">
-        {/* Preview overlay when weekly plan not completed */}
-        {!weeklyPlanCompleted && (
-          <div className="absolute inset-0 z-10 pointer-events-none print:hidden">
-            <div className="sticky top-1/3 flex flex-col items-center justify-center">
-              <div className="bg-amber-500/95 text-white px-6 py-3 rounded-xl shadow-xl flex items-center gap-3">
-                <Lock className="w-5 h-5" />
-                <div>
-                  <p className="font-semibold text-sm">Preview Mode</p>
-                  <p className="text-xs opacity-90">Complete training to unlock PDF</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div 
+      <div className="relative overflow-auto p-4 print:overflow-visible print:p-0">
+        <div
           ref={printRef}
-          className={`mx-auto bg-white shadow-lg origin-top transition-transform duration-200 print:shadow-none print:transform-none ${
-            !weeklyPlanCompleted ? 'opacity-60' : ''
-          }`}
+          className="mx-auto origin-top bg-white shadow-2xl transition-transform duration-200 print:transform-none print:shadow-none"
           style={{
-            width: '210mm',
-            minWidth: '210mm',
+            width: "210mm",
+            minWidth: "210mm",
             transform: `scale(${scale})`,
-            transformOrigin: 'top center',
+            transformOrigin: "top center",
           }}
         >
-          <ClinicalReport 
-            profile={profile} 
-            metrics={metrics} 
+          <ClinicalReport
+            profile={profile}
+            metrics={metrics}
             aggregates={aggregates}
             badges={badges}
             generatedAt={generatedAt}
-            isPreview={!weeklyPlanCompleted}
             liveSci={liveSci}
             liveDaily={{
               sharpness: liveSharpness,
@@ -706,91 +342,21 @@ export default function CognitiveReport() {
               CT: liveCT,
               IN: liveIN,
             }}
+            signalContext={{
+              coverage: signalCoverage,
+              level: signalCoverageLevel,
+              updatedAt: signalUpdatedAt,
+              sources: signalSources,
+              hasWearableData,
+            }}
+            wearable={wearable}
+            latestOutlook={latestOutlook}
             canonicalCognitiveAge={liveCognitiveAge.cognitiveAge}
             cognitiveAgeCalibrating={liveCognitiveAge.isCalibrating}
             metricSnapshots={metricSnapshots}
           />
         </div>
       </div>
-
-      {/* Purchase Modal with Package Options */}
-      <AlertDialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader className="text-center">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
-              <FileText className="w-7 h-7 text-primary" />
-            </div>
-            <AlertDialogTitle className="text-xl">Get Report Credits</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm mt-1">
-              Choose a package to download PDF reports
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          {/* Package Options */}
-          <div className="space-y-2 py-4">
-            {CREDIT_PACKAGES.map((pkg) => (
-              <button
-                key={pkg.id}
-                onClick={() => setSelectedPackage(pkg.id)}
-                className={`w-full p-3 rounded-xl border-2 transition-all text-left relative ${
-                  selectedPackage === pkg.id 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                {pkg.popular && (
-                  <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-primary text-primary-foreground">
-                    Most Popular
-                  </span>
-                )}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{pkg.credits} Report{pkg.credits > 1 ? 's' : ''}</span>
-                      {pkg.savings && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-500/15 text-green-500">
-                          Save {pkg.savings}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground">{pkg.pricePerReport}/report</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-lg font-bold">{pkg.price}</span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Benefits */}
-          <div className="space-y-2 py-2 border-t border-border/50">
-            {[
-              "Professional A4 PDF format",
-              "All cognitive metrics & insights",
-              "Shareable with coaches",
-              "Credits never expire",
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-          
-          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-            <Button 
-              variant="premium" 
-              className="w-full gap-2"
-              onClick={handleStripeCheckout}
-              disabled={processingPayment}
-            >
-              {processingPayment ? "Processing..." : `Purchase ${CREDIT_PACKAGES.find(p => p.id === selectedPackage)?.price}`}
-            </Button>
-            <AlertDialogCancel className="w-full mt-0">Maybe Later</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

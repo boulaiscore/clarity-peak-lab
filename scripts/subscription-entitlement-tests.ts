@@ -11,6 +11,7 @@ import {
   canCreateCustomProtocol,
   canStartProtocol,
   canUseAdaptiveCoachInsights,
+  canViewPerformanceReport,
   hasFeature,
   normalizeLegacyProfileTier,
   requiredPlanForFeature,
@@ -39,6 +40,10 @@ assert.equal(hasFeature("core", "fullProtocolLibrary"), true);
 assert.equal(canAccessAnalytics("core", "advanced"), false);
 assert.equal(canUseAdaptiveCoachInsights("core"), false);
 assert.equal(canUseAdaptiveCoachInsights("pro"), true);
+assert.equal(canViewPerformanceReport("free"), false);
+assert.equal(canViewPerformanceReport("core"), false);
+assert.equal(canViewPerformanceReport("pro"), true);
+assert.equal(canViewPerformanceReport("founding_pro"), true);
 assert.equal(canCreateCustomProtocol("pro"), true);
 assert.equal(canCreateCustomProtocol("founding_pro"), true);
 assert.deepEqual(PLAN_CATALOG.founding_pro.features, {
@@ -48,9 +53,12 @@ assert.deepEqual(PLAN_CATALOG.founding_pro.features, {
 
 assert.equal(requiredPlanForFeature("unlimitedProtocols"), "Pro");
 assert.equal(requiredPlanForFeature("advancedAnalytics"), "Elite");
+assert.equal(requiredPlanForFeature("performanceReport"), "Elite");
 assert.equal(shouldShowPaywall("free", "first_protocol_completed"), true);
 assert.equal(shouldShowPaywall("core", "advanced_analytics"), true);
+assert.equal(shouldShowPaywall("core", "performance_report"), true);
 assert.equal(shouldShowPaywall("pro", "advanced_analytics"), false);
+assert.equal(shouldShowPaywall("pro", "performance_report"), false);
 
 assert.equal(normalizeLegacyProfileTier("premium"), "core");
 assert.equal(normalizeLegacyProfileTier("pro"), "core");

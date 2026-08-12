@@ -1,138 +1,23 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useCappedWeeklyProgress } from "@/hooks/useCappedWeeklyProgress";
-import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 import { useSubscription } from "@/hooks/useSubscription";
-import { canExportReports } from "@/lib/entitlements";
+import { canExportReports, canViewPerformanceReport } from "@/lib/entitlements";
 
+/**
+ * The performance report is an Elite deliverable.
+ *
+ * It is intentionally independent from the former report-credit and weekly-XP
+ * gates: the report summarizes the user's longitudinal state, passive context,
+ * recovery and training response, so completing a Lab quota is not a valid
+ * prerequisite for viewing it.
+ */
 export function useReportAccess() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  // Single source of truth from provider-neutral subscription state.
-  const { tier, isCore, isPro, isActive } = useSubscription();
-  const isPremium = isActive; // any paid plan
-
-  const plan = DEFAULT_TRAINING_PLAN;
-
-  const {
-    allCategoriesComplete,
-    totalProgress,
-    cappedTotalXP,
-    totalXPTarget,
-    isLoading: progressLoading,
-  } = useCappedWeeklyProgress();
-
-  const { data: profileData, refetch: refetchCredits, isLoading: creditsLoading } = useQuery({
-    queryKey: ["report-credits", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return { reportCredits: 0, monthlyCredits: 0 };
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("report_credits, monthly_report_credits")
-        .eq("user_id", user.id)
-        .single();
-      if (error) {
-        console.error("Error fetching report credits:", error);
-        return { reportCredits: 0, monthlyCredits: 0 };
-      }
-      return {
-        reportCredits: (data as { report_credits?: number })?.report_credits ?? 0,
-        monthlyCredits: (data as { monthly_report_credits?: number })?.monthly_report_credits ?? 0,
-      };
-    },
-    enabled: !!user?.id,
-  });
-
-  const { data: hasPurchasedPDF, refetch: refetchPurchase, isLoading: purchaseLoading } = useQuery({
-    queryKey: ["report-purchase", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const { data, error } = await supabase
-        .from("report_purchases")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "completed")
-        .gte("purchased_at", sevenDaysAgo.toISOString())
-        .limit(1);
-      if (error) return false;
-      return data && data.length > 0;
-    },
-    enabled: !!user?.id,
-  });
-
-  const reportCredits = profileData?.reportCredits || 0;
-  const monthlyCredits = profileData?.monthlyCredits || 0;
-
-  const useCredit = useMutation({
-    mutationFn: async () => {
-      if (!user?.id) throw new Error("Not authenticated");
-      // Pro includes formatted report exports.
-      if (canExportReports(tier)) return;
-      // Preserve already-issued legacy credits.
-      if (monthlyCredits > 0) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ monthly_report_credits: monthlyCredits - 1 })
-          .eq("user_id", user.id);
-        if (error) throw error;
-      } else if (reportCredits > 0) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ report_credits: reportCredits - 1 })
-          .eq("user_id", user.id);
-        if (error) throw error;
-      } else {
-        throw new Error("No credits available");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["report-credits", user?.id] });
-    },
-  });
-
-  const weeklyPlanCompleted = allCategoriesComplete;
-
-  let canDownload = false;
-  let hasCreditsOrPurchase = false;
-
-  if (canExportReports(tier)) {
-    canDownload = weeklyPlanCompleted;
-    hasCreditsOrPurchase = true;
-  } else if (isCore) {
-    hasCreditsOrPurchase = monthlyCredits > 0 || reportCredits > 0 || hasPurchasedPDF;
-    canDownload = hasCreditsOrPurchase && weeklyPlanCompleted;
-  } else {
-    hasCreditsOrPurchase = reportCredits > 0 || hasPurchasedPDF;
-    canDownload = hasCreditsOrPurchase && weeklyPlanCompleted;
-  }
-
-  const xpRemaining = Math.max(0, totalXPTarget - cappedTotalXP);
+  const subscription = useSubscription();
+  const hasEliteAccess = canViewPerformanceReport(subscription.tier);
 
   return {
-    canViewReport: isPremium,
-    canDownloadPDF: canDownload,
-    reportCredits,
-    monthlyCredits,
-    isPremium,
-    isCore,
-    isPro,
-    isElite: isPro,
-    subscriptionStatus: tier,
-    isLoading: creditsLoading || purchaseLoading || progressLoading,
-    weeklyPlanCompleted,
-    weeklyProgress: totalProgress,
-    xpRemaining,
-    hasCreditsOrPurchase,
-    planName: plan.name,
-    planXPTarget: totalXPTarget,
-    currentXP: cappedTotalXP,
-    refetchPurchase: () => {
-      refetchCredits();
-      refetchPurchase();
-    },
-    useCredit,
+    canViewReport: hasEliteAccess,
+    canDownloadPDF: hasEliteAccess && canExportReports(subscription.tier),
+    isElite: subscription.isElite,
+    subscriptionStatus: subscription.tier,
+    isLoading: subscription.loading,
   };
 }

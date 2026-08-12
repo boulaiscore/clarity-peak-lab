@@ -1,12 +1,9 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, Lock } from "lucide-react";
-import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
 import { useId, useState } from "react";
-import s1Bg from "@/assets/s1-bg.webp";
-import s2Bg from "@/assets/s2-bg.webp";
 import { LAB_MODE_CARD_AMBIENCE_CLASS, LAB_MODE_CARD_CLASS } from "@/components/lab/labModeCardStyles";
 
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
@@ -71,33 +68,57 @@ const SYSTEMS = [
   },
 ];
 
-const COMPACT_BRAIN_NODES = [
-  { x: 22, y: 34, r: 1.15 }, { x: 27, y: 22, r: 0.85 }, { x: 38, y: 15, r: 1.2 },
-  { x: 51, y: 13, r: 0.8 }, { x: 64, y: 15, r: 1.1 }, { x: 77, y: 14, r: 0.8 },
-  { x: 90, y: 20, r: 1.15 }, { x: 98, y: 30, r: 0.85 }, { x: 96, y: 40, r: 1.1 },
-  { x: 84, y: 47, r: 0.8 }, { x: 71, y: 50, r: 1.15 }, { x: 58, y: 46, r: 0.8 },
-  { x: 44, y: 49, r: 1.1 }, { x: 31, y: 44, r: 0.85 }, { x: 37, y: 29, r: 1.25 },
-  { x: 51, y: 24, r: 0.85 }, { x: 65, y: 27, r: 1.15 }, { x: 81, y: 27, r: 0.85 },
-  { x: 48, y: 38, r: 1.05 }, { x: 63, y: 39, r: 0.8 }, { x: 78, y: 40, r: 1.2 },
+interface ProcessNode {
+  x: number;
+  y: number;
+  r: number;
+}
+
+const FAST_NODES: ProcessNode[] = [
+  { x: 12, y: 31, r: 1.2 }, { x: 19, y: 14, r: 0.8 }, { x: 22, y: 49, r: 1.0 },
+  { x: 33, y: 25, r: 1.35 }, { x: 40, y: 8, r: 0.85 }, { x: 43, y: 48, r: 1.1 },
+  { x: 55, y: 17, r: 1.15 }, { x: 58, y: 35, r: 0.85 }, { x: 61, y: 55, r: 1.0 },
+  { x: 73, y: 8, r: 1.05 }, { x: 76, y: 27, r: 1.3 }, { x: 78, y: 48, r: 0.85 },
+  { x: 89, y: 17, r: 0.9 }, { x: 93, y: 38, r: 1.2 }, { x: 102, y: 9, r: 0.8 },
+  { x: 105, y: 51, r: 1.05 }, { x: 31, y: 57, r: 0.75 }, { x: 108, y: 29, r: 0.85 },
 ];
 
-const COMPACT_BRAIN_CONNECTIONS: [number, number][] = [
-  [0, 1], [0, 13], [0, 14], [1, 2], [1, 14], [2, 3], [2, 14], [2, 15],
-  [3, 4], [3, 15], [4, 5], [4, 15], [4, 16], [5, 6], [5, 16], [6, 7],
-  [6, 17], [7, 8], [7, 17], [8, 9], [8, 20], [9, 10], [9, 20], [10, 11],
-  [10, 19], [11, 12], [11, 18], [11, 19], [12, 13], [12, 18], [13, 18],
-  [14, 15], [14, 18], [15, 16], [15, 18], [16, 17], [16, 19], [17, 20],
-  [18, 19], [19, 20], [14, 19], [16, 20],
+const FAST_CONNECTIONS: [number, number][] = [
+  [0, 1], [0, 2], [0, 3], [1, 3], [1, 4], [2, 3], [2, 5], [3, 4], [3, 5],
+  [3, 6], [3, 7], [4, 6], [5, 7], [5, 8], [5, 16], [6, 7], [6, 9], [6, 10],
+  [7, 8], [7, 10], [7, 11], [8, 11], [9, 10], [9, 12], [9, 14], [10, 11],
+  [10, 12], [10, 13], [11, 13], [11, 15], [12, 13], [12, 14], [13, 15], [13, 17],
+  [14, 17], [15, 17],
 ];
 
-function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
+const SLOW_NODES: ProcessNode[] = [
+  { x: 10, y: 12, r: 0.9 }, { x: 10, y: 32, r: 1.15 }, { x: 10, y: 52, r: 0.9 },
+  { x: 34, y: 8, r: 0.85 }, { x: 34, y: 23, r: 1.1 }, { x: 34, y: 41, r: 1.1 }, { x: 34, y: 56, r: 0.85 },
+  { x: 62, y: 14, r: 1.0 }, { x: 62, y: 32, r: 1.35 }, { x: 62, y: 50, r: 1.0 },
+  { x: 88, y: 22, r: 1.05 }, { x: 88, y: 42, r: 1.05 }, { x: 107, y: 32, r: 1.45 },
+];
+
+const SLOW_CONNECTIONS: [number, number][] = [
+  [0, 3], [0, 4], [1, 4], [1, 5], [2, 5], [2, 6],
+  [3, 7], [4, 7], [4, 8], [5, 8], [5, 9], [6, 9],
+  [7, 10], [8, 10], [8, 11], [9, 11], [10, 12], [11, 12],
+];
+
+const SLOW_SIGNAL_PATHS = [
+  "M 10 12 L 34 23 L 62 32 L 88 22 L 107 32",
+  "M 10 32 L 34 41 L 62 50 L 88 42 L 107 32",
+  "M 10 52 L 34 41 L 62 32 L 88 42 L 107 32",
+];
+
+function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const reduceMotion = useReducedMotion();
   const isFast = system === "fast";
   const id = useId().replace(/:/g, "");
   const gradientId = `${id}-${isFast ? "fast" : "slow"}`;
   const glowId = `${id}-glow`;
-  const pulseDuration = isFast ? 1.8 : 4.8;
-  const signalStride = isFast ? 5 : 8;
+  const pulseDuration = isFast ? 1.55 : 5.2;
+  const nodes = isFast ? FAST_NODES : SLOW_NODES;
+  const connections = isFast ? FAST_CONNECTIONS : SLOW_CONNECTIONS;
 
   return (
     <div className="pointer-events-none relative h-[64px] w-[116px] shrink-0 overflow-hidden" aria-hidden="true">
@@ -105,21 +126,13 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
         className={cn(
           "absolute inset-x-3 inset-y-2 rounded-[48%] blur-[9px]",
           isFast
-            ? "bg-[radial-gradient(ellipse_at_center,hsl(var(--area-fast)/0.42),hsl(var(--area-fast)/0.09)_58%,transparent_76%)]"
-            : "bg-[radial-gradient(ellipse_at_center,hsl(var(--area-slow)/0.42),hsl(var(--area-slow)/0.09)_58%,transparent_76%)]",
+            ? "bg-[radial-gradient(ellipse_at_center,hsl(var(--area-fast)/0.46),hsl(var(--area-fast)/0.1)_55%,transparent_76%)]"
+            : "bg-[radial-gradient(ellipse_at_center,hsl(var(--area-slow)/0.36),hsl(var(--area-slow)/0.08)_58%,transparent_78%)]",
         )}
-        animate={reduceMotion ? undefined : { opacity: [0.28, 0.72, 0.28], scale: [0.9, 1.12, 0.9] }}
-        transition={reduceMotion ? undefined : { duration: pulseDuration, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.img
-        src={isFast ? s1Bg : s2Bg}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-[0.2] mix-blend-screen contrast-125 saturate-75"
-        style={{
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 34%, transparent 76%)",
-          maskImage: "radial-gradient(ellipse at center, black 34%, transparent 76%)",
+        animate={reduceMotion ? undefined : {
+          opacity: isFast ? [0.26, 0.78, 0.26] : [0.2, 0.62, 0.2],
+          scale: isFast ? [0.88, 1.14, 0.88] : [0.96, 1.06, 0.96],
         }}
-        animate={reduceMotion ? undefined : { opacity: [0.14, 0.28, 0.14], scale: [0.98, 1.02, 0.98] }}
         transition={reduceMotion ? undefined : { duration: pulseDuration, repeat: Infinity, ease: "easeInOut" }}
       />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,hsl(var(--card))_90%)]" />
@@ -135,18 +148,23 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
           </filter>
         </defs>
 
-        <path
-          d="M17 35 C17 21 29 12 45 11 C53 8 63 9 70 13 C86 11 100 20 101 33 C102 43 93 49 81 50 C72 54 63 53 57 48 C46 52 33 49 27 43 C20 42 17 39 17 35 Z"
-          stroke={isFast ? "hsl(var(--area-fast))" : "hsl(var(--area-slow))"}
-          strokeWidth="0.65"
-          opacity="0.18"
-        />
+        {!isFast && (
+          <g stroke="hsl(var(--area-slow))" strokeWidth="0.35" opacity="0.1">
+            <line x1="22" y1="4" x2="22" y2="60" />
+            <line x1="48" y1="4" x2="48" y2="60" />
+            <line x1="75" y1="4" x2="75" y2="60" />
+            <line x1="99" y1="4" x2="99" y2="60" />
+            <line x1="4" y1="18" x2="112" y2="18" />
+            <line x1="4" y1="32" x2="112" y2="32" />
+            <line x1="4" y1="46" x2="112" y2="46" />
+          </g>
+        )}
 
         <g filter={`url(#${glowId})`}>
-          {COMPACT_BRAIN_CONNECTIONS.map(([from, to], index) => {
-            const start = COMPACT_BRAIN_NODES[from];
-            const end = COMPACT_BRAIN_NODES[to];
-            const baseOpacity = 0.12 + (index % 4) * 0.045;
+          {connections.map(([from, to], index) => {
+            const start = nodes[from];
+            const end = nodes[to];
+            const baseOpacity = isFast ? 0.14 + (index % 4) * 0.055 : 0.2 + (index % 3) * 0.055;
             return (
               <line
                 key={`${from}-${to}-${index}`}
@@ -155,15 +173,15 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
                 x2={end.x}
                 y2={end.y}
                 stroke={`url(#${gradientId})`}
-                strokeWidth={index % 6 === 0 ? 0.65 : 0.45}
+                strokeWidth={index % 6 === 0 ? 0.72 : 0.48}
                 opacity={baseOpacity}
               >
-                {!reduceMotion && index % (isFast ? 4 : 6) === 0 && (
+                {!reduceMotion && index % (isFast ? 3 : 4) === 0 && (
                   <animate
                     attributeName="opacity"
-                    values={`${(baseOpacity * 0.45).toFixed(2)};${Math.min(0.72, baseOpacity * 2.7).toFixed(2)};${(baseOpacity * 0.45).toFixed(2)}`}
+                    values={`${(baseOpacity * 0.38).toFixed(2)};${Math.min(0.82, baseOpacity * 2.8).toFixed(2)};${(baseOpacity * 0.38).toFixed(2)}`}
                     dur={`${(pulseDuration + (index % 3) * 0.32).toFixed(2)}s`}
-                    begin={`${((index % 5) * 0.2).toFixed(2)}s`}
+                    begin={`${((index % 5) * (isFast ? 0.14 : 0.48)).toFixed(2)}s`}
                     repeatCount="indefinite"
                   />
                 )}
@@ -171,13 +189,13 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
             );
           })}
 
-          {!reduceMotion && COMPACT_BRAIN_CONNECTIONS.map(([from, to], index) => {
-            if (index % signalStride !== 0) return null;
-            const start = COMPACT_BRAIN_NODES[from];
-            const end = COMPACT_BRAIN_NODES[to];
-            const duration = pulseDuration * 0.86 + (index % 3) * 0.25;
+          {!reduceMotion && isFast && connections.map(([from, to], index) => {
+            if (index % 4 !== 0) return null;
+            const start = nodes[from];
+            const end = nodes[to];
+            const duration = pulseDuration * 0.78 + (index % 3) * 0.18;
             return (
-              <circle key={`signal-${from}-${to}-${index}`} r={isFast ? 0.9 : 0.75} fill={`url(#${gradientId})`}>
+              <circle key={`signal-${from}-${to}-${index}`} r="0.95" fill={`url(#${gradientId})`}>
                 <animateMotion
                   path={`M ${start.x} ${start.y} L ${end.x} ${end.y}`}
                   dur={`${duration.toFixed(2)}s`}
@@ -195,9 +213,28 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
             );
           })}
 
-          {COMPACT_BRAIN_NODES.map((node, index) => (
+          {!reduceMotion && !isFast && SLOW_SIGNAL_PATHS.map((path, index) => (
+            <circle key={path} r={index === 0 ? 1.05 : 0.82} fill={`url(#${gradientId})`} opacity="0">
+              <animateMotion
+                path={path}
+                dur={`${(pulseDuration + index * 0.45).toFixed(2)}s`}
+                begin={`${(index * 1.15).toFixed(2)}s`}
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;0.9;0.9;0"
+                keyTimes="0;0.12;0.82;1"
+                dur={`${(pulseDuration + index * 0.45).toFixed(2)}s`}
+                begin={`${(index * 1.15).toFixed(2)}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          ))}
+
+          {nodes.map((node, index) => (
             <g key={`${node.x}-${node.y}`}>
-              {index % (isFast ? 5 : 7) === 0 && (
+              {index % (isFast ? 4 : 3) === 0 && (
                 <circle
                   cx={node.x}
                   cy={node.y}
@@ -211,7 +248,7 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
                     <>
                       <animate
                         attributeName="r"
-                        values={`${(node.r * 1.6).toFixed(2)};${(node.r * 3.4).toFixed(2)};${(node.r * 1.6).toFixed(2)}`}
+                        values={`${(node.r * 1.6).toFixed(2)};${(node.r * (isFast ? 3.6 : 3.05)).toFixed(2)};${(node.r * 1.6).toFixed(2)}`}
                         dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
                         begin={`${((index % 5) * 0.2).toFixed(2)}s`}
                         repeatCount="indefinite"
@@ -234,7 +271,7 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
                 fill={`url(#${gradientId})`}
                 opacity={0.62 + (index % 3) * 0.1}
               >
-                {!reduceMotion && index % (isFast ? 2 : 3) === 0 && (
+                {!reduceMotion && index % (isFast ? 2 : 1) === 0 && (
                   <>
                     <animate
                       attributeName="r"
@@ -256,6 +293,17 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
             </g>
           ))}
         </g>
+
+        {!isFast && (
+          <g fill="none" stroke="hsl(var(--area-slow))" strokeWidth="0.55" opacity="0.28">
+            <rect x="27.5" y="2.5" width="13" height="58" rx="3" strokeDasharray="1.5 2.5" />
+            <rect x="55.5" y="8" width="13" height="48" rx="3" strokeDasharray="1.5 2.5" />
+            <path d="M 81 15 H 94 M 81 49 H 94" />
+            {!reduceMotion && (
+              <animate attributeName="opacity" values="0.16;0.46;0.16" dur={`${pulseDuration}s`} repeatCount="indefinite" />
+            )}
+          </g>
+        )}
       </svg>
     </div>
   );
@@ -327,7 +375,6 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
       {/* System selector — distinct motion languages for fast and deliberate processing */}
       <div className="grid grid-cols-2 gap-3">
         {SYSTEMS.map((system) => {
-          const Icon = system.id === "fast" ? SystemOneMark : SystemTwoMark;
           const isOpen = openSystem === system.id;
           const isFast = system.id === "fast";
           return (
@@ -343,15 +390,16 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">
                     {system.label}
                   </span>
-                  <Icon
-                    className="h-3.5 w-3.5 shrink-0"
-                    color={isFast ? "rgba(255,211,94,0.9)" : "rgba(216,201,255,0.88)"}
-                    strokeWidth={1.35}
-                  />
+                  <span className={cn(
+                    "text-[7px] font-semibold uppercase tracking-[0.16em]",
+                    isFast ? "text-amber-300/70" : "text-violet-200/65",
+                  )}>
+                    {isFast ? "Rapid" : "Structured"}
+                  </span>
                 </div>
 
                 <div className="flex min-h-0 flex-1 items-center justify-center">
-                  <SystemBrainVisual system={system.id} />
+                  <SystemProcessVisual system={system.id} />
                 </div>
 
                 <div className="h-[52px] shrink-0 border-t border-border/35 pt-2.5">
@@ -363,7 +411,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                       "min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none",
                       isFast ? "text-amber-300/75" : "text-violet-200/70",
                     )}>
-                      {isFast ? "Pattern · react" : "Analyze · reason"}
+                      {isFast ? "Detect · react" : "Compare · model · decide"}
                     </p>
                     <ChevronDown
                       className={cn(

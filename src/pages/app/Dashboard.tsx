@@ -56,7 +56,7 @@ const Dashboard = () => {
     initialSubTab === "detox" ? "detox" : "tasks"
   );
 
-  const { isActive: isPremium } = useSubscription();
+  const { isElite } = useSubscription();
 
   // Initialize cognitive baseline on app load
   useInitializeCognitiveBaseline();
@@ -192,9 +192,9 @@ const Dashboard = () => {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
                   Your data, in context
                 </p>
-                {!isPremium && (
+                {!isElite && (
                   <span className="rounded-md border border-border/40 bg-muted/30 px-2 py-1 text-[9px] font-medium text-muted-foreground">
-                    Premium
+                    Elite
                   </span>
                 )}
               </div>
@@ -217,9 +217,9 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <Button asChild variant={isPremium ? "premium" : "default"} className="h-11 w-full text-[12px] font-medium">
+              <Button asChild variant={isElite ? "premium" : "default"} className="h-11 w-full text-[12px] font-medium">
                 <Link to="/app/report">
-                  {isPremium ? "View full report" : "Explore report"}
+                  {isElite ? "View performance report" : "Unlock with Elite"}
                 </Link>
               </Button>
             </MonitorPanel>
