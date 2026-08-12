@@ -36,6 +36,7 @@ import {
   calculateGameSkillUpdate,
   DEFAULT_TRAINING_PLAN_ID,
   TRAINING_PLANS,
+  type TrainingPlanId,
 } from "@/lib/trainingPlans";
 import { 
   GameType, 
