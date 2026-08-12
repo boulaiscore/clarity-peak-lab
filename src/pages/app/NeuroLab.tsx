@@ -117,11 +117,6 @@ export default function NeuroLab() {
     }
   }, [tabFromUrl]);
 
-  // Scroll to top whenever the active sub-tab changes (parity with route changes)
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0 });
-  }, [activeTab]);
-
   // Auto-open session picker if continuing session
   const continueSession = searchParams.get("continueSession") === "true";
   const [showSessionPicker, setShowSessionPicker] = useState(continueSession);

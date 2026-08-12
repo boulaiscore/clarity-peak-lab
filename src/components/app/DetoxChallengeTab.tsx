@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
   Clock, Play, Pause, Check, Sparkles, Info, Loader2, Bell, BellOff, 
   Leaf, Footprints, ChevronDown, Zap, Brain, Target, Moon
@@ -66,6 +66,40 @@ const RECOVERY_MODES = {
     rate: "0.5×",
   },
 };
+
+function RecoveryModeVisual({ mode }: { mode: RecoveryMode }) {
+  const reduceMotion = useReducedMotion();
+
+  if (mode === "detox") {
+    return (
+      <div className="relative flex h-12 w-16 items-center justify-center" aria-hidden="true">
+        {[0, 1].map((ring) => (
+          <motion.span
+            key={ring}
+            className="absolute rounded-full border border-white/[0.14]"
+            style={{ width: 30 + ring * 14, height: 30 + ring * 14 }}
+            animate={reduceMotion ? undefined : { opacity: [0.12, 0.48, 0.12], scale: [0.88, 1.05, 0.88] }}
+            transition={reduceMotion ? undefined : { duration: 3.4, repeat: Infinity, delay: ring * 0.5, ease: "easeInOut" }}
+          />
+        ))}
+        <Leaf className="relative h-5 w-5 text-white/70" strokeWidth={1.35} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-12 w-16 items-center justify-center gap-1.5" aria-hidden="true">
+      {[0, 1, 2].map((step) => (
+        <motion.span
+          key={step}
+          className="block h-3.5 w-2 rotate-[24deg] rounded-full border border-white/55 bg-white/[0.08]"
+          animate={reduceMotion ? undefined : { opacity: [0.2, 0.85, 0.2], y: [3, -3, 3] }}
+          transition={reduceMotion ? undefined : { duration: 2.8, repeat: Infinity, delay: step * 0.36, ease: "easeInOut" }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export function DetoxChallengeTab() {
   const navigate = useNavigate();
@@ -255,17 +289,17 @@ export function DetoxChallengeTab() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* XP Explanation — collapsed, expands on info tap */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30">
-        <p className="flex-1 text-[11px] text-muted-foreground leading-snug">
+      <div className="flex items-center gap-2 border-b border-white/[0.055] px-0.5 pb-3">
+        <p className="flex-1 text-[10px] leading-snug text-muted-foreground/70">
           <span className="font-medium text-foreground">Detox & Walking</span> award XP and restore <span className="font-medium text-foreground">Recovery</span>.
         </p>
         <Popover>
           <PopoverTrigger asChild>
             <button
               aria-label="How recover XP works"
-              className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-muted-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors"
+              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground/55 transition-colors hover:bg-white/[0.05] hover:text-foreground"
             >
               <Info className="w-3.5 h-3.5" />
             </button>
@@ -379,11 +413,12 @@ export function DetoxChallengeTab() {
         <>
 
 
-          {/* Recovery Mode Selector — compact metric-led cards */}
+          {/* Recovery modes use the same card system as Quality Time. */}
           <div className="grid grid-cols-2 gap-3">
             {(Object.values(RECOVERY_MODES) as typeof RECOVERY_MODES[RecoveryMode][]).map((mode) => {
               const isSelected = selectedMode === mode.id;
               const projectedRecovery = getRecoveryImpact(selectedDuration, mode.id);
+              const ModeIcon = mode.id === "detox" ? Leaf : Footprints;
               
               return (
                 <button
@@ -391,48 +426,36 @@ export function DetoxChallengeTab() {
                   onClick={() => setSelectedMode(mode.id)}
                   aria-pressed={isSelected}
                   className={cn(
-                    "group relative min-h-[148px] overflow-hidden rounded-[16px] border p-4 text-left transition-all duration-200",
+                    "group relative min-h-[168px] w-full overflow-hidden rounded-[18px] border bg-[#0b0d10] p-4 text-left transition-all duration-200",
                     isSelected
-                      ? "border-white/[0.16] bg-white/[0.055] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)]"
-                      : "border-white/[0.06] bg-white/[0.022] hover:border-white/[0.11] hover:bg-white/[0.035]"
+                      ? "border-white/[0.22] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
+                      : "border-white/[0.09] hover:border-white/[0.2]"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="rounded-md border border-white/[0.08] px-2 py-1 text-[9px] font-semibold tracking-[0.14em] text-foreground/60">
-                      {mode.code}
+                  <div className="relative flex items-start justify-between">
+                    <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                      {mode.id === "detox" ? "Detox" : "Walk"}
                     </span>
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        "mt-1 flex h-4 w-4 items-center justify-center rounded-full border",
-                        isSelected ? "border-foreground/70" : "border-white/[0.16]",
-                      )}
-                    >
-                      {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-foreground" />}
-                    </span>
+                    <ModeIcon className="h-3.5 w-3.5 text-white/55" strokeWidth={1.4} />
                   </div>
 
-                  <div className="mt-4">
-                    <h4 className="text-[13px] font-semibold tracking-tight text-foreground/95">
-                      {mode.displayLabel}
-                    </h4>
-                    <p className="mt-1 text-[10px] leading-snug text-muted-foreground/65">
-                      {mode.id === "detox" ? "No digital input" : "Light movement · no media"}
-                    </p>
+                  <div className="relative mt-1 flex h-[68px] items-center justify-center">
+                    <RecoveryModeVisual mode={mode.id} />
                   </div>
 
-                  <div className="mt-4 flex items-end justify-between border-t border-white/[0.055] pt-3">
-                    <div>
-                      <span className="text-[22px] font-semibold leading-none tabular-nums text-foreground">
-                        +{projectedRecovery}
+                  <div className="relative border-t border-white/[0.055] pt-3">
+                    <div className="flex items-end justify-between gap-2">
+                      <div>
+                        <h4 className="text-[13px] font-semibold tracking-tight text-white">
+                          {mode.displayLabel}
+                        </h4>
+                        <p className="mt-0.5 text-[9px] text-white/50">
+                          {mode.id === "detox" ? "No digital input" : "Light movement · no media"}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-semibold tabular-nums text-white/75">
+                        +{projectedRecovery} <span className="text-[8px] tracking-[0.1em] text-white/35">REC</span>
                       </span>
-                      <span className="ml-1 text-[9px] font-semibold uppercase tracking-[0.13em] text-muted-foreground/55">
-                        REC
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-medium tabular-nums text-foreground/65">{mode.rate}</p>
-                      <p className="mt-0.5 text-[8px] uppercase tracking-[0.12em] text-muted-foreground/45">rate</p>
                     </div>
                   </div>
                 </button>
