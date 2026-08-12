@@ -81,8 +81,16 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const comparison = getComparison(cognitiveAge, chronologicalAge);
   const ageDifference = chronologicalAge ? cognitiveAge - chronologicalAge : delta;
   const direction = comparison?.direction ?? (ageDifference < -0.05 ? "younger" : ageDifference > 0.05 ? "older" : "neutral");
-  const accent = direction === "older" ? "hsl(var(--area-fast))" : "hsl(var(--success))";
-  const secondaryAccent = direction === "older" ? "hsl(var(--recovery))" : "hsl(var(--recovery))";
+  const accent = direction === "older"
+    ? "hsl(var(--destructive))"
+    : direction === "younger"
+      ? "hsl(var(--success))"
+      : "hsl(var(--recovery))";
+  const secondaryAccent = direction === "older"
+    ? "hsl(var(--area-fast))"
+    : direction === "younger"
+      ? "hsl(var(--recovery))"
+      : "hsl(var(--success))";
   const pulseDuration = direction === "neutral" ? 3.2 : 2.75;
   const signalStride = direction === "neutral" ? 12 : 9;
 
