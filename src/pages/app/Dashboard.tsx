@@ -100,11 +100,6 @@ const Dashboard = () => {
   return (
     <AppShell>
       <div className="mx-auto max-w-md px-4 pb-6 pt-4">
-        <header className="mb-4 flex items-center justify-between px-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Monitor</p>
-          <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45">Today</p>
-        </header>
-
         {/* Baseline Status - shows only when calibration is needed */}
         <BaselineStatusCard />
 
