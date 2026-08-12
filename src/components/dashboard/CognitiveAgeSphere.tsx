@@ -310,12 +310,22 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
           <path
             d="M140 69 C171 66 195 82 201 107 C207 133 188 154 158 160 C126 166 94 153 82 130 C69 105 82 82 106 73 C116 69 128 68 140 69Z"
             fill="hsl(var(--background))"
-            fillOpacity="0.7"
+            fillOpacity="1"
             stroke={`url(#${gradientId})`}
             strokeWidth="0.75"
-            strokeOpacity="0.2"
+            strokeOpacity="0.12"
           />
         </motion.svg>
+
+        {/*
+          Keep the reading area optically still. The animated neural system is
+          deliberately confined to the outer ring, as in WHOOP's Age surface,
+          so no node, connection or glow can compete with the value.
+        */}
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[5] h-[108px] w-[184px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.045] bg-background shadow-[0_0_26px_16px_hsl(var(--background)),inset_0_1px_0_rgba(255,255,255,0.025)]"
+          aria-hidden="true"
+        />
 
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center pb-1 text-center">
           <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/55">Cognitive Age</span>
