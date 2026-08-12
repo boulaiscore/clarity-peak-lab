@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { NEURO_LAB_AREAS, NeuroLabArea } from "@/lib/neuroLab";
 import { ReasonTabContent } from "@/components/lab";
-import { ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowRight, ChevronRight, Dumbbell, BookMarked, CheckCircle2, Zap, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumGating } from "@/hooks/usePremiumGating";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
@@ -26,6 +25,7 @@ import { WeeklyGoalCard } from "@/components/dashboard/WeeklyGoalCard";
 import { DetoxChallengeTab } from "@/components/app/DetoxChallengeTab";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { LoomaTrainingLoop } from "@/components/app/LoomaTrainingLoop";
+import { deriveDailyCognitiveState } from "@/lib/dailyCognitiveState";
 
 // Map session types to recommended game areas
 const SESSION_TO_AREAS: Record<string, NeuroLabArea[]> = {
@@ -44,6 +44,7 @@ function TasksTabContent() {
 }
 
 export default function NeuroLab() {
+  const modeSectionRef = useRef<HTMLDivElement>(null);
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -56,9 +57,7 @@ export default function NeuroLab() {
   const {
     isPremium,
     isAreaLocked,
-    canStartSession,
-    remainingSessions,
-    maxDailySessions
+    canStartSession
   } = usePremiumGating();
   const {
     isCalibrated,
@@ -72,10 +71,8 @@ export default function NeuroLab() {
   const { data: streakData } = useDailyTrainingStreak(user?.id);
   const {
     getNextSession,
-    completedSessionTypes,
     sessionsCompleted,
     sessionsRequired,
-    plan,
     weeklyXPTarget
   } = useWeeklyProgress();
   // Use capped progress for the Weekly Load total (excess beyond category targets doesn't count)
@@ -85,8 +82,9 @@ export default function NeuroLab() {
   const weeklyLoadXP = cappedTotalXP;
 
   // Recovery for dynamic guidance
-  const { recoveryEffective } = useRecoveryEffective();
-  const { rq } = useReasoningQuality();
+  const { recoveryEffective, isLoading: recoveryLoading } = useRecoveryEffective();
+  const { sharpness, readiness, isLoading: metricsLoading } = useTodayMetrics();
+  const { rq, isLoading: reasoningLoading } = useReasoningQuality();
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"area" | "session-limit" | "three-day-streak">("area");
   const [paywallFeatureName, setPaywallFeatureName] = useState<string>("");
@@ -169,12 +167,6 @@ export default function NeuroLab() {
       setPendingAreaId(null);
     }
   };
-  const handleStartRecommended = () => {
-    if (nextSession && recommendedAreas.length > 0) {
-      setShowSessionPicker(true);
-    }
-  };
-
   // SANITY CHECK: Block Games and Tasks if baseline not completed
   if (!baselineLoading && !isCalibrated) {
     return <AppShell>
@@ -202,8 +194,96 @@ export default function NeuroLab() {
       </AppShell>;
   }
   return <AppShell>
-      {({ passiveFeatures }) => <>
+      {({ passiveFeatures, isLoading: passiveLoading }) => <>
       <div className="mx-auto max-w-md px-5 pb-4 pt-8">
+        {/* One clear daily action, using the same visual hierarchy as Home. */}
+        {(() => {
+          const guidance = deriveDailyCognitiveState({
+            readiness,
+            recovery: recoveryEffective,
+            sharpness,
+            reasoningQuality: rq,
+            healthScore: passiveFeatures?.coachContext.healthScore,
+            attentionLoadRatio: passiveFeatures?.coachContext.attentionLoadRatio,
+            scheduleLoadRatio: passiveFeatures?.coachContext.scheduleLoadRatio,
+          });
+          const isGuidanceLoading = recoveryLoading || metricsLoading || reasoningLoading || passiveLoading;
+          const handleGuidanceAction = () => {
+            const recommendedTab = guidance.actionRoute.includes("tab=detox")
+              ? "detox"
+              : guidance.actionRoute.includes("tab=tasks")
+                ? "tasks"
+                : guidance.actionRoute.includes("tab=games")
+                  ? "games"
+                  : null;
+            if (recommendedTab) {
+              setActiveTab(recommendedTab);
+              requestAnimationFrame(() => {
+                modeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              });
+              return;
+            }
+            navigate(guidance.actionRoute);
+          };
+
+          return (
+            <section className="mb-5" aria-labelledby="lab-plan-title">
+              <h1 id="lab-plan-title" className="mb-2.5 px-0.5 text-[15px] font-semibold tracking-tight text-foreground">
+                Today&apos;s protocol
+              </h1>
+              <div className="rounded-[22px] bg-gradient-to-br from-violet-300/45 via-sky-300/25 to-foreground/15 p-px shadow-[0_14px_36px_rgba(0,0,0,0.18)]">
+                <button
+                  type="button"
+                  onClick={handleGuidanceAction}
+                  disabled={isGuidanceLoading}
+                  className="w-full rounded-[21px] bg-card/95 px-4 py-[18px] text-left transition-colors hover:bg-card active:scale-[0.995] disabled:pointer-events-none"
+                >
+                  {isGuidanceLoading ? (
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-2.5 w-28 rounded bg-muted" />
+                      <div className="h-5 w-2/3 rounded bg-muted" />
+                      <div className="h-3 w-full rounded bg-muted/70" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-foreground/15 bg-foreground/[0.04] text-[10px] font-semibold text-foreground/90">
+                            L
+                          </span>
+                          <span className="text-[9px] font-semibold uppercase tracking-[0.19em] text-foreground/75">
+                            Recommended in Lab
+                          </span>
+                        </div>
+                        <span className="text-[8px] font-medium uppercase tracking-[0.14em] text-muted-foreground/55">
+                          {guidance.loadLabel} load
+                        </span>
+                      </div>
+
+                      <div className="mt-4 pr-3">
+                        <p className="text-[17px] font-semibold leading-tight tracking-tight text-foreground/95">
+                          {guidance.headline}
+                        </p>
+                        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/78">
+                          {guidance.summary}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
+                        <span className="text-[9px] text-muted-foreground/60">Based on today&apos;s state</span>
+                        <span className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/85">
+                          {guidance.actionLabel}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </button>
+              </div>
+            </section>
+          );
+        })()}
+
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && <motion.div initial={{
         opacity: 0,
@@ -237,17 +317,21 @@ export default function NeuroLab() {
         </div>
 
         {/* Training Section */}
-        <div className="mt-5 border-t border-border/40 pt-5">
+        <div ref={modeSectionRef} className="mt-5 scroll-mt-4">
+          <div className="mb-2.5 flex items-baseline justify-between px-0.5">
+            <h2 className="text-[15px] font-semibold tracking-tight text-foreground">Choose your mode</h2>
+            <span className="text-[9px] text-muted-foreground/55">Train · prime · recover</span>
+          </div>
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4 grid h-10 w-full grid-cols-3 rounded-[14px] border border-border/40 bg-card/40 p-1">
-              <TabsTrigger value="games" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+            <TabsList className="mb-4 grid h-11 w-full grid-cols-3 rounded-xl bg-muted/30 p-1">
+              <TabsTrigger value="games" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 Train
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+              <TabsTrigger value="tasks" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 Quality Time
               </TabsTrigger>
-              <TabsTrigger value="detox" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+              <TabsTrigger value="detox" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 Recover
               </TabsTrigger>
             </TabsList>
