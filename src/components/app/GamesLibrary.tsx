@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
-import { useState } from "react";
+import { useId, useState } from "react";
 import s1Bg from "@/assets/s1-bg.webp";
 import s2Bg from "@/assets/s2-bg.webp";
 
@@ -71,147 +71,192 @@ const SYSTEMS = [
   },
 ];
 
+const COMPACT_BRAIN_NODES = [
+  { x: 22, y: 34, r: 1.15 }, { x: 27, y: 22, r: 0.85 }, { x: 38, y: 15, r: 1.2 },
+  { x: 51, y: 13, r: 0.8 }, { x: 64, y: 15, r: 1.1 }, { x: 77, y: 14, r: 0.8 },
+  { x: 90, y: 20, r: 1.15 }, { x: 98, y: 30, r: 0.85 }, { x: 96, y: 40, r: 1.1 },
+  { x: 84, y: 47, r: 0.8 }, { x: 71, y: 50, r: 1.15 }, { x: 58, y: 46, r: 0.8 },
+  { x: 44, y: 49, r: 1.1 }, { x: 31, y: 44, r: 0.85 }, { x: 37, y: 29, r: 1.25 },
+  { x: 51, y: 24, r: 0.85 }, { x: 65, y: 27, r: 1.15 }, { x: 81, y: 27, r: 0.85 },
+  { x: 48, y: 38, r: 1.05 }, { x: 63, y: 39, r: 0.8 }, { x: 78, y: 40, r: 1.2 },
+];
+
+const COMPACT_BRAIN_CONNECTIONS: [number, number][] = [
+  [0, 1], [0, 13], [0, 14], [1, 2], [1, 14], [2, 3], [2, 14], [2, 15],
+  [3, 4], [3, 15], [4, 5], [4, 15], [4, 16], [5, 6], [5, 16], [6, 7],
+  [6, 17], [7, 8], [7, 17], [8, 9], [8, 20], [9, 10], [9, 20], [10, 11],
+  [10, 19], [11, 12], [11, 18], [11, 19], [12, 13], [12, 18], [13, 18],
+  [14, 15], [14, 18], [15, 16], [15, 18], [16, 17], [16, 19], [17, 20],
+  [18, 19], [19, 20], [14, 19], [16, 20],
+];
+
 function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
   const reduceMotion = useReducedMotion();
   const isFast = system === "fast";
-  const fastNodes = [
-    { cx: 17, cy: 42, delay: 0 },
-    { cx: 38, cy: 29, delay: 0.18 },
-    { cx: 56, cy: 37, delay: 0.34 },
-    { cx: 79, cy: 22, delay: 0.5 },
-    { cx: 101, cy: 31, delay: 0.66 },
-  ];
-  const slowNodes = [
-    { cx: 23, cy: 42, label: "01", delay: 0 },
-    { cx: 57, cy: 21, label: "02", delay: 1.35 },
-    { cx: 92, cy: 40, label: "03", delay: 2.7 },
-  ];
+  const id = useId().replace(/:/g, "");
+  const gradientId = `${id}-${isFast ? "fast" : "slow"}`;
+  const glowId = `${id}-glow`;
+  const pulseDuration = isFast ? 1.8 : 4.8;
+  const signalStride = isFast ? 5 : 8;
 
   return (
     <div className="pointer-events-none relative h-[64px] w-[116px] shrink-0 overflow-hidden" aria-hidden="true">
+      <motion.div
+        className={cn(
+          "absolute inset-x-3 inset-y-2 rounded-[48%] blur-[9px]",
+          isFast
+            ? "bg-[radial-gradient(ellipse_at_center,hsl(var(--area-fast)/0.42),hsl(var(--area-fast)/0.09)_58%,transparent_76%)]"
+            : "bg-[radial-gradient(ellipse_at_center,hsl(var(--area-slow)/0.42),hsl(var(--area-slow)/0.09)_58%,transparent_76%)]",
+        )}
+        animate={reduceMotion ? undefined : { opacity: [0.28, 0.72, 0.28], scale: [0.9, 1.12, 0.9] }}
+        transition={reduceMotion ? undefined : { duration: pulseDuration, repeat: Infinity, ease: "easeInOut" }}
+      />
       <motion.img
         src={isFast ? s1Bg : s2Bg}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-50 mix-blend-screen"
+        className="absolute inset-0 h-full w-full object-cover object-center opacity-[0.2] mix-blend-screen contrast-125 saturate-75"
         style={{
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 36%, transparent 78%)",
-          maskImage: "radial-gradient(ellipse at center, black 36%, transparent 78%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 34%, transparent 76%)",
+          maskImage: "radial-gradient(ellipse at center, black 34%, transparent 76%)",
         }}
-        animate={reduceMotion
-          ? undefined
-          : isFast
-            ? {
-                opacity: [0.42, 0.58, 0.42],
-                scale: [0.97, 1.015, 0.97],
-                filter: [
-                  "brightness(0.82) saturate(0.72) contrast(1.3)",
-                  "brightness(1.04) saturate(0.92) contrast(1.38)",
-                  "brightness(0.82) saturate(0.72) contrast(1.3)",
-                ],
-              }
-            : {
-                opacity: [0.38, 0.5, 0.38],
-                scale: [0.98, 1.01, 0.98],
-                filter: [
-                  "brightness(0.78) saturate(0.68) contrast(1.32)",
-                  "brightness(0.98) saturate(0.86) contrast(1.38)",
-                  "brightness(0.78) saturate(0.68) contrast(1.32)",
-                ],
-              }}
-        transition={reduceMotion
-          ? undefined
-          : isFast
-            ? { duration: 1.7, repeat: Infinity, ease: "easeInOut" }
-            : { duration: 5.4, repeat: Infinity, ease: "easeInOut" }}
+        animate={reduceMotion ? undefined : { opacity: [0.14, 0.28, 0.14], scale: [0.98, 1.02, 0.98] }}
+        transition={reduceMotion ? undefined : { duration: pulseDuration, repeat: Infinity, ease: "easeInOut" }}
       />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,#0b0d10_90%)]" />
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 116 64" fill="none">
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={isFast ? "hsl(var(--area-fast))" : "hsl(var(--area-slow))"} stopOpacity="0.68" />
+            <stop offset="100%" stopColor={isFast ? "hsl(var(--area-fast))" : "hsl(var(--area-slow))"} />
+          </linearGradient>
+          <filter id={glowId} x="-35%" y="-35%" width="170%" height="170%">
+            <feGaussianBlur stdDeviation="1.15" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
 
-      {isFast ? (
-        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 116 64" fill="none">
-          <path
-            d="M17 42 L38 29 L56 37 L79 22 L101 31"
-            stroke="rgba(255,211,94,0.18)"
-            strokeWidth="0.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <motion.path
-            d="M17 42 L38 29 L56 37 L79 22 L101 31"
-            stroke="rgba(255,221,116,0.92)"
-            strokeWidth="1.05"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.62 : 0 }}
-            animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0, 0.92, 0] }}
-            transition={reduceMotion ? undefined : { duration: 1.55, repeat: Infinity, ease: "easeOut" }}
-          />
-          {fastNodes.map((node) => (
-            <motion.circle
-              key={`${node.cx}-${node.cy}`}
-              cx={node.cx}
-              cy={node.cy}
-              r="1.25"
-              fill="rgba(255,226,137,0.96)"
-              animate={reduceMotion ? undefined : { opacity: [0.22, 1, 0.22], r: [0.8, 1.55, 0.8] }}
-              transition={reduceMotion ? undefined : { duration: 1.3, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
-            />
-          ))}
-        </svg>
-      ) : (
-        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 116 64" fill="none">
-          <motion.circle
-            cx="57"
-            cy="33"
-            r="18"
-            stroke="rgba(216,201,255,0.2)"
-            strokeWidth="0.7"
-            animate={reduceMotion ? undefined : { opacity: [0.14, 0.38, 0.14], r: [16.5, 19.5, 16.5] }}
-            transition={reduceMotion ? undefined : { duration: 5.4, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <path
-            d="M23 42 C34 31 45 26 57 21 C68 25 80 31 92 40"
-            stroke="rgba(216,201,255,0.18)"
-            strokeWidth="0.8"
-            strokeLinecap="round"
-          />
-          <motion.path
-            d="M23 42 C34 31 45 26 57 21 C68 25 80 31 92 40"
-            stroke="rgba(226,216,255,0.78)"
-            strokeWidth="0.9"
-            strokeLinecap="round"
-            strokeDasharray="2.5 3.5"
-            animate={reduceMotion ? undefined : { pathLength: [0.05, 1, 1], opacity: [0.16, 0.82, 0.3] }}
-            transition={reduceMotion ? undefined : { duration: 5.4, repeat: Infinity, ease: "easeInOut" }}
-          />
-          {slowNodes.map((node) => (
-            <g key={node.label}>
-              <motion.circle
-                cx={node.cx}
-                cy={node.cy}
-                r="3.8"
-                fill="rgba(11,13,16,0.82)"
-                stroke="rgba(226,216,255,0.52)"
-                strokeWidth="0.65"
-                animate={reduceMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
-                transition={reduceMotion ? undefined : { duration: 2.7, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
-              />
-              <motion.text
-                x={node.cx}
-                y={node.cy + 1.55}
-                textAnchor="middle"
-                fontSize="4.2"
-                fontWeight="600"
-                letterSpacing="0.15"
-                fill="rgba(238,232,255,0.9)"
-                animate={reduceMotion ? undefined : { opacity: [0.42, 1, 0.42] }}
-                transition={reduceMotion ? undefined : { duration: 2.7, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
+        <path
+          d="M17 35 C17 21 29 12 45 11 C53 8 63 9 70 13 C86 11 100 20 101 33 C102 43 93 49 81 50 C72 54 63 53 57 48 C46 52 33 49 27 43 C20 42 17 39 17 35 Z"
+          stroke={isFast ? "hsl(var(--area-fast))" : "hsl(var(--area-slow))"}
+          strokeWidth="0.65"
+          opacity="0.18"
+        />
+
+        <g filter={`url(#${glowId})`}>
+          {COMPACT_BRAIN_CONNECTIONS.map(([from, to], index) => {
+            const start = COMPACT_BRAIN_NODES[from];
+            const end = COMPACT_BRAIN_NODES[to];
+            const baseOpacity = 0.12 + (index % 4) * 0.045;
+            return (
+              <line
+                key={`${from}-${to}-${index}`}
+                x1={start.x}
+                y1={start.y}
+                x2={end.x}
+                y2={end.y}
+                stroke={`url(#${gradientId})`}
+                strokeWidth={index % 6 === 0 ? 0.65 : 0.45}
+                opacity={baseOpacity}
               >
-                {node.label}
-              </motion.text>
+                {!reduceMotion && index % (isFast ? 4 : 6) === 0 && (
+                  <animate
+                    attributeName="opacity"
+                    values={`${(baseOpacity * 0.45).toFixed(2)};${Math.min(0.72, baseOpacity * 2.7).toFixed(2)};${(baseOpacity * 0.45).toFixed(2)}`}
+                    dur={`${(pulseDuration + (index % 3) * 0.32).toFixed(2)}s`}
+                    begin={`${((index % 5) * 0.2).toFixed(2)}s`}
+                    repeatCount="indefinite"
+                  />
+                )}
+              </line>
+            );
+          })}
+
+          {!reduceMotion && COMPACT_BRAIN_CONNECTIONS.map(([from, to], index) => {
+            if (index % signalStride !== 0) return null;
+            const start = COMPACT_BRAIN_NODES[from];
+            const end = COMPACT_BRAIN_NODES[to];
+            const duration = pulseDuration * 0.86 + (index % 3) * 0.25;
+            return (
+              <circle key={`signal-${from}-${to}-${index}`} r={isFast ? 0.9 : 0.75} fill={`url(#${gradientId})`}>
+                <animateMotion
+                  path={`M ${start.x} ${start.y} L ${end.x} ${end.y}`}
+                  dur={`${duration.toFixed(2)}s`}
+                  begin={`${((index % 6) * 0.22).toFixed(2)}s`}
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  values="0;0.95;0"
+                  dur={`${duration.toFixed(2)}s`}
+                  begin={`${((index % 6) * 0.22).toFixed(2)}s`}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            );
+          })}
+
+          {COMPACT_BRAIN_NODES.map((node, index) => (
+            <g key={`${node.x}-${node.y}`}>
+              {index % (isFast ? 5 : 7) === 0 && (
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={node.r * 2.4}
+                  fill="none"
+                  stroke={`url(#${gradientId})`}
+                  strokeWidth="0.45"
+                  opacity="0.2"
+                >
+                  {!reduceMotion && (
+                    <>
+                      <animate
+                        attributeName="r"
+                        values={`${(node.r * 1.6).toFixed(2)};${(node.r * 3.4).toFixed(2)};${(node.r * 1.6).toFixed(2)}`}
+                        dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
+                        begin={`${((index % 5) * 0.2).toFixed(2)}s`}
+                        repeatCount="indefinite"
+                      />
+                      <animate
+                        attributeName="opacity"
+                        values="0.06;0.48;0.06"
+                        dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
+                        begin={`${((index % 5) * 0.2).toFixed(2)}s`}
+                        repeatCount="indefinite"
+                      />
+                    </>
+                  )}
+                </circle>
+              )}
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r={node.r}
+                fill={`url(#${gradientId})`}
+                opacity={0.62 + (index % 3) * 0.1}
+              >
+                {!reduceMotion && index % (isFast ? 2 : 3) === 0 && (
+                  <>
+                    <animate
+                      attributeName="r"
+                      values={`${(node.r * 0.85).toFixed(2)};${(node.r * 1.42).toFixed(2)};${(node.r * 0.85).toFixed(2)}`}
+                      dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
+                      begin={`${((index % 6) * 0.16).toFixed(2)}s`}
+                      repeatCount="indefinite"
+                    />
+                    <animate
+                      attributeName="opacity"
+                      values="0.42;0.95;0.42"
+                      dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
+                      begin={`${((index % 6) * 0.16).toFixed(2)}s`}
+                      repeatCount="indefinite"
+                    />
+                  </>
+                )}
+              </circle>
             </g>
           ))}
-        </svg>
-      )}
+        </g>
+      </svg>
     </div>
   );
 }
