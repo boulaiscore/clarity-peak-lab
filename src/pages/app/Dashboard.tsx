@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { OverviewCarousel } from "@/components/dashboard/OverviewCarousel";
 import { TrainingTasks } from "@/components/dashboard/TrainingTasks";
@@ -9,20 +9,12 @@ import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 import { CognitiveRhythmPanel } from "@/components/dashboard/CognitiveRhythmPanel";
 import {
-  MonitorPanel,
   MonitorSectionHeader,
   MonitorSegmentedControl,
 } from "@/components/dashboard/MonitorUI";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useInitializeCognitiveBaseline } from "@/hooks/useInitializeCognitiveBaseline";
-import { useSubscription } from "@/hooks/useSubscription";
-
-const PRIMARY_TABS = [
-  { value: "insights", label: "Overview" },
-  { value: "report", label: "Report" },
-] as const;
 
 const ANALYTICS_TABS = [
   { value: "trends", label: "Trends" },
@@ -39,12 +31,8 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
 
   // Initialize tabs from URL params
-  const initialTab = searchParams.get("tab") as "overview" | "training" | "report" | null;
   const initialSubTab = searchParams.get("subtab") as "trends" | "games" | "tasks" | "detox" | null;
 
-  const [activeTab, setActiveTab] = useState<"insights" | "report">(
-    initialTab === "report" ? "report" : "insights"
-  );
   const [analyticsTab, setAnalyticsTab] = useState<"trends" | "activity">(
     initialSubTab === "trends" ? "trends" :
     initialSubTab && ["games", "tasks", "detox"].includes(initialSubTab) ? "activity" : "trends"
@@ -54,8 +42,6 @@ const Dashboard = () => {
     initialSubTab === "tasks" ? "tasks" :
     initialSubTab === "detox" ? "detox" : "tasks"
   );
-
-  const { isElite } = useSubscription();
 
   // Initialize cognitive baseline on app load
   useInitializeCognitiveBaseline();
@@ -119,105 +105,51 @@ const Dashboard = () => {
           <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/45">Today</p>
         </header>
 
-        <MonitorSegmentedControl
-          ariaLabel="Monitor view"
-          value={activeTab}
-          options={PRIMARY_TABS}
-          onChange={setActiveTab}
-        />
-
         {/* Baseline Status - shows only when calibration is needed */}
-        <div className="mt-3"><BaselineStatusCard /></div>
+        <BaselineStatusCard />
 
-        {activeTab === "insights" ? (
-          <div className="mt-6 space-y-7">
-            <OverviewCarousel
-              thinkingScores={thinkingScores}
-            />
+        <div className="mt-5 space-y-7">
+          <OverviewCarousel
+            thinkingScores={thinkingScores}
+          />
 
-            <CognitiveRhythmPanel />
+          <CognitiveRhythmPanel />
 
-            <section className="space-y-3">
-              <MonitorSectionHeader
-                eyebrow="History"
-                title="Signals over time"
-              />
-
-              <MonitorSegmentedControl
-                ariaLabel="History view"
-                value={analyticsTab}
-                options={ANALYTICS_TABS}
-                onChange={setAnalyticsTab}
-              />
-
-              {analyticsTab === "trends" ? (
-                <MetricTrendCharts />
-              ) : (
-                <div className="space-y-4">
-                  <MonitorSegmentedControl
-                    ariaLabel="Activity type"
-                    value={activitySubTab}
-                    options={ACTIVITY_TABS}
-                    onChange={setActivitySubTab}
-                  />
-
-                  {activitySubTab === "tasks" ? (
-                    <TrainingTasks />
-                  ) : activitySubTab === "detox" ? (
-                    <DetoxStats />
-                  ) : (
-                    <GamesStats />
-                  )}
-                </div>
-              )}
-            </section>
-          </div>
-        ) : (
-          <section className="mt-6 space-y-4">
+          <section className="space-y-3">
             <MonitorSectionHeader
-              eyebrow="Report"
-              title="Personal performance report"
-              description="Multi-week direction, context and next actions."
+              eyebrow="History"
+              title="Signals over time"
             />
 
-            <MonitorPanel className="p-5">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
-                  Your data, in context
-                </p>
-                {!isElite && (
-                  <span className="rounded-md border border-border/40 bg-muted/30 px-2 py-1 text-[9px] font-medium text-muted-foreground">
-                    Elite
-                  </span>
+            <MonitorSegmentedControl
+              ariaLabel="History view"
+              value={analyticsTab}
+              options={ANALYTICS_TABS}
+              onChange={setAnalyticsTab}
+            />
+
+            {analyticsTab === "trends" ? (
+              <MetricTrendCharts />
+            ) : (
+              <div className="space-y-4">
+                <MonitorSegmentedControl
+                  ariaLabel="Activity type"
+                  value={activitySubTab}
+                  options={ACTIVITY_TABS}
+                  onChange={setActivitySubTab}
+                />
+
+                {activitySubTab === "tasks" ? (
+                  <TrainingTasks />
+                ) : activitySubTab === "detox" ? (
+                  <DetoxStats />
+                ) : (
+                  <GamesStats />
                 )}
               </div>
-
-              <h3 className="mt-4 text-lg font-semibold tracking-tight text-foreground">
-                See what is changing and what to do next.
-              </h3>
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                Review multi-week metric direction, supporting activity and practical next steps in one consistent summary.
-              </p>
-
-              <div className="my-5 grid grid-cols-2 gap-3 border-y border-border/25 py-4">
-                <div>
-                  <p className="text-[10px] font-medium text-foreground">Performance trends</p>
-                  <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">Your baseline and recent direction</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium text-foreground">Next actions</p>
-                  <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">Suggestions grounded in your activity</p>
-                </div>
-              </div>
-
-              <Button asChild variant={isElite ? "premium" : "default"} className="h-11 w-full text-[12px] font-medium">
-                <Link to="/app/report">
-                  {isElite ? "View performance report" : "Unlock with Elite"}
-                </Link>
-              </Button>
-            </MonitorPanel>
+            )}
           </section>
-        )}
+        </div>
       </div>
     </AppShell>
   );
