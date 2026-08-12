@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, FileText, Download, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface WeeklyCompleteCelebrationProps {
   show: boolean;
@@ -13,6 +14,7 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
   const [phase, setPhase] = useState<"celebration" | "report">("celebration");
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
+  const { isElite } = useSubscription();
 
   useEffect(() => {
     if (show) {
@@ -36,7 +38,7 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
   const handleViewReport = () => {
     setIsVisible(false);
     onComplete?.();
-    navigate("/app/report");
+    navigate(isElite ? "/app/report" : "/app/subscription");
   };
 
   return (
@@ -168,9 +170,13 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
                     >
-                      <h3 className="text-xl font-bold">Report Ready!</h3>
+                      <h3 className="text-xl font-bold">
+                        {isElite ? "Performance report updated" : "Continue with Elite"}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        Your Cognitive Intelligence Report is now available
+                        {isElite
+                          ? "This week's response is now part of your longitudinal record."
+                          : "Turn state, Health context and training response into one personal report."}
                       </p>
                     </motion.div>
                   </div>
@@ -204,7 +210,7 @@ export function WeeklyCompleteCelebration({ show, onComplete }: WeeklyCompleteCe
                       className="w-full gap-2"
                       onClick={handleViewReport}
                     >
-                      View Report
+                      {isElite ? "View Report" : "View Elite"}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                     <Button 
