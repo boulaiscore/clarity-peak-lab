@@ -334,7 +334,7 @@ export function WeeklyGoalCard({
       }} aria-busy={isSyncing} className="space-y-3">
 
           <CollapsibleTrigger className="w-full">
-            <div className="rounded-[22px] border border-white/[0.065] bg-gradient-to-b from-white/[0.042] to-white/[0.015] px-5 pb-4 pt-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+            <div className="px-1 pb-2 pt-2">
               <div className="flex flex-col items-center">
                 <div className="relative h-[150px] w-[250px] max-w-full">
                   <svg viewBox="0 0 240 140" className="h-full w-full" aria-hidden="true">
