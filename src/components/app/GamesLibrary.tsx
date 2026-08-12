@@ -74,134 +74,143 @@ const SYSTEMS = [
 function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
   const reduceMotion = useReducedMotion();
   const isFast = system === "fast";
+  const fastNodes = [
+    { cx: 17, cy: 42, delay: 0 },
+    { cx: 38, cy: 29, delay: 0.18 },
+    { cx: 56, cy: 37, delay: 0.34 },
+    { cx: 79, cy: 22, delay: 0.5 },
+    { cx: 101, cy: 31, delay: 0.66 },
+  ];
+  const slowNodes = [
+    { cx: 23, cy: 42, label: "01", delay: 0 },
+    { cx: 57, cy: 21, label: "02", delay: 1.35 },
+    { cx: 92, cy: 40, label: "03", delay: 2.7 },
+  ];
 
   return (
     <div className="pointer-events-none relative h-[64px] w-[116px] shrink-0 overflow-hidden" aria-hidden="true">
       <motion.img
         src={isFast ? s1Bg : s2Bg}
         alt=""
-        className={cn(
-          "absolute inset-0 h-full w-full object-cover object-center",
-          isFast
-            ? "opacity-[0.78] saturate-[1.18] contrast-110"
-            : "opacity-[0.72] saturate-[1.16] contrast-110",
-        )}
+        className="absolute inset-0 h-full w-full object-cover object-center opacity-50 mix-blend-screen"
         style={{
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 42%, transparent 82%)",
-          maskImage: "radial-gradient(ellipse at center, black 42%, transparent 82%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 36%, transparent 78%)",
+          maskImage: "radial-gradient(ellipse at center, black 36%, transparent 78%)",
         }}
         animate={reduceMotion
           ? undefined
           : isFast
-            ? { scale: [0.96, 1.025, 0.96], filter: ["brightness(0.9) saturate(1.08)", "brightness(1.2) saturate(1.3)", "brightness(0.9) saturate(1.08)"] }
-            : { scale: [0.97, 1.015, 0.97], filter: ["brightness(0.86) saturate(1.06)", "brightness(1.12) saturate(1.22)", "brightness(0.86) saturate(1.06)"] }}
+            ? {
+                opacity: [0.42, 0.58, 0.42],
+                scale: [0.97, 1.015, 0.97],
+                filter: [
+                  "brightness(0.82) saturate(0.72) contrast(1.3)",
+                  "brightness(1.04) saturate(0.92) contrast(1.38)",
+                  "brightness(0.82) saturate(0.72) contrast(1.3)",
+                ],
+              }
+            : {
+                opacity: [0.38, 0.5, 0.38],
+                scale: [0.98, 1.01, 0.98],
+                filter: [
+                  "brightness(0.78) saturate(0.68) contrast(1.32)",
+                  "brightness(0.98) saturate(0.86) contrast(1.38)",
+                  "brightness(0.78) saturate(0.68) contrast(1.32)",
+                ],
+              }}
         transition={reduceMotion
           ? undefined
           : isFast
-            ? { duration: 1.15, repeat: Infinity, ease: "easeInOut" }
-            : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
+            ? { duration: 1.7, repeat: Infinity, ease: "easeInOut" }
+            : { duration: 5.4, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_38%,#0b0d10_92%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,#0b0d10_90%)]" />
 
       {isFast ? (
-        <>
-          <motion.div
-            className="absolute left-[24%] top-[22%] h-9 w-16 rounded-full bg-amber-300/20 blur-lg"
-            animate={reduceMotion ? undefined : { opacity: [0.22, 0.72, 0.22], scale: [0.86, 1.18, 0.86] }}
-            transition={reduceMotion ? undefined : { duration: 1.15, repeat: Infinity, ease: "easeInOut" }}
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 116 64" fill="none">
+          <path
+            d="M17 42 L38 29 L56 37 L79 22 L101 31"
+            stroke="rgba(255,211,94,0.18)"
+            strokeWidth="0.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
-          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 180 102" fill="none">
-            <motion.path
-              d="M10 67 L35 52 L53 57 L76 31 L95 48 L119 24 L145 35 L169 17"
-              stroke="rgba(255,211,94,0.9)"
-              strokeWidth="1.15"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.38 : 0 }}
-              animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0, 0.9, 0] }}
-              transition={reduceMotion ? undefined : { duration: 1.35, repeat: Infinity, ease: "easeOut" }}
-            />
-            <motion.path
-              d="M22 20 L47 34 L66 23 L87 39 L109 28 L134 45 L160 37"
-              stroke="rgba(255,244,190,0.65)"
-              strokeWidth="0.75"
-              strokeLinecap="round"
-              initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.28 : 0 }}
-              animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0, 0.65, 0] }}
-              transition={reduceMotion ? undefined : { duration: 1.65, repeat: Infinity, delay: 0.35, ease: "easeOut" }}
-            />
-          </svg>
-        </>
-      ) : (
-        <>
-          <motion.div
-            className="absolute left-[27%] top-[20%] h-9 w-16 rounded-full bg-violet-400/18 blur-lg"
-            animate={reduceMotion ? undefined : { opacity: [0.18, 0.58, 0.18], scale: [0.9, 1.12, 0.9] }}
-            transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
+          <motion.path
+            d="M17 42 L38 29 L56 37 L79 22 L101 31"
+            stroke="rgba(255,221,116,0.92)"
+            strokeWidth="1.05"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.62 : 0 }}
+            animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0, 0.92, 0] }}
+            transition={reduceMotion ? undefined : { duration: 1.55, repeat: Infinity, ease: "easeOut" }}
           />
-          {[0, 1, 2].map((ring) => (
-            <motion.span
-              key={ring}
-              className="absolute left-1/2 top-[46%] -ml-5 -mt-5 h-10 w-10 rounded-full border border-violet-200/35"
-              initial={{ opacity: reduceMotion ? 0.28 : 0.5, scale: reduceMotion ? 1 + ring * 0.32 : 0.72 }}
-              animate={reduceMotion ? undefined : { opacity: [0.5, 0.1, 0.5], scale: [0.72, 1.85, 0.72] }}
-              transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, delay: ring * 1.15, ease: "easeInOut" }}
+          {fastNodes.map((node) => (
+            <motion.circle
+              key={`${node.cx}-${node.cy}`}
+              cx={node.cx}
+              cy={node.cy}
+              r="1.25"
+              fill="rgba(255,226,137,0.96)"
+              animate={reduceMotion ? undefined : { opacity: [0.22, 1, 0.22], r: [0.8, 1.55, 0.8] }}
+              transition={reduceMotion ? undefined : { duration: 1.3, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
             />
           ))}
-
-          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 180 102" fill="none">
-            <motion.path
-              d="M24 65 L55 31 L91 51 L127 24 L157 49"
-              stroke="rgba(216,201,255,0.78)"
-              strokeWidth="0.9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              initial={{ pathLength: reduceMotion ? 1 : 0, opacity: reduceMotion ? 0.45 : 0 }}
-              animate={reduceMotion ? undefined : { pathLength: [0, 1, 1], opacity: [0.12, 0.82, 0.28] }}
-              transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
-            />
-            {[
-              { cx: 24, cy: 65, delay: 0 },
-              { cx: 91, cy: 51, delay: 1.65 },
-              { cx: 157, cy: 49, delay: 3.3 },
-            ].map((node) => (
+        </svg>
+      ) : (
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 116 64" fill="none">
+          <motion.circle
+            cx="57"
+            cy="33"
+            r="18"
+            stroke="rgba(216,201,255,0.2)"
+            strokeWidth="0.7"
+            animate={reduceMotion ? undefined : { opacity: [0.14, 0.38, 0.14], r: [16.5, 19.5, 16.5] }}
+            transition={reduceMotion ? undefined : { duration: 5.4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <path
+            d="M23 42 C34 31 45 26 57 21 C68 25 80 31 92 40"
+            stroke="rgba(216,201,255,0.18)"
+            strokeWidth="0.8"
+            strokeLinecap="round"
+          />
+          <motion.path
+            d="M23 42 C34 31 45 26 57 21 C68 25 80 31 92 40"
+            stroke="rgba(226,216,255,0.78)"
+            strokeWidth="0.9"
+            strokeLinecap="round"
+            strokeDasharray="2.5 3.5"
+            animate={reduceMotion ? undefined : { pathLength: [0.05, 1, 1], opacity: [0.16, 0.82, 0.3] }}
+            transition={reduceMotion ? undefined : { duration: 5.4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {slowNodes.map((node) => (
+            <g key={node.label}>
               <motion.circle
-                key={`${node.cx}-${node.cy}`}
                 cx={node.cx}
                 cy={node.cy}
-                r="2"
-                fill="rgba(233,225,255,0.95)"
-                animate={reduceMotion ? undefined : { opacity: [0.28, 1, 0.28], r: [1.6, 2.8, 1.6] }}
-                transition={reduceMotion ? undefined : { duration: 2.2, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
+                r="3.8"
+                fill="rgba(11,13,16,0.82)"
+                stroke="rgba(226,216,255,0.52)"
+                strokeWidth="0.65"
+                animate={reduceMotion ? undefined : { opacity: [0.4, 1, 0.4] }}
+                transition={reduceMotion ? undefined : { duration: 2.7, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
               />
-            ))}
-          </svg>
-
-          {[
-            { label: "01", className: "left-[14%] top-[49%]", delay: 0 },
-            { label: "02", className: "left-[48%] top-[23%]", delay: 1.65 },
-            { label: "03", className: "right-[10%] top-[42%]", delay: 3.3 },
-          ].map((step) => (
-            <motion.span
-              key={step.label}
-              className={cn(
-                "absolute rounded border border-violet-200/25 bg-black/55 px-1.5 py-0.5 font-mono text-[7px] font-medium tracking-[0.08em] text-violet-100/85 backdrop-blur-sm",
-                step.className,
-              )}
-              animate={reduceMotion ? undefined : { opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
-              transition={reduceMotion ? undefined : { duration: 2.2, repeat: Infinity, delay: step.delay, ease: "easeInOut" }}
-            >
-              {step.label}
-            </motion.span>
+              <motion.text
+                x={node.cx}
+                y={node.cy + 1.55}
+                textAnchor="middle"
+                fontSize="4.2"
+                fontWeight="600"
+                letterSpacing="0.15"
+                fill="rgba(238,232,255,0.9)"
+                animate={reduceMotion ? undefined : { opacity: [0.42, 1, 0.42] }}
+                transition={reduceMotion ? undefined : { duration: 2.7, repeat: Infinity, delay: node.delay, ease: "easeInOut" }}
+              >
+                {node.label}
+              </motion.text>
+            </g>
           ))}
-
-          <motion.div
-            className="absolute inset-y-2 w-px bg-gradient-to-b from-transparent via-violet-100/75 to-transparent shadow-[0_0_16px_rgba(167,139,250,0.38)]"
-            initial={{ x: reduceMotion ? 90 : 18, opacity: reduceMotion ? 0.42 : 0 }}
-            animate={reduceMotion ? undefined : { x: [18, 160, 18], opacity: [0.1, 0.68, 0.1] }}
-            transition={reduceMotion ? undefined : { duration: 5.6, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </>
+        </svg>
       )}
     </div>
   );
