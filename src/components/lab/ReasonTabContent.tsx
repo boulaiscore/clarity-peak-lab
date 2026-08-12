@@ -9,8 +9,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { BookOpen, Bookmark, ChevronRight, Headphones, Info } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { BookOpen, Bookmark, ChevronRight, Headphones } from "lucide-react";
 import {
   useActiveReasonSession,
   SessionType,
@@ -107,35 +106,6 @@ export function ReasonTabContent() {
 
   return (
     <div className="space-y-4">
-      {/* XP Explanation — collapsed, expands on info tap */}
-      <div className="flex items-center gap-2 border-b border-white/[0.055] px-0.5 pb-3">
-        <p className="flex-1 text-[10px] leading-snug text-muted-foreground/70">
-          Reading and listening build <span className="font-medium text-foreground/90">Reasoning Quality</span> through focused time.
-        </p>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              aria-label="How Quality Time affects RQ"
-              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground/55 transition-colors hover:bg-white/[0.05] hover:text-foreground"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            align="end"
-            className="w-72 text-[11px] leading-relaxed text-muted-foreground"
-          >
-            <p className="font-medium text-foreground mb-1.5">Why no XP?</p>
-            <p>
-              Quality Time sessions don't award XP — they improve your{" "}
-              <span className="font-medium text-foreground">Reasoning Quality (RQ)</span>{" "}
-              through cognitive priming. Track reading and listening time for a weighted RQ contribution.
-            </p>
-          </PopoverContent>
-        </Popover>
-      </div>
-
       {/* Session Cards */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -145,7 +115,7 @@ export function ReasonTabContent() {
         {/* Read Card */}
         <button
           onClick={() => setShowBooks(true)}
-          className="group relative h-[168px] w-full overflow-hidden rounded-[18px] border border-white/[0.09] bg-[#0b0d10] p-4 text-left transition-all hover:border-white/[0.2]"
+          className="group relative h-[168px] w-full overflow-hidden rounded-[20px] border border-border/40 bg-card/40 p-4 text-left transition-all hover:border-border/70 hover:bg-card/55"
         >
           <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_32%_35%,rgba(255,255,255,0.07),transparent_62%)]" />
           <div className="relative flex h-full flex-col">
@@ -173,7 +143,7 @@ export function ReasonTabContent() {
         {/* Listen Card */}
         <button
           onClick={() => { setSelectorMode("listening"); setShowSelector(true); }}
-          className="group relative h-[168px] w-full overflow-hidden rounded-[18px] border border-white/[0.09] bg-[#0b0d10] p-4 text-left transition-all hover:border-white/[0.2]"
+          className="group relative h-[168px] w-full overflow-hidden rounded-[20px] border border-border/40 bg-card/40 p-4 text-left transition-all hover:border-border/70 hover:bg-card/55"
         >
           <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.055),transparent_62%)]" />
           <div className="relative flex h-full flex-col">
@@ -200,7 +170,7 @@ export function ReasonTabContent() {
       {activeBooks.length > 0 && (
         <button
           onClick={() => setShowContinue(true)}
-          className="flex w-full items-center gap-3 rounded-[14px] border border-white/[0.055] bg-white/[0.018] px-4 py-3 text-left transition-colors hover:bg-white/[0.035]"
+          className="flex w-full items-center gap-3 rounded-2xl border border-border/40 bg-card/40 px-4 py-3 text-left transition-colors hover:border-border/60 hover:bg-card/60"
         >
           <Bookmark className="h-3.5 w-3.5 text-white/55" strokeWidth={1.5} />
           <div className="min-w-0 flex-1">
@@ -215,8 +185,8 @@ export function ReasonTabContent() {
 
       {/* Active Books Dialog (opens when Read card is tapped) */}
       <Dialog open={showBooks} onOpenChange={setShowBooks}>
-        <DialogContent className="flex max-h-[88dvh] w-[calc(100%_-_20px)] max-w-sm flex-col gap-0 overflow-hidden rounded-[24px] border-white/[0.08] bg-[#0b0d10] p-0 shadow-[0_30px_100px_rgba(0,0,0,0.72)]">
-          <DialogHeader className="border-b border-white/[0.06] px-5 pb-4 pt-5 pr-11 text-left">
+        <DialogContent className="flex max-h-[88dvh] w-[calc(100%_-_20px)] max-w-sm flex-col gap-0 overflow-hidden rounded-[24px] border-border/50 bg-card p-0 shadow-[0_30px_100px_rgba(0,0,0,0.72)]">
+          <DialogHeader className="border-b border-border/40 px-5 pb-4 pt-5 pr-11 text-left">
             <DialogTitle className="text-[17px]">Reading</DialogTitle>
             <DialogDescription className="text-[11px] leading-relaxed text-muted-foreground/65">
               Manage your active books, start a timer, or log reading time.

@@ -2,10 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
-  Clock, Play, Pause, Check, Sparkles, Info, Loader2, Bell, BellOff, 
+  Clock, Play, Pause, Check, Sparkles, Loader2, Bell, BellOff,
   Leaf, Footprints, ChevronDown, Zap, Brain, Target, Moon
 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
@@ -283,42 +282,13 @@ export function DetoxChallengeTab() {
   if (sessionLoading || settingsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-foreground/65" />
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* XP Explanation — collapsed, expands on info tap */}
-      <div className="flex items-center gap-2 border-b border-white/[0.055] px-0.5 pb-3">
-        <p className="flex-1 text-[10px] leading-snug text-muted-foreground/70">
-          <span className="font-medium text-foreground">Detox & Walking</span> award XP and restore <span className="font-medium text-foreground">Recovery</span>.
-        </p>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              aria-label="How recover XP works"
-              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground/55 transition-colors hover:bg-white/[0.05] hover:text-foreground"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            align="end"
-            className="w-72 text-[11px] leading-relaxed text-muted-foreground"
-          >
-            <p className="font-medium text-foreground mb-1.5">How Recover works</p>
-            <p>
-              <span className="font-medium text-foreground">Detox & Walking award XP</span> (0.05 XP/min — e.g., 60 min = 3 XP) and restore <span className="font-medium text-foreground">Recovery</span>.
-              Walking 30+ min unlocks full XP; otherwise 50%. Higher recovery unlocks S2 drills.
-            </p>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-
       {/* Active Session, Completed, or Start */}
       {isActive || justCompleted ? (
         <motion.div
@@ -371,10 +341,10 @@ export function DetoxChallengeTab() {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="relative mb-2">
-                    <Leaf className="w-6 h-6 text-primary" />
+                    <Leaf className="h-6 w-6 text-foreground/70" />
                   </div>
                   <span className="text-2xl font-mono font-bold">{formatTime(displaySeconds)}</span>
-                  <span className="text-xs text-primary font-medium">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
+                  <span className="text-xs font-medium text-foreground/75">{DETOX_COGNITIVE_MESSAGES.activeSession.status}</span>
                   {violationCount > 0 && (
                     <span className="text-[10px] text-amber-400 mt-1">
                       ⚠️ {violationCount} violation{violationCount === 1 ? '' : 's'}
@@ -426,10 +396,10 @@ export function DetoxChallengeTab() {
                   onClick={() => setSelectedMode(mode.id)}
                   aria-pressed={isSelected}
                   className={cn(
-                    "group relative h-[168px] w-full overflow-hidden rounded-[18px] border bg-[#0b0d10] p-4 text-left transition-all duration-200",
+                    "group relative h-[168px] w-full overflow-hidden rounded-[20px] border bg-card/40 p-4 text-left transition-all duration-200",
                     isSelected
-                      ? "border-white/[0.22] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
-                      : "border-white/[0.09] hover:border-white/[0.2]"
+                      ? "border-foreground/20 bg-card/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                      : "border-border/40 hover:border-border/70 hover:bg-card/55"
                   )}
                 >
                   <div className="relative flex h-full flex-col">
@@ -480,7 +450,7 @@ export function DetoxChallengeTab() {
                       "py-2 rounded-lg text-sm font-medium transition-all",
                       isSelected
                         ? "bg-foreground/10 text-foreground border border-foreground/20"
-                        : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
+                        : "border border-transparent bg-card/40 text-muted-foreground hover:border-border/40 hover:bg-card/60"
                     )}
                   >
                     {slot.label}
@@ -521,7 +491,7 @@ export function DetoxChallengeTab() {
           <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/80 pt-2">
             {dailySettings?.reminderEnabled ? (
               <>
-                <Bell className="w-3 h-3 text-primary/60" />
+                <Bell className="h-3 w-3 text-foreground/50" />
                 <span>Daily reminder at <span className="text-muted-foreground">{dailySettings.reminderTime}</span></span>
               </>
             ) : (
@@ -547,8 +517,8 @@ export function DetoxChallengeTab() {
         <AlertDialogContent className="max-w-sm">
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Moon className="w-5 h-5 text-primary" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground/[0.06]">
+                <Moon className="h-5 w-5 text-foreground/65" />
               </div>
               <AlertDialogTitle className="text-lg">Sleep Time</AlertDialogTitle>
             </div>
@@ -583,11 +553,11 @@ function ImpactBlock({ mode, duration }: { mode: "detox" | "walk"; duration: num
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/20 border border-border/20"
+      className="flex items-center justify-between rounded-2xl border border-border/40 bg-card/40 px-4 py-3"
     >
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground">Recovery</span>
-        <span className="text-sm font-bold text-primary">+{recoveryImpact}%</span>
+        <span className="text-sm font-bold text-foreground/90">+{recoveryImpact}%</span>
       </div>
       <div className="flex items-center gap-4">
         <span className="text-[10px] text-muted-foreground/70">Sharpness ↑</span>

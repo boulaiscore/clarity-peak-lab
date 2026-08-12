@@ -1,7 +1,6 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { ChevronDown, Lock, Info } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ChevronDown, Lock } from "lucide-react";
 import { SystemOneMark, SystemTwoMark } from "@/components/icons/ThinkingSystemIcons";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
@@ -122,7 +121,7 @@ function SystemBrainVisual({ system }: { system: ThinkingSystem }) {
         animate={reduceMotion ? undefined : { opacity: [0.14, 0.28, 0.14], scale: [0.98, 1.02, 0.98] }}
         transition={reduceMotion ? undefined : { duration: pulseDuration, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,#0b0d10_90%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,hsl(var(--card))_90%)]" />
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 116 64" fill="none">
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -324,37 +323,6 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
   return (
     <div className="space-y-4">
-      {/* XP Explanation — collapsed, expands on info tap */}
-      <div className="flex items-center gap-2 border-b border-white/[0.055] px-0.5 pb-3">
-        <p className="flex-1 text-[10px] leading-snug text-muted-foreground/70">
-          Choose a system. Training adds Cognitive XP to this week's load.
-        </p>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              aria-label="How training XP works"
-              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground/55 transition-colors hover:bg-white/[0.05] hover:text-foreground"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            align="end"
-            className="w-72 text-[11px] leading-relaxed text-muted-foreground"
-          >
-            <p className="font-medium text-foreground mb-1.5">How training XP works</p>
-            <p>
-              <span className="font-medium text-foreground">System 1</span> drills train fast intuitive thinking — pattern recognition and reaction speed.{" "}
-              <span className="font-medium text-foreground">System 2</span> drills train slow analytical thinking — reasoning and structured analysis.
-              Both award <span className="font-medium text-foreground">Cognitive XP</span> that fuels Sharpness, Readiness and Reasoning Quality.
-            </p>
-
-          </PopoverContent>
-        </Popover>
-      </div>
-
-
       {/* System selector — distinct motion languages for fast and deliberate processing */}
       <div className="grid grid-cols-2 gap-3">
         {SYSTEMS.map((system) => {
@@ -367,10 +335,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               onClick={() => handleSystemToggle(system.id)}
               aria-expanded={isOpen}
               className={cn(
-                "group relative h-[168px] w-full overflow-hidden rounded-[18px] border bg-[#0b0d10] p-4 text-left transition-all duration-200",
+                "group relative h-[168px] w-full overflow-hidden rounded-[20px] border bg-card/40 p-4 text-left transition-all duration-200",
                 isOpen
-                  ? "border-white/[0.22] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
-                  : "border-white/[0.09] hover:border-white/[0.2]"
+                  ? "border-foreground/20 bg-card/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                  : "border-border/40 hover:border-border/70 hover:bg-card/55"
               )}
             >
               <div className="relative flex h-full flex-col">
@@ -434,11 +402,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                       }}
                       disabled={isLocked}
                       className={cn(
-                        "group relative flex w-full items-center gap-3 overflow-hidden rounded-[12px] border p-3 pr-3.5 text-left transition-colors",
-                        "bg-white/[0.02]",
+                        "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border bg-card/40 p-3 pr-3.5 text-left transition-colors",
                         isLocked
-                          ? "cursor-not-allowed border-white/[0.035]"
-                          : "border-white/[0.055] hover:bg-white/[0.04]",
+                          ? "cursor-not-allowed border-border/25"
+                          : "border-border/40 hover:border-border/60 hover:bg-card/60",
                         isPicked && !isLocked && "border-transparent"
                       )}
                       style={isPicked && !isLocked ? { boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${system.accentColor} 55%, transparent)` } : undefined}

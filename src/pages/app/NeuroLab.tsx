@@ -203,11 +203,7 @@ export default function NeuroLab() {
   }
   return <AppShell>
       {({ passiveFeatures }) => <>
-      <div className="mx-auto max-w-md px-4 pb-5 pt-4">
-        <header className="mb-4 flex items-center px-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/80">Lab</p>
-        </header>
-
+      <div className="mx-auto max-w-md px-5 pb-4 pt-8">
         {/* Week Complete Banner - Success styling with actionable CTA */}
         {isWeekComplete && <motion.div initial={{
         opacity: 0,
@@ -241,17 +237,17 @@ export default function NeuroLab() {
         </div>
 
         {/* Training Section */}
-        <div className="mt-6 border-t border-white/[0.055] pt-4">
+        <div className="mt-5 border-t border-border/40 pt-5">
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4 grid h-9 w-full grid-cols-3 rounded-[11px] border border-white/[0.055] bg-black/20 p-[3px]">
-              <TabsTrigger value="games" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+            <TabsList className="mb-4 grid h-10 w-full grid-cols-3 rounded-[14px] border border-border/40 bg-card/40 p-1">
+              <TabsTrigger value="games" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Train
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+              <TabsTrigger value="tasks" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Quality Time
               </TabsTrigger>
-              <TabsTrigger value="detox" className="rounded-[8px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-white/[0.075] data-[state=active]:text-foreground data-[state=active]:shadow-none">
+              <TabsTrigger value="detox" className="rounded-[10px] text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/65 data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none">
                 Recover
               </TabsTrigger>
             </TabsList>
@@ -275,8 +271,8 @@ export default function NeuroLab() {
 
         {/* How LOOMA Lab Works — moved to bottom */}
         <Collapsible className="mt-5">
-          <div className="overflow-hidden border-y border-white/[0.055]">
-            <CollapsibleTrigger className="flex w-full items-center justify-between py-3 transition-colors hover:text-foreground">
+          <div className="overflow-hidden rounded-2xl border border-border/40 bg-card/30">
+            <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3.5 transition-colors hover:bg-card/45">
               <div className="flex items-center gap-3">
                 <LoomaLogo size={15} className="text-foreground/65" />
                 <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
@@ -286,12 +282,12 @@ export default function NeuroLab() {
               <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="px-4 pb-4 space-y-5 border-t border-border/20 pt-4">
+              <div className="space-y-5 border-t border-border/30 px-4 pb-4 pt-4">
                 <LoomaTrainingLoop />
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <RefreshCw className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">Train → Recover → Repeat</p>
@@ -301,8 +297,8 @@ export default function NeuroLab() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Zap className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <Zap className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">Cognitive Load & Optimal Zone</p>
@@ -312,8 +308,8 @@ export default function NeuroLab() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Dumbbell className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <Dumbbell className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">S1 & S2 Game Systems</p>
@@ -323,8 +319,8 @@ export default function NeuroLab() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <BookMarked className="w-3.5 h-3.5 text-primary" />
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06]">
+                      <BookMarked className="h-3.5 w-3.5 text-foreground/65" />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-foreground mb-0.5">Quality Time → Reasoning Quality</p>
