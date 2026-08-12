@@ -87,7 +87,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const signalStride = direction === "neutral" ? 12 : 9;
 
   return (
-    <div className="overflow-hidden rounded-[18px] border border-white/[0.06] bg-[radial-gradient(ellipse_at_center,hsl(var(--recovery)/0.09),transparent_69%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+    <div className="overflow-hidden rounded-[18px] bg-[radial-gradient(ellipse_at_center,hsl(var(--recovery)/0.09),transparent_69%)]">
       <div className="relative h-[252px] w-full">
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
           <motion.div
