@@ -696,10 +696,7 @@ export type Database = {
       device_usage_snapshots: {
         Row: {
           active_app_count: number | null
-          attention_session_count: number | null
-          attention_switch_count: number | null
           attention_usage_min: number | null
-          brief_session_count: number | null
           confidence: number
           coverage: string
           created_at: string
@@ -713,10 +710,7 @@ export type Database = {
         }
         Insert: {
           active_app_count?: number | null
-          attention_session_count?: number | null
-          attention_switch_count?: number | null
           attention_usage_min?: number | null
-          brief_session_count?: number | null
           confidence?: number
           coverage?: string
           created_at?: string
@@ -730,10 +724,7 @@ export type Database = {
         }
         Update: {
           active_app_count?: number | null
-          attention_session_count?: number | null
-          attention_switch_count?: number | null
           attention_usage_min?: number | null
-          brief_session_count?: number | null
           confidence?: number
           coverage?: string
           created_at?: string
