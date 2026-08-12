@@ -87,7 +87,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const signalStride = direction === "neutral" ? 12 : 9;
 
   return (
-    <div className="overflow-hidden rounded-[18px] border border-white/[0.06] bg-[radial-gradient(ellipse_at_center,hsl(var(--recovery)/0.09),transparent_69%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+    <div className="overflow-hidden rounded-[18px] bg-[radial-gradient(ellipse_at_center,hsl(var(--recovery)/0.09),transparent_69%)]">
       <div className="relative h-[252px] w-full">
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
           <motion.div
@@ -330,7 +330,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center pb-1 text-center">
           <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/55">Cognitive Age</span>
           <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-[48px] font-semibold leading-none tabular-nums tracking-[-0.055em] text-foreground drop-shadow-[0_2px_14px_rgba(0,0,0,0.72)]">
+            <span className="text-[38px] font-semibold leading-none tabular-nums tracking-[-0.05em] text-foreground drop-shadow-[0_2px_14px_rgba(0,0,0,0.72)]">
               {cognitiveAge.toFixed(1)}
             </span>
             <span className="text-[11px] font-medium text-muted-foreground/65">years</span>
