@@ -86,7 +86,7 @@ function ageAccentColors(ageDifference: number, chronologicalAge?: number) {
 
   const green = { h: 160, s: 30, l: 38 }; // --success
   const yellow = { h: 42, s: 78, l: 54 }; // warm amber
-  const red = { h: 0, s: 55, l: 48 }; // --destructive
+  const amber = { h: 38, s: 74, l: 58 }; // lighter WHOOP-style gold
 
   let primaryH: number;
   let primaryS: number;
@@ -105,14 +105,14 @@ function ageAccentColors(ageDifference: number, chronologicalAge?: number) {
     secondaryS = 62 + (32 - 62) * t;
     secondaryL = 54 + (42 - 54) * t;
   } else {
-    // Older / red side: blend from yellow (neutral) to red
+    // Older / amber side: blend from yellow (neutral) to light gold
     const t = ratio;
-    primaryH = interpolateHue(yellow.h, red.h, t);
-    primaryS = yellow.s + (red.s - yellow.s) * t;
-    primaryL = yellow.l + (red.l - yellow.l) * t;
-    secondaryH = interpolateHue(38, 8, t);
-    secondaryS = 62 + (52 - 62) * t;
-    secondaryL = 54 + (46 - 54) * t;
+    primaryH = interpolateHue(yellow.h, amber.h, t);
+    primaryS = yellow.s + (amber.s - yellow.s) * t;
+    primaryL = yellow.l + (amber.l - yellow.l) * t;
+    secondaryH = interpolateHue(38, 42, t);
+    secondaryS = 62 + (68 - 62) * t;
+    secondaryL = 54 + (56 - 54) * t;
   }
 
   const accent = `hsl(${primaryH.toFixed(1)}, ${primaryS.toFixed(1)}%, ${primaryL.toFixed(1)}%)`;
