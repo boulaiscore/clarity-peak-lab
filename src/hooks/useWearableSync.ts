@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useCallback, useState, useRef } from "react";
+import { App as CapacitorApp } from "@capacitor/app";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ import {
   averageHRV,
   averageRestingHR,
   calculateSleepEfficiency,
+  isNativePlatform,
   type HealthPermissionStatus,
   type SleepRecord,
   type HRVRecord,
@@ -63,6 +65,16 @@ interface AggregatedDayData {
   source: "healthkit" | "health_connect";
 }
 
+function hasAnyHealthPermission(permissions: HealthPermissionStatus): boolean {
+  return (
+    permissions.sleep === "granted" ||
+    permissions.hrv === "granted" ||
+    permissions.restingHr === "granted" ||
+    permissions.steps === "granted" ||
+    permissions.activeMinutes === "granted"
+  );
+}
+
 // ============================================================================
 // Hook
 // ============================================================================
@@ -83,45 +95,88 @@ export function useWearableSync() {
     error: null,
   });
 
-  // -------------------------------------------------------------------------
-  // Check availability on mount
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    const checkAvailability = async () => {
-      const available = await isHealthAvailable();
+  const applyPermissionState = useCallback(
+    (permissions: HealthPermissionStatus): boolean => {
+      const isConnected = hasAnyHealthPermission(permissions);
+      permissionGrantedRef.current = isConnected;
+
       setState((prev) => ({
         ...prev,
-        isAvailable: available,
-        isCheckingAvailability: available,
+        isAvailable: true,
+        isCheckingAvailability: false,
+        isConnected,
+        permissions,
+        error: null,
       }));
 
-      if (available) {
-        const permResult = await checkPermissions();
-        if (permResult.success && permResult.data?.[0]) {
-          const perms = permResult.data[0];
-          const isConnected =
-            perms.sleep === "granted" ||
-            perms.hrv === "granted" ||
-            perms.restingHr === "granted" ||
-            perms.steps === "granted" ||
-            perms.activeMinutes === "granted";
-          permissionGrantedRef.current = isConnected;
+      return isConnected;
+    },
+    []
+  );
 
-          setState((prev) => ({
-            ...prev,
-            permissions: perms,
-            isConnected,
-            isCheckingAvailability: false,
-          }));
-          return;
-        }
-      }
+  const refreshConnection = useCallback(async (): Promise<boolean> => {
+    const available = await isHealthAvailable();
 
-      setState((prev) => ({ ...prev, isCheckingAvailability: false }));
+    if (!available) {
+      permissionGrantedRef.current = false;
+      setState((prev) => ({
+        ...prev,
+        isAvailable: false,
+        isCheckingAvailability: false,
+        isConnected: false,
+        permissions: null,
+      }));
+      return false;
+    }
+
+    const permissionResult = await checkPermissions();
+    if (permissionResult.success && permissionResult.data?.[0]) {
+      return applyPermissionState(permissionResult.data[0]);
+    }
+
+    permissionGrantedRef.current = false;
+    setState((prev) => ({
+      ...prev,
+      isAvailable: true,
+      isCheckingAvailability: false,
+      isConnected: false,
+      error: permissionResult.errorMessage || null,
+    }));
+    return false;
+  }, [applyPermissionState]);
+
+  // -------------------------------------------------------------------------
+  // Keep availability and permissions aligned with the native lifecycle.
+  // Android may finish the Health Connect permission activity after React has
+  // already rendered, so refresh whenever the app becomes active again.
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    let disposed = false;
+    let appStateListener: { remove: () => Promise<void> } | undefined;
+
+    const refresh = async () => {
+      if (!disposed) await refreshConnection();
     };
 
-    checkAvailability();
-  }, []);
+    void refresh();
+
+    if (isNativePlatform()) {
+      void CapacitorApp.addListener("appStateChange", ({ isActive }) => {
+        if (isActive) void refresh();
+      }).then((listener) => {
+        if (disposed) void listener.remove();
+        else appStateListener = listener;
+      });
+    }
+
+    window.addEventListener("looma:health-permissions-changed", refresh);
+
+    return () => {
+      disposed = true;
+      window.removeEventListener("looma:health-permissions-changed", refresh);
+      if (appStateListener) void appStateListener.remove();
+    };
+  }, [refreshConnection]);
 
   // -------------------------------------------------------------------------
   // Load last sync time from localStorage
@@ -154,23 +209,9 @@ export function useWearableSync() {
       return false;
     }
 
-    // Re-check permissions after request
-    const permResult = await checkPermissions();
-    if (permResult.success && permResult.data?.[0]) {
-      const perms = permResult.data[0];
-      const isConnected =
-        perms.sleep === "granted" ||
-        perms.hrv === "granted" ||
-        perms.restingHr === "granted" ||
-        perms.steps === "granted" ||
-        perms.activeMinutes === "granted";
-      permissionGrantedRef.current = isConnected;
-
-      setState((prev) => ({
-        ...prev,
-        permissions: perms,
-        isConnected,
-      }));
+    const permissions = result.data?.[0];
+    if (permissions) {
+      const isConnected = applyPermissionState(permissions);
 
       if (isConnected) {
         window.dispatchEvent(new Event("looma:health-permissions-changed"));
@@ -179,8 +220,10 @@ export function useWearableSync() {
       return isConnected;
     }
 
-    return false;
-  }, [state.isAvailable]);
+    // Defensive fallback for older native bundles that do not yet return the
+    // permission payload. A lifecycle refresh will also run on app resume.
+    return refreshConnection();
+  }, [state.isAvailable, applyPermissionState, refreshConnection]);
 
   // -------------------------------------------------------------------------
   // Sync data from wearable
@@ -297,6 +340,7 @@ export function useWearableSync() {
   return {
     ...state,
     connect,
+    refreshConnection,
     sync,
     forceSync: () => sync(true),
   };
