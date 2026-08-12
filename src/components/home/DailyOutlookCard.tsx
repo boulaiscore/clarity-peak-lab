@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,9 +58,6 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
 
   const hasLearnedPattern = outlook.coachBasis.learnedFromHistory;
   const hasPersonalConfidence = hasLearnedPattern && outlook.confidence >= 0.1;
-  const sourceLine = props.activeSourceCount > 0
-    ? `${hasLearnedPattern ? "Personal pattern" : "Learning"} · ${props.activeSourceCount} connected`
-    : hasLearnedPattern ? "Personal pattern" : "Learning your pattern";
 
   return (
     <motion.section
@@ -77,52 +74,43 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
         My day
       </h2>
 
-      <div className="rounded-[22px] bg-gradient-to-br from-violet-300/55 via-sky-300/35 to-foreground/15 p-px shadow-[0_14px_36px_rgba(0,0,0,0.18)]">
+      <div className="rounded-[18px] bg-gradient-to-r from-violet-300/45 via-foreground/12 to-sky-300/40 p-px shadow-[0_10px_26px_rgba(0,0,0,0.14)]">
         <button
           type="button"
           onClick={openOutlook}
-          className="w-full rounded-[21px] bg-card/95 px-4 py-[18px] text-left transition-colors hover:bg-card active:scale-[0.995]"
+          className="flex min-h-[68px] w-full items-center gap-3 rounded-[17px] bg-card/95 px-3.5 py-3 text-left transition-colors hover:bg-card active:scale-[0.995]"
         >
           {isLoading ? (
-            <div className="animate-pulse space-y-3">
-              <div className="h-2.5 w-24 rounded bg-muted" />
-              <div className="h-5 w-2/3 rounded bg-muted" />
-              <div className="h-3 w-full rounded bg-muted/70" />
+            <div className="flex w-full animate-pulse items-center gap-3">
+              <div className="h-10 w-10 shrink-0 rounded-xl bg-muted" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="h-2 w-20 rounded bg-muted" />
+                <div className="h-3.5 w-2/3 rounded bg-muted/70" />
+              </div>
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-foreground/15 bg-foreground/[0.04] text-[10px] font-semibold tracking-[-0.04em] text-foreground/90">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-foreground/12 bg-background/50">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-violet-300/45 text-[9px] font-semibold tracking-[-0.04em] text-foreground/90 shadow-[0_0_14px_rgba(167,139,250,0.14)]">
                     L
-                  </span>
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.19em] text-foreground/75">
-                    Your Daily Outlook
-                  </span>
-                </div>
-                <span className="text-right text-[8px] font-medium tabular-nums text-muted-foreground/55">
-                  {sourceLine}
                 </span>
-              </div>
+              </span>
 
-              <div className="mt-4 pr-3">
-                <p className="text-[17px] font-semibold leading-tight tracking-tight text-foreground/95">
+              <span className="min-w-0 flex-1">
+                <span className="block text-[9px] font-semibold uppercase tracking-[0.18em] text-foreground/68">
+                  Daily Outlook
+                </span>
+                <span className="mt-1 block truncate text-[13px] font-medium leading-tight tracking-tight text-foreground/92">
                   {outlook.headline}
-                </p>
-                <p className="mt-2 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground/78">
-                  {outlook.summary}
-                </p>
-              </div>
+                </span>
+              </span>
 
-              <div className="mt-4 flex items-center justify-between border-t border-white/[0.055] pt-3">
-                <span className="text-[9px] text-muted-foreground/60">
-                  {hasLearnedPattern ? "Personal read" : "Daily guidance"} · 1 next action
+              <span className="flex shrink-0 items-center gap-2">
+                <span className="hidden text-[8px] font-medium uppercase tracking-[0.12em] text-muted-foreground/45 min-[360px]:block">
+                  {hasLearnedPattern ? "Personal" : "Learning"}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-foreground/85">
-                  Read briefing
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              </div>
+                <ChevronRight className="h-4 w-4 text-foreground/55" strokeWidth={2} />
+              </span>
             </>
           )}
         </button>
