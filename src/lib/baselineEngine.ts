@@ -64,6 +64,25 @@ export interface BaselineComputeResult {
   calibrationStatus: CalibrationStatus;
 }
 
+/** Equal-weight summary of the four canonical cognitive skills. */
+export function calculateCalibrationOverall(scores: CalibrationBaseline): number {
+  return (scores.AE + scores.RA + scores.CT + scores.IN) / 4;
+}
+
+/**
+ * Replace an estimated prior with a measured baseline while retaining the
+ * signed skill movement accumulated since that prior.
+ */
+export function rebaseSkillToMeasuredBaseline(
+  currentValue: number | null | undefined,
+  previousBaseline: number | null | undefined,
+  measuredBaseline: number,
+): number {
+  const prior = previousBaseline ?? 50;
+  const deltaSincePrior = (currentValue ?? prior) - prior;
+  return clamp(measuredBaseline + deltaSincePrior, 0, 100);
+}
+
 // ============================================
 // AGE ADJUSTMENT
 // ============================================

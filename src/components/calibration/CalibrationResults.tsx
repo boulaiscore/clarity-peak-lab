@@ -7,6 +7,7 @@
 import { motion } from "framer-motion";
 import { Target, Zap, Brain, Lightbulb, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { calculateCalibrationOverall } from "@/lib/baselineEngine";
 
 interface CalibrationResultsProps {
   scores: {
@@ -72,7 +73,7 @@ export function CalibrationResults({
 }: CalibrationResultsProps) {
   const S1 = (scores.AE + scores.RA) / 2;
   const S2 = (scores.CT + scores.IN) / 2;
-  const performanceAvg = (scores.AE + scores.RA + scores.CT + scores.IN + S2) / 5;
+  const performanceAvg = calculateCalibrationOverall(scores);
 
   return (
     <div className="h-full flex flex-col items-center justify-center px-6 py-10 overflow-y-auto">
