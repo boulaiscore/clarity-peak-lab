@@ -317,11 +317,6 @@ export function CognitiveAgeTrendChart() {
     );
   }
 
-  // Determine legend color from latest data point
-  const latestWithCog = [...displayData].reverse().find((d) => d.cognitiveAge !== null);
-  const isYounger = latestWithCog && latestWithCog.cognitiveAge !== null && latestWithCog.cognitiveAge <= latestWithCog.realAge;
-  const legendColor = isYounger ? COGNITIVE_AGE_GOOD_COLOR : COGNITIVE_AGE_BAD_COLOR;
-
   return (
     <div className="p-4 rounded-xl bg-muted/20 border border-border/30">
       {/* Header */}
