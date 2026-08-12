@@ -81,17 +81,28 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
   const comparison = getComparison(cognitiveAge, chronologicalAge);
   const ageDifference = chronologicalAge ? cognitiveAge - chronologicalAge : delta;
   const direction = comparison?.direction ?? (ageDifference < -0.05 ? "younger" : ageDifference > 0.05 ? "older" : "neutral");
-  const accent = direction === "older" ? "hsl(var(--area-fast))" : "hsl(var(--success))";
-  const secondaryAccent = direction === "older" ? "hsl(var(--recovery))" : "hsl(var(--recovery))";
+  const accent = direction === "older"
+    ? "hsl(var(--destructive))"
+    : direction === "younger"
+      ? "hsl(var(--success))"
+      : "hsl(var(--recovery))";
+  const secondaryAccent = direction === "older"
+    ? "hsl(var(--area-fast))"
+    : direction === "younger"
+      ? "hsl(var(--recovery))"
+      : "hsl(var(--success))";
   const pulseDuration = direction === "neutral" ? 3.2 : 2.75;
   const signalStride = direction === "neutral" ? 12 : 9;
 
   return (
-    <div className="overflow-hidden rounded-[18px] bg-[radial-gradient(ellipse_at_center,hsl(var(--recovery)/0.09),transparent_69%)]">
+    <div
+      className="overflow-hidden rounded-[18px] bg-[radial-gradient(ellipse_at_center,hsl(var(--sphere-secondary))_/_0.09,transparent_69%)]"
+      style={{ ["--sphere-accent" as string]: accent, ["--sphere-secondary" as string]: secondaryAccent }}
+    >
       <div className="relative h-[252px] w-full">
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
           <motion.div
-            className="h-[196px] w-[226px] rounded-[46%] bg-[radial-gradient(ellipse_at_center,transparent_35%,hsl(var(--recovery)/0.19)_53%,hsl(var(--success)/0.32)_67%,transparent_76%)] blur-[13px]"
+            className="h-[196px] w-[226px] rounded-[46%] bg-[radial-gradient(ellipse_at_center,transparent_35%,hsl(var(--sphere-secondary))_/_0.19)_53%,hsl(var(--sphere-accent))_/_0.32)_67%,transparent_76%)] blur-[13px]"
             animate={reduceMotion ? undefined : {
               opacity: [0.38, 0.9, 0.38],
               scale: [0.91, 1.08, 0.91],
@@ -107,7 +118,7 @@ export function CognitiveAgeSphere({ cognitiveAge, delta, chronologicalAge }: Co
 
         <div className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center" aria-hidden="true">
           <motion.div
-            className="h-[192px] w-[222px] rounded-[47%] border border-[hsl(var(--recovery)/0.45)] shadow-[0_0_34px_hsl(var(--success)/0.2)]"
+            className="h-[192px] w-[222px] rounded-[47%] border border-[hsl(var(--sphere-secondary))_/_0.45] shadow-[0_0_34px_hsl(var(--sphere-accent))_/_0.2]"
             animate={reduceMotion ? undefined : {
               opacity: [0.16, 0.68, 0.16],
               scale: [0.92, 1.07, 0.92],
