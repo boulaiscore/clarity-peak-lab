@@ -7,6 +7,7 @@ import { NeuroLabArea } from "@/lib/neuroLab";
 import { useId, useState } from "react";
 import s1Bg from "@/assets/s1-bg.webp";
 import s2Bg from "@/assets/s2-bg.webp";
+import { LAB_MODE_CARD_AMBIENCE_CLASS, LAB_MODE_CARD_CLASS } from "@/components/lab/labModeCardStyles";
 
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
@@ -334,13 +335,9 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               key={system.id}
               onClick={() => handleSystemToggle(system.id)}
               aria-expanded={isOpen}
-              className={cn(
-                "group relative h-[168px] w-full overflow-hidden rounded-2xl border bg-gradient-to-b from-card/90 to-card/55 p-4 text-left transition-all duration-200",
-                isOpen
-                  ? "border-foreground/25 from-card to-card/75 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-                  : "border-border/50 hover:border-border/75 hover:from-card hover:to-card/70"
-              )}
+              className={LAB_MODE_CARD_CLASS}
             >
+              <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
               <div className="relative flex h-full flex-col">
                 <div className="flex h-4 shrink-0 items-start justify-between">
                   <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">

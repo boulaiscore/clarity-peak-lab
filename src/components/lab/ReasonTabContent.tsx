@@ -21,6 +21,7 @@ import { ReasonContentSelector } from "./ReasonContentSelector";
 import { ActiveBooksView } from "./ActiveBooksView";
 import { EveningReadingReminder } from "./EveningReadingReminder";
 import { ContinueReadingSheet } from "./ContinueReadingSheet";
+import { LAB_MODE_CARD_AMBIENCE_CLASS, LAB_MODE_CARD_CLASS } from "./labModeCardStyles";
 import {
   Dialog,
   DialogContent,
@@ -115,9 +116,9 @@ export function ReasonTabContent() {
         {/* Read Card */}
         <button
           onClick={() => setShowBooks(true)}
-          className="group relative h-[168px] w-full overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-b from-card/90 to-card/55 p-4 text-left transition-all hover:border-border/75 hover:from-card hover:to-card/70"
+          className={LAB_MODE_CARD_CLASS}
         >
-          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_32%_35%,rgba(255,255,255,0.07),transparent_62%)]" />
+          <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
           <div className="relative flex h-full flex-col">
             <div className="flex h-4 shrink-0 items-start justify-between">
               <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">Read</span>
@@ -143,9 +144,9 @@ export function ReasonTabContent() {
         {/* Listen Card */}
         <button
           onClick={() => { setSelectorMode("listening"); setShowSelector(true); }}
-          className="group relative h-[168px] w-full overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-b from-card/90 to-card/55 p-4 text-left transition-all hover:border-border/75 hover:from-card hover:to-card/70"
+          className={LAB_MODE_CARD_CLASS}
         >
-          <div className="absolute inset-x-0 top-0 h-[94px] bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.055),transparent_62%)]" />
+          <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
           <div className="relative flex h-full flex-col">
             <div className="flex h-4 shrink-0 items-start justify-between">
               <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">Listen</span>
