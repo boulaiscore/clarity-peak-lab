@@ -105,8 +105,8 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
           {CONNECTIONS.map(([from, to], index) => {
             const active = from < activeNodeCount && to < activeNodeCount;
             const baseOpacity = active
-              ? (isFast ? 0.25 + (index % 4) * 0.075 : 0.34 + (index % 4) * 0.09)
-              : 0.06;
+              ? (isFast ? 0.42 + (index % 4) * 0.09 : 0.55 + (index % 4) * 0.1)
+              : 0.08;
             return (
               <line
                 key={`${from}-${to}-${index}`}
@@ -115,13 +115,13 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
                 x2={nodes[to].x}
                 y2={nodes[to].y}
                 stroke={`url(#${gradientId})`}
-                strokeWidth={index % 5 === 0 ? 1 : 0.65}
+                strokeWidth={index % 5 === 0 ? 1.15 : 0.85}
                 opacity={baseOpacity}
               >
                 {!reduceMotion && active && index % linkStride === 0 && (
                   <animate
                     attributeName="opacity"
-                    values={`${(baseOpacity * (isFast ? 0.44 : 0.22)).toFixed(3)};${Math.min(isFast ? 0.84 : 1, baseOpacity * (1.25 + activity * (isFast ? 1 : 1.9))).toFixed(3)};${(baseOpacity * (isFast ? 0.44 : 0.22)).toFixed(3)}`}
+                    values={`${(baseOpacity * (isFast ? 0.5 : 0.35)).toFixed(3)};${Math.min(isFast ? 0.95 : 1, baseOpacity * (1.35 + activity * (isFast ? 1.1 : 1.8))).toFixed(3)};${(baseOpacity * (isFast ? 0.5 : 0.35)).toFixed(3)}`}
                     dur={`${(pulseDuration + (index % 3) * (isFast ? 0.38 : 1.1)).toFixed(2)}s`}
                     begin={`${((index % 6) * (isFast ? 0.21 : 0.55)).toFixed(2)}s`}
                     repeatCount="indefinite"
