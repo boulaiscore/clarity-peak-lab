@@ -113,8 +113,8 @@ const SLOW_SIGNAL_PATHS = [
 // Stylized cerebral hemispheres. Each card shows one lateral half of a brain,
 // split along the medial edge, so the two cards read as left/right counterparts.
 const HALF_BRAIN_PATHS: Record<ThinkingSystem, string> = {
-  fast: "M104 14 C96 8 84 5 72 6 C60 7 48 12 38 20 C30 28 26 36 28 44 C30 52 38 50 46 44 C52 38 60 40 66 48 C72 56 64 60 52 58 C40 56 28 50 24 40 C20 30 24 20 32 14 C40 8 52 6 64 8 C76 10 88 16 96 24 C102 30 104 22 104 14 Z",
-  slow: "M12 14 C20 8 32 5 44 6 C56 7 68 12 78 20 C86 28 90 36 88 44 C86 52 78 50 70 44 C64 38 56 40 50 48 C44 56 52 60 64 58 C76 56 88 50 92 40 C96 30 92 20 84 14 C76 8 64 6 52 8 C40 10 28 16 20 24 C14 30 12 22 12 14 Z",
+  fast: "M104 14 C96 8 84 5 72 6 C60 7 48 12 38 20 C30 28 26 36 28 42 C30 50 40 54 52 56 C64 58 80 56 104 56 L104 14 Z",
+  slow: "M12 14 C20 8 32 5 44 6 C56 7 68 12 78 20 C86 28 90 36 88 42 C86 50 76 54 64 56 C52 58 36 56 12 56 L12 14 Z",
 };
 
 const HALF_BRAIN_FOLDS: Record<ThinkingSystem, string[]> = {
