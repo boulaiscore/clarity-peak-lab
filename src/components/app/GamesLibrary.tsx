@@ -157,7 +157,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   </span>
                   <span className={cn(
                     "text-[7px] font-semibold uppercase tracking-[0.16em]",
-                    isFast ? "text-amber-300/70" : "text-violet-200/65",
+                    isFast ? "text-amber-300/90" : "text-violet-200/85",
                   )}>
                     {isFast ? "Rapid" : "Structured"}
                   </span>
@@ -174,7 +174,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
                     <p className={cn(
                       "min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none",
-                      isFast ? "text-amber-300/75" : "text-violet-200/70",
+                      isFast ? "text-amber-300/90" : "text-violet-200/85",
                     )}>
                       {isFast ? "Detect · react" : "Compare · model · decide"}
                     </p>

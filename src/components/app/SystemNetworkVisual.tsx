@@ -84,25 +84,29 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={color} stopOpacity="0.7" />
-            <stop offset="100%" stopColor={color} />
+            <stop offset="0%" stopColor={color} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={color} stopOpacity="1" />
           </linearGradient>
-          <filter id={glowId} x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation={isFast ? 2 : 3.1} result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation={isFast ? 2.6 : 4.2} result="blur" />
+            <feComponentTransfer in="blur" result="boosted">
+              <feFuncA type="linear" slope="1.35" intercept="0.08" />
+            </feComponentTransfer>
+            <feMerge><feMergeNode in="boosted" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
 
         <g
-          opacity={0.5 + normalizedScore / 250}
+          opacity={0.65 + normalizedScore / 220}
           filter={`url(#${glowId})`}
+          style={{ filter: `url(#${glowId}) saturate(1.45)` }}
           transform={isFast ? undefined : "translate(172 0) scale(-1 1)"}
         >
           {CONNECTIONS.map(([from, to], index) => {
             const active = from < activeNodeCount && to < activeNodeCount;
             const baseOpacity = active
-              ? (isFast ? 0.25 + (index % 4) * 0.075 : 0.34 + (index % 4) * 0.09)
-              : 0.06;
+              ? (isFast ? 0.42 + (index % 4) * 0.09 : 0.55 + (index % 4) * 0.1)
+              : 0.08;
             return (
               <line
                 key={`${from}-${to}-${index}`}
@@ -111,13 +115,13 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
                 x2={nodes[to].x}
                 y2={nodes[to].y}
                 stroke={`url(#${gradientId})`}
-                strokeWidth={index % 5 === 0 ? 1 : 0.65}
+                strokeWidth={index % 5 === 0 ? 1.15 : 0.85}
                 opacity={baseOpacity}
               >
                 {!reduceMotion && active && index % linkStride === 0 && (
                   <animate
                     attributeName="opacity"
-                    values={`${(baseOpacity * (isFast ? 0.44 : 0.22)).toFixed(3)};${Math.min(isFast ? 0.84 : 1, baseOpacity * (1.25 + activity * (isFast ? 1 : 1.9))).toFixed(3)};${(baseOpacity * (isFast ? 0.44 : 0.22)).toFixed(3)}`}
+                    values={`${(baseOpacity * (isFast ? 0.5 : 0.35)).toFixed(3)};${Math.min(isFast ? 0.95 : 1, baseOpacity * (1.35 + activity * (isFast ? 1.1 : 1.8))).toFixed(3)};${(baseOpacity * (isFast ? 0.5 : 0.35)).toFixed(3)}`}
                     dur={`${(pulseDuration + (index % 3) * (isFast ? 0.38 : 1.1)).toFixed(2)}s`}
                     begin={`${((index % 6) * (isFast ? 0.21 : 0.55)).toFixed(2)}s`}
                     repeatCount="indefinite"
@@ -167,21 +171,21 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
                     r={node.radius * 2.7}
                     fill="none"
                     stroke={`url(#${gradientId})`}
-                    strokeWidth={isFast ? 0.7 : 0.9}
-                    opacity={isFast ? 0.36 : 0.5}
+                    strokeWidth={isFast ? 0.9 : 1.1}
+                    opacity={isFast ? 0.5 : 0.68}
                   >
                     {!reduceMotion && (
                       <>
                         <animate
                           attributeName="r"
-                          values={`${(node.radius * 1.85).toFixed(2)};${(node.radius * (3.35 + activity * 1.15)).toFixed(2)};${(node.radius * 1.85).toFixed(2)}`}
+                          values={`${(node.radius * 1.85).toFixed(2)};${(node.radius * (3.6 + activity * 1.25)).toFixed(2)};${(node.radius * 1.85).toFixed(2)}`}
                           dur={`${(pulseDuration + (index % 4) * 0.31).toFixed(2)}s`}
                           begin={`${((index % 5) * 0.25).toFixed(2)}s`}
                           repeatCount="indefinite"
                         />
                         <animate
                           attributeName="opacity"
-                          values={isFast ? "0.07;0.62;0.07" : "0.04;0.9;0.04"}
+                          values={isFast ? "0.1;0.85;0.1" : "0.06;1;0.06"}
                           dur={`${(pulseDuration + (index % 4) * 0.31).toFixed(2)}s`}
                           begin={`${((index % 5) * 0.25).toFixed(2)}s`}
                           repeatCount="indefinite"
@@ -195,13 +199,13 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
                   cy={node.y}
                   r={active ? node.radius : node.radius * 0.72}
                   fill={`url(#${gradientId})`}
-                  opacity={active ? 0.68 + (index % 3) * 0.1 : 0.12}
+                  opacity={active ? 0.82 + (index % 3) * 0.12 : 0.18}
                 >
                   {!reduceMotion && active && index % animatedNodeStride === 0 && (
                     <>
                       <animate
                         attributeName="r"
-                        values={`${(node.radius * (isFast ? 0.92 : 0.85)).toFixed(2)};${(node.radius * (isFast ? 1.2 + activity * 0.2 : 1.75)).toFixed(2)};${(node.radius * (isFast ? 0.92 : 0.85)).toFixed(2)}`}
+                        values={`${(node.radius * (isFast ? 0.92 : 0.85)).toFixed(2)};${(node.radius * (isFast ? 1.28 + activity * 0.22 : 1.9)).toFixed(2)};${(node.radius * (isFast ? 0.92 : 0.85)).toFixed(2)}`}
                         dur={`${(pulseDuration + (index % 5) * (isFast ? 0.22 : 0.9)).toFixed(2)}s`}
                         begin={`${((index % 8) * (isFast ? 0.18 : 0.62)).toFixed(2)}s`}
                         repeatCount="indefinite"
@@ -209,8 +213,8 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
                       <animate
                         attributeName="opacity"
                         values={isFast
-                          ? `${(0.42 + activity * 0.08).toFixed(2)};1;${(0.42 + activity * 0.08).toFixed(2)}`
-                          : `0.22;1;0.22`}
+                          ? `${(0.55 + activity * 0.1).toFixed(2)};1;${(0.55 + activity * 0.1).toFixed(2)}`
+                          : `0.35;1;0.35`}
                         dur={`${(pulseDuration + (index % 5) * (isFast ? 0.22 : 0.9)).toFixed(2)}s`}
                         begin={`${((index % 8) * (isFast ? 0.18 : 0.62)).toFixed(2)}s`}
                         repeatCount="indefinite"
