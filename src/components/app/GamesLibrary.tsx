@@ -110,25 +110,25 @@ const SLOW_SIGNAL_PATHS = [
   "M 14 52 L 34 41 L 62 32 L 88 42 L 107 32",
 ];
 
-// Stylized cerebral hemispheres. Each card shows one lateral half of a brain,
-// split along the medial edge, so the two cards read as left/right counterparts.
-const HALF_BRAIN_PATHS: Record<ThinkingSystem, string> = {
-  fast: "M104 14 C96 8 84 5 72 6 C60 7 48 12 38 20 C30 28 26 36 28 42 C30 48 40 46 48 42 C56 38 64 44 70 52 C76 58 90 56 104 56 L104 14 Z",
-  slow: "M12 14 C20 8 32 5 44 6 C56 7 68 12 78 20 C86 28 90 36 88 42 C86 48 76 46 68 42 C60 38 52 44 46 52 C40 58 26 56 12 56 L12 14 Z",
-};
+// Sagittal half-brain silhouette (frontal lobe facing right, occipital + cerebellum
+// on the left). The "slow" card mirrors it so the two cards read as left/right halves.
+const BRAIN_PATH =
+  "M8 32 C4 24 8 15 16 12 C18 6 26 4 31 8 C35 3 44 3 47 8 C52 4 60 6 62 12 C70 14 74 21 70 27 C74 31 71 36 65 37 C63 42 57 45 51 43 C47 48 38 49 34 44 C29 47 22 45 20 40 C13 40 8 37 8 32 Z";
 
-const HALF_BRAIN_FOLDS: Record<ThinkingSystem, string[]> = {
-  fast: [
-    "M96 18 C84 12 68 10 54 12 C42 14 32 20 26 28",
-    "M24 36 C36 32 50 30 64 34 C76 38 86 46 92 54",
-    "M26 48 C40 44 54 40 66 46 C76 50 88 52 100 50",
-  ],
-  slow: [
-    "M20 18 C32 12 48 10 62 12 C74 14 84 20 90 28",
-    "M92 36 C80 32 66 30 52 34 C40 38 30 46 24 54",
-    "M90 48 C76 44 62 40 50 46 C40 50 28 52 16 50",
-  ],
-};
+const BRAIN_CEREBELLUM =
+  "M12 38 C7 40 5 45 9 49 C13 53 21 53 25 49 C27 46 26 42 22 40 C19 38 15 37 12 38 Z";
+
+const BRAIN_STEM = "M25 48 C27 52 28 55 31 58";
+
+const BRAIN_FOLDS = [
+  "M16 16 C26 14 40 15 52 20",
+  "M12 27 C24 24 40 26 56 31",
+  "M22 38 C30 35 42 36 50 40",
+  "M9 43 C14 42 20 43 24 46",
+  "M11 48 C16 47 21 48 24 50",
+];
+
+
 
 function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const reduceMotion = useReducedMotion();
@@ -141,9 +141,12 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const pulseDuration = isFast ? 1.55 : 5.2;
   const nodes = isFast ? FAST_NODES : SLOW_NODES;
   const connections = isFast ? FAST_CONNECTIONS : SLOW_CONNECTIONS;
-  const brainPath = HALF_BRAIN_PATHS[system];
-  const folds = HALF_BRAIN_FOLDS[system];
-  const medialX = isFast ? 104 : 12;
+  const brainPath = BRAIN_PATH;
+  const folds = BRAIN_FOLDS;
+  const brainTransform = isFast
+    ? "translate(19,4)"
+    : "translate(97,4) scale(-1,1)";
+
 
   return (
     <div className="pointer-events-none relative h-[68px] w-[116px] shrink-0" aria-hidden="true">
@@ -161,13 +164,14 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
             <feGaussianBlur stdDeviation={isFast ? "4.2" : "3.4"} />
           </filter>
           <clipPath id={brainClipId}>
-            <path d={brainPath} />
+            <path d={brainPath} transform={brainTransform} />
           </clipPath>
         </defs>
 
         <g clipPath={`url(#${brainClipId})`}>
           <motion.path
             d={brainPath}
+            transform={brainTransform}
             fill={`url(#${gradientId})`}
             filter={`url(#${softGlowId})`}
             animate={reduceMotion ? undefined : {
@@ -339,38 +343,49 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
           )}
         </g>
 
-        <motion.path
-          d={brainPath}
-          stroke={`url(#${gradientId})`}
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          animate={reduceMotion ? undefined : {
-            opacity: isFast ? [0.7, 1, 0.7] : [0.65, 0.95, 0.65],
-          }}
-          transition={reduceMotion ? undefined : {
-            duration: pulseDuration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          style={reduceMotion ? { opacity: 0.85 } : undefined}
-        />
+        <g transform={brainTransform}>
+          <motion.path
+            d={brainPath}
+            stroke={`url(#${gradientId})`}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            animate={reduceMotion ? undefined : {
+              opacity: isFast ? [0.7, 1, 0.7] : [0.65, 0.95, 0.65],
+            }}
+            transition={reduceMotion ? undefined : {
+              duration: pulseDuration,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            style={reduceMotion ? { opacity: 0.85 } : undefined}
+          />
 
-        <g stroke={`url(#${gradientId})`} strokeWidth="1.15" opacity={isFast ? 0.55 : 0.6} fill="none">
-          {folds.map((fold) => <path key={fold} d={fold} />)}
+          <path
+            d={BRAIN_CEREBELLUM}
+            stroke={`url(#${gradientId})`}
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+            fill="none"
+            opacity="0.85"
+          />
+
+          <path
+            d={BRAIN_STEM}
+            stroke={`url(#${gradientId})`}
+            strokeWidth="2"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.8"
+          />
+
+
+          <g stroke={`url(#${gradientId})`} strokeWidth="1" opacity="0.5" fill="none" strokeLinecap="round">
+            {folds.map((fold) => <path key={fold} d={fold} />)}
+          </g>
         </g>
 
-        <line
-          x1={medialX}
-          y1="10"
-          x2={medialX}
-          y2="56"
-          stroke={`url(#${gradientId})`}
-          strokeWidth="2.0"
-          strokeLinecap="round"
-          opacity="0.85"
-        />
       </svg>
     </div>
   );
